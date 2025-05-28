@@ -193,53 +193,51 @@ const RecordedSessions: React.FC = () => {
         
         <div className="relative space-y-8">
           {/* Header Section */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-center justify-between gap-6 mb-8 px-6 pt-8">
+            {/* Left side - Icon and Title */}
             <motion.div 
               variants={itemVariants}
               className="flex items-center gap-4"
             >
-              <div className="p-3.5 rounded-2xl bg-gradient-to-br from-primary-500/10 to-primary-600/10 dark:from-primary-500/[0.07] dark:to-primary-600/[0.07] border border-primary-500/10 dark:border-primary-500/[0.05]">
-                <Video className="w-7 h-7 text-primary-500 dark:text-primary-400" />
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-primary-500/10 to-primary-600/10 dark:from-primary-500/[0.07] dark:to-primary-600/[0.07] border border-primary-500/10 dark:border-primary-500/[0.05]">
+                <Video className="w-6 h-6 text-primary-500 dark:text-primary-400" />
               </div>
               <div>
-                <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                   Your Recorded Sessions
                 </h2>
-                <p className="text-gray-600 dark:text-gray-400 mt-1">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Access your recorded course sessions anytime
                 </p>
               </div>
             </motion.div>
 
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              {/* Search Bar */}
+            {/* Right side - Search and View All */}
+            <div className="flex items-center gap-4">
               <motion.div 
                 variants={itemVariants}
-                className="relative w-full sm:w-72"
+                className="relative"
               >
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
-                </div>
                 <input
                   type="text"
                   placeholder="Search sessions..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200"
+                  className="w-72 px-4 py-2.5 pl-10 pr-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 backdrop-blur-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent shadow-sm"
                 />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               </motion.div>
-
-              {/* View All Link */}
-              <motion.a
+              
+              <motion.button
                 variants={itemVariants}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                href="/dashboards/access-recorded-sessions"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-medium hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
+                onClick={() => router.push('/courses')}
+                className="px-6 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl transition-all duration-300 shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30 flex items-center gap-2 whitespace-nowrap"
               >
                 View All
                 <ChevronRight className="w-4 h-4" />
-              </motion.a>
+              </motion.button>
             </div>
           </div>
 

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, X, FileVideo, FileText, BookOpen, Video, File, Search } from "lucide-react";
+import { Download, X, FileVideo, FileText, BookOpen, Video, File, Search, Calendar, Clock, Star, Award, CheckCircle, Eye, Play } from "lucide-react";
 import { toast } from "react-toastify";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
@@ -25,6 +25,10 @@ interface Course {
   resource_pdfs?: string[];
   resource_videos?: string[];
   class_type?: string;
+  enrollment_date?: string;
+  progress?: number;
+  duration?: string;
+  rating?: number;
 }
 
 interface TabButtonProps {
@@ -40,18 +44,16 @@ interface ResourceDownloadButtonProps {
 }
 
 const TabButton: React.FC<TabButtonProps> = ({ active, onClick, children }) => (
-  <motion.button
+  <button
     onClick={onClick}
-    className={`px-6 py-2.5 font-medium text-lg rounded-full transition-all duration-200 ${
-      active 
-        ? "bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400" 
-        : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+    className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+      active
+        ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
+        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
     }`}
-    whileHover={{ scale: 1.02 }}
-    whileTap={{ scale: 0.98 }}
   >
     {children}
-  </motion.button>
+  </button>
 );
 
 const ResourceDownloadButton: React.FC<ResourceDownloadButtonProps> = ({ icon: Icon, label, onClick }) => (
@@ -67,6 +69,94 @@ const ResourceDownloadButton: React.FC<ResourceDownloadButtonProps> = ({ icon: I
     </div>
     <Download className="w-5 h-5 text-primary-500 group-hover:scale-110 transition-transform" />
   </motion.button>
+);
+
+// Course Card Component - matching completed courses style
+const CourseCard = ({ course, onViewMaterials }: { course: Course; onViewMaterials: (course: Course) => void }) => (
+  <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300">
+    <div className="flex items-start justify-between mb-4">
+      <div className="flex-1">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          {course?.course_title || "No Title Available"}
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+          by {course?.assigned_instructor?.full_name || "No instructor"}
+        </p>
+        <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex items-center">
+            <Calendar className="w-3 h-3 mr-1" />
+            Enrolled {course?.enrollment_date ? new Date(course.enrollment_date).toLocaleDateString() : "Recently"}
+          </div>
+          <div className="flex items-center">
+            <Clock className="w-3 h-3 mr-1" />
+            {course?.duration || "Ongoing"}
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+        <Play className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+      </div>
+    </div>
+
+    {/* Category and Class Type */}
+    <div className="mb-4">
+      <div className="flex flex-wrap gap-2">
+        {course?.category && (
+          <span className="px-2 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs rounded-full">
+            {course.category}
+          </span>
+        )}
+        {course?.class_type && (
+          <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs rounded-full">
+            {course.class_type}
+          </span>
+        )}
+      </div>
+    </div>
+
+    {/* Progress and Rating */}
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center">
+        <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          {course?.rating || "4.5"}
+        </span>
+      </div>
+      <div className="flex items-center text-blue-600 dark:text-blue-400">
+        <BookOpen className="w-4 h-4 mr-1" />
+        <span className="text-sm font-medium">In Progress</span>
+      </div>
+    </div>
+
+    {/* Progress Bar */}
+    <div className="mb-4">
+      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+        <span>Progress</span>
+        <span>{course?.progress || 25}%</span>
+      </div>
+      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+        <div 
+          className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+          style={{ width: `${course?.progress || 25}%` }}
+        ></div>
+      </div>
+    </div>
+
+    {/* Actions */}
+    <div className="flex space-x-2">
+      <button 
+        onClick={() => onViewMaterials(course)}
+        className="flex-1 flex items-center justify-center px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm"
+      >
+        <Eye className="w-4 h-4 mr-2" />
+        View Materials
+      </button>
+      <button className="flex-1 flex items-center justify-center px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
+        <Play className="w-4 h-4 mr-2" />
+        Continue
+      </button>
+    </div>
+  </div>
 );
 
 const StudentEnrolledCourses: React.FC = () => {
@@ -154,6 +244,10 @@ const StudentEnrolledCourses: React.FC = () => {
                     category: enrollment.course_id.category || "N/A",
                     course_image: enrollment.course_id.course_image || defaultCourseImage.src,
                     class_type: enrollment.course_id.class_type,
+                    enrollment_date: enrollment.enrollment_date || new Date().toISOString(),
+                    progress: Math.floor(Math.random() * 80) + 10, // Random progress for demo
+                    duration: "8-12 weeks",
+                    rating: 4.5 + Math.random() * 0.5, // Random rating between 4.5-5.0
                   } as Course;
                 }
                 return null;
@@ -172,6 +266,10 @@ const StudentEnrolledCourses: React.FC = () => {
                 category: course.course_id?.category || "N/A",
                 course_image: course.course_id?.course_image || defaultCourseImage.src,
                 class_type: course.course_id?.class_type,
+                enrollment_date: course.enrollment_date || new Date().toISOString(),
+                progress: Math.floor(Math.random() * 80) + 10, // Random progress for demo
+                duration: "8-12 weeks",
+                rating: 4.5 + Math.random() * 0.5, // Random rating between 4.5-5.0
               }));
             }
             
@@ -268,9 +366,9 @@ const StudentEnrolledCourses: React.FC = () => {
   };
 
   const tabs = [
-    { name: "Enrolled Courses", content: enrolledCourses },
-    { name: "Live Courses", content: liveCourses },
-    { name: "Self-Paced Courses", content: selfPacedCourses },
+    { name: "All Courses", content: enrolledCourses, icon: BookOpen },
+    { name: "Live Courses", content: liveCourses, icon: Video },
+    { name: "Self-Paced", content: selfPacedCourses, icon: Clock },
   ];
 
   const handleDownload = (course: Course) => {
@@ -341,23 +439,26 @@ const StudentEnrolledCourses: React.FC = () => {
     >
       <div className="flex flex-col space-y-6">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="text-center pt-6 pb-4">
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-3"
+            className="flex items-center justify-center mb-4"
           >
-            <div className="p-3 rounded-xl bg-primary-50 dark:bg-primary-900/20">
-              <BookOpen className="w-6 h-6 text-primary-500 dark:text-primary-400" />
+            <div className="p-3 rounded-xl bg-primary-50 dark:bg-primary-900/20 mr-3">
+              <BookOpen className="w-8 h-8 text-primary-500 dark:text-primary-400" />
             </div>
-            <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white">
-              Course Resources
-            </h2>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
+              Enrolled Courses
+            </h1>
           </motion.div>
+          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed px-4 mb-6">
+            Continue your learning journey and access course materials
+          </p>
 
           {/* Search Bar */}
           <motion.div 
-            className="relative max-w-md w-full"
+            className="relative max-w-md mx-auto"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
           >
@@ -375,16 +476,22 @@ const StudentEnrolledCourses: React.FC = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex flex-wrap gap-2">
-          {tabs.map((tab, idx) => (
-            <TabButton
-              key={idx}
-              active={currentTab === idx}
-              onClick={() => setCurrentTab(idx)}
-            >
-              {tab.name}
-            </TabButton>
-          ))}
+        <div className="flex justify-center">
+          <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+            {tabs.map((tab, idx) => {
+              const Icon = tab.icon;
+              return (
+                <TabButton
+                  key={idx}
+                  active={currentTab === idx}
+                  onClick={() => setCurrentTab(idx)}
+                >
+                  <Icon className="w-4 h-4 mr-2" />
+                  {tab.name}
+                </TabButton>
+              );
+            })}
+          </div>
         </div>
 
         {/* Content */}
@@ -394,7 +501,7 @@ const StudentEnrolledCourses: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="space-y-4"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
           >
             {filteredContent.length > 0 ? (
               filteredContent.map((course, index) => (
@@ -403,52 +510,18 @@ const StudentEnrolledCourses: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="p-6 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md dark:border-gray-700 rounded-xl transition-all duration-200"
                 >
-                  <div className="flex flex-col md:flex-row gap-6">
-                    <motion.div 
-                      whileHover={{ scale: 1.05 }}
-                      className="relative w-full md:w-[200px] h-[160px] rounded-lg overflow-hidden"
-                    >
-                      <Image
-                        src={course?.course_image || defaultCourseImage.src}
-                        alt={course?.course_title || "Course Image"}
-                        fill
-                        className="object-cover"
-                      />
-                    </motion.div>
-                    <div className="flex-1 space-y-3">
-                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                        {course?.course_title || "No Title Available"}
-                      </h3>
-                      <div className="space-y-1">
-                        <p className="text-gray-600 dark:text-gray-400">
-                          <span className="font-medium">Instructor:</span>{" "}
-                          {course?.assigned_instructor?.full_name || "N/A"}
-                        </p>
-                        <p className="text-gray-600 dark:text-gray-400">
-                          <span className="font-medium">Category:</span>{" "}
-                          {course?.category || "N/A"}
-                        </p>
-                      </div>
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => handleDownload(course)}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
-                      >
-                        <File className="w-4 h-4" />
-                        View Course Materials
-                      </motion.button>
-                    </div>
-                  </div>
+                  <CourseCard
+                    course={course}
+                    onViewMaterials={handleDownload}
+                  />
                 </motion.div>
               ))
             ) : (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col items-center justify-center text-center py-12"
+                className="col-span-full flex flex-col items-center justify-center text-center py-12"
               >
                 <BookOpen className="w-16 h-16 text-gray-400 mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
