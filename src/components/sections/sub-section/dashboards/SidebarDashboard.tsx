@@ -898,6 +898,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           path: formatRoute("admin", "Instuctoremange"),
           icon: <GraduationCap className="w-4 h-4" />
         },
+        
         {
           name: "Add Instructor",
           path: formatRoute("admin", "add-instructor"),
