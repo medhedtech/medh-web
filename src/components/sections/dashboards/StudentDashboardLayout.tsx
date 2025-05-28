@@ -324,7 +324,7 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
   userImage,
   userNotifications,
   userSettings
-}) => {
+}): React.ReactElement => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const contentRef = useRef<HTMLDivElement>(null);
@@ -538,6 +538,11 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
       );
     }
 
+    // If children are provided, render them instead of view-based components
+    if (children) {
+      return children;
+    }
+
     if (currentView === "comingsoon") {
       return (
         <ComingSoonPage 
@@ -662,6 +667,13 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     }
   };
 
+  // Memoize the DashboardComponent to prevent re-renders
+  const MemoizedDashboardComponent = useMemo(() => (
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden elevation-2">
+      <DashboardComponent />
+    </div>
+  ), [currentView, isLoading, children]); // Only re-render when these values change
+
   return (
     <DashboardContext.Provider value={contextValue}>
       <div className="relative bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col pt-16 lg:pt-20">
@@ -679,11 +691,10 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
         <div className="flex flex-1 relative">
           {/* Sidebar - fixed position but no internal scrolling */}
           <div 
-            className={`${isMobile ? 'fixed z-40' : 'fixed lg:relative'} h-full top-16 lg:top-20`}
+            className={`${isMobile ? 'fixed z-40' : 'fixed lg:relative'} h-full top-16 lg:top-20 transition-[width] duration-300 ease-in-out`}
             style={{ 
               height: isMobile ? 'calc(100% - 70px)' : 'calc(100vh - 80px)',
               width: isMobile ? (isSidebarOpen ? '260px' : '0px') : (isSidebarExpanded ? '260px' : '78px'),
-              transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
             }}
           >
             <SidebarDashboard
@@ -718,17 +729,13 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
           </AnimatePresence>
 
           {/* Main Content Area - only this should scroll */}
-          <motion.div 
-            className="flex-1 overflow-y-auto scroll-smooth"
-            variants={contentVariants}
-            initial={isSidebarExpanded ? "expanded" : "collapsed"}
-            animate={isSidebarExpanded ? "expanded" : "collapsed"}
-            style={useMemo(() => ({
+          <div 
+            className="flex-1 overflow-y-auto scroll-smooth transition-[margin,max-width] duration-300 ease-in-out"
+            style={{
               marginLeft: isMobile ? '0px' : '10px',
               width: "100%",
               maxWidth: isSidebarExpanded ? "calc(100% - 270px)" : "calc(100% - 88px)",
-              transition: "max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
-            }), [isMobile, isSidebarExpanded])}
+            }}
           >
             {/* Content with proper padding */}
             <div className="p-4 md:p-6">
@@ -763,14 +770,10 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
                 )}
               </AnimatePresence>
               
-              {/* Using React.memo to prevent content from re-rendering when sidebar changes */}
-              {useMemo(() => (
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden elevation-2">
-                  <DashboardComponent />
-                </div>
-              ), [currentView, isLoading])}
+              {/* Render memoized content */}
+              {MemoizedDashboardComponent}
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Mobile Sidebar Toggle Button */}
