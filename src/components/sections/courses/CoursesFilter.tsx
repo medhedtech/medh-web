@@ -10,10 +10,6 @@ import {
   ChevronDown,
   Zap,
   GraduationCap,
-  LayoutGrid,
-  List,
-  Palette,
-  BookOpen,
   AlertCircle,
   SearchX,
   ChevronRight,
@@ -22,7 +18,7 @@ import {
   Globe,
   Award
 } from "lucide-react";
-import CategoryFilter from "./CategoryFilter";
+import ThreeSectionCategoryFilter from "./ThreeSectionCategoryFilter";
 import Pagination from "@/components/shared/pagination/Pagination";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Preloader2 from "@/components/shared/others/Preloader2";
@@ -104,10 +100,8 @@ interface ICoursesFilterProps {
   hideSearch?: boolean;
   hideSortOptions?: boolean;
   hideFilterBar?: boolean;
-  hideViewModeSwitch?: boolean;
   hideHeader?: boolean;
   hideGradeFilter?: boolean;
-  forceViewMode?: string | null;
   gridColumns?: number;
   itemsPerPage?: number;
   simplePagination?: boolean;
@@ -157,10 +151,10 @@ const DynamicCourseCard = dynamic(() => import("./CourseCard"), {
 // Fallback categories if none provided
 const fallbackCategories: Record<string, string[]> = {
   live: [
-    "AI and Data Science",
-    "Personality Development",
-    "Vedic Mathematics",
-    "Digital Marketing with Data Analytics",
+    // Removed: "AI and Data Science",
+    // Removed: "Personality Development", 
+    // Removed: "Vedic Mathematics",
+    // Removed: "Digital Marketing with Data Analytics",
   ],
   blended: [
     "AI For Professionals",
@@ -179,10 +173,10 @@ const fallbackCategories: Record<string, string[]> = {
     "Technical Skills",
   ],
   all: [
-    "AI and Data Science",
-    "Personality Development",
-    "Vedic Mathematics",
-    "Digital Marketing with Data Analytics",
+    // Removed: "AI and Data Science",
+    // Removed: "Personality Development",
+    // Removed: "Vedic Mathematics", 
+    // Removed: "Digital Marketing with Data Analytics",
     "AI For Professionals",
     "Business And Management",
     "Career Development",
@@ -539,10 +533,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   hideSearch = false,
   hideSortOptions = false,
   hideFilterBar = false,
-  hideViewModeSwitch = false,
   hideHeader = false,
   hideGradeFilter = false,
-  forceViewMode = null,
   gridColumns = 3,
   itemsPerPage = 8,
   simplePagination = false,
@@ -562,11 +554,11 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   const [responsiveGridColumns, setResponsiveGridColumns] = useState<number>(gridColumns);
 
   const [selectedCategory, setSelectedCategory] = useState<string[]>([]);
-  const [selectedGrade, setSelectedGrade] = useState<string>("");
+  const [selectedGrade, setSelectedGrade] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState<string>("newest-first");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [viewMode, setViewMode] = useState<string>(forceViewMode || "grid");
+  const [viewMode] = useState<string>("grid");
   
   const [allCourses, setAllCourses] = useState<ICourse[]>([]);
   const [filteredCourses, setFilteredCourses] = useState<ICourse[]>([]);
@@ -611,13 +603,6 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     setCurrentPage(1);
   }, [searchTerm, selectedCategory, selectedGrade, sortOrder]);
 
-  // Effect to update viewMode if forceViewMode changes
-  useEffect(() => {
-    if (forceViewMode) {
-      setViewMode(forceViewMode);
-    }
-  }, [forceViewMode]);
-
   // Initialize currency on component mount
   useEffect(() => {
     const initializeCurrency = async (): Promise<void> => {
@@ -657,7 +642,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
 
     // Grade
     const urlGrade = searchParams?.get("grade");
-    if (urlGrade) setSelectedGrade(urlGrade);
+    if (urlGrade) setSelectedGrade(urlGrade.split(","));
 
     // Page
     const urlPage = searchParams?.get("page");
@@ -678,7 +663,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     if (filterState.category && !fixedCategory) {
       setSelectedCategory([filterState.category]);
     }
-    if (filterState.grade) setSelectedGrade(filterState.grade);
+    if (filterState.grade) setSelectedGrade(filterState.grade.split(","));
     if (filterState.search) setSearchTerm(filterState.search);
     if (filterState.sort) setSortOrder(filterState.sort);
   }, [searchParams, fixedCategory, filterState]);
@@ -705,8 +690,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
           if (catParam) q.set("category", catParam);
         }
         // Grade
-        if (selectedGrade) {
-          q.set("grade", encodeURIComponent(selectedGrade));
+        if (selectedGrade.length > 0) {
+          q.set("grade", selectedGrade.map(encodeURIComponent).join(","));
         }
         // Search
         if (searchTerm) {
@@ -735,7 +720,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
         const newUrl = newQuery ? `${baseUrl}?${newQuery}` : baseUrl;
         const currentUrl = window.location.pathname + window.location.search;
         if (newUrl !== currentUrl) {
-          router.push(newUrl, { shallow: true });
+          router.push(newUrl);
         }
       }
     }, 300);
@@ -788,8 +773,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
       }
 
       // Add grade if selected
-      if (selectedGrade) {
-        searchParams.course_grade = selectedGrade;
+      if (selectedGrade.length > 0) {
+        searchParams.course_grade = selectedGrade.join(",");
       }
 
       // Add class type if specified
@@ -948,8 +933,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     [fixedCategory]
   );
 
-  const handleGradeChange = useCallback((grade: string) => {
-    setSelectedGrade(grade);
+  const handleGradeChange = useCallback((grades: string[]) => {
+    setSelectedGrade(grades);
     setCurrentPage(1);
   }, []);
 
@@ -980,7 +965,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     } else {
       setSelectedCategory([]);
     }
-    setSelectedGrade("");
+    setSelectedGrade([]);
     setSearchTerm("");
     setSortOrder("newest-first");
     setCurrentPage(1);
@@ -998,7 +983,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
           setSelectedCategory((prev) => prev.filter((c) => c !== val));
           break;
         case "grade":
-          setSelectedGrade("");
+          setSelectedGrade(prev => prev.filter(g => g !== val));
           break;
         case "search":
           setSearchTerm("");
@@ -1061,11 +1046,13 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
       });
     }
     // grade
-    if (selectedGrade) {
-      newFilters.push({
-        type: "grade",
-        label: `Grade: ${selectedGrade}`,
-        value: selectedGrade,
+    if (selectedGrade.length > 0) {
+      selectedGrade.forEach((grade) => {
+        newFilters.push({
+          type: "grade",
+          label: `Grade: ${grade}`,
+          value: grade,
+        });
       });
     }
     // sort
@@ -1210,31 +1197,171 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
       return emptyStateContent || renderNoResults();
     }
 
-    const gridClasses = viewMode === "grid" 
-      ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-      : "space-y-4";
-
     return (
-      <div className={gridClasses}>
-        {filteredCourses.map((course) => {
-          const enhancedCourse = renderCourse(course);
-          
-          return (
-            <ErrorBoundary key={enhancedCourse._id}>
-              <MemoizedCourseCard 
-                course={enhancedCourse}
-                viewMode={viewMode}
-                isCompact={isMobile}
-                preserveClassType={true}
-                classType={classType || enhancedCourse.class_type}
-                className={viewMode === "list" ? "border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200" : ""}
-              />
-            </ErrorBoundary>
-          );
-        })}
+      <div className="relative">
+        {/* Scroll Progress Indicator */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden z-10">
+          <div 
+            className="h-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-300 ease-out"
+            style={{
+              width: '0%',
+              animation: 'scrollProgress 0.3s ease-out',
+            }}
+            id="scroll-progress"
+          />
+        </div>
+
+        {/* Scrollable Course Cards Container */}
+        <div 
+          className="overflow-y-auto max-h-[75vh] pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-800"
+          style={{
+            scrollBehavior: 'smooth',
+            scrollbarWidth: 'thin',
+          }}
+          onScroll={(e) => {
+            const container = e.target as HTMLElement;
+            const scrollTop = container.scrollTop;
+            const scrollHeight = container.scrollHeight - container.clientHeight;
+            const scrollProgress = (scrollTop / scrollHeight) * 100;
+            
+            const progressBar = document.getElementById('scroll-progress');
+            if (progressBar) {
+              progressBar.style.width = `${scrollProgress}%`;
+            }
+          }}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-6 pt-4">
+            {filteredCourses.map((course, index) => {
+              const enhancedCourse = renderCourse(course);
+              
+              return (
+                <ErrorBoundary key={enhancedCourse._id}>
+                  <div
+                    className="transform transition-all duration-500 hover:scale-105 hover:z-10 opacity-0"
+                    style={{
+                      animationDelay: `${index * 150}ms`,
+                      animation: 'fadeInUp 0.8s ease-out forwards',
+                    }}
+                  >
+                    <MemoizedCourseCard
+                      key={enhancedCourse._id}
+                      course={enhancedCourse}
+                      viewMode="grid"
+                      isCompact={isMobile}
+                      preserveClassType={true}
+                      classType={classType || enhancedCourse.class_type}
+                    />
+                  </div>
+                </ErrorBoundary>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Enhanced Custom CSS for animations and scrollbar */}
+        <style jsx>{`
+          @keyframes fadeInUp {
+            from {
+              opacity: 0;
+              transform: translateY(40px) scale(0.95);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+            }
+          }
+
+          @keyframes scrollProgress {
+            from {
+              transform: scaleX(0);
+            }
+            to {
+              transform: scaleX(1);
+            }
+          }
+
+          .scrollbar-thin {
+            scrollbar-width: thin;
+          }
+
+          .scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #d1d5db 0%, #9ca3af 100%);
+            border-radius: 8px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+          }
+
+          .scrollbar-track-gray-100::-webkit-scrollbar-track {
+            background-color: #f3f4f6;
+            border-radius: 8px;
+          }
+
+          .dark .scrollbar-thumb-gray-600::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #4b5563 0%, #374151 100%);
+          }
+
+          .dark .scrollbar-track-gray-800::-webkit-scrollbar-track {
+            background-color: #1f2937;
+          }
+
+          ::-webkit-scrollbar {
+            width: 10px;
+          }
+
+          ::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            border-radius: 8px;
+            margin: 4px;
+          }
+
+          ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #d1d5db 0%, #9ca3af 100%);
+            border-radius: 8px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+          }
+
+          ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #9ca3af 0%, #6b7280 100%);
+          }
+
+          .dark ::-webkit-scrollbar-track {
+            background: #1f2937;
+          }
+
+          .dark ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #4b5563 0%, #374151 100%);
+          }
+
+          .dark ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #6b7280 0%, #4b5563 100%);
+          }
+
+          /* Smooth scroll behavior for the entire container */
+          .overflow-y-auto {
+            scroll-behavior: smooth;
+          }
+
+          /* Add subtle shadow to indicate scrollable content */
+          .overflow-y-auto::before {
+            content: '';
+            position: sticky;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.8), transparent);
+            z-index: 10;
+            pointer-events: none;
+          }
+
+          .dark .overflow-y-auto::before {
+            background: linear-gradient(to bottom, rgba(17,24,39,0.8), transparent);
+          }
+        `}</style>
       </div>
     );
-  }, [loading, filteredCourses, viewMode, isMobile, renderCourse, classType, itemsPerPage, emptyStateContent, renderNoResults]);
+  }, [loading, filteredCourses, isMobile, renderCourse, classType, itemsPerPage, emptyStateContent, renderNoResults]);
 
   // Modern sidebar renderer
   const renderSidebar = (): React.ReactNode => {
@@ -1242,7 +1369,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     
     return (
       <div className={`lg:w-1/4 ${showFilters ? "block" : "hidden lg:block"}`}>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 sticky top-6">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Filters</h3>
             <button
@@ -1253,73 +1380,22 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             </button>
           </div>
           
-          {/* Categories */}
+          {/* Categories - Four Section Filter */}
           {!hideCategoryFilter && !hideCategories && (
             <div className="mb-8">
               <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-4">Categories</h4>
-              <CategoryFilter
-                categories={availableCategories || fallbackCategories[classType] || fallbackCategories.all}
+              <ThreeSectionCategoryFilter
                 selectedCategory={selectedCategory}
                 setSelectedCategory={handleCategoryChange}
+                selectedGrade={selectedGrade}
+                setSelectedGrade={handleGradeChange}
+                onSectionChange={(section) => {
+                  // Optional: Handle section-specific filtering
+                  console.log('Section changed:', section);
+                }}
               />
             </div>
           )}
-          
-          {/* Grade Filter */}
-          {!hideGradeFilter && (
-            <div className="mb-8">
-              <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-4">Grade Level</h4>
-              <div className="space-y-3">
-                {[
-                  "Preschool",
-                  "Grade 1-2", 
-                  "Grade 3-4",
-                  "Grade 5-6",
-                  "Grade 7-8",
-                  "Grade 9-10",
-                  "Grade 11-12",
-                  "UG - Graduate - Professionals"
-                ].map((grade) => (
-                  <label key={grade} className="flex items-center space-x-3 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="grade"
-                      value={grade}
-                      checked={selectedGrade === grade}
-                      onChange={() => handleGradeChange(grade)}
-                      className="w-4 h-4 text-purple-600 border-gray-300 focus:ring-purple-500"
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
-                      {grade}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          {/* Features */}
-          <div>
-            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-4">Features</h4>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3 text-gray-600 dark:text-gray-400">
-                <Award size={16} className="text-purple-500" />
-                <span className="text-sm">Certification</span>
-              </div>
-              <div className="flex items-center space-x-3 text-gray-600 dark:text-gray-400">
-                <Target size={16} className="text-blue-500" />
-                <span className="text-sm">Assignments</span>
-              </div>
-              <div className="flex items-center space-x-3 text-gray-600 dark:text-gray-400">
-                <Globe size={16} className="text-green-500" />
-                <span className="text-sm">Global Access</span>
-              </div>
-              <div className="flex items-center space-x-3 text-gray-600 dark:text-gray-400">
-                <Sparkles size={16} className="text-yellow-500" />
-                <span className="text-sm">Interactive</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     );
@@ -1329,66 +1405,74 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   const renderMainContent = (): React.ReactNode => {
     return (
       <div className={!hideCategoryFilter ? "lg:w-3/4" : "w-full"}>
-        {/* Results count */}
-        {!hideFilterBar && (
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
-            <div className="text-gray-600 dark:text-gray-400 mb-4 sm:mb-0">
-              <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {totalItems}
-              </span>
-              <span className="ml-2 text-lg">
-                {totalItems === 1 ? 'course found' : 'courses found'}
-              </span>
-              {showingRelated && (
-                <button
-                  onClick={clearRelated}
-                  className="ml-4 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 underline"
-                >
-                  Back to All
-                </button>
-              )}
+        {/* Fixed Header Section */}
+        <div className="sticky top-0 z-20 bg-white dark:bg-gray-900 pb-4">
+          {/* Results count */}
+          {!hideFilterBar && (
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+              <div className="text-gray-600 dark:text-gray-400 mb-4 sm:mb-0">
+                <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {totalItems}
+                </span>
+                <span className="ml-2 text-lg">
+                  {totalItems === 1 ? 'course found' : 'courses found'}
+                </span>
+                {showingRelated && (
+                  <button
+                    onClick={clearRelated}
+                    className="ml-4 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 underline"
+                  >
+                    Back to All
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Error state */}
-        {queryError && (
-          <div className="flex flex-col items-center justify-center py-16 px-4 border border-red-200 dark:border-red-800 rounded-2xl bg-red-50 dark:bg-red-900/10 text-center mb-8">
-            <AlertCircle size={48} className="text-red-500 dark:text-red-400 mb-4" />
-            <h3 className="text-xl font-semibold text-red-700 dark:text-red-300 mb-2">Error Loading Courses</h3>
-            <p className="text-red-600 dark:text-red-400 max-w-md mb-6">
-              {queryError}
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-colors"
-            >
-              Refresh Page
-            </button>
-          </div>
-        )}
+          {/* Error state */}
+          {queryError && (
+            <div className="flex flex-col items-center justify-center py-16 px-4 border border-red-200 dark:border-red-800 rounded-2xl bg-red-50 dark:bg-red-900/10 text-center mb-6">
+              <AlertCircle size={48} className="text-red-500 dark:text-red-400 mb-4" />
+              <h3 className="text-xl font-semibold text-red-700 dark:text-red-300 mb-2">Error Loading Courses</h3>
+              <p className="text-red-600 dark:text-red-400 max-w-md mb-6">
+                {queryError}
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-colors"
+              >
+                Refresh Page
+              </button>
+            </div>
+          )}
+        </div>
 
-        {renderCourseList()}
+        {/* Scrollable Course Cards Section */}
+        <div className="relative">
+          {renderCourseList()}
+        </div>
 
-        {/* Pagination */}
+        {/* Fixed Pagination Section */}
         {totalPages > 1 && (
-          <nav className="mt-12 flex justify-center" aria-label="Pagination">
-            {simplePagination ? (
-              <SimplePaginationWrapper
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-                simplified={true}
-              />
-            ) : (
-              <SimplePaginationWrapper
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-                simplified={false}
-              />
-            )}
-          </nav>
+          <div className="sticky bottom-0 z-20 bg-white dark:bg-gray-900 pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
+            <nav className="flex justify-center" aria-label="Pagination">
+              {simplePagination ? (
+                <SimplePaginationWrapper
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  simplified={true}
+                />
+              ) : (
+                <SimplePaginationWrapper
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  simplified={false}
+                />
+              )}
+            </nav>
+          </div>
         )}
       </div>
     );
@@ -1411,47 +1495,24 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
 
         {/* Main container */}
         <div className="max-w-7xl mx-auto px-4">
-          {/* Search and filters bar */}
+          {/* Fixed Search and filters bar */}
           {!hideFilterBar && (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 mb-8 border border-gray-200 dark:border-gray-700">
+            <div className="sticky top-0 z-30 bg-white dark:bg-gray-800 rounded-2xl p-6 mb-8 border border-gray-200 dark:border-gray-700 shadow-sm">
               <div className="flex flex-col md:flex-row gap-4 mb-6">
                 {!hideSearch && <SearchInput searchTerm={searchTerm} handleSearch={handleSearch} setSearchTerm={setSearchTerm} />}
-                {!hideSortOptions && <SortDropdown sortOrder={sortOrder} handleSortChange={handleSortChange} showSortDropdown={showSortDropdown} setShowSortDropdown={setShowSortDropdown} />}
                 
-                {/* View mode toggle */}
-                {!hideViewModeSwitch && (
-                  <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-xl p-1">
-                    <button
-                      onClick={() => setViewMode("grid")}
-                      className={`p-2 rounded-lg transition-all ${
-                        viewMode === "grid"
-                          ? "bg-white dark:bg-gray-600 text-purple-600 dark:text-purple-400 shadow-sm"
-                          : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                      }`}
-                    >
-                      <LayoutGrid size={20} />
-                    </button>
-                    <button
-                      onClick={() => setViewMode("list")}
-                      className={`p-2 rounded-lg transition-all ${
-                        viewMode === "list"
-                          ? "bg-white dark:bg-gray-600 text-purple-600 dark:text-purple-400 shadow-sm"
-                          : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                      }`}
-                    >
-                      <List size={20} />
-                    </button>
-                  </div>
-                )}
+                <div className="flex gap-4">
+                  {!hideSortOptions && <SortDropdown sortOrder={sortOrder} handleSortChange={handleSortChange} showSortDropdown={showSortDropdown} setShowSortDropdown={setShowSortDropdown} />}
 
-                {/* Mobile filter toggle */}
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="md:hidden flex items-center justify-center px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                  <Filter size={18} className="mr-2" />
-                  Filters
-                </button>
+                  {/* Filter toggle - now visible on both mobile and desktop */}
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="flex items-center justify-center px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    <Filter size={18} className="mr-2" />
+                    Filters
+                  </button>
+                </div>
               </div>
 
               {/* Active filters */}
@@ -1485,8 +1546,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             </div>
           )}
 
-          {/* Main content area */}
-          <div className="flex flex-col lg:flex-row gap-8">
+          {/* Main content area with dynamic layout */}
+          <div className="flex flex-col lg:flex-row gap-8 relative">
             {renderSidebar()}
             {renderMainContent()}
           </div>

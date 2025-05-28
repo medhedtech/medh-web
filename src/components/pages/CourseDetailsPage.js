@@ -1813,4 +1813,4 @@ const CourseDetailsPage = ({ ...props }) => {
   );
 };
 
-export default CourseDetailsPage; 
+export default CourseDetailsPage;
