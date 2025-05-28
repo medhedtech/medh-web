@@ -5,17 +5,8 @@ import { useRouter } from "next/navigation";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, ChevronLeft, ChevronRight, Loader, Search, AlertCircle, Sparkles, Video, Users, Zap } from "lucide-react";
+import { BookOpen, Loader, Search, AlertCircle, Sparkles, Video, Users, Zap, ArrowRight } from "lucide-react";
 import { getCourseById } from "@/apis/course/course";
-
-// Import Swiper React components
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, A11y } from 'swiper/modules';
-
-// Import Swiper styles
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
 
 // Define TypeScript interfaces
 interface Enrollment {
@@ -532,107 +523,54 @@ const EnrollCourses = () => {
                 className="px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-medium transition-all duration-300 hover:shadow-lg hover:shadow-primary-500/25 flex items-center gap-2"
               >
                 Browse Courses
-                <ChevronRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4" />
               </motion.button>
             )}
           </motion.div>
         ) : (
-          // Swiper Slider Implementation
+          // Grid Layout Implementation
           <motion.div 
             variants={containerVariants}
-            className="relative group"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8"
           >
-            <Swiper
-              modules={[Navigation, Pagination, A11y]}
-              spaceBetween={30} // Spacing between slides
-              slidesPerView={1} // Default for mobile
-              navigation={{
-                nextEl: '.swiper-button-next-custom',
-                prevEl: '.swiper-button-prev-custom',
-              }}
-              pagination={{ 
-                  clickable: true,
-                  dynamicBullets: true,
-              }}
-              breakpoints={{
-                // when window width is >= 640px
-                640: {
-                  slidesPerView: 2,
-                  spaceBetween: 20
-                },
-                // when window width is >= 768px
-                768: {
-                  slidesPerView: 2,
-                  spaceBetween: 30
-                },
-                // when window width is >= 1024px
-                1024: {
-                  slidesPerView: 3,
-                  spaceBetween: 30
-                },
-                 // when window width is >= 1280px
-                 1280: {
-                    slidesPerView: 4,
-                    spaceBetween: 30
-                }
-              }}
-              className="pb-12" // Add padding bottom for pagination bullets
-            >
-              <AnimatePresence>
-                {filteredCourses.map((course) => {
-                  console.log("Rendering course in Swiper:", course);
-                  return (
-                    <SwiperSlide key={course._id} className="h-auto">
-                      <motion.div
-                        variants={cardVariants}
-                        onHoverStart={() => setIsHovered(course._id)}
-                        onHoverEnd={() => setIsHovered(null)}
-                        layout
-                        className="h-full"
-                      >
-                        <EnrollCoursesCard
-                          title={course.course_title}
-                          image={course.course_image}
-                          progress={course.progress}
-                          lastAccessed={course.last_accessed}
-                          status={course.completion_status}
-                          onClick={() => handleCardClick(course.course_id)}
-                          isHovered={isHovered === course._id}
-                          paymentStatus={course.payment_status}
-                          remainingTime={course.remaining_time}
-                          completionCriteria={course.completion_criteria}
-                          completedLessons={course.completed_lessons}
-                          totalLessons={course.lessons?.length || 0}
-                          enrollmentType={course.enrollment_type}
-                          courseId={course.course_id}
-                          typeIcon={getTypeIcon(course.enrollment_type)}
-                          is_certified={course.is_certified}
-                        />
-                      </motion.div>
-                    </SwiperSlide>
-                  );
-                })}
-              </AnimatePresence>
-            </Swiper>
-
-            {/* Custom Navigation Buttons */}
-            <button className="swiper-button-prev-custom absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-8 p-3 bg-white dark:bg-gray-800/80 backdrop-blur-sm rounded-full shadow-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all opacity-0 group-hover:opacity-100 disabled:opacity-30 disabled:cursor-not-allowed z-10">
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button className="swiper-button-next-custom absolute top-1/2 right-0 transform -translate-y-1/2 translate-x-8 p-3 bg-white dark:bg-gray-800/80 backdrop-blur-sm rounded-full shadow-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all opacity-0 group-hover:opacity-100 disabled:opacity-30 disabled:cursor-not-allowed z-10">
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </motion.div>
-        )}
-
-        {/* Display count of courses that failed to load */}
-        {invalidCourses.length > 0 && (
-           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="mt-6 text-center text-xs text-gray-500 dark:text-gray-400"
-          >
-            Note: {invalidCourses.length} course(s) could not be loaded due to missing data or inactive enrollment status.
+            <AnimatePresence>
+              {filteredCourses.map((course, index) => {
+                console.log("Rendering course in grid:", course);
+                return (
+                  <motion.div
+                    key={course._id}
+                    variants={cardVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="hidden"
+                    transition={{ delay: index * 0.1 }}
+                    onHoverStart={() => setIsHovered(course._id)}
+                    onHoverEnd={() => setIsHovered(null)}
+                    layout
+                    className="h-full"
+                  >
+                    <EnrollCoursesCard
+                      title={course.course_title}
+                      image={course.course_image}
+                      progress={course.progress}
+                      lastAccessed={course.last_accessed}
+                      status={course.completion_status}
+                      onClick={() => handleCardClick(course.course_id)}
+                      isHovered={isHovered === course._id}
+                      paymentStatus={course.payment_status}
+                      remainingTime={course.remaining_time}
+                      completionCriteria={course.completion_criteria}
+                      completedLessons={course.completed_lessons}
+                      totalLessons={course.lessons?.length || 0}
+                      enrollmentType={course.enrollment_type}
+                      courseId={course.course_id}
+                      typeIcon={getTypeIcon(course.enrollment_type)}
+                      is_certified={course.is_certified}
+                    />
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </motion.div>
         )}
       </motion.div>
