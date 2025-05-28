@@ -6,74 +6,11 @@ import { apiUtils } from './index';
  * Instructor Assignment Type Definitions
  */
 export type TAssignmentType = 'mentor' | 'tutor' | 'advisor' | 'supervisor';
-export type TBatchStatus = 'Active' | 'Upcoming' | 'Completed' | 'Cancelled';
 export type TEnrollmentType = 'individual' | 'batch' | 'corporate' | 'group' | 'scholarship' | 'trial';
 export type TEnrollmentStatus = 'active' | 'completed' | 'cancelled' | 'on_hold' | 'expired';
 
-/**
- * Batch Management Interfaces
- */
-export interface IBatchSchedule {
-  day: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
-  start_time: string; // Format: "HH:MM"
-  end_time: string;   // Format: "HH:MM"
-}
-
-export interface IBatch {
-  _id?: string;
-  batch_name: string;
-  batch_code?: string;
-  course: string; // Course ID
-  status: TBatchStatus;
-  start_date: Date;
-  end_date: Date;
-  capacity: number;
-  enrolled_students: number;
-  assigned_instructor: string; // Instructor ID
-  schedule: IBatchSchedule[];
-  batch_notes?: string;
-  created_by: string; // Admin user ID
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface IBatchWithDetails extends IBatch {
-  course_details?: {
-    _id: string;
-    course_title: string;
-    course_category: string;
-  };
-  instructor_details?: {
-    _id: string;
-    full_name: string;
-    email: string;
-    phone_number?: string;
-  };
-  available_spots: number;
-}
-
-export interface IBatchCreateInput {
-  batch_name: string;
-  batch_code?: string;
-  start_date: string;
-  end_date: string;
-  capacity: number;
-  assigned_instructor: string;
-  status?: TBatchStatus;
-  batch_notes?: string;
-  schedule: IBatchSchedule[];
-}
-
-export interface IBatchUpdateInput {
-  batch_name?: string;
-  start_date?: string;
-  end_date?: string;
-  capacity?: number;
-  assigned_instructor?: string;
-  status?: TBatchStatus;
-  batch_notes?: string;
-  schedule?: IBatchSchedule[];
-}
+// Re-export batch types from batch.ts to avoid conflicts
+export type { TBatchStatus, IBatchSchedule, IBatchWithDetails, IBatchQueryParams } from './batch';
 
 /**
  * Individual Assignment Interfaces
@@ -178,18 +115,6 @@ export interface IEnrollmentWithDetails extends IEnrollment {
 /**
  * Query Parameters Interfaces
  */
-export interface IBatchQueryParams {
-  page?: number;
-  limit?: number;
-  status?: TBatchStatus;
-  instructor_id?: string;
-  search?: string;
-  start_date_from?: string;
-  start_date_to?: string;
-  sort_by?: string;
-  sort_order?: 'asc' | 'desc';
-}
-
 export interface IAssignmentQueryParams {
   page?: number;
   limit?: number;
@@ -217,21 +142,6 @@ export interface IApiResponse<T = any> {
   };
 }
 
-export interface IBatchStatistics {
-  total_batches: number;
-  active_batches: number;
-  upcoming_batches: number;
-  completed_batches: number;
-  total_enrolled_students: number;
-  average_capacity_utilization: number;
-  instructor_workload: Array<{
-    instructor_id: string;
-    instructor_name: string;
-    active_batches: number;
-    total_students: number;
-  }>;
-}
-
 export interface IAssignmentStatistics {
   total_assignments: number;
   by_type: Record<TAssignmentType, number>;
@@ -246,132 +156,6 @@ export interface IAssignmentStatistics {
 }
 
 /**
- * Batch Management API
- */
-export const batchAPI = {
-  /**
-   * Create a new batch for a course
-   * @param courseId - Course ID
-   * @param batchData - Batch creation data
-   * @returns Promise with created batch response
-   */
-  createBatch: async (courseId: string, batchData: IBatchCreateInput) => {
-    if (!courseId) throw new Error('Course ID cannot be empty');
-    return apiClient.post<IApiResponse<IBatchWithDetails>>(
-      `${apiBaseUrl}/batches/courses/${courseId}/batches`,
-      batchData
-    );
-  },
-
-  /**
-   * Get all batches for a course
-   * @param courseId - Course ID
-   * @param params - Query parameters
-   * @returns Promise with batches list response
-   */
-  getBatchesByCourse: async (courseId: string, params: IBatchQueryParams = {}) => {
-    if (!courseId) throw new Error('Course ID cannot be empty');
-    const queryString = apiUtils.buildQueryString(params);
-    return apiClient.get<IApiResponse<IBatchWithDetails[]>>(
-      `${apiBaseUrl}/batches/courses/${courseId}/batches${queryString}`
-    );
-  },
-
-  /**
-   * Get batch details by ID
-   * @param batchId - Batch ID
-   * @returns Promise with batch details response
-   */
-  getBatchById: async (batchId: string) => {
-    if (!batchId) throw new Error('Batch ID cannot be empty');
-    return apiClient.get<IApiResponse<IBatchWithDetails>>(
-      `${apiBaseUrl}/batches/${batchId}`
-    );
-  },
-
-  /**
-   * Update batch details
-   * @param batchId - Batch ID
-   * @param updateData - Updated batch data
-   * @returns Promise with updated batch response
-   */
-  updateBatch: async (batchId: string, updateData: IBatchUpdateInput) => {
-    if (!batchId) throw new Error('Batch ID cannot be empty');
-    return apiClient.put<IApiResponse<IBatchWithDetails>>(
-      `${apiBaseUrl}/batches/${batchId}`,
-      updateData
-    );
-  },
-
-  /**
-   * Delete a batch
-   * @param batchId - Batch ID
-   * @returns Promise with deletion response
-   */
-  deleteBatch: async (batchId: string) => {
-    if (!batchId) throw new Error('Batch ID cannot be empty');
-    return apiClient.delete<IApiResponse<{ message: string }>>(
-      `${apiBaseUrl}/batches/${batchId}`
-    );
-  },
-
-  /**
-   * Assign instructor to batch
-   * @param batchId - Batch ID
-   * @param instructorId - Instructor ID
-   * @returns Promise with assignment response
-   */
-  assignInstructorToBatch: async (batchId: string, instructorId: string) => {
-    if (!batchId) throw new Error('Batch ID cannot be empty');
-    if (!instructorId) throw new Error('Instructor ID cannot be empty');
-    return apiClient.put<IApiResponse<IBatchWithDetails>>(
-      `${apiBaseUrl}/batches/${batchId}/assign-instructor/${instructorId}`
-    );
-  },
-
-  /**
-   * Get students in a batch
-   * @param batchId - Batch ID
-   * @param params - Query parameters
-   * @returns Promise with students list response
-   */
-  getBatchStudents: async (batchId: string, params: { page?: number; limit?: number } = {}) => {
-    if (!batchId) throw new Error('Batch ID cannot be empty');
-    const queryString = apiUtils.buildQueryString(params);
-    return apiClient.get<IApiResponse<IEnrollmentWithDetails[]>>(
-      `${apiBaseUrl}/batches/${batchId}/students${queryString}`
-    );
-  },
-
-  /**
-   * Get batch statistics
-   * @param courseId - Optional course ID to filter by
-   * @returns Promise with batch statistics response
-   */
-  getBatchStatistics: async (courseId?: string) => {
-    const params = courseId ? { course_id: courseId } : {};
-    const queryString = apiUtils.buildQueryString(params);
-    return apiClient.get<IApiResponse<IBatchStatistics>>(
-      `${apiBaseUrl}/batches/statistics${queryString}`
-    );
-  },
-
-  /**
-   * Get batches by instructor
-   * @param instructorId - Instructor ID
-   * @param params - Query parameters
-   * @returns Promise with instructor's batches response
-   */
-  getBatchesByInstructor: async (instructorId: string, params: IBatchQueryParams = {}) => {
-    if (!instructorId) throw new Error('Instructor ID cannot be empty');
-    const queryString = apiUtils.buildQueryString({ ...params, instructor_id: instructorId });
-    return apiClient.get<IApiResponse<IBatchWithDetails[]>>(
-      `${apiBaseUrl}/batches/instructor/${instructorId}${queryString}`
-    );
-  }
-};
-
-/**
  * Individual Assignment API
  */
 export const individualAssignmentAPI = {
@@ -382,7 +166,7 @@ export const individualAssignmentAPI = {
    */
   assignInstructorToStudent: async (assignmentData: IIndividualAssignmentInput) => {
     return apiClient.post<IApiResponse<IIndividualAssignment>>(
-      `${apiBaseUrl}/v1/auth/assign-instructor-to-student`,
+      `${apiBaseUrl}/auth/assign-instructor-to-student`,
       assignmentData
     );
   },
@@ -397,7 +181,7 @@ export const individualAssignmentAPI = {
     if (!instructorId) throw new Error('Instructor ID cannot be empty');
     const queryString = apiUtils.buildQueryString(params);
     return apiClient.get<IApiResponse<IInstructorWithStudents>>(
-      `${apiBaseUrl}/v1/auth/instructor-students/${instructorId}${queryString}`
+      `${apiBaseUrl}/auth/instructor-students/${instructorId}${queryString}`
     );
   },
 
@@ -413,7 +197,7 @@ export const individualAssignmentAPI = {
       student_name: string; 
       previous_instructor: { id: string; name: string; email: string; };
     }>>(
-      `${apiBaseUrl}/v1/auth/unassign-instructor-from-student/${studentId}`
+      `${apiBaseUrl}/auth/unassign-instructor-from-student/${studentId}`
     );
   },
 
@@ -425,7 +209,7 @@ export const individualAssignmentAPI = {
   getAllStudentsWithInstructors: async (params: IAssignmentQueryParams = {}) => {
     const queryString = apiUtils.buildQueryString(params);
     return apiClient.get<IApiResponse<IStudentWithAssignment[]>>(
-      `${apiBaseUrl}/v1/auth/get-all-students-with-instructors${queryString}`
+      `${apiBaseUrl}/auth/get-all-students-with-instructors${queryString}`
     );
   },
 
@@ -441,7 +225,7 @@ export const individualAssignmentAPI = {
   }) => {
     if (!studentId) throw new Error('Student ID cannot be empty');
     return apiClient.put<IApiResponse<IIndividualAssignment>>(
-      `${apiBaseUrl}/v1/auth/update-individual-assignment/${studentId}`,
+      `${apiBaseUrl}/auth/update-individual-assignment/${studentId}`,
       updateData
     );
   },
@@ -452,7 +236,7 @@ export const individualAssignmentAPI = {
    */
   getAssignmentStatistics: async () => {
     return apiClient.get<IApiResponse<IAssignmentStatistics>>(
-      `${apiBaseUrl}/v1/auth/assignment-statistics`
+      `${apiBaseUrl}/auth/assignment-statistics`
     );
   },
 
@@ -472,10 +256,10 @@ export const individualAssignmentAPI = {
       batch_assignments: number;
       individual_assignments: number;
       total_students: number;
-      active_batches: IBatchWithDetails[];
+      active_batches: any[];
       assigned_students: IStudentWithAssignment[];
     }>>(
-      `${apiBaseUrl}/v1/auth/instructor-workload/${instructorId}`
+      `${apiBaseUrl}/auth/instructor-workload/${instructorId}`
     );
   }
 };
@@ -576,52 +360,9 @@ export const enrollmentAPI = {
 };
 
 /**
- * Utility Functions
+ * Assignment Utility Functions
  */
-export const instructorAssignmentUtils = {
-  /**
-   * Validate batch schedule for conflicts
-   * @param schedule - Batch schedule array
-   * @returns Validation result
-   */
-  validateBatchSchedule: (schedule: IBatchSchedule[]): { isValid: boolean; errors: string[] } => {
-    const errors: string[] = [];
-    
-    if (!schedule || schedule.length === 0) {
-      errors.push('At least one schedule entry is required');
-      return { isValid: false, errors };
-    }
-
-    schedule.forEach((entry, index) => {
-      const timePattern = /^([01]\d|2[0-3]):([0-5]\d)$/;
-      
-      if (!timePattern.test(entry.start_time)) {
-        errors.push(`Invalid start time format at entry ${index + 1}. Use HH:MM format.`);
-      }
-      
-      if (!timePattern.test(entry.end_time)) {
-        errors.push(`Invalid end time format at entry ${index + 1}. Use HH:MM format.`);
-      }
-      
-      if (entry.start_time >= entry.end_time) {
-        errors.push(`Start time must be before end time at entry ${index + 1}.`);
-      }
-    });
-
-    return { isValid: errors.length === 0, errors };
-  },
-
-  /**
-   * Calculate batch utilization percentage
-   * @param enrolledStudents - Number of enrolled students
-   * @param capacity - Batch capacity
-   * @returns Utilization percentage
-   */
-  calculateBatchUtilization: (enrolledStudents: number, capacity: number): number => {
-    if (capacity === 0) return 0;
-    return Math.round((enrolledStudents / capacity) * 100);
-  },
-
+export const assignmentUtils = {
   /**
    * Format assignment type for display
    * @param type - Assignment type
@@ -638,24 +379,11 @@ export const instructorAssignmentUtils = {
   },
 
   /**
-   * Generate batch code from course and batch name
-   * @param courseName - Course name
-   * @param batchName - Batch name
-   * @returns Generated batch code
-   */
-  generateBatchCode: (courseName: string, batchName: string): string => {
-    const coursePrefix = courseName.split(' ').map(word => word.charAt(0)).join('').toUpperCase();
-    const batchSuffix = batchName.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-    const timestamp = new Date().getFullYear().toString().slice(-2);
-    return `${coursePrefix}-${batchSuffix}-${timestamp}`;
-  },
-
-  /**
    * Check if student can be enrolled in batch
    * @param batch - Batch details
    * @returns Enrollment eligibility
    */
-  canEnrollInBatch: (batch: IBatchWithDetails): { canEnroll: boolean; reason?: string } => {
+  canEnrollInBatch: (batch: any): { canEnroll: boolean; reason?: string } => {
     if (batch.status === 'Cancelled') {
       return { canEnroll: false, reason: 'Batch has been cancelled' };
     }
@@ -674,4 +402,7 @@ export const instructorAssignmentUtils = {
     
     return { canEnroll: true };
   }
-}; 
+};
+
+// Import and re-export batch API and utilities from batch.ts to avoid conflicts
+export { batchAPI, batchUtils as instructorAssignmentUtils } from './batch'; 
