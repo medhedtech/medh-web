@@ -1661,7 +1661,17 @@ const CourseDetailsPage = ({ ...props }) => {
                       
                       {/* Description with improved readability - More Compact */}
                       <div className="text-sm sm:text-base text-gray-700/90 dark:text-gray-300/90 leading-relaxed font-light mt-3">
-                        <p>{courseDetails?.course_description?.slice(0, 180)}{courseDetails?.course_description?.length > 180 ? '...' : ''}</p>
+                        <p>
+                          {(() => {
+                            const description = courseDetails?.course_description;
+                            if (!description || typeof description !== 'string') {
+                              return 'Course description not available.';
+                            }
+                            return description.length > 180 
+                              ? `${description.slice(0, 180)}...` 
+                              : description;
+                          })()}
+                        </p>
                       </div>
                       
                       {/* Premium UI Feature Indicators - More Compact */}
