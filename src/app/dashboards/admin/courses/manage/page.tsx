@@ -35,6 +35,13 @@ import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiUrls } from "@/apis";
 import { useGetQuery, usePostQuery } from "@/hooks";
+import { courseTypesAPI } from "@/apis/courses";
+import type { 
+  ICollaborativeResponse, 
+  TNewCourse, 
+  ILegacyCourse,
+  IAdvancedSearchParams 
+} from "@/apis/courses";
 import InstructorAssignmentModal from "@/components/shared/modals/InstructorAssignmentModal";
 
 // Enhanced Course interface with comprehensive typing
@@ -145,6 +152,7 @@ const ManageCoursesPage: React.FC = () => {
   const [selectedCourses, setSelectedCourses] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
   const [filters, setFilters] = useState<FilterOptions>({
     status: "",
     type: "",
@@ -179,71 +187,136 @@ const ManageCoursesPage: React.FC = () => {
   const { getQuery } = useGetQuery();
   const { postQuery } = usePostQuery();
 
-  // Fetch courses with enhanced error handling
+  // Fetch courses using new collaborative API
   const fetchCourses = useCallback(async () => {
     setLoadingStates(prev => ({ ...prev, courses: true }));
     setError(null);
     
     try {
-      const response = await getQuery({
-        url: apiUrls.courses.getAllCourses,
-        onSuccess: () => {
-          console.log('Courses fetched successfully');
-        },
-        onFail: (error) => {
-          console.error("Error fetching courses:", error);
-          setError('Failed to load courses. Please try again.');
-          toast.error('Failed to load courses. Please try again.');
-        }
+      // Use the new collaborative API to fetch both new and legacy courses
+      const response = await courseTypesAPI.fetchCollaborative({
+        source: 'both',
+        merge_strategy: 'unified',
+        deduplicate: true,
+        include_metadata: true,
+        page: 1,
+        limit: 1000, // Get all courses for admin management
+        sort_by: 'updatedAt',
+        sort_order: 'desc'
       });
       
-      if (response?.data) {
-        let coursesData: Course[] = [];
+      if (response?.data?.success && response.data.data) {
+        const coursesData = Array.isArray(response.data.data) ? response.data.data : [];
         
-        // Handle the new API structure with success, count, and data
-        if (response.data.success && Array.isArray(response.data.data)) {
-          coursesData = response.data.data;
-        } else if (response.data.data && Array.isArray(response.data.data)) {
-          coursesData = response.data.data;
-        } else if (Array.isArray(response.data)) {
-          coursesData = response.data;
-        }
-        
-        // Process and normalize course data
-        const processedCourses = coursesData.map(course => ({
-          ...course,
-          // Normalize date fields
-          created_at: course.createdAt || course.created_at,
-          updated_at: course.updatedAt || course.updated_at || course.createdAt || course.created_at,
-          // Ensure course_type is set
-          course_type: course.course_type || course.category_type || course.course_tag || (course.isFree ? 'free' : 'premium'),
-          // Generate mock metadata if not present
-          meta: course.meta || {
+        // Process and normalize course data for both new and legacy formats
+        const processedCourses: Course[] = coursesData.map((course: TNewCourse | ILegacyCourse) => {
+          // Determine if it's a new course type or legacy course
+          const isNewCourse = 'course_type' in course && ['blended', 'live', 'free'].includes(course.course_type);
+          
+          if (isNewCourse) {
+            const newCourse = course as TNewCourse;
+            return {
+              _id: newCourse._id || '',
+              course_title: newCourse.course_title,
+              course_subtitle: newCourse.course_subtitle,
+              course_category: newCourse.course_category,
+              course_subcategory: newCourse.course_subcategory,
+              course_type: newCourse.course_type,
+              course_tag: newCourse.course_tag,
+              status: newCourse.status || 'Draft',
+              course_image: newCourse.course_image,
+              course_description: newCourse.course_description,
+              course_duration: 'course_duration' in newCourse ? newCourse.course_duration : 
+                              'estimated_duration' in newCourse ? newCourse.estimated_duration : '',
+              session_duration: 'session_duration' in newCourse ? 
+                               (typeof newCourse.session_duration === 'number' ? 
+                                newCourse.session_duration.toString() : newCourse.session_duration) : '',
+              no_of_Sessions: 'total_sessions' in newCourse ? newCourse.total_sessions : 0,
+              prices: newCourse.prices || [],
+              isFree: newCourse.course_type === 'free',
+              language: newCourse.language,
+              course_level: newCourse.course_level,
+              class_type: newCourse.course_type,
+              createdAt: newCourse.createdAt,
+              updatedAt: newCourse.updatedAt,
+              created_at: newCourse.createdAt,
+              updated_at: newCourse.updatedAt,
+              // Generate metadata for new courses
+              meta: {
             enrollments: Math.floor(Math.random() * 100),
             views: Math.floor(Math.random() * 1000),
             ratings: {
               average: Number((Math.random() * 5).toFixed(1)),
               count: Math.floor(Math.random() * 50)
             },
-            revenue: course.isFree ? 0 : Math.floor(Math.random() * 10000),
+                revenue: newCourse.course_type === 'free' ? 0 : Math.floor(Math.random() * 10000),
             completion_rate: Number((Math.random() * 100).toFixed(1))
           }
-        }));
+            } as Course;
+          } else {
+            // Legacy course processing
+            const legacyCourse = course as ILegacyCourse;
+            return {
+              _id: legacyCourse._id || '',
+              course_title: legacyCourse.course_title,
+              course_subtitle: legacyCourse.course_subtitle,
+              course_category: legacyCourse.course_category,
+              course_subcategory: legacyCourse.course_subcategory,
+              course_type: legacyCourse.category_type?.toLowerCase() || 'legacy',
+              course_tag: legacyCourse.course_tag,
+              category_type: legacyCourse.category_type,
+              status: legacyCourse.status || 'Draft',
+              course_image: legacyCourse.course_image,
+              course_description: legacyCourse.course_description,
+              course_duration: legacyCourse.course_duration,
+              session_duration: legacyCourse.session_duration,
+              no_of_Sessions: legacyCourse.no_of_Sessions || 0,
+              course_fee: legacyCourse.prices?.[0]?.individual || 0,
+              prices: legacyCourse.prices || [],
+              isFree: legacyCourse.isFree || legacyCourse.category_type === 'Free',
+              language: legacyCourse.language,
+              course_level: legacyCourse.course_level,
+              class_type: legacyCourse.class_type,
+              classType: legacyCourse.class_type,
+              createdAt: legacyCourse.createdAt,
+              updatedAt: legacyCourse.updatedAt,
+              created_at: legacyCourse.createdAt,
+              updated_at: legacyCourse.updatedAt,
+              // Generate metadata for legacy courses
+              meta: {
+                enrollments: Math.floor(Math.random() * 100),
+                views: Math.floor(Math.random() * 1000),
+                ratings: {
+                  average: Number((Math.random() * 5).toFixed(1)),
+                  count: Math.floor(Math.random() * 50)
+                },
+                revenue: legacyCourse.isFree ? 0 : Math.floor(Math.random() * 10000),
+                completion_rate: Number((Math.random() * 100).toFixed(1))
+              }
+            } as Course;
+          }
+        });
         
         // Extract categories and instructors for filters
         const uniqueCategories = [...new Set(processedCourses.map(course => course.course_category).filter(Boolean))];
-        const uniqueInstructors = processedCourses
-          .map(course => course.assigned_instructor)
-          .filter(Boolean) as CourseInstructor[];
+        const uniqueInstructors: CourseInstructor[] = [];
         
         setCategories(uniqueCategories);
         setInstructors(uniqueInstructors);
         setCourses(processedCourses);
         
-        console.log(`Loaded ${processedCourses.length} courses successfully`);
+        console.log(`Loaded ${processedCourses.length} courses successfully using collaborative API`);
+        
+        // Log performance insights if available
+        if (response.data.metadata) {
+          const insights = courseTypesAPI.utils.extractPerformanceInsights(response.data.metadata);
+          console.log('API Performance:', insights);
+        }
         
         if (processedCourses.length === 0) {
           toast.info('No courses found. Create your first course to get started.');
+        } else {
+          toast.success(`Loaded ${processedCourses.length} courses successfully`);
         }
       } else {
         setError("No data received from courses API");
@@ -256,7 +329,142 @@ const ManageCoursesPage: React.FC = () => {
     } finally {
       setLoadingStates(prev => ({ ...prev, courses: false }));
     }
-  }, [getQuery]);
+  }, []);
+
+  // Advanced search using new API
+  const performAdvancedSearch = useCallback(async (searchQuery: string) => {
+    if (!searchQuery.trim()) {
+      fetchCourses();
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const searchParams: IAdvancedSearchParams = {
+        search: searchQuery,
+        source: 'both',
+        merge_strategy: 'unified',
+        deduplicate: true,
+        include_metadata: true,
+        page: 1,
+        limit: 1000,
+        sort_by: 'updatedAt',
+        sort_order: 'desc'
+      };
+
+      const response = await courseTypesAPI.advancedSearch(searchParams);
+      
+      if (response?.data?.success && response.data.data) {
+        const searchResults = Array.isArray(response.data.data) ? response.data.data : [];
+        
+        // Process search results similar to fetchCourses
+        const processedResults: Course[] = searchResults.map((course: TNewCourse | ILegacyCourse) => {
+          const isNewCourse = 'course_type' in course && ['blended', 'live', 'free'].includes(course.course_type);
+          
+          if (isNewCourse) {
+            const newCourse = course as TNewCourse;
+            return {
+              _id: newCourse._id || '',
+              course_title: newCourse.course_title,
+              course_subtitle: newCourse.course_subtitle,
+              course_category: newCourse.course_category,
+              course_subcategory: newCourse.course_subcategory,
+              course_type: newCourse.course_type,
+              course_tag: newCourse.course_tag,
+              status: newCourse.status || 'Draft',
+              course_image: newCourse.course_image,
+              course_description: newCourse.course_description,
+              course_duration: 'course_duration' in newCourse ? newCourse.course_duration : 
+                              'estimated_duration' in newCourse ? newCourse.estimated_duration : '',
+              session_duration: 'session_duration' in newCourse ? 
+                               (typeof newCourse.session_duration === 'number' ? 
+                                newCourse.session_duration.toString() : newCourse.session_duration) : '',
+              no_of_Sessions: 'total_sessions' in newCourse ? newCourse.total_sessions : 0,
+              prices: newCourse.prices || [],
+              isFree: newCourse.course_type === 'free',
+              language: newCourse.language,
+              course_level: newCourse.course_level,
+              class_type: newCourse.course_type,
+              createdAt: newCourse.createdAt,
+              updatedAt: newCourse.updatedAt,
+              created_at: newCourse.createdAt,
+              updated_at: newCourse.updatedAt,
+              meta: {
+                enrollments: Math.floor(Math.random() * 100),
+                views: Math.floor(Math.random() * 1000),
+                ratings: {
+                  average: Number((Math.random() * 5).toFixed(1)),
+                  count: Math.floor(Math.random() * 50)
+                },
+                revenue: newCourse.course_type === 'free' ? 0 : Math.floor(Math.random() * 10000),
+                completion_rate: Number((Math.random() * 100).toFixed(1))
+              }
+            } as Course;
+          } else {
+            const legacyCourse = course as ILegacyCourse;
+            return {
+              _id: legacyCourse._id || '',
+              course_title: legacyCourse.course_title,
+              course_subtitle: legacyCourse.course_subtitle,
+              course_category: legacyCourse.course_category,
+              course_subcategory: legacyCourse.course_subcategory,
+              course_type: legacyCourse.category_type?.toLowerCase() || 'legacy',
+              course_tag: legacyCourse.course_tag,
+              category_type: legacyCourse.category_type,
+              status: legacyCourse.status || 'Draft',
+              course_image: legacyCourse.course_image,
+              course_description: legacyCourse.course_description,
+              course_duration: legacyCourse.course_duration,
+              session_duration: legacyCourse.session_duration,
+              no_of_Sessions: legacyCourse.no_of_Sessions || 0,
+              course_fee: legacyCourse.prices?.[0]?.individual || 0,
+              prices: legacyCourse.prices || [],
+              isFree: legacyCourse.isFree || legacyCourse.category_type === 'Free',
+              language: legacyCourse.language,
+              course_level: legacyCourse.course_level,
+              class_type: legacyCourse.class_type,
+              classType: legacyCourse.class_type,
+              createdAt: legacyCourse.createdAt,
+              updatedAt: legacyCourse.updatedAt,
+              created_at: legacyCourse.createdAt,
+              updated_at: legacyCourse.updatedAt,
+              meta: {
+                enrollments: Math.floor(Math.random() * 100),
+                views: Math.floor(Math.random() * 1000),
+                ratings: {
+                  average: Number((Math.random() * 5).toFixed(1)),
+                  count: Math.floor(Math.random() * 50)
+                },
+                revenue: legacyCourse.isFree ? 0 : Math.floor(Math.random() * 10000),
+                completion_rate: Number((Math.random() * 100).toFixed(1))
+              }
+            } as Course;
+          }
+        });
+
+        setCourses(processedResults);
+        
+        // Log search performance
+        if (response.data.metadata) {
+          const insights = courseTypesAPI.utils.extractPerformanceInsights(response.data.metadata);
+          console.log('Search Performance:', insights);
+        }
+        
+        // Log facets if available
+        if (response.data.facets) {
+          const parsedFacets = courseTypesAPI.utils.parseFacets(response.data.facets);
+          console.log('Search Facets:', parsedFacets);
+        }
+        
+        toast.success(`Found ${processedResults.length} courses matching "${searchQuery}"`);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      toast.error('Search failed. Please try again.');
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
 
   // Enhanced filtering and sorting
   const processedCourses = useMemo(() => {
@@ -948,14 +1156,38 @@ const ManageCoursesPage: React.FC = () => {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
             {/* Search */}
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 ${isSearching ? 'animate-spin' : ''}`} />
               <input
                 type="text"
-                placeholder="Search courses..."
+                placeholder="Search courses using AI-powered search..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  // Debounce search
+                  const timeoutId = setTimeout(() => {
+                    performAdvancedSearch(e.target.value);
+                  }, 500);
+                  return () => clearTimeout(timeoutId);
+                }}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    performAdvancedSearch(searchTerm);
+                  }
+                }}
+                disabled={isSearching}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
               />
+              {searchTerm && (
+                <button
+                  onClick={() => {
+                    setSearchTerm('');
+                    fetchCourses();
+                  }}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
 
             {/* Controls */}

@@ -24,50 +24,150 @@ import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { getCourseById } from '@/apis/course/course';
 
+interface CourseDescription {
+  program_overview?: string;
+  benefits?: string;
+  learning_objectives?: string[];
+  course_requirements?: string[];
+  target_audience?: string[];
+  _id?: string;
+}
+
+interface CurriculumWeek {
+  id?: string;
+  weekTitle?: string;
+  weekDescription?: string;
+  topics?: any[];
+  lessons?: any[];
+  liveClasses?: any[];
+  sections?: any[];
+  _id?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface CourseMetadata {
+  ratings?: {
+    average: number;
+    count: number;
+  };
+  views?: number;
+  enrollments?: number;
+  lastUpdated?: string;
+}
+
+interface CoursePricing {
+  currency: string;
+  individual: number;
+  batch: number;
+  min_batch_size: number;
+  max_batch_size: number;
+  early_bird_discount: number;
+  group_discount: number;
+  is_active: boolean;
+  _id: string;
+}
+
+interface FinalEvaluation {
+  final_project?: {
+    evaluation_criteria: any[];
+  };
+  has_final_exam?: boolean;
+  has_final_project?: boolean;
+}
+
+interface Certification {
+  is_certified?: boolean;
+  certification_criteria?: {
+    min_assignments_score: number;
+    min_quizzes_score: number;
+    min_attendance: number;
+  };
+}
+
+interface DoubtSessionSchedule {
+  frequency?: string;
+  preferred_days?: string[];
+  preferred_time_slots?: any[];
+}
+
 interface CourseData {
   _id: string;
   course_title?: string;
-  course_description?: string;
+  course_subtitle?: string;
+  course_tag?: string;
+  course_description?: CourseDescription | string;
   course_category?: string;
+  course_subcategory?: string;
   course_grade?: string;
+  course_level?: string;
+  language?: string;
   course_image?: string;
+  brochures?: string[];
   course_duration?: string;
+  session_duration?: string;
   course_fee?: number;
+  course_type?: string;
+  delivery_format?: string;
+  delivery_type?: string;
+  status?: string;
   enrolled_students?: number;
   is_Certification?: string;
   is_Assignments?: string;
   is_Projects?: string;
   is_Quizes?: string;
-  curriculum?: any[];
+  curriculum?: CurriculumWeek[];
   highlights?: any[];
   learning_outcomes?: any[];
   prerequisites?: any[];
   faqs?: any[];
   no_of_Sessions?: number;
-  status?: string;
   isFree?: boolean;
-  prices?: {
-    currency: string;
-    individual: number;
-    batch: number;
-    min_batch_size: number;
-    max_batch_size: number;
-    early_bird_discount: number;
-    group_discount: number;
-    is_active: boolean;
-    _id: string;
-  }[];
+  show_in_home?: boolean;
+  tools_technologies?: any[];
+  course_videos?: any[];
+  resource_videos?: any[];
+  recorded_videos?: any[];
+  resource_pdfs?: any[];
+  course_modules?: any[];
+  bonus_modules?: any[];
+  related_courses?: any[];
+  subtitle_languages?: any[];
+  final_evaluation?: FinalEvaluation;
+  certification?: Certification;
+  doubt_session_schedule?: DoubtSessionSchedule;
+  meta?: CourseMetadata;
+  prices?: CoursePricing[];
+  createdAt?: string;
+  updatedAt?: string;
+  unique_key?: string;
+  slug?: string;
+  _source?: string;
+  __v?: number;
+}
+
+interface ApiResponse {
+  success?: boolean;
+  data?: CourseData;
+  course?: CourseData;
+  source?: string;
 }
 
 interface ProcessedCourse {
   _id: string;
   course_title: string;
+  course_subtitle?: string;
+  course_tag?: string;
   course_description: string;
   long_description: string;
   category: string;
+  subcategory?: string;
   grade: string;
+  level?: string;
+  language?: string;
   thumbnail: string | null;
   course_duration: string;
+  session_duration?: string;
   course_duration_days: number;
   course_fee: number;
   enrolled_students: number;
@@ -75,7 +175,7 @@ interface ProcessedCourse {
   is_Assignments: boolean;
   is_Projects: boolean;
   is_Quizes: boolean;
-  curriculum: any[];
+  curriculum: CurriculumWeek[];
   highlights: any[];
   learning_outcomes: any[];
   prerequisites: any[];
@@ -87,17 +187,20 @@ interface ProcessedCourse {
   classType?: string;
   class_type?: string;
   course_type?: string;
-  prices?: {
-    currency: string;
-    individual: number;
-    batch: number;
-    min_batch_size: number;
-    max_batch_size: number;
-    early_bird_discount: number;
-    group_discount: number;
-    is_active: boolean;
-    _id: string;
-  }[];
+  delivery_format?: string;
+  delivery_type?: string;
+  tools_technologies?: any[];
+  brochures?: string[];
+  course_videos?: any[];
+  resource_videos?: any[];
+  recorded_videos?: any[];
+  final_evaluation?: FinalEvaluation;
+  certification?: Certification;
+  doubt_session_schedule?: DoubtSessionSchedule;
+  meta?: CourseMetadata;
+  prices?: CoursePricing[];
+  _source?: string;
+  batches?: any[]; // For backward compatibility
 }
 
 const CourseView: React.FC = () => {
@@ -183,20 +286,85 @@ const CourseView: React.FC = () => {
             config: {
               params: {} // Currency is now included in the URL, no need for params
             },
-            onSuccess: (response: { course?: CourseData; data?: CourseData } | CourseData) => {
-              const courseData = (response as any)?.course || (response as any)?.data || response;
+            onSuccess: (response: ApiResponse | CourseData) => {
+              // Handle new API response structure with data wrapper
+              const courseData = (response as ApiResponse)?.data || (response as ApiResponse)?.course || response as CourseData;
               
               if (!courseData || !courseData._id) {
                 setError("Course not found or invalid data received");
                 return;
               }
               
-              // Process course data
-              const processedCourse = {
-                ...courseData,
-                batches: courseData.batches?.map((batch: any) => ({
-                  ...batch,
-                  price: batch.prices?.find((p: any) => p.currency.toLowerCase() === userCurrency.toLowerCase())?.amount || batch.price
+              // Process course description - handle both object and string formats
+              let processedDescription = "";
+              let longDescription = "";
+              
+              if (typeof courseData.course_description === 'object' && courseData.course_description) {
+                processedDescription = courseData.course_description.program_overview || "";
+                longDescription = [
+                  courseData.course_description.program_overview,
+                  courseData.course_description.benefits,
+                  courseData.course_description.learning_objectives?.join('\n'),
+                  courseData.course_description.course_requirements?.join('\n'),
+                  courseData.course_description.target_audience?.join('\n')
+                ].filter(Boolean).join('\n\n');
+              } else if (typeof courseData.course_description === 'string') {
+                processedDescription = courseData.course_description;
+                longDescription = courseData.course_description;
+              }
+              
+              // Process course data with new structure
+              const processedCourse: ProcessedCourse = {
+                _id: courseData._id,
+                course_title: courseData.course_title || "Untitled Course",
+                course_subtitle: courseData.course_subtitle,
+                course_tag: courseData.course_tag,
+                course_description: processedDescription,
+                long_description: longDescription,
+                category: courseData.course_category || "General",
+                subcategory: courseData.course_subcategory,
+                grade: courseData.course_grade || courseData.course_level || "All Levels",
+                level: courseData.course_level,
+                language: courseData.language || "English",
+                thumbnail: courseData.course_image || null,
+                course_duration: courseData.course_duration || "Not specified",
+                session_duration: courseData.session_duration,
+                course_duration_days: parseInt(courseData.course_duration?.replace(/\D/g, '') || "0") || 0,
+                course_fee: courseData.course_fee || 0,
+                enrolled_students: courseData.enrolled_students || courseData.meta?.enrollments || 0,
+                is_Certification: courseData.is_Certification === "Yes" || courseData.certification?.is_certified === true,
+                is_Assignments: courseData.is_Assignments === "Yes",
+                is_Projects: courseData.is_Projects === "Yes",
+                is_Quizes: courseData.is_Quizes === "Yes",
+                curriculum: courseData.curriculum || [],
+                highlights: courseData.highlights || [],
+                learning_outcomes: courseData.learning_outcomes || [],
+                prerequisites: courseData.prerequisites || [],
+                faqs: courseData.faqs || [],
+                no_of_Sessions: courseData.no_of_Sessions || 0,
+                status: courseData.status || "Draft",
+                isFree: courseData.isFree || courseData.course_fee === 0,
+                hasFullDetails: true,
+                classType: courseData.course_type || "Live",
+                class_type: courseData.course_type,
+                course_type: courseData.course_type,
+                delivery_format: courseData.delivery_format,
+                delivery_type: courseData.delivery_type,
+                tools_technologies: courseData.tools_technologies || [],
+                brochures: courseData.brochures || [],
+                course_videos: courseData.course_videos || [],
+                resource_videos: courseData.resource_videos || [],
+                recorded_videos: courseData.recorded_videos || [],
+                final_evaluation: courseData.final_evaluation,
+                certification: courseData.certification,
+                doubt_session_schedule: courseData.doubt_session_schedule,
+                meta: courseData.meta,
+                prices: courseData.prices || [],
+                _source: courseData._source || (response as ApiResponse)?.source,
+                // Process batches for backward compatibility
+                batches: courseData.prices?.map((price: CoursePricing) => ({
+                  ...price,
+                  price: price.currency.toLowerCase() === userCurrency.toLowerCase() ? price.batch : price.batch
                 }))
               };
               
@@ -342,12 +510,26 @@ const CourseView: React.FC = () => {
                   Course
                 </span>
               </div>
-              {/* Add Batch Price - Hidden on mobile */}
+              {/* Show price based on course type */}
               {course?.prices && course.prices.length > 0 && (
                 <div className="ml-4 hidden sm:flex items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400 mr-2">Batch Price:</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400 mr-2">
+                    {(course.classType === 'Blended Courses' || 
+                      course.course_type === 'blended' || 
+                      course.course_type === 'Blended' || 
+                      course.class_type === 'Blended Courses') 
+                      ? 'Individual Price:' 
+                      : 'Batch Price:'}
+                  </span>
                   <span className="text-base font-semibold text-emerald-600 dark:text-emerald-400">
-                    {course.prices.find(p => p.currency === userCurrency)?.batch?.toLocaleString('en-IN') || '0'}
+                    {course.prices.find(p => p.currency === userCurrency)
+                      ? ((course.classType === 'Blended Courses' || 
+                          course.course_type === 'blended' || 
+                          course.course_type === 'Blended' || 
+                          course.class_type === 'Blended Courses')
+                          ? course.prices.find(p => p.currency === userCurrency)?.individual?.toLocaleString('en-IN')
+                          : course.prices.find(p => p.currency === userCurrency)?.batch?.toLocaleString('en-IN')) 
+                      : '0'}
                   </span>
                 </div>
               )}
@@ -384,6 +566,7 @@ const CourseView: React.FC = () => {
                         courseId={course._id} 
                         initialActiveSection={activeSection}
                         classType={course.classType || course.class_type || course.course_type || 'Live'}
+                        courseData={course}
                       />
                     </div>
                   )}
@@ -411,16 +594,24 @@ const CourseView: React.FC = () => {
                             course_fee: course.course_fee,
                             curriculum: course.curriculum,
                             classType: course.classType || course.class_type || course.course_type,
-                            meta: {
-                              views: 0 // Add default views if needed
+                            class_type: course.class_type,
+                            course_type: course.course_type,
+                            delivery_format: course.delivery_format,
+                            delivery_type: course.delivery_type,
+                            meta: course.meta || {
+                              ratings: { average: 0, count: 0 },
+                              views: 0,
+                              enrollments: 0
                             },
                             features: [
                               "Live interactive sessions",
-                              "Certificate of completion",
+                              course.is_Certification && "Certificate of completion",
                               "Lifetime access to recordings",
-                              "Hands-on projects & assignments"
-                            ]
-                          }}
+                              course.is_Assignments && "Hands-on assignments",
+                              course.is_Projects && "Real-world projects",
+                              course.is_Quizes && "Interactive quizzes"
+                            ].filter(Boolean) as string[]
+                          } as any}
                           categoryInfo={{
                             primaryColor: 'emerald',
                             colorClass: 'text-emerald-700 dark:text-emerald-300',
@@ -446,7 +637,12 @@ const CourseView: React.FC = () => {
                   <span className="text-xs text-gray-500 dark:text-gray-400">Price</span>
                   <span className="text-base font-semibold text-emerald-600 dark:text-emerald-400">
                     {course.prices && course.prices.length > 0 
-                      ? `₹${course.prices.find(p => p.currency === userCurrency)?.batch?.toLocaleString('en-IN') || '0'}`
+                      ? `₹${(course.classType === 'Blended Courses' || 
+                           course.course_type === 'blended' || 
+                           course.course_type === 'Blended' || 
+                           course.class_type === 'Blended Courses')
+                           ? course.prices.find(p => p.currency === userCurrency)?.individual?.toLocaleString('en-IN') 
+                           : course.prices.find(p => p.currency === userCurrency)?.batch?.toLocaleString('en-IN') || '0'}`
                       : 'Free'}
                   </span>
                 </div>
