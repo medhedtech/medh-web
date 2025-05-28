@@ -128,99 +128,12 @@ const StudentProfilePage: React.FC = () => {
       try {
         setLoading(true);
         
-        // Get user ID from localStorage or session
-        const userDataString = localStorage.getItem('user');
+        // For now, using mock data directly
+        setProfileData(mockProfileData);
+        setLoading(false);
         
-        if (!userDataString) {
-          console.error("User data not found in localStorage");
-          setLoading(false);
-          
-          // Redirect to login page after a short delay
-          setTimeout(() => {
-            window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
-          }, 1500);
-          
-          return; // Don't proceed - component will display error UI and then redirect
-        }
-        
-        let userData;
-        try {
-          userData = JSON.parse(userDataString);
-        } catch (parseError) {
-          console.error("Failed to parse user data from localStorage:", parseError);
-          setLoading(false);
-          return;
-        }
-        
-        const userId = userData?.id || userData?._id;
-        setStudentId(userId);
-        
-        if (!userId) {
-          console.error("User ID not found in parsed user data");
-          setLoading(false);
-          return;
-        }
-        
-        console.log("Fetching profile for user ID:", userId);
-        
-        // Construct full API URL to prevent relative URL issues
-        const fullApiUrl = `${apiBaseUrl}${apiUrls.user.getDetailsbyId}/${userId}`;
-        console.log("API URL:", fullApiUrl);
-        
-        // Fetch user profile data with error handling
-        try {
-          const response = await getQuery({
-            url: fullApiUrl,
-            requireAuth: true,
-            retry: true,
-            debug: true
-          });
-          
-          console.log("Profile API response:", response);
-          
-          if (response.success && response.data) {
-            // Set profile data even before fetching enrollment stats
-            setProfileData(response.data);
-            
-            // Try to fetch enrollment statistics (but don't fail if this fails)
-            try {
-              const enrollmentStatsUrl = `${apiBaseUrl}${apiUrls.enrolledCourses.getEnrollmentCountsByStudent(userId)}`;
-              const enrollmentStatsResponse = await getQuery({
-                url: enrollmentStatsUrl,
-                requireAuth: true
-              });
-              
-              if (enrollmentStatsResponse.success && enrollmentStatsResponse.data) {
-                const statsData = enrollmentStatsResponse.data || {};
-                
-                // Update profile data with enrollment stats
-                setProfileData(prevData => ({
-                  ...prevData,
-                  courses_enrolled: statsData.total || 0,
-                  courses_completed: statsData.completed || 0,
-                  avg_grade: statsData.average_grade || 'N/A',
-                }));
-              }
-            } catch (statsError) {
-              console.warn("Error fetching enrollment stats (continuing with basic profile):", statsError);
-            }
-            
-            // Set notification settings from user preferences if available
-            if (response.data.settings) {
-              setNotifications(response.data.settings.push_notifications !== false);
-              setEmailUpdates(response.data.settings.email_updates !== false);
-            }
-          } else {
-            console.error("API responded with error:", response.message);
-            // Continue to the error UI
-          }
-        } catch (apiError) {
-          console.error("API request failed:", apiError);
-          // Continue to the error UI
-        }
       } catch (error) {
         console.error("Error in profile data fetch workflow:", error);
-      } finally {
         setLoading(false);
       }
     };
@@ -326,7 +239,7 @@ const StudentProfilePage: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
         <div className="text-red-500 mb-4">
-          <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://localhost:3000/dashboards/student/profilehttp://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
