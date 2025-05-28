@@ -21,27 +21,49 @@ import {
   Upload,
   BarChart3,
   UserPlus,
-  UserCheck
+  UserCheck,
+  RefreshCw,
+  CheckCircle,
+  X,
+  EyeIcon,
+  UsersIcon,
+  Edit,
+  Settings2,
+  UserCog,
+  PlayCircle,
+  StopCircle,
+  XCircle,
+  CheckCircle2
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
-import BatchAssignmentModal from '@/components/shared/modals/BatchAssignmentModal';
-import InstructorAssignmentModal from '@/components/shared/modals/InstructorAssignmentModal';
+import UnifiedBatchModal from '@/components/shared/modals/UnifiedBatchModal';
 import BatchStudentEnrollment from '@/components/Dashboard/admin/BatchStudentEnrollment';
 import BatchAnalytics from '@/components/Dashboard/admin/BatchAnalytics';
 import { 
   batchAPI, 
-  instructorAssignmentUtils,
+  batchUtils,
   type IBatchWithDetails,
   type IBatchQueryParams,
-  type TBatchStatus 
-} from '@/apis/instructor-assignments';
+  type TBatchStatus,
+  type TBatchType,
+  type IIndividualBatchCreateInput
+} from '@/apis/batch';
+import { courseAPI, courseTypesAPI } from '@/apis/courses';
+import type { ILiveCourse } from '@/apis/courses';
+import { individualAssignmentAPI } from '@/apis/instructor-assignments';
+import { apiClient } from '@/apis/apiClient';
+import { apiUrls, apiBaseUrl } from '@/apis/index';
+import InstructorAssignmentModal from '@/components/shared/modals/InstructorAssignmentModal';
 
+// Updated interface to match live course structure
 interface ICourse {
   _id: string;
   course_title: string;
   course_category: string;
   course_image?: string;
+  course_type?: 'live';
+  class_type?: string;
 }
 
 interface IInstructor {
@@ -51,29 +73,90 @@ interface IInstructor {
   phone_number?: string;
 }
 
+// Updated interface to match API response
+interface IBatchResponse {
+  success: boolean;
+  count: number;
+  totalBatches: number;
+  totalPages: number;
+  currentPage: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  data: IBatchFromAPI[];
+}
+
+// Updated interface to handle instructor object
+interface IBatchFromAPI {
+  _id: string;
+  batch_name: string;
+  batch_code?: string;
+  course: {
+    _id: string;
+    course_category: string;
+    course_title: string;
+    course_image?: string;
+  };
+  status: TBatchStatus;
+  batch_type?: TBatchType;
+  start_date: string;
+  end_date: string;
+  capacity: number;
+  enrolled_students: number;
+  assigned_instructor: {
+    _id: string;
+    full_name: string;
+    email: string;
+    phone_numbers?: Array<{
+      country: string;
+      number: string;
+    }>;
+  } | string | null;
+  schedule: Array<{
+    day: string;
+    start_time: string;
+    end_time: string;
+    _id: string;
+  }>;
+  batch_notes?: string;
+  student_id?: string;
+  created_by: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Add payment plan type
+type TPaymentPlan = 'full_payment' | 'installment';
+
 const BatchManagementPage: React.FC = () => {
   // State Management
-  const [batches, setBatches] = useState<IBatchWithDetails[]>([]);
+  const [batches, setBatches] = useState<IBatchFromAPI[]>([]);
   const [courses, setCourses] = useState<ICourse[]>([]);
   const [instructors, setInstructors] = useState<IInstructor[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<TBatchStatus | ''>('');
+  const [batchTypeFilter, setBatchTypeFilter] = useState<TBatchType | ''>('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [editingBatch, setEditingBatch] = useState<IBatchWithDetails | null>(null);
-  const [selectedBatch, setSelectedBatch] = useState<IBatchWithDetails | null>(null);
   const [showBatchDetails, setShowBatchDetails] = useState(false);
   const [showStudentManagement, setShowStudentManagement] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [activeTab, setActiveTab] = useState<'batches' | 'analytics'>('batches');
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   
   // Instructor Assignment Modal State
   const [showInstructorAssignment, setShowInstructorAssignment] = useState(false);
   const [instructorAssignmentType, setInstructorAssignmentType] = useState<'student' | 'course'>('course');
   const [instructorAssignmentTarget, setInstructorAssignmentTarget] = useState<any>(null);
+  const [statusUpdateLoading, setStatusUpdateLoading] = useState<string | null>(null);
+  
+  // Add unified modal state
+  const [showUnifiedBatchModal, setShowUnifiedBatchModal] = useState<false | 'group' | 'individual'>(false);
+  const [unifiedModalInitialData, setUnifiedModalInitialData] = useState<any>(null);
+
+  // Add back selectedBatch and setSelectedBatch state
+  const [selectedBatch, setSelectedBatch] = useState<IBatchFromAPI | null>(null);
 
   // Status color mapping
   const statusColors: Record<TBatchStatus, string> = {
@@ -82,89 +165,6 @@ const BatchManagementPage: React.FC = () => {
     'Completed': 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
     'Cancelled': 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
   };
-
-  // Mock courses data - replace with actual API call
-  const mockCourses: ICourse[] = [
-    { _id: '1', course_title: 'AI and Data Science Fundamentals', course_category: 'Technology' },
-    { _id: '2', course_title: 'Digital Marketing with Analytics', course_category: 'Marketing' },
-    { _id: '3', course_title: 'Vedic Mathematics', course_category: 'Education' },
-    { _id: '4', course_title: 'Personality Development', course_category: 'Personal Growth' }
-  ];
-
-  // Mock instructors data - replace with actual API call
-  const mockInstructors: IInstructor[] = [
-    { _id: '1', full_name: 'Dr. Sarah Johnson', email: 'sarah.johnson@medh.com' },
-    { _id: '2', full_name: 'Prof. Michael Chen', email: 'michael.chen@medh.com' },
-    { _id: '3', full_name: 'Dr. Priya Sharma', email: 'priya.sharma@medh.com' },
-    { _id: '4', full_name: 'Mr. Alex Rodriguez', email: 'alex.rodriguez@medh.com' }
-  ];
-
-  // Mock batches data - replace with actual API call
-  const mockBatches: IBatchWithDetails[] = [
-    {
-      _id: '1',
-      batch_name: 'AI Fundamentals - Morning Batch',
-      batch_code: 'AI-MOR-24',
-      course: '1',
-      status: 'Active',
-      start_date: new Date('2024-02-01'),
-      end_date: new Date('2024-04-30'),
-      capacity: 30,
-      enrolled_students: 25,
-      assigned_instructor: '1',
-      created_by: 'admin',
-      schedule: [
-        { day: 'Monday', start_time: '09:00', end_time: '11:00' },
-        { day: 'Wednesday', start_time: '09:00', end_time: '11:00' },
-        { day: 'Friday', start_time: '09:00', end_time: '11:00' }
-      ],
-      batch_notes: 'Intensive course covering machine learning basics',
-      course_details: {
-        _id: '1',
-        course_title: 'AI and Data Science Fundamentals',
-        course_category: 'Technology'
-      },
-      instructor_details: {
-        _id: '1',
-        full_name: 'Dr. Sarah Johnson',
-        email: 'sarah.johnson@medh.com'
-      },
-      available_spots: 5,
-      createdAt: '2024-01-15T00:00:00.000Z',
-      updatedAt: '2024-01-20T00:00:00.000Z'
-    },
-    {
-      _id: '2',
-      batch_name: 'Digital Marketing - Evening Batch',
-      batch_code: 'DM-EVE-24',
-      course: '2',
-      status: 'Upcoming',
-      start_date: new Date('2024-03-01'),
-      end_date: new Date('2024-05-31'),
-      capacity: 25,
-      enrolled_students: 15,
-      assigned_instructor: '2',
-      created_by: 'admin',
-      schedule: [
-        { day: 'Tuesday', start_time: '18:00', end_time: '20:00' },
-        { day: 'Thursday', start_time: '18:00', end_time: '20:00' }
-      ],
-      batch_notes: 'Comprehensive digital marketing with analytics focus',
-      course_details: {
-        _id: '2',
-        course_title: 'Digital Marketing with Analytics',
-        course_category: 'Marketing'
-      },
-      instructor_details: {
-        _id: '2',
-        full_name: 'Prof. Michael Chen',
-        email: 'michael.chen@medh.com'
-      },
-      available_spots: 10,
-      createdAt: '2024-01-20T00:00:00.000Z',
-      updatedAt: '2024-01-25T00:00:00.000Z'
-    }
-  ];
 
   // Fetch initial data
   useEffect(() => {
@@ -176,69 +176,506 @@ const BatchManagementPage: React.FC = () => {
     if (courses.length > 0) {
       fetchBatches();
     }
-  }, [selectedCourse, statusFilter, searchQuery, currentPage]);
+  }, [selectedCourse, statusFilter, searchQuery, currentPage, batchTypeFilter]);
 
+  // Handle click outside to close dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.dropdown-container')) {
+        setOpenDropdown(null);
+      }
+    };
+
+    if (openDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [openDropdown]);
+
+  // Debug courses state changes
+  useEffect(() => {
+    console.log('📊 Courses state updated:', {
+      courseCount: courses.length,
+      courses: courses.slice(0, 3).map(c => ({ id: c._id, title: c.course_title }))
+    });
+  }, [courses]);
+
+  // Dropdown management functions
+  const toggleDropdown = (batchId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setOpenDropdown(openDropdown === batchId ? null : batchId);
+  };
+
+  const closeDropdown = () => {
+    setOpenDropdown(null);
+  };
+
+  const loadInitialBatches = async () => {
+    try {
+      const params: IBatchQueryParams = {
+        page: 1,
+        limit: 10,
+        sort_by: 'start_date',
+        sort_order: 'desc'
+      };
+
+      // Get all batches initially
+      const apiResponse = await batchAPI.getAllBatches(params);
+      
+      let batchesData: IBatchFromAPI[] = [];
+      let totalPagesCount = 1;
+      
+      // Handle the API response structure - check if it's in the expected format
+      if (apiResponse?.data) {
+        // Check if it's a wrapped response format
+        if ((apiResponse.data as any)?.success && (apiResponse.data as any)?.data) {
+          // Wrapped response format
+          const wrappedResponse = (apiResponse.data as unknown) as IBatchResponse;
+          batchesData = wrappedResponse.data;
+          totalPagesCount = wrappedResponse.totalPages || 1;
+        } else if (Array.isArray(apiResponse.data)) {
+          // Convert IBatchWithDetails[] to IBatchFromAPI[] format
+          const batchList = apiResponse.data as unknown as IBatchWithDetails[];
+          batchesData = batchList.map(batch => ({
+            _id: batch._id || '',
+            batch_name: batch.batch_name,
+            batch_code: batch.batch_code,
+            course: batch.course_details ? {
+              _id: batch.course_details._id,
+              course_category: batch.course_details.course_category,
+              course_title: batch.course_details.course_title,
+              course_image: batch.course_details.course_image
+            } : {
+              _id: typeof batch.course === 'string' ? batch.course : '',
+              course_category: 'Unknown',
+              course_title: 'Unknown Course',
+              course_image: ''
+            },
+            status: batch.status,
+            start_date: typeof batch.start_date === 'string' ? batch.start_date : batch.start_date.toISOString(),
+            end_date: typeof batch.end_date === 'string' ? batch.end_date : batch.end_date.toISOString(),
+            capacity: batch.capacity,
+            enrolled_students: batch.enrolled_students,
+            assigned_instructor: batch.assigned_instructor || null,
+            schedule: batch.schedule?.map((s, index) => ({
+              day: s.day,
+              start_time: s.start_time,
+              end_time: s.end_time,
+              _id: `schedule_${index}`
+            })) || [],
+            batch_notes: batch.batch_notes,
+            created_by: batch.created_by,
+            createdAt: batch.createdAt || new Date().toISOString(),
+            updatedAt: batch.updatedAt || new Date().toISOString()
+          }));
+        }
+      }
+
+      // Update state with the real API response
+      setBatches(batchesData);
+      setTotalPages(totalPagesCount);
+      
+    } catch (error) {
+      console.error('Error loading initial batches:', error);
+      
+      // Fallback to mock data for development
+      setBatches([
+        {
+          _id: '6836a82a46d3493bc170d011',
+          batch_name: 'Digital Marketing - Morning Batch',
+          batch_code: 'DMWDA-458682',
+          course: {
+            _id: '67c194158a56e7688ddcf320',
+            course_category: 'Digital Marketing with Data Analytics',
+            course_title: 'Digital Marketing with Data Analytics',
+            course_image: 'https://medhdocuments.s3.ap-south-1.amazonaws.com/images-paper/1740738436760.jpeg'
+          },
+          status: 'Upcoming',
+          start_date: '2025-05-13T00:00:00.000Z',
+          end_date: '2025-12-14T00:00:00.000Z',
+          capacity: 10,
+          enrolled_students: 0,
+          assigned_instructor: null,
+          schedule: [
+            {
+              day: 'Monday',
+              start_time: '09:00',
+              end_time: '11:00',
+              _id: '6836a82a46d3493bc170d012'
+            }
+          ],
+          batch_notes: 'Comprehensive digital marketing course',
+          created_by: '680092818c413e0442bf10dd',
+          createdAt: '2025-05-28T06:07:38.694Z',
+          updatedAt: '2025-05-28T06:07:38.694Z'
+        }
+      ]);
+    }
+  };
+
+  // Load initial data
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      // In a real app, these would be actual API calls
-      setCourses(mockCourses);
-      setInstructors(mockInstructors);
-      setBatches(mockBatches);
-      setTotalPages(1);
+      
+      // Load courses using the proper course API
+      try {
+        console.log('🔄 Starting course fetch...');
+        const coursesResponse = await courseAPI.getAllCourses();
+        console.log('📡 Raw API response:', coursesResponse);
+        
+        // Cast to any to handle the actual response structure that doesn't match the interface
+        const response = coursesResponse as any;
+        console.log('🔍 Response structure check:', {
+          hasData: !!response?.data,
+          hasSuccess: !!response?.data?.success,
+          hasDataArray: !!response?.data?.data && Array.isArray(response.data.data),
+          hasCourses: !!response?.data?.courses && Array.isArray(response.data.courses),
+          responseType: typeof response,
+          dataType: typeof response?.data
+        });
+        
+        // Check the actual response structure based on your API response
+        if (response?.data?.success && response.data.data && Array.isArray(response.data.data)) {
+          console.log('✅ Using success + data structure, course count:', response.data.data.length);
+          // Transform the courses data to match our interface
+          const transformedCourses: ICourse[] = response.data.data.map((course: any) => ({
+            _id: course._id,
+            course_title: course.course_title,
+            course_category: course.course_category,
+            course_image: course.course_image,
+            course_type: course.course_type || 'live',
+            class_type: course.class_type
+          }));
+          setCourses(transformedCourses);
+          console.log('✅ Courses loaded successfully:', transformedCourses.length);
+          console.log('📋 Sample course:', transformedCourses[0]);
+        } else if (response?.data?.data && Array.isArray(response.data.data)) {
+          console.log('✅ Using data structure (no success field), course count:', response.data.data.length);
+          // Handle case where success field might not be present
+          const transformedCourses: ICourse[] = response.data.data.map((course: any) => ({
+            _id: course._id,
+            course_title: course.course_title,
+            course_category: course.course_category,
+            course_image: course.course_image,
+            course_type: course.course_type || 'live',
+            class_type: course.class_type
+          }));
+          setCourses(transformedCourses);
+          console.log('✅ Courses loaded successfully (no success field):', transformedCourses.length);
+          console.log('📋 Sample course:', transformedCourses[0]);
+        } else if (coursesResponse?.data?.courses && Array.isArray(coursesResponse.data.courses)) {
+          console.log('✅ Using legacy courses structure, course count:', coursesResponse.data.courses.length);
+          // Fallback to the old expected structure
+          const transformedCourses: ICourse[] = coursesResponse.data.courses.map((course: any) => ({
+            _id: course._id || course.id,
+            course_title: course.title || course.course_title || '',
+            course_category: course.course_category || course.category || '',
+            course_image: course.course_image || course.image,
+            course_type: course.course_type || 'live',
+            class_type: course.class_type
+          }));
+          setCourses(transformedCourses);
+          console.log('✅ Courses loaded successfully (legacy structure):', transformedCourses.length);
+          console.log('📋 Sample course:', transformedCourses[0]);
+        } else {
+          console.warn('⚠️ Unexpected courses response structure:', response);
+          console.log('🔍 Detailed response structure:', JSON.stringify(response, null, 2));
+          // Fallback to mock data
+          setCourses([
+            { _id: '67c194158a56e7688ddcf320', course_title: 'Digital Marketing with Data Analytics', course_category: 'Digital Marketing' },
+            { _id: '2', course_title: 'AI and Data Science Fundamentals', course_category: 'Technology' },
+            { _id: '3', course_title: 'Vedic Mathematics', course_category: 'Education' },
+            { _id: '4', course_title: 'Personality Development', course_category: 'Personal Growth' }
+          ]);
+          console.log('📋 Using fallback courses');
+        }
+      } catch (courseError) {
+        console.error('Course API failed:', courseError);
+        setCourses([
+          { _id: '67c194158a56e7688ddcf320', course_title: 'Digital Marketing with Data Analytics', course_category: 'Digital Marketing' },
+          { _id: '2', course_title: 'AI and Data Science Fundamentals', course_category: 'Technology' },
+          { _id: '3', course_title: 'Vedic Mathematics', course_category: 'Education' },
+          { _id: '4', course_title: 'Personality Development', course_category: 'Personal Growth' }
+        ]);
+      }
+      
+      // Load instructors using the proper instructor API
+      try {
+        const instructorsResponse = await individualAssignmentAPI.getAllStudentsWithInstructors();
+        
+        if (instructorsResponse?.data?.data && Array.isArray(instructorsResponse.data.data)) {
+          // Extract unique instructors from the response
+          const instructorSet = new Set();
+          const uniqueInstructors: IInstructor[] = [];
+          
+          instructorsResponse.data.data.forEach((student: any) => {
+            if (student.instructor_details && student.instructor_details._id && !instructorSet.has(student.instructor_details._id)) {
+              instructorSet.add(student.instructor_details._id);
+              uniqueInstructors.push({
+                _id: student.instructor_details._id,
+                full_name: student.instructor_details.full_name,
+                email: student.instructor_details.email,
+                phone_number: student.instructor_details.phone_number
+              });
+            }
+          });
+          
+          if (uniqueInstructors.length > 0) {
+            setInstructors(uniqueInstructors);
+          } else {
+            throw new Error('No instructors found in response');
+          }
+        } else {
+          throw new Error('Invalid instructor response format');
+        }
+      } catch (instructorError) {
+        console.warn('Instructor API failed, using fallback data:', instructorError);
+        // Fallback to mock data
+        setInstructors([
+          { _id: '1', full_name: 'Dr. Sarah Johnson', email: 'sarah.johnson@medh.com' },
+          { _id: '2', full_name: 'Prof. Michael Chen', email: 'michael.chen@medh.com' },
+          { _id: '3', full_name: 'Dr. Priya Sharma', email: 'priya.sharma@medh.com' },
+          { _id: '4', full_name: 'Mr. Alex Rodriguez', email: 'alex.rodriguez@medh.com' }
+        ]);
+      }
+      
+      // Load initial batches (all batches) after courses and instructors are loaded
+      await loadInitialBatches();
+      
     } catch (error) {
       console.error('Error loading initial data:', error);
-      toast.error('Failed to load data');
+      
+      // Complete fallback to mock data
+      setCourses([
+        { _id: '67c194158a56e7688ddcf320', course_title: 'Digital Marketing with Data Analytics', course_category: 'Digital Marketing' },
+        { _id: '2', course_title: 'AI and Data Science Fundamentals', course_category: 'Technology' },
+        { _id: '3', course_title: 'Vedic Mathematics', course_category: 'Education' },
+        { _id: '4', course_title: 'Personality Development', course_category: 'Personal Growth' }
+      ]);
+      setInstructors([
+        { _id: '1', full_name: 'Dr. Sarah Johnson', email: 'sarah.johnson@medh.com' },
+        { _id: '2', full_name: 'Prof. Michael Chen', email: 'michael.chen@medh.com' },
+        { _id: '3', full_name: 'Dr. Priya Sharma', email: 'priya.sharma@medh.com' },
+        { _id: '4', full_name: 'Mr. Alex Rodriguez', email: 'alex.rodriguez@medh.com' }
+      ]);
+      
+      // Load initial batches even on error
+      await loadInitialBatches();
     } finally {
       setLoading(false);
+      console.log('🏁 loadInitialData completed. Final state:', {
+        coursesCount: courses.length,
+        instructorsCount: instructors.length,
+        loading: false
+      });
     }
   };
 
   const fetchBatches = async () => {
-    if (!selectedCourse) return;
-
     try {
       setLoading(true);
       const params: IBatchQueryParams = {
         page: currentPage,
         limit: 10,
         ...(statusFilter && { status: statusFilter }),
+        ...(batchTypeFilter && { batch_type: batchTypeFilter }), // Add batch_type filter
         ...(searchQuery && { search: searchQuery }),
         sort_by: 'start_date',
         sort_order: 'desc'
       };
 
-      // In a real app, this would be an actual API call
-      // const response = await batchAPI.getBatchesByCourse(selectedCourse, params);
+      let batchesData: IBatchFromAPI[] = [];
+      let totalPagesCount = 1;
       
-      // For now, filter mock data
-      const filtered = mockBatches.filter(batch => {
-        const matchesCourse = batch.course === selectedCourse;
-        const matchesStatus = !statusFilter || batch.status === statusFilter;
-        const matchesSearch = !searchQuery || 
-          batch.batch_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          batch.batch_code?.toLowerCase().includes(searchQuery.toLowerCase());
+      if (selectedCourse) {
+        // Get batches for specific course
+        const apiResponse = await batchAPI.getBatchesByCourse(selectedCourse, params);
         
-        return matchesCourse && matchesStatus && matchesSearch;
-      });
+        // Handle the API response structure - check if it's in the expected format
+        if (apiResponse?.data) {
+          // Check if it's a wrapped response format
+          if ((apiResponse.data as any)?.success && (apiResponse.data as any)?.data) {
+            // Wrapped response format
+            const wrappedResponse = (apiResponse.data as unknown) as IBatchResponse;
+            batchesData = wrappedResponse.data;
+            totalPagesCount = wrappedResponse.totalPages || 1;
+          } else if (Array.isArray(apiResponse.data)) {
+            // Convert IBatchWithDetails[] to IBatchFromAPI[] format
+            const batchList = apiResponse.data as unknown as IBatchWithDetails[];
+            batchesData = batchList.map(batch => ({
+              _id: batch._id || '',
+              batch_name: batch.batch_name,
+              batch_code: batch.batch_code,
+              course: batch.course_details ? {
+                _id: batch.course_details._id,
+                course_category: batch.course_details.course_category,
+                course_title: batch.course_details.course_title,
+                course_image: batch.course_details.course_image
+              } : {
+                _id: typeof batch.course === 'string' ? batch.course : '',
+                course_category: 'Unknown',
+                course_title: 'Unknown Course',
+                course_image: ''
+              },
+              status: batch.status,
+              batch_type: batch.batch_type, // Include batch_type in mapping
+              start_date: typeof batch.start_date === 'string' ? batch.start_date : batch.start_date.toISOString(),
+              end_date: typeof batch.end_date === 'string' ? batch.end_date : batch.end_date.toISOString(),
+              capacity: batch.capacity,
+              enrolled_students: batch.enrolled_students,
+              assigned_instructor: batch.assigned_instructor || null,
+              schedule: batch.schedule?.map((s, index) => ({
+                day: s.day,
+                start_time: s.start_time,
+                end_time: s.end_time,
+                _id: `schedule_${index}`
+              })) || [],
+              batch_notes: batch.batch_notes,
+              created_by: batch.created_by,
+              createdAt: batch.createdAt || new Date().toISOString(),
+              updatedAt: batch.updatedAt || new Date().toISOString()
+            }));
+          }
+        }
+      } else {
+        // Get all batches
+        const apiResponse = await batchAPI.getAllBatches(params);
+        
+        // Handle the API response structure - check if it's in the expected format
+        if (apiResponse?.data) {
+          // Check if it's a wrapped response format
+          if ((apiResponse.data as any)?.success && (apiResponse.data as any)?.data) {
+            // Wrapped response format
+            const wrappedResponse = (apiResponse.data as unknown) as IBatchResponse;
+            batchesData = wrappedResponse.data;
+            totalPagesCount = wrappedResponse.totalPages || 1;
+          } else if (Array.isArray(apiResponse.data)) {
+            // Convert IBatchWithDetails[] to IBatchFromAPI[] format
+            const batchList = apiResponse.data as unknown as IBatchWithDetails[];
+            batchesData = batchList.map(batch => ({
+              _id: batch._id || '',
+              batch_name: batch.batch_name,
+              batch_code: batch.batch_code,
+              course: batch.course_details ? {
+                _id: batch.course_details._id,
+                course_category: batch.course_details.course_category,
+                course_title: batch.course_details.course_title,
+                course_image: batch.course_details.course_image
+              } : {
+                _id: typeof batch.course === 'string' ? batch.course : '',
+                course_category: 'Unknown',
+                course_title: 'Unknown Course',
+                course_image: ''
+              },
+              status: batch.status,
+              batch_type: batch.batch_type, // Include batch_type in mapping
+              start_date: typeof batch.start_date === 'string' ? batch.start_date : batch.start_date.toISOString(),
+              end_date: typeof batch.end_date === 'string' ? batch.end_date : batch.end_date.toISOString(),
+              capacity: batch.capacity,
+              enrolled_students: batch.enrolled_students,
+              assigned_instructor: batch.assigned_instructor || null,
+              schedule: batch.schedule?.map((s, index) => ({
+                day: s.day,
+                start_time: s.start_time,
+                end_time: s.end_time,
+                _id: `schedule_${index}`
+              })) || [],
+              batch_notes: batch.batch_notes,
+              created_by: batch.created_by,
+              createdAt: batch.createdAt || new Date().toISOString(),
+              updatedAt: batch.updatedAt || new Date().toISOString()
+            }));
+          }
+        }
+      }
 
-      setBatches(filtered);
+      // Apply client-side filtering if API doesn't support batch_type parameter
+      if (batchTypeFilter && !params.batch_type) {
+        batchesData = batchesData.filter(batch => {
+          if (batchTypeFilter === 'individual') {
+            return batch.batch_type === 'individual' || batch.capacity === 1;
+          } else if (batchTypeFilter === 'group') {
+            return batch.batch_type === 'group' || (batch.capacity > 1 && batch.batch_type !== 'individual');
+          }
+          return true;
+        });
+      }
+
+      // Update state with the real API response
+      setBatches(batchesData);
+      setTotalPages(totalPagesCount);
+      
     } catch (error) {
       console.error('Error fetching batches:', error);
-      toast.error('Failed to load batches');
+      
+      toast.error('Failed to load batches. Using fallback data for development.');
+      
+      // Fallback to mock data for development
+      if (selectedCourse === '67c194158a56e7688ddcf320') {
+        setBatches([
+          {
+            _id: '6836a82a46d3493bc170d011',
+            batch_name: 'Digital Marketing - Morning Batch',
+            batch_code: 'DMWDA-458682',
+            course: {
+              _id: '67c194158a56e7688ddcf320',
+              course_category: 'Digital Marketing with Data Analytics',
+              course_title: 'Digital Marketing with Data Analytics',
+              course_image: 'https://medhdocuments.s3.ap-south-1.amazonaws.com/images-paper/1740738436760.jpeg'
+            },
+            status: 'Upcoming',
+            batch_type: 'group', // Add batch_type to mock data
+            start_date: '2025-05-13T00:00:00.000Z',
+            end_date: '2025-12-14T00:00:00.000Z',
+            capacity: 10,
+            enrolled_students: 0,
+            assigned_instructor: null,
+            schedule: [
+              {
+                day: 'Monday',
+                start_time: '09:00',
+                end_time: '11:00',
+                _id: '6836a82a46d3493bc170d012'
+              }
+            ],
+            batch_notes: 'Comprehensive digital marketing course',
+            created_by: '680092818c413e0442bf10dd',
+            createdAt: '2025-05-28T06:07:38.694Z',
+            updatedAt: '2025-05-28T06:07:38.694Z'
+          }
+        ]);
+      } else {
+        setBatches([]);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreateBatch = () => {
-    setEditingBatch(null);
-    setShowCreateModal(true);
+  // Filter batches based on type (client-side filtering)
+  const getFilteredBatches = () => {
+    if (!batchTypeFilter) return batches;
+    
+    return batches.filter(batch => {
+      if (batchTypeFilter === 'individual') {
+        return batch.batch_type === 'individual' || batch.capacity === 1;
+      } else if (batchTypeFilter === 'group') {
+        return batch.batch_type === 'group' || (batch.capacity > 1 && batch.batch_type !== 'individual');
+      }
+      return true;
+    });
   };
 
-  const handleEditBatch = (batch: IBatchWithDetails) => {
-    setEditingBatch(batch);
-    setShowCreateModal(true);
+  const handleCreateBatch = () => {
+    setUnifiedModalInitialData({ course: selectedCourse });
+    setShowUnifiedBatchModal('group');
+  };
+
+  const handleCreateIndividualBatch = () => {
+    setUnifiedModalInitialData({ course: selectedCourse });
+    setShowUnifiedBatchModal('individual');
   };
 
   const handleDeleteBatch = async (batchId: string, batchName: string) => {
@@ -247,23 +684,26 @@ const BatchManagementPage: React.FC = () => {
     }
 
     try {
-      // In a real app, this would be an actual API call
-      // await batchAPI.deleteBatch(batchId);
+      const response = await batchAPI.deleteBatch(batchId);
       
-      setBatches(prev => prev.filter(b => b._id !== batchId));
-      toast.success('Batch deleted successfully');
+      if (response?.data?.success) {
+        setBatches(prev => prev.filter(b => b._id !== batchId));
+        toast.success('Batch deleted successfully');
+      } else {
+        throw new Error('Failed to delete batch');
+      }
     } catch (error) {
       console.error('Error deleting batch:', error);
       toast.error('Failed to delete batch');
     }
   };
 
-  const handleViewBatchDetails = (batch: IBatchWithDetails) => {
+  const handleViewBatchDetails = (batch: IBatchFromAPI) => {
     setSelectedBatch(batch);
     setShowBatchDetails(true);
   };
 
-  const handleManageStudents = (batch: IBatchWithDetails) => {
+  const handleManageStudents = (batch: IBatchFromAPI) => {
     setSelectedBatch(batch);
     setShowStudentManagement(true);
   };
@@ -281,27 +721,18 @@ const BatchManagementPage: React.FC = () => {
   };
 
   const onModalSuccess = () => {
-    if (selectedCourse) {
-      fetchBatches();
-    } else {
-      loadInitialData();
-    }
+    fetchBatches();
   };
 
   const onInstructorAssignmentSuccess = () => {
     setShowInstructorAssignment(false);
     setInstructorAssignmentTarget(null);
-    // Refresh data if needed
-    if (selectedCourse) {
-      fetchBatches();
-    } else {
-      loadInitialData();
-    }
+    fetchBatches();
     toast.success('Instructor assignment completed successfully!');
   };
 
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('en-US', {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -312,6 +743,725 @@ const BatchManagementPage: React.FC = () => {
     if (utilization >= 90) return 'text-red-600';
     if (utilization >= 70) return 'text-yellow-600';
     return 'text-green-600';
+  };
+
+  const getStatusTransitions = (currentStatus: TBatchStatus): TBatchStatus[] => {
+    switch (currentStatus) {
+      case 'Active':
+        return ['Completed', 'Cancelled'];
+      case 'Upcoming':
+        return ['Active'];
+      case 'Completed':
+        return ['Active'];
+      case 'Cancelled':
+        return ['Active'];
+      default:
+        return [];
+    }
+  };
+
+  const getStatusIcon = (status: TBatchStatus) => {
+    const icons = {
+      'Upcoming': <Clock className="h-4 w-4" />,
+      'Active': <PlayCircle className="h-4 w-4" />,
+      'Completed': <CheckCircle2 className="h-4 w-4" />,
+      'Cancelled': <XCircle className="h-4 w-4" />
+    };
+    return icons[status];
+  };
+
+  const handleStatusUpdate = async (batchId: string, newStatus: TBatchStatus) => {
+    try {
+      setStatusUpdateLoading(batchId);
+      const response = await batchAPI.updateBatchStatus(batchId, newStatus);
+      
+      if ((response as any)?.data) {
+        setBatches(prev => prev.map(batch =>
+          batch._id === batchId ? { ...batch, status: newStatus } : batch
+        ));
+        toast.success('Batch status updated successfully');
+        closeDropdown(); // Close dropdown after successful update
+      } else {
+        throw new Error('Failed to update batch status');
+      }
+    } catch (error) {
+      console.error('Error updating batch status:', error);
+      toast.error('Failed to update batch status');
+    } finally {
+      setStatusUpdateLoading(null);
+    }
+  };
+
+  // Helper function to get instructor name
+  const getInstructorName = (assignedInstructor: typeof batches[0]['assigned_instructor']): string | null => {
+    if (!assignedInstructor) return null;
+    
+    // If it's an object with instructor details
+    if (typeof assignedInstructor === 'object' && assignedInstructor.full_name) {
+      return assignedInstructor.full_name;
+    }
+    
+    // If it's a string ID, find in instructors array
+    if (typeof assignedInstructor === 'string') {
+      return instructors.find(i => i._id === assignedInstructor)?.full_name || null;
+    }
+    
+    return null;
+  };
+
+  // Helper function to get instructor email
+  const getInstructorEmail = (assignedInstructor: typeof batches[0]['assigned_instructor']): string | null => {
+    if (!assignedInstructor) return null;
+    
+    // If it's an object with instructor details
+    if (typeof assignedInstructor === 'object' && assignedInstructor.email) {
+      return assignedInstructor.email;
+    }
+    
+    // If it's a string ID, find in instructors array
+    if (typeof assignedInstructor === 'string') {
+      return instructors.find(i => i._id === assignedInstructor)?.email || null;
+    }
+    
+    return null;
+  };
+
+  // Helper function to get instructor ID
+  const getInstructorId = (assignedInstructor: typeof batches[0]['assigned_instructor']): string | null => {
+    if (!assignedInstructor) return null;
+    
+    // If it's an object with instructor details
+    if (typeof assignedInstructor === 'object' && assignedInstructor._id) {
+      return assignedInstructor._id;
+    }
+    
+    // If it's a string ID
+    if (typeof assignedInstructor === 'string') {
+      return assignedInstructor;
+    }
+    
+    return null;
+  };
+
+  // Type guard to check if instructor is an object with details
+  const isInstructorObject = (instructor: typeof batches[0]['assigned_instructor']): instructor is {
+    _id: string;
+    full_name: string;
+    email: string;
+    phone_numbers?: Array<{
+      country: string;
+      number: string;
+    }>;
+  } => {
+    return instructor !== null && typeof instructor === 'object' && 'full_name' in instructor;
+  };
+
+  // Helper function to handle individual batch creation
+  const handleCreateIndividualBatchSubmit = async (formData: any) => {
+    try {
+      setLoading(true);
+      
+      // Validate individual batch requirements
+      if (formData.capacity && formData.capacity !== 1) {
+        toast.error('Individual batch type can only have capacity of 1');
+        return;
+      }
+      
+      const individualBatchData: IIndividualBatchCreateInput = {
+        student_id: formData.student_id, // Optional - if provided, student will be auto-enrolled
+        instructor_id: formData.instructor_id,
+        course_id: formData.course_id,
+        batch_name: formData.batch_name,
+        batch_type: 'individual', // Enforce individual type
+        capacity: 1, // Enforce capacity of 1
+        start_date: new Date(formData.start_date),
+        end_date: new Date(formData.end_date),
+        schedule: formData.schedule,
+        batch_notes: formData.batch_notes
+      };
+
+      const response = await batchAPI.createIndividualBatch(individualBatchData);
+      
+      // Handle the enhanced response format with both batch and enrollment data
+      if (response?.data?.success) {
+        const { batch, enrollment } = response.data.data;
+        
+        let successMessage = 'Individual batch created successfully!';
+        if (enrollment) {
+          successMessage = 'Individual batch created and student enrolled successfully!';
+        }
+        
+        toast.success(successMessage);
+        setShowUnifiedBatchModal(false);
+        fetchBatches(); // Refresh the batch list
+        
+        // Log the enrollment details for debugging
+        if (enrollment) {
+          console.log('Student enrollment details:', {
+            student_id: enrollment.student,
+            batch_id: enrollment.batch,
+            enrollment_type: enrollment.enrollment_type,
+            pricing_type: enrollment.pricing_snapshot.pricing_type
+          });
+        }
+      } else {
+        throw new Error(response?.data?.message || 'Failed to create individual batch');
+      }
+    } catch (error: any) {
+      console.error('Error creating individual batch:', error);
+      
+      // Handle specific error messages from the API
+      if (error.message.includes('capacity')) {
+        toast.error('Individual batch type can only have capacity of 1');
+      } else if (error.message.includes('batch_type')) {
+        toast.error('Invalid batch_type. Must be "individual" for individual batches');
+      } else if (error.message.includes('Course ID')) {
+        toast.error('Course selection is required for individual batch creation');
+      } else if (error.message.includes('student_id') || error.message.includes('student')) {
+        toast.error('Student selection is required for individual batch with auto-enrollment');
+      } else {
+        toast.error(error.message || 'Failed to create individual batch');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Individual Batch Creation Modal Component
+  const IndividualBatchModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onSubmit: (data: any) => void;
+  }> = ({ isOpen, onClose, onSubmit }) => {
+    const [formData, setFormData] = useState({
+      course: '',
+      instructor: '',
+      student: '',
+      batch_name: '',
+      start_date: '',
+      end_date: '',
+      schedule: [{ day: 'Monday', start_time: '09:00', end_time: '11:00' }],
+      notes: '',
+      batch_type: 'individual' as const,
+      capacity: 1,
+      session_duration_minutes: 60,
+      total_sessions: 10
+    });
+
+    // Local state for modal data loading
+    const [modalLoading, setModalLoading] = useState(false);
+    const [modalInstructors, setModalInstructors] = useState<IInstructor[]>([]);
+    const [modalCourses, setModalCourses] = useState<ICourse[]>([]);
+    const [modalStudents, setModalStudents] = useState<any[]>([]);
+
+    // Fetch instructors from API without fallback
+    const fetchModalInstructors = async () => {
+      try {
+        setModalLoading(true);
+        
+        const response = await apiClient.get(`${apiBaseUrl}${apiUrls.Instructor.getAllInstructors}`);
+        
+        if (response?.data) {
+          let instructorsList: IInstructor[] = [];
+          
+          if (response.data.success && response.data.data) {
+            instructorsList = Array.isArray(response.data.data) ? response.data.data : [];
+          } else if (response.data.instructors) {
+            instructorsList = Array.isArray(response.data.instructors) ? response.data.instructors : [];
+          } else if (Array.isArray(response.data)) {
+            instructorsList = response.data;
+          } else if (response.data.users) {
+            instructorsList = Array.isArray(response.data.users) ? response.data.users : [];
+          }
+          
+          // Transform and filter data to match our interface
+          const transformedInstructors = instructorsList
+            .filter((instructor: any) => {
+              const roles = instructor.role || instructor.roles || [];
+              const hasInstructorRole = Array.isArray(roles) 
+                ? roles.some((role: string) => role.toLowerCase().includes('instructor'))
+                : typeof roles === 'string' && roles.toLowerCase().includes('instructor');
+              return hasInstructorRole || instructor.admin_role === 'instructor';
+            })
+            .map((instructor: any) => ({
+              _id: instructor._id || instructor.id,
+              full_name: instructor.full_name || instructor.name || `${instructor.first_name || ''} ${instructor.last_name || ''}`.trim(),
+              email: instructor.email,
+              phone_number: instructor.phone_number || instructor.phone
+            }));
+          
+          setModalInstructors(transformedInstructors);
+          
+          if (transformedInstructors.length === 0) {
+            toast.warning('No instructors available. Please assign instructor roles first.');
+          }
+        } else {
+          setModalInstructors([]);
+          toast.error('Failed to load instructors from server');
+        }
+      } catch (error) {
+        console.error('Error fetching instructors:', error);
+        toast.error(`Failed to load instructors: ${error instanceof Error ? error.message : 'Please try again'}`);
+        setModalInstructors([]);
+      } finally {
+        setModalLoading(false);
+      }
+    };
+
+    // Fetch live courses from API without fallback
+    const fetchModalCourses = async () => {
+      try {
+        setModalLoading(true);
+        
+        // Use the real courseTypesAPI to fetch live courses
+        const response = await courseTypesAPI.getCoursesByType<ILiveCourse>('live');
+        
+        let coursesList: ICourse[] = [];
+        
+        if (response?.data && (response.data as any)?.success && (response.data as any)?.data) {
+          // Handle the API response structure
+          const apiData = (response.data as any).data;
+          coursesList = Array.isArray(apiData) ? apiData.map((liveCourse: ILiveCourse) => ({
+            _id: liveCourse._id || '',
+            course_title: liveCourse.course_title,
+            course_category: liveCourse.course_category,
+            course_image: liveCourse.course_image,
+            course_type: 'live' as const,
+            class_type: liveCourse.class_type
+          })) : [];
+        } else if (response?.data && Array.isArray(response.data)) {
+          // Direct array response
+          coursesList = response.data.map((liveCourse: ILiveCourse) => ({
+            _id: liveCourse._id || '',
+            course_title: liveCourse.course_title,
+            course_category: liveCourse.course_category,
+            course_image: liveCourse.course_image,
+            course_type: 'live' as const,
+            class_type: liveCourse.class_type
+          }));
+        }
+        
+        setModalCourses(coursesList);
+      } catch (error) {
+        console.error('Error fetching modal courses:', error);
+        setModalCourses([]);
+        toast.error('Failed to load courses');
+      } finally {
+        setModalLoading(false);
+      }
+    };
+
+    // Fetch students from API without fallback
+    const fetchModalStudents = async () => {
+      try {
+        setModalLoading(true);
+        
+        const response = await apiClient.get(`${apiBaseUrl}${apiUrls.user.getAllStudents}`);
+        
+        if (response?.data) {
+          let studentsList: any[] = [];
+          
+          if (response.data.success && response.data.data) {
+            studentsList = Array.isArray(response.data.data) ? response.data.data : [];
+          } else if (response.data.students) {
+            studentsList = Array.isArray(response.data.students) ? response.data.students : [];
+          } else if (Array.isArray(response.data)) {
+            studentsList = response.data;
+          }
+          
+          // Transform data
+          const transformedStudents = studentsList.map((student: any) => ({
+            _id: student._id || student.id,
+            full_name: student.full_name || student.name || `${student.first_name || ''} ${student.last_name || ''}`.trim(),
+            email: student.email,
+            phone_number: student.phone_number || student.phone
+          }));
+          
+          setModalStudents(transformedStudents);
+          
+          if (transformedStudents.length === 0) {
+            toast.warning('No students available');
+          }
+        } else {
+          setModalStudents([]);
+          toast.error('Failed to load students from server');
+        }
+      } catch (error) {
+        console.error('Error fetching students:', error);
+        toast.error(`Failed to load students: ${error instanceof Error ? error.message : 'Please try again'}`);
+        setModalStudents([]);
+      } finally {
+        setModalLoading(false);
+      }
+    };
+
+    // Load all required data when modal opens
+    useEffect(() => {
+      if (isOpen) {
+        Promise.all([
+          fetchModalInstructors(),
+          fetchModalCourses(),
+          fetchModalStudents()
+        ]);
+      }
+    }, [isOpen]);
+
+    const handleScheduleChange = (index: number, field: string, value: string) => {
+      const newSchedule = [...formData.schedule];
+      newSchedule[index] = { ...newSchedule[index], [field]: value };
+      setFormData({ ...formData, schedule: newSchedule });
+    };
+
+    const addScheduleSlot = () => {
+      setFormData({
+        ...formData,
+        schedule: [...formData.schedule, { day: 'Monday', start_time: '09:00', end_time: '10:00' }]
+      });
+    };
+
+    const removeScheduleSlot = (index: number) => {
+      const newSchedule = formData.schedule.filter((_, i) => i !== index);
+      setFormData({ ...formData, schedule: newSchedule });
+    };
+
+    const generateBatchName = () => {
+      const selectedCourseObj = modalCourses.find(c => c._id === formData.course);
+      const selectedStudentObj = modalStudents.find(s => s._id === formData.student);
+      
+      if (selectedCourseObj && selectedStudentObj) {
+        const courseName = selectedCourseObj.course_title;
+        const studentName = selectedStudentObj.full_name;
+        const timestamp = Date.now().toString().slice(-6);
+        const batchName = `${courseName} - ${studentName} - ${timestamp}`;
+        setFormData(prev => ({ ...prev, batch_name: batchName }));
+      }
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      
+      if (!formData.course || !formData.instructor || !formData.batch_name) {
+        toast.error('Please fill in all required fields');
+        return;
+      }
+
+      // Create the individual batch data
+      const individualBatchData: IIndividualBatchCreateInput = {
+        course_id: formData.course,
+        instructor_id: formData.instructor,
+        student_id: formData.student || undefined,
+        batch_name: formData.batch_name,
+        batch_type: 'individual',
+        capacity: 1,
+        start_date: new Date(formData.start_date),
+        end_date: new Date(formData.end_date),
+        schedule: formData.schedule,
+        batch_notes: formData.notes
+      };
+
+      onSubmit(individualBatchData);
+    };
+
+    if (!isOpen) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Create Individual 1:1 Batch
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Create a personalized one-on-one learning session
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              <X className="h-5 w-5 text-gray-500" />
+            </button>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="p-6">
+            {/* Batch Type Indicator */}
+            <div className="mb-6 p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500 text-white">
+                  <UserPlus className="h-3 w-3 mr-1" />
+                  1:1 Individual Session
+                </span>
+                <span className="text-sm text-purple-700 dark:text-purple-300">
+                  Capacity is automatically set to 1 student
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Student Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Student (Optional)
+                </label>
+                <select
+                  value={formData.student}
+                  onChange={(e) => setFormData({ ...formData, student: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value="">Select Student (Optional)</option>
+                  {modalStudents.map((student: any) => (
+                    <option key={student._id} value={student._id}>
+                      {student.full_name} ({student.email})
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  If selected, student will be automatically enrolled in the batch upon creation
+                </p>
+              </div>
+
+              {/* Instructor Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Instructor *
+                </label>
+                <select
+                  value={formData.instructor}
+                  onChange={(e) => setFormData({ ...formData, instructor: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  required
+                >
+                  <option value="">Select Instructor</option>
+                  {modalInstructors.map((instructor) => (
+                    <option key={instructor._id} value={instructor._id}>
+                      {instructor.full_name} ({instructor.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Course Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Course *
+                </label>
+                <select
+                  value={formData.course}
+                  onChange={(e) => setFormData({ ...formData, course: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  required
+                >
+                  <option value="">Select Course</option>
+                  {modalCourses.map((course) => (
+                    <option key={course._id} value={course._id}>
+                      {course.course_title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Capacity (Disabled for Individual) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Capacity
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={1}
+                    disabled
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Fixed for 1:1</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Batch Name */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Batch Name *
+                </label>
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={formData.batch_name}
+                    onChange={(e) => setFormData({ ...formData, batch_name: e.target.value })}
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    placeholder="Enter a descriptive name for this 1:1 batch"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={generateBatchName}
+                    className="px-3 py-2 text-sm bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors whitespace-nowrap"
+                    title="Auto-generate batch name based on selections"
+                  >
+                    Auto-Generate
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Provide a meaningful name or use auto-generate based on your selections
+                </p>
+              </div>
+
+              {/* Start Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Start Date *
+                </label>
+                <input
+                  type="date"
+                  value={formData.start_date}
+                  onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  required
+                />
+              </div>
+
+              {/* End Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  End Date *
+                </label>
+                <input
+                  type="date"
+                  value={formData.end_date}
+                  onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  required
+                />
+              </div>
+            </div>
+            {/* Schedule Section */}
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                  Schedule *
+                </h3>
+                <button
+                  type="button"
+                  onClick={addScheduleSlot}
+                  className="inline-flex items-center px-3 py-1.5 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Time Slot
+                </button>
+              </div>
+              
+              <div className="space-y-3">
+                {formData.schedule.map((slot, index) => (
+                  <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <select
+                      value={slot.day}
+                      onChange={(e) => handleScheduleChange(index, 'day', e.target.value)}
+                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
+                    >
+                      <option value="Monday">Monday</option>
+                      <option value="Tuesday">Tuesday</option>
+                      <option value="Wednesday">Wednesday</option>
+                      <option value="Thursday">Thursday</option>
+                      <option value="Friday">Friday</option>
+                      <option value="Saturday">Saturday</option>
+                      <option value="Sunday">Sunday</option>
+                    </select>
+                    
+                    <input
+                      type="time"
+                      value={slot.start_time}
+                      onChange={(e) => handleScheduleChange(index, 'start_time', e.target.value)}
+                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
+                    />
+                    
+                    <span className="text-gray-500 dark:text-gray-400">to</span>
+                    
+                    <input
+                      type="time"
+                      value={slot.end_time}
+                      onChange={(e) => handleScheduleChange(index, 'end_time', e.target.value)}
+                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
+                    />
+                    
+                    {formData.schedule.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeScheduleSlot(index)}
+                        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div className="mt-6">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Batch Notes
+              </label>
+              <textarea
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                placeholder="Additional notes about this individual batch..."
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end space-x-3 mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                Create Individual Batch
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
+  // Helper functions for batch type display
+  const getBatchTypeDisplay = (batch: IBatchFromAPI): string => {
+    if (batch.batch_type === 'individual' || batch.capacity === 1) {
+      return '1:1';
+    }
+    return 'Group';
+  };
+
+  const getBatchTypeBadgeColor = (batch: IBatchFromAPI): string => {
+    if (batch.batch_type === 'individual' || batch.capacity === 1) {
+      return 'bg-purple-500/90 text-white'; // Purple for individual
+    }
+    return 'bg-blue-500/90 text-white'; // Blue for group
+  };
+
+  const getBatchTypeIcon = (batch: IBatchFromAPI) => {
+    if (batch.batch_type === 'individual' || batch.capacity === 1) {
+      return <UserPlus className="h-3 w-3 mr-1" />;
+    }
+    return <Users className="h-3 w-3 mr-1" />;
+  };
+
+  // Enhanced capacity display function
+  const getCapacityDisplay = (batch: IBatchFromAPI): string => {
+    if (batch.batch_type === 'individual' || batch.capacity === 1) {
+      return '1:1 Session';
+    }
+    return `${batch.enrolled_students}/${batch.capacity} enrolled`;
   };
 
   return (
@@ -344,11 +1494,19 @@ const BatchManagementPage: React.FC = () => {
                 {activeTab === 'batches' ? 'View Analytics' : 'View Batches'}
               </button>
               <button
+                onClick={handleCreateIndividualBatch}
+                className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                title="Create 1:1 Individual Batch"
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Create 1:1 Batch
+              </button>
+              <button
                 onClick={handleCreateBatch}
                 className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Create Batch
+                Create Group Batch
               </button>
             </div>
           </div>
@@ -413,6 +1571,22 @@ const BatchManagementPage: React.FC = () => {
               </select>
             </div>
 
+            {/* Batch Type Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Batch Type
+              </label>
+              <select
+                value={batchTypeFilter}
+                onChange={(e) => setBatchTypeFilter(e.target.value as TBatchType | '')}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="">All Types</option>
+                <option value="group">Group Batches</option>
+                <option value="individual">Individual (1:1)</option>
+              </select>
+            </div>
+
             {/* Actions */}
             <div className="flex items-end space-x-2">
               {selectedCourse && (
@@ -458,33 +1632,57 @@ const BatchManagementPage: React.FC = () => {
               <span className="ml-3 text-gray-600 dark:text-gray-400">Loading batches...</span>
             </div>
           </div>
-        ) : batches.length === 0 ? (
+        ) : getFilteredBatches().length === 0 ? (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
             <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              {selectedCourse ? 'No batches found' : 'Select a course to view batches'}
+              {selectedCourse 
+                ? (batchTypeFilter 
+                    ? `No ${batchTypeFilter === 'individual' ? 'individual (1:1)' : 'group'} batches found`
+                    : 'No batches found'
+                  )
+                : (batchTypeFilter
+                    ? `Select a course to view ${batchTypeFilter === 'individual' ? 'individual (1:1)' : 'group'} batches`
+                    : 'Select a course to view batches'
+                  )
+              }
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               {selectedCourse 
-                ? 'There are no batches for the selected course and filters.'
-                : 'Choose a course from the dropdown above to see available batches.'
+                ? (batchTypeFilter 
+                    ? `There are no ${batchTypeFilter === 'individual' ? 'individual (1:1)' : 'group'} batches for the selected course and filters.`
+                    : 'There are no batches for the selected course and filters.'
+                  )
+                : (batchTypeFilter
+                    ? `Choose a course from the dropdown above to see available ${batchTypeFilter === 'individual' ? 'individual (1:1)' : 'group'} batches.`
+                    : 'Choose a course from the dropdown above to see available batches.'
+                  )
               }
             </p>
             {selectedCourse && (
-              <button
-                onClick={handleCreateBatch}
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Create First Batch
-              </button>
+              <div className="flex items-center justify-center space-x-3">
+                <button
+                  onClick={handleCreateBatch}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Group Batch
+                </button>
+                <button
+                  onClick={handleCreateIndividualBatch}
+                  className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Create 1:1 Batch
+                </button>
+              </div>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <AnimatePresence>
-              {batches.map((batch) => {
-                const utilization = instructorAssignmentUtils.calculateBatchUtilization(
+              {getFilteredBatches().map((batch) => {
+                const utilization = batchUtils.calculateBatchUtilization(
                   batch.enrolled_students, 
                   batch.capacity
                 );
@@ -495,100 +1693,246 @@ const BatchManagementPage: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow"
+                    className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 group ${
+                      openDropdown === batch._id ? '' : 'overflow-hidden'
+                    }`}
                   >
-                    {/* Card Header */}
-                    <div className="p-6 pb-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                            {batch.batch_name}
-                          </h3>
-                          {batch.batch_code && (
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                              {batch.batch_code}
-                            </p>
-                          )}
+                    {/* Card Header with Course Image */}
+                    <div className="relative h-32 bg-gradient-to-br from-blue-500 to-purple-600 overflow-hidden">
+                      {batch.course.course_image ? (
+                        <img 
+                          src={batch.course.course_image} 
+                          alt={batch.course.course_title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                          <BookOpen className="h-12 w-12 text-white opacity-80" />
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[batch.status]}`}>
-                            {batch.status}
-                          </span>
-                          <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
-                            <MoreVertical className="h-4 w-4 text-gray-400" />
-                          </button>
-                        </div>
-                      </div>
+                      )}
                       
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                        {batch.course_details?.course_title}
-                      </p>
-
-                      {/* Stats */}
-                      <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div className="flex items-center space-x-2">
-                          <Users className="h-4 w-4 text-gray-400" />
-                          <span className="text-sm text-gray-600 dark:text-gray-400">
-                            {batch.enrolled_students}/{batch.capacity}
-                          </span>
-                          <span className={`text-xs font-medium ${getUtilizationColor(utilization)}`}>
-                            ({utilization}%)
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <User className="h-4 w-4 text-gray-400" />
-                          <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                            {batch.instructor_details?.full_name}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Schedule Preview */}
-                      <div className="flex items-center space-x-2 mb-4">
-                        <Calendar className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          {formatDate(batch.start_date)} - {formatDate(batch.end_date)}
+                      {/* Status Badge */}
+                      <div className="absolute top-3 left-3">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold backdrop-blur-sm ${statusColors[batch.status]} border border-white/20`}>
+                          {getStatusIcon(batch.status)}
+                          <span className="ml-1">{batch.status}</span>
                         </span>
                       </div>
 
-                      {batch.schedule && batch.schedule.length > 0 && (
-                        <div className="flex items-center space-x-2 mb-4">
-                          <Clock className="h-4 w-4 text-gray-400" />
-                          <span className="text-sm text-gray-600 dark:text-gray-400">
-                            {batch.schedule.length} sessions/week
-                          </span>
+                      {/* Batch Type Badge */}
+                      <div className="absolute top-3 right-14">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold backdrop-blur-sm border border-white/20 ${getBatchTypeBadgeColor(batch)}`}>
+                          {getBatchTypeIcon(batch)}
+                          {getBatchTypeDisplay(batch)}
+                        </span>
+                      </div>
+
+                      {/* Status Change Dropdown */}
+                      {getStatusTransitions(batch.status).length > 0 && (
+                        <div className="absolute top-3 right-3 dropdown-container">
+                          <div className="relative">
+                            <button 
+                              className="p-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-all duration-200 opacity-0 group-hover:opacity-100"
+                              onClick={(e) => toggleDropdown(batch._id, e)}
+                              title="Change Status"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </button>
+                            
+                            {/* Enhanced Dropdown Menu */}
+                            {openDropdown === batch._id && (
+                              <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-[9999] animate-in slide-in-from-top-2 duration-200">
+                                <div className="p-2">
+                                  <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 px-3 py-2 border-b border-gray-100 dark:border-gray-700 mb-1">
+                                    Change Status
+                                  </div>
+                                  {getStatusTransitions(batch.status).map((newStatus) => (
+                                    <button
+                                      key={newStatus}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleStatusUpdate(batch._id, newStatus);
+                                      }}
+                                      disabled={statusUpdateLoading === batch._id}
+                                      className={`w-full flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
+                                        newStatus === 'Active'
+                                          ? 'text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20'
+                                          : newStatus === 'Completed'
+                                            ? 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
+                                            : newStatus === 'Cancelled'
+                                              ? 'text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
+                                              : 'text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20'
+                                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                                    >
+                                      {statusUpdateLoading === batch._id ? (
+                                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                      ) : (
+                                        <>
+                                          {getStatusIcon(newStatus)}
+                                          <span className="ml-2">Mark as {newStatus}</span>
+                                        </>
+                                      )}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
 
-                    {/* Card Actions */}
-                    <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
+                    {/* Card Content */}
+                    <div className="p-5">
+                      {/* Title and Course Info */}
+                      <div className="mb-4">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1 line-clamp-1">
+                          {batch.batch_name}
+                        </h3>
+                        {batch.batch_code && (
+                          <p className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-2">
+                            {batch.batch_code}
+                          </p>
+                        )}
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 line-clamp-1">
+                            {batch.course.course_title}
+                          </p>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {batch.course.course_category}
+                        </p>
+                      </div>
+
+                      {/* Key Metrics */}
+                      <div className="space-y-3 mb-4">
+                        {/* Student Enrollment */}
+                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-2">
+                              <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                                <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                              </div>
+                              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {batch.batch_type === 'individual' || batch.capacity === 1 ? 'Session Type' : 'Students'}
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-bold text-gray-900 dark:text-white">
+                                {getCapacityDisplay(batch)}
+                              </div>
+                              {batch.batch_type !== 'individual' && batch.capacity > 1 && (
+                                <div className={`text-xs font-medium ${getUtilizationColor(utilization)}`}>
+                                  {utilization}% filled
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          {batch.batch_type !== 'individual' && batch.capacity > 1 && (
+                            <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                              <div
+                                className={`h-2 rounded-full transition-all duration-500 ${
+                                  utilization >= 90 ? 'bg-red-500' : utilization >= 70 ? 'bg-yellow-500' : 'bg-green-500'
+                                }`}
+                                style={{ width: `${Math.min(utilization, 100)}%` }}
+                              ></div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Instructor */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
+                              <User className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                            </div>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Instructor</span>
+                          </div>
+                          <div className="text-right">
+                            {batch.assigned_instructor ? (
+                              <div className="space-y-1">
+                                <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                  {getInstructorName(batch.assigned_instructor)}
+                                </div>
+                                {isInstructorObject(batch.assigned_instructor) && (
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    {batch.assigned_instructor.email}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="space-y-1">
+                                <span className="text-sm text-red-500 dark:text-red-400 font-medium">Unassigned</span>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  No instructor assigned
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Duration */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                              <Calendar className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                            </div>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Duration</span>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                              {Math.ceil((new Date(batch.end_date).getTime() - new Date(batch.start_date).getTime()) / (1000 * 60 * 60 * 24 * 7))} weeks
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {batch.schedule?.length || 0} sessions/week
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Schedule Timeline */}
+                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-3 mb-4">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          <span className="text-sm font-semibold text-blue-900 dark:text-blue-300">Timeline</span>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-blue-800 dark:text-blue-200 font-medium">Start</span>
+                            <span className="text-blue-700 dark:text-blue-300">{formatDate(batch.start_date)}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-blue-800 dark:text-blue-200 font-medium">End</span>
+                            <span className="text-blue-700 dark:text-blue-300">{formatDate(batch.end_date)}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <div className="flex space-x-2">
                           <button
                             onClick={() => handleViewBatchDetails(batch)}
-                            className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                            className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 rounded-lg transition-all duration-200"
+                            title="View Details"
                           >
-                            View Details
+                            <Eye className="h-3.5 w-3.5 mr-1" />
+                            Details
                           </button>
                           <button
                             onClick={() => handleManageStudents(batch)}
-                            className="text-sm text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 font-medium"
+                            className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/30 rounded-lg transition-all duration-200"
+                            title="Manage Students"
                           >
-                            Manage Students
+                            <UserCog className="h-3.5 w-3.5 mr-1" />
+                            Students
                           </button>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => handleEditBatch(batch)}
-                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                            title="Edit Batch"
-                          >
-                            <Edit3 className="h-4 w-4" />
-                          </button>
+                        <div className="flex space-x-1">
                           <button
                             onClick={() => handleDeleteBatch(batch._id!, batch.batch_name)}
-                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200"
                             title="Delete Batch"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -631,21 +1975,16 @@ const BatchManagementPage: React.FC = () => {
         )}
       </div>
 
-      {/* Create/Edit Batch Modal */}
-      {showCreateModal && (
-        <BatchAssignmentModal
-          isOpen={showCreateModal}
-          onClose={() => {
-            setShowCreateModal(false);
-            setEditingBatch(null);
-          }}
+      {/* Replace Create/Edit Batch Modal and Individual Batch Modal with UnifiedBatchModal */}
+      {showUnifiedBatchModal && (
+        <UnifiedBatchModal
+          isOpen={!!showUnifiedBatchModal}
+          onClose={() => setShowUnifiedBatchModal(false)}
           onSuccess={onModalSuccess}
-          mode="create_batch"
+          batchType={showUnifiedBatchModal}
+          title={showUnifiedBatchModal === 'group' ? 'Create Group Batch' : 'Create Individual 1:1 Batch'}
           course={selectedCourse ? courses.find(c => c._id === selectedCourse) : undefined}
-          courses={courses}
-          instructors={instructors}
-          title={editingBatch ? `Edit Batch: ${editingBatch.batch_name}` : 'Create New Batch'}
-          onOpenInstructorAssignment={handleAssignInstructorToCourse}
+          initialData={unifiedModalInitialData}
         />
       )}
 
@@ -689,7 +2028,7 @@ const BatchManagementPage: React.FC = () => {
                       <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
                         Course
                       </label>
-                      <p className="text-gray-900 dark:text-white">{selectedBatch.course_details?.course_title}</p>
+                      <p className="text-gray-900 dark:text-white">{selectedBatch.course.course_title}</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -699,6 +2038,61 @@ const BatchManagementPage: React.FC = () => {
                         {selectedBatch.status}
                       </span>
                     </div>
+                  </div>
+                </div>
+
+                {/* Instructor Information */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                    Instructor Information
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    {selectedBatch.assigned_instructor ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
+                            <User className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {getInstructorName(selectedBatch.assigned_instructor)}
+                            </p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              {getInstructorEmail(selectedBatch.assigned_instructor)}
+                            </p>
+                          </div>
+                        </div>
+                        {/* Display phone numbers if available for object format */}
+                        {(() => {
+                          const instructor = selectedBatch.assigned_instructor;
+                          return isInstructorObject(instructor) && 
+                                 instructor.phone_numbers && 
+                                 instructor.phone_numbers.length > 0 ? (
+                            <div className="mt-2">
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                <span className="font-medium">Phone:</span>{' '}
+                                {instructor.phone_numbers.map((phone, index) => (
+                                  <span key={index}>
+                                    {phone.number}
+                                    {index < instructor.phone_numbers!.length - 1 ? ', ' : ''}
+                                  </span>
+                                ))}
+                              </p>
+                            </div>
+                          ) : null;
+                        })()}
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-3 text-gray-500 dark:text-gray-400">
+                        <div className="p-2 bg-gray-200 dark:bg-gray-600 rounded-lg">
+                          <User className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="font-medium">No instructor assigned</p>
+                          <p className="text-sm">This batch needs an instructor to be assigned.</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -761,7 +2155,19 @@ const BatchManagementPage: React.FC = () => {
             
             <div className="p-6">
               <BatchStudentEnrollment
-                batch={selectedBatch}
+                batch={{
+                  ...selectedBatch,
+                  available_spots: selectedBatch.capacity - selectedBatch.enrolled_students,
+                  course: typeof selectedBatch.course === 'string' ? selectedBatch.course : selectedBatch.course._id,
+                  course_details: {
+                    _id: selectedBatch.course._id,
+                    course_title: selectedBatch.course.course_title,
+                    course_category: selectedBatch.course.course_category
+                  },
+                  start_date: new Date(selectedBatch.start_date),
+                  end_date: new Date(selectedBatch.end_date),
+                  assigned_instructor: getInstructorId(selectedBatch.assigned_instructor) || undefined
+                }}
                 onUpdate={onModalSuccess}
               />
             </div>
