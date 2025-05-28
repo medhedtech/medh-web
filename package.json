@@ -6,7 +6,7 @@
   "description": "Proprietary software. Unauthorized use, reproduction, or distribution is strictly prohibited.",
   "scripts": {
     "dev": "next dev",
-    "build": "node --max-old-space-size=16364 node_modules/.bin/next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest"

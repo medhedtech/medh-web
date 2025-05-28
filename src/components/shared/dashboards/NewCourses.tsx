@@ -171,73 +171,63 @@ const NewCourses: React.FC = () => {
     >
       <div className="flex flex-col space-y-6">
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-6 mb-8 px-6 pt-8">
+          {/* Left side - Icon and Title */}
           <motion.div 
             variants={itemVariants}
-            className="flex items-center gap-3"
+            className="flex items-center gap-4"
           >
-            <div className="p-3 rounded-xl bg-primary-50 dark:bg-primary-900/20">
+            <div className="p-3 rounded-2xl bg-gradient-to-br from-primary-500/10 to-primary-600/10 dark:from-primary-500/[0.07] dark:to-primary-600/[0.07] border border-primary-500/10 dark:border-primary-500/[0.05]">
               <BookOpen className="w-6 h-6 text-primary-500 dark:text-primary-400" />
             </div>
-            <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white">
-              New Courses
-            </h2>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                New Courses
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Discover the latest courses available
+              </p>
+            </div>
           </motion.div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            {/* Search and Filter Toggle */}
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <motion.div 
-                variants={itemVariants}
-                className="relative flex-1"
-              >
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search courses..."
-                  value={searchTitle}
-                  onChange={(e) => setSearchTitle(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200"
-                />
-              </motion.div>
+          {/* Right side - Search, Filter and View All */}
+          <div className="flex items-center gap-4">
+            <motion.div 
+              variants={itemVariants}
+              className="relative"
+            >
+              <input
+                type="text"
+                placeholder="Search courses..."
+                value={searchTitle}
+                onChange={(e) => setSearchTitle(e.target.value)}
+                className="w-72 px-4 py-2.5 pl-10 pr-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 backdrop-blur-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent shadow-sm"
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            </motion.div>
 
-              <motion.button
-                variants={itemVariants}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowFilters(!showFilters)}
-                className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              >
-                <Filter className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              </motion.button>
-            </div>
-
-            {/* View All Link */}
-            <motion.a
+            <motion.button
+              variants={itemVariants}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowFilters(!showFilters)}
+              className="p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-sm"
+            >
+              <Filter className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+            </motion.button>
+            
+            <motion.button
               variants={itemVariants}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              href="/courses?filter=new"
-              className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-medium transition-colors"
+              onClick={() => router.push('/courses?filter=new')}
+              className="px-6 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl transition-all duration-300 shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30 flex items-center gap-2 whitespace-nowrap"
             >
               View All
               <ChevronRight className="w-4 h-4" />
-            </motion.a>
+            </motion.button>
           </div>
         </div>
-
-        {/* Error Message */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400"
-          >
-            {error}
-          </motion.div>
-        )}
 
         {/* Filter Section */}
         <AnimatePresence>
@@ -292,19 +282,70 @@ const NewCourses: React.FC = () => {
         {displayCourses.length === 0 ? (
           <motion.div
             variants={itemVariants}
-            className="min-h-[300px] flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-center"
+            className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-lg"
           >
-            <div className="p-4 rounded-full bg-blue-50 dark:bg-blue-900/20 mb-4">
-              <BookOpen className="w-8 h-8 text-blue-500 dark:text-blue-400" />
+            {/* Header inside empty state */}
+            <div className="flex items-center justify-between gap-6 p-6 border-b border-gray-100 dark:border-gray-700">
+              {/* Left side - Icon and Title */}
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-2xl bg-gradient-to-br from-green-500/10 to-green-600/10 dark:from-green-500/[0.07] dark:to-green-600/[0.07] border border-green-500/10 dark:border-green-500/[0.05]">
+                  <BookOpen className="w-6 h-6 text-green-500 dark:text-green-400" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    New Courses
+                  </h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {searchTitle || minFee || maxFee 
+                      ? "Search and discover courses that match your criteria"
+                      : "No new courses are available at the moment"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Right side - Search and View All */}
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search courses..."
+                    value={searchTitle}
+                    onChange={(e) => setSearchTitle(e.target.value)}
+                    className="w-72 px-4 py-2.5 pl-10 pr-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 backdrop-blur-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent shadow-sm"
+                  />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                </div>
+                
+                <button
+                  onClick={() => router.push('/courses?filter=new')}
+                  className="px-6 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl transition-all duration-300 shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30 flex items-center gap-2 whitespace-nowrap"
+                >
+                  View All
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-              No new courses found
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 max-w-md">
-              {searchTitle || minFee || maxFee
-                ? "No courses match your search criteria. Try adjusting your filters."
-                : "There are no new courses available at the moment. Check back later!"}
-            </p>
+
+            {/* Empty state content */}
+            <div className="min-h-[300px] flex flex-col items-center justify-center p-8 text-center">
+              <div className="p-4 rounded-full bg-green-50 dark:bg-green-900/20 mb-4">
+                <BookOpen className="w-8 h-8 text-green-500 dark:text-green-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                No courses found
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 max-w-md mb-6">
+                {searchTitle || minFee || maxFee
+                  ? "No courses match your search criteria. Try adjusting your filters."
+                  : "No new courses are available at the moment. Please check back later."}
+              </p>
+              <button
+                onClick={() => router.push('/courses')}
+                className="px-6 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl transition-all duration-300 shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30"
+              >
+                Browse All Courses
+              </button>
+            </div>
           </motion.div>
         ) : (
           <motion.div
