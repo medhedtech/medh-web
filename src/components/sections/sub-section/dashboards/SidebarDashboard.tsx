@@ -916,7 +916,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       icon: <Calendar className="w-5 h-5" />,
       subItems: [
         {
-          name: "Online Classes",
+          name: "Class Management",
           path: formatRoute("admin", "online-class"),
           icon: <Video className="w-4 h-4" />
         },
