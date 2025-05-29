@@ -1,6 +1,10 @@
 #!/bin/bash
 # Amplify build script
 
+# Print Node.js and npm versions
+echo "Node version: $(node -v)"
+echo "NPM version: $(npm -v)"
+
 # Print environment variables (without sensitive values)
 echo "Environment variables:"
 env | grep -v "SECRET\|KEY\|PASSWORD\|TOKEN" | sort
@@ -16,13 +20,14 @@ else
   fi
 fi
 
-# Install dependencies
-echo "Installing dependencies..."
-npm ci --cache .npm --prefer-offline
+# Configure npm to suppress certain warnings and use legacy-peer-deps
+echo "Configuring npm settings..."
+npm config set legacy-peer-deps true
+npm config set loglevel warn
 
 # Build the application
 echo "Building the application..."
-npm run build
+NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
 # Check if build was successful
 if [ $? -eq 0 ]; then
