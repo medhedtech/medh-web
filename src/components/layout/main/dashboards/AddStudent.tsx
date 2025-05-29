@@ -296,7 +296,12 @@ const AddStudent = ({ onCancel, onSuccess }) => {
         postData: {
           full_name: data.full_name,
           email: data.email,
-          phone_numbers: phoneNumbers,
+          phone_numbers: phoneNumbers.map(item => {
+            const countryObj = countryCodes.find(c => c.code === item.country);
+            const dialMatch = countryObj?.name.match(/\+(\d+)/);
+            const dialCode = dialMatch ? dialMatch[1] : '';
+            return { country: item.country, number: `+${dialCode}${item.number}` };
+          }),
           password: data.password,
           role: ["student"],
           meta: {

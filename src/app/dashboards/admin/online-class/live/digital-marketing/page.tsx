@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FaArrowLeft, FaBullhorn, FaChevronDown, FaUsers, FaUser, FaCalendarAlt, FaVideo, FaCopy, FaShare, FaUpload, FaDownload } from "react-icons/fa";
 import { HiLightningBolt } from "react-icons/hi";
 import useGetQuery from "@/hooks/getQuery.hook";
@@ -9,6 +10,7 @@ import { apiUrls, apiBaseUrl } from "@/apis";
 import { batchAPI, IBatchSchedule, IZoomMeetingInput, IRecordedLessonInput, IRecordedLesson } from "@/apis/batch";
 import { toast } from "react-hot-toast";
 import { apiClient } from "@/apis/apiClient";
+import { UploadResponse } from "@/services/uploadService";
 
 // TypeScript interfaces
 interface IInstructor {
@@ -62,7 +64,15 @@ interface ISession {
   batchId?: string; // Store the original batch ID
 }
 
+interface IStudent {
+  _id: string;
+  full_name: string;
+  email?: string;
+}
+
 export default function ManageDigitalMarketingPage() {
+  // Initialize router for navigation
+  const router = useRouter();
   const { getQuery, loading } = useGetQuery();
   const { getQuery: fetchSessions, loading: sessionsLoading } = useGetQuery();
   
@@ -82,10 +92,16 @@ export default function ManageDigitalMarketingPage() {
   const [recordingForm, setRecordingForm] = useState<{ title: string; url: string; recorded_date: string }>({ title: '', url: '', recorded_date: '' });
   const [currentBatchIdForRecording, setCurrentBatchIdForRecording] = useState<string | null>(null);
   const [currentSessionIdForRecording, setCurrentSessionIdForRecording] = useState<string | null>(null);
+  const [openSessions, setOpenSessions] = useState<Record<string, boolean>>({});
+  const [students, setStudents] = useState<IStudent[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<string>("");
+  const [showStudentDropdown, setShowStudentDropdown] = useState<boolean>(false);
+  const [existingRecordings, setExistingRecordings] = useState<IRecordedLesson[]>([]);
   
   // Refs for dropdown management
   const instructorDropdownRef = useRef<HTMLDivElement>(null);
   const sessionTypeDropdownRef = useRef<HTMLDivElement>(null);
+  const studentDropdownRef = useRef<HTMLDivElement>(null);
 
   // Session type options
   const sessionTypes = [
@@ -96,6 +112,7 @@ export default function ManageDigitalMarketingPage() {
   // Fetch instructors on component mount
   useEffect(() => {
     fetchInstructors();
+    fetchStudents();
   }, []);
 
   // Fetch batches for this category on mount
@@ -135,13 +152,40 @@ export default function ManageDigitalMarketingPage() {
         },
         onFail: (error: any) => {
           console.error('Failed to fetch instructors:', error);
-          toast.error('Failed to load instructors');
           setInstructors([]);
         }
       });
     } catch (error) {
       console.error('Error fetching instructors:', error);
       setInstructors([]);
+    }
+  };
+
+  // Fetch students list for filter
+  const fetchStudents = async () => {
+    try {
+      await getQuery({
+        url: apiUrls.Students.getAllStudents,
+        onSuccess: (response: any) => {
+          // API may return students at top-level or nested under data
+          if (Array.isArray(response.students)) {
+            setStudents(response.students);
+          } else if (Array.isArray(response.data?.students)) {
+            setStudents(response.data.students);
+          } else if (Array.isArray(response.data)) {
+            setStudents(response.data);
+          } else {
+            setStudents([]);
+          }
+        },
+        onFail: (error: any) => {
+          console.error('Failed to fetch students:', error);
+          setStudents([]);
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching students:', error);
+      setStudents([]);
     }
   };
 
@@ -168,7 +212,7 @@ export default function ManageDigitalMarketingPage() {
               duration: '',
               students: batch.enrolled_students,
               meetingLink: batch.schedule?.[0]?.zoom_meeting?.join_url,
-              status: batch.status.toLowerCase() as 'scheduled' | 'ongoing' | 'completed',
+              status: (batch.status?.toLowerCase() || 'scheduled') as 'scheduled' | 'ongoing' | 'completed',
               schedules: batch.schedule?.map((s: any) => ({
                 _id: s._id,
                 day: s.day,
@@ -183,10 +227,62 @@ export default function ManageDigitalMarketingPage() {
       },
       onFail: (error: any) => {
         console.error('Failed to load batches by category:', error);
-        toast.error('Failed to load classes');
       }
     });
   };
+
+  // Load batches by student selection
+  const loadBatchesByStudent = async (studentId: string) => {
+    try {
+      const resp = await batchAPI.getIndividualBatchesByStudent(studentId);
+      const list = resp.data?.data || resp.data;
+      if (!Array.isArray(list)) {
+        setSessions([]);
+        return;
+      }
+      // Filter to this category
+      const filtered = list.filter((entry: any) => entry.course?.course_title === "Digital Marketing with Data Analytics");
+      const transformed: ISession[] = filtered.map((entry: any) => {
+        const batch = entry.batch;
+        return {
+          _id: batch._id,
+          batchId: batch._id,
+          title: batch.batch_name,
+          instructor: typeof batch.assigned_instructor === 'string'
+            ? batch.assigned_instructor
+            : batch.assigned_instructor?.full_name || '',
+          instructorId: typeof batch.assigned_instructor === 'string'
+            ? batch.assigned_instructor
+            : batch.assigned_instructor?._id,
+          sessionType: batch.batch_type || (batch.capacity === 1 ? 'individual' : 'batch'),
+          date: batch.start_date.split('T')[0],
+          time: batch.schedule?.[0]?.start_time || '',
+          duration: '',
+          students: batch.enrolled_students,
+          meetingLink: batch.schedule?.[0]?.zoom_meeting?.join_url,
+          status: (batch.status?.toLowerCase() || 'scheduled') as 'scheduled' | 'ongoing' | 'completed',
+          schedules: batch.schedule?.map((s: any) => ({
+            _id: s._id,
+            day: s.day,
+            start_time: s.start_time,
+            end_time: s.end_time,
+            zoom_meeting: s.zoom_meeting,
+            recorded_lessons: s.recorded_lessons || []
+          })) || []
+        };
+      });
+      setSessions(transformed);
+    } catch (error: any) {
+      console.error('Failed to load batches by student:', error);
+      setSessions([]);
+    }
+  };
+
+  // Update batches when student filter changes
+  useEffect(() => {
+    if (selectedStudent) loadBatchesByStudent(selectedStudent);
+    else loadCategoryBatches();
+  }, [selectedStudent]);
 
   // Filter sessions based on selected instructor and session type
   const filteredSessions = sessions.filter(session => {
@@ -301,8 +397,18 @@ export default function ManageDigitalMarketingPage() {
   };
   const submitAddRecording = async () => {
     if (!currentBatchIdForRecording || !currentSessionIdForRecording) return;
+    // Ensure recorded_date is a valid ISO string; default to now if empty
+    const payload = {
+      title: recordingForm.title,
+      url: recordingForm.url,
+      recorded_date: recordingForm.recorded_date || new Date().toISOString()
+    };
     try {
-      await batchAPI.addRecordedLesson(currentBatchIdForRecording, currentSessionIdForRecording, recordingForm);
+      await batchAPI.addRecordedLesson(
+        currentBatchIdForRecording,
+        currentSessionIdForRecording,
+        payload
+      );
       toast.success('Recorded lesson added!');
       loadCategoryBatches();
     } catch (error: any) {
@@ -317,12 +423,20 @@ export default function ManageDigitalMarketingPage() {
   const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const formData = new FormData();
-    formData.append('file', file);
     try {
       toast.loading('Uploading video...');
-      const response = await apiClient.upload<{ url: string }>(apiUrls.upload.uploadFile, formData);
-      const uploadedUrl = response.data?.url;
+      const base64String = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsDataURL(file);
+      });
+      const rawBase64 = base64String.includes(',') ? base64String.split(',')[1] : base64String;
+      const response = await apiClient.post<UploadResponse>(apiUrls.upload.uploadMedia, {
+        base64String: rawBase64,
+        fileType: 'video'
+      });
+      const uploadedUrl = response.data!.data.url;
       if (uploadedUrl) {
         setRecordingForm(prev => ({ ...prev, url: uploadedUrl }));
         toast.success('Video uploaded successfully!');
@@ -333,6 +447,11 @@ export default function ManageDigitalMarketingPage() {
       console.error('Upload failed:', error);
       toast.error('Video upload failed');
     }
+  };
+
+  // Toggle display of scheduled sessions for a session
+  const toggleSessions = (sessionId: string) => {
+    setOpenSessions(prev => ({ ...prev, [sessionId]: !prev[sessionId] }));
   };
 
   // Update the session card to show schedules and zoom meeting details
@@ -397,7 +516,7 @@ export default function ManageDigitalMarketingPage() {
                 </div>
                 
                 {/* Scheduled Sessions */}
-                {session.schedules && session.schedules.length > 0 && (
+                {session.schedules && session.schedules.length > 0 && openSessions[session._id] && (
                   <div className="mt-4 space-y-3">
                     <div className="flex items-center justify-between mb-2">
                       <div className="text-sm font-medium text-gray-900 dark:text-gray-100">Scheduled Sessions:</div>
@@ -463,19 +582,39 @@ export default function ManageDigitalMarketingPage() {
                           )}
                         </div>
                         {schedule.recorded_lessons && schedule.recorded_lessons.length > 0 && (
-                          <ul className="mt-2 list-disc list-inside text-xs text-gray-700 dark:text-gray-300">
-                            {schedule.recorded_lessons.map((lesson) => (
-                              <li key={lesson._id}>
-                                <a
-                                  href={lesson.url}
-                                  target="_blank"
-                                  className="underline"
-                                >
-                                  {lesson.title}
-                                </a>
-                              </li>
-                            ))}
-                          </ul>
+                          <div className="mt-4 overflow-x-auto">
+                            <table className="min-w-full text-left text-xs text-gray-700 dark:text-gray-300">
+                              <thead className="bg-gray-100 dark:bg-gray-800">
+                                <tr>
+                                  <th className="px-4 py-2">Title</th>
+                                  <th className="px-4 py-2">Date</th>
+                                  <th className="px-4 py-2">Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                {schedule.recorded_lessons.map((lesson) => (
+                                  <tr key={lesson._id}>
+                                    <td className="px-4 py-2">
+                                      <a href={lesson.url} target="_blank" className="underline text-blue-600 dark:text-blue-400">
+                                        {lesson.title}
+                                      </a>
+                                    </td>
+                                    <td className="px-4 py-2">
+                                      {new Date(lesson.recorded_date).toLocaleString()}
+                                    </td>
+                                    <td className="px-4 py-2 flex space-x-4">
+                                      <button onClick={() => window.open(lesson.url, '_blank')} className="text-blue-600 hover:underline">
+                                        View
+                                      </button>
+                                      <button onClick={() => copyMeetingLink(lesson.url)} className="text-gray-600 dark:text-gray-300 hover:underline">
+                                        Copy Link
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
                         )}
                       </div>
                     ))}
@@ -484,7 +623,10 @@ export default function ManageDigitalMarketingPage() {
               </div>
               
               <div className="flex items-center gap-2 ml-4">
-                <button className="px-4 py-2 bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/30 rounded-lg transition-colors duration-200">
+                <button
+                  onClick={() => toggleSessions(session._id)}
+                  className="px-4 py-2 bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/30 rounded-lg transition-colors duration-200"
+                >
                   Edit
                 </button>
               </div>
@@ -539,7 +681,49 @@ export default function ManageDigitalMarketingPage() {
             Filter Classes
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Student Dropdown */}
+            <div className="relative" ref={studentDropdownRef}>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Student</label>
+              <button
+                onClick={() => setShowStudentDropdown(!showStudentDropdown)}
+                className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-left flex items-center justify-between hover:border-blue-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
+              >
+                <span className={selectedStudent ? "text-gray-900 dark:text-gray-100" : "text-gray-500 dark:text-gray-400"}>
+                  {selectedStudent ? students.find(s => s._id === selectedStudent)?.full_name : "Select a student..."}
+                </span>
+                <FaChevronDown className={`text-gray-400 transition-transform duration-200 ${showStudentDropdown ? 'rotate-180' : ''}`} />
+              </button>
+              {showStudentDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg z-10 max-h-60 overflow-y-auto">
+                  <div className="p-2">
+                    <button
+                      onClick={() => { setSelectedStudent(""); setShowStudentDropdown(false); }}
+                      className="w-full px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200 text-gray-700 dark:text-gray-300"
+                    >
+                      All Students
+                    </button>
+                    {students.map(student => (
+                      <button
+                        key={student._id}
+                        onClick={() => { setSelectedStudent(student._id); setShowStudentDropdown(false); }}
+                        className="w-full px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200 text-gray-700 dark:text-gray-300"
+                      >
+                        <div>
+                          <div className="font-medium">{student.full_name}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">{student.email}</div>
+                        </div>
+                      </button>
+                    ))}
+                    {students.length === 0 && (
+                      <div className="px-3 py-2 text-gray-500 dark:text-gray-400 text-sm">
+                        {loading ? "Loading students..." : "No students found"}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
             {/* Instructor Dropdown */}
             <div className="relative" ref={instructorDropdownRef}>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -645,10 +829,13 @@ export default function ManageDigitalMarketingPage() {
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-              Scheduled Classes ({filteredSessions.length})
+              Scheduled Batches ({filteredSessions.length})
             </h2>
-            <button className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-xl font-medium transition-all duration-200 hover:scale-105">
-              + New Class
+            <button
+              onClick={() => router.push('/dashboards/admin/online-class/live/batch-management')}
+              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-xl font-medium transition-all duration-200 hover:scale-105"
+            >
+              + Add / Edit Batches
             </button>
           </div>
 
@@ -693,6 +880,12 @@ export default function ManageDigitalMarketingPage() {
                 <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Upload Video</label>
                 <input type="file" accept="video/*" onChange={handleVideoUpload} className="w-full" />
               </div>
+              {recordingForm.url && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Preview</label>
+                  <video src={recordingForm.url} controls className="w-full rounded-lg" />
+                </div>
+              )}
               <div>
                 <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">URL</label>
                 <input type="text" value={recordingForm.url} readOnly className="w-full px-3 py-2 border rounded-lg bg-gray-100" />
