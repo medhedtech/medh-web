@@ -1211,25 +1211,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
           />
         </div>
 
-        {/* Scrollable Course Cards Container */}
-        <div 
-          className="overflow-y-auto max-h-[75vh] pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-800"
-          style={{
-            scrollBehavior: 'smooth',
-            scrollbarWidth: 'thin',
-          }}
-          onScroll={(e) => {
-            const container = e.target as HTMLElement;
-            const scrollTop = container.scrollTop;
-            const scrollHeight = container.scrollHeight - container.clientHeight;
-            const scrollProgress = (scrollTop / scrollHeight) * 100;
-            
-            const progressBar = document.getElementById('scroll-progress');
-            if (progressBar) {
-              progressBar.style.width = `${scrollProgress}%`;
-            }
-          }}
-        >
+        {/* Course Cards Container - no internal scroll */}
+        <div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-6 pt-4">
             {filteredCourses.map((course, index) => {
               const enhancedCourse = renderCourse(course);
