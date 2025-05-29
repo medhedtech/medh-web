@@ -636,6 +636,20 @@ export const batchAPI = {
   },
 
   /**
+   * Get recorded lessons for a specific session in a batch
+   * @param batchId - Batch ID
+   * @param sessionId - Session ID
+   * @returns Promise with recorded lessons response
+   */
+  getRecordedLessons: async (batchId: string, sessionId: string): Promise<IApiResponse<IRecordedLesson[]>> => {
+    if (!batchId) throw new Error('Batch ID is required');
+    if (!sessionId) throw new Error('Session ID is required');
+    return apiClient.get<IRecordedLesson[]>(
+      `${apiBaseUrl}/batches/${batchId}/schedule/${sessionId}/recorded-lessons`
+    );
+  },
+
+  /**
    * Get batches by course ID
    * @param courseId - Course ID
    * @param params - Additional query parameters
@@ -785,6 +799,7 @@ export const batchAPI = {
     );
   },
 
+  
   /**
    * Get batch status distribution analytics
    * @param params - Optional query parameters for filtering
@@ -849,7 +864,7 @@ export const batchAPI = {
    * @param params - Query parameters
    * @returns Promise with batch students
    */
-  getBatchStudents: async (batchId: string, params: { page?: number; limit?: number; search?: string } = {}): Promise<IApiResponse<{
+  getBatchByStudent: async (batchId: string, params: { page?: number; limit?: number; search?: string } = {}): Promise<IApiResponse<{
     success: boolean;
     data: IBatchStudent[];
     pagination?: { page: number; limit: number; total: number; totalPages: number };
