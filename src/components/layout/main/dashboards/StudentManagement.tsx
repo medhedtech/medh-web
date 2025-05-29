@@ -12,6 +12,7 @@ import { IStudent, IFilterOptions } from "@/types/student.types";
 import { motion, AnimatePresence } from "framer-motion";
 import { getAuthToken, isAuthenticated } from "@/utils/auth";
 import InstructorAssignmentModal from "@/components/shared/modals/InstructorAssignmentModal";
+import router from "next/router";
 
 interface IColumn {
   Header: string;
@@ -706,8 +707,7 @@ const StudentManagement: React.FC = () => {
 
                 <motion.button
                   onClick={() => {
-                    // Add student functionality can be added here
-                    toast.info("Add student functionality coming soon!");
+                    window.location.href = '/dashboards/admin/add-student';
                   }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
