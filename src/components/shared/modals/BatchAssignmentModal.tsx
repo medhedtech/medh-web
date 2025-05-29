@@ -9,15 +9,18 @@ import {
   batchAPI, 
   individualAssignmentAPI, 
   enrollmentAPI,
-  instructorAssignmentUtils,
-  type IBatchCreateInput,
-  type IBatchWithDetails,
   type IIndividualAssignmentInput,
   type TAssignmentType,
-  type IBatchSchedule,
   type IStudentWithAssignment,
   type IEnrollmentWithDetails
 } from '@/apis/instructor-assignments';
+import { 
+  batchUtils,
+  type IBatchCreateInput,
+  type IBatchWithDetails,
+  type IBatchSchedule,
+  type TBatchStatus
+} from '@/apis/batch';
 import { apiUrls, apiBaseUrl } from '@/apis/index';
 import { apiClient } from '@/apis/apiClient';
 import { courseTypesAPI, type ILiveCourse } from '@/apis/courses';
@@ -142,8 +145,20 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
   const [isCourseSelectorOpen, setIsCourseSelectorOpen] = useState<boolean>(false);
   
   // Batch Creation Form State
-  const [batchForm, setBatchForm] = useState<IBatchCreateInput>({
+  const [batchForm, setBatchForm] = useState<{
+    batch_name: string;
+    batch_code?: string;
+    course: string;
+    status?: TBatchStatus;
+    start_date: string;  // Keep as string for HTML input
+    end_date: string;    // Keep as string for HTML input
+    capacity: number;
+    assigned_instructor?: string;
+    schedule?: IBatchSchedule[];
+    batch_notes?: string;
+  }>({
     batch_name: '',
+    course: '',
     start_date: '',
     end_date: '',
     capacity: 10,
@@ -310,8 +325,13 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
     try {
       setLoading(true);
       const response = await batchAPI.getBatchesByCourse(course._id);
-      if (response.data?.success) {
-        setBatches(response.data.data);
+      if (response?.data) {
+        // Handle both wrapped and direct array responses
+        if (Array.isArray(response.data)) {
+          setBatches(response.data);
+        } else if ((response.data as any)?.success && (response.data as any)?.data) {
+          setBatches((response.data as any).data);
+        }
       }
     } catch (error) {
       console.error('Error fetching batches:', error);
@@ -371,54 +391,26 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
 
   // Form Handlers
   const handleCreateBatch = async () => {
-    const courseId = selectedCourse || course?._id;
-
+    // Get the course ID
+    const courseId = course?._id || selectedCourse;
+    
     if (!courseId) {
       toast.error('Course selection is required');
       return;
     }
 
-    // Validate course ID format (MongoDB ObjectId should be 24 hex characters)
-    const objectIdRegex = /^[0-9a-fA-F]{24}$/;
-    if (!objectIdRegex.test(courseId)) {
-      console.error('Invalid course ID format:', courseId);
-      toast.error('Invalid course selected. Please select a valid course.');
+    if (!batchForm.batch_name || !batchForm.start_date || !batchForm.end_date) {
+      toast.error('Please fill in all required fields');
       return;
     }
 
-    // Validate required fields
-    if (!batchForm.batch_name?.trim()) {
-      toast.error('Batch name is required');
-      return;
-    }
-
-    if (!batchForm.start_date) {
-      toast.error('Start date is required');
-      return;
-    }
-
-    if (!batchForm.end_date) {
-      toast.error('End date is required');
-      return;
-    }
-
-    if (new Date(batchForm.start_date) >= new Date(batchForm.end_date)) {
-      toast.error('End date must be after start date');
-      return;
-    }
-
-    if (!batchForm.assigned_instructor) {
-      toast.error('Instructor assignment is required');
-      return;
-    }
-
-    if (batchForm.capacity < 1 || batchForm.capacity > 100) {
-      toast.error('Capacity must be between 1 and 100 students');
+    if (!batchForm.assigned_instructor || batchForm.assigned_instructor === '') {
+      toast.error('Please assign an instructor to the batch');
       return;
     }
 
     // Validate schedule
-    const validation = instructorAssignmentUtils.validateBatchSchedule(scheduleEntries);
+    const validation = batchUtils.validateBatchSchedule(scheduleEntries);
     if (!validation.isValid) {
       toast.error(validation.errors[0]);
       return;
@@ -428,18 +420,26 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
       setLoading(true);
       
       const batchData: IBatchCreateInput = {
-        ...batchForm,
-        schedule: scheduleEntries
+        batch_name: batchForm.batch_name,
+        batch_code: batchForm.batch_code,
+        course: courseId,
+        status: batchForm.status || 'Upcoming',
+        start_date: new Date(batchForm.start_date), // Convert string to Date
+        end_date: new Date(batchForm.end_date),     // Convert string to Date
+        capacity: batchForm.capacity,
+        assigned_instructor: batchForm.assigned_instructor,
+        schedule: scheduleEntries,
+        batch_notes: batchForm.batch_notes
       };
 
-      const response = await batchAPI.createBatch(courseId, batchData);
+      const response = await batchAPI.createBatch(batchData);
       
-      if (response.data?.success) {
+      if (response?.data) {
         toast.success('Batch created successfully');
         onSuccess();
         onClose();
       } else {
-        throw new Error(response.data?.message || 'Failed to create batch');
+        throw new Error('Failed to create batch');
       }
     } catch (error) {
       console.error('Error creating batch:', error);
@@ -457,14 +457,16 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
 
     try {
       setLoading(true);
-      const response = await batchAPI.assignInstructorToBatch(batch._id, selectedInstructor);
+      const response = await batchAPI.updateBatch(batch._id, {
+        assigned_instructor: selectedInstructor
+      });
       
-      if (response.data?.success) {
+      if (response?.data) {
         toast.success('Instructor assigned to batch successfully');
         onSuccess();
         onClose();
       } else {
-        throw new Error(response.data?.message || 'Failed to assign instructor');
+        throw new Error('Failed to assign instructor');
       }
     } catch (error) {
       console.error('Error assigning instructor to batch:', error);
@@ -782,6 +784,7 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
                       value={batchForm.start_date}
                       onChange={(e) => setBatchForm(prev => ({ ...prev, start_date: e.target.value }))}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      required
                     />
                   </div>
 
@@ -794,6 +797,7 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
                       value={batchForm.end_date}
                       onChange={(e) => setBatchForm(prev => ({ ...prev, end_date: e.target.value }))}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      required
                     />
                   </div>
                 </div>
