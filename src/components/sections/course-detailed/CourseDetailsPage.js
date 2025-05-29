@@ -95,5 +95,7 @@
     </div>
   ))
 ) : (
-  // ... existing code for empty state ...
+  <div className="text-center py-8">
+    <p className="text-gray-500 dark:text-gray-400">No curriculum available</p>
+  </div>
 )} 

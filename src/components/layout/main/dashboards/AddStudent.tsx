@@ -28,6 +28,45 @@ import {
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
+// Prop types for AddStudent
+interface AddStudentProps {
+  onCancel: () => void;
+  onSuccess: () => void;
+}
+
+// Props for form components
+interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label: string;
+  icon: React.ComponentType<any>;
+  error?: string;
+  type?: string;
+}
+
+interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label: string;
+  error?: string;
+  showPassword: boolean;
+  toggleVisibility: () => void;
+}
+
+interface FormSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+  label: string;
+  icon: React.ComponentType<any>;
+  error?: string;
+  options: { value: string; label: string }[];
+  placeholder?: string;
+}
+
+interface PhoneInputProps {
+  label: string;
+  error?: string;
+  countryValue: string;
+  numberValue: string;
+  onCountryChange: React.ChangeEventHandler<HTMLSelectElement>;
+  onNumberChange: React.ChangeEventHandler<HTMLInputElement>;
+  countryCodes: { code: string; name: string }[];
+}
+
 // Validation Schema
 const schema = yup.object({
   full_name: yup.string().required("Student name is required"),
@@ -48,11 +87,11 @@ const schema = yup.object({
   ).min(1, "At least one phone number is required"),
   confirm_password: yup
     .string()
-    .oneOf(
-      [yup.ref("password"), null],
-      "Password and confirm password must match"
-    )
+    .oneOf([yup.ref("password")], "Password and confirm password must match")
     .required("Confirm password is required"),
+  date_of_birth: yup.string().required("Date of birth is required"),
+  language: yup.string().required("Language is required"),
+  education_level: yup.string().required("Education level is required"),
   password: yup
     .string()
     .min(8, "At least 8 characters required")
@@ -62,7 +101,7 @@ const schema = yup.object({
 });
 
 // Modern Form Input Component
-const FormInput = ({ label, icon: Icon, error, type = "text", ...props }) => (
+const FormInput: React.FC<FormInputProps> = ({ label, icon: Icon, error, type = "text", ...props }) => (
   <motion.div 
     className="relative"
     initial={{ opacity: 0, y: 20 }}
@@ -104,7 +143,7 @@ const FormInput = ({ label, icon: Icon, error, type = "text", ...props }) => (
 );
 
 // Modern Password Input Component
-const PasswordInput = ({ label, error, showPassword, toggleVisibility, ...props }) => (
+const PasswordInput: React.FC<PasswordInputProps> = ({ label, error, showPassword, toggleVisibility, ...props }) => (
   <motion.div 
     className="relative"
     initial={{ opacity: 0, y: 20 }}
@@ -153,7 +192,7 @@ const PasswordInput = ({ label, error, showPassword, toggleVisibility, ...props 
 );
 
 // Modern Select Component
-const FormSelect = ({ label, icon: Icon, error, options, value, onChange, placeholder, ...props }) => (
+const FormSelect: React.FC<FormSelectProps> = ({ label, icon: Icon, error, options, placeholder, ...props }) => (
   <motion.div 
     className="relative"
     initial={{ opacity: 0, y: 20 }}
@@ -169,14 +208,12 @@ const FormSelect = ({ label, icon: Icon, error, options, value, onChange, placeh
         <Icon className="h-5 w-5 text-gray-400 group-focus-within:text-primary-500 transition-colors duration-200" />
       </div>
       <select
-        value={value}
-        onChange={onChange}
+        {...props}
         className={`w-full pl-10 pr-4 py-3 rounded-xl border transition-all duration-200 appearance-none ${
           error 
             ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
             : 'border-gray-300 dark:border-gray-600 focus:border-primary-500 focus:ring-primary-500/20'
         } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2`}
-        {...props}
       >
         <option value="">{placeholder}</option>
         {options.map(option => (
@@ -208,7 +245,7 @@ const FormSelect = ({ label, icon: Icon, error, options, value, onChange, placeh
 );
 
 // Phone Input Component
-const PhoneInput = ({ label, error, countryValue, numberValue, onCountryChange, onNumberChange, countryCodes }) => (
+const PhoneInput: React.FC<PhoneInputProps> = ({ label, error, countryValue, numberValue, onCountryChange, onNumberChange, countryCodes }) => (
   <motion.div 
     className="relative"
     initial={{ opacity: 0, y: 20 }}
@@ -270,7 +307,7 @@ const PhoneInput = ({ label, error, countryValue, numberValue, onCountryChange, 
   </motion.div>
 );
 
-const AddStudent = ({ onCancel, onSuccess }) => {
+const AddStudent: React.FC<AddStudentProps> = ({ onCancel, onSuccess }) => {
   const router = useRouter();
   const { postQuery, loading } = usePostQuery();
   const { getQuery } = useGetQuery();
@@ -289,14 +326,19 @@ const AddStudent = ({ onCancel, onSuccess }) => {
     resolver: yupResolver(schema),
   });
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: any) => {
     try {
       await postQuery({
         url: apiUrls?.auth?.register,
         postData: {
           full_name: data.full_name,
           email: data.email,
-          phone_numbers: phoneNumbers,
+          phone_numbers: phoneNumbers.map(item => {
+            const countryObj = countryCodes.find(c => c.code === item.country);
+            const dialMatch = countryObj?.name.match(/\+(\d+)/);
+            const dialCode = dialMatch ? dialMatch[1] : '';
+            return { country: item.country, number: `+${dialCode}${item.number}` };
+          }),
           password: data.password,
           role: ["student"],
           meta: {
