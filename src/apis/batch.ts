@@ -1131,6 +1131,19 @@ export const batchAPI = {
       `${apiBaseUrl}/batches/individual/instructor/${instructorId}${queryString}`
     );
   },
+  /**
+   * Get recorded lessons for a student
+   * @param studentId - Student ID
+   * @param params - Additional query parameters
+   * @returns Promise with student's recorded lessons
+   */
+  getStudentRecordedLessons: async (studentId: string, params: IBatchQueryParams = {}): Promise<IApiResponse<IBatchListResponse>> => {
+    if (!studentId) throw new Error('Student ID is required');
+    const queryString = apiUtils.buildQueryString(params);
+    return apiClient.get<IBatchListResponse>(
+      `${apiBaseUrl}/batches/students/${studentId}/recorded-lessons${queryString}`
+    );
+  },
 
   /**
    * Update individual batch schedule
