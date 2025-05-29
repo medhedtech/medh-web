@@ -3,7 +3,10 @@ frontend:
   phases:
     preBuild:
       commands:
-        - npm ci --cache .npm --prefer-offline
+        - nvm use $(cat .nvmrc) || nvm install $(cat .nvmrc)
+        - echo "Using Node $(node -v) and NPM $(npm -v)"
+        - npm config set legacy-peer-deps true
+        - npm ci --no-audit --prefer-offline
     build:
       commands:
         - ./scripts/amplify-build.sh
