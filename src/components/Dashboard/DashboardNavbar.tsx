@@ -789,26 +789,28 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                   onMouseLeave={closeProfileDropdown}
                   className={`absolute right-0 mt-2 w-72 bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 z-40 transform origin-top-right transition-all duration-${PROFILE_ANIMATION_DURATION} ease-out ${isDropdownOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-2 pointer-events-none'} before:absolute before:h-4 before:w-full before:-top-4 before:left-0 before:bg-transparent`}
                 >
-                  {/* User Info Section */}
-                  <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-full bg-primary-50 dark:bg-primary-900/20">
-                        <User size={PROFILE_ICON_SIZE} className="text-primary-600 dark:text-primary-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                          {userName || "Welcome"}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 capitalize truncate flex items-center gap-1">
-                          <span className={`w-2 h-2 rounded-full ${userRole ? 'bg-green-500' : 'bg-gray-400'}`}></span>
-                          <span className="flex items-center gap-1">
-                            {getRoleIcon()}
-                            {userRole || "User"}
-                          </span>
-                        </p>
+                  {/* User Info Section - now fully clickable */}
+                  <Link href="/dashboards/student/profile" onClick={() => setIsDropdownOpen(false)} className="block w-full">
+                    <div className="w-full h-full px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 cursor-pointer hover:bg-primary-50 dark:hover:bg-primary-900/10 transition">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-full bg-primary-50 dark:bg-primary-900/20">
+                          <User size={PROFILE_ICON_SIZE} className="text-primary-600 dark:text-primary-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                            {userName || "Welcome"}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 capitalize truncate flex items-center gap-1">
+                            <span className={`w-2 h-2 rounded-full ${userRole ? 'bg-green-500' : 'bg-gray-400'}`}></span>
+                            <span className="flex items-center gap-1">
+                              {getRoleIcon()}
+                              {userRole || "User"}
+                            </span>
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                   
                   {/* Quick Actions */}
                   <div className="p-2">
