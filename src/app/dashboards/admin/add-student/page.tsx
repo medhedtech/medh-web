@@ -2,8 +2,10 @@
 
 import React from "react";
 import AddStudent from "@/components/layout/main/dashboards/AddStudent";
+import { useRouter } from "next/navigation";
 
 const AddStudentPage: React.FC = () => {
+  const router = useRouter();
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4 pt-9">
       <div className="max-w-7xl mx-auto">
@@ -57,7 +59,10 @@ const AddStudentPage: React.FC = () => {
         </div>
 
         {/* Add Student Component */}
-        <AddStudent />
+        <AddStudent
+          onCancel={() => router.push('/dashboards/admin/students')}
+          onSuccess={() => router.push('/dashboards/admin/students')}
+        />
       </div>
     </div>
   );
