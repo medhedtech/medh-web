@@ -132,7 +132,7 @@ const AllCoursesMain: React.FC = () => {
       title: "Unlock Your Full",
       highlight: "Learning Potential",
       description: "Join 50,000+ learners mastering in-demand skills with expert instructors. Get hands-on projects and guaranteed job assistance.",
-      badge: "🚀 Transform Your Career Today",
+      badge: "Transform Your Career Today",
       color: "from-blue-500 to-indigo-600",
       image: "/courses/python-course.jpg",
       courses: [
@@ -153,7 +153,7 @@ const AllCoursesMain: React.FC = () => {
       title: "Master Future-Ready",
       highlight: "Digital Skills",
       description: "Learn from industry veterans and build skills that matter in today's rapidly evolving digital economy. Get certified in high-demand technologies with personalized mentorship and career guidance.",
-      badge: "💼 Industry-Ready Training",
+      badge: "Industry-Ready Training",
       color: "from-purple-500 to-pink-600",
       image: "/courses/web-dev.jpg",
       courses: [
@@ -174,7 +174,7 @@ const AllCoursesMain: React.FC = () => {
       title: "Build Your",
       highlight: "Professional Network",
       description: "Connect with industry professionals, mentors, and peers. Access exclusive networking events, career workshops, and job placement assistance to accelerate your professional growth.",
-      badge: "🌟 Career Acceleration Program",
+      badge: "Career Acceleration Program",
       color: "from-emerald-500 to-teal-600",
       image: "/courses/data-science.jpg",
       courses: [
@@ -374,14 +374,14 @@ const AllCoursesMain: React.FC = () => {
                   </div>
                   
                   <div className="relative z-10 w-full h-full flex items-center transition-all duration-300">
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 px-6 md:px-10 lg:px-12 w-full max-w-[1600px] mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 px-12 md:px-16 lg:px-20 w-full max-w-[1600px] mx-auto">
                       {/* Left side - Course information */}
-                      <div className="md:col-span-7 flex flex-col justify-center">
+                      <div className="md:col-span-7 flex flex-col justify-center pr-4">
                         <div className="flex flex-wrap items-center mb-2">
                           <motion.div
                             variants={contentVariants}
                             custom={0}
-                            className="inline-flex items-center px-3 py-1.5 bg-white/15 backdrop-blur-sm rounded-full text-xs font-medium mb-3"
+                            className="inline-flex items-center px-3 py-1.5 bg-white/15 backdrop-blur-sm rounded-full text-xs font-medium mb-3 text-white"
                           >
                             <Sparkles className="w-3 h-3 mr-1.5" />
                             {slide.badge}
@@ -391,7 +391,7 @@ const AllCoursesMain: React.FC = () => {
                         <motion.h1
                           variants={contentVariants}
                           custom={1}
-                          className="text-xl lg:text-2xl xl:text-3xl font-bold mb-4 leading-tight text-white"
+                          className="text-xl lg:text-2xl xl:text-3xl font-bold mb-4 leading-tight text-white max-w-[90%]"
                         >
                           {slide.title}{" "}
                           <span className="block bg-gradient-to-r from-amber-300 to-rose-300 bg-clip-text text-transparent">
@@ -402,7 +402,7 @@ const AllCoursesMain: React.FC = () => {
                         <motion.p
                           variants={contentVariants}
                           custom={2}
-                          className="text-xs lg:text-sm xl:text-base text-purple-100 mb-6 leading-relaxed max-w-xl"
+                          className="text-xs lg:text-sm xl:text-base text-purple-100 mb-6 leading-relaxed max-w-[90%]"
                         >
                           {slide.description}
                         </motion.p>
