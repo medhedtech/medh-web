@@ -11,6 +11,9 @@
     "lint": "next lint",
     "test": "jest"
   },
+  "engines": {
+    "node": ">=18.19.0 <19.0.0"
+  },
   "resolutions": {
     "puppeteer-core": "24.6.0",
     "lodash": "^4.17.21",
@@ -29,7 +32,8 @@
     "**/lodash": "^4.17.21",
     "**/core-js": "^3.41.0",
     "schema-utils": "^4.2.0",
-    "@mui/x-date-pickers": "7.0.0"
+    "@mui/x-date-pickers": "7.0.0",
+    "inflight": "2.0.1"
   },
   "overrides": {
     "lodash": "^4.17.21",
