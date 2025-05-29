@@ -248,8 +248,12 @@ const NavbarRight = ({ isScrolled }) => {
             {/* Enhanced Profile Dropdown */}
             {isDropdownOpen && (
               <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 z-50 transform origin-top-right transition-all duration-200 animate-fadeIn">
-                {/* User Info Section */}
-                <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                {/* User Info Section - now fully clickable */}
+                <Link
+                  href="/dashboards/student/profile"
+                  className="block w-full px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 cursor-pointer hover:bg-primary-50 dark:hover:bg-primary-900/10 transition"
+                  onClick={() => setIsDropdownOpen(false)}
+                >
                   <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                     {userName || "Welcome"}
                   </p>
@@ -260,7 +264,7 @@ const NavbarRight = ({ isScrolled }) => {
                       {userRole || "User"}
                     </span>
                   </p>
-                </div>
+                </Link>
                 
                 {/* Quick Actions */}
                 <div className="p-2">
