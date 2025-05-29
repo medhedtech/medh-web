@@ -6,10 +6,29 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { toast } from 'react-toastify';
 import Image from 'next/image';
-import { Search, Filter, Calendar, UserCheck, School, BookOpen, ArrowUpDown, CheckCircle2, PlusSquare, Trash2, Columns, X } from 'lucide-react';
+import { 
+  Search, 
+  Filter, 
+  Calendar, 
+  UserCheck, 
+  School, 
+  BookOpen, 
+  ArrowUpDown, 
+  CheckCircle2, 
+  PlusSquare, 
+  Trash2, 
+  Columns, 
+  X,
+  Power,
+  PlayCircle,
+  Clock,
+  XCircle,
+  RefreshCw
+} from 'lucide-react';
 import useGetQuery from '@/hooks/getQuery.hook';
 import usePostQuery from '@/hooks/postQuery.hook';
 import { apiUrls } from '@/apis';
+import { batchAPI, type TBatchStatus } from '@/apis/batch';
 
 // Define instructor type
 interface Instructor {
@@ -75,6 +94,7 @@ const BatchAssignment: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [courseFilter, setCourseFilter] = useState<string>('all');
+  const [statusUpdateLoading, setStatusUpdateLoading] = useState<string | null>(null);
 
   const { getQuery } = useGetQuery();
   const { postQuery } = usePostQuery();
@@ -97,6 +117,54 @@ const BatchAssignment: React.FC = () => {
   // Selected form values
   const course_id = watch('course_id');
   const class_days = watch('class_days');
+
+  // Status transition logic
+  const getStatusTransitions = (currentStatus: string): TBatchStatus[] => {
+    const transitions: Record<string, TBatchStatus[]> = {
+      'upcoming': ['Active', 'Cancelled'],
+      'active': ['Completed', 'Cancelled'],
+      'completed': [], // No transitions from completed
+      'cancelled': ['Upcoming'] // Can reactivate cancelled batches
+    };
+    return transitions[currentStatus.toLowerCase()] || [];
+  };
+
+  const getStatusIcon = (status: string) => {
+    const statusLower = status.toLowerCase();
+    const icons = {
+      'upcoming': <Clock className="h-4 w-4" />,
+      'active': <PlayCircle className="h-4 w-4" />,
+      'completed': <CheckCircle2 className="h-4 w-4" />,
+      'cancelled': <XCircle className="h-4 w-4" />
+    };
+    return icons[statusLower as keyof typeof icons] || <Clock className="h-4 w-4" />;
+  };
+
+  const handleStatusUpdate = async (batchId: string, newStatus: TBatchStatus) => {
+    try {
+      setStatusUpdateLoading(batchId);
+      
+      const response = await batchAPI.updateBatchStatus(batchId, newStatus);
+      
+      if ((response as any)?.data) {
+        toast.success(`Batch status updated to ${newStatus} successfully`);
+        
+        // Update the batch in local state
+        setBatches(prev => prev.map(batch => 
+          batch._id === batchId 
+            ? { ...batch, status: newStatus.toLowerCase() }
+            : batch
+        ));
+      } else {
+        throw new Error('Failed to update batch status');
+      }
+    } catch (error) {
+      console.error('Error updating batch status:', error);
+      toast.error('Failed to update batch status');
+    } finally {
+      setStatusUpdateLoading(null);
+    }
+  };
 
   // Fetch instructors, courses, and batches on component mount
   useEffect(() => {
@@ -505,6 +573,35 @@ const BatchAssignment: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           <div className="flex justify-center space-x-2">
+                            {/* Status Toggle Buttons */}
+                            {getStatusTransitions(batch.status).map((newStatus) => (
+                              <button
+                                key={newStatus}
+                                onClick={() => handleStatusUpdate(batch._id, newStatus)}
+                                disabled={statusUpdateLoading === batch._id}
+                                className={`p-1.5 text-xs rounded-md transition-colors ${
+                                  newStatus === 'Active'
+                                    ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/40'
+                                    : newStatus === 'Completed'
+                                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                                      : newStatus === 'Cancelled'
+                                        ? 'bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40'
+                                        : 'bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/40'
+                                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                                title={`Change status to ${newStatus}`}
+                              >
+                                {statusUpdateLoading === batch._id ? (
+                                  <RefreshCw className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <>
+                                    {getStatusIcon(newStatus)}
+                                    <span className="ml-1 hidden sm:inline">{newStatus}</span>
+                                  </>
+                                )}
+                              </button>
+                            ))}
+                            
+                            {/* Edit Button */}
                             <button 
                               onClick={() => handleEditBatch(batch)}
                               className="p-1.5 text-blue-600 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900/20 rounded-md"
@@ -512,6 +609,8 @@ const BatchAssignment: React.FC = () => {
                             >
                               <Columns className="h-4 w-4" />
                             </button>
+                            
+                            {/* Delete Button */}
                             <button 
                               onClick={() => handleDeleteBatch(batch)}
                               className="p-1.5 text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/20 rounded-md"
