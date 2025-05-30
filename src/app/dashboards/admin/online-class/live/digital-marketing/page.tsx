@@ -97,6 +97,7 @@ export default function ManageDigitalMarketingPage() {
   const [selectedStudent, setSelectedStudent] = useState<string>("");
   const [showStudentDropdown, setShowStudentDropdown] = useState<boolean>(false);
   const [existingRecordings, setExistingRecordings] = useState<IRecordedLesson[]>([]);
+  const [useExternalUrl, setUseExternalUrl] = useState<boolean>(false);
   
   // Refs for dropdown management
   const instructorDropdownRef = useRef<HTMLDivElement>(null);
@@ -873,13 +874,26 @@ export default function ManageDigitalMarketingPage() {
             <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Add Recorded Lesson</h2>
             <div className="space-y-4">
               <div>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={useExternalUrl}
+                    onChange={e => setUseExternalUrl(e.target.checked)}
+                    className="form-checkbox h-4 w-4"
+                  />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Paste video URL instead of upload</span>
+                </label>
+              </div>
+              <div>
                 <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Title</label>
                 <input type="text" value={recordingForm.title} onChange={e => setRecordingForm(prev => ({ ...prev, title: e.target.value }))} className="w-full px-3 py-2 border rounded-lg" />
               </div>
-              <div>
-                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Upload Video</label>
-                <input type="file" accept="video/*" onChange={handleVideoUpload} className="w-full" />
-              </div>
+              {!useExternalUrl && (
+                <div>
+                  <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Upload Video</label>
+                  <input type="file" accept="video/*" onChange={handleVideoUpload} className="w-full" />
+                </div>
+              )}
               {recordingForm.url && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Preview</label>
@@ -888,7 +902,14 @@ export default function ManageDigitalMarketingPage() {
               )}
               <div>
                 <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">URL</label>
-                <input type="text" value={recordingForm.url} readOnly className="w-full px-3 py-2 border rounded-lg bg-gray-100" />
+                <input
+                  type="text"
+                  value={recordingForm.url}
+                  onChange={e => setRecordingForm(prev => ({ ...prev, url: e.target.value }))}
+                  placeholder="Paste video URL"
+                  className="w-full px-3 py-2 border rounded-lg"
+                  readOnly={useExternalUrl}
+                />
               </div>
               <div>
                 <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Recorded Date</label>
