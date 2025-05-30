@@ -1,35 +1,28 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import useGetQuery from "@/hooks/getQuery.hook";
-import { apiUrls } from "@/apis";
+import batchAPI from "@/apis/batch";
 import RecordedCard from "./RecordedCourses";
 import { motion, AnimatePresence } from "framer-motion";
 import { Video, Search, ChevronRight, Loader2, AlertCircle, BookOpenCheck } from "lucide-react";
 import { toast } from "react-toastify";
 
 interface RecordedSession {
-  _id: string;
-  course_title: string;
-  course_description?: string;
-  course_image?: string;
-  video_url?: string;
-  duration?: string;
-  date?: string;
-  instructor?: {
-    name: string;
-    image?: string;
-  };
+  id: string;
+  title: string;
+  url: string;
+  recorded_date: string;
+  batch_name: string;
+  session_day: string;
+  session_time: string;
 }
 
 const RecordedSessions: React.FC = () => {
   const router = useRouter();
   const [recordedSessions, setRecordedSessions] = useState<RecordedSession[]>([]);
-  const [studentId, setStudentId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const { getQuery } = useGetQuery();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -77,50 +70,33 @@ const RecordedSessions: React.FC = () => {
           return;
         }
         
-        setStudentId(storedUserId);
-        
         try {
-          const headers = {
-            'x-access-token': token,
-            'Content-Type': 'application/json'
-          };
-          
-          // Use the correct API endpoint to fetch recorded videos
-          await getQuery({
-            url: apiUrls?.courses?.getRecordedVideosForUser(storedUserId),
-            headers,
-            onSuccess: (response: any) => {
-              const recordedData = response?.courses || response?.data?.courses || response;
-              
-              if (Array.isArray(recordedData)) {
-                setRecordedSessions(recordedData);
-              } else {
-                console.warn("Unexpected response format:", response);
-                setRecordedSessions([]);
-              }
-              
-              setIsLoading(false);
-            },
-            onFail: (error: any) => {
-              console.error("Error fetching recorded sessions:", error);
-              
-              if (error?.response?.status === 401) {
-                setError("Your session has expired. Please log in again.");
-                toast.error("Your session has expired. Please log in again.");
-              } else if (error?.response?.status === 404) {
-                setRecordedSessions([]);
-              } else {
-                setError("Failed to load recorded sessions. Please try again later.");
-                toast.error("Failed to load recorded sessions. Please try again later.");
-              }
-              
-              setIsLoading(false);
-            }
-          });
-        } catch (error) {
-          console.error("Error in fetchRecordedSessions:", error);
-          setError("An unexpected error occurred. Please try again later.");
-          toast.error("An unexpected error occurred. Please try again later.");
+          // Fetch recorded sessions using batch API and flatten lessons
+          const response = await batchAPI.getStudentRecordedLessons(storedUserId);
+          const sessionsData = response.data?.data;
+          const formattedSessions: RecordedSession[] = [];
+          if (Array.isArray(sessionsData)) {
+            sessionsData.forEach((sessionBlock: any) => {
+              const { batch, session, recorded_lessons } = sessionBlock;
+              recorded_lessons.forEach((lesson: any) => {
+                formattedSessions.push({
+                  id: lesson._id,
+                  title: lesson.title,
+                  url: lesson.url,
+                  recorded_date: lesson.recorded_date,
+                  batch_name: batch.name,
+                  session_day: session.day,
+                  session_time: `${session.start_time} - ${session.end_time}`
+                });
+              });
+            });
+          }
+          setRecordedSessions(formattedSessions);
+          setIsLoading(false);
+        } catch (error: any) {
+          console.error("Error fetching recorded sessions:", error);
+          setError("Failed to load recorded sessions. Please try again later.");
+          toast.error("Failed to load recorded sessions. Please try again later.");
           setIsLoading(false);
         }
       }
@@ -129,12 +105,12 @@ const RecordedSessions: React.FC = () => {
     fetchRecordedSessions();
   }, []);
 
-  const handleCardClick = (id: string) => {
-    router.push(`/dashboards/my-courses/${id}`);
+  const handleCardClick = (url: string) => {
+    window.open(url, '_blank');
   };
 
-  const filteredSessions = recordedSessions.filter(course =>
-    course?.course_title?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredSessions = recordedSessions.filter(session =>
+    session.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (isLoading) {
@@ -262,18 +238,19 @@ const RecordedSessions: React.FC = () => {
               <AnimatePresence>
                 {filteredSessions.map((session) => (
                   <motion.div
-                    key={session._id}
+                    key={session.id}
                     variants={itemVariants}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     className="cursor-pointer"
-                    onClick={() => handleCardClick(session._id)}
+                    onClick={() => handleCardClick(session.url)}
                   >
                     <RecordedCard
-                      title={session.course_title}
-                      image={session.course_image}
-                      id={session._id}
-                      onClick={() => handleCardClick(session._id)}
+                      course_title={session.title}
+                      course_tag={session.batch_name}
+                      description={`Recorded on ${new Date(session.recorded_date).toLocaleString()}`}
+                      course_image={undefined}
+                      onClick={() => handleCardClick(session.url)}
                     />
                   </motion.div>
                 ))}
