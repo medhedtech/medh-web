@@ -34,7 +34,10 @@ import {
   GraduationCap,
   Trophy,
   Lock,
-  ShieldCheck
+  ShieldCheck,
+  Sun,
+  Globe,
+  Eye
 } from "lucide-react";
 import { toast } from "react-toastify";
 import LoadingIndicator from "@/components/shared/loaders/LoadingIndicator";
@@ -121,6 +124,12 @@ const StudentProfilePage: React.FC = () => {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [mfaEnabled, setMfaEnabled] = useState<boolean>(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [language, setLanguage] = useState('en');
+  const [profileVisibility, setProfileVisibility] = useState<'everyone' | 'me' | 'connections'>('everyone');
+  const [showEmail, setShowEmail] = useState(true);
+  const [newsletter, setNewsletter] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   
   const { getQuery } = useGetQuery();
   const { postQuery } = usePostQuery();
@@ -228,6 +237,21 @@ const StudentProfilePage: React.FC = () => {
     window.location.href = "/dashboards/student/settings";
   };
 
+  // Calculate profile completion percentage
+  const getProfileCompletion = () => {
+    if (!profileData) return 0;
+    let total = 7;
+    let filled = 0;
+    if (profileData.user_image) filled++;
+    if (profileData.bio) filled++;
+    if (profileData.education) filled++;
+    if (profileData.skills && profileData.skills.length > 0) filled++;
+    if (profileData.social_profiles && profileData.social_profiles.length > 0) filled++;
+    if (profileData.location) filled++;
+    if (profileData.major) filled++;
+    return Math.round((filled / total) * 100);
+  };
+
   // Render loading state
   if (loading) {
     return (
@@ -255,72 +279,73 @@ const StudentProfilePage: React.FC = () => {
     );
   }
 
+  const completion = getProfileCompletion();
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Hero Section with Cover Image */}
-      <div className="relative h-80 w-full overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ 
-            backgroundImage: `url(${profileData?.cover_image || 'https://images.unsplash.com/photo-1557683304-673a23048d34?ixlib=rb-1.2.1&auto=format&fit=crop&w=1129&q=80'})`,
-          }}
-        >
-          <div className="absolute inset-0 bg-black bg-opacity-40" />
+      {/* Profile Completion Progress Bar */}
+      <div className="w-full bg-white dark:bg-gray-800 shadow-sm py-4 px-4 md:px-8 flex flex-col md:flex-row md:items-center gap-3 md:gap-6">
+        <span className="font-medium text-gray-700 dark:text-gray-200 text-sm md:text-base">Profile Completion</span>
+        <div className="flex-1 flex items-center gap-3">
+          <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-green-400 to-blue-500" style={{ width: `${completion}%` }} />
+          </div>
+          <span className="font-semibold text-primary-600 dark:text-primary-400 text-sm md:text-base min-w-[40px] text-right">{completion}%</span>
         </div>
-        
-        {/* Profile Image and Basic Info Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 text-white z-10">
-          <div className="container mx-auto flex flex-col md:flex-row md:items-end md:space-x-8 space-y-4 md:space-y-0">
-            <div className="relative flex-shrink-0 flex justify-center md:justify-start">
-              <img 
-                src={profileData?.user_image} 
-                alt={profileData?.full_name}
-                className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
-              />
-              <button 
-                onClick={handleChangeProfileImage}
-                className="absolute bottom-2 right-2 p-2 bg-primary rounded-full text-white hover:bg-primary/90 transition-colors border-2 border-white shadow"
-              >
-                <Camera className="w-4 h-4" />
-              </button>
+      </div>
+
+      {/* Hero Section with Cover Image */}
+      <div className="relative w-full overflow-hidden bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 shadow-sm rounded-b-3xl">
+        <div className="absolute inset-0 bg-cover bg-center opacity-60" style={{ backgroundImage: `url(${profileData?.cover_image || 'https://images.unsplash.com/photo-1557683304-673a23048d34?ixlib=rb-1.2.1&auto=format&fit=crop&w=1129&q=80'})` }} />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="relative z-10 container mx-auto flex flex-col md:flex-row md:items-end md:space-x-8 space-y-6 md:space-y-0 py-10 px-4 md:px-8">
+          <div className="relative flex-shrink-0 flex justify-center md:justify-start">
+            <img 
+              src={profileData?.user_image} 
+              alt={profileData?.full_name}
+              className="w-36 h-36 md:w-40 md:h-40 rounded-full border-4 border-white shadow-xl object-cover bg-white"
+            />
+            <button 
+              onClick={handleChangeProfileImage}
+              className="absolute bottom-2 right-2 p-2 bg-primary rounded-full text-white hover:bg-primary/90 transition-colors border-2 border-white shadow"
+            >
+              <Camera className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="flex-1 flex flex-col items-center md:items-start">
+            <h1 className="text-4xl font-bold text-center md:text-left text-gray-900 dark:text-white drop-shadow-lg">{profileData?.full_name}</h1>
+            <p className="text-lg opacity-90 text-center md:text-left text-gray-700 dark:text-gray-200">{profileData?.major} Student</p>
+            <div className="flex flex-wrap items-center justify-center md:justify-start mt-3 gap-3">
+              <Badge variant="secondary" className="text-sm flex items-center px-3 py-1">
+                <School className="w-4 h-4 mr-1" />
+                {profileData?.education}
+              </Badge>
+              <Badge variant="secondary" className="text-sm flex items-center px-3 py-1">
+                <MapPin className="w-4 h-4 mr-1" />
+                {profileData?.location}
+              </Badge>
             </div>
-            <div className="flex-1 flex flex-col items-center md:items-start">
-              <h1 className="text-3xl font-bold text-center md:text-left">{profileData?.full_name}</h1>
-              <p className="text-lg opacity-90 text-center md:text-left">{profileData?.major} Student</p>
-              <div className="flex flex-wrap items-center justify-center md:justify-start mt-2 gap-2">
-                <Badge variant="secondary" className="text-sm flex items-center px-3 py-1">
-                  <School className="w-4 h-4 mr-1" />
-                  {profileData?.education}
-                </Badge>
-                <Badge variant="secondary" className="text-sm flex items-center px-3 py-1">
-                  <MapPin className="w-4 h-4 mr-1" />
-                  {profileData?.location}
-                </Badge>
-              </div>
-            </div>
-            <div className="flex justify-center md:justify-end mt-4 md:mt-0">
-              <Button onClick={handleEditProfile} className="bg-white text-gray-900 hover:bg-gray-100 min-w-[140px]">
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Profile
-              </Button>
-            </div>
+          </div>
+          <div className="flex justify-center md:justify-end mt-4 md:mt-0">
+            <Button onClick={handleEditProfile} className="bg-primary-600 text-white hover:bg-primary-700 min-w-[140px] shadow-lg rounded-xl px-6 py-2 text-base font-semibold">
+              <Edit className="w-5 h-5 mr-2" />
+              Edit Profile
+            </Button>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto mt-32 px-4 pb-12">
+      <div className="container mx-auto px-4 pb-12">
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="bg-white dark:bg-gray-800 p-1 rounded-lg shadow-sm mb-6">
+          <TabsList className="sticky top-0 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-b-xl pt-6 pb-2 mb-6 mt-10 shadow-md bg-white dark:bg-gray-800 p-1 rounded-lg shadow-sm flex gap-2">
             <TabsTrigger value="overview" className="px-6">Overview</TabsTrigger>
             <TabsTrigger value="academic" className="px-6">Academic</TabsTrigger>
             <TabsTrigger value="settings" className="px-6">Settings</TabsTrigger>
           </TabsList>
-
           <TabsContent value="overview">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Bio Card */}
-              <Card className="md:col-span-2">
+              <Card className="md:col-span-2 transition-transform duration-300 hover:scale-105 hover:shadow-2xl">
                 <CardHeader>
                   <CardTitle>About Me</CardTitle>
                 </CardHeader>
@@ -361,7 +386,7 @@ const StudentProfilePage: React.FC = () => {
               </Card>
 
               {/* Stats Card */}
-              <Card>
+              <Card className="transition-transform duration-300 hover:scale-105 hover:shadow-2xl">
                 <CardHeader>
                   <CardTitle>Academic Progress</CardTitle>
                 </CardHeader>
@@ -405,7 +430,7 @@ const StudentProfilePage: React.FC = () => {
               </Card>
 
               {/* Skills Card */}
-              <Card className="md:col-span-2">
+              <Card className="md:col-span-2 transition-transform duration-300 hover:scale-105 hover:shadow-2xl">
                 <CardHeader>
                   <CardTitle>Skills & Expertise</CardTitle>
                 </CardHeader>
@@ -421,7 +446,7 @@ const StudentProfilePage: React.FC = () => {
               </Card>
 
               {/* Social Links Card */}
-              <Card>
+              <Card className="transition-transform duration-300 hover:scale-105 hover:shadow-2xl">
                 <CardHeader>
                   <CardTitle>Social Profiles</CardTitle>
                 </CardHeader>
@@ -452,7 +477,7 @@ const StudentProfilePage: React.FC = () => {
           <TabsContent value="academic">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Academic History */}
-              <Card>
+              <Card className="transition-transform duration-300 hover:scale-105 hover:shadow-2xl">
                 <CardHeader>
                   <CardTitle>Academic History</CardTitle>
                 </CardHeader>
@@ -473,11 +498,26 @@ const StudentProfilePage: React.FC = () => {
               </Card>
 
               {/* Achievements */}
-              <Card>
+              <Card className="transition-transform duration-300 hover:scale-105 hover:shadow-2xl">
                 <CardHeader>
                   <CardTitle>Achievements</CardTitle>
                 </CardHeader>
                 <CardContent>
+                  {/* Achievement Badges Row */}
+                  <div className="flex gap-3 mb-4">
+                    <div className="flex flex-col items-center group" title="Dean's List">
+                      <Trophy className="w-7 h-7 text-yellow-500 group-hover:scale-110 transition-transform" />
+                      <span className="text-xs text-gray-500 mt-1">Dean's List</span>
+                    </div>
+                    <div className="flex flex-col items-center group" title="Top Performer">
+                      <Award className="w-7 h-7 text-blue-500 group-hover:scale-110 transition-transform" />
+                      <span className="text-xs text-gray-500 mt-1">Top Performer</span>
+                    </div>
+                    <div className="flex flex-col items-center group" title="Certificate of Excellence">
+                      <ShieldCheck className="w-7 h-7 text-green-500 group-hover:scale-110 transition-transform" />
+                      <span className="text-xs text-gray-500 mt-1">Excellence</span>
+                    </div>
+                  </div>
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3">
                       <div className="p-2 bg-yellow-100 rounded-lg">
@@ -495,38 +535,70 @@ const StudentProfilePage: React.FC = () => {
 
             {/* Projects Section */}
             <div className="mt-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Projects</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    {/* Mock projects data */}
-                    <div className="border-b pb-4 mb-4">
-                      <h4 className="font-semibold text-lg">AI-Powered Chatbot</h4>
-                      <p className="text-sm text-gray-500">Developed a chatbot using Python and TensorFlow that can answer student queries and provide course recommendations.</p>
-                      <a href="#" className="text-primary hover:underline text-sm">View Project</a>
+              <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Projects</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-6">A selection of hands-on projects demonstrating technical and problem-solving skills.</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Project 1 */}
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 flex flex-col md:flex-row gap-6 items-start transition-transform duration-300 hover:scale-105 hover:shadow-2xl">
+                  <div className="w-32 h-32 bg-gray-200 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80" alt="AI Chatbot" className="object-cover w-full h-full" />
+                  </div>
+                  <div className="flex-1 flex flex-col">
+                    <h4 className="font-semibold text-xl mb-1">AI-Powered Chatbot</h4>
+                    <div className="flex gap-2 mb-2 flex-wrap">
+                      <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">Python</span>
+                      <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs">TensorFlow</span>
                     </div>
-                    <div className="border-b pb-4 mb-4">
-                      <h4 className="font-semibold text-lg">Student Performance Dashboard</h4>
-                      <p className="text-sm text-gray-500">Created an interactive dashboard with React and D3.js to visualize student grades, attendance, and progress over time.</p>
-                      <a href="#" className="text-primary hover:underline text-sm">View Project</a>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-lg">Course Recommendation System</h4>
-                      <p className="text-sm text-gray-500">Built a recommendation engine using collaborative filtering to suggest relevant courses to students based on their interests.</p>
-                      <a href="#" className="text-primary hover:underline text-sm">View Project</a>
+                    <p className="text-sm text-gray-500 mb-4">Developed a chatbot using Python and TensorFlow that can answer student queries and provide course recommendations.</p>
+                    <div className="flex gap-3 mt-auto">
+                      <a href="#" className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium shadow hover:bg-primary-700 transition">View Project</a>
+                      <a href="https://github.com/janesmith/ai-chatbot" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium shadow hover:bg-gray-200 dark:hover:bg-gray-600 transition">View on GitHub</a>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+                {/* Project 2 */}
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 flex flex-col md:flex-row gap-6 items-start transition-transform duration-300 hover:scale-105 hover:shadow-2xl">
+                  <div className="w-32 h-32 bg-gray-200 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=400&q=80" alt="Dashboard" className="object-cover w-full h-full" />
+                  </div>
+                  <div className="flex-1 flex flex-col">
+                    <h4 className="font-semibold text-xl mb-1">Student Performance Dashboard</h4>
+                    <div className="flex gap-2 mb-2 flex-wrap">
+                      <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-xs">React</span>
+                      <span className="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded text-xs">D3.js</span>
+                    </div>
+                    <p className="text-sm text-gray-500 mb-4">Created an interactive dashboard with React and D3.js to visualize student grades, attendance, and progress over time.</p>
+                    <div className="flex gap-3 mt-auto">
+                      <a href="#" className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium shadow hover:bg-primary-700 transition">View Project</a>
+                      <a href="https://github.com/janesmith/student-dashboard" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium shadow hover:bg-gray-200 dark:hover:bg-gray-600 transition">View on GitHub</a>
+                    </div>
+                  </div>
+                </div>
+                {/* Project 3 */}
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 flex flex-col md:flex-row gap-6 items-start transition-transform duration-300 hover:scale-105 hover:shadow-2xl">
+                  <div className="w-32 h-32 bg-gray-200 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=400&q=80" alt="Recommendation System" className="object-cover w-full h-full" />
+                  </div>
+                  <div className="flex-1 flex flex-col">
+                    <h4 className="font-semibold text-xl mb-1">Course Recommendation System</h4>
+                    <div className="flex gap-2 mb-2 flex-wrap">
+                      <span className="bg-pink-100 text-pink-700 px-2 py-0.5 rounded text-xs">Collaborative Filtering</span>
+                    </div>
+                    <p className="text-sm text-gray-500 mb-4">Built a recommendation engine using collaborative filtering to suggest relevant courses to students based on their interests.</p>
+                    <div className="flex gap-3 mt-auto">
+                      <a href="#" className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium shadow hover:bg-primary-700 transition">View Project</a>
+                      <a href="https://github.com/janesmith/course-recommendation" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium shadow hover:bg-gray-200 dark:hover:bg-gray-600 transition">View on GitHub</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </TabsContent>
 
           <TabsContent value="settings">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Notification Settings */}
-              <Card>
+              <Card className="transition-transform duration-300 hover:scale-105 hover:shadow-2xl">
                 <CardHeader>
                   <CardTitle>Notification Preferences</CardTitle>
                 </CardHeader>
@@ -558,12 +630,73 @@ const StudentProfilePage: React.FC = () => {
                         onCheckedChange={(checked) => handleNotificationSettingsChange('email', checked)}
                       />
                     </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <Sun className="w-5 h-5 text-yellow-400" />
+                        <div>
+                          <p className="font-medium">Theme</p>
+                          <p className="text-sm text-gray-500">Switch between light and dark mode</p>
+                        </div>
+                      </div>
+                      <Button size="sm" variant="outline" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+                        {theme === 'light' ? 'Light' : 'Dark'}
+                      </Button>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <Globe className="w-5 h-5 text-blue-400" />
+                        <div>
+                          <p className="font-medium">Language</p>
+                          <p className="text-sm text-gray-500">Select your preferred language</p>
+                        </div>
+                      </div>
+                      <select value={language} onChange={e => setLanguage(e.target.value)} className="border rounded px-2 py-1 text-sm bg-white dark:bg-gray-800">
+                        <option value="en">English</option>
+                        <option value="es">Spanish</option>
+                        <option value="fr">French</option>
+                        <option value="de">German</option>
+                      </select>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <Eye className="w-5 h-5 text-green-500" />
+                        <div>
+                          <p className="font-medium">Profile Visibility</p>
+                          <p className="text-sm text-gray-500">Who can see your profile</p>
+                        </div>
+                      </div>
+                      <select value={profileVisibility} onChange={e => setProfileVisibility(e.target.value as any)} className="border rounded px-2 py-1 text-sm bg-white dark:bg-gray-800">
+                        <option value="everyone">Everyone</option>
+                        <option value="connections">Connections</option>
+                        <option value="me">Only Me</option>
+                      </select>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <Mail className="w-5 h-5 text-indigo-400" />
+                        <div>
+                          <p className="font-medium">Show Email</p>
+                          <p className="text-sm text-gray-500">Allow others to see your email</p>
+                        </div>
+                      </div>
+                      <Switch checked={showEmail} onCheckedChange={setShowEmail} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <Bell className="w-5 h-5 text-pink-400" />
+                        <div>
+                          <p className="font-medium">Newsletter Subscription</p>
+                          <p className="text-sm text-gray-500">Receive our monthly newsletter</p>
+                        </div>
+                      </div>
+                      <Switch checked={newsletter} onCheckedChange={setNewsletter} />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Account Settings */}
-              <Card>
+              <Card className="transition-transform duration-300 hover:scale-105 hover:shadow-2xl">
                 <CardHeader>
                   <CardTitle>Account Settings</CardTitle>
                 </CardHeader>
@@ -599,6 +732,24 @@ const StudentProfilePage: React.FC = () => {
                           {mfaEnabled ? "Disable Multi-Factor Authentication" : "Enable Multi-Factor Authentication"}
                         </Button>
                       </div>
+                    </div>
+                    {/* Account Deletion */}
+                    <div className="mt-6">
+                      <Button variant="destructive" className="w-full" onClick={() => setShowDeleteModal(true)}>
+                        Delete Account
+                      </Button>
+                      {showDeleteModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 max-w-sm w-full">
+                            <h3 className="text-lg font-bold mb-2 text-red-600">Confirm Account Deletion</h3>
+                            <p className="mb-4 text-gray-700 dark:text-gray-300">Are you sure you want to delete your account? This action cannot be undone.</p>
+                            <div className="flex gap-3 justify-end">
+                              <Button variant="outline" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
+                              <Button variant="destructive" onClick={() => { setShowDeleteModal(false); toast.success('Account deleted (mock)'); }}>Delete</Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
