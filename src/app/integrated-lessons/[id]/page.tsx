@@ -75,6 +75,15 @@ import {
   User,
   Lock,
   FileWarning,
+  Bookmark,
+  Share2,
+  BookmarkPlus,
+  X,
+  Plus,
+  Minus,
+  RotateCcw,
+  FastForward,
+  Rewind
 } from "lucide-react";
 
 // ----------------------
@@ -114,19 +123,26 @@ interface Lesson {
   title: string;
   duration: string;
   completed?: boolean;
-  // ... add additional fields as needed
+  type?: string;
+  lessonType?: string;
+  description?: string;
+  status?: string;
+  is_completed?: boolean;
 }
 
 interface Section {
   _id: string;
   title: string;
   lessons: Lesson[];
+  description?: string;
 }
 
 interface Week {
   _id: string;
   weekTitle: string;
   sections: Section[];
+  lessons?: Lesson[];
+  weekDescription?: string;
 }
 
 interface CourseDescription {
@@ -138,12 +154,30 @@ interface CourseDescription {
 }
 
 interface CourseData {
-  course_description: CourseDescription;
+  _id: string;
+  course_title: string;
+  course_description: CourseDescription | string;
   curriculum: Week[];
   prices: Price[];
   tools_technologies: ToolTechnology[];
   faqs: FAQ[];
-  // ... add additional fields as needed
+  course_image?: string;
+  course_category?: string;
+  course_duration?: string;
+  course_tag?: string;
+  meta?: CourseMeta;
+  no_of_Sessions?: number;
+  class_type?: string;
+  course_grade?: string;
+  course_level?: string;
+  is_Certification?: string;
+  is_Assignments?: string;
+  is_Projects?: string;
+  is_Quizes?: string;
+  isFree?: boolean;
+  min_hours_per_week?: number;
+  max_hours_per_week?: number;
+  efforts_per_Week?: string;
 }
 
 // ----------------------
@@ -739,36 +773,8 @@ const CourseIntroduction = ({
                 Tools & Technologies
               </h2>
               
-              {techCategories.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-6">
-                  <button
-                    onClick={() => setTechCategoryFilter(null)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                      !techCategoryFilter 
-                        ? 'bg-primaryColor text-white' 
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    All
-                  </button>
-                  {techCategories.map((category) => (
-                    <button
-                      key={category}
-                      onClick={() => setTechCategoryFilter(category)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                        techCategoryFilter === category 
-                          ? 'bg-primaryColor text-white' 
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      {category}
-                    </button>
-                  ))}
-                </div>
-              )}
-              
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {filteredTech.map((tech: any, index: number) => (
+                {courseData.tools_technologies.map((tech: any, index: number) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, y: 20 }}
