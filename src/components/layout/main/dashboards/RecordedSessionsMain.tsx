@@ -9,10 +9,7 @@ import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
  */
 const RecordedSessionsMain: React.FC = () => {
   return (
-    <div className="space-y-6">
-      <div className="px-6">
-        <HeadingDashboard />
-      </div>
+    <div>
       <RecordedSessions />
     </div>
   );
