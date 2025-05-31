@@ -17,7 +17,8 @@ import {
   BookOpenCheck,
   Target,
   Lightbulb,
-  TrendingUp
+  TrendingUp,
+  PlayCircle
 } from "lucide-react";
 
 // TypeScript Interfaces - Enhanced for flexibility
@@ -90,15 +91,15 @@ const CourseCurriculum: React.FC<ICourseCurriculumProps> = ({
   const getContentIcon = (week: IWeek, index: number) => {
     const title = week.weekTitle?.toLowerCase() || "";
     
-    if (title.includes("video")) return <Video className="w-5 h-5" />;
-    if (title.includes("live") || title.includes("session")) return <Users className="w-5 h-5" />;
-    if (title.includes("assignment") || title.includes("project")) return <ClipboardList className="w-5 h-5" />;
-    if (title.includes("quiz") || title.includes("assessment")) return <FileQuestion className="w-5 h-5" />;
+    if (title.includes("video")) return <Video className="w-5 h-5 sm:w-6 sm:h-6" />;
+    if (title.includes("live") || title.includes("session")) return <Users className="w-5 h-5 sm:w-6 sm:h-6" />;
+    if (title.includes("assignment") || title.includes("project")) return <ClipboardList className="w-5 h-5 sm:w-6 sm:h-6" />;
+    if (title.includes("quiz") || title.includes("assessment")) return <FileQuestion className="w-5 h-5 sm:w-6 sm:h-6" />;
     
     // Default icons based on index for variety
     const icons = [Video, BookOpen, Target, Lightbulb, TrendingUp];
     const IconComponent = icons[index % icons.length];
-    return <IconComponent className="w-5 h-5" />;
+    return <IconComponent className="w-5 h-5 sm:w-6 sm:h-6" />;
   };
 
   const getModuleTypeColor = (week: IWeek) => {
@@ -147,7 +148,7 @@ const CourseCurriculum: React.FC<ICourseCurriculumProps> = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-white dark:bg-gray-800 p-12 rounded-2xl shadow-sm text-center"
+        className="bg-white dark:bg-gray-800 p-8 sm:p-12 rounded-2xl shadow-sm text-center"
       >
         <div className="w-16 h-16 mx-auto mb-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
           <BookOpen className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
@@ -169,20 +170,20 @@ const CourseCurriculum: React.FC<ICourseCurriculumProps> = ({
       transition={{ delay: 0.2 }}
       className="space-y-6"
     >
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-          <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center mr-3">
-            <BookOpen className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white flex items-center">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center mr-3">
+            <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 dark:text-emerald-400" />
           </div>
           Course Curriculum
         </h2>
         
-        <div className="text-sm text-gray-600 dark:text-gray-400 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-full">
+        <div className="text-sm text-gray-600 dark:text-gray-400 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 rounded-full font-medium">
           {curriculum.length} modules
         </div>
       </div>
       
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-6">
         {curriculum.map((week, weekIndex) => {
           const isExpanded = expandedWeeks.has(weekIndex);
           const hasContent = week.lessons?.length || week.sections?.length || week.topics?.length || week.weekDescription;
@@ -199,32 +200,32 @@ const CourseCurriculum: React.FC<ICourseCurriculumProps> = ({
               {/* Module Header */}
               <motion.button 
                 onClick={() => hasContent && toggleWeek(weekIndex)}
-                className={`w-full flex items-center justify-between p-6 text-left transition-all group ${
+                className={`w-full flex items-center justify-between p-4 sm:p-6 text-left transition-all group ${
                   hasContent ? 'hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer' : 'cursor-default'
                 }`}
                 whileHover={hasContent ? { scale: 1.002 } : {}}
               >
-                <div className="flex items-center gap-4 flex-1">
-                  <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${getModuleTypeColor(week)} flex items-center justify-center shadow-lg text-white`}>
+                <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                  <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-xl bg-gradient-to-br ${getModuleTypeColor(week)} flex items-center justify-center shadow-lg text-white flex-shrink-0`}>
                     {getContentIcon(week, weekIndex)}
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold text-gray-900 dark:text-white text-lg group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                      <h3 className="font-semibold text-gray-900 dark:text-white text-base sm:text-lg group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
                         {week.weekTitle || `Module ${weekIndex + 1}`}
                       </h3>
                     </div>
                     
-                    <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                       <span className="flex items-center">
-                        <Clock className="w-4 h-4 mr-1" />
+                        <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                         {formatDuration(null)}
                       </span>
                       
                       {topics.length > 0 && (
                         <span className="flex items-center">
-                          <FileText className="w-4 h-4 mr-1" />
+                          <FileText className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                           {topics.length} topics
                         </span>
                       )}
@@ -232,25 +233,37 @@ const CourseCurriculum: React.FC<ICourseCurriculumProps> = ({
                   </div>
                 </div>
                 
-                {/* Content indicators moved to right side */}
-                <div className="flex items-center gap-3 mr-4">
+                {/* Content indicators and chevron */}
+                <div className="flex items-center gap-2 sm:gap-3 ml-2 flex-shrink-0">
+                  {/* Watch Now Button for Video Content */}
                   {week.weekTitle?.toLowerCase().includes('video') && (
-                    <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-full font-medium">
+                    <motion.div 
+                      className="flex items-center gap-2 bg-blue-500/10 dark:bg-blue-400/10 px-3 py-1.5 rounded-full"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
+                      <span className="text-xs font-medium text-blue-600 dark:text-blue-400 hidden sm:inline">Watch Now</span>
+                    </motion.div>
+                  )}
+                  
+                  {week.weekTitle?.toLowerCase().includes('video') && !week.weekTitle?.toLowerCase().includes('live') && (
+                    <span className="hidden lg:inline-block text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-full font-medium">
                       Video
                     </span>
                   )}
                   {week.weekTitle?.toLowerCase().includes('live') && (
-                    <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-full font-medium">
+                    <span className="hidden sm:inline-block text-xs bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-full font-medium">
                       Live
                     </span>
                   )}
-                </div>
 
-                {hasContent && (
-                  <ChevronDown className={`w-5 h-5 text-gray-400 transition-all duration-300 group-hover:text-emerald-500 ${
-                    isExpanded ? 'rotate-180' : ''
-                  }`} />
-                )}
+                  {hasContent && (
+                    <ChevronDown className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-all duration-300 group-hover:text-emerald-500 ${
+                      isExpanded ? 'rotate-180' : ''
+                    }`} />
+                  )}
+                </div>
               </motion.button>
               
               {/* Module Content */}
@@ -263,17 +276,17 @@ const CourseCurriculum: React.FC<ICourseCurriculumProps> = ({
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                     className="overflow-hidden"
                   >
-                    <div className="p-6 pt-0 space-y-4">
+                    <div className="p-4 sm:p-6 pt-0 space-y-4">
                       {/* Topics/Content */}
                       {topics.length > 0 && (
-                        <div className="space-y-3">
+                        <div className="grid grid-cols-1 gap-3">
                           {topics.map((topic, topicIndex) => (
                             <motion.div
                               key={topicIndex}
                               initial={{ opacity: 0, x: -20 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: topicIndex * 0.1 }}
-                              className="flex items-start gap-3 p-4 bg-gradient-to-r from-emerald-50/50 to-teal-50/50 dark:from-emerald-900/10 dark:to-teal-900/10 rounded-lg border border-emerald-100/50 dark:border-emerald-800/30"
+                              className="flex items-start gap-3 p-3 sm:p-4 bg-gradient-to-r from-emerald-50/50 to-teal-50/50 dark:from-emerald-900/10 dark:to-teal-900/10 rounded-lg border border-emerald-100/50 dark:border-emerald-800/30"
                             >
                               <div className="w-2 h-2 bg-emerald-500 rounded-full mt-2 flex-shrink-0"></div>
                               <div className="flex-1">
@@ -288,58 +301,82 @@ const CourseCurriculum: React.FC<ICourseCurriculumProps> = ({
 
                       {/* Traditional Lessons (if any) */}
                       {week.lessons?.length > 0 && (
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           <h4 className="font-medium text-gray-900 dark:text-white text-sm mb-3">Lessons</h4>
-                          {week.lessons.map((lesson, lessonIndex) => (
-                            <motion.button
-                              key={lesson._id || lessonIndex}
-                              onClick={() => onLessonSelect(lesson)}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: lessonIndex * 0.05 }}
-                              className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors group text-left"
-                            >
-                              <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <Play className="w-4 h-4 text-white ml-0.5" />
-                              </div>
-                              <div className="flex-1">
-                                <h5 className="font-medium text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                                  {lesson.title}
-                                </h5>
-                                {lesson.duration && (
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    {formatDuration(lesson.duration)}
-                                  </p>
-                                )}
-                              </div>
-                            </motion.button>
-                          ))}
+                          <div className="grid grid-cols-1 gap-2">
+                            {week.lessons.map((lesson, lessonIndex) => (
+                              <motion.button
+                                key={lesson._id || lessonIndex}
+                                onClick={() => onLessonSelect(lesson)}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: lessonIndex * 0.05 }}
+                                className="w-full flex items-center gap-3 sm:gap-4 p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors group text-left border border-transparent hover:border-emerald-100 dark:hover:border-emerald-800/30"
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                              >
+                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-xl transition-all">
+                                  <Play className="w-4 h-4 sm:w-5 sm:h-5 text-white ml-0.5" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h5 className="font-medium text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors text-sm sm:text-base truncate">
+                                    {lesson.title}
+                                  </h5>
+                                  {lesson.duration && (
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                      {formatDuration(lesson.duration)}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="flex-shrink-0">
+                                  <motion.div 
+                                    className="w-8 h-8 rounded-full border-2 border-emerald-200 dark:border-emerald-700 group-hover:border-emerald-400 dark:group-hover:border-emerald-500 flex items-center justify-center transition-colors"
+                                    whileHover={{ scale: 1.1 }}
+                                  >
+                                    <Play className="w-3 h-3 text-emerald-600 dark:text-emerald-400 ml-0.5" />
+                                  </motion.div>
+                                </div>
+                              </motion.button>
+                            ))}
+                          </div>
                         </div>
                       )}
 
                       {/* Sections (if any) */}
                       {week.sections?.map((section, sectionIndex) => (
-                        <div key={section._id || sectionIndex} className="space-y-2">
+                        <div key={section._id || sectionIndex} className="space-y-3">
                           <h4 className="font-medium text-gray-900 dark:text-white text-sm">{section.title}</h4>
-                          {section.lessons?.map((lesson, lessonIndex) => (
-                            <motion.button
-                              key={lesson._id || lessonIndex}
-                              onClick={() => onLessonSelect(lesson)}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: lessonIndex * 0.05 }}
-                              className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors group text-left"
-                            >
-                              <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <Play className="w-4 h-4 text-white ml-0.5" />
-                              </div>
-                              <div className="flex-1">
-                                <h5 className="font-medium text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                                  {lesson.title}
-                                </h5>
-                              </div>
-                            </motion.button>
-                          ))}
+                          <div className="grid grid-cols-1 gap-2">
+                            {section.lessons?.map((lesson, lessonIndex) => (
+                              <motion.button
+                                key={lesson._id || lessonIndex}
+                                onClick={() => onLessonSelect(lesson)}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: lessonIndex * 0.05 }}
+                                className="w-full flex items-center gap-3 sm:gap-4 p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors group text-left border border-transparent hover:border-emerald-100 dark:hover:border-emerald-800/30"
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                              >
+                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-xl transition-all">
+                                  <Play className="w-4 h-4 sm:w-5 sm:h-5 text-white ml-0.5" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h5 className="font-medium text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors text-sm sm:text-base truncate">
+                                    {lesson.title}
+                                  </h5>
+                                </div>
+                                <div className="flex-shrink-0">
+                                  <motion.div 
+                                    className="w-8 h-8 rounded-full border-2 border-emerald-200 dark:border-emerald-700 group-hover:border-emerald-400 dark:group-hover:border-emerald-500 flex items-center justify-center transition-colors"
+                                    whileHover={{ scale: 1.1 }}
+                                  >
+                                    <Play className="w-3 h-3 text-emerald-600 dark:text-emerald-400 ml-0.5" />
+                                  </motion.div>
+                                </div>
+                              </motion.button>
+                            ))}
+                          </div>
                         </div>
                       ))}
                     </div>
