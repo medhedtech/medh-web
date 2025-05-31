@@ -10,7 +10,12 @@ export type TBatchStatus = 'Active' | 'Upcoming' | 'Completed' | 'Cancelled';
 export type TBatchType = 'group' | 'individual'; // Added batch type for 1:1 classes
 
 export interface IBatchSchedule {
-  day: string;
+  // Date-based format (required)
+  date: string; // Format: "2024-01-15"
+  title?: string; // Optional session title
+  description?: string; // Optional session description
+  
+  // Common fields
   start_time: string;
   end_time: string;
 }
@@ -390,8 +395,150 @@ export const batchUtils = {
     if (!schedule || schedule.length === 0) return 'No schedule set';
     
     return schedule
-      .map(s => `${s.day}: ${s.start_time} - ${s.end_time}`)
+      .map(s => {
+        const displayDate = new Date(s.date).toLocaleDateString('en-US', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric'
+        });
+        const title = s.title ? ` - ${s.title}` : '';
+        return `${displayDate}: ${s.start_time} - ${s.end_time}${title}`;
+      })
       .join(', ');
+  },
+
+  /**
+   * Format schedule for calendar display
+   * @param schedule - Array of batch schedules
+   * @returns Array of formatted schedule entries for calendar
+   */
+  formatScheduleForCalendar: (schedule: IBatchSchedule[]): Array<{
+    date: string;
+    time: string;
+    title: string;
+    description?: string;
+  }> => {
+    if (!schedule || schedule.length === 0) return [];
+    
+    return schedule.map(s => ({
+      date: s.date,
+      time: `${s.start_time} - ${s.end_time}`,
+      title: s.title || 'Session',
+      description: s.description
+    }));
+  },
+
+  /**
+   * Convert dates to recurring schedule if needed
+   * @param schedule - Date-based schedule array
+   * @param startDate - Batch start date
+   * @param endDate - Batch end date
+   * @returns Extended schedule array with recurring dates
+   */
+  generateRecurringSchedule: (schedule: IBatchSchedule[], startDate: Date, endDate: Date): IBatchSchedule[] => {
+    if (!schedule || schedule.length === 0) return [];
+    
+    // For now, just return the original schedule
+    // In the future, this could be enhanced to generate recurring sessions
+    return schedule.map(s => ({
+      ...s,
+      title: s.title || 'Session'
+    }));
+  },
+
+  /**
+   * Validate batch schedule entries (legacy support)
+   * @param schedule - Array of schedule entries to validate
+   * @returns Validation result with errors if any
+   */
+  validateBatchSchedule: (schedule: IBatchSchedule[]): { isValid: boolean; errors: string[] } => {
+    // For backward compatibility, delegate to the enhanced validation
+    return batchUtils.validateEnhancedBatchSchedule(schedule);
+  },
+
+  /**
+   * Validate enhanced batch schedule entries
+   * @param schedule - Array of schedule entries to validate
+   * @returns Validation result with errors if any
+   */
+  validateEnhancedBatchSchedule: (schedule: IBatchSchedule[]): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+
+    if (!schedule || schedule.length === 0) {
+      errors.push('At least one schedule entry is required');
+      return { isValid: false, errors };
+    }
+
+    // Track dates to check for duplicates
+    const dates = new Set<string>();
+
+    schedule.forEach((entry, index) => {
+      // Validate date field (required)
+      if (!entry.date) {
+        errors.push(`Date is required for schedule entry ${index + 1}`);
+      } else {
+        // Validate date format
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dateRegex.test(entry.date)) {
+          errors.push(`Invalid date format for entry ${index + 1}. Use YYYY-MM-DD format`);
+        } else {
+          // Check for duplicate dates
+          if (dates.has(entry.date)) {
+            errors.push(`Duplicate date found: ${entry.date}`);
+          }
+          dates.add(entry.date);
+          
+          // Validate that date is not in the past
+          const entryDate = new Date(entry.date);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          
+          if (entryDate < today) {
+            errors.push(`Date ${entry.date} is in the past`);
+          }
+        }
+      }
+
+      // Validate time fields
+      if (!entry.start_time) {
+        errors.push(`Start time is required for schedule entry ${index + 1}`);
+      }
+
+      if (!entry.end_time) {
+        errors.push(`End time is required for schedule entry ${index + 1}`);
+      }
+
+      if (entry.start_time && entry.end_time) {
+        // Convert time strings to minutes for comparison
+        const startMinutes = timeToMinutes(entry.start_time);
+        const endMinutes = timeToMinutes(entry.end_time);
+
+        if (startMinutes >= endMinutes) {
+          errors.push(`End time must be after start time for ${entry.date || `entry ${index + 1}`}`);
+        }
+
+        // Check for reasonable duration (at least 30 minutes, max 8 hours)
+        const durationMinutes = endMinutes - startMinutes;
+        if (durationMinutes < 30) {
+          errors.push(`Session duration for ${entry.date || `entry ${index + 1}`} is too short (minimum 30 minutes)`);
+        }
+        if (durationMinutes > 480) { // 8 hours
+          errors.push(`Session duration for ${entry.date || `entry ${index + 1}`} is too long (maximum 8 hours)`);
+        }
+      }
+
+      // Validate optional title length
+      if (entry.title && entry.title.length > 100) {
+        errors.push(`Title for entry ${index + 1} is too long (maximum 100 characters)`);
+      }
+
+      // Validate optional description length
+      if (entry.description && entry.description.length > 500) {
+        errors.push(`Description for entry ${index + 1} is too long (maximum 500 characters)`);
+      }
+    });
+
+    return { isValid: errors.length === 0, errors };
   },
 
   /**
@@ -434,63 +581,6 @@ export const batchUtils = {
     const end = new Date(endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  },
-
-  /**
-   * Validate batch schedule entries
-   * @param schedule - Array of schedule entries to validate
-   * @returns Validation result with errors if any
-   */
-  validateBatchSchedule: (schedule: IBatchSchedule[]): { isValid: boolean; errors: string[] } => {
-    const errors: string[] = [];
-
-    if (!schedule || schedule.length === 0) {
-      errors.push('At least one schedule entry is required');
-      return { isValid: false, errors };
-    }
-
-    // Check for duplicate days
-    const days = schedule.map(s => s.day);
-    const uniqueDays = new Set(days);
-    if (days.length !== uniqueDays.size) {
-      errors.push('Duplicate days are not allowed in the schedule');
-    }
-
-    // Validate each schedule entry
-    schedule.forEach((entry, index) => {
-      if (!entry.day) {
-        errors.push(`Day is required for schedule entry ${index + 1}`);
-      }
-
-      if (!entry.start_time) {
-        errors.push(`Start time is required for schedule entry ${index + 1}`);
-      }
-
-      if (!entry.end_time) {
-        errors.push(`End time is required for schedule entry ${index + 1}`);
-      }
-
-      if (entry.start_time && entry.end_time) {
-        // Convert time strings to minutes for comparison
-        const startMinutes = timeToMinutes(entry.start_time);
-        const endMinutes = timeToMinutes(entry.end_time);
-
-        if (startMinutes >= endMinutes) {
-          errors.push(`End time must be after start time for ${entry.day}`);
-        }
-
-        // Check for reasonable duration (at least 30 minutes, max 8 hours)
-        const durationMinutes = endMinutes - startMinutes;
-        if (durationMinutes < 30) {
-          errors.push(`Class duration for ${entry.day} is too short (minimum 30 minutes)`);
-        }
-        if (durationMinutes > 480) { // 8 hours
-          errors.push(`Class duration for ${entry.day} is too long (maximum 8 hours)`);
-        }
-      }
-    });
-
-    return { isValid: errors.length === 0, errors };
   },
 
   /**
@@ -1144,7 +1234,57 @@ export const batchAPI = {
       `${apiBaseUrl}/batches/students/${studentId}/recorded-lessons${queryString}`
     );
   },
+  /**
+   * Get upcoming sessions for a student
+   * @param studentId - Student ID
+   * @param params - Query parameters including limit and days_ahead
+   * @returns Promise with student's upcoming sessions
+   */
+  getStudentUpcomingSessions: async (studentId: string, params: {
+    limit?: number;
+    days_ahead?: number;
+  } = {}): Promise<IApiResponse<{
+    sessions: Array<{
+      id: string;
+      day: string;
+      date: string;
+      start_time: string;
+      end_time: string;
+      batch: {
+        id: string;
+        name: string;
+        code: string;
+        course: {
+          id: string;
+          name: string;
+          code: string;
+        };
+      };
+      zoom_meeting?: {
+        id: string;
+        join_url: string;
+        password?: string;
+      };
+      recorded_lessons_count: number;
+    }>;
+    search_params: {
+      limit: number;
+      days_ahead: number;
+    };
+  }>> => {
+    if (!studentId) throw new Error('Student ID is required');
+    
+    const queryString = apiUtils.buildQueryString({
+      limit: params.limit || 20,
+      days_ahead: params.days_ahead || 7
+    });
 
+    return apiClient.get(
+      `${apiBaseUrl}/batches/students/${studentId}/upcoming-sessions${queryString}`
+    );
+  },
+
+  
   /**
    * Update individual batch schedule
    * @param batchId - Batch ID
