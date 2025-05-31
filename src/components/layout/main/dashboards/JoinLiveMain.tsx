@@ -17,7 +17,6 @@ import {
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import { toast } from "react-toastify";
-import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 
 // Default course image
 import defaultCourseImage from "@/assets/images/courses/Ai&Ml.jpeg";
@@ -216,9 +215,6 @@ const JoinLiveMain: React.FC = () => {
 
   return (
     <div className="p-4 space-y-6">
-      <div className="mb-6">
-        <HeadingDashboard />
-      </div>
 
       {/* Search and filters */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
