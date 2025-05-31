@@ -386,7 +386,30 @@ export const apiUrls = {
       apiUtils.appendParam('sort_by', sort_by, queryParams);
       apiUtils.appendParam('sort_order', sort_order, queryParams);
       return `${apiBaseUrl}/courses/new?${queryParams.toString()}`;
-    }
+    },
+    curriculum: (() => {
+      try {
+        // Dynamic import of curriculum API to handle "No curriculum available" scenarios
+        const { curriculumAPI } = require('./curriculum.api');
+        return curriculumAPI;
+      } catch (error) {
+        console.warn('Curriculum API not available, using fallback endpoints');
+        return {
+          getCurriculumByCourseId: (courseId: string): string => {
+            if (!courseId) throw new Error('Course ID is required');
+            return `${apiBaseUrl}/curriculum/course/${courseId}`;
+          },
+          checkCurriculumAvailability: (courseId: string): string => {
+            if (!courseId) throw new Error('Course ID is required');
+            return `${apiBaseUrl}/curriculum/course/${courseId}/check-availability`;
+          },
+          getOrCreateCurriculum: (courseId: string): string => {
+            if (!courseId) throw new Error('Course ID is required');
+            return `${apiBaseUrl}/curriculum/course/${courseId}/get-or-create`;
+          }
+        };
+      }
+    })(),
   },
   faqs: {
     getAllFaqs: "/faq/getAll",
@@ -1951,3 +1974,226 @@ export interface IOTPVerificationResponse {
   success: boolean;
   message: string;
 }
+
+// Curriculum-related interfaces
+export interface ICurriculumResource {
+  _id?: string;
+  title: string;
+  type: 'pdf' | 'video' | 'link' | 'document' | 'code' | 'quiz' | 'assignment' | 'other';
+  url?: string;
+  fileUrl?: string;
+  description?: string;
+  size?: string;
+  duration?: string;
+  downloadable?: boolean;
+  isRequired?: boolean;
+}
+
+export interface ICurriculumLesson {
+  _id: string;
+  id?: string;
+  title: string;
+  description?: string;
+  lessonType: 'video' | 'quiz' | 'assessment' | 'reading' | 'assignment' | 'live_session';
+  order?: number;
+  duration?: string | number;
+  videoUrl?: string;
+  video_url?: string;
+  thumbnailUrl?: string;
+  isPreview?: boolean;
+  is_completed?: boolean;
+  completed?: boolean;
+  quiz_id?: string;
+  assignment_id?: string;
+  resources?: ICurriculumResource[];
+  learning_objectives?: string[];
+  prerequisites?: string[];
+  meta?: {
+    presenter?: string;
+    transcript?: string;
+    time_limit?: number;
+    passing_score?: number;
+    due_date?: string;
+    max_score?: number;
+    difficulty?: 'beginner' | 'intermediate' | 'advanced';
+    estimated_time?: number;
+    [key: string]: any;
+  };
+  progress?: {
+    completed: boolean;
+    completion_date?: string;
+    watch_time?: number;
+    total_time?: number;
+    score?: number;
+    attempts?: number;
+  };
+}
+
+export interface ICurriculumSection {
+  _id?: string;
+  id?: string;
+  title: string;
+  description?: string;
+  order?: number;
+  lessons: ICurriculumLesson[];
+  isCollapsed?: boolean;
+  estimatedDuration?: string;
+  totalLessons?: number;
+  completedLessons?: number;
+}
+
+export interface ICurriculumWeek {
+  _id?: string;
+  id?: string;
+  weekTitle: string;
+  weekDescription?: string;
+  order?: number;
+  sections?: ICurriculumSection[];
+  lessons?: ICurriculumLesson[];
+  topics?: string[];
+  isCollapsed?: boolean;
+  estimatedDuration?: string;
+  totalLessons?: number;
+  completedLessons?: number;
+}
+
+export interface ICurriculum {
+  _id: string;
+  courseId: string;
+  weeks?: ICurriculumWeek[];
+  sections?: ICurriculumSection[];
+  lessons?: ICurriculumLesson[];
+  totalDuration?: string;
+  totalLessons?: number;
+  totalSections?: number;
+  totalWeeks?: number;
+  structure_type: 'weekly' | 'sectioned' | 'linear';
+  version?: string;
+  isPublished?: boolean;
+  lastUpdated?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ICurriculumResponse {
+  success: boolean;
+  message: string;
+  data: {
+    curriculum: ICurriculum;
+    course_info?: {
+      _id: string;
+      course_title: string;
+      status: string;
+    };
+    progress?: {
+      overall_progress: number;
+      completed_lessons: number;
+      total_lessons: number;
+      last_accessed_lesson?: string;
+      time_spent?: number;
+    };
+  };
+}
+
+export interface ICurriculumStats {
+  courseId: string;
+  totalLessons: number;
+  totalSections: number;
+  totalWeeks: number;
+  totalDuration: number; // in minutes
+  completionRate?: number;
+  averageTimePerLesson?: number;
+  engagementMetrics?: {
+    views: number;
+    completions: number;
+    dropoffRate: number;
+    averageWatchTime: number;
+  };
+  lessonTypeBreakdown?: {
+    video: number;
+    quiz: number;
+    assessment: number;
+    reading: number;
+    live_session: number;
+  };
+}
+
+export interface ICurriculumTemplate {
+  _id: string;
+  name: string;
+  description: string;
+  category: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  estimatedDuration: string;
+  structure: ICurriculum;
+  tags: string[];
+  isPublic: boolean;
+  usageCount: number;
+  rating: number;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ICurriculumNavigation {
+  currentLesson: {
+    id: string;
+    title: string;
+    sectionId?: string;
+    weekId?: string;
+    order: number;
+  };
+  previousLesson?: {
+    id: string;
+    title: string;
+    sectionId?: string;
+    weekId?: string;
+  };
+  nextLesson?: {
+    id: string;
+    title: string;
+    sectionId?: string;
+    weekId?: string;
+  };
+  breadcrumb: Array<{
+    type: 'course' | 'week' | 'section' | 'lesson';
+    id: string;
+    title: string;
+  }>;
+  totalProgress: {
+    current: number;
+    total: number;
+    percentage: number;
+  };
+}
+
+export interface ICurriculumValidationResult {
+  isValid: boolean;
+  errors: Array<{
+    type: 'missing_content' | 'invalid_structure' | 'broken_link' | 'missing_resource';
+    message: string;
+    location: string;
+    severity: 'error' | 'warning' | 'info';
+  }>;
+  warnings: Array<{
+    type: string;
+    message: string;
+    location: string;
+  }>;
+  suggestions: Array<{
+    type: string;
+    message: string;
+    action: string;
+  }>;
+  summary: {
+    totalLessons: number;
+    validLessons: number;
+    missingContent: number;
+    brokenLinks: number;
+  };
+}
+
+// Export curriculum utilities for handling "No curriculum available" scenarios
+export { curriculumAPI, curriculumUtils } from './curriculum.api';
+
+export default apiUrls;
