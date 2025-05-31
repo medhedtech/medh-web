@@ -13,9 +13,6 @@ import NewCourses from "@/components/shared/dashboards/NewCourses";
 const MyCoursesDashboard: React.FC = () => {
   return (
     <div className="space-y-8 p-4">
-      <div className="px-6">
-        <HeadingDashboard />
-      </div>
       <EnrollCourses />
       <RecordedSessions />
       <NewCourses />
