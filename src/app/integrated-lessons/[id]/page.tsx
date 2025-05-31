@@ -387,7 +387,7 @@ const IntegratedLesson: React.FC<IIntegratedLessonProps> = ({ params }) => {
           <div className="space-y-8">
             {/* Course Information Card - Now at Top */}
             <div className="w-full">
-              <motion.div
+                        <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
@@ -400,7 +400,7 @@ const IntegratedLesson: React.FC<IIntegratedLessonProps> = ({ params }) => {
                     <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-3">
                       <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl lg:rounded-2xl flex items-center justify-center flex-shrink-0">
                         <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-white" />
-                      </div>
+                                      </div>
                       <span className="leading-tight">{courseData.course_title}</span>
                     </h3>
                     <p className="text-sm text-emerald-600 dark:text-emerald-400 mb-3 font-medium">
@@ -425,13 +425,13 @@ const IntegratedLesson: React.FC<IIntegratedLessonProps> = ({ params }) => {
                                 <span className="flex items-center">
                                   <Heart className="w-2 h-2 mr-1" />
                                   Free Course
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                      
+                                                </span>
+                                            </div>
+                                          )}
+                                        </div>
+                            </div>
+                          )}
+                          
                       {/* Course Stats Grid - Now on Right with margin */}
                       <div className="flex-1 w-full lg:ml-4">
                         <div className="grid grid-cols-2 gap-3 h-48">
@@ -445,8 +445,8 @@ const IntegratedLesson: React.FC<IIntegratedLessonProps> = ({ params }) => {
                             <p className="font-bold text-base text-gray-900 dark:text-white">
                               {courseData.course_duration || "Self-paced"}
                             </p>
-                          </div>
-                          
+                              </div>
+                              
                           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-3 border border-blue-100 dark:border-blue-800/30 flex flex-col justify-center">
                             <div className="flex items-center mb-2">
                               <div className="w-6 h-6 bg-blue-500 rounded-lg flex items-center justify-center mr-2">
@@ -457,35 +457,35 @@ const IntegratedLesson: React.FC<IIntegratedLessonProps> = ({ params }) => {
                             <p className="font-bold text-base text-gray-900 dark:text-white">
                               {courseData.no_of_Sessions || courseData.curriculum?.length || "Multiple"}
                             </p>
-                          </div>
-                          
+                                          </div>
+                                          
                           <div className="bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20 rounded-xl p-3 border border-purple-100 dark:border-purple-800/30 flex flex-col justify-center">
                             <div className="flex items-center mb-2">
                               <div className="w-6 h-6 bg-purple-500 rounded-lg flex items-center justify-center mr-2">
                                 <TrendingUp className="w-3 h-3 text-white" />
-                              </div>
+                                              </div>
                               <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">Level</span>
-                            </div>
+                                                </div>
                             <p className="font-bold text-base text-gray-900 dark:text-white">
                               {courseData.course_grade || courseData.course_level || "All levels"}
                             </p>
-                          </div>
+                                            </div>
                           
                           <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-xl p-3 border border-orange-100 dark:border-orange-800/30 flex flex-col justify-center">
                             <div className="flex items-center mb-2">
                               <div className="w-6 h-6 bg-orange-500 rounded-lg flex items-center justify-center mr-2">
                                 <Globe className="w-3 h-3 text-white" />
-                              </div>
+                                          </div>
                               <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">Format</span>
-                            </div>
+                                      </div>
                             <p className="font-bold text-base text-gray-900 dark:text-white">
                               {courseData.class_type || "Online"}
                             </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                                </div>
+                            </div>
+                            </div>
                   </div>
+              </div>
                   
                   {/* Certificate Badge */}
                   {courseData.is_Certification === "yes" && (
@@ -493,79 +493,79 @@ const IntegratedLesson: React.FC<IIntegratedLessonProps> = ({ params }) => {
                       <div className="flex items-center">
                         <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center mr-3">
                           <Award className="w-4 h-4 text-white" />
-                        </div>
+                      </div>
                         <div>
                           <p className="font-semibold text-green-800 dark:text-green-200 text-sm">Certificate Included</p>
                           <p className="text-xs text-green-600 dark:text-green-400">Verify your achievement</p>
-                        </div>
-                      </div>
-                    </div>
+                          </div>
+                  </div>
+              </div>
                   )}
                   
                   {/* What's Included */}
-                  <div className="space-y-3">
-                    <h4 className="font-semibold text-gray-900 dark:text-white flex items-center text-base">
-                      <div className="w-6 h-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center mr-3">
-                        <CheckCircle className="w-3 h-3 text-white" />
-                      </div>
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-gray-900 dark:text-white flex items-center text-lg">
+                      <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center mr-3">
+                        <CheckCircle className="w-5 h-5 text-white" />
+                        </div>
                       What's Included
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {courseData.is_Assignments === "yes" && (
-                        <div className="flex items-center p-3 bg-gradient-to-r from-emerald-50/50 to-teal-50/50 dark:from-emerald-900/10 dark:to-teal-900/10 rounded-xl border border-emerald-100/50 dark:border-emerald-800/30">
-                          <div className="w-8 h-8 bg-emerald-500 rounded-xl flex items-center justify-center mr-3">
-                            <ClipboardList className="w-4 h-4 text-white" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-gray-900 dark:text-white text-sm">Practical Assignments</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Hands-on practice</p>
-                          </div>
+                        <div className="flex items-center p-4 bg-gradient-to-r from-emerald-50/50 to-teal-50/50 dark:from-emerald-900/10 dark:to-teal-900/10 rounded-xl border border-emerald-100/50 dark:border-emerald-800/30">
+                          <div className="w-14 h-14 bg-emerald-500 rounded-xl flex items-center justify-center mr-4">
+                            <ClipboardList className="w-7 h-7 text-white" />
                         </div>
-                      )}
-                      {courseData.is_Projects === "yes" && (
-                        <div className="flex items-center p-3 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-xl border border-blue-100/50 dark:border-blue-800/30">
-                          <div className="w-8 h-8 bg-blue-500 rounded-xl flex items-center justify-center mr-3">
-                            <Code2 className="w-4 h-4 text-white" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-gray-900 dark:text-white text-sm">Real Projects</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Build portfolio</p>
-                          </div>
-                        </div>
-                      )}
-                      {courseData.is_Quizes === "yes" && (
-                        <div className="flex items-center p-3 bg-gradient-to-r from-purple-50/50 to-violet-50/50 dark:from-purple-900/10 dark:to-violet-900/10 rounded-xl border border-purple-100/50 dark:border-purple-800/30">
-                          <div className="w-8 h-8 bg-purple-500 rounded-xl flex items-center justify-center mr-3">
-                            <FileQuestion className="w-4 h-4 text-white" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-gray-900 dark:text-white text-sm">Knowledge Quizzes</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Test understanding</p>
-                          </div>
-                        </div>
-                      )}
-                      <div className="flex items-center p-3 bg-gradient-to-r from-teal-50/50 to-cyan-50/50 dark:from-teal-900/10 dark:to-cyan-900/10 rounded-xl border border-teal-100/50 dark:border-teal-800/30">
-                        <div className="w-8 h-8 bg-teal-500 rounded-xl flex items-center justify-center mr-3">
-                          <Shield className="w-4 h-4 text-white" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900 dark:text-white text-sm">Lifetime Access</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">Learn at your pace</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center p-3 bg-gradient-to-r from-orange-50/50 to-amber-50/50 dark:from-orange-900/10 dark:to-amber-900/10 rounded-xl border border-orange-100/50 dark:border-orange-800/30">
-                        <div className="w-8 h-8 bg-orange-500 rounded-xl flex items-center justify-center mr-3">
-                          <Users className="w-4 h-4 text-white" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900 dark:text-white text-sm">Community Support</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">Connect with peers</p>
-                        </div>
+                      <div>
+                            <p className="font-semibold text-gray-900 dark:text-white text-base">Practical Assignments</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Hands-on practice</p>
                       </div>
                     </div>
+                      )}
+                      {courseData.is_Projects === "yes" && (
+                        <div className="flex items-center p-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-xl border border-blue-100/50 dark:border-blue-800/30">
+                          <div className="w-14 h-14 bg-blue-500 rounded-xl flex items-center justify-center mr-4">
+                            <Code2 className="w-7 h-7 text-white" />
+              </div>
+                          <div>
+                            <p className="font-semibold text-gray-900 dark:text-white text-base">Real Projects</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Build portfolio</p>
+        </div>
                   </div>
+                )}
+                      {courseData.is_Quizes === "yes" && (
+                        <div className="flex items-center p-4 bg-gradient-to-r from-purple-50/50 to-violet-50/50 dark:from-purple-900/10 dark:to-violet-900/10 rounded-xl border border-purple-100/50 dark:border-purple-800/30">
+                          <div className="w-14 h-14 bg-purple-500 rounded-xl flex items-center justify-center mr-4">
+                            <FileQuestion className="w-7 h-7 text-white" />
+              </div>
+                          <div>
+                            <p className="font-semibold text-gray-900 dark:text-white text-base">Knowledge Quizzes</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Test understanding</p>
                 </div>
-
+                </div>
+                      )}
+                      <div className="flex items-center p-4 bg-gradient-to-r from-teal-50/50 to-cyan-50/50 dark:from-teal-900/10 dark:to-cyan-900/10 rounded-xl border border-teal-100/50 dark:border-teal-800/30">
+                        <div className="w-14 h-14 bg-teal-500 rounded-xl flex items-center justify-center mr-4">
+                          <Shield className="w-7 h-7 text-white" />
+                </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 dark:text-white text-base">Lifetime Access</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Learn at your pace</p>
+                </div>
+                </div>
+                      <div className="flex items-center p-4 bg-gradient-to-r from-orange-50/50 to-amber-50/50 dark:from-orange-900/10 dark:to-amber-900/10 rounded-xl border border-orange-100/50 dark:border-orange-800/30">
+                        <div className="w-14 h-14 bg-orange-500 rounded-xl flex items-center justify-center mr-4">
+                          <Users className="w-7 h-7 text-white" />
+                  </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 dark:text-white text-base">Community Support</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Connect with peers</p>
+                  </div>
+                  </div>
+                  </div>
+              </div>
+            </div>
+            
                 {/* Action Button */}
                 <div className="p-4 sm:p-6 pt-0">
                   <motion.button
@@ -578,13 +578,13 @@ const IntegratedLesson: React.FC<IIntegratedLessonProps> = ({ params }) => {
                         : 'bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700 text-gray-600 dark:text-gray-400 cursor-not-allowed'
                     }`}
                     disabled={!hasLessons}
-                  >
-                    <Play className="w-5 h-5" />
-                    {hasLessons ? "Start Learning" : "Coming Soon"}
+              >
+                <Play className="w-5 h-5" />
+                {hasLessons ? "Start Learning" : "Coming Soon"}
                   </motion.button>
-                </div>
-              </motion.div>
             </div>
+              </motion.div>
+          </div>
 
             {/* Main Content - Now Below Card */}
             <div className="space-y-12">
