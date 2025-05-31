@@ -43,6 +43,7 @@ const AllCoursesMain: React.FC = () => {
   const [direction, setDirection] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   
@@ -223,9 +224,9 @@ const AllCoursesMain: React.FC = () => {
     }, 300);
   }, [currentSlide]);
 
-  // Auto-play functionality
+  // Auto-play functionality - pauses when filter dropdown is open
   useEffect(() => {
-    if (!isAutoPlaying || isHovered) {
+    if (!isAutoPlaying || isHovered || isFilterDropdownOpen) {
       if (autoPlayRef.current) {
         clearInterval(autoPlayRef.current);
         autoPlayRef.current = null;
@@ -243,9 +244,9 @@ const AllCoursesMain: React.FC = () => {
         autoPlayRef.current = null;
       }
     };
-  }, [isAutoPlaying, isHovered, nextSlide]);
+  }, [isAutoPlaying, isHovered, isFilterDropdownOpen, nextSlide]);
 
-  // Keyboard navigation
+  // Keyboard navigation (with auto-play toggle)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'ArrowLeft') {
@@ -263,6 +264,16 @@ const AllCoursesMain: React.FC = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [nextSlide, prevSlide]);
+
+  // Toggle auto-play
+  const toggleAutoPlay = useCallback(() => {
+    setIsAutoPlaying(prev => !prev);
+  }, []);
+
+  // Handle filter dropdown state changes
+  const handleFilterDropdownToggle = useCallback((isOpen: boolean) => {
+    setIsFilterDropdownOpen(isOpen);
+  }, []);
 
   // Touch/Swipe functionality
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -287,11 +298,6 @@ const AllCoursesMain: React.FC = () => {
       prevSlide();
     }
   }, [touchStart, touchEnd, nextSlide, prevSlide]);
-
-  // Toggle auto-play
-  const toggleAutoPlay = useCallback(() => {
-    setIsAutoPlaying(prev => !prev);
-  }, []);
 
   // Course Preloader with enhanced design
   const CoursePreloader = () => (
@@ -557,6 +563,7 @@ const AllCoursesMain: React.FC = () => {
                   gridColumns={3}
                   itemsPerPage={12}
                   customGridClassName="grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                  onFilterDropdownToggle={handleFilterDropdownToggle}
                 />
               </Suspense>
             </div>
