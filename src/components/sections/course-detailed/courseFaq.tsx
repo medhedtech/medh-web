@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls, apiBaseUrl } from "@/apis";
 import { motion, AnimatePresence, useReducedMotion, Variants } from "framer-motion";
-import { ChevronDown, ChevronRight, HelpCircle, AlertCircle, Search, RefreshCw, ExternalLink, BookOpen, Clock } from "lucide-react";
+import { ChevronDown, ChevronRight, HelpCircle, AlertCircle, Search, RefreshCw, ExternalLink, BookOpen, Clock, Plus, Minus } from "lucide-react";
 import axios from "axios";
 import DOMPurify from "dompurify";
 import { getCourseById } from "@/apis/course/course";
@@ -444,6 +444,7 @@ export default function CourseFaq({ courseId }: CourseFaqProps) {
             >
               {filteredFaqs.map((faq, index) => {
                 const [startColor, endColor] = getGradientColors(index);
+                const isExpanded = openIndex === index;
                 return (
                   <motion.div
                     key={index}
@@ -463,22 +464,21 @@ export default function CourseFaq({ courseId }: CourseFaqProps) {
                       onMouseEnter={() => setHoveredIndex(index)}
                       onMouseLeave={() => setHoveredIndex(null)}
                     >
-                      <button
+                      <motion.button
+                        onClick={() => toggleFAQ(index)}
                         className={`w-full flex items-center justify-between p-3 sm:p-4 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50 ${
-                          openIndex === index 
+                          isExpanded 
                             ? "bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-900/10" 
                             : "hover:bg-gray-50 dark:hover:bg-gray-700/50"
                         }`}
-                        onClick={() => toggleFAQ(index)}
-                        aria-expanded={openIndex === index}
-                        aria-controls={`faq-content-${index}`}
+                        whileHover={{ backgroundColor: "rgba(139, 92, 246, 0.02)" }}
                       >
                         <div className="flex items-start sm:items-center mr-2">
                           <div className="mr-2 sm:mr-3 flex-shrink-0 mt-0.5 sm:mt-0">
                             {getIconForQuestion(faq.question)}
                           </div>
                           <h3 className={`text-sm sm:text-base font-medium pr-6 sm:pr-8 ${
-                            openIndex === index 
+                            isExpanded 
                               ? "text-emerald-700 dark:text-emerald-400" 
                               : "text-gray-800 dark:text-gray-200"
                           }`}>
@@ -486,18 +486,14 @@ export default function CourseFaq({ courseId }: CourseFaqProps) {
                           </h3>
                         </div>
                         <div className={`flex-shrink-0 p-1 rounded-full transition-all duration-300 transform ${
-                          openIndex === index ? "rotate-180" : "rotate-0"
-                        } ${
-                          openIndex === index 
-                            ? "bg-emerald-100 dark:bg-emerald-800 text-emerald-600 dark:text-emerald-400" 
-                            : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
+                          isExpanded ? "rotate-180 text-emerald-600 dark:text-emerald-400" : "text-gray-400 hover:text-emerald-500"
                         }`}>
-                          <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5" />
+                          <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                         </div>
-                      </button>
+                      </motion.button>
                       
                       <AnimatePresence>
-                        {openIndex === index && (
+                        {isExpanded && (
                           <motion.div
                             variants={contentVariants}
                             initial="hidden"
