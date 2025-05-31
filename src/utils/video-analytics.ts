@@ -40,12 +40,20 @@ export class VideoAnalyticsTracker {
     if (this.currentSession) {
       this.currentSession.endTime = Date.now();
       this.currentSession.watchDuration = this.calculateWatchDuration();
-      this.flushAnalytics();
+      
+      // Attempt to flush final analytics, but don't block if it fails
+      this.flushAnalytics().catch(error => {
+        console.warn('Failed to send final analytics data:', error instanceof Error ? error.message : 'Unknown error');
+      });
     }
 
     if (this.intervalId) {
       clearInterval(this.intervalId);
+      this.intervalId = undefined;
     }
+    
+    // Clean up session
+    this.currentSession = null;
   }
 
   trackSegment(start: number, end: number): void {
@@ -90,15 +98,41 @@ export class VideoAnalyticsTracker {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to send analytics data');
+        // Log detailed error information for debugging
+        console.warn(`Analytics endpoint returned ${response.status}: ${response.statusText}`);
+        
+        // Don't throw error - allow graceful degradation
+        // Analytics should never break the user experience
+        return;
       }
 
       // Clear segments and interactions after successful flush
       this.currentSession.segments = [];
       this.currentSession.interactions = [];
+      
+      // Optional: Log success in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Analytics data sent successfully');
+      }
+      
     } catch (error) {
-      console.error('Error flushing analytics:', error);
-      // Implement retry logic here if needed
+      // Silently handle network errors and other issues
+      // Analytics failures should not impact video playback
+      console.warn('Analytics service temporarily unavailable:', error instanceof Error ? error.message : 'Unknown error');
+      
+      // Optional: Implement retry logic with exponential backoff
+      // For now, we gracefully degrade by continuing without analytics
+      
+      // Clear old data to prevent memory buildup
+      if (this.currentSession && this.currentSession.segments.length > 100) {
+        // Keep only the most recent 50 segments if buffer gets too large
+        this.currentSession.segments = this.currentSession.segments.slice(-50);
+      }
+      
+      if (this.currentSession && this.currentSession.interactions.length > 200) {
+        // Keep only the most recent 100 interactions if buffer gets too large
+        this.currentSession.interactions = this.currentSession.interactions.slice(-100);
+      }
     }
   }
 
