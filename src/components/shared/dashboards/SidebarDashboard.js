@@ -27,7 +27,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import NavbarLogo from "@/components/layout/header/NavbarLogo";
 import MobileMenu from "@/components/MobileMenu";
 import Cookies from 'js-cookie';
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 
 const SidebarDashboard = ({ children }) => {
   const pathname = usePathname();
