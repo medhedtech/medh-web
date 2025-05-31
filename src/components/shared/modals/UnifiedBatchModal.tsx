@@ -139,9 +139,16 @@ const UnifiedBatchModal: React.FC<UnifiedBatchModalProps> = ({
     assigned_instructor: '',
     status: 'Upcoming',
     batch_notes: '',
-    schedule: [{ day: 'Monday', start_time: '09:00', end_time: '11:00' }],
+    student_id: undefined,
     session_duration_minutes: 60,
-    total_sessions: 10
+    total_sessions: 10,
+    schedule: [{
+      date: '',
+      start_time: '09:00',
+      end_time: '11:00',
+      title: '',
+      description: ''
+    }]
   });
 
   // Modal Title Determination
@@ -336,7 +343,16 @@ const UnifiedBatchModal: React.FC<UnifiedBatchModalProps> = ({
   const addScheduleEntry = () => {
     setFormData(prev => ({
       ...prev,
-      schedule: [...prev.schedule, { day: 'Monday', start_time: '09:00', end_time: '11:00' }]
+      schedule: [
+        ...prev.schedule,
+        {
+          date: '',
+          start_time: '09:00',
+          end_time: '11:00',
+          title: '',
+          description: ''
+        }
+      ]
     }));
   };
 
@@ -404,11 +420,15 @@ const UnifiedBatchModal: React.FC<UnifiedBatchModalProps> = ({
     }
 
     // Validate schedule
-    const validation = batchUtils.validateBatchSchedule(formData.schedule);
+    const validation = batchUtils.validateEnhancedBatchSchedule(formData.schedule);
+    
     if (!validation.isValid) {
       toast.error(validation.errors[0]);
       return;
     }
+
+    // Use the schedule as-is since we only support date-based format now
+    const processedSchedule = formData.schedule;
 
     try {
       setLoading(true);
@@ -424,7 +444,7 @@ const UnifiedBatchModal: React.FC<UnifiedBatchModalProps> = ({
           capacity: 1,
           start_date: new Date(formData.start_date),
           end_date: new Date(formData.end_date),
-          schedule: formData.schedule,
+          schedule: processedSchedule,
           batch_notes: formData.batch_notes
         };
         // Call the actual API for individual batch creation
@@ -446,7 +466,7 @@ const UnifiedBatchModal: React.FC<UnifiedBatchModalProps> = ({
           end_date: new Date(formData.end_date),
           capacity: formData.capacity,
           assigned_instructor: formData.assigned_instructor,
-          schedule: formData.schedule,
+          schedule: processedSchedule,
           batch_notes: formData.batch_notes
         };
 
@@ -738,9 +758,12 @@ const UnifiedBatchModal: React.FC<UnifiedBatchModalProps> = ({
           {/* Schedule Section */}
           <div className="mt-6">
             <div className="flex items-center justify-between mb-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Schedule *
-              </label>
+              <div className="flex items-center space-x-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Schedule *
+                </label>
+              </div>
+              
               <button
                 type="button"
                 onClick={addScheduleEntry}
@@ -751,44 +774,133 @@ const UnifiedBatchModal: React.FC<UnifiedBatchModalProps> = ({
               </button>
             </div>
             
-            <div className="space-y-3">
+            <div className="space-y-4">
               {formData.schedule.map((entry, index) => (
-                <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <select
-                    value={entry.day}
-                    onChange={(e) => updateScheduleEntry(index, 'day', e.target.value)}
-                    className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-white text-sm"
-                  >
-                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
-                      <option key={day} value={day}>{day}</option>
-                    ))}
-                  </select>
+                <div key={index} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+                    {/* Date/Day Selection */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                        Date *
+                      </label>
+                      <input
+                        type="date"
+                        value={entry.date || ''}
+                        onChange={(e) => updateScheduleEntry(index, 'date', e.target.value)}
+                        className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
+                        required
+                      />
+                    </div>
+                    
+                    {/* Start Time */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                        Start Time *
+                      </label>
+                      <input
+                        type="time"
+                        value={entry.start_time}
+                        onChange={(e) => updateScheduleEntry(index, 'start_time', e.target.value)}
+                        className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
+                        required
+                      />
+                    </div>
+                    
+                    {/* End Time */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                        End Time *
+                      </label>
+                      <input
+                        type="time"
+                        value={entry.end_time}
+                        onChange={(e) => updateScheduleEntry(index, 'end_time', e.target.value)}
+                        className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
+                        required
+                      />
+                    </div>
+                    
+                    {/* Action Buttons */}
+                    <div className="flex items-end">
+                      {formData.schedule.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeScheduleEntry(index)}
+                          className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/20 rounded transition-colors"
+                          title="Remove this schedule entry"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
                   
-                  <input
-                    type="time"
-                    value={entry.start_time}
-                    onChange={(e) => updateScheduleEntry(index, 'start_time', e.target.value)}
-                    className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-white text-sm"
-                  />
+                  {/* Title and Description (only for date format) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                        Session Title (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={entry.title || ''}
+                        onChange={(e) => updateScheduleEntry(index, 'title', e.target.value)}
+                        placeholder="e.g., Introduction to Module 1"
+                        className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-white placeholder-gray-400"
+                        maxLength={100}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                        Description (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={entry.description || ''}
+                        onChange={(e) => updateScheduleEntry(index, 'description', e.target.value)}
+                        placeholder="Brief description of session content"
+                        className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-white placeholder-gray-400"
+                        maxLength={500}
+                      />
+                    </div>
+                  </div>
                   
-                  <span className="text-gray-500">to</span>
-                  
-                  <input
-                    type="time"
-                    value={entry.end_time}
-                    onChange={(e) => updateScheduleEntry(index, 'end_time', e.target.value)}
-                    className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-white text-sm"
-                  />
-                  
-                  {formData.schedule.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeScheduleEntry(index)}
-                      className="p-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/20 rounded transition-colors"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  )}
+                  {/* Duration Display */}
+                  <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center space-x-4">
+                      <span className="flex items-center">
+                        <Clock className="h-3 w-3 mr-1" />
+                        Duration: {(() => {
+                          const start = entry.start_time.split(':').map(Number);
+                          const end = entry.end_time.split(':').map(Number);
+                          const startMinutes = start[0] * 60 + start[1];
+                          const endMinutes = end[0] * 60 + end[1];
+                          const duration = endMinutes - startMinutes;
+                          const hours = Math.floor(duration / 60);
+                          const minutes = duration % 60;
+                          return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+                        })()}
+                      </span>
+                      
+                      {entry.title && (
+                        <span className="flex items-center">
+                          <BookOpen className="h-3 w-3 mr-1" />
+                          {entry.title}
+                        </span>
+                      )}
+                    </div>
+                    
+                    {entry.date && (
+                      <span>
+                        {new Date(entry.date).toLocaleDateString('en-US', {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
