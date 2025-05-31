@@ -40,6 +40,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import UnifiedBatchModal from '@/components/shared/modals/UnifiedBatchModal';
 import BatchStudentEnrollment from '@/components/Dashboard/admin/BatchStudentEnrollment';
 import BatchAnalytics from '@/components/Dashboard/admin/BatchAnalytics';
+import StudentAnalytics from '@/components/Dashboard/admin/StudentAnalytics';
 import { 
   batchAPI, 
   batchUtils,
@@ -112,9 +113,11 @@ interface IBatchFromAPI {
     }>;
   } | string | null;
   schedule: Array<{
-    day: string;
+    date: string;
     start_time: string;
     end_time: string;
+    title?: string;
+    description?: string;
     _id: string;
   }>;
   batch_notes?: string;
@@ -122,6 +125,7 @@ interface IBatchFromAPI {
   created_by: string;
   createdAt: string;
   updatedAt: string;
+  enrolled_students_details?: any[];
 }
 
 // Add payment plan type
@@ -145,6 +149,9 @@ const BatchManagementPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'batches' | 'analytics'>('batches');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   
+  // Enhanced student management state
+  const [studentManagementTab, setStudentManagementTab] = useState<'management' | 'analytics'>('management');
+  
   // Instructor Assignment Modal State
   const [showInstructorAssignment, setShowInstructorAssignment] = useState(false);
   const [instructorAssignmentType, setInstructorAssignmentType] = useState<'student' | 'course'>('course');
@@ -157,6 +164,12 @@ const BatchManagementPage: React.FC = () => {
 
   // Add back selectedBatch and setSelectedBatch state
   const [selectedBatch, setSelectedBatch] = useState<IBatchFromAPI | null>(null);
+
+  // Enhanced refresh system state
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+  const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
 
   // Status color mapping
   const statusColors: Record<TBatchStatus, string> = {
@@ -259,9 +272,11 @@ const BatchManagementPage: React.FC = () => {
             enrolled_students: batch.enrolled_students,
             assigned_instructor: batch.assigned_instructor || null,
             schedule: batch.schedule?.map((s, index) => ({
-              day: s.day,
+              date: s.date || new Date().toISOString().split('T')[0], // Provide default date if missing
               start_time: s.start_time,
               end_time: s.end_time,
+              title: s.title,
+              description: s.description,
               _id: `schedule_${index}`
             })) || [],
             batch_notes: batch.batch_notes,
@@ -299,9 +314,11 @@ const BatchManagementPage: React.FC = () => {
           assigned_instructor: null,
           schedule: [
             {
-              day: 'Monday',
+              date: new Date().toISOString().split('T')[0], // Provide default date if missing
               start_time: '09:00',
               end_time: '11:00',
+              title: 'Monday',
+              description: 'Comprehensive digital marketing course',
               _id: '6836a82a46d3493bc170d012'
             }
           ],
@@ -527,9 +544,11 @@ const BatchManagementPage: React.FC = () => {
               enrolled_students: batch.enrolled_students,
               assigned_instructor: batch.assigned_instructor || null,
               schedule: batch.schedule?.map((s, index) => ({
-                day: s.day,
+                date: s.date || new Date().toISOString().split('T')[0], // Provide default date if missing
                 start_time: s.start_time,
                 end_time: s.end_time,
+                title: s.title,
+                description: s.description,
                 _id: `schedule_${index}`
               })) || [],
               batch_notes: batch.batch_notes,
@@ -577,9 +596,11 @@ const BatchManagementPage: React.FC = () => {
               enrolled_students: batch.enrolled_students,
               assigned_instructor: batch.assigned_instructor || null,
               schedule: batch.schedule?.map((s, index) => ({
-                day: s.day,
+                date: s.date || new Date().toISOString().split('T')[0], // Provide default date if missing
                 start_time: s.start_time,
                 end_time: s.end_time,
+                title: s.title,
+                description: s.description,
                 _id: `schedule_${index}`
               })) || [],
               batch_notes: batch.batch_notes,
@@ -634,9 +655,11 @@ const BatchManagementPage: React.FC = () => {
             assigned_instructor: null,
             schedule: [
               {
-                day: 'Monday',
+                date: new Date().toISOString().split('T')[0], // Provide default date if missing
                 start_time: '09:00',
                 end_time: '11:00',
+                title: 'Monday',
+                description: 'Comprehensive digital marketing course',
                 _id: '6836a82a46d3493bc170d012'
               }
             ],
@@ -683,17 +706,24 @@ const BatchManagementPage: React.FC = () => {
       return;
     }
 
+    // Optimistic update
+    const originalBatches = [...batches];
+    setBatches(prev => prev.filter(b => b._id !== batchId));
+
     try {
       const response = await batchAPI.deleteBatch(batchId);
       
       if (response?.data?.success) {
-        setBatches(prev => prev.filter(b => b._id !== batchId));
         toast.success('Batch deleted successfully');
+        // Refresh data to ensure consistency
+        await refreshData({ source: 'delete_batch' });
       } else {
         throw new Error('Failed to delete batch');
       }
     } catch (error) {
       console.error('Error deleting batch:', error);
+      // Rollback optimistic update
+      setBatches(originalBatches);
       toast.error('Failed to delete batch');
     }
   };
@@ -720,14 +750,14 @@ const BatchManagementPage: React.FC = () => {
     setShowInstructorAssignment(true);
   };
 
-  const onModalSuccess = () => {
-    fetchBatches();
+  const onModalSuccess = async () => {
+    await refreshData({ showLoading: true, source: 'modal_success' });
   };
 
-  const onInstructorAssignmentSuccess = () => {
+  const onInstructorAssignmentSuccess = async () => {
     setShowInstructorAssignment(false);
     setInstructorAssignmentTarget(null);
-    fetchBatches();
+    await refreshData({ showLoading: true, source: 'instructor_assignment' });
     toast.success('Instructor assignment completed successfully!');
   };
 
@@ -771,21 +801,28 @@ const BatchManagementPage: React.FC = () => {
   };
 
   const handleStatusUpdate = async (batchId: string, newStatus: TBatchStatus) => {
+    // Optimistic update
+    const originalBatches = [...batches];
+    setBatches(prev => prev.map(batch =>
+      batch._id === batchId ? { ...batch, status: newStatus } : batch
+    ));
+
     try {
       setStatusUpdateLoading(batchId);
       const response = await batchAPI.updateBatchStatus(batchId, newStatus);
       
       if ((response as any)?.data) {
-        setBatches(prev => prev.map(batch =>
-          batch._id === batchId ? { ...batch, status: newStatus } : batch
-        ));
         toast.success('Batch status updated successfully');
-        closeDropdown(); // Close dropdown after successful update
+        closeDropdown();
+        // Refresh data to ensure consistency
+        await refreshData({ source: 'status_update' });
       } else {
         throw new Error('Failed to update batch status');
       }
     } catch (error) {
       console.error('Error updating batch status:', error);
+      // Rollback optimistic update
+      setBatches(originalBatches);
       toast.error('Failed to update batch status');
     } finally {
       setStatusUpdateLoading(null);
@@ -940,7 +977,13 @@ const BatchManagementPage: React.FC = () => {
       batch_name: '',
       start_date: '',
       end_date: '',
-      schedule: [{ day: 'Monday', start_time: '09:00', end_time: '11:00' }],
+      schedule: [{ 
+        date: '', 
+        start_time: '09:00', 
+        end_time: '11:00',
+        title: '',
+        description: ''
+      }],
       notes: '',
       batch_type: 'individual' as const,
       capacity: 1,
@@ -1464,6 +1507,99 @@ const BatchManagementPage: React.FC = () => {
     return `${batch.enrolled_students}/${batch.capacity} enrolled`;
   };
 
+  // Enhanced refresh system
+  const refreshData = async (options: {
+    showLoading?: boolean;
+    force?: boolean;
+    source?: string;
+  } = {}) => {
+    const { showLoading = false, force = false, source = 'manual' } = options;
+    
+    try {
+      if (showLoading) {
+        setRefreshing(true);
+      }
+
+      console.log(`🔄 Refreshing data from source: ${source}`);
+
+      // Refresh batches data
+      await fetchBatches();
+      
+      // Update selected batch if it exists
+      if (selectedBatch) {
+        try {
+          const updatedBatchResponse = await batchAPI.getBatchById(selectedBatch._id);
+          if (updatedBatchResponse?.data) {
+            // Handle different response structures
+            let batchData: IBatchFromAPI;
+            
+            if ((updatedBatchResponse.data as any).success && (updatedBatchResponse.data as any).data) {
+              // Wrapped response format
+              batchData = (updatedBatchResponse.data as any).data;
+            } else {
+              // Direct batch data
+              batchData = updatedBatchResponse.data as unknown as IBatchFromAPI;
+            }
+            
+            setSelectedBatch(batchData);
+          }
+        } catch (error) {
+          console.warn('Failed to refresh selected batch:', error);
+        }
+      }
+
+      setLastRefresh(new Date());
+      
+      if (source !== 'auto') {
+        toast.success('Data refreshed successfully');
+      }
+      
+      console.log(`✅ Data refresh completed from source: ${source}`);
+      
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+      if (source !== 'auto') {
+        toast.error('Failed to refresh data');
+      }
+    } finally {
+      if (showLoading) {
+        setRefreshing(false);
+      }
+    }
+  };
+
+  // Auto-refresh setup
+  useEffect(() => {
+    if (autoRefreshEnabled && courses.length > 0) {
+      const interval = setInterval(() => {
+        refreshData({ source: 'auto' });
+      }, 30000); // Refresh every 30 seconds
+      
+      setRefreshInterval(interval);
+      
+      return () => {
+        if (interval) clearInterval(interval);
+      };
+    } else if (refreshInterval) {
+      clearInterval(refreshInterval);
+      setRefreshInterval(null);
+    }
+  }, [autoRefreshEnabled, courses.length, selectedCourse, statusFilter, batchTypeFilter]);
+
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (refreshInterval) {
+        clearInterval(refreshInterval);
+      }
+    };
+  }, []);
+
+  // Enhanced student management update handler
+  const handleStudentManagementUpdate = async () => {
+    await refreshData({ showLoading: true, source: 'student_management' });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
@@ -1483,9 +1619,43 @@ const BatchManagementPage: React.FC = () => {
                 <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
                   Batch Management
                 </h1>
+                {lastRefresh && (
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    Last updated: {lastRefresh.toLocaleTimeString()}
+                  </span>
+                )}
               </div>
             </div>
             <div className="flex items-center space-x-3">
+              {/* Auto-refresh toggle */}
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setAutoRefreshEnabled(!autoRefreshEnabled)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    autoRefreshEnabled ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'
+                  }`}
+                  title={`Auto-refresh: ${autoRefreshEnabled ? 'ON' : 'OFF'}`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      autoRefreshEnabled ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+                <span className="text-xs text-gray-500 dark:text-gray-400">Auto-refresh</span>
+              </div>
+
+              {/* Manual refresh button */}
+              <button
+                onClick={() => refreshData({ showLoading: true, source: 'manual' })}
+                disabled={refreshing}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                title="Refresh data"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                {refreshing ? 'Refreshing...' : 'Refresh'}
+              </button>
+
               <button
                 onClick={() => setActiveTab(activeTab === 'batches' ? 'analytics' : 'batches')}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
@@ -2137,39 +2307,93 @@ const BatchManagementPage: React.FC = () => {
       {/* Student Management Modal */}
       {showStudentManagement && selectedBatch && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-7xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Student Management - {selectedBatch.batch_name}
-              </h2>
-              <button
-                onClick={() => {
-                  setShowStudentManagement(false);
-                  setSelectedBatch(null);
-                }}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <ArrowLeft className="h-5 w-5 text-gray-500" />
-              </button>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Student Management - {selectedBatch.batch_name}
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Comprehensive student management and analytics for this batch
+                </p>
+              </div>
+              <div className="flex items-center space-x-4">
+                {/* Tab Navigation */}
+                <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                  <button
+                    onClick={() => setStudentManagementTab('management')}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                      studentManagementTab === 'management'
+                        ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    <Users className="h-4 w-4 mr-2 inline" />
+                    Management
+                  </button>
+                  <button
+                    onClick={() => setStudentManagementTab('analytics')}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                      studentManagementTab === 'analytics'
+                        ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    <BarChart3 className="h-4 w-4 mr-2 inline" />
+                    Analytics
+                  </button>
+                </div>
+                
+                <button
+                  onClick={() => {
+                    setShowStudentManagement(false);
+                    setSelectedBatch(null);
+                    setStudentManagementTab('management');
+                  }}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  <ArrowLeft className="h-5 w-5 text-gray-500" />
+                </button>
+              </div>
             </div>
             
             <div className="p-6">
-              <BatchStudentEnrollment
-                batch={{
-                  ...selectedBatch,
-                  available_spots: selectedBatch.capacity - selectedBatch.enrolled_students,
-                  course: typeof selectedBatch.course === 'string' ? selectedBatch.course : selectedBatch.course._id,
-                  course_details: {
-                    _id: selectedBatch.course._id,
-                    course_title: selectedBatch.course.course_title,
-                    course_category: selectedBatch.course.course_category
-                  },
-                  start_date: new Date(selectedBatch.start_date),
-                  end_date: new Date(selectedBatch.end_date),
-                  assigned_instructor: getInstructorId(selectedBatch.assigned_instructor) || undefined
-                }}
-                onUpdate={onModalSuccess}
-              />
+              {studentManagementTab === 'management' ? (
+                <BatchStudentEnrollment
+                  batch={{
+                    ...selectedBatch,
+                    available_spots: selectedBatch.capacity - selectedBatch.enrolled_students,
+                    course: typeof selectedBatch.course === 'string' ? selectedBatch.course : selectedBatch.course._id,
+                    course_details: {
+                      _id: selectedBatch.course._id,
+                      course_title: selectedBatch.course.course_title,
+                      course_category: selectedBatch.course.course_category
+                    },
+                    start_date: new Date(selectedBatch.start_date),
+                    end_date: new Date(selectedBatch.end_date),
+                    assigned_instructor: getInstructorId(selectedBatch.assigned_instructor) || undefined,
+                    enrolled_students_details: selectedBatch.enrolled_students_details
+                  }}
+                  onUpdate={handleStudentManagementUpdate}
+                />
+              ) : (
+                <StudentAnalytics
+                  batchId={selectedBatch._id}
+                  enrolledStudents={
+                    selectedBatch.enrolled_students_details?.map(enrollment => ({
+                      _id: enrollment.student._id,
+                      full_name: enrollment.student.full_name,
+                      email: enrollment.student.email,
+                      enrollment_date: enrollment.enrollment_date,
+                      enrollment_status: enrollment.enrollment_status,
+                      progress: enrollment.progress,
+                      payment_plan: enrollment.payment_plan,
+                      phone_numbers: enrollment.student.phone_numbers
+                    })) || []
+                  }
+                  onRefresh={handleStudentManagementUpdate}
+                />
+              )}
             </div>
           </div>
         </div>
