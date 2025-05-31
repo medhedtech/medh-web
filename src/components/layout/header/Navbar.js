@@ -2,7 +2,7 @@
 import { usePathname } from "next/navigation";
 import NavItems from "./NavItems";
 import NavbarLogo from "./NavbarLogo";
-import NavbarRight from "./NavbarRight";
+import DashboardProfileComponent from "./DashboardProfileComponent";
 import NavItems2 from "./NavItems2";
 import useIsTrue from "@/hooks/useIsTrue";
 import NavbarTop from "./NavbarTop";
@@ -279,7 +279,7 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
                   )}
                 </div>
                 
-                {/* NavbarRight component */}
+                {/* DashboardProfileComponent instead of NavbarRight */}
                 <div 
                   className={`flex-shrink-0 transition-all duration-500 ${
                     isSearchActive ? 'transform translate-x-2' : ''
@@ -289,7 +289,7 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
                     transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
                   }}
                 >
-                  <NavbarRight isScrolled={isScrolled} />
+                  <DashboardProfileComponent isScrolled={isScrolled} />
                 </div>
                 
                 {/* Mobile menu button */}
