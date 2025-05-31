@@ -49,7 +49,8 @@ import {
   Code,
   ChartBar,
   LucideIcon,
-  LucideProps
+  LucideProps,
+  MessageSquare
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiUrls } from "@/apis";
@@ -390,37 +391,14 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
 
     return (
       <div className="border-b border-gray-200 dark:border-gray-700/50 last:border-0" key={week.id || weekIndex}>
-        <button
-          onClick={() => toggleWeek(weekIndex)}
-          className={clsx(
-            "group w-full flex items-start justify-between p-4",
-            "hover:bg-gray-50/80 dark:hover:bg-gray-800/40",
-            "transition-all duration-200 ease-in-out"
-          )}
-          aria-expanded={expandedWeeks.has(weekIndex)}
-        >
+        <div className="w-full flex items-start justify-between p-4 bg-gray-50/80 dark:bg-gray-800/40">
           <div className="flex-1">
             <div className="flex items-start gap-3">
-              <motion.div
-                animate={{ rotate: expandedWeeks.has(weekIndex) ? 90 : 0 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-                className={clsx(
-                  "mt-1 w-6 h-6 rounded-lg",
-                  "bg-gray-100 dark:bg-gray-800",
-                  "flex items-center justify-center",
-                  "group-hover:bg-primaryColor/10",
-                  "transition-all duration-200"
-                )}
-              >
-                <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-primaryColor" />
-              </motion.div>
+              <div className="mt-1 w-6 h-6 rounded-lg bg-primaryColor/10 flex items-center justify-center">
+                <BookOpen className="w-4 h-4 text-primaryColor" />
+              </div>
               <div className="text-left">
-                <h3 className={clsx(
-                  "text-base font-semibold",
-                  "text-gray-900 dark:text-white",
-                  "group-hover:text-primaryColor",
-                  "transition-colors duration-200"
-                )}>
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white">
                   {week.weekTitle || `Week ${weekIndex + 1}`}
                 </h3>
                 {week.weekDescription && (
@@ -443,10 +421,10 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
               </div>
             </div>
           </div>
-        </button>
+        </div>
       </div>
     );
-  }, [expandedWeeks, toggleWeek]);
+  }, []);
 
   const renderSectionHeader = useCallback((section: Section, weekIndex: number, sectionIndex: number) => {
     const key = `${weekIndex}-${sectionIndex}`;
@@ -891,193 +869,78 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
     );
   };
 
-  const renderCourseProgress = () => (
-    <div className={clsx(
-      "sticky top-0 z-10 bg-white/80 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700/50 backdrop-blur-sm",
-      isAccordionCollapsed ? "p-2" : ""
-    )}>
-      <div className={clsx(
-        "flex items-center",
-        isAccordionCollapsed ? "flex-col" : "justify-between px-4 pt-4"
-      )}>
-        <div className={clsx(
-          "flex items-center",
-          isAccordionCollapsed ? "flex-col mb-2" : "gap-2 mb-3"
-        )}>
-          <h2 className={clsx(
-            "font-semibold text-gray-900 dark:text-white",
-            isAccordionCollapsed ? "text-xs" : "text-base"
-          )}>
-            {isAccordionCollapsed ? "Progress" : "Course Progress"}
-          </h2>
-          <span className={clsx(
-            "font-medium text-primaryColor tabular-nums",
-            isAccordionCollapsed ? "text-xs mt-1" : "text-sm"
-          )}>
-            {totalProgress}%
-          </span>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          {showBookmarks && !isAccordionCollapsed && (
-            <button
-              onClick={toggleBookmarkSection}
-              className={`p-1.5 rounded-md transition-colors ${
-                showBookmarkSection 
-                  ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' 
-                  : 'bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400'
-              }`}
-              aria-label="Toggle bookmarks"
-              title="Toggle bookmarks"
-            >
-              <Bookmark className="w-4 h-4" />
-            </button>
-          )}
-          
-          {!isAccordionCollapsed && lessonCategories.length > 0 && (
-            <div className="relative">
-              <button
-                onClick={() => setShowQuickFilters(!showQuickFilters)}
-                className={`p-1.5 rounded-md transition-colors ${
-                  activeCategory
-                    ? 'bg-primaryColor/10 text-primaryColor' 
-                    : 'bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400'
-                }`}
-                aria-label="Filter by content type"
-                title="Filter by content type"
-              >
-                <Filter className="w-4 h-4" />
-              </button>
-              
-              <AnimatePresence>
-                {showQuickFilters && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="absolute top-full right-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-[150px]"
-                  >
-                    <div className="p-2 space-y-1">
-                      <button
-                        onClick={() => {
-                          handleCategoryFilter(null);
-                          setShowQuickFilters(false);
-                        }}
-                        className={`w-full text-left px-3 py-1.5 rounded-md text-sm ${
-                          !activeCategory
-                            ? 'bg-primaryColor/10 text-primaryColor'
-                            : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                        }`}
-                      >
-                        All Content
-                      </button>
-                      {lessonCategories.map(category => (
-                        <button
-                          key={category}
-                          onClick={() => {
-                            handleCategoryFilter(category);
-                            setShowQuickFilters(false);
-                          }}
-                          className={`w-full text-left px-3 py-1.5 rounded-md text-sm flex items-center ${
-                            activeCategory === category
-                              ? 'bg-primaryColor/10 text-primaryColor'
-                              : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                          }`}
-                        >
-                          <ItemTypeIcon type={category} className="w-4 h-4 mr-2" />
-                          {category.charAt(0).toUpperCase() + category.slice(1)}
-                        </button>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          )}
-          
-          {isCollapsible && (
-            <button
-              onClick={toggleAccordionCollapse}
-              className="flex items-center justify-center p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-gray-700/50 dark:hover:bg-gray-700 transition-colors"
-              aria-label={isAccordionCollapsed ? "Expand course content" : "Collapse course content"}
-            >
-              {isAccordionCollapsed ? (
-                <ArrowLeftRight className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-              ) : (
-                <PanelLeftClose className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-              )}
-            </button>
-          )}
-        </div>
-      </div>
-      
-      {!isAccordionCollapsed && (
-        <>
-          <div className="px-4 pb-2">
-            <div className="relative">
-              <ProgressBar progress={totalProgress} animate showTooltip />
-              
-              {currentProgress > 0 && currentProgress < 100 && (
-                <div 
-                  className="absolute top-0 h-2.5 flex items-center"
-                  style={{ left: `${currentProgress}%` }}
-                >
-                  <div className="w-4 h-4 rounded-full bg-white dark:bg-gray-800 border-2 border-primaryColor transform -translate-x-1/2 shadow-sm"></div>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {activeCategory && (
-            <div className="px-4 py-2 bg-primaryColor/5 border-y border-primaryColor/10 dark:border-primaryColor/30 mb-1">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ItemTypeIcon type={activeCategory} className="w-4 h-4 text-primaryColor" />
-                  <span className="text-sm font-medium text-primaryColor">
-                    {activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1)} content only
-                  </span>
-                </div>
-                <button
-                  onClick={() => handleCategoryFilter(null)}
-                  className="text-xs text-primaryColor hover:text-primaryColor/70"
-                >
-                  Clear
-                </button>
-              </div>
-            </div>
-          )}
-          
-          <div className="px-4 pb-4">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search lessons..."
-                value={searchTerm}
-                onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700/50 border-none focus:ring-2 focus:ring-primaryColor text-sm"
-              />
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-              {searchTerm && (
-                <button
-                  onClick={() => onSearchChange("")}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-
-  if (!courseData?.curriculum) {
+  if (!courseData?.curriculum || courseData.curriculum.length === 0) {
     return (
       <div className="h-full flex items-center justify-center p-8">
         <div className="text-center text-gray-500 dark:text-gray-400">
-          <FileQuestion className="w-12 h-12 mx-auto mb-4 opacity-50" />
-          <p>No curriculum available</p>
+          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-2xl flex items-center justify-center">
+            <BookOpen className="w-8 h-8 text-white" />
+          </div>
+          <p className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">Course content is being prepared</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 max-w-md">
+            Our instructors are setting up comprehensive learning materials for this course.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+            <button 
+              onClick={() => window.location.reload()}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Refresh
+            </button>
+            <a 
+              href="/contact" 
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors"
+            >
+              <MessageSquare className="w-4 h-4" />
+              Contact Support
+            </a>
+          </div>
+          <div className="mt-4 text-xs text-gray-400">
+            Course ID: {typeof courseData === 'object' && 'courseId' in courseData ? courseData.courseId : 'Unknown'}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if this is a fallback curriculum structure (empty curriculum)
+  const isFallbackCurriculum = courseData.curriculum.some(week => 
+    week.weekTitle === 'Getting Started' && 
+    week.sections?.length === 1 && 
+    week.sections[0]?.lessons?.length === 0
+  );
+
+  if (isFallbackCurriculum) {
+    return (
+      <div className="h-full flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center">
+            <BookOpen className="w-8 h-8 text-white" />
+          </div>
+          <p className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">
+            Course curriculum is being prepared
+          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 max-w-md">
+            Our instructors are busy setting up an amazing learning experience for you. 
+            This course will be available soon!
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+            <button 
+              onClick={() => window.location.reload()}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Refresh
+            </button>
+            <a 
+              href="/contact" 
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors"
+            >
+              <MessageSquare className="w-4 h-4" />
+              Contact Support
+            </a>
+          </div>
         </div>
       </div>
     );
@@ -1087,7 +950,6 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
   if (isAccordionCollapsed) {
     return (
       <div className={`h-full flex flex-col ${className}`}>
-        {renderCourseProgress()}
         <div className="flex-1 overflow-y-auto py-2 px-1">
           <div className="space-y-3">
             {courseData.curriculum.map((week, weekIndex) => {
@@ -1127,53 +989,40 @@ const LessonAccordion: React.FC<LessonAccordionProps> = ({
 
   return (
     <div className={`h-full flex flex-col ${className}`}>
-      {renderCourseProgress()}
+      {/* Removed Course Progress Section */}
+      {/* {renderCourseProgress()} */}
       
       {/* Render bookmark section if enabled */}
       {!isAccordionCollapsed && showBookmarks && renderBookmarkSection()}
       
       <div className="flex-1 overflow-y-auto">
-        {searchTerm ? (
-          <SearchResults />
-        ) : (
-          <div className="space-y-px">
-            {courseData.curriculum.map((week, weekIndex) => (
-              <div key={week.id || weekIndex}>
-                {renderWeekHeader(week, weekIndex)}
-                <AnimatePresence>
-                  {expandedWeeks.has(weekIndex) && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden bg-gray-50/50 dark:bg-gray-800/50"
-                    >
-                      {week.sections.map((section, sectionIndex) => (
-                        <div key={section.id || sectionIndex}>
-                          {renderSectionHeader(section, weekIndex, sectionIndex)}
-                          <AnimatePresence>
-                            {expandedSections.has(`${weekIndex}-${sectionIndex}`) && (
-                              <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: "auto", opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                transition={{ duration: 0.2 }}
-                                className="overflow-hidden"
-                              >
-                                {section.lessons.map((lesson) => renderLesson(lesson))}
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+        <div className="space-y-px">
+          {courseData.curriculum.map((week, weekIndex) => (
+            <div key={week.id || weekIndex}>
+              {renderWeekHeader(week, weekIndex)}
+              <div className="overflow-hidden bg-gray-50/50 dark:bg-gray-800/50">
+                {week.sections.map((section, sectionIndex) => (
+                  <div key={section.id || sectionIndex}>
+                    {renderSectionHeader(section, weekIndex, sectionIndex)}
+                    <AnimatePresence>
+                      {expandedSections.has(`${weekIndex}-${sectionIndex}`) && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          {section.lessons.map((lesson) => renderLesson(lesson))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
