@@ -159,3 +159,19 @@ REMEMBER: After every memory reset, I begin completely fresh. The Memory Bank is
 
 # Planning
 When asked to enter "Planner Mode" or using the /plan command, deeply reflect upon the changes being asked and analyze existing code to map the full scope of changes needed. Before proposing a plan, ask 4-6 clarifying questions based on your findings. Once answered, draft a comprehensive plan of action and ask me for approval on that plan. Once approved, implement all steps in that plan. After completing each phase/step, mention what was just completed and what the next steps are + phases remaining after these steps
+
+[Universal UI/UX Mobile-First Rule]
+1. Think as a UI/UX designer: craft intuitive layouts, clear hierarchy, smooth interactions.
+2. Mobile-First Baseline: build base styles/layout for <640px before scaling up.
+3. Responsive Breakpoints:
+   • sm: ≥640px
+   • md: ≥768px
+   • lg: ≥1024px
+   – Mobile: vertical stacks, full-width buttons, collapsible menus.
+   – Tablet/Desktop: multi-column grids, sidebars, hover states.
+4. Touch Targets: ensure all tappable elements ≥44×44px with ≥16px padding.
+5. Assets & Performance: lazy-load off-screen components; serve scaled images (`srcset`); keep bundles lean.
+6. Viewport & Meta: include `<meta name="viewport" content="width=device-width, initial-scale=1">`.
+7. Accessibility: use semantic HTML, ARIA labels, logical tab order; ensure legible text and contrast.
+8. Testing: preview at 360×640, 375×667; verify touch interactions and breakpoints.
+
