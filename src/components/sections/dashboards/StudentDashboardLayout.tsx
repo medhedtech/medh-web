@@ -4,7 +4,7 @@ import React, { useState, useEffect, useContext, createContext, useMemo, useCall
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams, useRouter } from "next/navigation";
-import { ChevronDown, ChevronRight, MoreHorizontal, Menu, X, LogOut } from "lucide-react";
+import { ChevronDown, ChevronRight, MoreHorizontal, Menu, X, LogOut, Home, ArrowLeft } from "lucide-react";
 import Cookies from 'js-cookie';
 
 // Component imports
@@ -285,6 +285,54 @@ const backdropVariants = {
   }
 };
 
+// Mobile sidebar slide variants
+const mobileSidebarVariants = {
+  open: {
+    x: 0,
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 30,
+      duration: 0.4
+    }
+  },
+  closed: {
+    x: "-100%",
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 30,
+      duration: 0.3
+    }
+  }
+};
+
+// Mobile content variants
+const mobileContentVariants = {
+  sidebarOpen: {
+    scale: 0.95,
+    x: 20,
+    borderRadius: "12px",
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 30,
+      duration: 0.4
+    }
+  },
+  sidebarClosed: {
+    scale: 1,
+    x: 0,
+    borderRadius: "0px",
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 30,
+      duration: 0.3
+    }
+  }
+};
+
 // Type definitions
 export interface SubItem {
   name: string;
@@ -335,7 +383,7 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
   // State management
   const [currentView, setCurrentView] = useState<string>("overview");
   const [certificateUrl, setCertificateUrl] = useState<string | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false); // Always start closed on mobile/tablet
   const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(false);
   const [isDebug, setIsDebug] = useState<boolean>(false);
   const [comingSoonTitle, setComingSoonTitle] = useState<string>("Coming Soon");
@@ -343,6 +391,8 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
   const [subItems, setSubItems] = useState<SubItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [contentPadding, setContentPadding] = useState<string>("0px");
+  const [showMobileBottomNav, setShowMobileBottomNav] = useState<boolean>(true);
+  const [lastScrollY, setLastScrollY] = useState<number>(0);
   
   // Handle URL parameters and adjust sidebar based on screen size
   useEffect(() => {
@@ -392,17 +442,48 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
       setCurrentView("overview");
     }
     
-    // Keep sidebar closed by default, regardless of screen size
-    // Don't update isSidebarOpen here
-    setIsSidebarExpanded(false); // Always start with collapsed sidebar
-  }, [searchParams, isMobile]);
+    // Mobile/tablet specific initialization
+    if (isMobile || isTablet) {
+      setIsSidebarOpen(false); // Always start closed on mobile/tablet
+      setIsSidebarExpanded(false);
+    } else {
+      // Desktop behavior remains the same
+      setIsSidebarExpanded(false);
+    }
+  }, [searchParams, isMobile, isTablet]);
+
+  // Handle scroll for mobile bottom navigation
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // Scrolling down - hide bottom nav
+        setShowMobileBottomNav(false);
+      } else {
+        // Scrolling up - show bottom nav
+        setShowMobileBottomNav(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY, isMobile]);
 
   // Handle content padding adjustment based on sidebar state
   useEffect(() => {
-    // If sidebar is open but not expanded (in collapsed icon-only mode) or closed
-    const basePadding = isMobile ? "0px" : isSidebarExpanded ? "245px" : "68px";
-    setContentPadding(basePadding);
-  }, [isSidebarExpanded, isSidebarOpen, isMobile]);
+    if (isMobile || isTablet) {
+      setContentPadding("0px"); // No padding on mobile/tablet
+    } else {
+      // Desktop behavior remains the same
+      const basePadding = isSidebarExpanded ? "245px" : "68px";
+      setContentPadding(basePadding);
+    }
+  }, [isSidebarExpanded, isSidebarOpen, isMobile, isTablet]);
 
   // Context value memo for performance
   const contextValue = useMemo(() => ({
@@ -460,7 +541,8 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
       setSubItems(items);
     }
     
-    if (isMobile) {
+    // Close sidebar on mobile/tablet after selection
+    if (isMobile || isTablet) {
       setIsSidebarOpen(false);
     }
   };
@@ -475,6 +557,11 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
       subItem.onClick();
     } else if (subItem.path) {
       router.push(subItem.path);
+    }
+    
+    // Close sidebar on mobile/tablet after selection
+    if (isMobile || isTablet) {
+      setIsSidebarOpen(false);
     }
     
     // Simulate network delay and then stop loading
@@ -516,8 +603,8 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
   const toggleSidebar = () => {
     // Don't set any loading state, just toggle the sidebar
     setIsSidebarOpen(!isSidebarOpen);
-    if (isMobile && !isSidebarOpen) {
-      // When opening on mobile, always show expanded sidebar for better usability
+    if ((isMobile || isTablet) && !isSidebarOpen) {
+      // When opening on mobile/tablet, always show expanded sidebar for better usability
       setIsSidebarExpanded(true);
     }
   };
@@ -583,7 +670,7 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     } else if (viewMatches(['certificate', 'certificates'])) {
       if (viewMatches(['view'])) {
         return (
-          <div className="p-8 w-full flex flex-col items-center justify-center">
+          <div className="p-4 md:p-8 w-full flex flex-col items-center justify-center">
             <button 
               onClick={handleCloseCertificate}
               className="self-start mb-4 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus-ring"
@@ -594,7 +681,7 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
             {certificateUrl && (
               <iframe 
                 src={certificateUrl} 
-                className="w-full max-w-4xl h-[80vh] rounded-lg shadow-lg" 
+                className="w-full max-w-4xl h-[70vh] md:h-[80vh] rounded-lg shadow-lg" 
                 title="Certificate Preview"
                 aria-label="Certificate document viewer"
               />
@@ -667,78 +754,154 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     }
   };
 
+  // Mobile bottom navigation items
+  const mobileBottomNavItems = [
+    { 
+      name: "Dashboard", 
+      icon: <Home size={20} />, 
+      onClick: () => handleMenuClick("overview", []),
+      active: currentView === "overview"
+    },
+    { 
+      name: "Courses", 
+      icon: <Menu size={20} />, 
+      onClick: () => setIsSidebarOpen(true),
+      active: false
+    },
+    { 
+      name: "Profile", 
+      icon: <LogOut size={20} />, 
+      onClick: () => router.push("/dashboards/student/profile"),
+      active: currentView === "profile"
+    }
+  ];
+
   // Memoize the DashboardComponent to prevent re-renders
   const MemoizedDashboardComponent = useMemo(() => (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden elevation-2">
+    <div className="bg-white dark:bg-gray-800 rounded-none md:rounded-xl shadow-none md:shadow-sm overflow-hidden md:elevation-2">
       <DashboardComponent />
     </div>
   ), [currentView, isLoading, children]); // Only re-render when these values change
 
   return (
     <DashboardContext.Provider value={contextValue}>
-      <div className="relative bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col pt-16 lg:pt-20">
+      <div className="relative bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
         {/* Global styles */}
         <style jsx global>{dashboardStyles}</style>
         <style jsx global>{loadingIndicatorStyles}</style>
         
-        {/* New Dashboard Navbar - positioned at the top, full width */}
-        <DashboardNavbar 
-          onMobileMenuToggle={toggleSidebar}
-          isScrolled={false}
-        />
+        {/* Dashboard Navbar - responsive positioning */}
+        <div className={`${isMobile || isTablet ? 'fixed top-0 left-0 right-0 z-50' : 'fixed top-0 left-0 right-0 z-50'}`}>
+          <DashboardNavbar 
+            onMobileMenuToggle={toggleSidebar}
+            isScrolled={false}
+          />
+        </div>
         
-        {/* Main layout with sidebar and content - prevent nested scrolling */}
-        <div className="flex flex-1 relative">
-          {/* Sidebar - fixed position but no internal scrolling */}
-          <div 
-            className={`${isMobile ? 'fixed z-40' : 'fixed lg:relative'} h-full top-16 lg:top-20 transition-[width] duration-300 ease-in-out`}
-            style={{ 
-              height: isMobile ? 'calc(100% - 70px)' : 'calc(100vh - 80px)',
-              width: isMobile ? (isSidebarOpen ? '260px' : '0px') : (isSidebarExpanded ? '260px' : '78px'),
-            }}
-          >
-            <SidebarDashboard
-              userRole={userRole}
-              fullName={fullName}
-              userEmail={userEmail}
-              userImage={userImage}
-              userNotifications={userNotifications}
-              userSettings={userSettings}
-              onMenuClick={handleMenuClick}
-              isOpen={isSidebarOpen}
-              onOpenChange={setIsSidebarOpen}
-              isExpanded={isSidebarExpanded}
-              onExpandedChange={handleSidebarExpansionChange}
-            />
-          </div>
-
-          {/* Mobile backdrop overlay */}
-          <AnimatePresence>
-            {isMobile && isSidebarOpen && (
-              <motion.div
-                key="backdrop"
-                initial="hidden"
-                animate="visible"
-                exit="hidden"
-                variants={backdropVariants}
-                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30"
-                onClick={() => setIsSidebarOpen(false)}
-                aria-hidden="true"
+        {/* Main layout container */}
+        <div className={`flex flex-1 ${isMobile || isTablet ? 'pt-16' : 'pt-16 lg:pt-20'}`}>
+          {/* Desktop Sidebar - unchanged */}
+          {isDesktop && (
+            <div 
+              className="fixed h-full top-16 lg:top-20 transition-[width] duration-300 ease-in-out z-30"
+              style={{ 
+                height: 'calc(100vh - 80px)',
+                width: isSidebarExpanded ? '260px' : '78px',
+              }}
+            >
+              <SidebarDashboard
+                userRole={userRole}
+                fullName={fullName}
+                userEmail={userEmail}
+                userImage={userImage}
+                userNotifications={userNotifications}
+                userSettings={userSettings}
+                onMenuClick={handleMenuClick}
+                isOpen={isSidebarOpen}
+                onOpenChange={setIsSidebarOpen}
+                isExpanded={isSidebarExpanded}
+                onExpandedChange={handleSidebarExpansionChange}
               />
-            )}
-          </AnimatePresence>
+            </div>
+          )}
 
-          {/* Main Content Area - only this should scroll */}
-          <div 
-            className="flex-1 overflow-y-auto scroll-smooth transition-[margin,max-width] duration-300 ease-in-out"
+          {/* Mobile/Tablet Sidebar - slide-in overlay */}
+          {(isMobile || isTablet) && (
+            <>
+              {/* Mobile backdrop overlay */}
+              <AnimatePresence>
+                {isSidebarOpen && (
+                  <motion.div
+                    key="mobile-backdrop"
+                    initial="hidden"
+                    animate="visible"
+                    exit="hidden"
+                    variants={backdropVariants}
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+                    onClick={() => setIsSidebarOpen(false)}
+                    aria-hidden="true"
+                  />
+                )}
+              </AnimatePresence>
+
+              {/* Mobile sidebar */}
+              <motion.div
+                variants={mobileSidebarVariants}
+                initial="closed"
+                animate={isSidebarOpen ? "open" : "closed"}
+                className="fixed left-0 top-16 h-full w-80 max-w-[85vw] z-50"
+                style={{ height: 'calc(100vh - 64px)' }}
+              >
+                <div className="h-full bg-white dark:bg-gray-900 shadow-2xl">
+                  {/* Mobile sidebar header */}
+                  <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Navigation
+                    </h2>
+                    <button
+                      onClick={() => setIsSidebarOpen(false)}
+                      className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800 transition-colors"
+                      aria-label="Close navigation"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+
+                  {/* Mobile sidebar content */}
+                  <div className="h-full overflow-y-auto pb-20">
+                    <SidebarDashboard
+                      userRole={userRole}
+                      fullName={fullName}
+                      userEmail={userEmail}
+                      userImage={userImage}
+                      userNotifications={userNotifications}
+                      userSettings={userSettings}
+                      onMenuClick={handleMenuClick}
+                      isOpen={true}
+                      onOpenChange={setIsSidebarOpen}
+                      isExpanded={true}
+                      onExpandedChange={() => {}}
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+
+          {/* Main Content Area */}
+          <motion.div 
+            className={`flex-1 overflow-y-auto scroll-smooth transition-all duration-300 ease-in-out ${
+              isMobile || isTablet ? 'w-full' : ''
+            }`}
+            variants={isMobile || isTablet ? mobileContentVariants : {}}
+            animate={isMobile || isTablet ? (isSidebarOpen ? "sidebarOpen" : "sidebarClosed") : {}}
             style={{
-              marginLeft: isMobile ? '0px' : '10px',
-              width: "100%",
-              maxWidth: isSidebarExpanded ? "calc(100% - 270px)" : "calc(100% - 88px)",
+              marginLeft: isDesktop ? (isSidebarExpanded ? "270px" : "88px") : "0px",
+              width: isDesktop ? (isSidebarExpanded ? "calc(100% - 270px)" : "calc(100% - 88px)") : "100%",
             }}
           >
-            {/* Content with proper padding */}
-            <div className="p-4 md:p-6">
+            {/* Content with responsive padding */}
+            <div className={`${isMobile ? 'p-3 pb-20' : isTablet ? 'p-4 pb-6' : 'p-4 md:p-6'}`}>
               {/* Debug info */}
               {isDebug && (
                 <div className="mb-4 p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 rounded-lg text-xs">
@@ -773,37 +936,55 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
               {/* Render memoized content */}
               {MemoizedDashboardComponent}
             </div>
-          </div>
+          </motion.div>
         </div>
 
-        {/* Mobile Sidebar Toggle Button */}
+        {/* Mobile Bottom Navigation */}
         {isMobile && (
+          <motion.div
+            initial={{ y: 100 }}
+            animate={{ y: showMobileBottomNav ? 0 : 100 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg"
+          >
+            <div className="flex items-center justify-around py-2 px-4 safe-area-bottom">
+              {mobileBottomNavItems.map((item, index) => (
+                <button
+                  key={index}
+                  onClick={item.onClick}
+                  className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-200 min-w-[60px] ${
+                    item.active 
+                      ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' 
+                      : 'text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                  }`}
+                  aria-label={item.name}
+                >
+                  <div className={`transition-transform duration-200 ${item.active ? 'scale-110' : 'scale-100'}`}>
+                    {item.icon}
+                  </div>
+                  <span className="text-xs font-medium mt-1 leading-none">
+                    {item.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Desktop logout button - only show on desktop */}
+        {isDesktop && (
           <motion.button
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
+            transition={{ delay: 0.2 }}
             whileTap={{ scale: 0.9 }}
-            onClick={toggleSidebar}
-            className="fixed z-50 bottom-6 right-6 p-3 rounded-full bg-primary-500 hover:bg-primary-600 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
-            aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
-            aria-expanded={isSidebarOpen}
+            onClick={handleLogout}
+            className="fixed z-40 bottom-6 right-6 p-3 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+            aria-label="Logout"
           >
-            {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+            <LogOut size={20} />
           </motion.button>
         )}
-        
-        {/* Add logout button to the bottom right */}
-        <motion.button
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={handleLogout}
-          className={`fixed z-40 bottom-6 ${isMobile ? 'left-6' : 'right-6'} p-3 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900`}
-          aria-label="Logout"
-        >
-          <LogOut size={20} />
-        </motion.button>
       </div>
     </DashboardContext.Provider>
   );
