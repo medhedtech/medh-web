@@ -195,6 +195,48 @@ const fallbackCategories: Record<string, string[]> = {
   ]
 };
 
+// Add grade options constant after the fallbackCategories (around line 170)
+const gradeOptions = [
+  "Preschool",
+  "Grade 1-2", 
+  "Grade 3-4",
+  "Grade 5-6",
+  "Grade 7-8", 
+  "Grade 9-10",
+  "Grade 11-12",
+  "UG - Graduate - Professionals"
+];
+
+// Add filter options for live courses, blended learning, and free courses
+const liveCoursesOptions = [
+  "AI and Data Science",
+  "Personality Development",
+  "Vedic Mathematics",
+  "Digital Marketing with Data Analytics"
+];
+
+const blendedLearningOptions = [
+  "AI For Professionals",
+  "Business And Management",
+  "Career Development",
+  "Communication And Soft Skills",
+  "Data & Analytics",
+  "Environmental and Sustainability Skills",
+  "Finance & Accounts",
+  "Health & Wellness",
+  "Industry-Specific Skills",
+  "Language & Linguistic",
+  "Legal & Compliance Skills"
+];
+
+const freeCoursesOptions = [
+  "Introduction to Programming",
+  "Basic Digital Literacy",
+  "Communication Fundamentals",
+  "Career Guidance",
+  "Personal Development Basics"
+];
+
 /**
  * Simple ErrorBoundary
  */
@@ -614,6 +656,9 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   // State declarations - moved to top to prevent initialization errors
   const [selectedCategory, setSelectedCategory] = useState<string[]>([]);
   const [selectedGrade, setSelectedGrade] = useState<string[]>([]);
+  const [selectedLiveCourses, setSelectedLiveCourses] = useState<string[]>([]);
+  const [selectedBlendedLearning, setSelectedBlendedLearning] = useState<string[]>([]);
+  const [selectedFreeCourses, setSelectedFreeCourses] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState<string>("newest-first");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -640,6 +685,11 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   const [selectedRating, setSelectedRating] = useState<string>("");
   const [selectedInstructor, setSelectedInstructor] = useState<string[]>([]);
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState<boolean>(false);
+  // Add state for grade dropdown after the existing state declarations (around line 641)
+  const [isGradeDropdownOpen, setIsGradeDropdownOpen] = useState<boolean>(false);
+  const [isLiveCoursesDropdownOpen, setIsLiveCoursesDropdownOpen] = useState<boolean>(false);
+  const [isBlendedLearningDropdownOpen, setIsBlendedLearningDropdownOpen] = useState<boolean>(false);
+  const [isFreeCoursesDropdownOpen, setIsFreeCoursesDropdownOpen] = useState<boolean>(false);
 
   // Refs
   const sortDropdownRef = useRef<HTMLDivElement>(null);
@@ -860,6 +910,36 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
         searchParams.course_category = selectedCategory;
       }
 
+      // Add categories from dropdown filters
+      const allSelectedCategories: string[] = [];
+      
+      // Add regular categories
+      if (!fixedCategory && selectedCategory.length > 0) {
+        allSelectedCategories.push(...selectedCategory);
+      }
+      
+      // Add Live Courses categories
+      if (selectedLiveCourses.length > 0) {
+        allSelectedCategories.push(...selectedLiveCourses);
+      }
+      
+      // Add Blended Learning categories  
+      if (selectedBlendedLearning.length > 0) {
+        allSelectedCategories.push(...selectedBlendedLearning);
+      }
+      
+      // Add Free Courses categories
+      if (selectedFreeCourses.length > 0) {
+        allSelectedCategories.push(...selectedFreeCourses);
+      }
+
+      // Set the combined categories for API
+      if (fixedCategory) {
+        searchParams.course_category = fixedCategory;
+      } else if (allSelectedCategories.length > 0) {
+        searchParams.course_category = allSelectedCategories;
+      }
+
       // Add search term if available
       if (searchTerm?.trim()) {
         searchParams.search = searchTerm.trim();
@@ -984,7 +1064,10 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     classType,
     scrollToTop,
     getQuery,
-    userCurrency
+    userCurrency,
+    selectedLiveCourses,
+    selectedBlendedLearning,
+    selectedFreeCourses
   ]);
 
   // Whenever relevant states change, fire the fetch (with small debounce)
@@ -1059,6 +1142,9 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
       setSelectedCategory([]);
     }
     setSelectedGrade([]);
+    setSelectedLiveCourses([]);
+    setSelectedBlendedLearning([]);
+    setSelectedFreeCourses([]);
     setSearchTerm("");
     setSortOrder("newest-first");
     setCurrentPage(1);
@@ -1086,6 +1172,15 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
           break;
         case "grade":
           setSelectedGrade(prev => prev.filter(g => g !== val));
+          break;
+        case "liveCourses":
+          setSelectedLiveCourses(prev => prev.filter(item => item !== val));
+          break;
+        case "blendedLearning":
+          setSelectedBlendedLearning(prev => prev.filter(item => item !== val));
+          break;
+        case "freeCourses":
+          setSelectedFreeCourses(prev => prev.filter(item => item !== val));
           break;
         case "level":
           setSelectedLevel("");
@@ -1178,6 +1273,36 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
           type: "grade",
           label: `Grade: ${grade}`,
           value: grade,
+        });
+      });
+    }
+    // live courses
+    if (selectedLiveCourses.length > 0) {
+      selectedLiveCourses.forEach((option) => {
+        newFilters.push({
+          type: "liveCourses",
+          label: `Live: ${option}`,
+          value: option,
+        });
+      });
+    }
+    // blended learning
+    if (selectedBlendedLearning.length > 0) {
+      selectedBlendedLearning.forEach((option) => {
+        newFilters.push({
+          type: "blendedLearning",
+          label: `Blended: ${option}`,
+          value: option,
+        });
+      });
+    }
+    // free courses
+    if (selectedFreeCourses.length > 0) {
+      selectedFreeCourses.forEach((option) => {
+        newFilters.push({
+          type: "freeCourses",
+          label: `Free: ${option}`,
+          value: option,
         });
       });
     }
@@ -1320,7 +1445,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
       });
     }
     setActiveFilters(newFilters);
-  }, [searchTerm, selectedCategory, selectedGrade, selectedLevel, selectedDuration, selectedPriceRange, selectedFormat, selectedLanguage, selectedFeatures, selectedRating, selectedInstructor, sortOrder, hideCategoryFilter]);
+  }, [searchTerm, selectedCategory, selectedGrade, selectedLiveCourses, selectedBlendedLearning, selectedFreeCourses, selectedLevel, selectedDuration, selectedPriceRange, selectedFormat, selectedLanguage, selectedFeatures, selectedRating, selectedInstructor, sortOrder, hideCategoryFilter]);
 
   /**
    * No results
@@ -1498,6 +1623,97 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             }
           }
 
+          @keyframes slideIn {
+            from {
+              opacity: 0;
+              transform: translateX(-10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateX(0);
+            }
+          }
+
+          .animate-slideIn {
+            animation: slideIn 0.3s ease-out forwards;
+          }
+
+          /* Custom Scrollbar Styles */
+          .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: rgb(156 163 175) rgb(243 244 246);
+          }
+
+          .dark .custom-scrollbar {
+            scrollbar-color: rgb(75 85 99) rgb(31 41 55);
+          }
+
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+          }
+
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgb(243 244 246);
+            border-radius: 6px;
+          }
+
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgb(156 163 175);
+            border-radius: 6px;
+            border: 1px solid rgb(243 244 246);
+          }
+
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgb(107 114 128);
+          }
+
+          .dark .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgb(31 41 55);
+          }
+
+          .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgb(75 85 99);
+            border-color: rgb(31 41 55);
+          }
+
+          .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgb(107 114 128);
+          }
+
+          /* Dropdown Animation Enhancements */
+          .dropdown-enter {
+            opacity: 0;
+            max-height: 0;
+            transform: translateY(-10px);
+          }
+
+          .dropdown-enter-active {
+            opacity: 1;
+            max-height: 400px;
+            transform: translateY(0);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+
+          .dropdown-exit {
+            opacity: 1;
+            max-height: 400px;
+            transform: translateY(0);
+          }
+
+          .dropdown-exit-active {
+            opacity: 0;
+            max-height: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+
+          /* Enhanced hover effects */
+          .dropdown-item:hover {
+            transform: translateX(4px);
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+          }
+
           /* Grid optimizations */
           .grid {
             contain: layout style paint;
@@ -1612,6 +1828,26 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             transform: translateY(0);
             transition: opacity 0.6s ease, transform 0.6s ease;
           }
+
+          /* Prevent text selection on dropdown headers */
+          .dropdown-header {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+          }
+
+          /* Enhanced focus states */
+          .dropdown-item:focus-within {
+            outline: 2px solid rgb(147 51 234);
+            outline-offset: 2px;
+          }
+
+          /* Backdrop blur effect for better visual separation */
+          .dropdown-backdrop {
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+          }
         `}</style>
       </div>
     );
@@ -1623,7 +1859,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     
     return (
       <div className={`lg:w-1/4 ${showFilters ? "block" : "hidden lg:block"}`}>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Filters</h3>
             <button
@@ -1640,10 +1876,13 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
               <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-4">Categories</h4>
               
               {/* Live Courses */}
-              <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 border border-red-100 dark:border-red-900/30">
-                <div className="flex items-center justify-between cursor-pointer" onClick={() => {}}>
+              <div className="bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/30 overflow-hidden" data-live-courses-dropdown>
+                <div 
+                  className="flex items-center justify-between cursor-pointer p-4 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-300 ease-in-out" 
+                  onClick={() => setIsLiveCoursesDropdownOpen(!isLiveCoursesDropdownOpen)}
+                >
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-red-100 dark:bg-red-900/40 rounded-lg flex items-center justify-center">
+                    <div className="w-8 h-8 bg-red-100 dark:bg-red-900/40 rounded-lg flex items-center justify-center transition-all duration-300">
                       <Zap className="w-4 h-4 text-red-600 dark:text-red-400" />
                     </div>
                     <div>
@@ -1651,15 +1890,66 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                       <p className="text-sm text-red-600 dark:text-red-400">Interactive live sessions with instructors</p>
                     </div>
                   </div>
-                  <ChevronDown className="w-4 h-4 text-red-600 dark:text-red-400" />
+                  <ChevronDown className={`w-4 h-4 text-red-600 dark:text-red-400 transition-all duration-300 ease-in-out ${isLiveCoursesDropdownOpen ? 'rotate-180 scale-110' : 'rotate-0 scale-100'}`} />
+                </div>
+                
+                {/* Live Courses Dropdown Content */}
+                <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isLiveCoursesDropdownOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <div className="px-4 pb-4 space-y-2 border-t border-red-100 dark:border-red-900/30 bg-white dark:bg-gray-800">
+                    {liveCoursesOptions.map((option, index) => (
+                      <label
+                        key={option}
+                        className={`flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 transform hover:scale-[1.02] ${isLiveCoursesDropdownOpen ? 'animate-slideIn' : ''}`}
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedLiveCourses.includes(option)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedLiveCourses(prev => [...prev, option]);
+                              } else {
+                                setSelectedLiveCourses(prev => prev.filter(item => item !== option));
+                              }
+                            }}
+                            className="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 dark:focus:ring-red-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 transition-all duration-200"
+                          />
+                          <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                            {option}
+                          </span>
+                        </div>
+                        {selectedLiveCourses.includes(option) && (
+                          <span className="text-xs text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/40 px-2 py-1 rounded-full animate-pulse">
+                            ✓
+                          </span>
+                        )}
+                      </label>
+                    ))}
+                    
+                    {/* Clear Live Courses Filters */}
+                    {selectedLiveCourses.length > 0 && (
+                      <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <button
+                          onClick={() => setSelectedLiveCourses([])}
+                          className="w-full text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 bg-red-100 dark:bg-red-900/40 hover:bg-red-200 dark:hover:bg-red-900/60 px-3 py-2 rounded-lg transition-all duration-200 transform hover:scale-105"
+                        >
+                          Clear Live Courses ({selectedLiveCourses.length})
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
               {/* Blended Learning */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-100 dark:border-blue-900/30">
-                <div className="flex items-center justify-between cursor-pointer" onClick={() => {}}>
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30 overflow-hidden" data-blended-learning-dropdown>
+                <div 
+                  className="flex items-center justify-between cursor-pointer p-4 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all duration-300 ease-in-out" 
+                  onClick={() => setIsBlendedLearningDropdownOpen(!isBlendedLearningDropdownOpen)}
+                >
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
+                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center transition-all duration-300">
                       <Target className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
@@ -1667,15 +1957,66 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                       <p className="text-sm text-blue-600 dark:text-blue-400">Combination of live and self-paced learning</p>
                     </div>
                   </div>
-                  <ChevronDown className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <ChevronDown className={`w-4 h-4 text-blue-600 dark:text-blue-400 transition-all duration-300 ease-in-out ${isBlendedLearningDropdownOpen ? 'rotate-180 scale-110' : 'rotate-0 scale-100'}`} />
+                </div>
+                
+                {/* Blended Learning Dropdown Content */}
+                <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isBlendedLearningDropdownOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <div className="px-4 pb-4 space-y-2 border-t border-blue-100 dark:border-blue-900/30 bg-white dark:bg-gray-800">
+                    {blendedLearningOptions.map((option, index) => (
+                      <label
+                        key={option}
+                        className={`flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 transform hover:scale-[1.02] ${isBlendedLearningDropdownOpen ? 'animate-slideIn' : ''}`}
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedBlendedLearning.includes(option)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedBlendedLearning(prev => [...prev, option]);
+                              } else {
+                                setSelectedBlendedLearning(prev => prev.filter(item => item !== option));
+                              }
+                            }}
+                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 transition-all duration-200"
+                          />
+                          <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                            {option}
+                          </span>
+                        </div>
+                        {selectedBlendedLearning.includes(option) && (
+                          <span className="text-xs text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 px-2 py-1 rounded-full animate-pulse">
+                            ✓
+                          </span>
+                        )}
+                      </label>
+                    ))}
+                    
+                    {/* Clear Blended Learning Filters */}
+                    {selectedBlendedLearning.length > 0 && (
+                      <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <button
+                          onClick={() => setSelectedBlendedLearning([])}
+                          className="w-full text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 bg-blue-100 dark:bg-blue-900/40 hover:bg-blue-200 dark:hover:bg-blue-900/60 px-3 py-2 rounded-lg transition-all duration-200 transform hover:scale-105"
+                        >
+                          Clear Blended Learning ({selectedBlendedLearning.length})
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
               {/* Free Courses */}
-              <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 border border-green-100 dark:border-green-900/30">
-                <div className="flex items-center justify-between cursor-pointer" onClick={() => {}}>
+              <div className="bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-900/30 overflow-hidden" data-free-courses-dropdown>
+                <div 
+                  className="flex items-center justify-between cursor-pointer p-4 hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-300 ease-in-out" 
+                  onClick={() => setIsFreeCoursesDropdownOpen(!isFreeCoursesDropdownOpen)}
+                >
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center">
+                    <div className="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center transition-all duration-300">
                       <span className="text-green-600 dark:text-green-400 font-bold text-sm">$</span>
                     </div>
                     <div>
@@ -1683,15 +2024,66 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                       <p className="text-sm text-green-600 dark:text-green-400">Free courses to get you started</p>
                     </div>
                   </div>
-                  <ChevronDown className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  <ChevronDown className={`w-4 h-4 text-green-600 dark:text-green-400 transition-all duration-300 ease-in-out ${isFreeCoursesDropdownOpen ? 'rotate-180 scale-110' : 'rotate-0 scale-100'}`} />
+                </div>
+                
+                {/* Free Courses Dropdown Content */}
+                <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isFreeCoursesDropdownOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <div className="px-4 pb-4 space-y-2 border-t border-green-100 dark:border-green-900/30 bg-white dark:bg-gray-800">
+                    {freeCoursesOptions.map((option, index) => (
+                      <label
+                        key={option}
+                        className={`flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 transform hover:scale-[1.02] ${isFreeCoursesDropdownOpen ? 'animate-slideIn' : ''}`}
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedFreeCourses.includes(option)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedFreeCourses(prev => [...prev, option]);
+                              } else {
+                                setSelectedFreeCourses(prev => prev.filter(item => item !== option));
+                              }
+                            }}
+                            className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 transition-all duration-200"
+                          />
+                          <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                            {option}
+                          </span>
+                        </div>
+                        {selectedFreeCourses.includes(option) && (
+                          <span className="text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/40 px-2 py-1 rounded-full animate-pulse">
+                            ✓
+                          </span>
+                        )}
+                      </label>
+                    ))}
+                    
+                    {/* Clear Free Courses Filters */}
+                    {selectedFreeCourses.length > 0 && (
+                      <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <button
+                          onClick={() => setSelectedFreeCourses([])}
+                          className="w-full text-xs text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 bg-green-100 dark:bg-green-900/40 hover:bg-green-200 dark:hover:bg-green-900/60 px-3 py-2 rounded-lg transition-all duration-200 transform hover:scale-105"
+                        >
+                          Clear Free Courses ({selectedFreeCourses.length})
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
               {/* Grade Level */}
-              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4 border border-purple-100 dark:border-purple-900/30">
-                <div className="flex items-center justify-between cursor-pointer" onClick={() => {}}>
+              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl border border-purple-100 dark:border-purple-900/30 overflow-hidden" data-grade-dropdown>
+                <div 
+                  className="flex items-center justify-between cursor-pointer p-4 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-all duration-300 ease-in-out" 
+                  onClick={() => setIsGradeDropdownOpen(!isGradeDropdownOpen)}
+                >
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center">
+                    <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center transition-all duration-300">
                       <GraduationCap className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                     </div>
                     <div>
@@ -1699,7 +2091,55 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                       <p className="text-sm text-purple-600 dark:text-purple-400">Filter by educational grade level</p>
                     </div>
                   </div>
-                  <ChevronDown className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  <ChevronDown className={`w-4 h-4 text-purple-600 dark:text-purple-400 transition-all duration-300 ease-in-out ${isGradeDropdownOpen ? 'rotate-180 scale-110' : 'rotate-0 scale-100'}`} />
+                </div>
+                
+                {/* Grade Level Dropdown Content */}
+                <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isGradeDropdownOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <div className="px-4 pb-4 space-y-2 border-t border-purple-100 dark:border-purple-900/30 bg-white dark:bg-gray-800">
+                    {gradeOptions.map((grade, index) => (
+                      <label
+                        key={grade}
+                        className={`flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 transform hover:scale-[1.02] ${isGradeDropdownOpen ? 'animate-slideIn' : ''}`}
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedGrade.includes(grade)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedGrade(prev => [...prev, grade]);
+                              } else {
+                                setSelectedGrade(prev => prev.filter(g => g !== grade));
+                              }
+                            }}
+                            className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 transition-all duration-200"
+                          />
+                          <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                            {grade}
+                          </span>
+                        </div>
+                        {selectedGrade.includes(grade) && (
+                          <span className="text-xs text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/40 px-2 py-1 rounded-full animate-pulse">
+                            ✓
+                          </span>
+                        )}
+                      </label>
+                    ))}
+                    
+                    {/* Clear Grade Filters */}
+                    {selectedGrade.length > 0 && (
+                      <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <button
+                          onClick={() => setSelectedGrade([])}
+                          className="w-full text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 bg-purple-100 dark:bg-purple-900/40 hover:bg-purple-200 dark:hover:bg-purple-900/60 px-3 py-2 rounded-lg transition-all duration-200 transform hover:scale-105"
+                        >
+                          Clear Grade Filters ({selectedGrade.length})
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1964,6 +2404,74 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
       }
     }, [isFilterDropdownOpen, onFilterDropdownToggle]);
 
+    // Close grade dropdown when clicking outside
+    useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        const gradeDropdown = document.querySelector('[data-grade-dropdown]');
+        if (gradeDropdown && !gradeDropdown.contains(event.target as Node)) {
+          setIsGradeDropdownOpen(false);
+        }
+      };
+
+      if (isGradeDropdownOpen) {
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+          document.removeEventListener('mousedown', handleClickOutside);
+        };
+      }
+    }, [isGradeDropdownOpen]);
+
+    // Close live courses dropdown when clicking outside
+    useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        const liveCoursesDropdown = document.querySelector('[data-live-courses-dropdown]');
+        if (liveCoursesDropdown && !liveCoursesDropdown.contains(event.target as Node)) {
+          setIsLiveCoursesDropdownOpen(false);
+        }
+      };
+
+      if (isLiveCoursesDropdownOpen) {
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+          document.removeEventListener('mousedown', handleClickOutside);
+        };
+      }
+    }, [isLiveCoursesDropdownOpen]);
+
+    // Close blended learning dropdown when clicking outside
+    useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        const blendedLearningDropdown = document.querySelector('[data-blended-learning-dropdown]');
+        if (blendedLearningDropdown && !blendedLearningDropdown.contains(event.target as Node)) {
+          setIsBlendedLearningDropdownOpen(false);
+        }
+      };
+
+      if (isBlendedLearningDropdownOpen) {
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+          document.removeEventListener('mousedown', handleClickOutside);
+        };
+      }
+    }, [isBlendedLearningDropdownOpen]);
+
+    // Close free courses dropdown when clicking outside
+    useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        const freeCoursesDropdown = document.querySelector('[data-free-courses-dropdown]');
+        if (freeCoursesDropdown && !freeCoursesDropdown.contains(event.target as Node)) {
+          setIsFreeCoursesDropdownOpen(false);
+        }
+      };
+
+      if (isFreeCoursesDropdownOpen) {
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+          document.removeEventListener('mousedown', handleClickOutside);
+        };
+      }
+    }, [isFreeCoursesDropdownOpen]);
+
     return (
       <div className="relative" ref={filterDropdownRef}>
         {/* Filter Button */}
@@ -2156,6 +2664,38 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
       </div>
     );
   };
+
+  // Prevent body scroll when any dropdown is open
+  useEffect(() => {
+    const isAnyDropdownOpen = isGradeDropdownOpen || isLiveCoursesDropdownOpen || isBlendedLearningDropdownOpen || isFreeCoursesDropdownOpen || isFilterDropdownOpen;
+    
+    if (isAnyDropdownOpen) {
+      // Save current scroll position
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Restore scroll position
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
+      }
+    }
+
+    return () => {
+      // Cleanup on unmount
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+    };
+  }, [isGradeDropdownOpen, isLiveCoursesDropdownOpen, isBlendedLearningDropdownOpen, isFreeCoursesDropdownOpen, isFilterDropdownOpen]);
 
   return (
     <ErrorBoundary>
