@@ -513,7 +513,18 @@ export const apiUrls = {
     uploadBase64: "/upload/base64",
     uploadImage: "/upload/base64",
     uploadMedia: "/upload/base64",
-    uploadDocument: "/upload/base64"
+    uploadDocument: "/upload/base64",
+  uploadVideo: (options: {
+    duration?: number;
+    resolution?: string;
+    description?: string;
+  } = {}): string => {
+    const queryParams = new URLSearchParams();
+    if (options.duration) queryParams.append('duration', String(options.duration));
+    if (options.resolution) queryParams.append('resolution', options.resolution);
+    if (options.description) queryParams.append('description', options.description);
+    return `${apiBaseUrl}/upload/video${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  },
   },
   onlineMeeting: {
     createMeeting: "/online-meetings/create",
