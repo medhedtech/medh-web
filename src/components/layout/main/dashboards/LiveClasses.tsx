@@ -21,7 +21,10 @@ import {
   LucideCheck,
   LucideDownload,
   LucideBookmark,
-  LucideMessageCircle
+  LucideMessageCircle,
+  LucideFileText,
+  LucideFile,
+  LucideSend
 } from "lucide-react";
 
 // Component imports
