@@ -295,4 +295,78 @@ html {
       linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
   }
+}
+
+/* Enhanced Student Management Card Animations */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) skewX(-12deg);
+  }
+  100% {
+    transform: translateX(200%) skewX(-12deg);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* Custom Scrollbar for Batch Resources */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(147 197 253) rgb(243 244 246);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgb(243 244 246);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, rgb(147 197 253), rgb(99 102 241));
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, rgb(59 130 246), rgb(79 70 229));
+}
+
+/* Dark mode scrollbar */
+.dark .custom-scrollbar {
+  scrollbar-color: rgb(99 102 241) rgb(55 65 81);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background: rgb(55 65 81);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, rgb(99 102 241), rgb(129 140 248));
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, rgb(79 70 229), rgb(99 102 241));
+}
+
+/* Enhanced Card Hover Effects */
+.group:hover .group-hover\:scale-105 {
+  transform: scale(1.05);
+}
+
+/* Progress Bar Enhancements */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
 } 
