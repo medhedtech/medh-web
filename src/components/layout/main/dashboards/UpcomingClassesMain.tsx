@@ -17,27 +17,60 @@ import {
   GraduationCap,
   AlertCircle,
   CheckCircle,
-  XCircle
+  XCircle,
+  RefreshCw
 } from 'lucide-react';
 import Image from 'next/image';
 import moment from 'moment';
+import { UpcomingClassCard, type IUpcomingClass } from '../../../shared/dashboards/UpcomingClassCard';
+import { batchAPI } from '../../../../apis/batch';
 
-// TypeScript interfaces
-interface IUpcomingClass {
-  id: number;
-  title: string;
-  course: string;
-  instructor: string;
-  date: string;
-  time: string;
-  duration: number; // in minutes
-  status: "upcoming" | "live" | "ended" | "cancelled";
-  meetLink: string;
-  description: string;
-  participants: number;
-  maxParticipants: number;
-  courseImage: string;
-  type: "Live Session" | "Workshop" | "Webinar" | "Lab Session";
+// TypeScript interfaces for API response
+interface IApiUpcomingSession {
+  session_id: string;
+  session_date: string; // ISO date string
+  day: string;
+  start_time: string;
+  end_time: string;
+  end_date: string; // ISO date string
+  batch: {
+    id: string;
+    name: string;
+    code: string;
+    status: string;
+  };
+  course: {
+    id: string;
+    title: string;
+  };
+  instructor: {
+    _id: string;
+    full_name: string;
+    email: string;
+  };
+  has_recorded_lessons: boolean;
+  enrollment_status: string;
+  zoom_meeting?: {
+    id: string;
+    join_url: string;
+    password?: string;
+  };
+}
+
+interface IApiUpcomingSessionsResponse {
+  success: boolean;
+  count: number;
+  total_upcoming: number;
+  active_batches: number;
+  upcoming_batches: number;
+  total_batches: number;
+  days_ahead: number;
+  student: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  data: IApiUpcomingSession[];
 }
 
 interface IClassStats {
@@ -52,14 +85,64 @@ interface IClassStats {
  * UpcomingClassesMain - Component that displays the upcoming classes content
  * within the student dashboard layout
  */
-const UpcomingClassesMain: React.FC = () => {
+const UpcomingClassesMain: React.FC<{ studentId?: string }> = ({ studentId }) => {
   const [isClient, setIsClient] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<"all" | "today" | "upcoming" | "live" | "ended">("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [upcomingSessions, setUpcomingSessions] = useState<IApiUpcomingSession[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastFetch, setLastFetch] = useState<Date | null>(null);
+  const [currentStudentId, setCurrentStudentId] = useState<string>("");
+  const [inputStudentId, setInputStudentId] = useState("");
+  const [showStudentIdInput, setShowStudentIdInput] = useState(false);
+  const [studentIdSource, setStudentIdSource] = useState<'props' | 'localStorage' | 'manual' | 'none'>('none');
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    
+    // Get userId from localStorage
+    const getUserIdFromStorage = () => {
+      try {
+        // Try different possible keys where userId might be stored
+        const userId = localStorage.getItem('userId') || 
+                      localStorage.getItem('user_id') || 
+                      localStorage.getItem('studentId') ||
+                      localStorage.getItem('student_id');
+        
+        // Also try to get from user object in localStorage
+        const userDataString = localStorage.getItem('user') || localStorage.getItem('userData');
+        if (userDataString && !userId) {
+          try {
+            const userData = JSON.parse(userDataString);
+            return userData.id || userData._id || userData.userId || userData.student_id;
+          } catch (e) {
+            console.warn('Failed to parse user data from localStorage:', e);
+          }
+        }
+        
+        return userId;
+      } catch (error) {
+        console.error('Error accessing localStorage:', error);
+        return null;
+      }
+    };
+
+    // Prioritize localStorage over props for better user experience
+    const userIdFromStorage = getUserIdFromStorage();
+    if (userIdFromStorage) {
+      setCurrentStudentId(userIdFromStorage);
+      setStudentIdSource('localStorage');
+    } else if (studentId) {
+      setCurrentStudentId(studentId);
+      setStudentIdSource('props');
+    } else {
+      // No userId found - show input field
+      setError("Please enter your student ID to view upcoming classes");
+      setShowStudentIdInput(true);
+      setLoading(false);
+    }
+  }, [studentId]);
 
   // Animation variants
   const containerVariants = useMemo(() => ({
@@ -85,105 +168,140 @@ const UpcomingClassesMain: React.FC = () => {
     }
   }), []);
 
-  // Mock upcoming classes data
-  const upcomingClasses = useMemo<IUpcomingClass[]>(() => [
-    {
-      id: 1,
-      title: "Advanced React Patterns",
-      course: "Full Stack Development",
-      instructor: "Dr. Sarah Johnson",
-      date: "2024-04-15",
-      time: "14:00",
-      duration: 90,
-      status: "upcoming",
-      meetLink: "https://meet.google.com/abc-def-ghi",
-      description: "Deep dive into advanced React patterns including render props, HOCs, and hooks",
-      participants: 24,
-      maxParticipants: 30,
-      courseImage: "/images/courses/react.jpg",
-      type: "Live Session"
-    },
-    {
-      id: 2,
-      title: "Machine Learning Workshop",
-      course: "Data Science with Python",
-      instructor: "Prof. Michael Chen",
-      date: "2024-04-15",
-      time: "16:30",
-      duration: 120,
-      status: "live",
-      meetLink: "https://meet.google.com/xyz-abc-def",
-      description: "Hands-on workshop on building ML models with scikit-learn",
-      participants: 18,
-      maxParticipants: 25,
-      courseImage: "/images/courses/ml.jpg",
-      type: "Workshop"
-    },
-    {
-      id: 3,
-      title: "UI/UX Design Principles",
-      course: "UI/UX Design Fundamentals",
-      instructor: "Emily Rodriguez",
-      date: "2024-04-16",
-      time: "10:00",
-      duration: 60,
-      status: "upcoming",
-      meetLink: "https://meet.google.com/def-ghi-jkl",
-      description: "Learn the fundamental principles of user interface and user experience design",
-      participants: 32,
-      maxParticipants: 35,
-      courseImage: "/images/courses/ux.jpg",
-      type: "Webinar"
-    },
-    {
-      id: 4,
-      title: "Database Design Lab",
-      course: "Database Management Systems",
-      instructor: "Dr. James Wilson",
-      date: "2024-04-14",
-      time: "13:00",
-      duration: 75,
-      status: "ended",
-      meetLink: "https://meet.google.com/ghi-jkl-mno",
-      description: "Practical session on designing efficient database schemas",
-      participants: 22,
-      maxParticipants: 25,
-      courseImage: "/images/courses/database.jpg",
-      type: "Lab Session"
-    },
-    {
-      id: 5,
-      title: "Digital Marketing Strategies",
-      course: "Digital Marketing Fundamentals",
-      instructor: "Lisa Thompson",
-      date: "2024-04-17",
-      time: "15:00",
-      duration: 90,
-      status: "upcoming",
-      meetLink: "https://meet.google.com/jkl-mno-pqr",
-      description: "Explore modern digital marketing strategies and tools",
-      participants: 28,
-      maxParticipants: 40,
-      courseImage: "/images/courses/marketing.jpg",
-      type: "Live Session"
-    },
-    {
-      id: 6,
-      title: "Python Fundamentals",
-      course: "Programming Basics",
-      instructor: "Alex Kumar",
-      date: "2024-04-15",
-      time: "11:00",
-      duration: 60,
-      status: "upcoming",
-      meetLink: "https://meet.google.com/mno-pqr-stu",
-      description: "Introduction to Python programming language basics",
-      participants: 35,
-      maxParticipants: 40,
-      courseImage: "/images/courses/python.jpg",
-      type: "Live Session"
+  // Function to transform API response to component format
+  const transformApiSessionToClass = (session: any): IUpcomingClass => {
+    // Handle both old and new API response formats
+    const sessionId = session.session_id || session.id;
+    const sessionDate = session.session_date || session.date;
+    const endDate = session.end_date || session.date; // fallback to session date if no end_date
+    const courseName = session.course?.title || session.batch?.course?.name || session.course?.name;
+    const instructorName = session.instructor?.full_name || "Unknown Instructor";
+    const hasRecordings = session.has_recorded_lessons !== undefined ? session.has_recorded_lessons : (session.recorded_lessons_count || 0) > 0;
+
+    const sessionDateTime = moment(sessionDate);
+    const now = moment();
+    
+    // Calculate session end time for duration
+    const startDateTime = sessionDateTime.clone().hour(parseInt(session.start_time.split(':')[0])).minute(parseInt(session.start_time.split(':')[1] || '0'));
+    const endDateTime = sessionDateTime.clone().hour(parseInt(session.end_time.split(':')[0])).minute(parseInt(session.end_time.split(':')[1] || '0'));
+    const duration = endDateTime.diff(startDateTime, 'minutes');
+    
+    // Determine status based on timing
+    let status: "upcoming" | "live" | "ended" | "cancelled" = "upcoming";
+    
+    if (startDateTime.isBefore(now) && endDateTime.isAfter(now)) {
+      status = "live";
+    } else if (endDateTime.isBefore(now)) {
+      status = "ended";
     }
-  ], []);
+
+    return {
+      id: parseInt(sessionId?.toString().slice(-6), 16) || Math.random() * 1000000,
+      title: session.batch?.name || "Class Session",
+      course: courseName || "Unknown Course",
+      instructor: instructorName,
+      date: sessionDate,
+      time: session.start_time,
+      duration: duration > 0 ? duration : 60, // Default to 60 minutes if calculation fails
+      status: status,
+      meetLink: session.zoom_meeting?.join_url || "",
+      description: `${session.day} session for ${courseName}`,
+      participants: 1, // Individual session or unknown
+      maxParticipants: 1, // Individual session or unknown
+      courseImage: "/images/courses/default.jpg", // Default image
+      type: hasRecordings ? "Workshop" : "Live Session"
+    };
+  };
+
+  // Fetch upcoming sessions from API
+  const fetchUpcomingSessions = async (refresh: boolean = false) => {
+    if (!currentStudentId) {
+      setError("Student ID is required");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      if (!refresh) setLoading(true);
+      setError(null);
+      setShowStudentIdInput(false);
+
+      const response = await batchAPI.getStudentUpcomingSessions(currentStudentId, {
+        limit: 20,
+        days_ahead: 14 // Get sessions for next 2 weeks
+      });
+
+      // Check if the response indicates success or failure
+      // The API client wraps responses in IApiResponse with status field
+      if (response.status === 'error') {
+        throw new Error(response.message || response.error || "Failed to fetch upcoming sessions");
+      }
+
+      // The actual API response is in response.data
+      const apiResponse = response.data as any;
+      
+      console.log('API Response received:', apiResponse); // Debug log
+      
+      // Handle the response structure - check for both old and new formats
+      if (apiResponse && apiResponse.success === true && apiResponse.data) {
+        // New format with success field and data array
+        setUpcomingSessions(apiResponse.data);
+        setLastFetch(new Date());
+      } else if (apiResponse && apiResponse.success === false) {
+        // API returned success: false
+        throw new Error(apiResponse.message || "Student not found");
+      } else if (apiResponse && apiResponse.sessions) {
+        // Old format with sessions array
+        setUpcomingSessions(apiResponse.sessions);
+        setLastFetch(new Date());
+      } else {
+        // Handle case where response is successful but no sessions data
+        setUpcomingSessions([]);
+        setLastFetch(new Date());
+      }
+    } catch (error: any) {
+      console.error('Error fetching upcoming sessions:', error);
+      
+      // Handle specific error cases
+      let errorMessage = "Failed to load upcoming sessions";
+      let showInputField = false;
+      
+      // Check if it's a network/API error with response data
+      if (error.response && error.response.data) {
+        // Handle case where API returns {success: false, message: "Student not found"}
+        if (error.response.data.message) {
+          if (error.response.data.message === "Student not found") {
+            errorMessage = `Student with ID "${currentStudentId}" was not found. Please enter the correct student ID below.`;
+            showInputField = true;
+          } else {
+            errorMessage = error.response.data.message;
+          }
+        }
+      } else if (error.message === "Student not found") {
+        errorMessage = `Student with ID "${currentStudentId}" was not found. Please enter the correct student ID below.`;
+        showInputField = true;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setError(errorMessage);
+      setShowStudentIdInput(showInputField);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initial data fetch
+  useEffect(() => {
+    if (isClient && currentStudentId) {
+      fetchUpcomingSessions();
+    }
+  }, [isClient, currentStudentId]);
+
+  // Transform API sessions to component format
+  const upcomingClasses = useMemo<IUpcomingClass[]>(() => {
+    return upcomingSessions.map(transformApiSessionToClass);
+  }, [upcomingSessions]);
 
   // Class stats
   const classStats = useMemo<IClassStats>(() => {
@@ -225,90 +343,37 @@ const UpcomingClassesMain: React.FC = () => {
     return filtered;
   }, [upcomingClasses, selectedStatus, searchTerm]);
 
-  // Get status color and icon
-  const getStatusInfo = (status: string) => {
-    switch (status) {
-      case "upcoming":
-        return {
-          color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-          icon: <Clock className="w-4 h-4" />,
-          label: "Upcoming"
-        };
-      case "live":
-        return {
-          color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-          icon: <Play className="w-4 h-4" />,
-          label: "Live"
-        };
-      case "ended":
-        return {
-          color: "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400",
-          icon: <CheckCircle className="w-4 h-4" />,
-          label: "Ended"
-        };
-      case "cancelled":
-        return {
-          color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-          icon: <XCircle className="w-4 h-4" />,
-          label: "Cancelled"
-        };
-      default:
-        return {
-          color: "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400",
-          icon: <Calendar className="w-4 h-4" />,
-          label: "Unknown"
-        };
+  // Event handlers for card actions
+  const handleViewDetails = (classItem: IUpcomingClass) => {
+    console.log('View details for:', classItem.title);
+    // Navigate to class details page or open modal
+  };
+
+  const handleJoinClass = (classItem: IUpcomingClass) => {
+    console.log('Join class:', classItem.title);
+    // Open meeting link or navigate to class room
+    if (classItem.meetLink) {
+      window.open(classItem.meetLink, '_blank');
     }
   };
 
-  // Get type color
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "Live Session":
-        return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
-      case "Workshop":
-        return "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400";
-      case "Webinar":
-        return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
-      case "Lab Session":
-        return "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400";
-      default:
-        return "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400";
-    }
+  const handleViewRecording = (classItem: IUpcomingClass) => {
+    console.log('View recording for:', classItem.title);
+    // Navigate to recording page
   };
 
-  // Get time until class or status
-  const getTimeInfo = (classItem: IUpcomingClass) => {
-    const classDateTime = moment(`${classItem.date} ${classItem.time}`, "YYYY-MM-DD HH:mm");
-    const now = moment();
-    
-    if (classItem.status === "live") {
-      return { text: "Live Now", color: "text-red-600 dark:text-red-400" };
+  const handleRefresh = () => {
+    fetchUpcomingSessions(true);
+  };
+
+  // Handle student ID update
+  const handleUpdateStudentId = () => {
+    if (inputStudentId.trim()) {
+      setCurrentStudentId(inputStudentId.trim());
+      setInputStudentId("");
+      setShowStudentIdInput(false);
+      setStudentIdSource('manual');
     }
-    
-    if (classItem.status === "ended") {
-      return { text: "Ended", color: "text-gray-500 dark:text-gray-500" };
-    }
-    
-    const diffMinutes = classDateTime.diff(now, "minutes");
-    
-    if (diffMinutes < 0) {
-      return { text: "Started", color: "text-gray-500 dark:text-gray-500" };
-    }
-    
-    if (diffMinutes < 60) {
-      return { text: `Starts in ${diffMinutes}m`, color: "text-amber-600 dark:text-amber-400" };
-    }
-    
-    const diffHours = Math.floor(diffMinutes / 60);
-    const remainingMinutes = diffMinutes % 60;
-    
-    if (diffHours < 24) {
-      return { text: `Starts in ${diffHours}h ${remainingMinutes}m`, color: "text-blue-600 dark:text-blue-400" };
-    }
-    
-    const diffDays = Math.floor(diffHours / 24);
-    return { text: `Starts in ${diffDays} day${diffDays > 1 ? 's' : ''}`, color: "text-gray-600 dark:text-gray-400" };
   };
 
   // Class Stats Component
@@ -348,105 +413,60 @@ const UpcomingClassesMain: React.FC = () => {
     </div>
   );
 
-  // Class Card Component
-  const ClassCard = ({ classItem }: { classItem: IUpcomingClass }) => {
-    const statusInfo = getStatusInfo(classItem.status);
-    const timeInfo = getTimeInfo(classItem);
-    const isLive = classItem.status === "live";
-    const isUpcoming = classItem.status === "upcoming";
-
-    return (
-      <div className={`bg-white dark:bg-gray-800 rounded-2xl p-6 border ${isLive ? 'border-red-200 dark:border-red-800' : 'border-gray-200 dark:border-gray-700'} hover:shadow-lg transition-all duration-300`}>
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}>
-                {statusInfo.icon}
-                <span className="ml-1">{statusInfo.label}</span>
-                {isLive && (
-                  <span className="relative flex h-2 w-2 ml-1">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                  </span>
-                )}
-              </span>
-              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(classItem.type)}`}>
-                {classItem.type}
-              </span>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              {classItem.title}
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-              {classItem.course} • {classItem.instructor}
+  // Error Component
+  const ErrorComponent = () => (
+    <div className="text-center py-12">
+      <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+        {!currentStudentId ? "Student ID Required" : "Failed to load upcoming classes"}
+      </h3>
+      <p className="text-gray-600 dark:text-gray-400 mb-6">
+        {error}
+      </p>
+      
+      {showStudentIdInput && (
+        <div className="max-w-md mx-auto mb-6">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Enter your student ID"
+              value={inputStudentId}
+              onChange={(e) => setInputStudentId(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleUpdateStudentId()}
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            />
+            <button
+              onClick={handleUpdateStudentId}
+              disabled={!inputStudentId.trim()}
+              className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {currentStudentId ? 'Update' : 'Set ID'}
+            </button>
+          </div>
+          {currentStudentId && (
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              Current Student ID: {currentStudentId} ({studentIdSource})
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
-              {classItem.description}
+          )}
+          {!currentStudentId && (
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              Your user ID was not found in browser storage. Please enter it manually.
             </p>
-          </div>
-        </div>
-
-        {/* Class Info */}
-        <div className="grid grid-cols-2 gap-4 mb-4 text-xs text-gray-500 dark:text-gray-400">
-          <div className="flex items-center">
-            <Calendar className="w-3 h-3 mr-1" />
-            {moment(classItem.date).format("MMM D, YYYY")}
-          </div>
-          <div className="flex items-center">
-            <Clock className="w-3 h-3 mr-1" />
-            {classItem.time}
-          </div>
-          <div className="flex items-center">
-            <Timer className="w-3 h-3 mr-1" />
-            {classItem.duration} minutes
-          </div>
-          <div className="flex items-center">
-            <Users className="w-3 h-3 mr-1" />
-            {classItem.participants}/{classItem.maxParticipants}
-          </div>
-        </div>
-
-        {/* Time Info */}
-        <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 dark:bg-gray-900/20 rounded-lg">
-          <div className="flex items-center">
-            <CalendarClock className="w-4 h-4 text-gray-400 mr-2" />
-            <span className={`text-sm font-medium ${timeInfo.color}`}>
-              {timeInfo.text}
-            </span>
-          </div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            {moment(classItem.date).format("ddd")}
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex space-x-2">
-          <button className="flex-1 flex items-center justify-center px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm">
-            <Eye className="w-4 h-4 mr-2" />
-            View Details
-          </button>
-          {isLive && (
-            <button className="flex-1 flex items-center justify-center px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm">
-              <Video className="w-4 h-4 mr-2" />
-              Join Live
-            </button>
-          )}
-          {isUpcoming && (
-            <button className="flex-1 flex items-center justify-center px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
-              <Video className="w-4 h-4 mr-2" />
-              Join Class
-            </button>
-          )}
-          {classItem.status === "ended" && (
-            <button className="flex-1 flex items-center justify-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
-              <BookOpen className="w-4 h-4 mr-2" />
-              Recording
-            </button>
           )}
         </div>
-      </div>
-    );
-  };
+      )}
+      
+      {currentStudentId && (
+        <button
+          onClick={handleRefresh}
+          className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+        >
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Try Again
+        </button>
+      )}
+    </div>
+  );
 
   // Class Preloader
   const ClassPreloader = () => (
@@ -474,7 +494,7 @@ const UpcomingClassesMain: React.FC = () => {
   );
 
   if (!isClient) {
-  return (
+    return (
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <ClassPreloader />
       </div>
@@ -496,61 +516,103 @@ const UpcomingClassesMain: React.FC = () => {
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-gray-100">
               Upcoming Classes
             </h1>
+            {lastFetch && (
+              <button
+                onClick={handleRefresh}
+                disabled={loading}
+                className="ml-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors disabled:opacity-50"
+                title={`Last updated: ${lastFetch.toLocaleTimeString()}`}
+              >
+                <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+              </button>
+            )}
           </div>
           <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed px-4">
             Join your scheduled live sessions and stay engaged with your learning journey
           </p>
-        </motion.div>
-
-
-
-        {/* Search and Filter */}
-        <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            {/* Search */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Search classes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-              />
-            </div>
-            
-            {/* Status Filter */}
-            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-              {[
-                { key: "all", label: "All", icon: Calendar },
-                { key: "today", label: "Today", icon: CalendarClock },
-                { key: "live", label: "Live", icon: Play },
-                { key: "upcoming", label: "Upcoming", icon: Clock },
-                { key: "ended", label: "Ended", icon: CheckCircle }
-              ].map(({ key, label, icon: Icon }) => (
-                <button
-                  key={key}
-                  onClick={() => setSelectedStatus(key as any)}
-                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    selectedStatus === key
-                      ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-                  }`}
-                >
-                  <Icon className="w-4 h-4 mr-2" />
-                  {label}
-                </button>
-              ))}
-            </div>
+          <div className="mt-3 flex items-center justify-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+            <span>
+              Student ID: {currentStudentId}
+              {studentIdSource !== 'none' && (
+                <span className="ml-1 text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                  {studentIdSource === 'props' ? 'from props' : 
+                   studentIdSource === 'localStorage' ? 'from storage' : 
+                   studentIdSource === 'manual' ? 'manually entered' : ''}
+                </span>
+              )}
+            </span>
+            {lastFetch && (
+              <span>Last updated: {lastFetch.toLocaleString()}</span>
+            )}
           </div>
         </motion.div>
 
+        {/* Class Stats */}
+        {!loading && !error && (
+          <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
+            <ClassStats />
+          </motion.div>
+        )}
+
+        {/* Search and Filter */}
+        {!loading && !error && (
+          <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              {/* Search */}
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Search classes..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+              
+              {/* Status Filter */}
+              <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+                {[
+                  { key: "all", label: "All", icon: Calendar },
+                  { key: "today", label: "Today", icon: CalendarClock },
+                  { key: "live", label: "Live", icon: Play },
+                  { key: "upcoming", label: "Upcoming", icon: Clock },
+                  { key: "ended", label: "Ended", icon: CheckCircle }
+                ].map(({ key, label, icon: Icon }) => (
+                  <button
+                    key={key}
+                    onClick={() => setSelectedStatus(key as any)}
+                    className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      selectedStatus === key
+                        ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
+                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 mr-2" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Classes Grid */}
         <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
-          {filteredClasses.length > 0 ? (
+          {loading ? (
+            <ClassPreloader />
+          ) : error ? (
+            <ErrorComponent />
+          ) : filteredClasses.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {filteredClasses.map((classItem) => (
-                <ClassCard key={classItem.id} classItem={classItem} />
+                <UpcomingClassCard 
+                  key={classItem.id} 
+                  classItem={classItem} 
+                  onViewDetails={handleViewDetails}
+                  onJoinClass={handleJoinClass}
+                  onViewRecording={handleViewRecording}
+                />
               ))}
             </div>
           ) : (
@@ -560,17 +622,22 @@ const UpcomingClassesMain: React.FC = () => {
                 No classes found
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Try adjusting your search or filter criteria
+                {searchTerm || selectedStatus !== "all" 
+                  ? "Try adjusting your search or filter criteria"
+                  : "You don't have any upcoming classes scheduled"
+                }
               </p>
-              <button
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedStatus("all");
-                }}
-                className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-              >
-                Clear Filters
-              </button>
+              {(searchTerm || selectedStatus !== "all") && (
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setSelectedStatus("all");
+                  }}
+                  className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                >
+                  Clear Filters
+                </button>
+              )}
             </div>
           )}
         </motion.div>
