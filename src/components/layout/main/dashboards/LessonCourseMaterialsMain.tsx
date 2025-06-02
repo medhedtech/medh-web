@@ -18,7 +18,6 @@ import {
   Star,
   Folder,
   PlayCircle,
-  PdfIcon as FileIcon,
   ExternalLink
 } from 'lucide-react';
 
@@ -154,7 +153,7 @@ const LessonCourseMaterialsMain: React.FC = () => {
       case "assignment":
         return <File className="w-5 h-5" />;
       default:
-        return <FileIcon className="w-5 h-5" />;
+        return <FileText className="w-5 h-5" />;
     }
   };
 
