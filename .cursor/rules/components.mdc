@@ -1,0 +1,66 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+[Component-Based Frontend Rule]
+1. **Think in Reusable Components**  
+   - For every UI element or section, create a self-contained component (e.g., buttons, cards, modals, navbars).  
+   - Follow single responsibility: each component should have one clear purpose and minimal dependencies.
+
+2. **File & Folder Structure**  
+   - Organize components under a `components/` directory.  
+   - Name folders and files using PascalCase for components (e.g., `components/Card/Card.tsx`, `components/Card/Card.css`).  
+   - Include an `index.tsx` or `index.js` in each component folder exporting the main component.
+
+3. **Props & Configuration**  
+   - Define explicit props/interfaces for each component to accept data and callbacks.  
+   - Provide default values for optional props.  
+   - Document all props at the top of the component file using comments or JSDoc.
+
+4. **Styling & Theming**  
+   - Keep styles colocated with the component (e.g., CSS modules, Tailwind utility classes, or styled-components).  
+   - Ensure styling is mobile-first: write base styles for <640 px, then layer `sm:`, `md:`, `lg:` variants.  
+   - Allow theming or style overrides via props or a central theme file.
+
+5. **Composition & Nesting**  
+   - Build complex UI by composing simpler components (e.g., a `CourseCard` might use `Avatar`, `Badge`, and `Button`).  
+   - Avoid deeply nested inline JSX—extract any repeated markup into its own component.  
+   - Pass children or render props when a component needs to accept arbitrary nested content.
+
+6. **State & Logic Separation**  
+   - Keep visual components (“dumb” or presentational) separate from stateful logic (“smart” containers or hooks).  
+   - If a component needs data fetching or complex state, extract that logic into a custom hook (e.g., `useFetchCourses`) or a higher-level container component.
+
+7. **Accessibility & Semantics**  
+   - Use semantic HTML elements (`<button>`, `<nav>`, `<header>`, etc.) inside components.  
+   - Add ARIA attributes or roles where needed (e.g., `aria-label` on icon-only buttons).  
+   - Ensure keyboard focus states and proper tab order within each component.
+
+8. **Mobile-First & Responsive Behavior**  
+   - Base component styles for narrow screens (<640 px).  
+   - Use responsive utility classes or media queries for `sm:` (≥640 px), `md:` (≥768 px), `lg:` (≥1024 px).  
+   - Verify each component’s layout at common mobile sizes (360×640, 375×667) before adding desktop enhancements.
+
+9. **Performance & Lazy Loading**  
+   - For large or rarely-used components, enable code splitting (e.g., dynamic `import()` in React).  
+   - Memoize pure components or expensive calculations (e.g., `React.memo` or `useMemo`).  
+   - Avoid unnecessary re-renders by passing stable props (use `useCallback` for event handlers).
+
+10. **Documentation & Usage Examples**  
+    - In each component folder, include a brief README or comment block showing typical usage and required props.  
+    - Provide a “Story” or “Example” snippet if using Storybook or a style guide:  
+      ```jsx
+      <CourseCard 
+        title="Intro to React" 
+        instructor="Jane Doe" 
+        price="$49" 
+        onEnroll={() => alert('Enrolled!')} 
+      />
+      ```
+
+11. **Testing & Validation**  
+    - Write at least one unit test per component (e.g., snapshot test, interaction test).  
+    - Validate prop types (TypeScript interfaces or PropTypes).  
+
+    - Ensure components render correctly across breakpoints in automated or manual UI tests.
