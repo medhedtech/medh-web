@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Edit, Eye, Trash2, Search, UserPlus, Mail, Phone } from "lucide-react";
+import { Edit, Eye, Trash2, Search, UserPlus, Mail, Phone, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from 'react-toastify';
 import { apiUrls } from "@/apis";
 import { useGetQuery } from "@/hooks/getQuery.hook";
@@ -10,22 +10,45 @@ import { usePostQuery } from "@/hooks/postQuery.hook";
 
 interface Student {
   _id: string;
-  first_name: string;
-  last_name: string;
+  full_name: string;
   email: string;
-  phone?: string;
+  phone_numbers?: Array<{
+    country: string;
+    number: string;
+  }>;
   profile_image?: string;
-  enrollment_date: string;
   status: string;
-  courses_enrolled: string[];
+  role: string[];
   meta?: {
-    total_courses: number;
-    completed_courses: number;
-    progress: number;
-    last_login?: string;
+    gender?: string;
+    age_group?: string;
+    date_of_birth?: string;
+    education_level?: string;
+    language?: string;
+    upload_resume?: any[];
   };
-  created_at?: string;
-  updated_at?: string;
+  assigned_instructor?: {
+    _id: string;
+    full_name: string;
+    email: string;
+    role: string[];
+    phone_numbers: any[];
+  };
+  instructor_assignment_date?: string;
+  instructor_assignment_type?: string;
+  emailVerified: boolean;
+  login_count: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface StudentsResponse {
+  success: boolean;
+  count: number;
+  total: number;
+  totalPages: number;
+  currentPage: number;
+  data: Student[];
 }
 
 export default function ManageStudentsPage() {
@@ -34,70 +57,82 @@ export default function ManageStudentsPage() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [totalStudents, setTotalStudents] = useState<number>(0);
+  const [pageSize] = useState<number>(10);
 
   const { getQuery } = useGetQuery();
   const { postQuery } = usePostQuery();
 
-  // Fetch students on component mount
-  useEffect(() => {
-    const fetchStudents = async () => {
-      setIsLoading(true);
-      try {
-        const response = await getQuery({
-          url: apiUrls.students?.getAllStudents || '/api/students',
-          onSuccess: () => {},
-          onFail: (error) => {
-            console.error("Error fetching students:", error);
-            toast.error('Failed to load students. Please try again.');
-          }
-        });
-        
-        if (response?.data) {
-          let studentsData: Student[] = [];
-          
-          if (Array.isArray(response.data)) {
-            studentsData = response.data;
-          } else if (response.data.data && Array.isArray(response.data.data)) {
-            studentsData = response.data.data;
-          } else if (response.data.success && Array.isArray(response.data.data)) {
-            studentsData = response.data.data;
-          }
-          
-          setStudents(studentsData);
-          setFilteredStudents(studentsData);
-        } else {
-          console.error("No data received from students API");
-          toast.error('No students found.');
-        }
-      } catch (error) {
-        console.error("Error in fetchStudents:", error);
-        toast.error('Failed to load students. Please check your connection.');
-      } finally {
-        setIsLoading(false);
+  // Fetch students with pagination
+  const fetchStudents = async (page: number = 1, search: string = "", status: string = "") => {
+    setIsLoading(true);
+    try {
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        limit: pageSize.toString(),
+      });
+
+      if (search.trim()) {
+        queryParams.append('search', search.trim());
       }
-    };
 
-    fetchStudents();
-  }, [getQuery]);
+      if (status) {
+        queryParams.append('status', status);
+      }
 
-  // Filter students based on search term and filters
+      const url = `${apiUrls.Students?.getAllStudents}?${queryParams.toString()}`;
+      
+      const response = await getQuery({
+        url,
+        onSuccess: () => {},
+        onFail: (error) => {
+          console.error("Error fetching students:", error);
+          toast.error('Failed to load students. Please try again.');
+        }
+      });
+      
+      if (response?.data) {
+        const studentsData: StudentsResponse = response.data;
+        
+        if (studentsData.success && Array.isArray(studentsData.data)) {
+          setStudents(studentsData.data);
+          setFilteredStudents(studentsData.data);
+          setCurrentPage(studentsData.currentPage);
+          setTotalPages(studentsData.totalPages);
+          setTotalStudents(studentsData.total);
+        } else {
+          console.error("Invalid response structure:", studentsData);
+          toast.error('Invalid response from server.');
+        }
+      } else {
+        console.error("No data received from students API");
+        toast.error('No students found.');
+      }
+    } catch (error) {
+      console.error("Error in fetchStudents:", error);
+      toast.error('Failed to load students. Please check your connection.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch students on component mount and when pagination/filters change
   useEffect(() => {
-    let filtered = students;
+    fetchStudents(currentPage, searchTerm, statusFilter);
+  }, [currentPage]);
 
-    if (searchTerm) {
-      filtered = filtered.filter(student =>
-        student.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.email.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+  // Handle search and filter changes (reset to page 1)
+  useEffect(() => {
+    if (currentPage === 1) {
+      fetchStudents(1, searchTerm, statusFilter);
+    } else {
+      setCurrentPage(1);
     }
-
-    if (statusFilter) {
-      filtered = filtered.filter(student => student.status === statusFilter);
-    }
-
-    setFilteredStudents(filtered);
-  }, [students, searchTerm, statusFilter]);
+  }, [searchTerm, statusFilter]);
 
   const handleDeleteStudent = async (studentId: string, studentName: string) => {
     if (!confirm(`Are you sure you want to delete "${studentName}"? This action cannot be undone.`)) {
@@ -106,12 +141,13 @@ export default function ManageStudentsPage() {
 
     try {
       await postQuery({
-        url: `${apiUrls.students?.deleteStudent || '/api/students'}/${studentId}`,
+        url: `${apiUrls.Students?.deleteStudent}/${studentId}`,
         postData: {},
         requireAuth: true,
         onSuccess: () => {
           toast.success(`Student "${studentName}" deleted successfully!`);
-          setStudents(students.filter(student => student._id !== studentId));
+          // Refresh the current page
+          fetchStudents(currentPage, searchTerm, statusFilter);
         },
         onFail: (error) => {
           const errorMessage = error?.response?.data?.message || 'Failed to delete student';
@@ -121,6 +157,12 @@ export default function ManageStudentsPage() {
     } catch (error) {
       console.error("Delete student error:", error);
       toast.error('Failed to delete student');
+    }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
     }
   };
 
@@ -147,11 +189,91 @@ export default function ManageStudentsPage() {
     });
   };
 
-  const getProgressColor = (progress: number) => {
-    if (progress >= 80) return 'text-green-600';
-    if (progress >= 60) return 'text-blue-600';
-    if (progress >= 40) return 'text-yellow-600';
-    return 'text-red-600';
+  const getPhoneNumber = (phoneNumbers?: Array<{country: string; number: string}>) => {
+    if (!phoneNumbers || phoneNumbers.length === 0) return 'N/A';
+    return phoneNumbers[0].number;
+  };
+
+  const renderPagination = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <button
+          key={i}
+          onClick={() => handlePageChange(i)}
+          className={`px-3 py-2 text-sm font-medium rounded-md ${
+            i === currentPage
+              ? 'bg-indigo-600 text-white'
+              : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          {i}
+        </button>
+      );
+    }
+
+    return (
+      <div className="flex items-center justify-between px-6 py-3 bg-white border-t border-gray-200">
+        <div className="flex items-center text-sm text-gray-700">
+          <span>
+            Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalStudents)} of {totalStudents} students
+          </span>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          
+          {startPage > 1 && (
+            <>
+              <button
+                onClick={() => handlePageChange(1)}
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                1
+              </button>
+              {startPage > 2 && <span className="text-gray-500">...</span>}
+            </>
+          )}
+          
+          {pages}
+          
+          {endPage < totalPages && (
+            <>
+              {endPage < totalPages - 1 && <span className="text-gray-500">...</span>}
+              <button
+                onClick={() => handlePageChange(totalPages)}
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                {totalPages}
+              </button>
+            </>
+          )}
+          
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -216,7 +338,7 @@ export default function ManageStudentsPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="text-sm font-medium text-gray-500">Total Students</h3>
-                <p className="text-2xl font-bold text-gray-900">{students.length}</p>
+                <p className="text-2xl font-bold text-gray-900">{totalStudents}</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="text-sm font-medium text-gray-500">Active Students</h3>
@@ -225,22 +347,15 @@ export default function ManageStudentsPage() {
                 </p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-gray-500">New This Month</h3>
+                <h3 className="text-sm font-medium text-gray-500">Current Page</h3>
                 <p className="text-2xl font-bold text-blue-600">
-                  {students.filter(s => {
-                    const enrollmentDate = new Date(s.enrollment_date);
-                    const currentMonth = new Date();
-                    return enrollmentDate.getMonth() === currentMonth.getMonth() && 
-                           enrollmentDate.getFullYear() === currentMonth.getFullYear();
-                  }).length}
+                  {currentPage} of {totalPages}
                 </p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-gray-500">Avg. Progress</h3>
+                <h3 className="text-sm font-medium text-gray-500">Verified Students</h3>
                 <p className="text-2xl font-bold text-indigo-600">
-                  {students.length > 0 
-                    ? Math.round(students.reduce((sum, student) => sum + (student.meta?.progress || 0), 0) / students.length)
-                    : 0}%
+                  {students.filter(s => s.emailVerified).length}
                 </p>
               </div>
             </div>
@@ -268,13 +383,13 @@ export default function ManageStudentsPage() {
                           Status
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Courses
+                          Verification
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Progress
+                          Instructor
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Enrolled
+                          Joined
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Actions
@@ -301,19 +416,19 @@ export default function ManageStudentsPage() {
                                     <img
                                       className="h-10 w-10 rounded-full object-cover"
                                       src={student.profile_image}
-                                      alt={`${student.first_name} ${student.last_name}`}
+                                      alt={student.full_name}
                                     />
                                   ) : (
                                     <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
                                       <span className="text-indigo-600 text-sm font-medium">
-                                        {student.first_name.charAt(0)}{student.last_name.charAt(0)}
+                                        {student.full_name.split(' ').map(n => n.charAt(0)).join('').slice(0, 2)}
                                       </span>
                                     </div>
                                   )}
                                 </div>
                                 <div className="ml-4">
                                   <div className="text-sm font-medium text-gray-900">
-                                    {student.first_name} {student.last_name}
+                                    {student.full_name}
                                   </div>
                                   <div className="text-sm text-gray-500">
                                     ID: {student._id.slice(-8)}
@@ -327,42 +442,41 @@ export default function ManageStudentsPage() {
                                   <Mail className="h-4 w-4 text-gray-400 mr-1" />
                                   {student.email}
                                 </div>
-                                {student.phone && (
-                                  <div className="flex items-center">
-                                    <Phone className="h-4 w-4 text-gray-400 mr-1" />
-                                    {student.phone}
-                                  </div>
-                                )}
+                                <div className="flex items-center">
+                                  <Phone className="h-4 w-4 text-gray-400 mr-1" />
+                                  {getPhoneNumber(student.phone_numbers)}
+                                </div>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               {getStatusBadge(student.status)}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
                               <div className="flex flex-col">
-                                <span className="font-medium">
-                                  {student.meta?.total_courses || 0} enrolled
+                                <span className={`font-medium ${student.emailVerified ? 'text-green-600' : 'text-red-600'}`}>
+                                  {student.emailVerified ? 'Verified' : 'Unverified'}
                                 </span>
                                 <span className="text-gray-500">
-                                  {student.meta?.completed_courses || 0} completed
-                                </span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              <div className="flex items-center">
-                                <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                                  <div 
-                                    className="bg-indigo-600 h-2 rounded-full" 
-                                    style={{ width: `${student.meta?.progress || 0}%` }}
-                                  ></div>
-                                </div>
-                                <span className={`font-medium ${getProgressColor(student.meta?.progress || 0)}`}>
-                                  {student.meta?.progress || 0}%
+                                  {student.login_count} logins
                                 </span>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {formatDate(student.enrollment_date)}
+                              {student.assigned_instructor ? (
+                                <div className="flex flex-col">
+                                  <span className="font-medium">
+                                    {student.assigned_instructor.full_name}
+                                  </span>
+                                  <span className="text-gray-500 capitalize">
+                                    {student.instructor_assignment_type || 'mentor'}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-gray-400">Not assigned</span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {formatDate(student.createdAt)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                               <div className="flex space-x-2">
@@ -381,7 +495,7 @@ export default function ManageStudentsPage() {
                                   <Edit className="h-4 w-4" />
                                 </Link>
                                 <button
-                                  onClick={() => handleDeleteStudent(student._id, `${student.first_name} ${student.last_name}`)}
+                                  onClick={() => handleDeleteStudent(student._id, student.full_name)}
                                   className="text-red-600 hover:text-red-900 p-1 rounded-md hover:bg-red-50"
                                   title="Delete Student"
                                 >
@@ -395,6 +509,9 @@ export default function ManageStudentsPage() {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && renderPagination()}
               </>
             )}
           </div>
