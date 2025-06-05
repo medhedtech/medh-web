@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { FaPlus, FaChevronDown, FaEye, FaSearch, FaFilter, FaUsers, FaUserGraduate, FaTrash, FaPhone, FaSync, FaEnvelope, FaCalendarAlt, FaUserCheck, FaUserTie } from "react-icons/fa";
+import { FaPlus, FaChevronDown, FaEye, FaSearch, FaFilter, FaUsers, FaUserGraduate, FaTrash, FaPhone, FaSync, FaEnvelope, FaCalendarAlt, FaUserCheck, FaUserTie, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import MyTable from "@/components/shared/common-table/page";
@@ -12,7 +12,6 @@ import { IStudent, IFilterOptions } from "@/types/student.types";
 import { motion, AnimatePresence } from "framer-motion";
 import { getAuthToken, isAuthenticated } from "@/utils/auth";
 import InstructorAssignmentModal from "@/components/shared/modals/InstructorAssignmentModal";
-import router from "next/router";
 
 interface IColumn {
   Header: string;
@@ -21,12 +20,22 @@ interface IColumn {
   render?: (row: IStudent) => React.ReactNode;
 }
 
+interface StudentsResponse {
+  success: boolean;
+  count: number;
+  total: number;
+  totalPages: number;
+  currentPage: number;
+  data: IStudent[];
+}
+
 const StudentManagement: React.FC = () => {
   const { deleteQuery } = useDeleteQuery();
   const { postQuery } = usePostQuery();
   const { getQuery } = useGetQuery();
 
-  // State Initialization
+  // Store all students for client-side filtering and pagination
+  const [allStudents, setAllStudents] = useState<IStudent[]>([]);
   const [students, setStudents] = useState<IStudent[]>([]);
   const [refreshKey, setRefreshKey] = useState<string>(Date.now().toString());
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -44,6 +53,12 @@ const StudentManagement: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [totalStudents, setTotalStudents] = useState<number>(0);
+  const [pageSize] = useState<number>(10);
+  
   // Instructor Assignment Modal State
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState<boolean>(false);
   const [selectedStudentForAssignment, setSelectedStudentForAssignment] = useState<IStudent | null>(null);
@@ -55,7 +70,7 @@ const StudentManagement: React.FC = () => {
     console.log('Force refresh triggered with key:', newKey);
   }, []);
 
-  // Fetch students data from API with force refresh capability
+  // Fetch students data from API with pagination support
   const fetchStudents = useCallback(async (forceReload: boolean = false): Promise<void> => {
     try {
       setLoading(true);
@@ -69,37 +84,63 @@ const StudentManagement: React.FC = () => {
       if (!authenticated || !token) {
         console.error('User not authenticated');
         toast.error('Please log in to access student data');
+        setAllStudents([]);
         setStudents([]);
         return;
       }
       
+      // Build query parameters
+      const queryParams = new URLSearchParams();
+
       // Add cache busting parameter for force reload
-      const url = forceReload 
-        ? `${apiUrls.user.getAllStudents}?_t=${Date.now()}`
-        : apiUrls.user.getAllStudents;
+      if (forceReload) {
+        queryParams.append('_t', Date.now().toString());
+      }
+
+      const url = `${apiUrls.Students?.getAllStudents}?${queryParams.toString()}`;
 
       await getQuery({
         url,
         requireAuth: true,
         skipCache: forceReload,
-        debug: true, // Enable debug logging
+        debug: true,
         onSuccess: (response: any) => {
           console.log('Students fetched successfully:', response);
           
-          // Handle the paginated response structure
-          if (response?.data && Array.isArray(response.data)) {
-            // Direct data array (paginated response)
-            setStudents([...response.data]);
-            console.log(`Loaded ${response.data.length} students (Page ${response.currentPage || 1} of ${response.totalPages || 1})`);
-          } else if (Array.isArray(response)) {
-            // Direct array response
-            setStudents([...response]);
-          } else if (response?.students && Array.isArray(response.students)) {
-            // Students nested in students field
-            setStudents([...response.students]);
+          let studentsArray: IStudent[] = [];
+          
+          // Handle different response structures
+          if (response?.data) {
+            // Check if it's the paginated structure we expected
+            if (response.data.success && Array.isArray(response.data.data)) {
+              studentsArray = response.data.data;
+            }
+            // Check if it's the actual API structure with students array
+            else if (Array.isArray(response.data.students)) {
+              studentsArray = response.data.students;
+            }
+            // Fallback for direct data array
+            else if (Array.isArray(response.data)) {
+              studentsArray = response.data;
+            }
+          } 
+          // Handle direct response with students array (current API structure)
+          else if (response?.students && Array.isArray(response.students)) {
+            studentsArray = response.students;
+          }
+          // Fallback for direct array response
+          else if (Array.isArray(response)) {
+            studentsArray = response;
+          }
+          
+          if (studentsArray.length > 0) {
+            setAllStudents([...studentsArray]);
+            setTotalStudents(response?.totalStudents || studentsArray.length);
+            console.log(`Loaded ${studentsArray.length} total students`);
           } else {
-            setStudents([]);
-            console.error("Invalid API response structure:", response);
+            setAllStudents([]);
+            setTotalStudents(0);
+            console.error("No students found in response:", response);
           }
         },
         onFail: (error) => {
@@ -110,11 +151,13 @@ const StudentManagement: React.FC = () => {
           } else {
             toast.error('Failed to fetch students. Please try again.');
           }
+          setAllStudents([]);
           setStudents([]);
         },
       });
     } catch (error) {
       console.error("Failed to fetch students:", error);
+      setAllStudents([]);
       setStudents([]);
     } finally {
       setLoading(false);
@@ -129,61 +172,49 @@ const StudentManagement: React.FC = () => {
     toast.success("Table refreshed successfully!");
   }, [fetchStudents]);
 
+  // Handle page change
+  const handlePageChange = useCallback((newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages && newPage !== currentPage) {
+      setCurrentPage(newPage);
+    }
+  }, [totalPages, currentPage]);
+
+  // Fetch students on component mount and when refresh key changes
+  useEffect(() => {
+    fetchStudents(true);
+  }, [fetchStudents]);
+
+  // Handle search and filter changes (reset to page 1)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterOptions.status]);
+
   // Initial load and refresh key changes
   useEffect(() => {
     console.log('useEffect triggered with refreshKey:', refreshKey);
     fetchStudents(true);
-  }, [refreshKey]);
-
-  // Add window focus listener for fresh data when user returns to tab
-  useEffect(() => {
-    const handleFocus = () => {
-      console.log('Window focused, refreshing data');
-      forceRefresh();
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [forceRefresh]);
-
-  // Add visibility change listener for additional refresh triggers
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        console.log('Page became visible, refreshing data');
-        setTimeout(() => forceRefresh(), 100);
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [forceRefresh]);
+  }, [refreshKey, fetchStudents]);
 
   // Delete Student with immediate refresh
   const deleteStudent = useCallback((id: string): void => {
     if (!window.confirm("Are you sure you want to delete this student?")) return;
     
     deleteQuery({
-      url: `${apiUrls.user.delete}/${id}`,
-      requireAuth: true, // Add authentication requirement
+      url: `${apiUrls.Students?.deleteStudent}/${id}`,
+      requireAuth: true,
       onSuccess: (res: any) => {
         console.log('Delete success, triggering refresh');
         toast.success(res?.message || "Student deleted successfully");
         
-        // Immediate state update
-        setStudents(prev => prev.filter(student => student._id !== id));
-        
-        // Force refresh after a short delay
-        setTimeout(() => {
-          forceRefresh();
-        }, 100);
+        // Refresh the current page
+        fetchStudents(true);
       },
       onFail: (res: any) => {
         console.error("Failed to delete student:", res);
         toast.error("Failed to delete student");
       },
     });
-  }, [deleteQuery, forceRefresh]);
+  }, [deleteQuery, fetchStudents, currentPage, searchQuery, filterOptions.status]);
 
   // Toggle Student Status with immediate refresh
   const toggleStatus = useCallback(async (id: string): Promise<void> => {
@@ -198,9 +229,9 @@ const StudentManagement: React.FC = () => {
       // Make direct PUT request using apiWithAuth since postQuery only supports POST
       const apiWithAuth = (await import('@/utils/apiWithAuth')).default;
       
-      console.log(`Making PUT request to: ${apiUrls.user.toggleStudentStatus}/${id}`);
+      console.log(`Making PUT request to: ${apiUrls.Students?.toggleStudentStatus}/${id}`);
       
-      const response = await apiWithAuth.put(`${apiUrls.user.toggleStudentStatus}/${id}`, {});
+      const response = await apiWithAuth.put(`${apiUrls.Students?.toggleStudentStatus}/${id}`, {});
       
       console.log('Status toggle success:', response.data);
       
@@ -215,7 +246,6 @@ const StudentManagement: React.FC = () => {
         const currentStudent = students.find(s => s._id === id);
         if (currentStudent) {
           const newStatus = currentStudent.status === 'Active' ? 'Inactive' : 'Active';
-          updatedStudent = { ...currentStudent, status: newStatus };
           statusMessage = `${currentStudent.full_name}'s status changed to ${newStatus}.`;
         } else {
           statusMessage = 'Student status updated successfully.';
@@ -224,19 +254,8 @@ const StudentManagement: React.FC = () => {
       
       toast.success(statusMessage);
       
-      // Immediate state update
-      setStudents(prev => 
-        prev.map(student => 
-          student._id === id 
-            ? { ...student, status: updatedStudent.status || (student.status === 'Active' ? 'Inactive' : 'Active') }
-            : student
-        )
-      );
-      
-      // Force refresh after a short delay
-      setTimeout(() => {
-        forceRefresh();
-      }, 100);
+      // Refresh the current page
+      fetchStudents(true);
       
     } catch (error: any) {
       console.error("Error in toggleStatus:", error);
@@ -249,7 +268,7 @@ const StudentManagement: React.FC = () => {
       
       toast.error(errorMessage);
     }
-  }, [forceRefresh, students]);
+  }, [fetchStudents, currentPage, searchQuery, filterOptions.status, students]);
 
   // Handle CSV Upload with immediate refresh
   const handleCSVUpload = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
@@ -261,9 +280,9 @@ const StudentManagement: React.FC = () => {
       formData.append("csvFile", file);
 
       await postQuery({
-        url: `${apiUrls.user.getAllStudents}/upload-csv`, // Using a generic upload endpoint
+        url: `${apiUrls.Students?.getAllStudents}/upload-csv`,
         postData: formData,
-        requireAuth: true, // Add authentication requirement
+        requireAuth: true,
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -271,11 +290,8 @@ const StudentManagement: React.FC = () => {
           console.log('CSV upload success, triggering refresh');
           toast.success("Students uploaded successfully!");
           
-          // Clear current data and force refresh
-          setStudents([]);
-          setTimeout(() => {
-            forceRefresh();
-          }, 100);
+          // Refresh the current page
+          fetchStudents(true);
         },
         onFail: (error: any) => {
           toast.error(error.message || "CSV upload failed");
@@ -308,7 +324,7 @@ const StudentManagement: React.FC = () => {
             className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-blue-600 flex items-center justify-center text-white font-semibold shadow-lg"
             aria-label={`Avatar for ${row.full_name}`}
           >
-            {row.full_name?.charAt(0)?.toUpperCase()}
+            {row.full_name?.split(' ').map(n => n.charAt(0)).join('').slice(0, 2).toUpperCase()}
           </div>
           <div>
             <div className="font-semibold text-gray-900 dark:text-white">{row.full_name}</div>
@@ -327,7 +343,7 @@ const StudentManagement: React.FC = () => {
       render: (row: IStudent) => {
         const phoneNumber = row.phone_numbers && row.phone_numbers.length > 0 
           ? row.phone_numbers[0].number 
-          : 'No phone';
+          : (row.phone_number || 'No phone');
         return (
           <div className="text-gray-600 dark:text-gray-300 flex items-center gap-1">
             <FaPhone className="w-3 h-3" />
@@ -361,6 +377,21 @@ const StudentManagement: React.FC = () => {
               {r}
             </span>
           ))}
+        </div>
+      )
+    },
+    {
+      Header: "Verification",
+      accessor: "emailVerified",
+      className: "min-w-[120px]",
+      render: (row: IStudent) => (
+        <div className="flex flex-col">
+          <span className={`font-medium text-sm ${row.emailVerified ? 'text-green-600' : 'text-red-600'}`}>
+            {row.emailVerified ? 'Verified' : 'Unverified'}
+          </span>
+          <span className="text-gray-500 text-xs">
+            {row.login_count} logins
+          </span>
         </div>
       )
     },
@@ -431,38 +462,35 @@ const StudentManagement: React.FC = () => {
     },
   ];
 
-  // Filter and sort the data using memoization
+  // Filter and sort the data using memoization (client-side filtering for current page)
   const filteredData = useMemo(() => {
-    return students.filter((student) => {
+    return allStudents.filter((student) => {
       const matchesName = filterOptions.full_name
         ? (student.full_name || "")
             .toLowerCase()
             .includes(filterOptions.full_name.toLowerCase())
         : true;
 
-      const matchesStatus = filterOptions.status !== "all"
-        ? (student.status || "")
-            .toLowerCase()
-            .includes(filterOptions.status.toLowerCase())
-        : true;
-
       const matchesRole = filterOptions.role !== "all"
         ? student.role?.some(r => r.toLowerCase().includes(filterOptions.role.toLowerCase()))
         : true;
 
-      const matchesSearchQuery =
-        student.full_name
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (student.phone_numbers && student.phone_numbers.length > 0 
-          ? student.phone_numbers.some(phone => phone.number.includes(searchQuery))
-          : false) ||
-        (student.phone_number || "").includes(searchQuery); // Legacy support
+      const matchesStatus = filterOptions.status !== "all"
+        ? student.status === filterOptions.status
+        : true;
 
-      return matchesSearchQuery && matchesName && matchesStatus && matchesRole;
+      const matchesSearchQuery = searchQuery
+        ? (student.full_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (student.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (student.phone_numbers && student.phone_numbers.length > 0 
+            ? student.phone_numbers.some(phone => phone.number.includes(searchQuery))
+            : false) ||
+          (student.phone_number || "").includes(searchQuery) // Legacy support
+        : true;
+
+      return matchesName && matchesRole && matchesStatus && matchesSearchQuery;
     });
-  }, [students, filterOptions, searchQuery]);
+  }, [allStudents, filterOptions, searchQuery]);
 
   const sortedData = useMemo(() => {
     return [...filteredData].sort((a, b) => {
@@ -475,12 +503,36 @@ const StudentManagement: React.FC = () => {
     });
   }, [filteredData, sortOrder]);
 
+  // Update pagination when filtered data changes
+  useEffect(() => {
+    const totalFiltered = sortedData.length;
+    const calculatedTotalPages = Math.ceil(totalFiltered / pageSize);
+    setTotalPages(calculatedTotalPages);
+    
+    // Reset to page 1 if current page is beyond available pages
+    if (currentPage > calculatedTotalPages && calculatedTotalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [sortedData, pageSize, currentPage]);
+
+  // Apply pagination to sorted and filtered data
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return sortedData.slice(startIndex, endIndex);
+  }, [sortedData, currentPage, pageSize]);
+
   const formattedData = useMemo(() => {
-    return sortedData.map((student, index) => ({
+    return paginatedData.map((student, index) => ({
       ...student,
-      no: index + 1,
+      no: ((currentPage - 1) * pageSize) + index + 1,
     }));
-  }, [sortedData]);
+  }, [paginatedData, currentPage, pageSize]);
+
+  // Update students state when paginated data changes
+  useEffect(() => {
+    setStudents(paginatedData);
+  }, [paginatedData]);
 
   const handleSortChange = (order: "newest" | "oldest"): void => {
     setSortOrder(order);
@@ -509,7 +561,99 @@ const StudentManagement: React.FC = () => {
 
   const handleAssignmentSuccess = (): void => {
     // Refresh the student list after successful assignment
-    forceRefresh();
+    fetchStudents(true);
+  };
+
+  // Pagination component
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <button
+          key={i}
+          onClick={() => handlePageChange(i)}
+          className={`px-3 py-2 text-sm font-medium rounded-md ${
+            i === currentPage
+              ? 'bg-green-600 text-white'
+              : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700'
+          }`}
+        >
+          {i}
+        </button>
+      );
+    }
+
+    const filteredTotal = sortedData.length;
+    const startItem = ((currentPage - 1) * pageSize) + 1;
+    const endItem = Math.min(currentPage * pageSize, filteredTotal);
+
+    return (
+      <div className="flex items-center justify-between px-6 py-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
+          <span>
+            Showing {startItem} to {endItem} of {filteredTotal} students
+            {filteredTotal !== totalStudents && (
+              <span className="text-gray-500"> (filtered from {totalStudents} total)</span>
+            )}
+          </span>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed dark:text-gray-500 dark:hover:text-gray-300"
+          >
+            <FaChevronLeft className="h-5 w-5" />
+          </button>
+          
+          {startPage > 1 && (
+            <>
+              <button
+                onClick={() => handlePageChange(1)}
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
+              >
+                1
+              </button>
+              {startPage > 2 && <span className="text-gray-500">...</span>}
+            </>
+          )}
+          
+          {pages}
+          
+          {endPage < totalPages && (
+            <>
+              {endPage < totalPages - 1 && <span className="text-gray-500">...</span>}
+              <button
+                onClick={() => handlePageChange(totalPages)}
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
+              >
+                {totalPages}
+              </button>
+            </>
+          )}
+          
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed dark:text-gray-500 dark:hover:text-gray-300"
+          >
+            <FaChevronRight className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -523,13 +667,13 @@ const StudentManagement: React.FC = () => {
       {process.env.NODE_ENV === 'development' && (
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-4">
           <p className="text-sm text-yellow-800 dark:text-yellow-200">
-            Debug: Refresh Key: {refreshKey} | Students Count: {students.length} | Loading: {loading.toString()}
+            Debug: Page {currentPage}/{totalPages} | Showing: {students.length} | Filtered: {sortedData.length} | Total: {totalStudents} | Loading: {loading.toString()}
           </p>
         </div>
       )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <motion.div 
           className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white"
           whileHover={{ scale: 1.02 }}
@@ -538,7 +682,7 @@ const StudentManagement: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-100 text-sm font-medium">Total Students</p>
-              <p className="text-3xl font-bold">{students.length}</p>
+              <p className="text-3xl font-bold">{totalStudents}</p>
             </div>
             <div className="p-3 bg-green-400/30 rounded-lg">
               <FaUsers className="w-8 h-8" />
@@ -555,7 +699,7 @@ const StudentManagement: React.FC = () => {
             <div>
               <p className="text-blue-100 text-sm font-medium">Active Students</p>
               <p className="text-3xl font-bold">
-                {students.filter(student => student.status === 'Active').length}
+                {allStudents.filter(student => student.status === 'Active').length}
               </p>
             </div>
             <div className="p-3 bg-blue-400/30 rounded-lg">
@@ -571,18 +715,29 @@ const StudentManagement: React.FC = () => {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-100 text-sm font-medium">New This Month</p>
-              <p className="text-3xl font-bold">
-                {students.filter(student => {
-                  const createdDate = new Date(student.createdAt);
-                  const currentDate = new Date();
-                  return createdDate.getMonth() === currentDate.getMonth() && 
-                         createdDate.getFullYear() === currentDate.getFullYear();
-                }).length}
-              </p>
+              <p className="text-purple-100 text-sm font-medium">Filtered Results</p>
+              <p className="text-3xl font-bold">{sortedData.length}</p>
             </div>
             <div className="p-3 bg-purple-400/30 rounded-lg">
-              <FaPlus className="w-8 h-8" />
+              <FaFilter className="w-8 h-8" />
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div 
+          className="bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl p-6 text-white"
+          whileHover={{ scale: 1.02 }}
+          transition={{ duration: 0.2 }}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-indigo-100 text-sm font-medium">Verified Students</p>
+              <p className="text-3xl font-bold">
+                {allStudents.filter(student => student.emailVerified).length}
+              </p>
+            </div>
+            <div className="p-3 bg-indigo-400/30 rounded-lg">
+              <FaUserCheck className="w-8 h-8" />
             </div>
           </div>
         </motion.div>
@@ -610,6 +765,7 @@ const StudentManagement: React.FC = () => {
                   type="text"
                   placeholder="Search students..."
                   aria-label="Search students"
+                  value={searchQuery}
                   className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-600 dark:bg-gray-800 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -652,6 +808,12 @@ const StudentManagement: React.FC = () => {
                         className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 rounded"
                       >
                         Corporate Students
+                      </button>
+                      <button
+                        onClick={() => handleFilterSelect("status", "all")}
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 rounded border-t border-gray-200 dark:border-gray-600"
+                      >
+                        Clear Filters
                       </button>
                     </div>
                   </div>
@@ -803,7 +965,7 @@ const StudentManagement: React.FC = () => {
               </p>
               <motion.button
                 onClick={() => {
-                  toast.info("Add student functionality coming soon!");
+                  window.location.href = '/dashboards/admin/add-student';
                 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -829,6 +991,9 @@ const StudentManagement: React.FC = () => {
             </motion.div>
           )}
         </div>
+
+        {/* Pagination */}
+        {renderPagination()}
       </div>
 
       {/* Instructor Assignment Modal */}
