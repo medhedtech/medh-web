@@ -2208,3 +2208,7 @@ export interface ICurriculumValidationResult {
 export { curriculumAPI, curriculumUtils } from './curriculum.api';
 
 export default apiUrls;
+
+// Export video streaming API
+export * from './video-streaming';
+export { default as videoStreamingAPI } from './video-streaming';

@@ -617,11 +617,18 @@ export interface ICourseTypesResponse<T = TNewCourse> {
 
 export interface IAllCoursesResponse {
   success: boolean;
-  message: string;
+  count: number;
   data: (TNewCourse | ILegacyCourse)[];
-  totalCount: number;
-  newModelCount: number;
-  legacyModelCount: number;
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+  sources: {
+    new_model: number;
+    legacy_model: number;
+  };
 }
 
 /**

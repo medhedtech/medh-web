@@ -278,6 +278,28 @@ export const updateRecordedVideos = (id: string): string => {
 }
 
 /**
+ * Provides the endpoint URL for updating a course thumbnail/image.
+ * Note: This requires a PATCH request with multipart/form-data containing the image file.
+ * @param id - The ID of the course.
+ * @returns The API URL string.
+ */
+export const updateCourseThumbnail = (id: string): string => {
+  if (!id) throw new Error('Course ID cannot be empty');
+  return `${apiBaseUrl}/courses/${id}/thumbnail`;
+}
+
+/**
+ * Provides the endpoint URL for updating a course thumbnail/image using base64.
+ * Note: This requires a PATCH request with JSON containing base64String and fileType.
+ * @param id - The ID of the course.
+ * @returns The API URL string.
+ */
+export const updateCourseThumbnailBase64 = (id: string): string => {
+  if (!id) throw new Error('Course ID cannot be empty');
+  return `${apiBaseUrl}/courses/${id}/thumbnail/base64`;
+}
+
+/**
  * Provides the endpoint URL for permanently deleting a course.
  * Note: This requires a DELETE request.
  * @param id - The ID of the course.
