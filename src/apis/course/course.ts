@@ -10,6 +10,40 @@ import {
 } from '@/types/api-responses';
 import axios from 'axios';
 
+// Course Image Upload Types
+export interface ICourseImageUploadResponse {
+  success: boolean;
+  message: string;
+  data: {
+    courseId: string;
+    imageUrl: string;
+    key: string;
+    size: number;
+    course: {
+      id: string;
+      title: string;
+      image: string;
+      [key: string]: any;
+    };
+  };
+  timestamp: string;
+}
+
+export interface ICourseImageUploadRequest {
+  base64String: string;
+  fileType: string;
+}
+
+export interface ICourseImageUploadError {
+  success: false;
+  message: string;
+  error: {
+    code: string;
+    details: string[];
+  };
+  timestamp: string;
+}
+
 /**
  * Fetches all courses based on specified parameters.
  * @param params - Search parameters for filtering and pagination.
@@ -278,6 +312,365 @@ export const updateRecordedVideos = (id: string): string => {
 }
 
 /**
+ * Provides the endpoint URL for uploading a course image using base64 (RECOMMENDED).
+ * This endpoint uploads the image and automatically updates the course record.
+ * Note: This requires a POST request with JSON containing base64String and fileType.
+ * @param id - The ID of the course.
+ * @returns The API URL string.
+ */
+export const uploadCourseImageBase64 = (id: string): string => {
+  if (!id) throw new Error('Course ID cannot be empty');
+  return `${apiBaseUrl}/courses/${id}/upload-image`;
+}
+
+/**
+ * Provides the endpoint URL for uploading a course image using multipart form data (RECOMMENDED).
+ * This endpoint uploads the image and automatically updates the course record.
+ * Note: This requires a POST request with multipart/form-data containing the image file.
+ * @param id - The ID of the course.
+ * @returns The API URL string.
+ */
+export const uploadCourseImageFile = (id: string): string => {
+  if (!id) throw new Error('Course ID cannot be empty');
+  return `${apiBaseUrl}/courses/${id}/upload-image-file`;
+}
+
+/**
+ * Constructs the URL and data payload for uploading a course image using base64.
+ * @param courseId - The ID of the course.
+ * @param base64String - The base64 encoded image string (with data URL prefix).
+ * @param fileType - The type of file (e.g., 'image', 'jpeg', 'png').
+ * @returns An object containing the URL and the data payload.
+ */
+export const uploadCourseImageBase64WithData = (
+  courseId: string,
+  base64String: string,
+  fileType: string = 'image'
+): { url: string; data: { base64String: string; fileType: string } } => {
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!base64String) throw new Error('Base64 string cannot be empty');
+  
+  return {
+    url: `${apiBaseUrl}/courses/${courseId}/upload-image`,
+    data: {
+      base64String,
+      fileType
+    }
+  };
+};
+
+/**
+ * Prepares FormData for uploading a course image file.
+ * @param courseId - The ID of the course.
+ * @param imageFile - The image file to upload.
+ * @returns An object containing the URL and FormData.
+ */
+export const uploadCourseImageFileWithData = (
+  courseId: string,
+  imageFile: File
+): { url: string; formData: FormData } => {
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!imageFile) throw new Error('Image file cannot be empty');
+  
+  const formData = new FormData();
+  formData.append('image', imageFile);
+  
+  return {
+    url: `${apiBaseUrl}/courses/${courseId}/upload-image-file`,
+    formData
+  };
+};
+
+// ASYNC UPLOAD FUNCTIONS WITH FULL API INTEGRATION
+
+/**
+ * Uploads a course image using base64 string and automatically updates the course.
+ * @param courseId - The ID of the course.
+ * @param base64String - The base64 encoded image string (with data URL prefix).
+ * @param fileType - The type of file (e.g., 'image', 'jpeg', 'png').
+ * @returns Promise containing the upload response or error.
+ */
+export const uploadCourseImageBase64Async = async (
+  courseId: string,
+  base64String: string,
+  fileType: string = 'image'
+): Promise<ICourseImageUploadResponse | ICourseImageUploadError> => {
+  try {
+    if (!courseId) throw new Error('Course ID cannot be empty');
+    if (!base64String) throw new Error('Base64 string cannot be empty');
+    
+    const response = await axios.post<ICourseImageUploadResponse>(
+      `${apiBaseUrl}/courses/${courseId}/upload-image`,
+      {
+        base64String,
+        fileType
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    return response.data;
+  } catch (error) {
+    return handleImageUploadError(error, 'Failed to upload course image');
+  }
+};
+
+/**
+ * Uploads a course image using a file and automatically updates the course.
+ * @param courseId - The ID of the course.
+ * @param imageFile - The image file to upload.
+ * @returns Promise containing the upload response or error.
+ */
+export const uploadCourseImageFileAsync = async (
+  courseId: string,
+  imageFile: File
+): Promise<ICourseImageUploadResponse | ICourseImageUploadError> => {
+  try {
+    if (!courseId) throw new Error('Course ID cannot be empty');
+    if (!imageFile) throw new Error('Image file cannot be empty');
+    
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    
+    const response = await axios.post<ICourseImageUploadResponse>(
+      `${apiBaseUrl}/courses/${courseId}/upload-image-file`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+    );
+    
+    return response.data;
+  } catch (error) {
+    return handleImageUploadError(error, 'Failed to upload course image file');
+  }
+};
+
+/**
+ * Converts a File object to base64 string and uploads it to the course.
+ * This is a complete solution that handles file conversion and upload in one function.
+ * @param courseId - The ID of the course.
+ * @param file - The image file to convert and upload.
+ * @param authToken - Optional auth token for the request.
+ * @returns Promise containing the upload response or error.
+ */
+export const uploadCourseImageFromFileAsync = async (
+  courseId: string,
+  file: File,
+  authToken?: string
+): Promise<ICourseImageUploadResponse | ICourseImageUploadError> => {
+  try {
+    if (!courseId) throw new Error('Course ID cannot be empty');
+    if (!file) throw new Error('File cannot be empty');
+    
+    console.log('🚀 Starting file-to-base64 upload...');
+    console.log('📁 File details:', {
+      name: file.name,
+      size: file.size,
+      type: file.type
+    });
+    
+    // Convert file to base64
+    const base64String = await convertFileToBase64(file);
+    console.log('📦 Base64 conversion complete, length:', base64String.length);
+    
+    // Prepare request headers
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    
+    // Make the upload request
+    const response = await axios.post<ICourseImageUploadResponse>(
+      `${apiBaseUrl}/courses/${courseId}/upload-image`,
+      {
+        base64String,
+        fileType: 'image'
+      },
+      { headers }
+    );
+    
+    console.log('✅ Upload successful!', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Upload failed:', error);
+    return handleImageUploadError(error, 'Failed to upload course image from file');
+  }
+};
+
+/**
+ * Helper function to convert File to base64 string
+ * @param file - The file to convert
+ * @returns Promise that resolves to base64 string
+ */
+export const convertFileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    if (!file) {
+      reject(new Error('No file provided'));
+      return;
+    }
+    
+    const reader = new FileReader();
+    
+    reader.onload = () => {
+      const result = reader.result as string;
+      resolve(result);
+    };
+    
+    reader.onerror = () => {
+      reject(new Error('Failed to read file'));
+    };
+    
+    reader.readAsDataURL(file);
+  });
+};
+
+/**
+ * Upload course image with detailed logging and error handling.
+ * This function provides comprehensive logging for debugging.
+ * @param courseId - The ID of the course.
+ * @param base64String - The base64 encoded image string.
+ * @param fileType - The type of file (default: 'image').
+ * @param authToken - Optional auth token for the request.
+ * @returns Promise containing the upload response or error.
+ */
+export const uploadCourseImageBase64WithAuth = async (
+  courseId: string,
+  base64String: string,
+  fileType: string = 'image',
+  authToken?: string
+): Promise<ICourseImageUploadResponse | ICourseImageUploadError> => {
+  try {
+    if (!courseId) throw new Error('Course ID cannot be empty');
+    if (!base64String) throw new Error('Base64 string cannot be empty');
+    
+    console.log('🚀 Starting base64 image upload...');
+    console.log('📋 Upload details:', {
+      courseId,
+      base64Length: base64String.length,
+      fileType,
+      hasAuthToken: !!authToken
+    });
+    
+    // Prepare request headers
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    
+    // Prepare request body
+    const requestBody = {
+      base64String,
+      fileType
+    };
+    
+    console.log('📤 Making POST request to:', `${apiBaseUrl}/courses/${courseId}/upload-image`);
+    console.log('📦 Request body prepared:', {
+      base64Length: base64String.length,
+      fileType
+    });
+    
+    // Make the upload request
+    const response = await axios.post<ICourseImageUploadResponse>(
+      `${apiBaseUrl}/courses/${courseId}/upload-image`,
+      requestBody,
+      { headers }
+    );
+    
+    console.log('✅ Upload successful!');
+    console.log('🖼️ Image URL:', response.data.data.imageUrl);
+    console.log('📊 Response data:', response.data);
+    
+    return response.data;
+  } catch (error) {
+    console.error('❌ Upload failed:', error);
+    
+    if (axios.isAxiosError(error)) {
+      console.error('📋 Error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data
+      });
+    }
+    
+    return handleImageUploadError(error, 'Failed to upload course image with auth');
+  }
+};
+
+/**
+ * Quick upload function for React components with file input.
+ * Handles the complete flow from file selection to upload.
+ * @param courseId - The ID of the course.
+ * @param event - The file input change event.
+ * @param authToken - Optional auth token for the request.
+ * @returns Promise containing the upload response or error.
+ */
+export const handleFileInputUpload = async (
+  courseId: string,
+  event: Event,
+  authToken?: string
+): Promise<ICourseImageUploadResponse | ICourseImageUploadError> => {
+  try {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+    
+    if (!file) {
+      throw new Error('No file selected');
+    }
+    
+    console.log('📁 File selected from input:', {
+      name: file.name,
+      size: file.size,
+      type: file.type
+    });
+    
+    return await uploadCourseImageFromFileAsync(courseId, file, authToken);
+  } catch (error) {
+    console.error('❌ File input upload failed:', error);
+    return handleImageUploadError(error, 'Failed to handle file input upload');
+  }
+};
+
+// Helper function for handling image upload errors
+const handleImageUploadError = (error: unknown, defaultMessage: string): ICourseImageUploadError => {
+  if (axios.isAxiosError(error)) {
+    return {
+      success: false,
+      message: error.response?.data?.message || defaultMessage,
+      error: {
+        code: error.response?.data?.error?.code || 'IMAGE_UPLOAD_ERROR',
+        details: error.response?.data?.error?.details || [error.message]
+      },
+      timestamp: new Date().toISOString()
+    };
+  }
+  
+  return {
+    success: false,
+    message: defaultMessage,
+    error: {
+      code: 'UNKNOWN_ERROR',
+      details: [error instanceof Error ? error.message : 'An unexpected error occurred']
+    },
+    timestamp: new Date().toISOString()
+  };
+};
+
+// LEGACY ENDPOINTS (Deprecated - use the new course-specific endpoints above)
+
+/**
+ * @deprecated Use uploadCourseImageFile instead
  * Provides the endpoint URL for updating a course thumbnail/image.
  * Note: This requires a PATCH request with multipart/form-data containing the image file.
  * @param id - The ID of the course.
@@ -289,6 +682,7 @@ export const updateCourseThumbnail = (id: string): string => {
 }
 
 /**
+ * @deprecated Use uploadCourseImageBase64 instead
  * Provides the endpoint URL for updating a course thumbnail/image using base64.
  * Note: This requires a PATCH request with JSON containing base64String and fileType.
  * @param id - The ID of the course.
@@ -296,8 +690,9 @@ export const updateCourseThumbnail = (id: string): string => {
  */
 export const updateCourseThumbnailBase64 = (id: string): string => {
   if (!id) throw new Error('Course ID cannot be empty');
-  return `${apiBaseUrl}/courses/${id}/thumbnail/base64`;
+  return `${apiBaseUrl}/courses/${id}/upload-image-file`;
 }
+
 
 /**
  * Provides the endpoint URL for permanently deleting a course.
