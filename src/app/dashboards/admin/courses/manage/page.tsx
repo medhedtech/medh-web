@@ -54,6 +54,7 @@ interface CourseMetrics {
   };
   revenue?: number;
   completion_rate?: number;
+  lastUpdated?: string;
 }
 
 interface CoursePrice {
@@ -95,6 +96,7 @@ interface Course {
     learning_objectives?: string[];
     course_requirements?: string[];
     target_audience?: string[];
+    _id?: string;
   };
   assigned_instructor?: CourseInstructor;
   course_duration?: string;
@@ -118,6 +120,46 @@ interface Course {
   tools_technologies?: any[];
   faqs?: any[];
   related_courses?: string[];
+  
+  // Additional fields from actual API response
+  brochures?: string[];
+  course_videos?: any[];
+  resource_videos?: any[];
+  recorded_videos?: any[];
+  show_in_home?: boolean;
+  _source?: string;
+  subtitle_languages?: string[];
+  final_evaluation?: any;
+  is_Certification?: string;
+  is_Assignments?: string;
+  is_Projects?: string;
+  is_Quizes?: string;
+  doubt_session_schedule?: any;
+  certification?: any;
+  course_modules?: any[];
+  bonus_modules?: any[];
+  unique_key?: string;
+  slug?: string;
+  __v?: number;
+  
+  // Free course specific fields
+  lessons?: any[];
+  resources?: any[];
+  access_type?: string;
+  estimated_duration?: string;
+  prerequisites?: any[];
+  target_skills?: any[];
+  completion_certificate?: any;
+  
+  // Legacy course specific fields
+  specifications?: any;
+  course_grade?: string;
+  efforts_per_Week?: string;
+  min_hours_per_week?: number;
+  max_hours_per_week?: number;
+  _legacy?: boolean;
+  delivery_format?: string;
+  delivery_type?: string;
 }
 
 // Filter and sort options
@@ -187,114 +229,50 @@ const ManageCoursesPage: React.FC = () => {
   const { getQuery } = useGetQuery();
   const { postQuery } = usePostQuery();
 
-  // Fetch courses using new collaborative API
+  // Fetch courses using getAllCourses API
   const fetchCourses = useCallback(async () => {
     setLoadingStates(prev => ({ ...prev, courses: true }));
     setError(null);
     
     try {
-      // Use the new collaborative API to fetch both new and legacy courses
+      // Use fetchCollaborative to get all courses with pagination
       const response = await courseTypesAPI.fetchCollaborative({
         source: 'both',
         merge_strategy: 'unified',
-        deduplicate: true,
-        include_metadata: true,
         page: 1,
-        limit: 1000, // Get all courses for admin management
-        sort_by: 'updatedAt',
-        sort_order: 'desc'
+        limit: 100, // Fetch more courses per page to reduce API calls
+        deduplicate: true,
+        include_metadata: true
       });
       
       if (response?.data?.success && response.data.data) {
         const coursesData = Array.isArray(response.data.data) ? response.data.data : [];
         
-        // Process and normalize course data for both new and legacy formats
-        const processedCourses: Course[] = coursesData.map((course: TNewCourse | ILegacyCourse) => {
-          // Determine if it's a new course type or legacy course
-          const isNewCourse = 'course_type' in course && ['blended', 'live', 'free'].includes(course.course_type);
-          
-          if (isNewCourse) {
-            const newCourse = course as TNewCourse;
-            return {
-              _id: newCourse._id || '',
-              course_title: newCourse.course_title,
-              course_subtitle: newCourse.course_subtitle,
-              course_category: newCourse.course_category,
-              course_subcategory: newCourse.course_subcategory,
-              course_type: newCourse.course_type,
-              course_tag: newCourse.course_tag,
-              status: newCourse.status || 'Draft',
-              course_image: newCourse.course_image,
-              course_description: newCourse.course_description,
-              course_duration: 'course_duration' in newCourse ? newCourse.course_duration : 
-                              'estimated_duration' in newCourse ? newCourse.estimated_duration : '',
-              session_duration: 'session_duration' in newCourse ? 
-                               (typeof newCourse.session_duration === 'number' ? 
-                                newCourse.session_duration.toString() : newCourse.session_duration) : '',
-              no_of_Sessions: 'total_sessions' in newCourse ? newCourse.total_sessions : 0,
-              prices: newCourse.prices || [],
-              isFree: newCourse.course_type === 'free',
-              language: newCourse.language,
-              course_level: newCourse.course_level,
-              class_type: newCourse.course_type,
-              createdAt: newCourse.createdAt,
-              updatedAt: newCourse.updatedAt,
-              created_at: newCourse.createdAt,
-              updated_at: newCourse.updatedAt,
-              // Generate metadata for new courses
-              meta: {
-            enrollments: Math.floor(Math.random() * 100),
-            views: Math.floor(Math.random() * 1000),
-            ratings: {
-              average: Number((Math.random() * 5).toFixed(1)),
-              count: Math.floor(Math.random() * 50)
-            },
-                revenue: newCourse.course_type === 'free' ? 0 : Math.floor(Math.random() * 10000),
-            completion_rate: Number((Math.random() * 100).toFixed(1))
-          }
-            } as Course;
-          } else {
-            // Legacy course processing
-            const legacyCourse = course as ILegacyCourse;
-            return {
-              _id: legacyCourse._id || '',
-              course_title: legacyCourse.course_title,
-              course_subtitle: legacyCourse.course_subtitle,
-              course_category: legacyCourse.course_category,
-              course_subcategory: legacyCourse.course_subcategory,
-              course_type: legacyCourse.category_type?.toLowerCase() || 'legacy',
-              course_tag: legacyCourse.course_tag,
-              category_type: legacyCourse.category_type,
-              status: legacyCourse.status || 'Draft',
-              course_image: legacyCourse.course_image,
-              course_description: legacyCourse.course_description,
-              course_duration: legacyCourse.course_duration,
-              session_duration: legacyCourse.session_duration,
-              no_of_Sessions: legacyCourse.no_of_Sessions || 0,
-              course_fee: legacyCourse.prices?.[0]?.individual || 0,
-              prices: legacyCourse.prices || [],
-              isFree: legacyCourse.isFree || legacyCourse.category_type === 'Free',
-              language: legacyCourse.language,
-              course_level: legacyCourse.course_level,
-              class_type: legacyCourse.class_type,
-              classType: legacyCourse.class_type,
-              createdAt: legacyCourse.createdAt,
-              updatedAt: legacyCourse.updatedAt,
-              created_at: legacyCourse.createdAt,
-              updated_at: legacyCourse.updatedAt,
-              // Generate metadata for legacy courses
-              meta: {
-                enrollments: Math.floor(Math.random() * 100),
-                views: Math.floor(Math.random() * 1000),
-                ratings: {
-                  average: Number((Math.random() * 5).toFixed(1)),
-                  count: Math.floor(Math.random() * 50)
-                },
-                revenue: legacyCourse.isFree ? 0 : Math.floor(Math.random() * 10000),
-                completion_rate: Number((Math.random() * 100).toFixed(1))
-              }
-            } as Course;
-          }
+        // The getAllCourses API returns unified course data, so we can use it directly
+        const processedCourses: Course[] = coursesData.map((course: any) => {
+          return {
+            ...course,
+            // Ensure required fields have defaults
+            _id: course._id || '',
+            course_title: course.course_title || 'Untitled Course',
+            course_category: course.course_category || 'Uncategorized',
+            status: course.status || 'Draft',
+            // Normalize date fields
+            createdAt: course.createdAt || course.created_at,
+            updatedAt: course.updatedAt || course.updated_at,
+            created_at: course.created_at || course.createdAt,
+            updated_at: course.updated_at || course.updatedAt,
+            // Ensure prices is always an array
+            prices: Array.isArray(course.prices) ? course.prices : [],
+            // Set course_fee from first price if not set
+            course_fee: course.course_fee || course.prices?.[0]?.individual || 0,
+            // Ensure meta exists with defaults
+            meta: course.meta || {
+              enrollments: 0,
+              views: 0,
+              ratings: { average: 0, count: 0 }
+            }
+          } as Course;
         });
         
         // Extract categories and instructors for filters
@@ -305,13 +283,13 @@ const ManageCoursesPage: React.FC = () => {
         setInstructors(uniqueInstructors);
         setCourses(processedCourses);
         
-        console.log(`Loaded ${processedCourses.length} courses successfully using collaborative API`);
-        
-        // Log performance insights if available
-        if (response.data.metadata) {
-          const insights = courseTypesAPI.utils.extractPerformanceInsights(response.data.metadata);
-          console.log('API Performance:', insights);
-        }
+        console.log(`Loaded ${processedCourses.length} courses successfully using fetchCollaborative API`);
+        console.log('API Response Stats:', {
+          totalCourses: processedCourses.length,
+          totalPages: response.data.pagination?.totalPages,
+          newModelCount: response.data.comparison?.summary?.new_courses_count || 0,
+          legacyModelCount: response.data.comparison?.summary?.legacy_courses_count || 0
+        });
         
         if (processedCourses.length === 0) {
           toast.info('No courses found. Create your first course to get started.');
@@ -340,123 +318,69 @@ const ManageCoursesPage: React.FC = () => {
 
     setIsSearching(true);
     try {
-      const searchParams: IAdvancedSearchParams = {
-        search: searchQuery,
+      // Use fetchCollaborative and filter locally
+      const response = await courseTypesAPI.fetchCollaborative({
         source: 'both',
         merge_strategy: 'unified',
-        deduplicate: true,
-        include_metadata: true,
         page: 1,
-        limit: 1000,
-        sort_by: 'updatedAt',
-        sort_order: 'desc'
-      };
-
-      const response = await courseTypesAPI.advancedSearch(searchParams);
+        limit: 100,
+        deduplicate: true,
+        include_metadata: true
+      });
       
       if (response?.data?.success && response.data.data) {
         const searchResults = Array.isArray(response.data.data) ? response.data.data : [];
         
         // Process search results similar to fetchCourses
-        const processedResults: Course[] = searchResults.map((course: TNewCourse | ILegacyCourse) => {
-          const isNewCourse = 'course_type' in course && ['blended', 'live', 'free'].includes(course.course_type);
-          
-          if (isNewCourse) {
-            const newCourse = course as TNewCourse;
-            return {
-              _id: newCourse._id || '',
-              course_title: newCourse.course_title,
-              course_subtitle: newCourse.course_subtitle,
-              course_category: newCourse.course_category,
-              course_subcategory: newCourse.course_subcategory,
-              course_type: newCourse.course_type,
-              course_tag: newCourse.course_tag,
-              status: newCourse.status || 'Draft',
-              course_image: newCourse.course_image,
-              course_description: newCourse.course_description,
-              course_duration: 'course_duration' in newCourse ? newCourse.course_duration : 
-                              'estimated_duration' in newCourse ? newCourse.estimated_duration : '',
-              session_duration: 'session_duration' in newCourse ? 
-                               (typeof newCourse.session_duration === 'number' ? 
-                                newCourse.session_duration.toString() : newCourse.session_duration) : '',
-              no_of_Sessions: 'total_sessions' in newCourse ? newCourse.total_sessions : 0,
-              prices: newCourse.prices || [],
-              isFree: newCourse.course_type === 'free',
-              language: newCourse.language,
-              course_level: newCourse.course_level,
-              class_type: newCourse.course_type,
-              createdAt: newCourse.createdAt,
-              updatedAt: newCourse.updatedAt,
-              created_at: newCourse.createdAt,
-              updated_at: newCourse.updatedAt,
-              meta: {
-                enrollments: Math.floor(Math.random() * 100),
-                views: Math.floor(Math.random() * 1000),
-                ratings: {
-                  average: Number((Math.random() * 5).toFixed(1)),
-                  count: Math.floor(Math.random() * 50)
-                },
-                revenue: newCourse.course_type === 'free' ? 0 : Math.floor(Math.random() * 10000),
-                completion_rate: Number((Math.random() * 100).toFixed(1))
-              }
-            } as Course;
-          } else {
-            const legacyCourse = course as ILegacyCourse;
-            return {
-              _id: legacyCourse._id || '',
-              course_title: legacyCourse.course_title,
-              course_subtitle: legacyCourse.course_subtitle,
-              course_category: legacyCourse.course_category,
-              course_subcategory: legacyCourse.course_subcategory,
-              course_type: legacyCourse.category_type?.toLowerCase() || 'legacy',
-              course_tag: legacyCourse.course_tag,
-              category_type: legacyCourse.category_type,
-              status: legacyCourse.status || 'Draft',
-              course_image: legacyCourse.course_image,
-              course_description: legacyCourse.course_description,
-              course_duration: legacyCourse.course_duration,
-              session_duration: legacyCourse.session_duration,
-              no_of_Sessions: legacyCourse.no_of_Sessions || 0,
-              course_fee: legacyCourse.prices?.[0]?.individual || 0,
-              prices: legacyCourse.prices || [],
-              isFree: legacyCourse.isFree || legacyCourse.category_type === 'Free',
-              language: legacyCourse.language,
-              course_level: legacyCourse.course_level,
-              class_type: legacyCourse.class_type,
-              classType: legacyCourse.class_type,
-              createdAt: legacyCourse.createdAt,
-              updatedAt: legacyCourse.updatedAt,
-              created_at: legacyCourse.createdAt,
-              updated_at: legacyCourse.updatedAt,
-              meta: {
-                enrollments: Math.floor(Math.random() * 100),
-                views: Math.floor(Math.random() * 1000),
-                ratings: {
-                  average: Number((Math.random() * 5).toFixed(1)),
-                  count: Math.floor(Math.random() * 50)
-                },
-                revenue: legacyCourse.isFree ? 0 : Math.floor(Math.random() * 10000),
-                completion_rate: Number((Math.random() * 100).toFixed(1))
-              }
-            } as Course;
-          }
+        const processedResults: Course[] = searchResults.map((course: any) => {
+          return {
+            ...course,
+            // Ensure required fields have defaults
+            _id: course._id || '',
+            course_title: course.course_title || 'Untitled Course',
+            course_category: course.course_category || 'Uncategorized',
+            status: course.status || 'Draft',
+            // Normalize date fields
+            createdAt: course.createdAt || course.created_at,
+            updatedAt: course.updatedAt || course.updated_at,
+            created_at: course.created_at || course.createdAt,
+            updated_at: course.updated_at || course.updatedAt,
+            // Ensure prices is always an array
+            prices: Array.isArray(course.prices) ? course.prices : [],
+            // Set course_fee from first price if not set
+            course_fee: course.course_fee || course.prices?.[0]?.individual || 0,
+            // Ensure meta exists with defaults
+            meta: course.meta || {
+              enrollments: 0,
+              views: 0,
+              ratings: { average: 0, count: 0 }
+            }
+          } as Course;
         });
 
-        setCourses(processedResults);
+        // Filter results locally based on search query
+        const filteredResults = processedResults.filter(course => {
+          const search = searchQuery.toLowerCase();
+          return (
+            course.course_title?.toLowerCase().includes(search) ||
+            course.course_category?.toLowerCase().includes(search) ||
+            course.course_subtitle?.toLowerCase().includes(search) ||
+            course.course_description?.program_overview?.toLowerCase().includes(search) ||
+            course.course_tag?.toLowerCase().includes(search)
+          );
+        });
+
+        setCourses(filteredResults);
         
-        // Log search performance
-        if (response.data.metadata) {
-          const insights = courseTypesAPI.utils.extractPerformanceInsights(response.data.metadata);
-          console.log('Search Performance:', insights);
-        }
+        console.log('Search Response Stats:', {
+          totalCourses: processedResults.length,
+          totalPages: response.data.pagination?.totalPages,
+          newModelCount: response.data.comparison?.summary?.new_courses_count || 0,
+          legacyModelCount: response.data.comparison?.summary?.legacy_courses_count || 0,
+          filteredCount: filteredResults.length
+        });
         
-        // Log facets if available
-        if (response.data.facets) {
-          const parsedFacets = courseTypesAPI.utils.parseFacets(response.data.facets);
-          console.log('Search Facets:', parsedFacets);
-        }
-        
-        toast.success(`Found ${processedResults.length} courses matching "${searchQuery}"`);
+        toast.success(`Found ${filteredResults.length} courses matching "${searchQuery}"`);
       }
     } catch (error) {
       console.error('Search error:', error);

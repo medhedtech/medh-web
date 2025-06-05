@@ -245,7 +245,7 @@ interface IIntegratedLessonProps {
 
 const IntegratedLesson: React.FC<IIntegratedLessonProps> = ({ params }) => {
   const router = useRouter();
-  const [id, setId] = useState<string>("");
+  const [id, setId] = useState<string>('');
   const [isOnline, setIsOnline] = useState(true);
   const isLargeScreen = useMediaQuery("(min-width: 1024px)");
 
