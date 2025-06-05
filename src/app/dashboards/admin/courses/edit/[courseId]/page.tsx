@@ -33,7 +33,7 @@ import {
 import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
 import { courseTypesAPI } from "@/apis/courses";
-import { updateCourseThumbnailBase64 } from "@/apis/course/course";
+import { uploadCourseImageFromFileAsync } from "@/apis/course/course";
 import type { 
   TNewCourse, 
   TCourseType,
@@ -1187,26 +1187,26 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
     });
   };
 
-  // Handle image upload using base64
+  // Handle image upload using the new TypeScript function
   const handleImageUpload = async () => {
     if (!selectedImage || !course?._id) {
       toast.error('Please select an image first');
       return;
     }
 
-    console.log('Starting base64 image upload...');
-    console.log('Selected image:', selectedImage);
-    console.log('File name:', selectedImage.name);
-    console.log('File size:', selectedImage.size);
-    console.log('File type:', selectedImage.type);
-    console.log('Course ID:', course._id);
+    console.log('🚀 Starting image upload with new TypeScript function...');
+    console.log('📁 Selected image:', selectedImage);
+    console.log('📋 File details:', {
+      name: selectedImage.name,
+      size: selectedImage.size,
+      type: selectedImage.type
+    });
+    console.log('📌 Course ID:', course._id);
 
-    // Debug authentication
+    // Get authentication token
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    console.log('Auth token available:', !!token);
-    console.log('Token length:', token?.length);
-    console.log('Token preview:', token?.substring(0, 20) + '...');
-
+    console.log('🔐 Auth token available:', !!token);
+    
     if (!token) {
       toast.error('Authentication required. Please log in again.');
       return;
@@ -1215,44 +1215,18 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
     setLoadingStates(prev => ({ ...prev, imageUploading: true }));
 
     try {
-      console.log('Converting file to base64...');
-      const base64String = await fileToBase64(selectedImage);
-      console.log('Base64 conversion complete, length:', base64String.length);
-      console.log('Base64 preview:', base64String.substring(0, 100) + '...');
-
-      const requestBody = {
-        base64String,
-        fileType: 'image'
-      };
-
-      console.log('Request body prepared:', {
-        base64Length: base64String.length,
-        fileType: requestBody.fileType
-      });
-
-      const apiUrl = updateCourseThumbnailBase64(course._id);
-      console.log('Making PATCH request to:', apiUrl);
-
-      const response = await fetch(apiUrl, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
-      });
-
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
+      // Use the new TypeScript function that handles everything
+      const result = await uploadCourseImageFromFileAsync(course._id, selectedImage, token);
       
-      const responseData = await response.json();
-      console.log('Response data:', responseData);
-
-      if (responseData.success) {
-        // Update the course state with new image
+      console.log('📤 Upload result:', result);
+      
+      if (result.success && 'data' in result) {
+        // Success! Update the course state with new image
+        const newImageUrl = result.data.imageUrl || result.data.course?.image;
+        
         setCourse(prev => prev ? {
           ...prev,
-          course_image: responseData.data?.newImage || responseData.data?.course_image || imagePreview
+          course_image: newImageUrl || imagePreview || prev.course_image || ''
         } : null);
         
         // Clear the selected image and preview
@@ -1260,14 +1234,16 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
         setImagePreview(null);
         
         toast.success('Course thumbnail updated successfully!');
-        console.log('Upload successful, new image URL:', responseData.data?.newImage);
+        console.log('✅ Upload successful! New image URL:', newImageUrl);
       } else {
-        console.error('Upload failed:', responseData);
-        throw new Error(responseData.message || 'Failed to update thumbnail');
+        // Handle error response
+        const errorResult = result as { success: false; message: string; error?: any };
+        console.error('❌ Upload failed:', errorResult);
+        throw new Error(errorResult.message || 'Failed to update thumbnail');
       }
 
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error('💥 Error uploading image:', error);
       
       let errorMessage = 'Failed to upload thumbnail';
       if (error instanceof Error) {
