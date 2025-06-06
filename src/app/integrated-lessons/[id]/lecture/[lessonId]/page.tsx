@@ -232,7 +232,6 @@ interface LessonProgress {
 }
 
 // Helper function to handle YouTube URLs
-<<<<<<< HEAD
 const formatVideoUrl = (url: string | undefined): string | null => {
   if (!url) return null;
   
@@ -256,83 +255,6 @@ const formatVideoUrl = (url: string | undefined): string | null => {
     return url;
   } catch (error) {
     console.error('Error formatting video URL:', error);
-=======
-const formatVideoUrl = (url) => {
-  console.log('formatVideoUrl called with:', url);
-  
-  if (!url) {
-    console.log('No URL provided');
-    return null;
-  }
-  
-  try {
-    // Handle different video URL formats
-    const urlStr = String(url).trim();
-    console.log('Processing URL:', urlStr);
-    
-    // Check if it's a YouTube URL
-    if (urlStr.includes('youtube.com/watch') || urlStr.includes('youtu.be/') || urlStr.includes('m.youtube.com/watch')) {
-      console.log('Detected YouTube URL');
-      let videoId;
-      
-      if (urlStr.includes('v=')) {
-        // Handle youtube.com/watch?v=VIDEO_ID format
-        const urlParams = new URLSearchParams(urlStr.split('?')[1]);
-        videoId = urlParams.get('v');
-        console.log('Extracted video ID from v= parameter:', videoId);
-      } else if (urlStr.includes('youtu.be/')) {
-        // Handle youtu.be/VIDEO_ID format
-        videoId = urlStr.split('youtu.be/')[1];
-        if (videoId && videoId.includes('?')) {
-          videoId = videoId.split('?')[0];
-        }
-        console.log('Extracted video ID from youtu.be:', videoId);
-      }
-      
-      if (videoId) {
-        const embedUrl = `https://www.youtube.com/embed/${videoId}`;
-        console.log('Formatted YouTube embed URL:', embedUrl);
-        return embedUrl;
-      }
-    }
-    
-    // Check if it's already a valid embed URL
-    if (urlStr.includes('youtube.com/embed/') || urlStr.includes('vimeo.com/video/')) {
-      console.log('Already an embed URL:', urlStr);
-      return urlStr;
-    }
-    
-    // Handle direct video file URLs (.mp4, .webm, .mov, etc.)
-    if (urlStr.match(/\.(mp4|webm|ogg|mov|avi|mkv)(\?.*)?$/i)) {
-      console.log('Direct video file URL:', urlStr);
-      return urlStr;
-    }
-    
-    // Handle Vimeo URLs
-    if (urlStr.includes('vimeo.com/')) {
-      console.log('Detected Vimeo URL');
-      const vimeoMatch = urlStr.match(/vimeo\.com\/(\d+)/);
-      if (vimeoMatch) {
-        const vimeoId = vimeoMatch[1];
-        const vimeoEmbedUrl = `https://player.vimeo.com/video/${vimeoId}`;
-        console.log('Formatted Vimeo embed URL:', vimeoEmbedUrl);
-        return vimeoEmbedUrl;
-      }
-    }
-    
-    // Return original URL if it looks like a valid URL
-    if (urlStr.startsWith('http://') || urlStr.startsWith('https://')) {
-      console.log('Returning original URL:', urlStr);
-      return urlStr;
-    }
-    
-    console.warn('URL format not recognized, returning as-is:', urlStr);
-    return urlStr;
-    
-  } catch (error) {
-    console.error("Error formatting video URL:", error);
-    console.error("Original URL:", url);
->>>>>>> f1430ea24f47e7db52d620ec30e11914e4a1de6e
     return url;
   }
 };

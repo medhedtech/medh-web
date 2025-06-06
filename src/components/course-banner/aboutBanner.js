@@ -15,11 +15,7 @@ export default function AboutBanner({
   buttonText = "Let's Connect",
   secondaryButtonText = "View Courses",
   isoText = "ISO Certified",
-<<<<<<< HEAD
-  slogan = "Medh Hain Toh Mumkin Hai!",
-=======
   slogan = "Medh Hai Toh Mumkin Hai!",
->>>>>>> f1430ea24f47e7db52d620ec30e11914e4a1de6e
   buttonImage,
   headingColor = "text-primary-500",
   descriptionColor = "text-gray-600 dark:text-gray-300",
