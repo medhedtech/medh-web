@@ -276,7 +276,11 @@ function HireFromMedhBanner() {
             transition={{ delay: 0.7 }}
             className={`mumkinMedh text-xl sm:text-2xl md:text-3xl font-medium italic text-center lg:text-left mt-1 sm:mt-4`}
           >
+<<<<<<< HEAD
             Medh Hain Toh Mumkin Hai!
+=======
+            Medh Hai Toh Mumkin Hai!
+>>>>>>> f1430ea24f47e7db52d620ec30e11914e4a1de6e
           </motion.div>
         </div>
       </div>
