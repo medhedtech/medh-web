@@ -1167,6 +1167,211 @@ export const bulkUpdateCourseFees = (updateData: {
   };
 };
 
+// LESSON MANAGEMENT FUNCTIONS
+
+/**
+ * Creates a new lesson for a specific course and week.
+ * @param courseType - The type of course ('live', 'blended', 'free')
+ * @param courseId - The ID of the course
+ * @param weekId - The ID of the week
+ * @param lessonData - The lesson data to create
+ * @returns An object containing the URL and the data payload
+ */
+export const createLesson = (
+  courseType: string,
+  courseId: string,
+  weekId: string,
+  lessonData: {
+    title: string;
+    description?: string;
+    content_type: 'video' | 'text' | 'quiz' | 'assignment';
+    content_url?: string;
+    duration?: number;
+    order: number;
+    is_preview?: boolean;
+  }
+): { url: string; data: any } => {
+  if (!courseType) throw new Error('Course type cannot be empty');
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!weekId) throw new Error('Week ID cannot be empty');
+  if (!lessonData.title) throw new Error('Lesson title is required');
+  
+  return {
+    url: `${apiBaseUrl}/tcourse/${courseType}/${courseId}/curriculum/${weekId}/lessons`,
+    data: {
+      ...lessonData,
+      created_at: new Date().toISOString()
+    }
+  };
+};
+
+/**
+ * Updates an existing lesson.
+ * @param courseType - The type of course ('live', 'blended', 'free')
+ * @param courseId - The ID of the course
+ * @param weekId - The ID of the week
+ * @param lessonId - The ID of the lesson to update
+ * @param lessonData - The lesson data to update
+ * @returns An object containing the URL and the data payload
+ */
+export const updateLesson = (
+  courseType: string,
+  courseId: string,
+  weekId: string,
+  lessonId: string,
+  lessonData: Partial<{
+    title: string;
+    description?: string;
+    content_type: 'video' | 'text' | 'quiz' | 'assignment';
+    content_url?: string;
+    duration?: number;
+    order: number;
+    is_preview?: boolean;
+  }>
+): { url: string; data: any } => {
+  if (!courseType) throw new Error('Course type cannot be empty');
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!weekId) throw new Error('Week ID cannot be empty');
+  if (!lessonId) throw new Error('Lesson ID cannot be empty');
+  
+  return {
+    url: `${apiBaseUrl}/tcourse/${courseType}/${courseId}/curriculum/${weekId}/lessons/${lessonId}`,
+    data: {
+      ...lessonData,
+      updated_at: new Date().toISOString()
+    }
+  };
+};
+
+/**
+ * Deletes a lesson from a course week.
+ * @param courseType - The type of course ('live', 'blended', 'free')
+ * @param courseId - The ID of the course
+ * @param weekId - The ID of the week
+ * @param lessonId - The ID of the lesson to delete
+ * @returns The API URL string
+ */
+export const deleteLesson = (
+  courseType: string,
+  courseId: string,
+  weekId: string,
+  lessonId: string
+): string => {
+  if (!courseType) throw new Error('Course type cannot be empty');
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!weekId) throw new Error('Week ID cannot be empty');
+  if (!lessonId) throw new Error('Lesson ID cannot be empty');
+  
+  return `${apiBaseUrl}/tcourse/${courseType}/${courseId}/curriculum/${weekId}/lessons/${lessonId}`;
+};
+
+/**
+ * Reorders lessons within a week.
+ * @param courseType - The type of course ('live', 'blended', 'free')
+ * @param courseId - The ID of the course
+ * @param weekId - The ID of the week
+ * @param lessonOrders - Array of lesson IDs in their new order
+ * @returns An object containing the URL and the data payload
+ */
+export const reorderLessons = (
+  courseType: string,
+  courseId: string,
+  weekId: string,
+  lessonOrders: { lessonId: string; order: number }[]
+): { url: string; data: any } => {
+  if (!courseType) throw new Error('Course type cannot be empty');
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!weekId) throw new Error('Week ID cannot be empty');
+  if (!lessonOrders || lessonOrders.length === 0) throw new Error('Lesson orders cannot be empty');
+  
+  return {
+    url: `${apiBaseUrl}/tcourse/${courseType}/${courseId}/curriculum/${weekId}/lessons/reorder`,
+    data: {
+      lesson_orders: lessonOrders,
+      updated_at: new Date().toISOString()
+    }
+  };
+};
+
+/**
+ * Gets a specific lesson from a course week.
+ * @param courseType - The type of course ('live', 'blended', 'free')
+ * @param courseId - The ID of the course
+ * @param weekId - The ID of the week
+ * @param lessonId - The ID of the lesson
+ * @returns The API URL string
+ */
+export const getLesson = (
+  courseType: string,
+  courseId: string,
+  weekId: string,
+  lessonId: string
+): string => {
+  if (!courseType) throw new Error('Course type cannot be empty');
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!weekId) throw new Error('Week ID cannot be empty');
+  if (!lessonId) throw new Error('Lesson ID cannot be empty');
+  
+  return `${apiBaseUrl}/tcourse/${courseType}/${courseId}/curriculum/${weekId}/lessons/${lessonId}`;
+};
+
+/**
+ * Gets all lessons for a specific week.
+ * @param courseType - The type of course ('live', 'blended', 'free')
+ * @param courseId - The ID of the course
+ * @param weekId - The ID of the week
+ * @returns The API URL string
+ */
+export const getWeekLessons = (
+  courseType: string,
+  courseId: string,
+  weekId: string
+): string => {
+  if (!courseType) throw new Error('Course type cannot be empty');
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!weekId) throw new Error('Week ID cannot be empty');
+  
+  return `${apiBaseUrl}/tcourse/${courseType}/${courseId}/curriculum/${weekId}/lessons`;
+};
+
+/**
+ * Bulk creates multiple lessons for a week.
+ * @param courseType - The type of course ('live', 'blended', 'free')
+ * @param courseId - The ID of the course
+ * @param weekId - The ID of the week
+ * @param lessons - Array of lesson data to create
+ * @returns An object containing the URL and the data payload
+ */
+export const bulkCreateLessons = (
+  courseType: string,
+  courseId: string,
+  weekId: string,
+  lessons: Array<{
+    title: string;
+    description?: string;
+    content_type: 'video' | 'text' | 'quiz' | 'assignment';
+    content_url?: string;
+    duration?: number;
+    order: number;
+    is_preview?: boolean;
+  }>
+): { url: string; data: any } => {
+  if (!courseType) throw new Error('Course type cannot be empty');
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!weekId) throw new Error('Week ID cannot be empty');
+  if (!lessons || lessons.length === 0) throw new Error('Lessons array cannot be empty');
+  
+  return {
+    url: `${apiBaseUrl}/tcourse/${courseType}/${courseId}/curriculum/${weekId}/lessons/bulk`,
+    data: {
+      lessons: lessons.map(lesson => ({
+        ...lesson,
+        created_at: new Date().toISOString()
+      }))
+    }
+  };
+};
+
 // PRICE MANAGEMENT ENDPOINTS
 
 /**
@@ -1411,4 +1616,197 @@ export const prepareBasicCourseData = (data: {
   }
   
   return formData;
+};
+
+/**
+ * Enhanced Lesson Management Utilities
+ * Based on the backend API structure from course-controller.js
+ */
+
+// Course type determination helper
+export const determineCourseType = (course: any): string => {
+  if (!course) return 'unknown';
+  
+  // Check class_type field first
+  if (course.class_type) {
+    const classType = course.class_type.toLowerCase();
+    if (classType.includes('live')) return 'live';
+    if (classType.includes('blend')) return 'blended'; 
+    if (classType.includes('self') || classType.includes('record')) return 'free';
+  }
+  
+  // Check category_type field
+  if (course.category_type) {
+    const categoryType = course.category_type.toLowerCase();
+    if (categoryType.includes('live')) return 'live';
+    if (categoryType.includes('blend')) return 'blended';
+    if (categoryType.includes('free') || categoryType.includes('self')) return 'free';
+  }
+  
+  // Check if course is marked as free
+  if (course.isFree === true || course.course_fee === 0) return 'free';
+  
+  // Default fallback
+  return 'blended';
+};
+
+// Add lesson resource to existing lesson
+export const addLessonResource = (courseId: string, lessonId: string, resourceData: {
+  title: string;
+  type: 'pdf' | 'video' | 'link' | 'document' | 'image';
+  url: string;
+  description?: string;
+  mimeType?: string;
+  size?: number;
+}) => {
+  return {
+    url: `${apiBaseUrl}/courses/${courseId}/lessons/${lessonId}/resources`,
+    data: {
+      ...resourceData,
+      id: `resource_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+  };
+};
+
+// Remove lesson resource
+export const removeLessonResource = (courseId: string, lessonId: string, resourceId: string) => {
+  return {
+    url: `${apiBaseUrl}/courses/${courseId}/lessons/${lessonId}/resources/${resourceId}`,
+    method: 'DELETE'
+  };
+};
+
+// Get course curriculum with detailed lesson structure
+export const getCurriculumWithLessons = (courseId: string) => {
+  return `${apiBaseUrl}/courses/${courseId}/curriculum`;
+};
+
+// Update entire course curriculum structure
+export const updateCourseCurriculum = (courseId: string, curriculumData: any) => {
+  return {
+    url: `${apiBaseUrl}/courses/${courseId}`,
+    data: {
+      curriculum: curriculumData,
+      updated_at: new Date().toISOString(),
+    }
+  };
+};
+
+// Mark lesson as complete for student progress tracking
+export const markLessonCompleted = (courseId: string, lessonId: string, studentId: string) => {
+  return {
+    url: `${apiBaseUrl}/courses/${courseId}/lessons/${lessonId}/complete`,
+    data: {
+      student_id: studentId,
+      completed_at: new Date().toISOString(),
+    }
+  };
+};
+
+// Get course progress for dashboard
+export const getCourseProgressSummary = (courseId: string, studentId?: string) => {
+  const params = studentId ? `?student_id=${studentId}` : '';
+  return `${apiBaseUrl}/courses/${courseId}/progress${params}`;
+};
+
+// Bulk import lessons from CSV or JSON
+export const bulkImportLessons = (courseId: string, weekId: string, lessonsData: any[]) => {
+  return {
+    url: `${apiBaseUrl}/courses/${courseId}/curriculum/weeks/${weekId}/lessons/bulk`,
+    data: {
+      lessons: lessonsData.map((lesson, index) => ({
+        ...lesson,
+        id: `lesson_${Date.now()}_${index}`,
+        order: lesson.order || index + 1,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }))
+    }
+  };
+};
+
+// Duplicate lesson to another week or course
+export const duplicateLesson = (sourceCoursId: string, sourceLessonId: string, targetCourseId: string, targetWeekId: string) => {
+  return {
+    url: `${apiBaseUrl}/courses/${sourceCoursId}/lessons/${sourceLessonId}/duplicate`,
+    data: {
+      target_course_id: targetCourseId,
+      target_week_id: targetWeekId,
+      created_at: new Date().toISOString(),
+    }
+  };
+};
+
+// Export course curriculum to different formats
+export const exportCourseCurriculum = (courseId: string, format: 'json' | 'csv' | 'pdf' = 'json') => {
+  return `${apiBaseUrl}/courses/${courseId}/curriculum/export?format=${format}`;
+};
+
+// Get lesson analytics and engagement data
+export const getLessonAnalytics = (courseId: string, lessonId: string) => {
+  return `${apiBaseUrl}/courses/${courseId}/lessons/${lessonId}/analytics`;
+};
+
+// Schedule lesson for auto-publishing
+export const scheduleLessonPublish = (courseId: string, lessonId: string, publishDate: string) => {
+  return {
+    url: `${apiBaseUrl}/courses/${courseId}/lessons/${lessonId}/schedule`,
+    data: {
+      publish_date: publishDate,
+      scheduled_at: new Date().toISOString(),
+    }
+  };
+};
+
+// Enhanced lesson form helpers for the UI
+export const createEnhancedLessonForm = () => {
+  return {
+    title: '',
+    description: '',
+    content_type: 'video' as 'video' | 'text' | 'quiz' | 'assignment',
+    content_url: '',
+    duration: 0,
+    order: 1,
+    is_preview: false,
+    resources: [],
+    quiz_questions: [],
+    assignment_details: null,
+    video_metadata: {
+      thumbnail: '',
+      captions: false,
+      quality: '720p',
+    }
+  };
+};
+
+// Validate lesson form data
+export const validateLessonForm = (lessonData: any) => {
+  const errors: string[] = [];
+  
+  if (!lessonData.title?.trim()) {
+    errors.push('Lesson title is required');
+  }
+  
+  if (!lessonData.content_type) {
+    errors.push('Content type is required');
+  }
+  
+  if (lessonData.content_type === 'video' && !lessonData.content_url) {
+    errors.push('Video URL is required for video lessons');
+  }
+  
+  if (lessonData.duration <= 0) {
+    errors.push('Duration must be greater than 0');
+  }
+  
+  if (lessonData.order <= 0) {
+    errors.push('Order must be greater than 0');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
 };

@@ -545,6 +545,17 @@ class CurriculumService {
     }
 
     try {
+      // Strategy 1.5: Try new tcourse API endpoints
+      const tcourseResponse = await this.fetchFromTcourseAPI(courseId, studentId);
+      if (tcourseResponse) {
+        this.setCacheWithTimeout(cacheKey, tcourseResponse);
+        return tcourseResponse;
+      }
+    } catch (error) {
+      console.warn('Tcourse API curriculum not available:', error);
+    }
+
+    try {
       // Strategy 2: Try course API for embedded curriculum
       const courseResponse = await this.fetchFromCourseAPI(courseId, studentId);
       if (courseResponse) {
@@ -649,6 +660,46 @@ class CurriculumService {
   }
 
   /**
+   * Try to fetch curriculum from new tcourse API endpoints
+   */
+  private async fetchFromTcourseAPI(courseId: string, studentId?: string): Promise<Curriculum | null> {
+    const courseTypes = ['blended', 'live', 'free'];
+    
+    for (const courseType of courseTypes) {
+      try {
+        console.log(`🔍 Trying to fetch curriculum from tcourse API: ${courseType}/${courseId}`);
+        
+        const url = `${apiBaseUrl}/tcourse/${courseType}/${courseId}/curriculum`;
+        
+        const response = await fetch(url, {
+          headers: {
+            'x-access-token': localStorage.getItem('token') || '',
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          console.log(`❌ tcourse API failed for ${courseType}: ${response.status}`);
+          continue;
+        }
+
+        const data = await response.json();
+        console.log(`📊 tcourse API response for ${courseType}:`, data);
+        
+        if (data.success && data.data?.curriculum && Array.isArray(data.data.curriculum) && data.data.curriculum.length > 0) {
+          console.log(`✅ Found curriculum in tcourse API for ${courseType}:`, data.data.curriculum.length, 'weeks');
+          return this.convertTcourseCurriculumFormat(data.data.curriculum, courseId, courseType);
+        }
+      } catch (error) {
+        console.log(`❌ tcourse API error for ${courseType}:`, error);
+        continue;
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Convert course API curriculum format to standard format
    */
   private convertCourseCurriculumFormat(courseCurriculum: any[], courseId: string): Curriculum {
@@ -688,6 +739,85 @@ class CurriculumService {
       structure_type: 'weekly',
       isPublished: true,
       lastUpdated: new Date().toISOString()
+    };
+  }
+
+  /**
+   * Convert tcourse API curriculum format to standard format
+   */
+  private convertTcourseCurriculumFormat(courseCurriculum: any[], courseId: string, courseType: string): Curriculum {
+    console.log(`🔄 Converting tcourse curriculum format for ${courseType}:`, courseCurriculum);
+    
+    const weeks: CurriculumWeek[] = courseCurriculum.map((week, index) => {
+      const weekData: CurriculumWeek = {
+        _id: week._id || `week_${index + 1}`,
+        weekTitle: week.weekTitle || week.title || `Week ${index + 1}`,
+        weekDescription: week.weekDescription || week.description || '',
+        order: week.order || index + 1,
+        sections: [],
+        lessons: []
+      };
+
+      // Handle lessons directly in the week
+      if (week.lessons && Array.isArray(week.lessons)) {
+        weekData.lessons = week.lessons.map((lesson: any, lIndex: number): CurriculumLesson => ({
+          _id: lesson._id || `lesson_${index}_${lIndex}`,
+          title: lesson.title || `Lesson ${lIndex + 1}`,
+          description: lesson.description || '',
+          lessonType: lesson.content_type || lesson.lessonType || 'video',
+          order: lesson.order || lIndex + 1,
+          duration: lesson.duration || "15 min",
+          videoUrl: lesson.content_url || lesson.video_url || '',
+          isPreview: Boolean(lesson.is_preview),
+          is_completed: Boolean(lesson.is_completed || lesson.completed),
+          resources: lesson.resources || []
+        }));
+      }
+
+      // Handle sections in the week
+      if (week.sections && Array.isArray(week.sections)) {
+        weekData.sections = week.sections.map((section: any, sIndex: number) => ({
+          _id: section._id || `section_${index}_${sIndex}`,
+          title: section.title || `Section ${sIndex + 1}`,
+          description: section.description || '',
+          order: section.order || sIndex + 1,
+          lessons: (section.lessons || []).map((lesson: any, lIndex: number) => ({
+            _id: lesson._id || `lesson_${index}_${sIndex}_${lIndex}`,
+            title: lesson.title || `Lesson ${lIndex + 1}`,
+            description: lesson.description || '',
+            lessonType: lesson.content_type || lesson.lessonType || 'video',
+            order: lesson.order || lIndex + 1,
+            duration: lesson.duration || "15 min",
+            videoUrl: lesson.content_url || lesson.video_url || '',
+            isPreview: Boolean(lesson.is_preview),
+            is_completed: Boolean(lesson.is_completed || lesson.completed),
+            resources: lesson.resources || []
+          }))
+        }));
+      }
+
+      return weekData;
+    });
+
+    const totalLessons = weeks.reduce((total, week) => {
+      const weekLessons = (week.lessons?.length || 0);
+      const sectionLessons = week.sections?.reduce((sTotal, section) => sTotal + (section.lessons?.length || 0), 0) || 0;
+      return total + weekLessons + sectionLessons;
+    }, 0);
+
+    console.log(`📊 Converted tcourse curriculum: ${weeks.length} weeks, ${totalLessons} total lessons`);
+
+    return {
+      _id: `curriculum_${courseId}_${courseType}`,
+      courseId,
+      weeks,
+      totalLessons,
+      totalSections: weeks.reduce((total, week) => total + (week.sections?.length || 0), 0),
+      totalWeeks: weeks.length,
+      structure_type: 'weekly',
+      isPublished: true,
+      lastUpdated: new Date().toISOString(),
+      version: `tcourse_${courseType}`
     };
   }
 
