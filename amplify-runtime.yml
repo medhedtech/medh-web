@@ -4,9 +4,9 @@ frontend:
     preBuild:
       commands:
         - echo "=== Amplify Runtime Configuration ==="
-        - echo "Available Node.js version: $(node -v)"
-        - echo "Available npm version: $(npm -v)"
-        - echo "Expected Node.js version: $(cat .nvmrc 2>/dev/null || echo 'Not specified')"
+        - "echo \"Available Node.js version: $(node -v)\""
+        - "echo \"Available npm version: $(npm -v)\""
+        - "echo \"Expected Node.js version: $(cat .nvmrc 2>/dev/null || echo 'Not specified')\""
         - echo ""
         
         # Check Node.js compatibility
@@ -38,13 +38,13 @@ frontend:
       commands:
         - echo ""
         - echo "=== Building Application ==="
-        - echo "Node.js version: $(node -v)"
-        - echo "npm version: $(npm -v)"
-        - echo "Build environment: $AWS_BRANCH"
+        - "echo \"Node.js version: $(node -v)\""
+        - "echo \"npm version: $(npm -v)\""
+        - "echo \"Build environment: $AWS_BRANCH\""
         
         # Set Node.js options for build
         - export NODE_OPTIONS="--max-old-space-size=4096"
-        - echo "Node options: $NODE_OPTIONS"
+        - "echo \"Node options: $NODE_OPTIONS\""
         
         # Run the build
         - echo ""
@@ -55,7 +55,7 @@ frontend:
         - echo ""
         - echo "Build completed, checking output..."
         - ls -la .next/ || echo "No .next directory found"
-        - echo "Build artifacts:"
+        - "echo \"Build artifacts:\""
         - find .next -name "*.js" -o -name "*.html" | head -10 || echo "No build artifacts found"
         
   artifacts:
