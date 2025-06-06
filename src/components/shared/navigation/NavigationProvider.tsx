@@ -268,7 +268,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
       const returnPath = userInfo.userRole === "admin" 
         ? "/dashboards/admin" 
         : userInfo.userRole === "instructor" 
-        ? "/dashboards/instructor-dashboard" 
+        ? "/dashboards/instructor/" 
         : "/dashboards/student";
       
       router.push(`/coming-soon?title=${encodeURIComponent(subItem.name)}&returnPath=${returnPath}`);

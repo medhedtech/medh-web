@@ -80,7 +80,7 @@ export default function DashboardRouter() {
         if (roleLower === "admin" || roleLower === "super-admin") {
           router.push("/dashboards/admin");
         } else if (roleLower === "instructor") {
-          router.push("/dashboards/instructor-dashboard");
+          router.push("/dashboards/instructor/");
         } else if (roleLower === "student") {
           router.push("/dashboards/student");
         } else if (roleLower === "coorporate") {
