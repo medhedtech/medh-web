@@ -2,18 +2,10 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { apiBaseUrl } from '@/apis';
 import { getAuthToken, saveAuthToken, getRefreshToken, saveRefreshToken } from './auth';
 import { jwtDecode } from 'jwt-decode';
-import { Tooltip } from "react-tooltip";
 
 // Flag to prevent multiple simultaneous refresh attempts
 let isRefreshing = false;
 let refreshPromise: Promise<string | null> | null = null;
-
-const COUNTRY_NAME_MAP: Record<string, string> = {
-  "USA": "United States of America",
-  "UK": "United Kingdom",
-  "UAE": "United Arab Emirates",
-  // Add more as needed
-};
 
 // Check if token is expired or will expire soon
 const isTokenExpired = (token: string, thresholdSeconds = 300): boolean => {
@@ -33,7 +25,7 @@ const isTokenExpired = (token: string, thresholdSeconds = 300): boolean => {
 const refreshTokenIfNeeded = async (token: string): Promise<string | null> => {
   if (!token) {
     console.warn('No token provided to refreshTokenIfNeeded');
-    return token;
+    return null;
   }
   
   if (!isTokenExpired(token)) {
@@ -42,8 +34,13 @@ const refreshTokenIfNeeded = async (token: string): Promise<string | null> => {
   
   const refreshToken = getRefreshToken();
   if (!refreshToken) {
-    console.warn('No refresh token available');
-    return token;
+    console.warn('No refresh token available for token refresh');
+    // Clear invalid tokens
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
+    }
+    return null;
   }
   
   // If already refreshing, wait for the existing promise
@@ -71,7 +68,9 @@ const refreshTokenIfNeeded = async (token: string): Promise<string | null> => {
           headers: {
             'Content-Type': 'application/json'
           },
-          timeout: 10000 // 10 second timeout
+          timeout: 10000, // 10 second timeout
+          // Don't retry on network errors for token refresh
+          validateStatus: (status) => status < 500, // Accept any status < 500 as valid response
         }
       );
     
@@ -98,12 +97,13 @@ const refreshTokenIfNeeded = async (token: string): Promise<string | null> => {
       return token; // Return original token if refresh failed
     } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error('Error refreshing token:', {
+      console.error('Error refreshing token (Axios):', {
         message: error.message,
         status: error.response?.status,
         data: error.response?.data,
         url: error.config?.url,
         method: error.config?.method,
+        code: error.code,
       });
       
       // If it's a 401 or 403, the refresh token is invalid
@@ -117,8 +117,21 @@ const refreshTokenIfNeeded = async (token: string): Promise<string | null> => {
         }
         return null; // Return null to indicate auth failure
       }
+      
+      // Handle network errors (no response)
+      if (!error.response) {
+        console.warn('Network error during token refresh, keeping existing token for now');
+        return token; // Return original token on network errors
+      }
     } else {
-      console.error('Error refreshing token:', error);
+      // Handle non-Axios errors properly
+      console.error('Error refreshing token (Non-Axios):', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        name: error instanceof Error ? error.name : 'UnknownError',
+        stack: error instanceof Error ? error.stack : undefined,
+        errorType: typeof error,
+        errorString: String(error),
+      });
     }
     
     // For development mode, return the original token to prevent auth loops
@@ -156,23 +169,35 @@ export const createAuthClient = (): AxiosInstance => {
         
         if (token) {
           // Try to refresh token if it's expired or close to expiring
-          const refreshedToken = await refreshTokenIfNeeded(token);
-          
-          // Only use the refreshed token if it's valid
-          if (refreshedToken) {
-            token = refreshedToken;
-            // Add both authorization header formats
-            config.headers['Authorization'] = `Bearer ${token}`;
-            config.headers['x-access-token'] = token;
-          } else {
-            // If refresh failed and returned null, don't add auth headers
-            console.warn('Token refresh failed, proceeding without auth headers');
+          try {
+            const refreshedToken = await refreshTokenIfNeeded(token);
+            
+            // Only use the refreshed token if it's valid
+            if (refreshedToken) {
+              token = refreshedToken;
+              // Add both authorization header formats
+              config.headers['Authorization'] = `Bearer ${token}`;
+              config.headers['x-access-token'] = token;
+            } else {
+              // If refresh failed and returned null, don't add auth headers
+              console.warn('Token refresh failed, proceeding without auth headers');
+              // Remove any existing auth headers
+              delete config.headers['Authorization'];
+              delete config.headers['x-access-token'];
+            }
+          } catch (refreshError) {
+            console.warn('Token refresh attempt failed:', refreshError instanceof Error ? refreshError.message : 'Unknown error');
+            // If we have an existing token that isn't expired according to our check, use it
+            if (!isTokenExpired(token)) {
+              config.headers['Authorization'] = `Bearer ${token}`;
+              config.headers['x-access-token'] = token;
+            }
           }
         }
         
         return config;
       } catch (error) {
-        console.error('Error in auth interceptor:', error);
+        console.error('Error in auth interceptor:', error instanceof Error ? error.message : 'Unknown error');
         // Continue with the request even if token refresh fails
         return config;
       }
