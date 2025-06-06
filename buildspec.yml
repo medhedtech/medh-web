@@ -1,0 +1,52 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo "=== AWS CodeBuild Configuration ==="
+      - echo "Available Node.js $(node -v)"
+      - echo "Available npm $(npm -v)"
+      - echo "Target Node.js $(cat .nvmrc 2>/dev/null || echo 'Not specified')"
+      - echo ""
+      
+      # Check Node.js compatibility
+      - |
+        CURRENT_MAJOR=$(node -v | sed 's/v//' | cut -d. -f1)
+        echo "Current Node.js major version v$CURRENT_MAJOR"
+        
+        if [ "$CURRENT_MAJOR" -ge "18" ]; then
+          echo "✅ Node.js version is compatible for Next.js (v$CURRENT_MAJOR >= v18)"
+        else
+          echo "❌ Node.js version too old (v$CURRENT_MAJOR < v18)"
+          echo "This project requires Node.js 18 or higher"
+          exit 1
+        fi
+      
+      - echo ""
+      - echo "Final environment"
+      - "echo \"Node.js $(node -v)\""
+      - "echo \"npm $(npm -v)\""
+      - npm config set legacy-peer-deps true
+      - npm ci --no-audit --prefer-offline
+
+  build:
+    commands:
+      - echo "=== Building Application ==="
+      - export NODE_OPTIONS="--max-old-space-size=4096"
+      - "echo \"Node options $NODE_OPTIONS\""
+      - npm run build
+      
+      # Verify build output
+      - echo "Build completed, checking output..."
+      - ls -la .next/ || echo "No .next directory found"
+
+artifacts:
+  files:
+    - '**/*'
+  base-directory: .next
+
+cache:
+  paths:
+    - 'node_modules/**/*'
+    - '.next/cache/**/*'
+    - '.npm/**/*' 
