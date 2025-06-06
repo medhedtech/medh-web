@@ -114,16 +114,21 @@ interface Lesson {
 }
 
 interface LessonData {
-  _id: string;
+  _id?: string;
   id?: string;
   title: string;
   description?: string;
-  lessonType: 'video' | 'quiz' | 'assessment';
+  lessonType?: 'video' | 'quiz' | 'assessment';
   videoUrl?: string;
   video_url?: string;
   thumbnailUrl?: string;
   is_completed?: boolean;
   completed?: boolean;
+  order?: number;
+  isPreview?: boolean;
+  duration?: string | number;
+  quiz_id?: string;
+  assignment_id?: string;
   meta?: {
     presenter?: string;
     transcript?: string;
@@ -132,6 +137,13 @@ interface LessonData {
     due_date?: string;
     max_score?: number;
   };
+  resources?: Array<{
+    id: string;
+    title: string;
+    url: string;
+    type: string;
+    description?: string;
+  }>;
 }
 
 interface LessonMeta {
@@ -147,7 +159,10 @@ interface Section {
   id?: string;
   title: string;
   description?: string;
-  lessons: Lesson[];
+  order?: number;
+  lessons: LessonData[];
+  resources?: any[];
+  _id?: string;
 }
 
 interface CourseSection extends Omit<Section, 'id'> {
@@ -159,8 +174,9 @@ interface Week {
   weekTitle: string;
   weekDescription?: string;
   sections?: Section[];
-  lessons?: Lesson[];
+  lessons?: LessonData[];
   topics?: string[];
+  _id?: string;
 }
 
 interface CourseWeek extends Omit<Week, 'sections'> {
@@ -168,7 +184,7 @@ interface CourseWeek extends Omit<Week, 'sections'> {
 }
 
 interface VideoBookmark {
-  id: string;
+  id: string | number;
   time: number;
   label: string;
 }
@@ -216,37 +232,29 @@ interface LessonProgress {
 }
 
 // Helper function to handle YouTube URLs
-const formatVideoUrl = (url) => {
+const formatVideoUrl = (url: string | undefined): string | null => {
   if (!url) return null;
   
   try {
-    // Check if it's a YouTube URL
-    if (url.includes('youtube.com/watch') || url.includes('youtu.be/') || url.includes('m.youtube.com/watch')) {
-      // Extract the video ID
-      let videoId;
-      
-      if (url.includes('v=')) {
-        // Handle youtube.com/watch?v=VIDEO_ID format
-        const urlParams = new URLSearchParams(url.split('?')[1]);
-        videoId = urlParams.get('v');
-      } else if (url.includes('youtu.be/')) {
-        // Handle youtu.be/VIDEO_ID format
-        videoId = url.split('youtu.be/')[1];
-        if (videoId.includes('?')) {
-          videoId = videoId.split('?')[0];
-        }
-      }
-      
-      if (videoId) {
-        // Return YouTube embed URL
-        return `https://www.youtube.com/embed/${videoId}`;
-      }
+    // If it's already a valid URL, return as is
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
     }
     
-    // Return original URL if not YouTube or if parsing fails
+    // Handle YouTube URLs
+    if (url.includes('youtube.com/watch?v=') || url.includes('youtu.be/')) {
+      return url;
+    }
+    
+    // If it looks like a YouTube video ID, construct the full URL
+    if (url.match(/^[a-zA-Z0-9_-]{11}$/)) {
+      return `https://www.youtube.com/watch?v=${url}`;
+    }
+    
+    // Return as is for other cases
     return url;
   } catch (error) {
-    console.error("Error formatting video URL:", error);
+    console.error('Error formatting video URL:', error);
     return url;
   }
 };
@@ -269,8 +277,8 @@ const IntegratedLessonPage = () => {
     postLoading,
   } = useCourseLesson(courseId, lessonId);
 
-  const { storage } = useStorage();
-  const savedProgress = storage?.getLessonProgress(lessonId);
+  const storageContext = useStorage();
+  const savedProgress = storageContext?.getLessonProgress?.(lessonId);
   
   const [activeTab, setActiveTab] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -333,7 +341,7 @@ const IntegratedLessonPage = () => {
     setMobileSidebarOpen(!mobileSidebarOpen);
   };
 
-  const handleAddVideoBookmark = (bookmark) => {
+  const handleAddVideoBookmark = (bookmark: VideoBookmark) => {
     setVideoBookmarks(prev => {
       const newBookmarks = [...prev, bookmark];
       // Save to localStorage
@@ -343,7 +351,7 @@ const IntegratedLessonPage = () => {
     });
   };
 
-  const formatTime = (seconds) => {
+  const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const remainingSeconds = Math.floor(seconds % 60);

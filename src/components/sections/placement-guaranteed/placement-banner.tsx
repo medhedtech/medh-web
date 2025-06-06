@@ -235,7 +235,7 @@ const PlacementGauranteedBanner: React.FC = () => {
             className="text-left mt-12"
           >
             <p className="mumkinMedh text-2xl font-medium italic text-[#7ECA9D]">
-              Medh Hain Toh Mumkin Hain!
+              Medh Hain Toh Mumkin Hai!
             </p>
           </motion.div>
         </div>
