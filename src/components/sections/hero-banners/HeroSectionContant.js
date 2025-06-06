@@ -163,7 +163,7 @@ function CourseAiBanner({ onLearnMoreClick }) {
               transition={{ delay: 0.7 }}
               className="mumkinMedh text-2xl sm:text-3xl md:text-4xl font-medium italic text-center"
             >
-                Medh Hain Toh Mumkin Hain!
+                Medh Hai Toh Mumkin Hai!
             </motion.div>
 
           {/* Features Grid */}
