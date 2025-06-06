@@ -18,10 +18,7 @@ import {
   Star,
   Folder,
   PlayCircle,
-<<<<<<< HEAD
   FileText as FileIcon,
-=======
->>>>>>> f1430ea24f47e7db52d620ec30e11914e4a1de6e
   ExternalLink
 } from 'lucide-react';
 
