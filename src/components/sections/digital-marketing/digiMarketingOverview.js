@@ -470,7 +470,7 @@ const DigiMarketingOverview = () => {
         {/* Slogan */}
         <div className="text-center mt-10">
           <p className="mumkinMedh text-2xl text-blue-500 font-medium italic">
-            Medh Hain Toh Mumkin Hain!
+            Medh Hain Toh Mumkin Hai!
           </p>
         </div>
 
