@@ -244,7 +244,7 @@ function CourseBanner({
               transition={{ delay: 0.7 }}
               className={`mumkinMedh text-2xl md:text-3xl font-medium italic ${themeClasses.title} text-center lg:text-left mt-4`}
             >
-              Medh Hain Toh Mumkin Hain!
+              Medh Hain Toh Mumkin Hai!
             </motion.p>
           </motion.div>
 

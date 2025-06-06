@@ -229,24 +229,26 @@ const ManageCoursesPage: React.FC = () => {
   const { getQuery } = useGetQuery();
   const { postQuery } = usePostQuery();
 
-  // Fetch courses using getAllCourses API
+  // Fetch courses using the efficient /courses/get endpoint
   const fetchCourses = useCallback(async () => {
     setLoadingStates(prev => ({ ...prev, courses: true }));
     setError(null);
     
     try {
-      // Use fetchCollaborative to get all courses with pagination
-      const response = await courseTypesAPI.fetchCollaborative({
-        source: 'both',
-        merge_strategy: 'unified',
-        page: 1,
-        limit: 100, // Fetch more courses per page to reduce API calls
-        deduplicate: true,
-        include_metadata: true
-      });
+      console.log("🚀 Loading all courses from /courses/get endpoint...");
       
-      if (response?.data?.success && response.data.data) {
-        const coursesData = Array.isArray(response.data.data) ? response.data.data : [];
+      // Import the getAllCourses function and make the API call
+      const { getAllCourses } = await import("@/apis/course/course");
+      const { apiClient } = await import("@/apis/apiClient");
+      
+      const coursesUrl = getAllCourses();
+      console.log("📋 Fetching from:", coursesUrl);
+      
+      const response = await apiClient.get(coursesUrl);
+      console.log("📊 API response:", response);
+
+      if (response?.data?.success && response.data.data && Array.isArray(response.data.data)) {
+        const coursesData = response.data.data;
         
         // The getAllCourses API returns unified course data, so we can use it directly
         const processedCourses: Course[] = coursesData.map((course: any) => {
@@ -283,13 +285,7 @@ const ManageCoursesPage: React.FC = () => {
         setInstructors(uniqueInstructors);
         setCourses(processedCourses);
         
-        console.log(`Loaded ${processedCourses.length} courses successfully using fetchCollaborative API`);
-        console.log('API Response Stats:', {
-          totalCourses: processedCourses.length,
-          totalPages: response.data.pagination?.totalPages,
-          newModelCount: response.data.comparison?.summary?.new_courses_count || 0,
-          legacyModelCount: response.data.comparison?.summary?.legacy_courses_count || 0
-        });
+        console.log(`✅ Loaded ${processedCourses.length} courses successfully using /courses/get endpoint`);
         
         if (processedCourses.length === 0) {
           toast.info('No courses found. Create your first course to get started.');
@@ -297,19 +293,69 @@ const ManageCoursesPage: React.FC = () => {
           toast.success(`Loaded ${processedCourses.length} courses successfully`);
         }
       } else {
-        setError("No data received from courses API");
-        toast.error('No courses found.');
+        throw new Error("No courses data received from /courses/get endpoint");
       }
     } catch (error) {
-      console.error("Error in fetchCourses:", error);
+      console.error("❌ Error loading courses:", error);
       setError('Failed to load courses. Please check your connection.');
-      toast.error('Failed to load courses. Please check your connection.');
+      
+      // Fallback: Try collaborative API if the main endpoint fails
+      console.log("🔄 Attempting fallback to collaborative API...");
+      try {
+        const response = await courseTypesAPI.fetchCollaborative({
+          source: 'both',
+          merge_strategy: 'unified',
+          page: 1,
+          limit: 100,
+          deduplicate: true,
+          include_metadata: true
+        });
+        
+        if (response?.data?.success && response.data.data) {
+          const coursesData = Array.isArray(response.data.data) ? response.data.data : [];
+          
+          const processedCourses: Course[] = coursesData.map((course: any) => {
+            return {
+              ...course,
+              _id: course._id || '',
+              course_title: course.course_title || 'Untitled Course',
+              course_category: course.course_category || 'Uncategorized',
+              status: course.status || 'Draft',
+              createdAt: course.createdAt || course.created_at,
+              updatedAt: course.updatedAt || course.updated_at,
+              created_at: course.created_at || course.createdAt,
+              updated_at: course.updated_at || course.updatedAt,
+              prices: Array.isArray(course.prices) ? course.prices : [],
+              course_fee: course.course_fee || course.prices?.[0]?.individual || 0,
+              meta: course.meta || {
+                enrollments: 0,
+                views: 0,
+                ratings: { average: 0, count: 0 }
+              }
+            } as Course;
+          });
+          
+          const uniqueCategories = [...new Set(processedCourses.map(course => course.course_category).filter(Boolean))];
+          const uniqueInstructors: CourseInstructor[] = [];
+          
+          setCategories(uniqueCategories);
+          setInstructors(uniqueInstructors);
+          setCourses(processedCourses);
+          
+          toast.warning(`Loaded ${processedCourses.length} courses using fallback method`);
+        } else {
+          throw new Error("Fallback API also failed");
+        }
+      } catch (fallbackError) {
+        console.error("❌ Fallback loading also failed:", fallbackError);
+        toast.error('Failed to load courses. Please check your connection.');
+      }
     } finally {
       setLoadingStates(prev => ({ ...prev, courses: false }));
     }
   }, []);
 
-  // Advanced search using new API
+  // Advanced search using the efficient /courses/get endpoint
   const performAdvancedSearch = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) {
       fetchCourses();
@@ -318,18 +364,17 @@ const ManageCoursesPage: React.FC = () => {
 
     setIsSearching(true);
     try {
-      // Use fetchCollaborative and filter locally
-      const response = await courseTypesAPI.fetchCollaborative({
-        source: 'both',
-        merge_strategy: 'unified',
-        page: 1,
-        limit: 100,
-        deduplicate: true,
-        include_metadata: true
-      });
+      console.log("🔍 Searching courses using /courses/get endpoint...");
       
-      if (response?.data?.success && response.data.data) {
-        const searchResults = Array.isArray(response.data.data) ? response.data.data : [];
+      // Import the getAllCourses function and make the API call
+      const { getAllCourses } = await import("@/apis/course/course");
+      const { apiClient } = await import("@/apis/apiClient");
+      
+      const coursesUrl = getAllCourses();
+      const response = await apiClient.get(coursesUrl);
+      
+      if (response?.data?.success && response.data.data && Array.isArray(response.data.data)) {
+        const searchResults = response.data.data;
         
         // Process search results similar to fetchCourses
         const processedResults: Course[] = searchResults.map((course: any) => {
@@ -359,7 +404,7 @@ const ManageCoursesPage: React.FC = () => {
         });
 
         // Filter results locally based on search query
-        const filteredResults = processedResults.filter(course => {
+        const filteredResults = processedResults.filter((course: any) => {
           const search = searchQuery.toLowerCase();
           return (
             course.course_title?.toLowerCase().includes(search) ||
@@ -372,23 +417,72 @@ const ManageCoursesPage: React.FC = () => {
 
         setCourses(filteredResults);
         
-        console.log('Search Response Stats:', {
-          totalCourses: processedResults.length,
-          totalPages: response.data.pagination?.totalPages,
-          newModelCount: response.data.comparison?.summary?.new_courses_count || 0,
-          legacyModelCount: response.data.comparison?.summary?.legacy_courses_count || 0,
-          filteredCount: filteredResults.length
-        });
-        
+        console.log(`✅ Search completed: Found ${filteredResults.length} courses matching "${searchQuery}"`);
         toast.success(`Found ${filteredResults.length} courses matching "${searchQuery}"`);
+      } else {
+        throw new Error("No search results received from /courses/get endpoint");
       }
     } catch (error) {
-      console.error('Search error:', error);
-      toast.error('Search failed. Please try again.');
+      console.error('❌ Search error:', error);
+      
+      // Fallback to collaborative API for search
+      try {
+        console.log("🔄 Attempting search fallback to collaborative API...");
+        const response = await courseTypesAPI.fetchCollaborative({
+          source: 'both',
+          merge_strategy: 'unified',
+          page: 1,
+          limit: 100,
+          deduplicate: true,
+          include_metadata: true
+        });
+        
+        if (response?.data?.success && response.data.data) {
+          const searchResults = Array.isArray(response.data.data) ? response.data.data : [];
+          
+          const processedResults: Course[] = searchResults.map((course: any) => {
+            return {
+              ...course,
+              _id: course._id || '',
+              course_title: course.course_title || 'Untitled Course',
+              course_category: course.course_category || 'Uncategorized',
+              status: course.status || 'Draft',
+              createdAt: course.createdAt || course.created_at,
+              updatedAt: course.updatedAt || course.updated_at,
+              created_at: course.created_at || course.createdAt,
+              updated_at: course.updated_at || course.updatedAt,
+              prices: Array.isArray(course.prices) ? course.prices : [],
+              course_fee: course.course_fee || course.prices?.[0]?.individual || 0,
+              meta: course.meta || {
+                enrollments: 0,
+                views: 0,
+                ratings: { average: 0, count: 0 }
+              }
+            } as Course;
+          });
+
+          const filteredResults = processedResults.filter((course: any) => {
+            const search = searchQuery.toLowerCase();
+            return (
+              course.course_title?.toLowerCase().includes(search) ||
+              course.course_category?.toLowerCase().includes(search) ||
+              course.course_subtitle?.toLowerCase().includes(search) ||
+              course.course_description?.program_overview?.toLowerCase().includes(search) ||
+              course.course_tag?.toLowerCase().includes(search)
+            );
+          });
+
+          setCourses(filteredResults);
+          toast.warning(`Found ${filteredResults.length} courses using fallback search`);
+        }
+      } catch (fallbackError) {
+        console.error('❌ Search fallback also failed:', fallbackError);
+        toast.error('Search failed. Please try again.');
+      }
     } finally {
       setIsSearching(false);
     }
-  }, []);
+  }, [fetchCourses]);
 
   // Enhanced filtering and sorting
   const processedCourses = useMemo(() => {

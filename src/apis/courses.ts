@@ -168,7 +168,9 @@ export interface IAdvancedSearchParams extends ICollaborativeFetchParams {
 export interface ICurriculumWeek {
   _id?: string;
   title: string;
+  weekTitle?: string; // Backend expects this field for creation
   description?: string;
+  weekDescription?: string; // Backend might expect this field too
   order: number;
   lessons?: ICurriculumLesson[];
   sections?: ICurriculumSection[];
