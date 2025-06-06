@@ -556,7 +556,7 @@ const SidebarDashboard = ({ children }) => {
       items: [
         {
           name: "Dashboard",
-          path: "/dashboards/instructor-dashboard",
+          path: "/dashboards/instructor/",
           icon: (
             <svg
               xmlns="http://www.w3.org/2000/svg"

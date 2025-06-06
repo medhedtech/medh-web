@@ -169,13 +169,12 @@ const NavbarRight = ({ isScrolled }) => {
 
   // Get dashboard URL based on role
   const getDashboardUrl = () => {
-    // Ensure userRole is a string and provide a default value
     const roleLower = (userRole || "").toLowerCase();
     
     if (roleLower === "admin" || roleLower === "super-admin") {
       return "/dashboards/admin";
     } else if (roleLower === "instructor") {
-      return "/dashboards/instructor-dashboard";
+      return "/dashboards/instructor/";
     } else if (roleLower === "student") {
       return "/dashboards/student";
     } else if (roleLower === "coorporate") {
@@ -183,7 +182,6 @@ const NavbarRight = ({ isScrolled }) => {
     } else if (roleLower === "coorporate-student") {
       return "/dashboards/coorporate-employee-dashboard";
     } else {
-      // Default dashboard route if role is not recognized or undefined
       return "/dashboards";
     }
   };
