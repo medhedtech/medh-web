@@ -110,7 +110,7 @@ const SchoolBanner = () => {
             transition={{ delay: 0.7 }}
             className={`mumkinMedh text-xl sm:text-2xl md:text-3xl font-medium italic text-center lg:text-left mt-1 sm:mt-4`}
           >
-            Medh Hain Toh Mumkin Hain!
+            Medh Hai Toh Mumkin Hai!
           </motion.div>
           </motion.div>
 

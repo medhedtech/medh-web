@@ -150,7 +150,7 @@ function PersonalityBanner() {
 
             {/* Slogan */}
             <p className="mumkinMedh text-2xl text-blue-500 font-medium italic">
-              Medh Hain Toh Mumkin Hain!
+              Medh Hai Toh Mumkin Hai!
             </p>
           </motion.div>
 
