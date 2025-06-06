@@ -288,11 +288,7 @@ const InstructorDashboardLayout: React.FC<InstructorDashboardLayoutProps> = ({
         <ComingSoonPage 
           title={comingSoonTitle} 
           description="We're working on this feature. It will be available soon!"
-<<<<<<< HEAD
           returnPath="/dashboards/instructor"
-=======
-          returnPath="/dashboards/instructor/"
->>>>>>> f1430ea24f47e7db52d620ec30e11914e4a1de6e
         />
       );
     }
@@ -323,11 +319,7 @@ const InstructorDashboardLayout: React.FC<InstructorDashboardLayoutProps> = ({
                  viewMatches(['performance']) ? "Student Performance" :
                  "Feature Coming Soon"}
           description="We're working on this feature and it will be available soon!"
-<<<<<<< HEAD
-          returnPath="/dashboards/instructor"
-=======
           returnPath="/dashboards/instructor/"
->>>>>>> f1430ea24f47e7db52d620ec30e11914e4a1de6e
         />
       );
     }
