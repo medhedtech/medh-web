@@ -185,7 +185,7 @@ const DashboardProfileComponent: React.FC<DashboardProfileProps> = ({ isScrolled
     if (roleLower === "admin" || roleLower === "super-admin") {
       return "/dashboards/admin";
     } else if (roleLower === "instructor") {
-      return "/dashboards/instructor-dashboard";
+      return "/dashboards/instructor/";
     } else if (roleLower === "student") {
       return "/dashboards/student";
     } else if (roleLower === "coorporate") {

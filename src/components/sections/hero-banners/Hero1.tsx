@@ -85,7 +85,11 @@ const HeroMobile: React.FC<IHeroMobileProps> = ({ isLoaded, featuredCourses, loa
         {/* Tagline moved above CTA buttons */}
         <div className="mt-6 mb-4 text-center">
           <h3 className="mumkinMedh">
+<<<<<<< HEAD
             Medh Hain Toh Mumkin Hai!
+=======
+            Medh Hai Toh Mumkin Hai!
+>>>>>>> f1430ea24f47e7db52d620ec30e11914e4a1de6e
           </h3>
         </div>
 
@@ -333,7 +337,11 @@ const Hero1: React.FC<IHero1Props> = ({ isCompact = false }) => {
               </div>
               <div className="motto-container relative mt-6 lg:mt-8">
                 <div className="mumkinMedh">
+<<<<<<< HEAD
                   Medh Hain Toh Mumkin Hai!
+=======
+                  Medh Hai Toh Mumkin Hai!
+>>>>>>> f1430ea24f47e7db52d620ec30e11914e4a1de6e
                 </div>
               </div>
             </div>
