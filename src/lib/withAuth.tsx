@@ -53,7 +53,7 @@ const withAuth = (Component: React.ComponentType<any>, requiredRoles: string[] =
           if (normalizedUserRole === 'student') {
             router.push('/dashboards/student-dashboard');
           } else if (normalizedUserRole === 'instructor') {
-            router.push('/dashboards/instructor-dashboard');
+            router.push('/dashboards/instructor/');
           } else if (normalizedUserRole === 'parent') {
             router.push('/dashboards/parent-dashboard');
           } else {

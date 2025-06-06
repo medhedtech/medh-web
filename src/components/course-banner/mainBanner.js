@@ -30,7 +30,7 @@ export default function MainBanner({
   heading,
   subheading,
   description,
-  slogan = "Medh Hain Toh Mumkin Hain!",
+  slogan = "Medh Hai Toh Mumkin Hai!",
   
   // Button Props
   primaryButtonText = "Let's Connect",
