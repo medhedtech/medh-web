@@ -160,7 +160,7 @@ export default function BannerNews() {
               className="text-2xl sm:text-3xl md:text-4xl font-medium italic text-center"
             >
               <span className="mumkinMedh">
-                Medh Hain Toh Mumkin Hain!
+                Medh Hai Toh Mumkin Hai!
               </span>
             </motion.div>
 
