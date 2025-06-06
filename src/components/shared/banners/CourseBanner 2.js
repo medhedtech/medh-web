@@ -134,7 +134,7 @@ function CourseBanner({
 
             {/* Slogan */}
             <p className={`mumkinMedh text-xl lg:text-2xl font-medium italic ${themeClasses.title}`}>
-              Medh Hain Toh Mumkin Hain!
+              Medh Hain Toh Mumkin Hai!
             </p>
           </motion.div>
 
