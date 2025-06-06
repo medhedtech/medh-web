@@ -22,7 +22,7 @@ export default function MembershipBanner () {
         description="Take Your Skills to New Heights! Become a MEDH Member Today and Unlock Your Full Potential for Success."
         buttonText="Explore More"
         isoText="ISO CERTIFIED"
-        slogan="Medh Hain Toh Mumkin Hain!"
+        slogan="Medh Hai Toh Mumkin Hai!"
         buttonImage={LetsConnect}
       />
     </div>
