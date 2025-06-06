@@ -232,7 +232,7 @@ const KeyAdvantages = () => {
           className="text-center mt-16"
         >
           <p className="text-primary-600 dark:text-primary-400 text-lg font-medium italic">
-            Medh Hain Toh Mumkin Hain!
+            Medh Hai Toh Mumkin Hai!
           </p>
         </motion.div>
       </motion.div>
