@@ -3,8 +3,40 @@ frontend:
   phases:
     preBuild:
       commands:
-        - nvm use $(cat .nvmrc) || nvm install $(cat .nvmrc)
-        - echo "Using Node $(node -v) and NPM $(npm -v)"
+        - echo "=== AWS Amplify Build Configuration ==="
+        - echo "Available Node.js: $(node -v)"
+        - echo "Available npm: $(npm -v)"
+        - echo "Target Node.js: $(cat .nvmrc 2>/dev/null || echo 'Not specified')"
+        - echo ""
+        
+        # Flexible Node.js version handling
+        - |
+          CURRENT_MAJOR=$(node -v | sed 's/v//' | cut -d. -f1)
+          echo "Current Node.js major version: v$CURRENT_MAJOR"
+          
+          # Check minimum compatibility (Node.js 18+)
+          if [ "$CURRENT_MAJOR" -ge "18" ]; then
+            echo "✅ Node.js version is compatible for Next.js (v$CURRENT_MAJOR >= v18)"
+          else
+            echo "❌ Node.js version too old (v$CURRENT_MAJOR < v18)"
+            echo "This project requires Node.js 18 or higher"
+            exit 1
+          fi
+          
+          # Try to use specific version if possible
+          if [ -f .nvmrc ] && command -v nvm >/dev/null 2>&1; then
+            REQUIRED_VERSION=$(cat .nvmrc)
+            echo ""
+            echo "Attempting to use Node.js v$REQUIRED_VERSION via nvm..."
+            nvm install $REQUIRED_VERSION && nvm use $REQUIRED_VERSION || {
+              echo "⚠️  Failed to switch to v$REQUIRED_VERSION, continuing with v$CURRENT_MAJOR"
+            }
+          fi
+        
+        - echo ""
+        - echo "Final environment:"
+        - echo "Node.js: $(node -v)"
+        - echo "npm: $(npm -v)"
         - npm config set legacy-peer-deps true
         - npm ci --no-audit --prefer-offline
     build:
