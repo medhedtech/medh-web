@@ -232,6 +232,7 @@ interface LessonProgress {
 }
 
 // Helper function to handle YouTube URLs
+<<<<<<< HEAD
 const formatVideoUrl = (url: string | undefined): string | null => {
   if (!url) return null;
   
@@ -255,6 +256,83 @@ const formatVideoUrl = (url: string | undefined): string | null => {
     return url;
   } catch (error) {
     console.error('Error formatting video URL:', error);
+=======
+const formatVideoUrl = (url) => {
+  console.log('formatVideoUrl called with:', url);
+  
+  if (!url) {
+    console.log('No URL provided');
+    return null;
+  }
+  
+  try {
+    // Handle different video URL formats
+    const urlStr = String(url).trim();
+    console.log('Processing URL:', urlStr);
+    
+    // Check if it's a YouTube URL
+    if (urlStr.includes('youtube.com/watch') || urlStr.includes('youtu.be/') || urlStr.includes('m.youtube.com/watch')) {
+      console.log('Detected YouTube URL');
+      let videoId;
+      
+      if (urlStr.includes('v=')) {
+        // Handle youtube.com/watch?v=VIDEO_ID format
+        const urlParams = new URLSearchParams(urlStr.split('?')[1]);
+        videoId = urlParams.get('v');
+        console.log('Extracted video ID from v= parameter:', videoId);
+      } else if (urlStr.includes('youtu.be/')) {
+        // Handle youtu.be/VIDEO_ID format
+        videoId = urlStr.split('youtu.be/')[1];
+        if (videoId && videoId.includes('?')) {
+          videoId = videoId.split('?')[0];
+        }
+        console.log('Extracted video ID from youtu.be:', videoId);
+      }
+      
+      if (videoId) {
+        const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+        console.log('Formatted YouTube embed URL:', embedUrl);
+        return embedUrl;
+      }
+    }
+    
+    // Check if it's already a valid embed URL
+    if (urlStr.includes('youtube.com/embed/') || urlStr.includes('vimeo.com/video/')) {
+      console.log('Already an embed URL:', urlStr);
+      return urlStr;
+    }
+    
+    // Handle direct video file URLs (.mp4, .webm, .mov, etc.)
+    if (urlStr.match(/\.(mp4|webm|ogg|mov|avi|mkv)(\?.*)?$/i)) {
+      console.log('Direct video file URL:', urlStr);
+      return urlStr;
+    }
+    
+    // Handle Vimeo URLs
+    if (urlStr.includes('vimeo.com/')) {
+      console.log('Detected Vimeo URL');
+      const vimeoMatch = urlStr.match(/vimeo\.com\/(\d+)/);
+      if (vimeoMatch) {
+        const vimeoId = vimeoMatch[1];
+        const vimeoEmbedUrl = `https://player.vimeo.com/video/${vimeoId}`;
+        console.log('Formatted Vimeo embed URL:', vimeoEmbedUrl);
+        return vimeoEmbedUrl;
+      }
+    }
+    
+    // Return original URL if it looks like a valid URL
+    if (urlStr.startsWith('http://') || urlStr.startsWith('https://')) {
+      console.log('Returning original URL:', urlStr);
+      return urlStr;
+    }
+    
+    console.warn('URL format not recognized, returning as-is:', urlStr);
+    return urlStr;
+    
+  } catch (error) {
+    console.error("Error formatting video URL:", error);
+    console.error("Original URL:", url);
+>>>>>>> f1430ea24f47e7db52d620ec30e11914e4a1de6e
     return url;
   }
 };
@@ -593,7 +671,8 @@ const IntegratedLessonPage = () => {
                         }
                       }}
                       onError={() => {
-                        toast.error("Failed to load video. Please try again.");
+                        console.error("Video failed to load. URL:", formatVideoUrl(lessonData?.videoUrl || lessonData?.video_url));
+                        toast.error("Failed to load video. Please try again or contact support.");
                       }}
                     />
                         
@@ -618,6 +697,28 @@ const IntegratedLessonPage = () => {
                             <ChevronRight className="w-5 h-5 ml-2" />
                       </button>
                     )}
+                        {/* Temporary fallback: Add sample video for testing */}
+                        <button
+                          onClick={() => {
+                            // Force a sample video URL for testing purposes
+                            const sampleVideoUrl = "https://www.youtube.com/watch?v=JhHMJCUmq28"; // IBM Quantum Computing
+                            console.log("Loading sample video:", sampleVideoUrl);
+                            
+                            // Create a temporary lesson data update
+                            if (window.confirm("Load a sample quantum computing video for this lesson?")) {
+                              // This would ideally update the lessonData state, but since it's coming from the hook,
+                              // we'll show a message for now
+                              toast.info("Sample video loaded! Refresh the page to see it.");
+                              
+                              // Temporary: Open video in new tab
+                              window.open(sampleVideoUrl, '_blank');
+                            }
+                          }}
+                          className="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm flex items-center gap-2 transition-colors"
+                        >
+                          <Video className="w-4 h-4" />
+                          Load Sample Video (Debug)
+                        </button>
                   </div>
                 )}
               </div>

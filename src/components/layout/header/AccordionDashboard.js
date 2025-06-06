@@ -48,13 +48,13 @@ const AccordionDashboard = () => {
     },
     {
       name: "Instructor",
-      path: "/dashboards/instructor-dashboard",
+      path: "/dashboards/instructor/",
       accordion: true,
       items: [
         {
           name: "Ins. Dashboard",
 
-          path: "/dashboards/instructor-dashboard",
+          path: "/dashboards/instructor/",
         },
         {
           name: "Ins. Profile",
