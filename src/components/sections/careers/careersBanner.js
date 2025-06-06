@@ -116,7 +116,11 @@ export default function CareerBanner({ onViewPositionsClick }) {
 
             {/* Slogan */}
             <p className=" mumkinMedh text-2xl text-primary-500 font-medium italic">
+<<<<<<< HEAD
               Medh Hain Toh Mumkin Hai!
+=======
+              Medh Hai Toh Mumkin Hai!
+>>>>>>> f1430ea24f47e7db52d620ec30e11914e4a1de6e
             </p>
           </motion.div>
 

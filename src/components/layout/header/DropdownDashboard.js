@@ -120,13 +120,13 @@ const DropdownDashboard = () => {
     {
       name: "Instructor",
       status: null,
-      path: "/dashboards/instructor-dashboard",
+      path: "/dashboards/instructor/",
       type: "secondary",
       dropdown: [
         {
           name: "Ins. Dashboard",
           status: null,
-          path: "/dashboards/instructor-dashboard",
+          path: "/dashboards/instructor/",
           type: "secondary",
         },
         {
