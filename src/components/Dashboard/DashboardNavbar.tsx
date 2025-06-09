@@ -10,7 +10,7 @@ import NavbarLogo from "@/components/layout/header/NavbarLogo";
 
 // Icons
 import {
-  ShoppingBag,
+  ShoppingCart,
   Search,
   Heart,
   Bell,
@@ -138,8 +138,8 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   ];
   
   const cartItems: DropdownItem[] = [
-    { label: "Checkout", href: "/ecommerce/checkout", icon: <ShoppingBag size={16} /> },
-    { label: "View Cart", href: "/ecommerce/cart", icon: <ShoppingBag size={16} /> }
+    { label: "Checkout", href: "/ecommerce/checkout", icon: <ShoppingCart size={16} /> },
+    { label: "View Cart", href: "/ecommerce/cart", icon: <ShoppingCart size={16} /> }
   ];
   
   const wishlistItems: DropdownItem[] = [
@@ -756,22 +756,18 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
               )}
             </div>
 
-            {/* Cart with Dropdown - hidden on mobile */}
+            {/* EduStore/Cart with Coming Soon - hidden on mobile */}
             {!isMobileDevice && (
               <div 
                 ref={cartDropdownRef}
-                className="relative"
+                className="relative group"
               >
                 <button
-                  onClick={() => toggleDropdown('cart')}
-                  onMouseEnter={() => handleDropdownHover('cart')}
-                  onMouseLeave={() => handleDropdownLeave('cart')}
-                  className={`rounded-full bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 group transition-all duration-200 relative overflow-visible ${
+                  className={`rounded-full bg-gray-50 dark:bg-gray-800 text-primary-500 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 dark:hover:text-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200 relative overflow-visible cursor-pointer ${
                     isTabletDevice ? 'p-2.5 min-w-[44px] min-h-[44px]' : 'p-2 min-w-[40px] min-h-[40px]'
                   }`}
-                  aria-label="Shopping cart"
-                  aria-expanded={activeDropdown === 'cart'}
-                  aria-haspopup="true"
+                  aria-label="EduStore - Coming Soon"
+                  title="EduStore - Coming Soon"
                 >
                   <div className="relative flex flex-col items-center">
                     {cartItemCount > 0 && (
@@ -779,7 +775,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                         {cartItemCount > 99 ? '99+' : cartItemCount}
                       </span>
                     )}
-                    <ShoppingBag size={isTabletDevice ? 22 : NAVBAR_ICON_SIZE} className={`transform group-hover:scale-${HOVER_SCALE} transition-transform duration-${ANIMATION_DURATION}`} />
+                    <ShoppingCart size={isTabletDevice ? 22 : NAVBAR_ICON_SIZE} className={`transform group-hover:scale-${HOVER_SCALE} group-hover:rotate-12 transition-all duration-${ANIMATION_DURATION}`} />
                     {cartItemCount > 0 && (
                       <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white transform translate-x-1/3 -translate-y-1/3 bg-primary-500 dark:bg-primary-600 rounded-full ring-2 ring-white dark:ring-gray-900">
                         {cartItemCount > 99 ? '99+' : cartItemCount}
@@ -787,16 +783,21 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                     )}
                   </div>
                 </button>
-                
-                {activeDropdown === 'cart' && (
-                  <div 
-                    onMouseEnter={() => handleDropdownHover('cart')}
-                    onMouseLeave={() => handleDropdownLeave('cart')}
-                    className="dropdown-container"
-                  >
-                    {renderDropdownMenu(cartItems)}
+
+                {/* Coming Soon Tooltip */}
+                <div className={`absolute top-full left-1/2 transform -translate-x-1/2 mt-3 px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-500 dark:to-primary-600 text-white font-medium rounded-xl shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50 ${
+                  isMobileDevice ? 'text-sm' : isTabletDevice ? 'text-sm' : 'text-sm'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🚀</span>
+                    <span className="relative z-10">Coming Soon!</span>
+                    <span className="text-lg animate-pulse">✨</span>
                   </div>
-                )}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-b-[6px] border-transparent border-b-primary-600 dark:border-b-primary-500"></div>
+                  
+                  {/* Animated shimmer effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-xl opacity-0 group-hover:opacity-100 animate-pulse"></div>
+                </div>
               </div>
             )}
 

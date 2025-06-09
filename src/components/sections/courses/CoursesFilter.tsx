@@ -173,10 +173,10 @@ const fallbackCategories: Record<string, string[]> = {
     "Technical Skills",
   ],
   all: [
-    // Removed: "AI and Data Science",
-    // Removed: "Personality Development",
-    // Removed: "Vedic Mathematics", 
-    // Removed: "Digital Marketing with Data Analytics",
+    "AI and Data Science",
+    "Personality Development",
+    "Vedic Mathematics", 
+    "Digital Marketing with Data Analytics",
     "AI For Professionals",
     "Business And Management",
     "Career Development",
@@ -1549,7 +1549,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   const renderCourseList = useCallback(() => {
     if (loading) {
       return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 xl:gap-6 2xl:gap-8">
           {Array.from({ length: itemsPerPage }).map((_, idx) => (
             <div 
               key={idx} 
@@ -1583,8 +1583,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
 
     return (
       <div className="relative">
-        {/* Enhanced Course Cards Grid - Fixed to 3 columns maximum */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
+        {/* Enhanced Course Cards Grid - Responsive for all screen sizes */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 xl:gap-6 2xl:gap-8 auto-rows-fr">
             {filteredCourses.map((course, index) => {
               const enhancedCourse = renderCourse(course);
               
@@ -1770,10 +1770,31 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             transform: translateZ(0);
           }
 
-          /* Responsive grid improvements - Maximum 3 columns */
+          /* Responsive grid improvements - Optimized for all screen sizes */
           @media (max-width: 640px) {
             .grid {
               grid-template-columns: 1fr;
+            }
+          }
+          
+          @media (min-width: 1280px) {
+            .grid {
+              gap: 1.5rem;
+            }
+          }
+          
+          @media (min-width: 1536px) {
+            .grid {
+              gap: 2rem;
+              grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+              max-width: none;
+            }
+          }
+          
+          @media (min-width: 1920px) {
+            .grid {
+              grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+              gap: 2.5rem;
             }
           }
 
