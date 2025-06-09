@@ -29,7 +29,9 @@ const CourseStats = ({
   hasCertificate = true,
   primaryColor = 'primary',
   fillOpacity = 0.2,
-  compact = false
+  compact = false,
+  isBlended = false,
+  courseDetails = null
 }) => {
   // Get the appropriate color classes based on primaryColor
   const getColorClasses = () => {
@@ -74,6 +76,25 @@ const CourseStats = ({
 
   const colorClasses = getColorClasses();
 
+  // Helper function to detect if course is blended
+  const isBlendedCourse = (details) => {
+    if (!details) return false;
+    
+    return (
+      details.classType === 'Blended Courses' || 
+      details.class_type === 'Blended Courses' ||
+      details.course_type === 'blended' || 
+      details.course_type === 'Blended' ||
+      details.delivery_format === 'Blended' ||
+      details.delivery_type === 'Blended' ||
+      details.course_category === 'Blended Courses'
+    );
+  };
+
+  // Determine if we should show "Videos" or "Sessions"
+  const shouldShowVideos = isBlended || isBlendedCourse(courseDetails);
+  const sessionsLabel = shouldShowVideos ? "Videos" : "Sessions";
+
   return (
     <motion.div 
       className={`grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-4 bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl ${compact ? 'p-2 sm:p-3' : 'p-3 sm:p-4'} shadow-sm border border-gray-200 dark:border-gray-700`}
@@ -113,7 +134,7 @@ const CourseStats = ({
         </span>
       </motion.div>
       
-      {/* Sessions */}
+      {/* Sessions/Videos */}
       <motion.div 
         className={`flex flex-col items-center ${compact ? 'p-1.5 sm:p-2' : 'p-2 sm:p-3'} rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800`}
         variants={scaleIn}
@@ -123,7 +144,7 @@ const CourseStats = ({
           fill="currentColor" 
           fillOpacity={fillOpacity} 
         />
-        <span className={`${compact ? 'text-[8px] sm:text-2xs' : 'text-2xs sm:text-xs'} font-medium text-amber-700 dark:text-amber-300`}>Sessions</span>
+        <span className={`${compact ? 'text-[8px] sm:text-2xs' : 'text-2xs sm:text-xs'} font-medium text-amber-700 dark:text-amber-300`}>{sessionsLabel}</span>
         <span className={`${compact ? 'text-[10px] sm:text-xs' : 'text-xs sm:text-sm'} font-bold text-amber-900 dark:text-amber-100`}>
           {sessions}
         </span>

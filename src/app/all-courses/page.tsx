@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, Users, Clock, Award } from 'lucide-react';
+import { BookOpen, Clock } from 'lucide-react';
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import ThemeController from "@/components/shared/others/ThemeController";
 import CoursesFilter from "@/components/sections/courses/CoursesFilter";
@@ -45,20 +45,8 @@ const AllCoursesPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Description */}
-        <p className="text-sm md:text-base lg:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
-          Explore our comprehensive range of courses designed to enhance your skills and accelerate your career growth.
-        </p>
-
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-2xl mx-auto mt-6">
-          <div className="text-center">
-            <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 mx-auto mb-1 md:mb-2 rounded-full bg-primary-100 dark:bg-primary-900/30">
-              <Users className="w-4 h-4 md:w-5 md:h-5 text-primary-600 dark:text-primary-400" />
-            </div>
-            <div className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">10K+</div>
-            <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400">Students</div>
-          </div>
+        <div className="grid grid-cols-2 gap-4 md:gap-6 max-w-lg mx-auto mt-6">
           <div className="text-center">
             <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 mx-auto mb-1 md:mb-2 rounded-full bg-primary-100 dark:bg-primary-900/30">
               <BookOpen className="w-4 h-4 md:w-5 md:h-5 text-primary-600 dark:text-primary-400" />
@@ -72,13 +60,6 @@ const AllCoursesPage: React.FC = () => {
             </div>
             <div className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">24/7</div>
             <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400">Support</div>
-          </div>
-          <div className="text-center">
-            <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 mx-auto mb-1 md:mb-2 rounded-full bg-primary-100 dark:bg-primary-900/30">
-              <Award className="w-4 h-4 md:w-5 md:h-5 text-primary-600 dark:text-primary-400" />
-            </div>
-            <div className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">95%</div>
-            <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400">Success Rate</div>
           </div>
         </div>
       </div>
@@ -98,27 +79,17 @@ const AllCoursesPage: React.FC = () => {
               hideCategories={false}
               hideSearch={false}
               hideSortOptions={false}
-              hideViewModeSwitch={false}
               hideHeader={true}
-              forceViewMode="grid"
-              gridColumns={{
-                mobile: 1,
-                tablet: 2,
-                desktop: 3
-              }}
-              itemsPerPage={{
-                mobile: 6,
-                tablet: 9,
-                desktop: 12
-              }}
+              gridColumns={4}
+              itemsPerPage={12}
               simplePagination={false}
-              scrollToTop={handleScrollToTop}
               description="Browse through our extensive collection of courses across various categories and skill levels."
-              customGridClassName="grid gap-4 sm:gap-6 lg:gap-8"
+              customGridClassName="grid gap-4 sm:gap-6 lg:gap-8 xl:gap-6 2xl:gap-8"
               customGridStyle={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                width: '100%'
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                width: '100%',
+                maxWidth: 'none'
               }}
               emptyStateContent={
                 <div className="flex flex-col items-center justify-center min-h-[30vh] text-center p-8 bg-white dark:bg-gray-800/50 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">

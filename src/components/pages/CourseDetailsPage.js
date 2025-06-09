@@ -298,7 +298,7 @@ const CourseDetailsPage = ({ ...props }) => {
           fillOpacity: 0.2,
         },
         {
-          label: "Live Sessions",
+          label: isBlendedCourse(courseDetails) ? "Videos" : "Live Sessions",
           value: formatLiveSessions(courseDetails),
           icon: Users,
           color: "text-blue-500 dark:text-blue-400",
@@ -391,9 +391,29 @@ const CourseDetailsPage = ({ ...props }) => {
     }
   };
   
+  // Helper function to detect if course is blended
+  const isBlendedCourse = (details) => {
+    if (!details) return false;
+    
+    return (
+      details.classType === 'Blended Courses' || 
+      details.class_type === 'Blended Courses' ||
+      details.course_type === 'blended' || 
+      details.course_type === 'Blended' ||
+      details.delivery_format === 'Blended' ||
+      details.delivery_type === 'Blended' ||
+      details.course_category === 'Blended Courses'
+    );
+  };
+
   // Helper functions to format course details
   const formatDuration = (details) => {
     if (!details) return "9 months / 36 weeks";
+    
+    // For blended courses, show "Self Paced + Live Q&A sessions"
+    if (isBlendedCourse(details)) {
+      return 'Self Paced + Live Q&A sessions';
+    }
     
     try {
       // Try different possible field names
@@ -458,6 +478,52 @@ const CourseDetailsPage = ({ ...props }) => {
   const formatLiveSessions = (details) => {
     if (!details) return "72";
     
+    // For blended courses, show "Videos" instead of "Sessions"
+    if (isBlendedCourse(details)) {
+      try {
+        // Get video count (could be from various fields)
+        const videoCount = details.no_of_Sessions || 
+                          details.video_count || 
+                          details.recorded_videos?.length ||
+                          details.course_videos?.length ||
+                          details.session_count || 
+                          details.live_sessions || 
+                          "72";
+        
+        // Get video duration if available
+        const videoDuration = details.session_duration || 
+                             details.video_duration || 
+                             details.live_session_duration || 
+                             details.class_duration;
+        
+        // If we have both count and duration, combine them
+        if (videoDuration) {
+          // Clean up duration format if needed
+          let formattedDuration = videoDuration;
+          
+          // If duration is just a number, assume it's minutes
+          if (/^\d+$/.test(videoDuration)) {
+            formattedDuration = `${videoDuration} min`;
+          }
+          
+          // If duration doesn't contain "min" or "hour", assume it's minutes
+          if (!formattedDuration.toLowerCase().includes('min') && 
+              !formattedDuration.toLowerCase().includes('hour')) {
+            formattedDuration = `${formattedDuration} min`;
+          }
+          
+          return `${videoCount} Videos (${formattedDuration})`;
+        }
+        
+        // If we only have count, return just that with "Videos"
+        return `${videoCount} Videos`;
+      } catch (error) {
+        console.error("Error formatting videos:", error);
+        return "72 Videos"; // Default fallback for blended courses
+      }
+    }
+    
+    // For non-blended courses, show sessions as before
     try {
       // Get session count - using the field from the example API
       const sessionCount = details.no_of_Sessions || details.session_count || details.live_sessions || "72";
@@ -783,6 +849,8 @@ const CourseDetailsPage = ({ ...props }) => {
                 hasCertificate={hasCertificate()}
                 primaryColor={getCategoryColorClasses().primaryColor}
                 fillOpacity={0.2}
+                isBlended={isBlendedCourse(courseDetails)}
+                courseDetails={courseDetails}
               />
             </motion.div>
 
@@ -1761,6 +1829,8 @@ const CourseDetailsPage = ({ ...props }) => {
           hasCertificate={hasCertificate()}
           primaryColor={getCategoryColorClasses().primaryColor}
           fillOpacity={0.2}
+          isBlended={isBlendedCourse(courseDetails)}
+          courseDetails={courseDetails}
         />
       </div>
 
