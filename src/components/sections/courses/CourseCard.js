@@ -623,6 +623,13 @@ const CourseCard = ({
     return duration;
   };
 
+  const formatCourseGrade = (grade) => {
+    if (grade === "UG - Graduate - Professionals") {
+      return "UG/Grad/Pro";
+    }
+    return grade;
+  };
+
   const navigateToCourse = () => {
     // For live interactive courses, we use the custom URL
     if (course?.custom_url) {
@@ -1169,7 +1176,7 @@ const CourseCard = ({
                         <Play size={14} className="mr-1.5" /> : 
                         <Layers size={14} className="mr-1.5" />
                       }
-                      <span>{course?.course_grade}</span>
+                      <span>{formatCourseGrade(course?.course_grade)}</span>
                     </div>
                   )}
 
@@ -1333,7 +1340,7 @@ const CourseCard = ({
                       <Play size={14} className="mr-1.5" /> : 
                       <Layers size={14} className="mr-1.5" />
                     }
-                    <span>{course?.course_grade}</span>
+                    <span>{formatCourseGrade(course?.course_grade)}</span>
                   </div>
                 )}
 

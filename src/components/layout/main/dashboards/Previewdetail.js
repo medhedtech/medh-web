@@ -12,6 +12,13 @@ export default function CoursePreview() {
   const [courseData, setCourseData] = useState(null);
   const { postQuery, loading } = usePostQuery();
 
+  const formatCourseGrade = (grade) => {
+    if (grade === "UG - Graduate - Professionals") {
+      return "UG/Grad/Pro";
+    }
+    return grade;
+  };
+
   useEffect(() => {
     try {
       // Try to get data from localStorage
@@ -111,7 +118,7 @@ export default function CoursePreview() {
                   </div>
                   <div>
                     <label className="text-sm text-gray-500">Grade Level</label>
-                    <p className="font-medium">{courseData.course_grade}</p>
+                    <p className="font-medium">{formatCourseGrade(courseData.course_grade)}</p>
                   </div>
                 </div>
               </div>

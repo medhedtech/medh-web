@@ -1,257 +1,160 @@
-# New Course Types API Integration Summary
+# New API Integration Summary: Courses by Category
 
 ## Overview
-Successfully integrated the new Course Types API (`@/apis/courses`) across all admin dashboard course management pages, replacing legacy API calls with modern, type-safe implementations.
+Successfully integrated the new courses by category API (`http://localhost:8080/api/v1/courses/category`) into the footer component to dynamically fetch and display course categories.
 
-## Files Updated
+## Changes Made
 
-### 1. Course Management Dashboard (`src/app/dashboards/admin/courses/manage/page.tsx`)
+### 1. API Interface Updates (`src/apis/courses.ts`)
 
-**Changes Made:**
-- **Imports Added:**
-  ```typescript
-  import { courseTypesAPI } from "@/apis/courses";
-  import type { 
-    ICollaborativeResponse, 
-    TNewCourse, 
-    ILegacyCourse,
-    IAdvancedSearchParams 
-  } from "@/apis/courses";
-  ```
+#### Added New Interface
+```typescript
+export interface ICoursesByCategoryResponse {
+  success: boolean;
+  message: string;
+  data: {
+    courses: (TNewCourse | ILegacyCourse)[];
+    pagination: {
+      currentPage: number;
+      totalPages: number;
+      totalCourses: number;
+      coursesPerPage: number;
+      hasNextPage: boolean;
+      hasPrevPage: boolean;
+      nextPage: number | null;
+      prevPage: number | null;
+    };
+    filters: {
+      category: string;
+      status: string;
+      class_type: string;
+      category_type: string;
+      search: string | null;
+    };
+    sorting: {
+      sort_by: string;
+      sort_order: string;
+    };
+    sources: {
+      legacy_model: number;
+      new_model: number;
+    };
+  };
+}
+```
 
-- **Enhanced Course Fetching:**
-  - Replaced legacy API calls with `courseTypesAPI.fetchCollaborative()`
-  - Added support for both new and legacy course formats
-  - Implemented smart data normalization for unified display
-  - Added real-time search with `courseTypesAPI.advancedSearch()`
+#### Added New API Method
+```typescript
+getCoursesByCategory: async (params: ICourseQueryParams = {}) => {
+  const queryString = apiUtils.buildQueryString(params);
+  return apiClient.get<ICoursesByCategoryResponse>(
+    `${apiBaseUrl}/api/v1/courses/category${queryString}`
+  );
+}
+```
 
-- **Advanced Search Integration:**
-  - Real-time search with debouncing
-  - Support for collaborative fetching from multiple sources
-  - Unified merge strategy for consistent results
-  - Loading states and error handling
+### 2. Footer Component Updates (`src/components/layout/footer/FooterNavList.tsx`)
 
-### 2. Admin Dashboard Overview (`src/app/dashboards/admin/courses/page.tsx`)
+#### Updated Course Fetching Logic
+- **Before**: Used `courseTypesAPI.getAllCourses()` and filtered for blended courses
+- **After**: Uses `courseTypesAPI.getCoursesByCategory()` with category filtering
 
-**Changes Made:**
-- **Real-time Statistics:**
-  - Integrated `courseTypesAPI.fetchCollaborative()` for live course counts
-  - Added loading states for better UX
-  - Automatic calculation of active, draft, and total courses
-  - Error handling with fallback to default values
+#### Key Improvements
+1. **Category Filtering**: Only displays courses from predefined allowed categories
+2. **Better Performance**: Fetches courses with status filter (`Published`) directly from API
+3. **Improved Data Structure**: Limits to 5 courses per category for better UX
+4. **Enhanced Error Handling**: Maintains fallback data structure
 
-- **Enhanced UI:**
-  - Dynamic statistics display
-  - Loading indicators
-  - Responsive design improvements
+#### Allowed Categories
+The footer now only displays courses from these categories:
+- AI For Professionals
+- Business And Management
+- Career Development
+- Communication And Soft Skills
+- Data & Analytics
+- Finance & Accounts
+- Health & Wellness
+- Industry-Specific Skills
+- Language & Linguistic
+- Legal & Compliance Skills
+- Personal Well-Being
+- Sales & Marketing
+- Technical Skills
+- Environmental and Sustainability Skills
+- AI and Data Science (from API data)
+- Quantum Computing (from API data)
 
-### 3. Course Creation System Overhaul
+### 3. Icon Fixes
+Fixed Lucide React icon usage by replacing `size` prop with `className` for proper TypeScript compatibility:
+```typescript
+// Before
+<Phone size={14} />
 
-#### Main Creation Page (`src/app/dashboards/admin/courses/create/page.tsx`)
-**Complete Redesign:**
-- **Modern UI/UX:**
-  - Card-based course type selection
-  - Interactive selection with visual feedback
-  - Comprehensive feature comparison
-  - Dark mode support
-  - Responsive grid layout
+// After  
+<Phone className="w-3.5 h-3.5" />
+```
 
-- **Course Type Guidance:**
-  - Detailed feature lists for each course type
-  - Pricing model explanations
-  - Duration and complexity indicators
-  - Help section with decision guidance
+## API Response Structure
+The new API returns courses with the following structure:
+```json
+{
+  "success": true,
+  "message": "All courses retrieved successfully",
+  "data": {
+    "courses": [
+      {
+        "_id": "course_id",
+        "course_category": "Technical Skills",
+        "course_title": "Course Title",
+        "status": "Published",
+        "course_image": "image_url",
+        // ... other course fields
+      }
+    ],
+    "pagination": {
+      "currentPage": 1,
+      "totalPages": 11,
+      "totalCourses": 102,
+      "coursesPerPage": 10
+    },
+    "sources": {
+      "legacy_model": 10,
+      "new_model": 2
+    }
+  }
+}
+```
 
-- **Enhanced Navigation:**
-  - Clear visual hierarchy
-  - Progress indicators
-  - Contextual help and tips
+## Benefits
 
-#### Blended Course Creation (`src/app/dashboards/admin/courses/create/blended/page.tsx`)
-**Complete Rewrite:**
-- **New API Integration:**
-  - Full compatibility with `IBlendedCourse` interface
-  - Proper TypeScript typing throughout
-  - Integration with `courseTypesAPI.createCourse()`
+1. **Dynamic Content**: Footer now displays actual course data instead of static links
+2. **Category Filtering**: Only shows relevant categories that exist in the footer design
+3. **Performance**: Optimized API calls with proper filtering
+4. **Scalability**: Easy to add/remove categories by updating the `allowedCategories` array
+5. **Fallback Support**: Maintains static fallback data for error scenarios
 
-- **Enhanced Form Structure:**
-  - **Basic Information Section:**
-    - Course title, subtitle, category selection
-    - Course level selection (Beginner, Intermediate, Advanced, All Levels)
-    - Duration and session duration fields
-    - Improved image upload with preview
+## Testing
 
-  - **Course Description Section:**
-    - Program overview and benefits
-    - Dynamic learning objectives array
-    - Course requirements and target audience
-    - Rich text support
+The API integration was tested and confirmed working:
+- API endpoint responds correctly with course data
+- Categories are properly filtered and displayed
+- Course counts are accurate
+- Links are properly formatted
 
-  - **Pricing Section:**
-    - Multi-currency support (USD, EUR, INR, GBP, AUD, CAD)
-    - Individual and batch pricing
-    - Early bird and group discounts
-    - Batch size configuration
+## Usage
 
-  - **Curriculum Section:**
-    - Dynamic curriculum sections
-    - Lesson management within sections
-    - Content type selection (video, text, quiz)
-    - Drag-and-drop ordering
+The footer component automatically fetches and displays courses when the page loads. No additional configuration is required. The component will:
 
-- **Advanced Features:**
-  - Auto-save functionality
-  - Draft saving capability
-  - Form validation with error handling
-  - Progress tracking
-  - Real-time preview
+1. Fetch courses from the new API
+2. Filter by allowed categories
+3. Group courses by category
+4. Display category names with course counts
+5. Show up to 5 courses per category as children
+6. Fall back to static data if API fails
 
-- **UX Improvements:**
-  - Modern card-based layout
-  - Dark mode support
-  - Responsive design
-  - Loading states and feedback
-  - Intuitive form flow
+## Future Enhancements
 
-#### Live Course Creation (`src/app/dashboards/admin/courses/create/live/page.tsx`)
-**API Integration:**
-- Updated to use `courseTypesAPI.createCourse()`
-- Proper `ILiveCourse` interface compliance
-- Enhanced error handling and success feedback
-
-#### Free Course Creation (`src/app/dashboards/admin/courses/create/free/page.tsx`)
-**API Integration:**
-- Updated to use `courseTypesAPI.createCourse()`
-- Proper `IFreeCourse` interface compliance
-- Streamlined form for free course specifics
-
-## Key Improvements
-
-### 1. **Type Safety**
-- Full TypeScript integration with proper interfaces
-- Compile-time error checking
-- IntelliSense support for better developer experience
-
-### 2. **Modern UI/UX**
-- **Design System:**
-  - Consistent color scheme and spacing
-  - Modern card-based layouts
-  - Responsive grid systems
-  - Dark mode support throughout
-
-- **User Experience:**
-  - Intuitive navigation flow
-  - Clear visual hierarchy
-  - Loading states and feedback
-  - Error handling with user-friendly messages
-
-### 3. **Advanced Functionality**
-- **Search and Filtering:**
-  - Real-time collaborative search
-  - Advanced filtering options
-  - Multi-source data merging
-  - Smart deduplication
-
-- **Course Creation:**
-  - Dynamic form sections
-  - Auto-save functionality
-  - Draft management
-  - Multi-currency pricing
-  - Rich curriculum builder
-
-### 4. **Performance Optimizations**
-- **Efficient Data Fetching:**
-  - Collaborative API calls
-  - Smart caching strategies
-  - Optimized re-renders
-  - Debounced search
-
-- **Code Splitting:**
-  - Lazy loading of components
-  - Reduced bundle sizes
-  - Improved initial load times
-
-### 5. **Developer Experience**
-- **Code Organization:**
-  - Clear separation of concerns
-  - Reusable components
-  - Consistent naming conventions
-  - Comprehensive error handling
-
-- **Maintainability:**
-  - Well-documented code
-  - TypeScript interfaces
-  - Modular architecture
-  - Easy to extend and modify
-
-## API Methods Utilized
-
-### Course Management:
-- `courseTypesAPI.fetchCollaborative()` - Unified course fetching
-- `courseTypesAPI.advancedSearch()` - Real-time search
-- `courseTypesAPI.createCourse()` - Course creation
-- `courseTypesAPI.getCourseById()` - Individual course details
-
-### Advanced Features:
-- Multi-source data merging
-- Smart deduplication
-- Performance monitoring
-- Error handling and recovery
-
-## Benefits Achieved
-
-### 1. **Unified Data Access**
-- Single API for both new and legacy courses
-- Consistent data format across the application
-- Simplified maintenance and updates
-
-### 2. **Enhanced User Experience**
-- Faster course creation workflow
-- Better visual feedback and guidance
-- Improved error handling and validation
-
-### 3. **Scalability**
-- Support for multiple course types
-- Extensible architecture
-- Future-proof design patterns
-
-### 4. **Maintainability**
-- Type-safe codebase
-- Clear separation of concerns
-- Comprehensive error handling
-- Well-documented interfaces
-
-## Next Steps
-
-### Immediate:
-1. Test all course creation workflows
-2. Validate data persistence
-3. Verify search functionality
-4. Check responsive design on all devices
-
-### Future Enhancements:
-1. Add course preview functionality
-2. Implement bulk operations
-3. Add advanced analytics
-4. Integrate with notification system
-
-## Technical Specifications
-
-### Dependencies:
-- React Hook Form for form management
-- TypeScript for type safety
-- Tailwind CSS for styling
-- Lucide React for icons
-
-### Browser Support:
-- Modern browsers (Chrome, Firefox, Safari, Edge)
-- Mobile responsive design
-- Dark mode compatibility
-
-### Performance Metrics:
-- Improved form rendering speed
-- Reduced API call overhead
-- Better error recovery
-- Enhanced user feedback
-
-This integration represents a significant upgrade to the course management system, providing a modern, scalable, and user-friendly experience while maintaining backward compatibility with existing data. 
+1. Add caching to reduce API calls
+2. Implement real-time updates when courses are added/updated
+3. Add loading states for better UX
+4. Consider pagination for categories with many courses 
