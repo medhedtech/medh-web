@@ -436,6 +436,11 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   
   // Format duration to handle "0 months X weeks" cases
   const formatDuration = (durationStr: string): string => {
+    // For blended courses, always show "Self Paced"
+    if (isBlendedCourse) {
+      return 'Self Paced';
+    }
+    
     // Check if the duration matches the pattern "X months Y weeks"
     const regex = /(\d+)\s*months?\s*(\d+)\s*weeks?/i;
     const match = durationStr.match(regex);
@@ -522,7 +527,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     
     // Format grade level: convert "UG - Graduate - Professionals" to "UG/Grad- Pro."
     if (gradeLevel.includes('UG') && gradeLevel.includes('Graduate') && gradeLevel.includes('Professionals')) {
-      return 'UG/Grad/Pro.';
+      return 'UG/Grad/Pro';
     }
     
     return gradeLevel;
