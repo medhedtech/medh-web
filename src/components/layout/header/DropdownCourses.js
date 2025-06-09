@@ -151,7 +151,7 @@ const DropdownCourses = ({ isMenuOpen, onMenuToggle }) => {
         },
         {
           name: "~View All Courses~",
-          path: "/all-courses",
+          path: "/courses",
         },
       ],
     },

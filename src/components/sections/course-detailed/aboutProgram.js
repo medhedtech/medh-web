@@ -109,7 +109,7 @@ export default function AboutProgram({ courseId }) {
         bgColor: "bg-purple-50 dark:bg-purple-900/30",
       },
       {
-        label: "Live Sessions",
+        label: isBlendedCourse(courseDetails) ? "Videos" : "Live Sessions",
         value: formatLiveSessions(courseDetails || courseDetails?.sessions_count),
         icon: Users,
         color: "text-blue-500 dark:text-blue-400",
@@ -134,9 +134,29 @@ export default function AboutProgram({ courseId }) {
     return features;
   };
   
+  // Helper function to detect if course is blended
+  const isBlendedCourse = (details) => {
+    if (!details) return false;
+    
+    return (
+      details.classType === 'Blended Courses' || 
+      details.class_type === 'Blended Courses' ||
+      details.course_type === 'blended' || 
+      details.course_type === 'Blended' ||
+      details.delivery_format === 'Blended' ||
+      details.delivery_type === 'Blended' ||
+      details.course_category === 'Blended Courses'
+    );
+  };
+
   // Helper functions to format course details
   const formatDuration = (details) => {
     if (!details) return "9 months / 36 weeks";
+    
+    // For blended courses, show "Self Paced + Live Q&A sessions"
+    if (isBlendedCourse(details)) {
+      return 'Self Paced + Live Q&A sessions';
+    }
     
     // Try different possible field names
     const duration = details.duration || details.course_duration;
@@ -193,6 +213,44 @@ export default function AboutProgram({ courseId }) {
   const formatLiveSessions = (details) => {
     if (!details) return "72";
     
+    // For blended courses, show "Videos" instead of "Sessions"
+    if (isBlendedCourse(details)) {
+      // Get video count (could be from various fields)
+      const videoCount = details.no_of_Sessions || 
+                        details.video_count || 
+                        details.recorded_videos?.length ||
+                        details.course_videos?.length ||
+                        "72";
+      
+      // Get video duration if available
+      const videoDuration = details.session_duration || 
+                           details.video_duration || 
+                           details.class_duration;
+      
+      // If we have both count and duration, combine them
+      if (videoDuration) {
+        // Clean up duration format if needed
+        let formattedDuration = videoDuration;
+        
+        // If duration is just a number, assume it's minutes
+        if (/^\d+$/.test(videoDuration)) {
+          formattedDuration = `${videoDuration} min`;
+        }
+        
+        // If duration doesn't contain "min" or "hour", assume it's minutes
+        if (!formattedDuration.toLowerCase().includes('min') && 
+            !formattedDuration.toLowerCase().includes('hour')) {
+          formattedDuration = `${formattedDuration} min`;
+        }
+        
+        return `${videoCount} Videos (${formattedDuration})`;
+      }
+      
+      // If we only have count, return just that with "Videos"
+      return `${videoCount} Videos`;
+    }
+    
+    // For non-blended courses, show sessions as before
     // Get session count
     const sessionCount = details.no_of_Sessions || 
                          "72";
