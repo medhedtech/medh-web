@@ -459,29 +459,73 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
 
   const formattedDuration = formatDuration(duration);
   
+  // Extract course duration in months for EMI calculation
+  const getCourseDurationInMonths = useCallback((): number => {
+    if (!courseDetails?.course_duration) {
+      return 12; // Default to 12 months if no duration specified
+    }
+    
+    const durationStr = courseDetails.course_duration.toLowerCase();
+    
+    // Extract months and weeks from the duration string
+    const monthsMatch = durationStr.match(/(\d+)\s*months?/);
+    const weeksMatch = durationStr.match(/(\d+)\s*weeks?/);
+    
+    let totalMonths = 0;
+    
+    if (monthsMatch) {
+      totalMonths += parseInt(monthsMatch[1], 10);
+    }
+    
+    if (weeksMatch) {
+      const weeks = parseInt(weeksMatch[1], 10);
+      totalMonths += Math.ceil(weeks / 4); // Convert weeks to months (4 weeks = 1 month)
+    }
+    
+    // If no months or weeks found, try to extract any number and assume it's months
+    if (totalMonths === 0) {
+      const numberMatch = durationStr.match(/(\d+)/);
+      if (numberMatch) {
+        totalMonths = parseInt(numberMatch[1], 10);
+      }
+    }
+    
+    // Ensure minimum of 3 months and maximum of 36 months for EMI
+    return Math.max(3, Math.min(totalMonths || 12, 36));
+  }, [courseDetails?.course_duration]);
+
+  const maxEMIDuration = getCourseDurationInMonths();
+  
   // Get grade/level from multiple possible sources with new API structure support
   const getGradeLevel = useCallback((): string => {
+    let gradeLevel = '';
+    
     // First check course_level from new API structure
     if (courseDetails?.course_level) {
-      return courseDetails.course_level;
+      gradeLevel = courseDetails.course_level;
     }
-    
     // Check grade field (legacy)
-    if (courseDetails?.grade) {
-      return courseDetails.grade;
+    else if (courseDetails?.grade) {
+      gradeLevel = courseDetails.grade;
     }
-    
     // Check target_audience from course_description object (new structure)
-    if (typeof courseDetails?.course_description === 'object' && courseDetails.course_description?.target_audience?.length) {
-      return courseDetails.course_description.target_audience[0];
+    else if (typeof courseDetails?.course_description === 'object' && courseDetails.course_description?.target_audience?.length) {
+      gradeLevel = courseDetails.course_description.target_audience[0];
     }
-    
     // Check target_audience array directly (legacy)
-    if (courseDetails?.target_audience?.length) {
-      return courseDetails.target_audience[0];
+    else if (courseDetails?.target_audience?.length) {
+      gradeLevel = courseDetails.target_audience[0];
+    }
+    else {
+      return 'All Levels';
     }
     
-    return 'All Levels';
+    // Format grade level: convert "UG - Graduate - Professionals" to "UG/Grad- Pro."
+    if (gradeLevel.includes('UG') && gradeLevel.includes('Graduate') && gradeLevel.includes('Professionals')) {
+      return 'UG/Grad/Pro.';
+    }
+    
+    return gradeLevel;
   }, [courseDetails]);
   
   const grade = getGradeLevel();
@@ -1290,12 +1334,8 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   // 2. Improve text consistency across all EMI components (font sizes, spacing, colors)
   // 3. Fix dropdown state management to prevent unexpected closures
   // 4. Enhance mobile responsiveness and touch interactions
-  // 5. Standardize button styles and hover states throughout EMI section
-  // 6. Fix text overflow and truncation issues on smaller screens
-  // 7. Improve loading states and error handling in EMI calculations
-  // 8. Add better visual feedback for selected EMI plans
-  // 9. Fix accessibility issues (keyboard navigation, screen reader support)
-  // 10. Optimize performance to prevent unnecessary re-renders
+  // EMI Component removed as per requirements
+  // The following component is kept for reference but not used
   const ModernEMIComponent = React.memo(({
     installmentPlans,
     selectedInstallmentPlan,
@@ -1303,7 +1343,8 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     finalPrice,
     primaryColor,
     formatPriceDisplay,
-    createCustomInstallmentPlan
+    createCustomInstallmentPlan,
+    maxEMIDuration
   }: {
     installmentPlans: InstallmentPlan[],
     selectedInstallmentPlan: InstallmentPlan | null,
@@ -1311,11 +1352,12 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     finalPrice: number,
     primaryColor: string,
     formatPriceDisplay: (price: number) => string,
-    createCustomInstallmentPlan: (months: number, price: number) => InstallmentPlan
+    createCustomInstallmentPlan: (months: number, price: number) => InstallmentPlan,
+    maxEMIDuration: number
   }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [activeTab, setActiveTab] = useState<'preset' | 'custom'>('preset');
-    const [customDuration, setCustomDuration] = useState(12);
+    const [customDuration, setCustomDuration] = useState(() => Math.min(12, maxEMIDuration));
     const [isCalculating, setIsCalculating] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const interactionRef = useRef(false);
@@ -1348,7 +1390,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
 
     // Custom EMI calculation
     const calculateCustomEMI = useCallback((months: number) => {
-      if (months < 3 || months > 48) return null;
+      if (months < 3 || months > maxEMIDuration) return null;
       
       const downPayment = Math.round(finalPrice * 0.2);
       const remainingAmount = finalPrice - downPayment;
@@ -1366,11 +1408,11 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     // Handle custom duration change
     const handleCustomDurationChange = useCallback((months: number) => {
       setCustomDuration(months);
-      if (months >= 3 && months <= 48) {
+      if (months >= 3 && months <= maxEMIDuration) {
         const customPlan = createCustomInstallmentPlan(months, finalPrice);
         handlePlanSelection(customPlan);
       }
-    }, [createCustomInstallmentPlan, finalPrice, handlePlanSelection]);
+    }, [createCustomInstallmentPlan, finalPrice, handlePlanSelection, maxEMIDuration]);
 
     // Enhanced scroll and interaction protection
     useEffect(() => {
@@ -1611,42 +1653,45 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                           Choose Your Duration
                         </h4>
                         
-                        {/* Duration Slider */}
+                        {/* Duration Input */}
                         <div className="space-y-3 sm:space-y-4">
                           <div className="flex items-center justify-between">
                             <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
-                              Duration: {customDuration} months
+                              EMI Duration (months)
                             </label>
                             <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                              3-48 months
+                              Max: {maxEMIDuration} months
                             </div>
                           </div>
                           
-                          <div className="relative">
+                          <div className="flex items-center space-x-3">
                             <input
-                              type="range"
+                              type="number"
                               min="3"
-                              max="48"
+                              max={maxEMIDuration}
                               value={customDuration}
                               onChange={(e) => {
                                 const months = parseInt(e.target.value);
-                                setCustomDuration(months);
-                                trackInteraction();
+                                if (!isNaN(months) && months >= 3 && months <= maxEMIDuration) {
+                                  setCustomDuration(months);
+                                  trackInteraction();
+                                }
                               }}
-                              onMouseUp={() => handleCustomDurationChange(customDuration)}
-                              onTouchEnd={() => handleCustomDurationChange(customDuration)}
-                              className="w-full h-2 sm:h-2.5 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
-                              style={{
-                                background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((customDuration - 3) / 45) * 100}%, #e5e7eb ${((customDuration - 3) / 45) * 100}%, #e5e7eb 100%)`
-                              }}
+                              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                              placeholder="Enter months"
                             />
-                            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1 sm:mt-2">
-                              <span>3m</span>
-                              <span>12m</span>
-                              <span>24m</span>
-                              <span>36m</span>
-                              <span>48m</span>
-                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleCustomDurationChange(customDuration)}
+                              disabled={customDuration < 3 || customDuration > maxEMIDuration}
+                              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                            >
+                              Apply
+                            </button>
+                          </div>
+                          
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            EMI duration cannot exceed course duration ({maxEMIDuration} months)
                           </div>
                         </div>
 
@@ -1733,7 +1778,8 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     // Don't reset selectedInstallmentPlan to maintain user selection
   }, []);
 
-  // Isolated EMI Options Component to prevent parent re-renders
+  // EMI Options Component removed as per requirements
+  // The following component is kept for reference but not used
   const EMIOptionsSection = React.memo(({ 
     plans, 
     selectedPlan, 
@@ -2083,18 +2129,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             </motion.div>
           </AnimatePresence>
           
-          {/* Modern EMI Component */}
-          {isInstallmentAvailable && (
-            <ModernEMIComponent
-              installmentPlans={installmentPlans}
-              selectedInstallmentPlan={selectedInstallmentPlan}
-              onSelectPlan={selectInstallmentPlan}
-              finalPrice={stableFinalPrice}
-              primaryColor={primaryColor}
-              formatPriceDisplay={formatPriceDisplay}
-              createCustomInstallmentPlan={createCustomInstallmentPlan}
-            />
-          )}
+
           
           {/* Course Details List - More readable on mobile */}
           <div className="space-y-2 sm:space-y-3 border-t border-gray-200 dark:border-gray-700 pt-4 sm:pt-5">
@@ -2159,8 +2194,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                 {isLoggedIn ? (
                   <>
                     <span className="leading-tight">
-                      {courseDetails?.isFree ? 'Enroll for Free' : 
-                        selectedInstallmentPlan ? `Pay ${formatPriceDisplay(selectedInstallmentPlan.downPayment)} now (20% down)` : 'Enroll Now'}
+                      {courseDetails?.isFree ? 'Enroll for Free' : 'Enroll Now'}
                     </span>
                     <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />
                   </>
@@ -2174,20 +2208,13 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             )}
           </motion.button>
           
-          {/* Payment info with installment badge */}
+          {/* Payment info */}
           {!courseDetails?.isFree && (
             <div className="text-center text-xs p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg sm:rounded-xl border border-gray-100 dark:border-gray-700">
-              <div className="flex items-center justify-center mb-1.5">
+              <div className="flex items-center justify-center">
                 <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-gray-400 flex-shrink-0" />
                 <span className="text-gray-500 dark:text-gray-400 leading-tight">Secure payment powered by Razorpay</span>
               </div>
-              {isInstallmentAvailable && (
-                <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
-                  <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 sm:px-2 py-0.5 rounded text-xs leading-tight">EMI Available</span>
-                  <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-1.5 sm:px-2 py-0.5 rounded text-xs leading-tight">No Processing Fee</span>
-                  <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 sm:px-2 py-0.5 rounded text-xs leading-tight">20% Down Payment</span>
-                </div>
-              )}
             </div>
           )}
           
