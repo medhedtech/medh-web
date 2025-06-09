@@ -39,13 +39,13 @@ const Footer: React.FC<FooterProps> = ({ className = "" }) => {
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-900 to-black dark:from-gray-950 dark:via-gray-950 dark:to-black z-0">
           <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_50%_-20%,rgba(76,175,80,0.15),rgba(0,0,0,0))]"></div>
         </div>
-        <div className="relative z-10 w-full pt-10 pb-0 font-body">
-          <div className="w-full backdrop-blur-sm bg-black/20 dark:bg-black/30 border-t border-white/5 py-6 md:py-8 shadow-xl">
-            <div className="max-w-[1920px] mx-auto px-4 md:px-8 lg:px-12">
+        <div className="relative z-10 w-full pt-16 pb-0 font-body">
+          <div className="w-full backdrop-blur-sm bg-black/20 dark:bg-black/30 border-t border-white/5 py-10 md:py-12 shadow-xl">
+            <div className="max-w-[1920px] mx-auto px-8 md:px-12 lg:px-20">
               <div className="animate-pulse">
-                <div className="h-32 bg-gray-700 rounded mb-6"></div>
-                <div className="h-px bg-gray-700 my-5"></div>
-                <div className="h-24 bg-gray-700 rounded"></div>
+                <div className="h-48 bg-gray-700 rounded-2xl mb-10"></div>
+                <div className="h-px bg-gray-700 my-8"></div>
+                <div className="h-40 bg-gray-700 rounded-2xl"></div>
               </div>
             </div>
           </div>
@@ -56,68 +56,73 @@ const Footer: React.FC<FooterProps> = ({ className = "" }) => {
 
   return (
     <footer 
-      className={`w-full relative transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} ${className}`}
+      className={`w-full relative transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} ${className}`}
       role="contentinfo"
       aria-label="Site footer"
       {...getHydrationSafeProps()}
     >
-      {/* Enhanced modern gradient background */}
+      {/* Enhanced modern gradient background with improved depth and character spacing */}
       <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-900 to-black dark:from-gray-950 dark:via-gray-950 dark:to-black z-0 overflow-hidden">
-        {/* Subtle animated radial gradient overlay */}
-        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_50%_-20%,rgba(76,175,80,0.15),rgba(0,0,0,0))]"></div>
+        {/* Enhanced animated radial gradient overlay */}
+        <div className="absolute inset-0 opacity-50 bg-[radial-gradient(circle_at_50%_-20%,rgba(76,175,80,0.25),rgba(0,0,0,0))]"></div>
         
-        {/* Animated dot pattern */}
-        <div className="absolute inset-0 opacity-5" aria-hidden="true">
+        {/* Enhanced animated dot pattern with better visibility and spacing */}
+        <div className="absolute inset-0 opacity-15" aria-hidden="true">
           <div className="absolute w-full h-full" 
                style={{
-                 backgroundImage: `radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px)`,
-                 backgroundSize: '30px 30px',
+                 backgroundImage: `radial-gradient(rgba(255, 255, 255, 0.25) 1px, transparent 1px)`,
+                 backgroundSize: '50px 50px',
                  backgroundPosition: '0 0'
                }}>
           </div>
         </div>
+        
+        {/* Additional enhanced mesh gradient overlay */}
+        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(ellipse_at_top,rgba(76,175,80,0.15),transparent_50%)]" aria-hidden="true"></div>
+        
+        {/* Subtle animated gradient waves */}
+        <div className="absolute inset-0 opacity-20 bg-[conic-gradient(from_0deg_at_50%_50%,rgba(76,175,80,0.1)_0deg,transparent_60deg,rgba(76,175,80,0.05)_120deg,transparent_180deg)]" aria-hidden="true"></div>
       </div>
       
-      {/* Enhanced accent line at top with animation */}
-      <div className="absolute top-0 left-0 right-0 h-0.5 z-10" aria-hidden="true">
-        <div className="h-full w-full bg-gradient-to-r from-transparent via-primary-500 to-transparent opacity-70 animate-pulse"></div>
+      {/* Enhanced accent line at top with improved animation and spacing */}
+      <div className="absolute top-0 left-0 right-0 h-1.5 z-10" aria-hidden="true">
+        <div className="h-full w-full bg-gradient-to-r from-transparent via-primary-500 to-transparent opacity-90 animate-pulse"></div>
+        <div className="absolute top-0 h-full w-full bg-gradient-to-r from-transparent via-primary-400/60 to-transparent blur-sm"></div>
+        <div className="absolute top-0 h-full w-full bg-gradient-to-r from-transparent via-primary-300/30 to-transparent blur-lg"></div>
       </div>
       
-      {/* Mobile-optimized or desktop footer based on viewport */}
+      {/* Mobile-optimized or desktop footer based on viewport with enhanced spacing */}
       {isMobile ? (
-        // Enhanced mobile footer - full width with glass-morphism effect
-        <div className="relative z-10 w-full pt-6 pb-0 font-body">
-          <div className="w-full backdrop-blur-sm bg-black/30 dark:bg-black/40 border-t border-white/5 px-3 py-4 shadow-lg">
-            {/* Mobile footer main content */}
+        // Enhanced mobile footer with improved character spacing and visual hierarchy
+        <div className="relative z-10 w-full pt-10 pb-0 font-body">
+          <div className="w-full backdrop-blur-lg bg-black/50 dark:bg-black/60 border-t border-white/15 px-5 py-8 shadow-3xl">
+            {/* Mobile footer main content with enhanced spacing */}
             <div className="relative">
-              <FooterNavList logoImage={Logo} isMobile={true} />
+              <FooterNavList logoImage={Logo} qrCodeImage={QRCode} isMobile={true} />
             </div>
             
-            {/* Improved divider with gradient */}
-            <div className="h-px my-3 bg-gradient-to-r from-transparent via-gray-700 to-transparent"></div>
+            {/* Enhanced divider with better gradient, spacing and character separation */}
+            <div className="h-px my-8 bg-gradient-to-r from-transparent via-gray-500 to-transparent opacity-90 relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-400/30 to-transparent blur-sm"></div>
+            </div>
             
-            {/* Copyright section */}
+            {/* Copyright section with improved spacing */}
             <CopyRight qrCodeImage={QRCode} isMobile={true} />
           </div>
         </div>
       ) : (
-        // Enhanced desktop footer - full width with glass-morphism effect
-        <div className="relative z-10 w-full pt-10 pb-0 font-body">
-          <div className="w-full backdrop-blur-sm bg-black/20 dark:bg-black/30 border-t border-white/5 py-6 md:py-8 shadow-xl">
-            {/* Enhanced glow effect for desktop */}
-            <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-1/3 h-1 bg-gradient-to-r from-transparent via-primary-400/50 to-transparent blur-xl" aria-hidden="true"></div>
+        // Enhanced desktop footer with improved character spacing and visual hierarchy
+        <div className="relative z-10 w-full pt-20 pb-0 font-body">
+          <div className="w-full backdrop-blur-lg bg-black/40 dark:bg-black/50 border-t border-white/15 py-12 md:py-16 shadow-3xl">
+            {/* Enhanced glow effect for desktop with better positioning and spacing */}
+            <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-2/5 h-3 bg-gradient-to-r from-transparent via-primary-400/70 to-transparent blur-3xl" aria-hidden="true"></div>
+            <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-1/3 h-1 bg-gradient-to-r from-transparent via-primary-300/50 to-transparent blur-xl" aria-hidden="true"></div>
             
-            {/* Footer main content - centered with max width for readability */}
-            <div className="max-w-[1920px] mx-auto px-4 md:px-8 lg:px-12">
+            {/* Footer main content with enhanced max width, spacing and character separation */}
+            <div className="max-w-[1920px] mx-auto px-8 md:px-12 lg:px-20">
               <div className="relative">
-                <FooterNavList logoImage={Logo} isMobile={false} />
+                <FooterNavList logoImage={Logo} qrCodeImage={QRCode} isMobile={false} />
               </div>
-              
-              {/* Improved divider with gradient */}
-              <div className="h-px my-5 md:my-7 bg-gradient-to-r from-transparent via-gray-700 to-transparent"></div>
-              
-              {/* Copyright section */}
-              <CopyRight qrCodeImage={QRCode} isMobile={false} />
             </div>
           </div>
         </div>
