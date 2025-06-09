@@ -30,6 +30,22 @@ const filterIputs = [
     name: "Categories",
     inputs: [
       {
+        name: "AI & Data Science",
+        totalCount: getFilteredCoursesLength("categories", "AI & Data Science"),
+      },
+      {
+        name: "Digital Marketing",
+        totalCount: getFilteredCoursesLength("categories", "Digital Marketing"),
+      },
+      {
+        name: "Personality Development",
+        totalCount: getFilteredCoursesLength("categories", "Personality Development"),
+      },
+      {
+        name: "Vedic Mathematics",
+        totalCount: getFilteredCoursesLength("categories", "Vedic Mathematics"),
+      },
+      {
         name: "Art & Design",
         totalCount: getFilteredCoursesLength("categories", "Art & Design"),
       },
@@ -86,6 +102,27 @@ const filterIputs = [
     ],
   },
   {
+    name: "Blended Learning",
+    inputs: [
+      {
+        name: "Online + Offline",
+        totalCount: getFilteredCoursesLength("categories", "Online + Offline"),
+      },
+      {
+        name: "Hybrid Learning",
+        totalCount: getFilteredCoursesLength("categories", "Hybrid Learning"),
+      },
+      {
+        name: "Flexible Schedule",
+        totalCount: getFilteredCoursesLength("categories", "Flexible Schedule"),
+      },
+      {
+        name: "Mixed Format",
+        totalCount: getFilteredCoursesLength("categories", "Mixed Format"),
+      },
+    ],
+  },
+  {
     name: "Tag",
     inputs: [
       "Mechanic",
@@ -102,10 +139,11 @@ const filterIputs = [
 ];
 // get all filtered courses
 const getAllFilteredCourses = (filterableCourses, filterObject) => {
-  const { currentCategories, currentTags, currentSkillLevel } = filterObject;
+  const { currentCategories, currentBlendedLearning, currentTags, currentSkillLevel } = filterObject;
   const filteredCourses = filterableCourses?.filter(
     ({ categories, tag, skillLevel }) =>
       (!currentCategories?.length || currentCategories.includes(categories)) &&
+      (!currentBlendedLearning?.length || currentBlendedLearning.includes(categories)) &&
       (!currentTags?.length || currentTags?.includes(tag)) &&
       (!currentSkillLevel?.length ||
         currentSkillLevel?.includes("All") ||
@@ -131,6 +169,7 @@ const getSortedCourses = (courses, sortInput) => {
 const CoursesPrimary = ({ isNotSidebar, isList, card }) => {
   const category = useSearchParams().get("category");
   const [currentCategories, setCurrentCategories] = useState([]);
+  const [currentBlendedLearning, setCurrentBlendedLearning] = useState([]);
   const [currentTags, setCurrentTags] = useState([]);
   const [currentSkillLevel, setCurrentSkillLevel] = useState([]);
   const [sortInput, setSortInput] = useState("Sort by New");
@@ -146,6 +185,7 @@ const CoursesPrimary = ({ isNotSidebar, isList, card }) => {
   const serarchTimeoutRef = useRef(null);
   const filterObject = {
     currentCategories,
+    currentBlendedLearning,
     currentTags,
     currentSkillLevel,
   };
@@ -226,6 +266,8 @@ const CoursesPrimary = ({ isNotSidebar, isList, card }) => {
     switch (name) {
       case "Categories":
         return setCurrentCategories((ps) => getCurrentFilterInputs(input, ps));
+      case "Blended Learning":
+        return setCurrentBlendedLearning((ps) => getCurrentFilterInputs(input, ps));
       case "Tag":
         return setCurrentTags((ps) => getCurrentFilterInputs(input, ps));
       case "Skill Level":
@@ -236,6 +278,7 @@ const CoursesPrimary = ({ isNotSidebar, isList, card }) => {
   const handleSearchProducts = (e) => {
     setIsBlog(true);
     setCurrentCategories([]);
+    setCurrentBlendedLearning([]);
     setCurrentTags([]);
     setCurrentSkillLevel([]);
     const value = e.target.value;
@@ -432,6 +475,25 @@ const CoursesPrimary = ({ isNotSidebar, isList, card }) => {
                               onClick={() => handleFilters(name, name2)}
                               className={`${
                                 currentCategories.includes(name2)
+                                  ? "bg-primary-500 text-white"
+                                  : "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-primary-500 hover:text-white"
+                              } w-full px-4 py-2 rounded-lg flex justify-between items-center transition-all duration-200`}
+                            >
+                              <span className="text-sm font-medium truncate">
+                                {name2}
+                              </span>
+                              <span className="text-sm font-medium">
+                                {totalCount < 10 ? `0${totalCount}` : totalCount}
+                              </span>
+                            </button>
+                          ))
+                        : name === "Blended Learning"
+                        ? inputs?.map(({ name: name2, totalCount }, idx1) => (
+                            <button
+                              key={idx1}
+                              onClick={() => handleFilters(name, name2)}
+                              className={`${
+                                currentBlendedLearning.includes(name2)
                                   ? "bg-primary-500 text-white"
                                   : "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-primary-500 hover:text-white"
                               } w-full px-4 py-2 rounded-lg flex justify-between items-center transition-all duration-200`}
