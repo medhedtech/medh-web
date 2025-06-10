@@ -238,35 +238,75 @@ const freeCoursesOptions = [
 ];
 
 /**
- * Simple ErrorBoundary
+ * Enhanced ErrorBoundary with better error handling
  */
 const ErrorBoundary: React.FC<IErrorBoundaryProps> = ({ children }) => {
   const [hasError, setHasError] = useState<boolean>(false);
+  const [errorInfo, setErrorInfo] = useState<string | null>(null);
 
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
-      console.error("Caught error:", event);
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Caught error:", event);
+      }
       setHasError(true);
+      setErrorInfo(event.error?.message || event.message || 'Unknown error');
     };
+
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Unhandled promise rejection:", event.reason);
+      }
+      setHasError(true);
+      setErrorInfo(event.reason?.message || 'Promise rejection error');
+    };
+
     window.addEventListener("error", handleError);
-    return () => window.removeEventListener("error", handleError);
+    window.addEventListener("unhandledrejection", handleUnhandledRejection);
+    
+    return () => {
+      window.removeEventListener("error", handleError);
+      window.removeEventListener("unhandledrejection", handleUnhandledRejection);
+    };
   }, []);
 
   if (hasError) {
     return (
-      <div className="p-8 bg-red-50 dark:bg-red-900/10 rounded-2xl my-8 text-center border border-red-200 dark:border-red-900/30">
-        <h2 className="text-2xl font-bold text-red-700 dark:text-red-300 mb-4">
-          Something went wrong
-        </h2>
-        <p className="mb-4 text-red-600 dark:text-red-400">
-          We&apos;re sorry, but there was an error loading this page.
+      <div className="p-6 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-200 dark:border-red-900/30">
+        <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 dark:bg-red-900/20 rounded-full">
+          <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-red-700 dark:text-red-300 mb-2 text-center">
+          Oops! Something went wrong
+        </h3>
+        <p className="text-sm text-red-600 dark:text-red-400 text-center mb-4">
+          Don&apos;t worry, this happens sometimes. Try refreshing the page or contact support if the problem persists.
         </p>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-colors"
-        >
-          Reload Page
-        </button>
+        {process.env.NODE_ENV === 'development' && errorInfo && (
+          <details className="mb-4 text-xs text-red-500">
+            <summary className="cursor-pointer">Error Details</summary>
+            <pre className="mt-2 p-2 bg-red-100 dark:bg-red-900/20 rounded overflow-auto">
+              {errorInfo}
+            </pre>
+          </details>
+        )}
+        <div className="flex gap-3 justify-center">
+          <button
+            onClick={() => {
+              setHasError(false);
+              setErrorInfo(null);
+            }}
+            className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+          >
+            Try Again
+          </button>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 text-sm bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+          >
+            Reload Page
+          </button>
+        </div>
       </div>
     );
   }
@@ -485,8 +525,8 @@ const SearchInput = React.memo<ISearchInputProps>(({ searchTerm, handleSearch, s
 // Add a custom hook for window resize handling
 const useWindowSize = (): IWindowSize => {
   const [windowSize, setWindowSize] = useState<IWindowSize>({
-    width: typeof window !== 'undefined' ? window.innerWidth : 0,
-    height: typeof window !== 'undefined' ? window.innerHeight : 0,
+    width: typeof window !== 'undefined' ? window.innerWidth : 1024, // Default to desktop size
+    height: typeof window !== 'undefined' ? window.innerHeight : 768,
   });
 
   useEffect(() => {
@@ -566,7 +606,9 @@ const getLocationCurrency = async (): Promise<string> => {
     if (cachedCurrency && cachedTimestamp) {
       const timestamp = parseInt(cachedTimestamp);
       if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
-        console.log(`Using cached currency: ${cachedCurrency}`);
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`Using cached currency: ${cachedCurrency}`);
+        }
         return cachedCurrency;
       }
     }
@@ -575,14 +617,18 @@ const getLocationCurrency = async (): Promise<string> => {
     
     if (response.data && response.data.currency) {
       const detectedCurrency = response.data.currency;
-      console.log(`Detected currency from IP: ${detectedCurrency}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Detected currency from IP: ${detectedCurrency}`);
+      }
       
       localStorage.setItem('userCurrency', detectedCurrency);
       localStorage.setItem('userCurrencyTimestamp', Date.now().toString());
       
       return detectedCurrency;
     } else {
-      console.log("Could not detect currency from IP, using default");
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Could not detect currency from IP, using default");
+      }
       return "USD";
     }
   } catch (error) {
@@ -613,9 +659,9 @@ const usePerformanceMonitor = (componentName: string) => {
     action();
     const endTime = performance.now();
     
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`${componentName} ${actionName}: ${(endTime - startTime).toFixed(2)}ms`);
-    }
+          if (process.env.NODE_ENV === 'development' && endTime - startTime > 16) {
+        console.log(`${componentName} ${actionName}: ${(endTime - startTime).toFixed(2)}ms`);
+      }
   }, [componentName]);
   
   return { measureAction };
@@ -640,7 +686,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   hideHeader = false,
   hideGradeFilter = false,
   gridColumns = 3,
-  itemsPerPage = 8,
+  itemsPerPage = 9,
   simplePagination = false,
   emptyStateContent = null,
   customGridClassName = "",
@@ -715,7 +761,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   useEffect(() => {
     if (!loading && filteredCourses.length > 0) {
       const loadTime = performance.now() - performanceStartTime.current;
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === 'development' && loadTime > 100) {
         console.log(`Course loading completed in ${loadTime.toFixed(2)}ms for ${filteredCourses.length} courses`);
       }
     }
@@ -1014,7 +1060,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             setTotalItems(courses.length);
           }
 
-          if (response.data.facets) {
+          if (response.data.facets && process.env.NODE_ENV === 'development') {
             if (response.data.facets.categories) {
               console.debug('Categories facets:', response.data.facets.categories);
             }
@@ -1471,14 +1517,14 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   }, [handleClearFilters]);
 
   /**
-   * Count text
+   * Count text - Memoized for performance
    */
-  const coursesCountText = (() => {
+  const coursesCountText = useMemo(() => {
     if (showingRelated) return "Related Courses";
     if (totalItems === 0) return "No courses found";
     if (totalItems === 1) return "1 course found";
-    return `${totalItems} courses found`;
-  })();
+    return `${totalItems.toLocaleString()} courses found`;
+  }, [showingRelated, totalItems]);
 
   // Determine UI theme colors based on activeTab
   const getTabStyles = (): ITabStyles => {
@@ -1586,15 +1632,20 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
         {/* Enhanced Course Cards Grid - Responsive for all screen sizes */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 xl:gap-6 2xl:gap-8 auto-rows-fr">
             {filteredCourses.map((course, index) => {
-              const enhancedCourse = renderCourse(course);
+              if (!course || !course._id) {
+                console.warn('Invalid course data:', course);
+                return null;
+              }
+              
+              const enhancedCourse = renderCourse ? renderCourse(course) : course;
               
               return (
-                <ErrorBoundary key={enhancedCourse._id}>
+                <ErrorBoundary key={`course-${enhancedCourse._id}-${index}`}>
                   <div
-                  className="h-full opacity-0"
+                    className="h-full opacity-0"
                     style={{
-                    animationDelay: `${index * 100}ms`,
-                    animation: 'fadeInUp 0.6s ease-out forwards',
+                      animationDelay: `${Math.min(index * 100, 1000)}ms`, // Cap delay at 1 second
+                      animation: 'fadeInUp 0.6s ease-out forwards',
                     }}
                   >
                     <MemoizedCourseCard
@@ -1838,16 +1889,29 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             }
           }
 
-          /* Intersection observer optimizations for lazy loading */
-          .course-card[data-visible="false"] {
-            opacity: 0;
-            transform: translateY(50px);
+          /* Improved lazy loading with reduced motion for accessibility */
+          @media (prefers-reduced-motion: no-preference) {
+            .course-card[data-visible="false"] {
+              opacity: 0;
+              transform: translateY(30px);
+            }
+
+            .course-card[data-visible="true"] {
+              opacity: 1;
+              transform: translateY(0);
+              transition: opacity 0.4s ease, transform 0.4s ease;
+            }
           }
 
-          .course-card[data-visible="true"] {
-            opacity: 1;
-            transform: translateY(0);
-            transition: opacity 0.6s ease, transform 0.6s ease;
+          @media (prefers-reduced-motion: reduce) {
+            .course-card[data-visible="false"] {
+              opacity: 0;
+            }
+
+            .course-card[data-visible="true"] {
+              opacity: 1;
+              transition: opacity 0.2s ease;
+            }
           }
 
           /* Prevent text selection on dropdown headers */
@@ -2613,24 +2677,26 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   const renderMainContent = (): React.ReactNode => {
     return (
       <div className={!hideCategoryFilter ? "lg:w-3/4" : "w-full"}>
-        {/* Fixed Header Section */}
-        <div className="sticky top-0 z-20 bg-white dark:bg-gray-900 pb-4">
-          {/* Results count */}
+        {/* Header Section */}
+        <div className="mb-6">
+          {/* Results count - Improved styling */}
           {!hideFilterBar && (
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-              <div className="text-gray-600 dark:text-gray-400 mb-4 sm:mb-0">
-                <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {totalItems}
-                </span>
-                <span className="ml-2 text-lg">
-                  {totalItems === 1 ? 'course found' : 'courses found'}
-                </span>
+              <div className="flex items-center gap-4 mb-4 sm:mb-0">
+                <div className="text-gray-700 dark:text-gray-300">
+                  <span className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                    {totalItems.toLocaleString()}
+                  </span>
+                  <span className="ml-1 text-base">
+                    {totalItems === 1 ? 'course found' : 'courses found'}
+                  </span>
+                </div>
                 {showingRelated && (
                   <button
                     onClick={clearRelated}
-                    className="ml-4 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 underline"
+                    className="px-3 py-1 text-sm bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50 rounded-lg transition-colors duration-200"
                   >
-                    Back to All
+                    ← Back to All
                   </button>
                 )}
               </div>
@@ -2655,14 +2721,14 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
           )}
         </div>
 
-        {/* Scrollable Course Cards Section */}
+        {/* Course Cards Section */}
         <div className="relative">
           {renderCourseList()}
         </div>
 
-        {/* Fixed Pagination Section */}
+        {/* Pagination Section - Fixed styling */}
         {totalPages > 1 && (
-          <div className="sticky bottom-0 z-20 bg-white dark:bg-gray-900 pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
+          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
             <nav className="flex justify-center" aria-label="Pagination">
               {simplePagination ? (
                 <SimplePaginationWrapper
@@ -2686,8 +2752,10 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     );
   };
 
-  // Prevent body scroll when any dropdown is open
+  // Prevent body scroll when any dropdown is open (with improved cleanup)
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const isAnyDropdownOpen = isGradeDropdownOpen || isLiveCoursesDropdownOpen || isBlendedLearningDropdownOpen || isFreeCoursesDropdownOpen || isFilterDropdownOpen;
     
     if (isAnyDropdownOpen) {
@@ -2704,17 +2772,23 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
       document.body.style.top = '';
       document.body.style.width = '';
       document.body.style.overflow = '';
+      
       if (scrollY) {
-        window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
+        const parsedScrollY = parseInt(scrollY.replace('-', '').replace('px', '') || '0', 10);
+        if (!isNaN(parsedScrollY)) {
+          window.scrollTo(0, parsedScrollY);
+        }
       }
     }
 
+    // Improved cleanup on unmount
     return () => {
-      // Cleanup on unmount
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-      document.body.style.overflow = '';
+      if (typeof document !== 'undefined') {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.overflow = '';
+      }
     };
   }, [isGradeDropdownOpen, isLiveCoursesDropdownOpen, isBlendedLearningDropdownOpen, isFreeCoursesDropdownOpen, isFilterDropdownOpen]);
 
@@ -2735,9 +2809,9 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
 
         {/* Main container */}
         <div className="max-w-7xl mx-auto px-4">
-          {/* Fixed Search and filters bar */}
+          {/* Search and filters bar */}
           {!hideFilterBar && (
-            <div className="sticky top-0 z-30 bg-white dark:bg-gray-800 rounded-2xl p-6 mb-8 border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 mb-8 border border-gray-200 dark:border-gray-700 shadow-sm">
               <div className="flex flex-col md:flex-row gap-4 mb-6">
                 {!hideSearch && <SearchInput searchTerm={searchTerm} handleSearch={handleSearch} setSearchTerm={setSearchTerm} />}
                 
