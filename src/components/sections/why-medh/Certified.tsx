@@ -1,8 +1,6 @@
 "use client";
 import Image from "next/image";
 import React, { useEffect, useState, useRef } from "react";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick";
 import iso27001 from "@/assets/images/iso/iso27001.png";
 import iso10002 from "@/assets/images/iso/iso10002.png";
@@ -13,17 +11,48 @@ import iso270001 from "@/assets/images/iso/iso27001.png";
 import isoSTEM from "@/assets/images/iso/iso-STEM.jpg";
 import isoUAEA from "@/assets/images/iso/iso-UAEA.jpg";
 
-const Certified = () => {
-  const [isHovered, setIsHovered] = useState(null);
-  const [isVisible, setIsVisible] = useState(false);
-  const sliderRef = useRef(null);
-  const [isScrolling, setIsScrolling] = useState(false);
+interface ICertification {
+  image: string;
+  alt: string;
+  title: string;
+}
+
+interface ISliderSettings {
+  dots: boolean;
+  infinite: boolean;
+  speed: number;
+  arrows: boolean;
+  slidesToShow: number;
+  slidesToScroll: number;
+  autoplay: boolean;
+  autoplaySpeed: number;
+  pauseOnHover: boolean;
+  centerMode: boolean;
+  centerPadding: string;
+  cssEase: string;
+  responsive: Array<{
+    breakpoint: number;
+    settings: {
+      slidesToShow: number;
+      slidesToScroll: number;
+      centerMode: boolean;
+    };
+  }>;
+  afterChange?: (current: number) => void;
+}
+
+const Certified: React.FC = () => {
+  const [isHovered, setIsHovered] = useState<number | null>(null);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const sliderRef = useRef<Slider>(null);
+  const [isScrolling, setIsScrolling] = useState<boolean>(false);
+  const [currentSlide, setCurrentSlide] = useState<number>(0);
 
   useEffect(() => {
     setIsVisible(true);
 
     // Add scroll listener to detect when user is scrolling
-    const handleScroll = () => {
+    const handleScroll = (): void => {
       setIsScrolling(true);
       clearTimeout(scrollTimer);
       scrollTimer = setTimeout(() => {
@@ -31,7 +60,7 @@ const Certified = () => {
       }, 200);
     };
 
-    let scrollTimer;
+    let scrollTimer: NodeJS.Timeout;
     window.addEventListener('scroll', handleScroll);
     
     return () => {
@@ -41,7 +70,7 @@ const Certified = () => {
   }, []);
 
   // Function to handle auto-scrolling to certification section when dots are clicked
-  const handleDotClick = (index) => {
+  const handleDotClick = (index: number): void => {
     // First go to the slide
     if (sliderRef && sliderRef.current) {
       sliderRef.current.slickGoTo(index);
@@ -62,7 +91,7 @@ const Certified = () => {
     }
   };
 
-  var settings = {
+  const settings: ISliderSettings = {
     dots: false,
     infinite: true,
     speed: 1000,
@@ -102,24 +131,22 @@ const Certified = () => {
       },
     ],
   };
-
-  const [currentSlide, setCurrentSlide] = useState(0);
   
   // Updated settings with afterChange handler to track current slide
-  const updatedSettings = {
+  const updatedSettings: ISliderSettings = {
     ...settings,
-    afterChange: (current) => setCurrentSlide(current % certifications.length),
+    afterChange: (current: number) => setCurrentSlide(current % certifications.length),
   };
 
-  const certifications = [
-    { image: iso10002, alt: "ISO 10002 Certification", title: "ISO 10002" },
-    { image: iso27001, alt: "ISO 27001 Certification", title: "ISO 27001" },
-    { image: iso20000, alt: "ISO 20000 Certification", title: "ISO 20000" },
-    { image: iso22301, alt: "ISO 22301 Certification", title: "ISO 22301" },
-    { image: iso9001, alt: "ISO 9001 Certification", title: "ISO 9001" },
-    { image: iso270001, alt: "ISO 270001 Certification", title: "ISO 270001" },
-    { image: isoSTEM, alt: "STEM Certification", title: "STEM Certified" },
-    { image: isoUAEA, alt: "UAEA Certification", title: "UAEA Certified" },
+  const certifications: ICertification[] = [
+    { image: iso10002.src, alt: "ISO 10002 Certification", title: "ISO 10002" },
+    { image: iso27001.src, alt: "ISO 27001 Certification", title: "ISO 27001" },
+    { image: iso20000.src, alt: "ISO 20000 Certification", title: "ISO 20000" },
+    { image: iso22301.src, alt: "ISO 22301 Certification", title: "ISO 22301" },
+    { image: iso9001.src, alt: "ISO 9001 Certification", title: "ISO 9001" },
+    { image: iso270001.src, alt: "ISO 270001 Certification", title: "ISO 270001" },
+    { image: isoSTEM.src, alt: "STEM Certification", title: "STEM Certified" },
+    { image: isoUAEA.src, alt: "UAEA Certification", title: "UAEA Certified" },
   ];
 
   return (
@@ -198,7 +225,7 @@ const Certified = () => {
                         isScrolling ? 'translate-y-0.5' : ''
                       }`
                 }`}
-                aria-label={`Go to slide ${index + 1}`}
+                aria-label={`Go to certification ${index + 1}`}
               />
             ))}
           </div>
@@ -208,4 +235,4 @@ const Certified = () => {
   );
 };
 
-export default Certified;
+export default Certified; 
