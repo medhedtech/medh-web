@@ -148,8 +148,7 @@ const ImageWrapper = ({ src, alt, onLoad, onError, priority = false }) => {
   };
 
   return (
-    <div className="relative w-full aspect-
-    min-h-[160px] sm:min-h-[140px] md:min-h-[150px] bg-gray-100 dark:bg-gray-800/50 overflow-hidden rounded-t-xl group">
+    <div className="relative w-full aspect-[3/2] min-h-[160px] sm:min-h-[140px] md:min-h-[150px] bg-gray-100 dark:bg-gray-800/50 overflow-hidden rounded-t-xl group">
       {/* Skeleton loader */}
       {isLoading && (
         <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800" />
@@ -417,6 +416,7 @@ const CourseCard = ({
 
     let actualPrice;
     let currencySymbol = '$'; // Default currency symbol
+    let priceType = '';
 
     // Determine currency symbol from course.prices if available
     if (course?.prices && course.prices.length > 0 && course.prices[0].currency) {
@@ -428,17 +428,31 @@ const CourseCard = ({
       const priceObj = course.prices[0];
       if (priceObj.individual === 0 && priceObj.batch === 0) return "Free";
 
-      // Use selectedPricing state if available and interactive
-      // For now, let's assume 'individual' if not specified or stick to component's logic for price display
-      // This part might need adjustment based on how 'selectedPricing' is meant to interact here.
-      if (selectedPricing === "batch" && typeof priceObj.batch === 'number') {
-        actualPrice = priceObj.batch;
-      } else if (typeof priceObj.individual === 'number') {
-        actualPrice = priceObj.individual;
-      } else if (typeof priceObj.batch === 'number') { // Fallback to batch if individual is not a number
-        actualPrice = priceObj.batch;
+      // For live courses, prioritize batch pricing
+      if (isLiveCourse) {
+        if (typeof priceObj.batch === 'number' && priceObj.batch > 0) {
+          actualPrice = priceObj.batch;
+          priceType = 'batch';
+        } else if (typeof priceObj.individual === 'number' && priceObj.individual > 0) {
+          actualPrice = priceObj.individual;
+          priceType = 'individual';
+        }
       } else {
-        return "Price not available"; // Or some other placeholder
+        // For non-live courses, use selectedPricing or default to individual
+        if (selectedPricing === "batch" && typeof priceObj.batch === 'number') {
+          actualPrice = priceObj.batch;
+          priceType = 'batch';
+        } else if (typeof priceObj.individual === 'number') {
+          actualPrice = priceObj.individual;
+          priceType = 'individual';
+        } else if (typeof priceObj.batch === 'number') { // Fallback to batch if individual is not a number
+          actualPrice = priceObj.batch;
+          priceType = 'batch';
+        }
+      }
+      
+      if (!actualPrice) {
+        return "Price not available";
       }
     } else {
       // Fallback to the provided price and batchPrice parameters
@@ -449,14 +463,30 @@ const CourseCard = ({
 
       if (isFreePrice(pInput) && (isNaN(bInput) || isFreePrice(bInput))) return "Free";
       
-      if (selectedPricing === "batch" && !isNaN(bInput) && !isFreePrice(bInput)) {
-        actualPrice = bInput;
-      } else if (!isNaN(pInput)) {
-        actualPrice = pInput;
-      } else if (!isNaN(bInput)) { // Fallback to batch if individual is not a number
-        actualPrice = bInput;
+      // For live courses, prioritize batch pricing
+      if (isLiveCourse) {
+        if (!isNaN(bInput) && !isFreePrice(bInput) && bInput > 0) {
+          actualPrice = bInput;
+          priceType = 'batch';
+        } else if (!isNaN(pInput) && pInput > 0) {
+          actualPrice = pInput;
+          priceType = 'individual';
+        }
       } else {
-        return "Price not available"; // Or some other placeholder
+        if (selectedPricing === "batch" && !isNaN(bInput) && !isFreePrice(bInput)) {
+          actualPrice = bInput;
+          priceType = 'batch';
+        } else if (!isNaN(pInput)) {
+          actualPrice = pInput;
+          priceType = 'individual';
+        } else if (!isNaN(bInput)) { // Fallback to batch if individual is not a number
+          actualPrice = bInput;
+          priceType = 'batch';
+        }
+      }
+      
+      if (!actualPrice) {
+        return "Price not available";
       }
     }
     
@@ -471,6 +501,12 @@ const CourseCard = ({
 
     // Add a space if currency symbol is multi-character (e.g., INR)
     const displaySymbol = currencySymbol.length > 1 ? `${currencySymbol} ` : currencySymbol;
+    
+    // For live courses showing batch pricing, add batch indicator
+    if (isLiveCourse && priceType === 'batch') {
+      return `${displaySymbol}${actualPrice.toLocaleString()}`;
+    }
+    
     return `${displaySymbol}${actualPrice.toLocaleString()}`;
   };
 
@@ -747,6 +783,14 @@ const CourseCard = ({
     // First check if we have an explicit classType prop or class_type property
     let effectiveType = preserveClassType ? (course.class_type || "") : (classType || course.class_type || "");
     
+    // Handle specific classType prop values first
+    if (classType === 'blended_courses' || effectiveType === 'blended_courses') {
+      return 'blended';
+    }
+    if (classType === 'live_courses' || effectiveType === 'live_courses') {
+      return 'live';
+    }
+    
     // Handle the "all" category case - we need to determine the type from course properties
     if (effectiveType === "all" || effectiveType === "") {
       // Check for live courses indicators
@@ -791,9 +835,20 @@ const CourseCard = ({
   };
 
   // Updated to use the effective class type
-  const isLiveCourse = getEffectiveClassType() === 'live';
-  const isBlendedCourse = getEffectiveClassType() === 'blended';
-  const isSelfPacedCourse = getEffectiveClassType() === 'self-paced' || (!isLiveCourse && !isBlendedCourse);
+  const effectiveClassType = getEffectiveClassType();
+  const isLiveCourse = effectiveClassType === 'live';
+  const isBlendedCourse = effectiveClassType === 'blended';
+  const isSelfPacedCourse = effectiveClassType === 'self-paced' || (!isLiveCourse && !isBlendedCourse);
+
+  // Debug log to help understand the course type detection
+  console.log('CourseCard Debug:', {
+    courseTitle: course?.course_title,
+    classType: classType,
+    courseClassType: course?.class_type,
+    effectiveClassType: effectiveClassType,
+    isBlendedCourse: isBlendedCourse,
+    courseDuration: course?.course_duration
+  });
 
   // Get course type specific styles
   const getCourseTypeStyles = () => {
@@ -855,6 +910,11 @@ const CourseCard = ({
   };
 
   const styles = getCourseTypeStyles();
+
+  // Update selectedPricing based on course type
+  useEffect(() => {
+    setSelectedPricing(isLiveCourse ? "batch" : "individual");
+  }, [isLiveCourse]);
 
   // Get course type specific content
   const getCourseTypeContent = () => {
@@ -926,7 +986,7 @@ const CourseCard = ({
 
   const mobileImageStyles = `
     ${isMobile ? `
-      aspect-[16/10]
+      aspect-[3/2]
       rounded-lg
       overflow-hidden
       shadow-sm
@@ -1224,7 +1284,7 @@ const CourseCard = ({
                 {showDuration && course?.course_duration && (
                   <div className={`mx-auto ${isMobile ? 'mb-14' : 'mb-2'} w-full mt-2`}>
                     {React.isValidElement(course.course_duration) ? (
-                      <div className={`flex items-start ${styles.durationBoxBg} p-3 rounded-lg`}>
+                      <div className={`flex items-center justify-center ${styles.durationBoxBg} p-3 rounded-lg`}>
                         {course.course_duration}
                       </div>
                     ) : (
@@ -1235,7 +1295,7 @@ const CourseCard = ({
                             {isLiveCourse ? 'Course Duration' : 'Learning Experience'}
                           </span>
                           <p className="text-gray-700 dark:text-gray-300 font-medium text-sm mt-0.5">
-                            {course?.duration_range || formatDuration(course?.course_duration)}
+                            {isBlendedCourse ? 'Self-paced' : (course?.duration_range || formatDuration(course?.course_duration))}
                           </p>
                         </div>
                       </div>
@@ -1246,16 +1306,19 @@ const CourseCard = ({
                 {/* Price section */}
                 {!hidePrice && (
                   <div className={`mt-1.5 text-center`}>
-                    <div className="flex items-baseline gap-1.5 justify-center">
-                      <span className={`text-lg font-bold ${styles.priceColor}`}>
-                        {formatPrice(course.course_fee, course.batchPrice) }
+                                      <div className="flex items-baseline gap-1.5 justify-center">
+                    <span className={`text-lg font-bold ${styles.priceColor}`}>
+                      {formatPrice(course.course_fee, course.batchPrice)}
+                    </span>
+                    {isLiveCourse && (
+                      <span className="text-xs text-gray-500 font-medium">per batch</span>
+                    )}
+                    {course?.original_fee && (
+                      <span className="text-sm text-gray-500 line-through">
+                        {formatCurrencyPrice(convertPrice(course.original_fee))}
                       </span>
-                      {course?.original_fee && (
-                        <span className="text-sm text-gray-500 line-through">
-                          {formatCurrencyPrice(convertPrice(course.original_fee))}
-                        </span>
-                      )}
-                    </div>
+                    )}
+                  </div>
                     {course?.fee_note && (
                       <span className="text-xs text-gray-500 font-medium block mt-0.5">
                         {course.fee_note}
@@ -1388,7 +1451,7 @@ const CourseCard = ({
               {showDuration && course?.course_duration && (
                 <div className={`mx-auto ${isMobile ? 'mb-14' : 'mb-2'} w-full mt-2`}>
                   {React.isValidElement(course.course_duration) ? (
-                    <div className={`flex items-start ${styles.durationBoxBg} p-3 rounded-lg`}>
+                    <div className={`flex items-center justify-center ${styles.durationBoxBg} p-3 rounded-lg`}>
                       {course.course_duration}
                     </div>
                   ) : (
@@ -1399,7 +1462,7 @@ const CourseCard = ({
                           {isLiveCourse ? 'Course Duration' : 'Learning Experience'}
                         </span>
                         <p className="text-gray-700 dark:text-gray-300 font-medium text-sm mt-0.5">
-                          {course?.duration_range || formatDuration(course?.course_duration)}
+                          {isBlendedCourse ? 'Self-paced' : (course?.duration_range || formatDuration(course?.course_duration))}
                         </p>
                       </div>
                     </div>

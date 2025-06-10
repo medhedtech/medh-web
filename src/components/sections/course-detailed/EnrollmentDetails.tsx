@@ -1248,7 +1248,13 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
 
   // Handle course features with improved certificate detection
   const courseFeatures = useMemo(() => {
-    const baseFeatures = [
+    // Different features for blended vs regular courses
+    const baseFeatures = isBlendedCourse ? [
+      "Live interactive sessions",
+      "Q&A sessions",
+      "Hands-on assignments",
+      "Interactive quizzes"
+    ] : [
       "Live interactive sessions",
       "Lifetime access to recordings",
       "Hands-on projects & assignments"
@@ -1278,12 +1284,14 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     // Add certificate feature if available
     const features = [...baseFeatures];
     if (hasCertificate()) {
-      features.splice(1, 0, "Certificate of completion");
+      // For blended courses, add certificate after Q&A sessions
+      // For regular courses, add certificate after live sessions
+      features.splice(isBlendedCourse ? 2 : 1, 0, "Certificate of completion");
     }
     
     // Use custom features if provided, otherwise use dynamic features
     return courseDetails?.features || features;
-  }, [courseDetails?.features, courseDetails?.is_Certification, courseDetails?.certification, courseDetails?.final_evaluation]);
+  }, [courseDetails?.features, courseDetails?.is_Certification, courseDetails?.certification, courseDetails?.final_evaluation, isBlendedCourse]);
   
   // If there's an error, show error fallback
   if (error) {
@@ -2114,11 +2122,6 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                     </span>
                   )}
                   
-                  {discountPercentage && discountPercentage > 0 && (
-                    <span className="text-xs font-medium text-green-600 bg-green-100 dark:bg-green-900/40 dark:text-green-400 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full">
-                      Save {discountPercentage}%
-                    </span>
-                  )}
                 </div>
                 {/* Only show min students for batch enrollment in non-blended courses */}
                 {enrollmentType === 'batch' && !isBlendedCourse && activePricing && (

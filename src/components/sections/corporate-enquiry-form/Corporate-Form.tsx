@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, FieldError } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import Link from "next/link";
@@ -38,6 +38,59 @@ import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls } from "@/apis";
 import countriesData from "@/utils/countrycode.json";
 
+interface ICountry {
+  name: string;
+  dial_code: string;
+  code: string;
+}
+
+interface IFormData {
+  full_name: string;
+  email: string;
+  country: string | null;
+  phone_number: string;
+  designation: string;
+  company_name: string;
+  company_website: string;
+  message: string;
+  accept: boolean;
+}
+
+interface IFormInputProps {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  error?: string;
+  [key: string]: any;
+}
+
+interface IFormTextAreaProps {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  error?: string;
+  rows?: number;
+  [key: string]: any;
+}
+
+interface IFormSelectProps {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  error?: string;
+  options: { value: string; label: string }[];
+  [key: string]: any;
+}
+
+interface IFormToggleProps {
+  label: React.ReactNode;
+  description?: string;
+  error?: string;
+  [key: string]: any;
+}
+
+interface ICorporateJourneyFormProps {
+  mainText?: string;
+  subText?: string;
+}
+
 // Validation schema using yup
 const schema = yup.object({
   full_name: yup
@@ -66,7 +119,7 @@ const schema = yup.object({
       const isValidLength = /^\d{10}$/.test(value);
       if (!isValidLength) return false;
 
-      const selectedCountry = countriesData.find((c) => c.name === country);
+      const selectedCountry = (countriesData as ICountry[]).find((c) => c.name === country);
       if (!selectedCountry) return false;
 
       const phoneWithCountryCode = selectedCountry.dial_code + value;
@@ -91,7 +144,7 @@ const schema = yup.object({
 });
 
 // Reusable form components based on PlacementForm.tsx
-const FormInput = ({ label, icon: Icon, error, ...props }) => (
+const FormInput: React.FC<IFormInputProps> = ({ label, icon: Icon, error, ...props }) => (
   <div className="relative">
     <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
       {label}
@@ -122,7 +175,7 @@ const FormInput = ({ label, icon: Icon, error, ...props }) => (
   </div>
 );
 
-const FormTextArea = ({ label, icon: Icon, error, rows = 4, ...props }) => (
+const FormTextArea: React.FC<IFormTextAreaProps> = ({ label, icon: Icon, error, rows = 4, ...props }) => (
   <div className="relative">
     <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
       {label}
@@ -154,7 +207,7 @@ const FormTextArea = ({ label, icon: Icon, error, rows = 4, ...props }) => (
   </div>
 );
 
-const FormSelect = ({ label, icon: Icon, error, options, ...props }) => (
+const FormSelect: React.FC<IFormSelectProps> = ({ label, icon: Icon, error, options, ...props }) => (
   <div className="relative">
     <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
       {label}
@@ -191,7 +244,7 @@ const FormSelect = ({ label, icon: Icon, error, options, ...props }) => (
   </div>
 );
 
-const FormToggle = ({ label, description, error, ...props }) => {
+const FormToggle: React.FC<IFormToggleProps> = ({ label, description, error, ...props }) => {
   return (
     <div className="relative">
       <div className="flex items-start">
@@ -223,15 +276,17 @@ const FormToggle = ({ label, description, error, ...props }) => {
   );
 };
 
-const CorporateJourneyForm = ({ mainText, subText }) => {
+const CorporateJourneyForm: React.FC<ICorporateJourneyFormProps> = ({ mainText, subText }) => {
   const router = useRouter();
   const { postQuery, loading } = usePostQuery();
-  const [showModal, setShowModal] = useState(false);
-  const [recaptchaValue, setRecaptchaValue] = useState(null);
-  const [recaptchaError, setRecaptchaError] = useState(false);
-  const [formVisible, setFormVisible] = useState(false);
-  const { theme, isDarkMode } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [recaptchaValue, setRecaptchaValue] = useState<string | null>(null);
+  const [recaptchaError, setRecaptchaError] = useState<boolean>(false);
+  const [formVisible, setFormVisible] = useState<boolean>(false);
+  const { theme, systemTheme } = useTheme();
+  const [mounted, setMounted] = useState<boolean>(false);
+
+  const isDarkMode = theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
 
   useEffect(() => {
     setMounted(true);
@@ -244,12 +299,12 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
     handleSubmit,
     formState: { errors, isDirty },
     reset,
-  } = useForm({
+  } = useForm<IFormData>({
     resolver: yupResolver(schema),
     defaultValues: {
       full_name: '',
       email: '',
-      country: countriesData[0]?.name || '',
+      country: (countriesData as ICountry[])[0]?.name || '',
       phone_number: '',
       designation: '',
       company_name: '',
@@ -259,18 +314,18 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
     }
   });
 
-  const handleRecaptchaChange = (value) => {
+  const handleRecaptchaChange = (value: string | null): void => {
     setRecaptchaValue(value);
     setRecaptchaError(false);
   };
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: IFormData): Promise<void> => {
     if (!recaptchaValue) {
       setRecaptchaError(true);
       return;
     }
     try {
-      const selectedCountry = countriesData.find(
+      const selectedCountry = (countriesData as ICountry[]).find(
         (country) => country.name === data.country
       );
       await postQuery({
@@ -279,7 +334,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
           full_name: data?.full_name,
           country: data?.country,
           email: data?.email,
-          phone_number: selectedCountry.dial_code + data?.phone_number,
+          phone_number: selectedCountry?.dial_code + data?.phone_number,
           company_name: data?.company_name,
           designation: data?.designation,
           company_website: data?.company_website,
@@ -293,7 +348,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
           reset();
         },
         onFail: () => {
-          toast.error("Error submitting form.");
+          console.error("Error submitting form.");
         },
       });
     } catch (error) {
@@ -424,7 +479,7 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
                         label="Country"
                         icon={Globe}
                         error={errors.country?.message}
-                        options={countriesData.map(country => ({
+                        options={(countriesData as ICountry[]).map(country => ({
                           value: country.name,
                           label: `${country.name} (${country.dial_code})`
                         }))}
@@ -624,4 +679,4 @@ const CorporateJourneyForm = ({ mainText, subText }) => {
   );
 };
 
-export default CorporateJourneyForm;
+export default CorporateJourneyForm; 
