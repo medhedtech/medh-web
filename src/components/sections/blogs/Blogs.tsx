@@ -2,8 +2,6 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -158,7 +156,9 @@ const Blogs: React.FC<IBlogsProps> = ({
       const apiUrl = options.featured 
         ? apiUrls.Blogs.getFeaturedBlogs({
             limit: options.limit || maxBlogs,
-            type: 'featured'
+            with_content: false,
+            tags: options.tags || (activeFilter !== 'all' ? activeFilter : ''),
+            category: options.category || ''
           })
         : apiUrls.Blogs.getAllBlogs({
             limit: options.limit || maxBlogs,
@@ -218,9 +218,9 @@ const Blogs: React.FC<IBlogsProps> = ({
     const handleResize = () => {
       checkMobile();
       // Safely reinitialize slider on resize
-      if (sliderRef.current && sliderRef.current.slick) {
+      if (sliderRef.current && (sliderRef.current as any).slick) {
         try {
-          sliderRef.current.slick.refresh();
+          (sliderRef.current as any).slick.refresh();
         } catch (error) {
           console.warn('Error refreshing slider:', error);
         }
