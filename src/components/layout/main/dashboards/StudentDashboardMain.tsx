@@ -6,6 +6,7 @@ import ProgressOverview from "./ProgressOverview";
 import StudentUpcomingClasses from "./StudentUpcomingClasses";
 import FreeClasses from "@/components/shared/dashboards/FreeClasses";
 import RecentAnnouncements from "@/components/shared/dashboards/RecentAnnouncements";
+import { apiUrls } from "@/apis";
 import { 
   Calendar, 
   BookOpen, 
@@ -104,41 +105,110 @@ const LearningResources: React.FC = () => {
 
 // Study Goals component
 const StudyGoals: React.FC = () => {
-  // Sample goals data - in a real app, this would come from an API
-  const goals = [
-    {
-      id: 1,
-      title: "Complete Python Basics",
-      deadline: "3 days left",
-      progress: 75,
-      category: "Course",
-      color: "bg-blue-500"
-    },
-    {
-      id: 2,
-      title: "Submit JavaScript Assignment",
-      deadline: "Tomorrow",
-      progress: 90,
-      category: "Assignment",
-      color: "bg-amber-500"
-    },
-    {
-      id: 3,
-      title: "Prepare for Data Structures Quiz",
-      deadline: "5 days left",
-      progress: 30,
-      category: "Exam",
-      color: "bg-purple-500"
-    },
-    {
-      id: 4,
-      title: "Complete React Project",
-      deadline: "2 weeks left",
-      progress: 15,
-      category: "Project",
-      color: "bg-green-500"
+  const [goals, setGoals] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [studentId, setStudentId] = useState<string | null>(null);
+
+  // Get student ID from localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedUserId = localStorage.getItem("userId");
+      if (storedUserId) {
+        setStudentId(storedUserId);
+      }
     }
-  ];
+  }, []);
+
+  // Fetch goals from API
+  useEffect(() => {
+    const fetchGoals = async () => {
+      if (!studentId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Use the goals API endpoint
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/goals/student/${studentId}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        let fetchedGoals = [];
+        if (Array.isArray(data)) {
+          fetchedGoals = data;
+        } else if (data.data && Array.isArray(data.data.goals)) {
+          fetchedGoals = data.data.goals;
+        } else {
+          fetchedGoals = [];
+        }
+
+        // Transform API data to match component structure
+        const transformedGoals = fetchedGoals.slice(0, 4).map((goal: any) => ({
+          id: goal._id || goal.id,
+          title: goal.title,
+          deadline: calculateDeadline(goal.deadline),
+          progress: goal.progress || 0,
+          category: goal.category || 'Goal',
+          color: getCategoryColor(goal.category || goal.type)
+        }));
+
+        setGoals(transformedGoals);
+      } catch (error) {
+        console.error('Error fetching goals:', error);
+        // Don't show as error, just show empty state
+        setError(null);
+        setGoals([]); // Clear goals on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGoals();
+  }, [studentId]);
+
+  // Helper function to calculate deadline display
+  const calculateDeadline = (deadline: string): string => {
+    if (!deadline) return 'No deadline';
+    
+    try {
+      const deadlineDate = new Date(deadline);
+      const now = new Date();
+      const diffTime = deadlineDate.getTime() - now.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) return 'Today';
+      if (diffDays === 1) return 'Tomorrow';
+      if (diffDays < 0) return 'Overdue';
+      if (diffDays < 7) return `${diffDays} days left`;
+      if (diffDays < 14) return `${Math.ceil(diffDays / 7)} week left`;
+      return `${Math.ceil(diffDays / 7)} weeks left`;
+    } catch {
+      return 'Invalid date';
+    }
+  };
+
+  // Helper function to get category color
+  const getCategoryColor = (category: string): string => {
+    const colors: { [key: string]: string } = {
+      'course': 'bg-blue-500',
+      'assignment': 'bg-amber-500',
+      'exam': 'bg-purple-500',
+      'quiz': 'bg-purple-500',
+      'project': 'bg-green-500',
+      'skill': 'bg-teal-500',
+      'career': 'bg-indigo-500',
+      'personal': 'bg-pink-500'
+    };
+    return colors[category?.toLowerCase()] || 'bg-gray-500';
+  };
 
   return (
     <div className="p-5">
@@ -155,44 +225,94 @@ const StudyGoals: React.FC = () => {
       </div>
 
       <div className="space-y-3">
-          {goals.map((goal) => (
-          <div key={goal.id} className="bg-gray-50 dark:bg-gray-800/60 rounded-lg p-3">
+        {loading ? (
+          // Loading skeleton
+          <div className="space-y-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-gray-50 dark:bg-gray-800/60 rounded-lg p-3 animate-pulse">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 mr-2"></div>
+                    <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-16"></div>
+                  </div>
+                  <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-20"></div>
+                </div>
+                <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-3/4 mb-2"></div>
+                <div className="flex items-center">
+                  <div className="flex-1">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2"></div>
+                  </div>
+                  <div className="ml-2 h-3 bg-gray-300 dark:bg-gray-600 rounded w-8"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : error ? (
+          // Error state
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-center">
+            <div className="flex items-center justify-center mb-2">
+              <Target className="w-5 h-5 text-red-500 mr-2" />
+              <span className="text-red-800 dark:text-red-200 font-medium">Unable to load goals</span>
+            </div>
+            <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="mt-2 text-sm text-red-800 dark:text-red-200 underline hover:no-underline"
+            >
+              Try again
+            </button>
+          </div>
+        ) : goals.length > 0 ? (
+          // Goals list
+          goals.map((goal) => (
+            <div key={goal.id} className="bg-gray-50 dark:bg-gray-800/60 rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center">
-                <div className={`w-2 h-2 rounded-full ${goal.color} mr-2`}></div>
+                <div className="flex items-center">
+                  <div className={`w-2 h-2 rounded-full ${goal.color} mr-2`}></div>
                   <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{goal.category}</span>
                 </div>
-                  <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-                    <Clock className="w-3 h-3 mr-1" />
-                    {goal.deadline}
+                <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                  <Clock className="w-3 h-3 mr-1" />
+                  {goal.deadline}
                 </div>
               </div>
               
-            <h3 className="font-medium text-gray-900 dark:text-white mb-2">{goal.title}</h3>
+              <h3 className="font-medium text-gray-900 dark:text-white mb-2">{goal.title}</h3>
               
-            <div className="flex items-center">
+              <div className="flex items-center">
                 <div className="flex-1">
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div 
-                      className={`${goal.color} h-2 rounded-full`}
-                    style={{ width: `${goal.progress}%` }}
-                  ></div>
+                    <div 
+                      className={`${goal.color} h-2 rounded-full transition-all duration-300`}
+                      style={{ width: `${goal.progress}%` }}
+                    ></div>
                   </div>
                 </div>
                 <span className="ml-2 text-xs font-medium text-gray-700 dark:text-gray-300">
                   {goal.progress}%
                 </span>
               </div>
-                        </div>
-                      ))}
+            </div>
+          ))
+        ) : (
+          // Empty state
+          <div className="bg-gray-50 dark:bg-gray-800/60 rounded-lg p-6 text-center">
+            <Target className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+            <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">No goals yet</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              Create your first study goal to start tracking your learning progress.
+            </p>
+            <Link 
+              href="/dashboards/student/goals"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm"
+            >
+              <Trophy className="w-4 h-4" />
+              Create Goal
+            </Link>
+          </div>
+        )}
       </div>
-      
-      <div className="mt-3 flex justify-center">
-        <button className="flex items-center justify-center gap-1 text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium">
-          <Trophy className="w-4 h-4" />
-          Set New Goal
-        </button>
-      </div>
+
     </div>
   );
 };
@@ -230,8 +350,11 @@ const itemVariants = {
 const StudentDashboardMain: React.FC = () => {
   const [greeting, setGreeting] = useState<string>("Good day");
   const [userName, setUserName] = useState<string>("");
-  // Add state for most recent course - in a real app, would be fetched from API
-  const [recentCourse, setRecentCourse] = useState<{id: string, title: string, progress: number} | null>(null);
+  const [courseCards, setCourseCards] = useState<any[]>([]);
+  const [coursesLoading, setCoursesLoading] = useState<boolean>(true);
+  const [coursesError, setCoursesError] = useState<string | null>(null);
+  const [studentId, setStudentId] = useState<string | null>(null);
+  const [isNewUser, setIsNewUser] = useState<boolean>(false);
 
   // State for banner sliding
   const [activeCourseIndex, setActiveCourseIndex] = useState(0);
@@ -246,50 +369,79 @@ const StudentDashboardMain: React.FC = () => {
     else if (hour < 18) setGreeting("Good afternoon");
     else setGreeting("Good evening");
 
-    // Get user name from localStorage
+    // Get user name and ID from localStorage
     if (typeof window !== "undefined") {
       const storedName = localStorage.getItem("userName") || "";
       setUserName(storedName.split(" ")[0] || "Student"); // Use first name or default to "Student"
       
-      // Simulate fetching recent course - in a real app, this would come from an API
-      setRecentCourse({
-        id: "course-123",
-        title: "Introduction to Web Development",
-        progress: 65
-      });
+      const storedUserId = localStorage.getItem("userId");
+      if (storedUserId) {
+        setStudentId(storedUserId);
+      }
     }
   }, []);
 
-  // Define course cards within the carousel component to isolate state
-  const courseCards = [
-    {
-      id: 'course-1',
-      title: 'Python Programming Fundamentals',
-      progress: 65,
-      nextLesson: 'Functions and Modules',
-      instructor: 'Dr. Alex Morgan',
-      image: '/courses/python-course.jpg',
-      color: 'from-blue-500 to-indigo-600'
-    },
-    {
-      id: 'course-2',
-      title: 'Web Development Bootcamp',
-      progress: 42,
-      nextLesson: 'CSS Flexbox Layout',
-      instructor: 'Sarah Wilson',
-      image: '/courses/web-dev.jpg',
-      color: 'from-purple-500 to-pink-600'
-    },
-    {
-      id: 'course-3',
-      title: 'Data Science Essentials',
-      progress: 78,
-      nextLesson: 'Statistical Analysis',
-      instructor: 'Prof. Michael Chen',
-      image: '/courses/data-science.jpg',
-      color: 'from-emerald-500 to-teal-600'
-    }
-  ];
+  // Set up the 3 MEDH carousel slides
+  useEffect(() => {
+    if (!userName) return;
+
+    // Create the 3 official MEDH slides
+    const medhSlides = [
+      {
+        id: 'python-fundamentals',
+        title: 'Python Programming Fundamentals',
+        progress: 65,
+        nextLesson: 'Functions and Modules',
+        instructor: 'Dr. Alex Morgan',
+        image: '/courses/python-course.jpg',
+        color: 'from-blue-600 to-blue-800',
+        isEnrolled: true,
+        completed: 6,
+        remaining: 4,
+        totalLessons: 10
+      },
+      {
+        id: 'web-development-bootcamp',
+        title: 'Web Development Bootcamp', 
+        progress: 42,
+        nextLesson: 'CSS Flexbox Layout',
+        instructor: 'Sarah Wilson',
+        image: '/courses/web-dev.jpg',
+        color: 'from-purple-600 to-purple-800',
+        isEnrolled: true,
+        completed: 4,
+        remaining: 6,
+        totalLessons: 10
+      },
+      {
+        id: 'data-science-essentials',
+        title: 'Data Science Essentials',
+        progress: 78,
+        nextLesson: 'Statistical Analysis', 
+        instructor: 'Prof. Michael Chen',
+        image: '/courses/data-science.jpg',
+        color: 'from-green-600 to-green-800',
+        isEnrolled: true,
+        completed: 7,
+        remaining: 3,
+        totalLessons: 10
+      }
+    ];
+
+    setCourseCards(medhSlides);
+    setIsNewUser(false);
+    setCoursesLoading(false);
+  }, [userName]);
+
+  // Helper function to get course gradient colors (MEDH official theme)
+  const getCourseColor = (index: number): string => {
+    const colors = [
+      'from-blue-600 to-blue-800',         // Blue like first slide
+      'from-purple-600 to-purple-800',     // Purple like second slide  
+      'from-green-600 to-green-800'        // Green like third slide
+    ];
+    return colors[index % colors.length];
+  };
 
   // Function to handle course navigation
   const navigateToCourse = useCallback((index: number) => {
@@ -345,7 +497,7 @@ const StudentDashboardMain: React.FC = () => {
           >
             {courseCards.length === 0 ? (
               // Fallback when no courses are available
-              <div className="relative w-full flex-shrink-0 bg-gradient-to-br from-primary-500 to-primary-700 dark:from-primary-800 dark:to-primary-900 overflow-hidden">
+              <div className="relative w-full flex-shrink-0 bg-gradient-to-br from-emerald-400 to-green-500 dark:from-emerald-600 dark:to-green-700 overflow-hidden">
                 <div className="absolute inset-0 bg-[url('/backgrounds/grid-pattern.svg')] opacity-10"></div>
                 <div className="w-full px-4 py-8 sm:py-10 lg:py-12 sm:px-6 lg:px-8 relative z-10">
                   <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
@@ -353,7 +505,7 @@ const StudentDashboardMain: React.FC = () => {
                       <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">
                         {greeting}, {userName}
                       </h1>
-                      <p className="text-primary-100 text-base sm:text-lg max-w-xl">
+                      <p className="text-emerald-100 text-base sm:text-lg max-w-xl">
                         Welcome to your learning dashboard. Track your progress, manage your courses, and stay updated.
                       </p>
                       <div className="mt-4">
@@ -392,79 +544,141 @@ const StudentDashboardMain: React.FC = () => {
                       <div className="w-full h-full bg-[url('/backgrounds/grid-pattern.svg')] opacity-10 absolute inset-0"></div>
                     </div>
                     
-                    <div className="relative z-10 w-full px-4 py-4 sm:py-6 sm:px-6 lg:px-8 h-full flex items-center transition-all duration-300">
-                      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-full px-10 md:px-16 lg:px-20 w-full max-w-[1400px] mx-auto">
+                    <div className="relative z-10 w-full px-4 py-6 sm:py-8 sm:px-8 lg:px-12 h-full flex items-center transition-all duration-300">
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-full w-full max-w-[1400px] mx-auto">
                         {/* Left side - Course information */}
-                        <div className="md:col-span-7 flex flex-col justify-center">
-                          <div className="flex flex-wrap items-center mb-2">
-                            <span className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full mr-2 mb-1">
+                        <div className="lg:col-span-2 flex flex-col justify-center">
+                          <div className="flex flex-wrap items-center mb-4">
+                            <span className="text-sm bg-white/20 text-white px-3 py-1 rounded-full mr-3 mb-1">
                               {course.instructor}
                             </span>
-                            <span className="text-xs text-white/80 mb-1">
-                              {greeting}, {userName}
+                            <span className="text-sm text-white/90 mb-1">
+                              {greeting}, Student
                             </span>
                           </div>
                         
-                          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-3 line-clamp-1 transition-all duration-300">
+                          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6 line-clamp-2 transition-all duration-300">
                             {course.title}
                           </h1>
                           
-                          <div className="flex items-center mb-3 max-w-md">
-                            <div className="w-full bg-white/20 rounded-full h-2.5">
-                              <div 
-                                className="bg-white h-2.5 rounded-full transition-all duration-1000 ease-out"
-                                style={{ width: `${course.progress}%` }}
-                              ></div>
+                          {/* Progress bar - always show for enrolled courses */}
+                          {course.isEnrolled && (
+                            <div className="mb-6">
+                              <div className="flex items-center mb-2 max-w-lg">
+                                <div className="w-full bg-white/30 rounded-full h-2">
+                                  <div 
+                                    className="bg-white h-2 rounded-full transition-all duration-1000 ease-out"
+                                    style={{ width: `${course.progress}%` }}
+                                  ></div>
+                                </div>
+                              </div>
+                              <span className="text-white/90 text-base font-medium">
+                                {course.progress}% complete
+                              </span>
                             </div>
-                            <span className="ml-2 text-white text-xs font-medium whitespace-nowrap min-w-[70px] text-right">
-                              {course.progress}% complete
-                            </span>
+                          )}
+                          
+                          <div className="text-white/90 text-lg mb-8 leading-relaxed max-w-2xl">
+                            Continue your learning journey with {course.instructor}. Your next lesson covers {course.nextLesson}.
                           </div>
                           
-                          <p className="text-white/80 text-sm mb-4 max-w-xl line-clamp-2 transition-all duration-300">
-                            Continue your learning journey with {course.instructor}. Your next lesson covers {course.nextLesson}.
-                          </p>
-                          
                           <div className="flex flex-wrap items-center gap-3 mt-1">
-                            <Link 
-                              href={`/course/${course.id}`} 
-                              className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors font-medium text-sm mb-1"
-                            >
-                              <PlayCircle className="mr-1.5 h-4 w-4" />
-                              Continue Learning
-                            </Link>
-                            
-                            <Link 
-                              href={`/course/${course.id}/materials`} 
-                              className="border border-white/30 hover:bg-white/10 text-white px-4 py-2 rounded-lg flex items-center transition-colors text-sm mb-1"
-                            >
-                              <FileText className="mr-1.5 h-4 w-4" />
-                              Course Materials
-                            </Link>
+                            {course.isWelcome ? (
+                              // Welcome slide buttons
+                              <>
+                                <Link 
+                                  href="/courses" 
+                                  className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors font-medium text-sm mb-1"
+                                >
+                                  <BookOpen className="mr-1.5 h-4 w-4" />
+                                  Explore Courses
+                                </Link>
+                                
+                                <Link 
+                                  href="/dashboards/student/goals" 
+                                  className="border border-white/30 hover:bg-white/10 text-white px-4 py-2 rounded-lg flex items-center transition-colors text-sm mb-1"
+                                >
+                                  <Target className="mr-1.5 h-4 w-4" />
+                                  Set Goals
+                                </Link>
+                              </>
+                            ) : course.isEnrolled ? (
+                              // Enrolled course buttons
+                              <>
+                                <Link 
+                                  href={`/course/${course.id}`} 
+                                  className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors font-medium text-sm mb-1"
+                                >
+                                  <PlayCircle className="mr-1.5 h-4 w-4" />
+                                  Continue Learning
+                                </Link>
+                                
+                                <Link 
+                                  href={`/course/${course.id}/materials`} 
+                                  className="border border-white/30 hover:bg-white/10 text-white px-4 py-2 rounded-lg flex items-center transition-colors text-sm mb-1"
+                                >
+                                  <FileText className="mr-1.5 h-4 w-4" />
+                                  Course Materials
+                                </Link>
+                              </>
+                            ) : (
+                              // Non-enrolled course buttons
+                              <>
+                                <Link 
+                                  href={`/course-details/${course.id}`} 
+                                  className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors font-medium text-sm mb-1"
+                                >
+                                  <BookOpen className="mr-1.5 h-4 w-4" />
+                                  View Course
+                                </Link>
+                                
+                                <Link 
+                                  href={`/course-details/${course.id}#enroll`} 
+                                  className="border border-white/30 hover:bg-white/10 text-white px-4 py-2 rounded-lg flex items-center transition-colors text-sm mb-1"
+                                >
+                                  <GraduationCap className="mr-1.5 h-4 w-4" />
+                                  {course.price && course.price !== 'Free' ? `Enroll - ${course.price}` : 'Enroll Now'}
+                                </Link>
+                              </>
+                            )}
                           </div>
                         </div>
                         
-                        {/* Right side - Next lesson info */}
-                        <div className="md:col-span-5 flex flex-col justify-center mt-4 md:mt-0">
-                          <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 h-full max-h-[200px] transition-all duration-300">
-                            <h3 className="text-white text-base font-medium mb-2 flex items-center">
-                              <Calendar className="h-4 w-4 mr-1.5" /> Next Up
+                        {/* Right side - Next Up Card */}
+                        <div className="lg:col-span-1 flex flex-col justify-center mt-6 lg:mt-0">
+                          <div className="bg-white/15 backdrop-blur-md rounded-2xl p-6 border border-white/20 transition-all duration-300">
+                            <h3 className="text-white text-lg font-semibold mb-4 flex items-center">
+                              <Calendar className="h-5 w-5 mr-2" /> 
+                              Next Up
                             </h3>
-                            <div className="bg-white/10 rounded-lg p-3 mb-3">
-                              <p className="text-white font-medium text-sm mb-1 line-clamp-1">{course.nextLesson}</p>
-                              <div className="flex items-center text-white/70 text-xs">
-                                <PlayCircle className="h-3.5 w-3.5 mr-1 flex-shrink-0" /> Estimated: 25 mins
+                            
+                            <div className="space-y-4">
+                              {/* Next Lesson Info */}
+                              <div>
+                                <h4 className="text-white font-medium text-base mb-2 line-clamp-1">
+                                  {course.nextLesson}
+                                </h4>
+                                <div className="flex items-center text-white/80 text-sm">
+                                  <Clock className="h-4 w-4 mr-1.5 flex-shrink-0" /> 
+                                  Estimated: 25 mins
                                 </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2 text-center">
-                              <div className="bg-white/10 rounded-lg p-2">
-                                <p className="text-white/70 text-xs mb-0.5">Completed</p>
-                                <p className="text-white text-sm font-medium">{Math.floor(course.progress/10)}/10</p>
-                          </div>
-                              <div className="bg-white/10 rounded-lg p-2">
-                                <p className="text-white/70 text-xs mb-0.5">Remaining</p>
-                                <p className="text-white text-sm font-medium">{10-Math.floor(course.progress/10)}/10</p>
-                        </div>
+                              </div>
+                              
+                              {/* Progress Stats */}
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className="bg-white/10 rounded-xl p-3 text-center">
+                                  <p className="text-white/70 text-sm mb-1">Completed</p>
+                                  <p className="text-white text-xl font-bold">
+                                    {course.completed || Math.floor(course.progress * 10 / 100)}/10
+                                  </p>
+                                </div>
+                                <div className="bg-white/10 rounded-xl p-3 text-center">
+                                  <p className="text-white/70 text-sm mb-1">Remaining</p>
+                                  <p className="text-white text-xl font-bold">
+                                    {course.remaining || (10 - Math.floor(course.progress * 10 / 100))}/10
+                                  </p>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -526,7 +740,7 @@ const StudentDashboardMain: React.FC = () => {
           {/* Left column - 8/12 width on desktop */}
           <div className="lg:col-span-8 grid grid-cols-1 gap-6 sm:gap-8">
             {/* Quick Actions Section */}
-            <QuickActionCard recentCourse={recentCourse} />
+                          <QuickActionCard courseCards={courseCards} />
             
             {/* Counter Stats Section */}
             <motion.section 
@@ -622,16 +836,76 @@ const StudentDashboardMain: React.FC = () => {
 
 // Activity Chart component - Memoized
 const WeeklyActivityChart = memo(() => {
-    // Sample data - in a real app, this would come from an API
-    const activityData = [
-      { day: 'Mon', hours: 1.5, complete: 2 },
-      { day: 'Tue', hours: 2.2, complete: 1 },
-      { day: 'Wed', hours: 0.8, complete: 0 },
-      { day: 'Thu', hours: 3.0, complete: 3 },
-      { day: 'Fri', hours: 1.2, complete: 1 },
-      { day: 'Sat', hours: 2.8, complete: 2 },
-      { day: 'Sun', hours: 0.5, complete: 0 },
-    ];
+  const [activityData, setActivityData] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch weekly activity data
+  useEffect(() => {
+    const fetchActivityData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+          setLoading(false);
+          return;
+        }
+        
+        // Get date range for current week
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(endDate.getDate() - 6);
+        
+        const apiUrl = apiUrls.analytics.getStudentWeeklyActivity(userId, {
+          start: startDate.toISOString(),
+          end: endDate.toISOString()
+        });
+        const response = await fetch(apiUrl);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        let fetchedActivity = [];
+        if (Array.isArray(data)) {
+          fetchedActivity = data;
+        } else if (data.data && Array.isArray(data.data.activity)) {
+          fetchedActivity = data.data.activity;
+        } else {
+          fetchedActivity = [];
+        }
+
+        // Transform API data to match component structure
+        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const transformedData = days.map((day, index) => {
+          const dayData = fetchedActivity.find((item: any) => 
+            item.day === day || item.dayOfWeek === index + 1
+          ) || {};
+          
+          return {
+            day,
+            hours: dayData.studyHours || dayData.hours || 0,
+            complete: dayData.completedActivities || dayData.complete || 0
+          };
+        });
+
+        setActivityData(transformedData);
+      } catch (error) {
+        console.error('Error fetching activity data:', error);
+        // Don't show as error, just show empty state
+        setError(null);
+        setActivityData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchActivityData();
+  }, []);
 
     return (
       <div className="p-5">
@@ -649,29 +923,63 @@ const WeeklyActivityChart = memo(() => {
 
         {/* Chart */}
         <div className="mb-4">
-          <div className="space-y-2.5">
-            {activityData.map((item, index) => (
-              <div key={index} className="flex items-center">
-                <span className="w-9 text-sm font-medium text-gray-500 dark:text-gray-400">{item.day}</span>
-                <div className="flex-1 ml-2">
-                  <div className="h-7 flex items-center bg-gray-100 dark:bg-gray-700 rounded-md overflow-hidden">
-                    <div 
-                      className="h-full bg-blue-100 dark:bg-blue-900/30 flex items-center"
-                      style={{ width: `${Math.min(100, item.hours * 20)}%` }}
-                    >
+          {loading ? (
+            // Loading skeleton
+            <div className="space-y-2.5">
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
+                <div key={index} className="flex items-center animate-pulse">
+                  <span className="w-9 text-sm font-medium text-gray-500 dark:text-gray-400">{day}</span>
+                  <div className="flex-1 ml-2">
+                    <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
+                  </div>
+                  <div className="ml-2 w-10 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                </div>
+              ))}
+            </div>
+          ) : error ? (
+            // Error state
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-center">
+              <div className="flex items-center justify-center mb-2">
+                <LineChart className="w-5 h-5 text-red-500 mr-2" />
+                <span className="text-red-800 dark:text-red-200 font-medium">Unable to load activity data</span>
+              </div>
+              <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
+            </div>
+          ) : activityData.length > 0 ? (
+            // Activity chart
+            <div className="space-y-2.5">
+              {activityData.map((item, index) => (
+                <div key={index} className="flex items-center">
+                  <span className="w-9 text-sm font-medium text-gray-500 dark:text-gray-400">{item.day}</span>
+                  <div className="flex-1 ml-2">
+                    <div className="h-7 flex items-center bg-gray-100 dark:bg-gray-700 rounded-md overflow-hidden">
                       <div 
-                        className="h-full bg-blue-500 dark:bg-blue-600"
-                        style={{ width: `${Math.min(100, item.complete * 15)}%` }}
-                      ></div>
+                        className="h-full bg-blue-100 dark:bg-blue-900/30 flex items-center transition-all duration-300"
+                        style={{ width: `${Math.min(100, (item.hours || 0) * 20)}%` }}
+                      >
+                        <div 
+                          className="h-full bg-blue-500 dark:bg-blue-600 transition-all duration-300"
+                          style={{ width: `${Math.min(100, (item.complete || 0) * 15)}%` }}
+                        ></div>
+                      </div>
                     </div>
                   </div>
+                  <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300 w-10 text-right">
+                    {(item.hours || 0).toFixed(1)}h
+                  </span>
                 </div>
-                <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300 w-10 text-right">
-                  {item.hours}h
-                </span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            // Empty state
+            <div className="bg-gray-50 dark:bg-gray-800/60 rounded-lg p-6 text-center">
+              <LineChart className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+              <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">No activities yet</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Your learning activities will appear here once you start taking courses.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Legend */}
@@ -690,8 +998,11 @@ const WeeklyActivityChart = memo(() => {
 });
 
 // Quick action component - Memoized
-const QuickActionCard = memo(({ recentCourse }: { recentCourse: {id: string, title: string, progress: number} | null }) => (
-      <motion.div
+const QuickActionCard = memo(({ courseCards }: { courseCards: any[] }) => {
+  const mostRecentCourse = courseCards.length > 0 ? courseCards[0] : null;
+  
+  return (
+    <motion.div
       variants={itemVariants}
       className="col-span-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
     >
@@ -705,7 +1016,7 @@ const QuickActionCard = memo(({ recentCourse }: { recentCourse: {id: string, tit
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* Continue Learning */}
-          <Link href={recentCourse ? `/course/${recentCourse.id}` : "#"} passHref>
+          <Link href={mostRecentCourse ? `/course/${mostRecentCourse.id}` : "/courses"} passHref>
             <div className="flex items-center gap-3 p-4 rounded-xl bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors cursor-pointer group">
               <div className="bg-primary-500 rounded-full p-2 text-white">
                 <PlayCircle className="w-5 h-5" />
@@ -713,7 +1024,7 @@ const QuickActionCard = memo(({ recentCourse }: { recentCourse: {id: string, tit
               <div className="flex-1">
                 <h3 className="font-medium text-primary-900 dark:text-primary-100">Continue Learning</h3>
                 <p className="text-sm text-primary-700 dark:text-primary-300 line-clamp-1">
-                  {recentCourse?.title || "Start a course"}
+                  {mostRecentCourse?.title || "Browse courses"}
                 </p>
               </div>
               <ArrowRight className="w-4 h-4 text-primary-500 transition-transform group-hover:translate-x-1" />
@@ -763,7 +1074,8 @@ const QuickActionCard = memo(({ recentCourse }: { recentCourse: {id: string, tit
           </Link>
         </div>
       </div>
-      </motion.div>
-));
+    </motion.div>
+  );
+});
 
 export default StudentDashboardMain; 
