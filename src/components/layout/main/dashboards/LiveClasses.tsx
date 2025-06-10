@@ -3,324 +3,262 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Calendar, 
+  Clock, 
+  Users, 
+  Play, 
+  Eye, 
+  MessageSquare,
+  FileText,
+  ExternalLink,
+  Download,
+  Search,
+  Filter,
+  ChevronDown,
+  Video,
+  Plus,
+  AlertCircle,
+  RefreshCw
+} from "lucide-react";
+import { format } from "date-fns";
+import defaultCourseImage from "@/assets/images/courses/Ai&Ml.jpeg";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
-import { format } from "date-fns";
-import { useRouter } from "next/navigation";
-import { 
-  LucideCalendar, 
-  LucideClock, 
-  LucideUser, 
-  LucideBookOpen,
-  LucideVideo,
-  LucidePlay,
-  LucideUsers,
-  LucideInfo,
-  LucideExternalLink,
-  LucideVideoOff,
-  LucideCheck,
-  LucideDownload,
-  LucideBookmark,
-  LucideMessageCircle
-} from "lucide-react";
+import { toast } from "react-toastify";
 
-// Component imports
-import LoadingIndicator from "@/components/shared/loaders/LoadingIndicator";
-import EmptyState from "@/components/shared/others/EmptyState";
-import TabNavigation from "@/components/shared/navigation/TabNavigation";
-import SearchBar from "@/components/shared/inputs/SearchBar";
-import Badge from "@/components/shared/elements/Badge";
-import Button from "@/components/shared/buttons/Button";
-import Select from "@/components/shared/inputs/Select";
-import Card from "@/components/shared/containers/Card";
-import Modal from "@/components/shared/modals/Modal";
+// TypeScript interfaces for proper type safety
+interface IInstructor {
+  _id: string;
+  name: string;
+  full_name?: string;
+  email?: string;
+  image?: string;
+  avatar?: string;
+}
 
-// Default image for classes without images
-import DefaultClassImage from "@/assets/images/courses/image1.png";
-
-// Types
-interface LiveClass {
+interface ICourseDetails {
   _id: string;
   title: string;
+  course_title?: string;
+  courseImage?: string;
+  course_image?: string;
+}
+
+interface IMaterial {
+  _id?: string;
+  title: string;
+  url: string;
+  type: 'pdf' | 'link' | 'video' | 'document';
+  size?: string;
+}
+
+interface ILiveClass {
+  _id: string;
+  title: string;
+  meet_title?: string;
   description?: string;
   startDate: string;
+  date?: string;
   startTime: string;
+  time?: string;
+  start_time?: string;
   duration: number;
   meetingLink: string;
-  courseDetails?: {
-    _id: string;
-    title: string;
-    courseImage?: string;
-  };
-  instructor: {
-    _id: string;
-    name: string;
-    image?: string;
-  };
-  status: string; // upcoming, live, completed
+  meet_link?: string;
+  zoom_link?: string;
+  courseDetails?: ICourseDetails;
+  course_id?: string;
+  instructor: IInstructor;
+  instructor_id?: string;
+  status: 'upcoming' | 'live' | 'completed' | 'cancelled';
   recordingUrl?: string;
+  recording_url?: string;
   participants?: number;
   maxParticipants?: number;
+  max_participants?: number;
   category?: string;
-  materials?: Array<{
-    title: string;
-    url: string;
-    type: string;
-  }>;
+  materials?: IMaterial[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-interface ApiResponse {
-  liveClasses: LiveClass[];
+interface ILiveClassesResponse {
+  success: boolean;
+  message: string;
+  data: {
+    liveClasses: ILiveClass[];
+    meetings?: ILiveClass[];
+    total?: number;
+    page?: number;
+    limit?: number;
+  };
 }
 
-interface FilterState {
+interface IFilterState {
   status: string;
   category: string;
   instructor: string;
   searchTerm: string;
 }
 
-// Animation variants
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      duration: 0.5,
-      staggerChildren: 0.1
-    }
-  }
-};
+interface IChatMessage {
+  id: string;
+  sender: string;
+  message: string;
+  timestamp: string;
+}
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5 }
-  }
-};
-
-const fadeInVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.3 } }
-};
-
-/**
- * LiveClasses - Component for displaying and joining live classes
- */
 const LiveClasses: React.FC = () => {
-  const router = useRouter();
-  const { getQuery, loading } = useGetQuery();
-  
   // State management
-  const [classes, setClasses] = useState<LiveClass[]>([]);
-  const [userId, setUserId] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<string>("upcoming");
-  const [selectedClass, setSelectedClass] = useState<LiveClass | null>(null);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState<boolean>(false);
-  const [isChatModalOpen, setIsChatModalOpen] = useState<boolean>(false);
-  const [chatMessages, setChatMessages] = useState<Array<{ user: string; message: string; time: string }>>([]);
-  const [messageInput, setMessageInput] = useState<string>("");
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [classes, setClasses] = useState<ILiveClass[]>([]);
+  const [filteredClasses, setFilteredClasses] = useState<ILiveClass[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   
   // Filter and search state
-  const [filters, setFilters] = useState<FilterState>({
-    status: activeTab,
+  const [filters, setFilters] = useState<IFilterState>({
+    status: "all",
     category: "all",
     instructor: "all",
     searchTerm: ""
   });
+  const [categories, setCategories] = useState<string[]>(["all"]);
+  const [instructors, setInstructors] = useState<string[]>(["all"]);
   
-  // Categories and instructors for filter options
-  const [categories, setCategories] = useState<string[]>([]);
-  const [instructors, setInstructors] = useState<string[]>([]);
+  // UI state
+  const [selectedTab, setSelectedTab] = useState<string>("all");
+  const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   
-  // Fetch user ID from localStorage on mount
+  // Chat state
+  const [selectedClassForChat, setSelectedClassForChat] = useState<ILiveClass | null>(null);
+  const [showChatModal, setShowChatModal] = useState<boolean>(false);
+  const [chatMessages, setChatMessages] = useState<IChatMessage[]>([]);
+  const [newMessage, setNewMessage] = useState<string>("");
+
+  const { getQuery } = useGetQuery<ILiveClassesResponse>();
+
+  // Fetch user ID from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedUserId = localStorage.getItem("userId");
       if (storedUserId) {
         setUserId(storedUserId);
+      } else {
+        setError("No user ID found. Please log in again.");
       }
     }
   }, []);
   
-  // Fetch live classes data
-  useEffect(() => {
+  // Fetch live classes from API
+  const fetchLiveClasses = async () => {
     if (!userId) return;
     
-    const fetchLiveClasses = async () => {
-      try {
-        // Mock data for development - replace with actual API call when available
-        // This simulates the API response structure
-        
-        const mockData = {
-          liveClasses: [
-            {
-              _id: "1",
-              title: "React State Management Masterclass",
-              description: "Learn advanced state management techniques in React applications",
-              startDate: "2023-09-15",
-              startTime: "10:00",
-              duration: 90,
-              meetingLink: "https://zoom.us/j/123456789",
-              courseDetails: {
-                _id: "course1",
-                title: "React from Zero to Hero",
-                courseImage: "/images/courses/react.jpg"
-              },
-              instructor: {
-                _id: "instructor1",
-                name: "John Doe",
-                image: "/images/instructors/john.jpg"
-              },
-              status: "upcoming",
-              participants: 25,
-              maxParticipants: 50,
-              category: "Web Development",
-              materials: [
-                {
-                  title: "State Management Slides",
-                  url: "https://example.com/slides.pdf",
-                  type: "pdf"
-                },
-                {
-                  title: "Code Repository",
-                  url: "https://github.com/example/react-state",
-                  type: "link"
-                }
-              ]
-            },
-            {
-              _id: "2",
-              title: "JavaScript Performance Optimization",
-              description: "Techniques for optimizing JavaScript code performance",
-              startDate: new Date().toISOString().split('T')[0],
-              startTime: new Date().toTimeString().slice(0, 5),
-              duration: 60,
-              meetingLink: "https://zoom.us/j/987654321",
-              courseDetails: {
-                _id: "course2",
-                title: "Advanced JavaScript"
-              },
-              instructor: {
-                _id: "instructor2",
-                name: "Jane Smith"
-              },
-              status: "live",
-              participants: 32,
-              maxParticipants: 40,
-              category: "Programming"
-            },
-            {
-              _id: "3",
-              title: "UI/UX Design Principles Workshop",
-              description: "Interactive workshop on essential UI/UX design principles",
-              startDate: "2023-08-10",
-              startTime: "14:00",
-              duration: 120,
-              meetingLink: "https://zoom.us/j/123123123",
-              courseDetails: {
-                _id: "course3",
-                title: "UI/UX Design Fundamentals"
-              },
-              instructor: {
-                _id: "instructor3",
-                name: "Alex Johnson"
-              },
-              status: "completed",
-              recordingUrl: "https://example.com/recordings/uiux-workshop.mp4",
-              participants: 45,
-              maxParticipants: 50,
-              category: "Design"
-            },
-            {
-              _id: "4",
-              title: "Node.js API Development",
-              description: "Building scalable APIs with Node.js and Express",
-              startDate: "2023-09-20",
-              startTime: "16:00",
-              duration: 90,
-              meetingLink: "https://zoom.us/j/456456456",
-              courseDetails: {
-                _id: "course4",
-                title: "Node.js Backend Development",
-                courseImage: "/images/courses/nodejs.jpg"
-              },
-              instructor: {
-                _id: "instructor4",
-                name: "Mike Williams"
-              },
-              status: "upcoming",
-              participants: 18,
-              maxParticipants: 40,
-              category: "Web Development",
-              materials: [
-                {
-                  title: "API Reference Guide",
-                  url: "https://example.com/api-guide.pdf",
-                  type: "pdf"
-                }
-              ]
-            },
-            {
-              _id: "5",
-              title: "Python Data Visualization",
-              description: "Creating effective data visualizations with Python",
-              startDate: "2023-08-05",
-              startTime: "11:00",
-              duration: 75,
-              meetingLink: "https://zoom.us/j/789789789",
-              courseDetails: {
-                _id: "course5",
-                title: "Python Data Science"
-              },
-              instructor: {
-                _id: "instructor5",
-                name: "Sarah Miller"
-              },
-              status: "completed",
-              recordingUrl: "https://example.com/recordings/python-viz.mp4",
-              participants: 38,
-              maxParticipants: 40,
-              category: "Data Science"
-            }
-          ]
-        };
-        
-        // In real implementation, this would be replaced with:
-        // getQuery({
-        //   url: `${apiUrls?.liveClasses?.getEnrolledClasses(userId)}`,
-        //   onSuccess: (res: ApiResponse) => {
-        //     setClasses(res.liveClasses || []);
-        //     setErrorMessage("");
-        //   },
-        //   onFail: (err) => {
-        //     console.error("Error fetching live classes:", err);
-        //     setErrorMessage("Failed to load live classes. Please try again later.");
-        //   }
-        // });
-        
-        // Using mock data
-        setClasses(mockData.liveClasses);
+    setError(null);
+    setLoading(true);
+    
+    try {
+      // Try multiple API endpoints to get live classes data
+      getQuery({
+        url: apiUrls.onlineMeeting.getMeetingByStudentId + `/${userId}`,
+        onSuccess: (response: ILiveClassesResponse | ILiveClass[]) => {
+          let meetings: ILiveClass[] = [];
+          
+          // Handle different response formats
+          if (Array.isArray(response)) {
+            meetings = response;
+          } else if (response.data) {
+            meetings = response.data.liveClasses || response.data.meetings || [];
+          }
+          
+          console.log("Fetched live classes:", meetings);
+          setClasses(meetings);
+          setFilteredClasses(meetings);
         
         // Extract unique categories and instructors for filters
-        const uniqueCategories = [...new Set(mockData.liveClasses.map(item => item.category || "Uncategorized"))];
-        const uniqueInstructors = [...new Set(mockData.liveClasses.map(item => item.instructor.name))];
+          const uniqueCategories = [...new Set(meetings.map(item => item.category || "Uncategorized"))];
+          const uniqueInstructors = [...new Set(meetings.map(item => item.instructor?.name || item.instructor?.full_name || "Unknown"))];
         
         setCategories(["all", ...uniqueCategories]);
         setInstructors(["all", ...uniqueInstructors]);
         
-        setErrorMessage("");
+          setError(null);
+          setLoading(false);
+        },
+        onFail: (err) => {
+          console.error("Error fetching live classes:", err);
+          const errorMessage = err?.response?.data?.message || err?.message || "Failed to fetch live classes";
+          setError(errorMessage);
+          setLoading(false);
+          
+          if (err?.response?.status === 404) {
+            toast.info("No live classes found for your account");
+            setClasses([]);
+            setFilteredClasses([]);
+          } else {
+            toast.error(errorMessage);
+          }
+        },
+      });
       } catch (error) {
-        console.error("Error in live classes fetch:", error);
-        setErrorMessage("An unexpected error occurred. Please try again.");
-      }
-    };
-    
+      console.error("Unexpected error:", error);
+      setError("An unexpected error occurred while fetching live classes");
+      setLoading(false);
+      toast.error("Failed to load live classes");
+    }
+  };
+
+  // Initial data fetch
+  useEffect(() => {
+    if (userId) {
     fetchLiveClasses();
+    }
   }, [userId]);
+
+  // Refresh data handler
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchLiveClasses();
+    setTimeout(() => setRefreshing(false), 1000);
+  };
+
+  // Filter classes whenever filters or classes change
+  useEffect(() => {
+    let filtered = [...classes];
+
+    // Apply status filter
+    if (filters.status !== "all") {
+      filtered = filtered.filter(cls => cls.status === filters.status);
+    }
+
+    // Apply category filter
+    if (filters.category !== "all") {
+      filtered = filtered.filter(cls => cls.category === filters.category);
+    }
+
+    // Apply instructor filter
+    if (filters.instructor !== "all") {
+      filtered = filtered.filter(cls => {
+        const instructorName = cls.instructor?.name || cls.instructor?.full_name || "";
+        return instructorName === filters.instructor;
+      });
+    }
+
+    // Apply search filter
+    if (filters.searchTerm.trim()) {
+      const searchTerm = filters.searchTerm.toLowerCase();
+      filtered = filtered.filter(cls => 
+        (cls.title || cls.meet_title || "").toLowerCase().includes(searchTerm) ||
+        (cls.description || "").toLowerCase().includes(searchTerm) ||
+        (cls.courseDetails?.title || cls.courseDetails?.course_title || "").toLowerCase().includes(searchTerm) ||
+        (cls.instructor?.name || cls.instructor?.full_name || "").toLowerCase().includes(searchTerm)
+      );
+    }
+
+    setFilteredClasses(filtered);
+  }, [classes, filters]);
   
   // Format date with user-friendly formatting
   const formatDate = (dateString: string): string => {
@@ -347,581 +285,525 @@ const LiveClasses: React.FC = () => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     
-    if (hours > 0) {
-      return `${hours} ${hours === 1 ? 'hour' : 'hours'}${mins > 0 ? ` ${mins} ${mins === 1 ? 'minute' : 'minutes'}` : ''}`;
+    if (hours > 0 && mins > 0) {
+      return `${hours} hour${hours > 1 ? 's' : ''} ${mins} minutes`;
+    } else if (hours > 0) {
+      return `${hours} hour${hours > 1 ? 's' : ''}`;
+    } else {
+      return `${mins} minutes`;
     }
-    
-    return `${mins} ${mins === 1 ? 'minute' : 'minutes'}`;
   };
-  
-  // Format class time for display
-  const getClassTimeDisplay = (liveClass: LiveClass): string => {
-    return `${formatTime(liveClass.startTime)} • ${formatDuration(liveClass.duration)}`;
+
+  // Get class time display
+  const getClassTimeDisplay = (liveClass: ILiveClass): string => {
+    const startTime = liveClass.startTime || liveClass.time || liveClass.start_time || "";
+    return `${formatTime(startTime)} • ${formatDuration(liveClass.duration)}`;
   };
   
   // Get status color
   const getStatusColor = (status: string): string => {
-    switch (status.toLowerCase()) {
-      case 'live':
-        return "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400";
-      case 'upcoming':
-        return "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400";
-      case 'completed':
-        return "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300";
+    switch (status) {
+      case "live":
+        return "bg-red-500 text-white";
+      case "upcoming":
+        return "bg-blue-500 text-white";
+      case "completed":
+        return "bg-green-500 text-white";
+      case "cancelled":
+        return "bg-gray-500 text-white";
       default:
-        return "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300";
+        return "bg-gray-500 text-white";
     }
   };
-  
-  // Apply filters to the classes
-  const filteredClasses = classes.filter((liveClass) => {
-    // Apply status filter
-    if (filters.status !== "all" && liveClass.status !== filters.status) {
-      return false;
+
+  // Get status text
+  const getStatusText = (status: string): string => {
+    switch (status) {
+      case "live":
+        return "Live Now";
+      case "upcoming":
+        return "Upcoming";
+      case "completed":
+        return "Completed";
+      case "cancelled":
+        return "Cancelled";
+      default:
+        return "Unknown";
     }
-    
-    // Apply category filter
-    if (filters.category !== "all" && liveClass.category !== filters.category) {
-      return false;
-    }
-    
-    // Apply instructor filter
-    if (filters.instructor !== "all" && liveClass.instructor.name !== filters.instructor) {
-      return false;
-    }
-    
-    // Apply search filter
-    if (filters.searchTerm) {
-      const searchLower = filters.searchTerm.toLowerCase();
-      return (
-        liveClass.title.toLowerCase().includes(searchLower) ||
-        (liveClass.description || "").toLowerCase().includes(searchLower) ||
-        liveClass.instructor.name.toLowerCase().includes(searchLower) ||
-        (liveClass.courseDetails?.title || "").toLowerCase().includes(searchLower)
-      );
-    }
-    
-    return true;
-  });
-  
-  // Handle opening the class details modal
-  const handleViewDetails = (liveClass: LiveClass) => {
-    setSelectedClass(liveClass);
-    setIsDetailsModalOpen(true);
   };
-  
-  // Join live class
-  const handleJoinClass = (liveClass: LiveClass) => {
-    // In a real implementation, you might want to track that the user joined the class
-    window.open(liveClass.meetingLink, "_blank");
+
+  // Action handlers
+  const handleViewDetails = (liveClass: ILiveClass) => {
+    console.log("View details for:", liveClass.title);
+    // Implement view details modal or navigation
   };
-  
-  // Watch recording
+
+  const handleJoinClass = (liveClass: ILiveClass) => {
+    const meetLink = liveClass.meetingLink || liveClass.meet_link || liveClass.zoom_link;
+    if (meetLink) {
+      window.open(meetLink, "_blank", "noopener,noreferrer");
+      toast.success(`Joining: ${liveClass.title || liveClass.meet_title}`);
+    } else {
+      toast.error("Meeting link not available");
+    }
+  };
+
   const handleWatchRecording = (recordingUrl: string) => {
-    window.open(recordingUrl, "_blank");
+    window.open(recordingUrl, "_blank", "noopener,noreferrer");
   };
-  
-  // Open chat for a live class
-  const handleOpenChat = (liveClass: LiveClass) => {
-    setSelectedClass(liveClass);
-    
-    // Mock chat data
-    setChatMessages([
-      { user: "Instructor", message: "Welcome to today's class on JavaScript Performance!", time: "2:00 PM" },
-      { user: "Alex", message: "Hi everyone, excited to learn today!", time: "2:01 PM" },
-      { user: "Sarah", message: "Professor, will we be covering memory profiling?", time: "2:03 PM" },
-      { user: "Instructor", message: "Yes Sarah, we'll cover that in the second half.", time: "2:04 PM" },
-      { user: "Michael", message: "Is this being recorded for later viewing?", time: "2:07 PM" },
-      { user: "Instructor", message: "Yes, all live sessions are recorded and will be available tomorrow.", time: "2:08 PM" }
-    ]);
-    
-    setIsChatModalOpen(true);
+
+  const handleOpenChat = (liveClass: ILiveClass) => {
+    setSelectedClassForChat(liveClass);
+    setShowChatModal(true);
+    // Load chat messages for this class
+    setChatMessages([]);
   };
-  
-  // Send chat message
+
+  const handleCloseChat = () => {
+    setShowChatModal(false);
+    setSelectedClassForChat(null);
+    setChatMessages([]);
+    setNewMessage("");
+  };
+
   const handleSendMessage = () => {
-    if (!messageInput.trim()) return;
-    
-    setChatMessages([
-      ...chatMessages,
-      {
-        user: "You",
-        message: messageInput,
-        time: format(new Date(), "h:mm a")
-      }
-    ]);
-    
-    setMessageInput("");
-    
-    // Simulate instructor response after a short delay
-    setTimeout(() => {
-      setChatMessages(prevMessages => [
-        ...prevMessages,
-        {
-          user: "Instructor",
-          message: "Great question! Let me address that during the session.",
-          time: format(new Date(), "h:mm a")
-        }
-      ]);
-    }, 3000);
+    if (newMessage.trim() && selectedClassForChat) {
+      const message: IChatMessage = {
+        id: Date.now().toString(),
+        sender: "You",
+        message: newMessage.trim(),
+        timestamp: new Date().toISOString()
+      };
+      setChatMessages(prev => [...prev, message]);
+      setNewMessage("");
+      // TODO: Send message to API
+    }
   };
-  
-  // Handle filter changes
-  const handleFilterChange = (filterName: keyof FilterState, value: string) => {
-    setFilters({
-      ...filters,
+
+  const handleDownloadMaterial = (material: IMaterial) => {
+    window.open(material.url, "_blank", "noopener,noreferrer");
+    toast.success(`Downloading: ${material.title}`);
+  };
+
+  const handleFilterChange = (filterName: keyof IFilterState, value: string) => {
+    setFilters(prev => ({
+      ...prev,
       [filterName]: value
-    });
+    }));
   };
   
-  // Handle tab changes
   const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-    handleFilterChange("status", tab);
+    setSelectedTab(tab);
+    setFilters(prev => ({ ...prev, status: tab === "all" ? "all" : tab }));
   };
-  
-  // Add to calendar
-  const handleAddToCalendar = (liveClass: LiveClass) => {
-    const startDate = new Date(`${liveClass.startDate}T${liveClass.startTime}`);
-    const endDate = new Date(startDate.getTime() + liveClass.duration * 60000);
+
+  const handleAddToCalendar = (liveClass: ILiveClass) => {
+    const startDate = liveClass.startDate || liveClass.date || "";
+    const startTime = liveClass.startTime || liveClass.time || liveClass.start_time || "";
     
-    const formattedStart = format(startDate, "yyyyMMdd'T'HHmmss");
-    const formattedEnd = format(endDate, "yyyyMMdd'T'HHmmss");
+    if (!startDate || !startTime) {
+      toast.error("Date/time information not available");
+      return;
+    }
     
-    const calendarUrl = encodeURI([
-      "https://calendar.google.com/calendar/render",
-      "?action=TEMPLATE",
-      `&text=${liveClass.title}`,
-      `&details=${liveClass.description || "Live class"}`,
-      `&location=${liveClass.meetingLink}`,
-      `&dates=${formattedStart}/${formattedEnd}`
-    ].join(""));
+    const startDateTime = new Date(`${startDate}T${startTime}`);
+    const endDateTime = new Date(startDateTime.getTime() + (liveClass.duration * 60 * 1000));
     
-    window.open(calendarUrl, "_blank");
+    const event = {
+      title: liveClass.title || liveClass.meet_title || "Live Class",
+      start: startDateTime.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z',
+      end: endDateTime.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z',
+      description: liveClass.description || `Live class session for ${liveClass.courseDetails?.title || liveClass.courseDetails?.course_title || "course"}`,
+      location: liveClass.meetingLink || liveClass.meet_link || liveClass.zoom_link || ""
+    };
+    
+    const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${event.start}/${event.end}&details=${encodeURIComponent(event.description)}&location=${encodeURIComponent(event.location)}`;
+    
+    window.open(googleCalendarUrl, "_blank", "noopener,noreferrer");
+    toast.success("Opening calendar to add event");
   };
-  
-  // Render a live class card
-  const renderClassCard = (liveClass: LiveClass) => {
-    const statusColor = getStatusColor(liveClass.status);
+
+  // Render class card
+  const renderClassCard = (liveClass: ILiveClass) => {
+    const courseImage = liveClass.courseDetails?.courseImage || liveClass.courseDetails?.course_image || defaultCourseImage;
+    const courseTitle = liveClass.courseDetails?.title || liveClass.courseDetails?.course_title || "Course";
+    const classTitle = liveClass.title || liveClass.meet_title || courseTitle;
+    const instructorName = liveClass.instructor?.name || liveClass.instructor?.full_name || "Unknown Instructor";
+    const classDate = liveClass.startDate || liveClass.date || "";
     
     return (
       <motion.div
         key={liveClass._id}
-        variants={itemVariants}
-        whileHover={{ y: -5, transition: { duration: 0.2 } }}
-        className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300"
       >
-        <div className="relative overflow-hidden">
+        {/* Header with course image and status */}
+        <div className="relative h-48 bg-gray-200 dark:bg-gray-700">
           <Image
-            src={liveClass.courseDetails?.courseImage || DefaultClassImage}
-            alt={liveClass.title}
-            width={400}
-            height={200}
-            className="w-full h-48 object-cover transform hover:scale-105 transition-transform duration-500"
+            src={courseImage}
+            alt={classTitle}
+            fill
+            className="object-cover"
           />
-          
-          <div className="absolute top-3 right-3">
-            <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColor}`}>
-              {liveClass.status === "live" ? "LIVE NOW" : liveClass.status.charAt(0).toUpperCase() + liveClass.status.slice(1)}
+          <div className="absolute top-4 right-4">
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(liveClass.status)}`}>
+              {getStatusText(liveClass.status)}
             </span>
           </div>
-          
-          {liveClass.status === "live" && (
-            <div className="absolute bottom-3 right-3">
-              <span className="flex items-center gap-1 bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
-                <LucideUsers className="w-3 h-3" />
-                {liveClass.participants} watching
-              </span>
-            </div>
-          )}
         </div>
         
-        <div className="p-5">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
-            {liveClass.title}
+        {/* Content */}
+        <div className="p-6 space-y-4">
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white line-clamp-2 mb-2">
+              {classTitle}
           </h3>
-          
-          <div className="space-y-2 mb-4">
-            <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-              <LucideCalendar className="w-4 h-4 mr-2 text-primary-500" />
-              <span>{formatDate(liveClass.startDate)}</span>
+            <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2">
+              {liveClass.description || `Live session for ${courseTitle}`}
+            </p>
             </div>
             
-            <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-              <LucideClock className="w-4 h-4 mr-2 text-primary-500" />
+          {/* Class details */}
+          <div className="space-y-2">
+            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+              <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
+              <span>{formatDate(classDate)}</span>
+            </div>
+            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+              <Clock className="w-4 h-4 mr-2 flex-shrink-0" />
               <span>{getClassTimeDisplay(liveClass)}</span>
             </div>
-            
-            <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-              <LucideUser className="w-4 h-4 mr-2 text-primary-500" />
-              <span>{liveClass.instructor.name}</span>
+            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+              <Users className="w-4 h-4 mr-2 flex-shrink-0" />
+              <span>{instructorName}</span>
             </div>
-            
-            {liveClass.courseDetails && (
-              <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-                <LucideBookOpen className="w-4 h-4 mr-2 text-primary-500" />
-                <span className="truncate">{liveClass.courseDetails.title}</span>
+            {(liveClass.participants !== undefined || liveClass.maxParticipants || liveClass.max_participants) && (
+              <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                <Users className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span>
+                  {liveClass.participants || 0}/{liveClass.maxParticipants || liveClass.max_participants || 'N/A'} Participants
+                </span>
               </div>
             )}
           </div>
           
-          <div className="flex flex-wrap gap-2 mt-4">
+          {/* Action buttons */}
+          <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100 dark:border-gray-700">
+            {liveClass.status === "live" && (
             <button
-              onClick={() => handleViewDetails(liveClass)}
-              className="flex-1 px-4 py-2 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 dark:bg-primary-900/10 dark:text-primary-400 dark:hover:bg-primary-900/20 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                onClick={() => handleJoinClass(liveClass)}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
             >
+                <Play className="w-4 h-4" />
+                Join Now
+            </button>
+            )}
+            
+            {liveClass.status === "upcoming" && (
+              <>
+              <button
+                onClick={() => handleJoinClass(liveClass)}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                  <ExternalLink className="w-4 h-4" />
+                  Join When Live
+              </button>
+              <button
+                onClick={() => handleAddToCalendar(liveClass)}
+                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              >
+                  <Plus className="w-4 h-4" />
+                Add to Calendar
+              </button>
+              </>
+            )}
+            
+            {liveClass.status === "completed" && liveClass.recordingUrl && (
+              <button
+                onClick={() => handleWatchRecording(liveClass.recordingUrl!)}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                <Eye className="w-4 h-4" />
+                Watch Recording
+              </button>
+            )}
+            
+              <button
+              onClick={() => handleViewDetails(liveClass)}
+              className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            >
+              <FileText className="w-4 h-4" />
               View Details
             </button>
             
-            {liveClass.status === "live" ? (
+            {liveClass.status === "live" && (
               <button
-                onClick={() => handleJoinClass(liveClass)}
-                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                onClick={() => handleOpenChat(liveClass)}
+                className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
-                Join Now
-              </button>
-            ) : liveClass.status === "upcoming" ? (
-              <button
-                onClick={() => handleAddToCalendar(liveClass)}
-                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-              >
-                Add to Calendar
-              </button>
-            ) : liveClass.recordingUrl ? (
-              <button
-                onClick={() => handleWatchRecording(liveClass.recordingUrl!)}
-                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-              >
-                Watch Recording
-              </button>
-            ) : (
-              <button
-                disabled
-                className="flex-1 px-4 py-2 text-sm font-medium text-gray-500 bg-gray-100 dark:bg-gray-700 dark:text-gray-400 rounded-lg cursor-not-allowed"
-              >
-                No Recording
+                <MessageSquare className="w-4 h-4" />
+                Chat
               </button>
             )}
           </div>
+
+          {/* Materials section */}
+          {liveClass.materials && liveClass.materials.length > 0 && (
+            <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Class Materials</h4>
+              <div className="flex flex-wrap gap-2">
+                {liveClass.materials.map((material, index) => (
+                  <button
+                    key={material._id || index}
+                    onClick={() => handleDownloadMaterial(material)}
+                    className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                  >
+                    <Download className="w-3 h-3" />
+                    {material.title}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </motion.div>
     );
   };
   
   return (
-    <div className="px-4 py-6 md:px-6 lg:px-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          Live Classes
-        </h1>
-        <p className="text-gray-600 dark:text-gray-300">
-          Join live classes, interact with instructors, and access recordings.
+    <div className="p-6 space-y-6">
+      {/* Header with refresh button */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Live Classes</h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Join live sessions, watch recordings, and access class materials
         </p>
       </div>
-      
-      {/* Tabs */}
-      <div className="mb-6">
-        <TabNavigation
-          tabs={[
-            { id: "upcoming", label: "Upcoming" },
-            { id: "live", label: "Live Now" },
-            { id: "completed", label: "Completed" },
-            { id: "all", label: "All Classes" }
-          ]}
-          activeTab={activeTab}
-          onChange={handleTabChange}
-        />
-      </div>
-      
-      {/* Filters and Search */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="flex-1">
-          <SearchBar
-            placeholder="Search live classes..."
-            value={filters.searchTerm}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFilterChange("searchTerm", e.target.value)}
-            onClear={() => handleFilterChange("searchTerm", "")}
-          />
-        </div>
-        
-        <div className="flex flex-wrap gap-3">
-          <Select
-            label="Category"
-            options={categories.map(cat => ({ value: cat, label: cat === "all" ? "All Categories" : cat }))}
-            value={filters.category}
-            onChange={(value: string) => handleFilterChange("category", value)}
-            className="w-full sm:w-40"
-          />
-          
-          <Select
-            label="Instructor"
-            options={instructors.map(ins => ({ value: ins, label: ins === "all" ? "All Instructors" : ins }))}
-            value={filters.instructor}
-            onChange={(value: string) => handleFilterChange("instructor", value)}
-            className="w-full sm:w-40"
-          />
-        </div>
-      </div>
-      
-      {/* Error Message */}
-      {errorMessage && (
-        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg">
-          <p className="flex items-center">
-            <LucideInfo className="w-5 h-5 mr-2" />
-            {errorMessage}
-          </p>
-        </div>
-      )}
-      
-      {/* Live Classes Grid */}
-      {loading ? (
-        <div className="min-h-[400px] flex items-center justify-center">
-          <LoadingIndicator type="spinner" size="lg" color="primary" text="Loading live classes..." />
-        </div>
-      ) : filteredClasses.length > 0 ? (
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+        <button
+          onClick={handleRefresh}
+          disabled={loading || refreshing}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {filteredClasses.map(renderClassCard)}
-        </motion.div>
-      ) : (
-        <EmptyState
-          icon={<LucideVideo size={48} />}
-          title="No live classes found"
-          description={activeTab === "all" ? "There are no live classes available." : `No ${activeTab} live classes available.`}
-          action={{
-            label: "Check again later",
-            onClick: () => setActiveTab("all")
-          }}
-        />
+          <RefreshCw className={`w-4 h-4 ${(loading || refreshing) ? 'animate-spin' : ''}`} />
+          Refresh
+        </button>
+      </div>
+      
+      {/* Error display */}
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+          <div>
+            <h3 className="font-medium text-red-800 dark:text-red-200">Error Loading Live Classes</h3>
+            <p className="text-red-700 dark:text-red-300 text-sm mt-1">{error}</p>
+            <button
+              onClick={handleRefresh}
+              className="mt-2 text-sm text-red-800 dark:text-red-200 underline hover:no-underline"
+            >
+              Try again
+            </button>
+        </div>
+        </div>
       )}
       
-      {/* Class Details Modal */}
-      <AnimatePresence>
-        {isDetailsModalOpen && selectedClass && (
-          <Modal
-            isOpen={isDetailsModalOpen}
-            onClose={() => setIsDetailsModalOpen(false)}
-            title="Live Class Details"
-            size="lg"
+      {/* Status tabs */}
+      <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+        {["all", "upcoming", "live", "completed"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => handleTabChange(tab)}
+            className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all ${
+              selectedTab === tab
+                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+            }`}
           >
-            <motion.div
-              variants={fadeInVariants}
-              initial="hidden"
-              animate="visible"
-              className="space-y-6"
-            >
-              <div className="relative overflow-hidden rounded-lg">
-                <Image
-                  src={selectedClass.courseDetails?.courseImage || DefaultClassImage}
-                  alt={selectedClass.title}
-                  width={800}
-                  height={400}
-                  className="w-full h-64 object-cover rounded-lg"
-                />
-                
-                <div className="absolute top-4 right-4">
-                  <span className={`text-sm font-medium px-3 py-1 rounded-full ${getStatusColor(selectedClass.status)}`}>
-                    {selectedClass.status === "live" ? "LIVE NOW" : selectedClass.status.toUpperCase()}
-                  </span>
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            {tab !== "all" && (
+              <span className="ml-2 text-xs bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded-full">
+                {classes.filter(cls => cls.status === tab).length}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Search and filters */}
+      <div className="flex flex-col lg:flex-row gap-4">
+        {/* Search */}
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <input
+            type="text"
+            placeholder="Search classes by title, description, course, or instructor..."
+            value={filters.searchTerm}
+            onChange={(e) => handleFilterChange("searchTerm", e.target.value)}
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+          />
                 </div>
                 
-                {selectedClass.status === "live" && (
-                  <div className="absolute bottom-4 right-4">
-                    <span className="flex items-center gap-1 bg-black/70 text-white text-sm px-3 py-1 rounded-full backdrop-blur-sm">
-                      <LucideUsers className="w-4 h-4" />
-                      {selectedClass.participants} watching
-                    </span>
-                  </div>
-                )}
+        {/* Filter toggle */}
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className="flex items-center gap-2 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        >
+          <Filter className="w-5 h-5" />
+          Filters
+          <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+        </button>
               </div>
               
+      {/* Advanced filters */}
+      <AnimatePresence>
+        {showFilters && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-4"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Category filter */}
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {selectedClass.title}
-                </h2>
-                
-                {selectedClass.description && (
-                  <p className="mt-2 text-gray-700 dark:text-gray-300">
-                    {selectedClass.description}
-                  </p>
-                )}
-                
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center text-gray-700 dark:text-gray-300">
-                    <LucideCalendar className="w-5 h-5 mr-3 text-primary-500" />
-                    <span>{formatDate(selectedClass.startDate)}</span>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
+                <select
+                  value={filters.category}
+                  onChange={(e) => handleFilterChange("category", e.target.value)}
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                >
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category === "all" ? "All Categories" : category}
+                    </option>
+                  ))}
+                </select>
                   </div>
                   
-                  <div className="flex items-center text-gray-700 dark:text-gray-300">
-                    <LucideClock className="w-5 h-5 mr-3 text-primary-500" />
-                    <span>{getClassTimeDisplay(selectedClass)}</span>
-                  </div>
-                  
-                  <div className="flex items-center text-gray-700 dark:text-gray-300">
-                    <LucideUser className="w-5 h-5 mr-3 text-primary-500" />
-                    <span>{selectedClass.instructor.name}</span>
-                  </div>
-                  
-                  {selectedClass.courseDetails && (
-                    <div className="flex items-center text-gray-700 dark:text-gray-300">
-                      <LucideBookOpen className="w-5 h-5 mr-3 text-primary-500" />
-                      <span>{selectedClass.courseDetails.title}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {selectedClass.materials && selectedClass.materials.length > 0 && (
+              {/* Instructor filter */}
                 <div>
-                  <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-white">Class Materials</h3>
-                  <div className="space-y-2">
-                    {selectedClass.materials.map((material, index) => (
-                      <a
-                        key={index}
-                        href={material.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
-                      >
-                        {material.type === "pdf" ? (
-                          <LucideFileText className="w-5 h-5 mr-3 text-red-500" />
-                        ) : material.type === "link" ? (
-                          <LucideExternalLink className="w-5 h-5 mr-3 text-blue-500" />
-                        ) : (
-                          <LucideFile className="w-5 h-5 mr-3 text-gray-500" />
-                        )}
-                        <span className="text-gray-700 dark:text-gray-300">{material.title}</span>
-                      </a>
-                    ))}
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Instructor</label>
+                <select
+                  value={filters.instructor}
+                  onChange={(e) => handleFilterChange("instructor", e.target.value)}
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                >
+                  {instructors.map((instructor) => (
+                    <option key={instructor} value={instructor}>
+                      {instructor === "all" ? "All Instructors" : instructor}
+                    </option>
+                  ))}
+                </select>
                   </div>
                 </div>
-              )}
-              
-              <div className="flex flex-wrap gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                {selectedClass.status === "live" ? (
-                  <>
-                    <Button
-                      variant="primary"
-                      className="flex-1"
-                      onClick={() => handleJoinClass(selectedClass)}
-                      leftIcon={<LucidePlay size={18} />}
-                    >
-                      Join Live Class
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => {
-                        setIsDetailsModalOpen(false);
-                        setTimeout(() => handleOpenChat(selectedClass), 300);
-                      }}
-                      leftIcon={<LucideMessageCircle size={18} />}
-                    >
-                      Open Class Chat
-                    </Button>
-                  </>
-                ) : selectedClass.status === "upcoming" ? (
-                  <Button
-                    variant="primary"
-                    className="flex-1"
-                    onClick={() => handleAddToCalendar(selectedClass)}
-                    leftIcon={<LucideCalendar size={18} />}
-                  >
-                    Add to Calendar
-                  </Button>
-                ) : selectedClass.recordingUrl ? (
-                  <Button
-                    variant="primary"
-                    className="flex-1"
-                    onClick={() => handleWatchRecording(selectedClass.recordingUrl!)}
-                    leftIcon={<LucidePlay size={18} />}
-                  >
-                    Watch Recording
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    disabled
-                    leftIcon={<LucideVideoOff size={18} />}
-                  >
-                    No Recording Available
-                  </Button>
-                )}
-              </div>
-            </motion.div>
-          </Modal>
+          </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Classes grid */}
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      ) : filteredClasses.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredClasses.map(renderClassCard)}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center h-64 text-center">
+          <Video className="w-12 h-12 text-gray-400 mb-4" />
+          <h3 className="text-xl font-medium text-gray-700 dark:text-gray-300 mb-2">
+            {error ? "Unable to load live classes" : "No live classes found"}
+          </h3>
+          <p className="text-gray-500 dark:text-gray-400 max-w-md">
+            {error ? (
+              "Please check your internet connection and try refreshing the page."
+            ) : filters.searchTerm || filters.category !== "all" || filters.instructor !== "all" ? (
+              "No classes match your current filters. Try adjusting your search criteria."
+            ) : (
+              "You don't have any live classes scheduled at the moment. Check back later or contact your instructor."
+            )}
+          </p>
+          {!error && (
+            <button
+              onClick={handleRefresh}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Refresh Classes
+            </button>
+                )}
+              </div>
+        )}
       
-      {/* Live Class Chat Modal */}
+      {/* Chat modal */}
       <AnimatePresence>
-        {isChatModalOpen && selectedClass && (
-          <Modal
-            isOpen={isChatModalOpen}
-            onClose={() => setIsChatModalOpen(false)}
-            title={`Chat - ${selectedClass.title}`}
-            size="md"
+        {showChatModal && selectedClassForChat && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={handleCloseChat}
           >
             <motion.div
-              variants={fadeInVariants}
-              initial="hidden"
-              animate="visible"
-              className="flex flex-col h-96"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-md h-96 flex flex-col"
+              onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg mb-4">
-                {chatMessages.map((msg, index) => (
-                  <div 
-                    key={index} 
-                    className={`flex ${msg.user === "You" ? "justify-end" : "justify-start"}`}
-                  >
-                    <div 
-                      className={`max-w-3/4 rounded-lg px-4 py-2 ${
-                        msg.user === "Instructor" 
-                          ? "bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-300" 
-                          : msg.user === "You"
-                            ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
-                            : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300"
-                      }`}
-                    >
+              {/* Chat header */}
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="font-semibold text-gray-900 dark:text-white">
+                  {selectedClassForChat.title || selectedClassForChat.meet_title} - Chat
+                </h3>
+              </div>
+
+              {/* Chat messages */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {chatMessages.length === 0 ? (
+                  <p className="text-gray-500 dark:text-gray-400 text-center">No messages yet. Start the conversation!</p>
+                ) : (
+                  chatMessages.map((message) => (
+                    <div key={message.id} className="flex flex-col">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-xs">
-                          {msg.user}
-                        </span>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{message.sender}</span>
                         <span className="text-xs text-gray-500 dark:text-gray-400">
-                          {msg.time}
+                          {format(new Date(message.timestamp), "HH:mm")}
                         </span>
                       </div>
-                      <p>{msg.message}</p>
+                      <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3">
+                        <p className="text-gray-900 dark:text-white">{message.message}</p>
                     </div>
                   </div>
-                ))}
+                  ))
+                )}
               </div>
               
+              {/* Chat input */}
+              <div className="p-4 border-t border-gray-200 dark:border-gray-700">
               <div className="flex gap-2">
                 <input
                   type="text"
-                  value={messageInput}
-                  onChange={(e) => setMessageInput(e.target.value)}
-                  placeholder="Type your message here..."
-                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                />
-                <Button
-                  variant="primary"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+                    placeholder="Type your message..."
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
                   onClick={handleSendMessage}
-                  leftIcon={<LucideSend size={18} />}
+                    disabled={!newMessage.trim()}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Send
-                </Button>
+                  </button>
+                </div>
               </div>
             </motion.div>
-          </Modal>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

@@ -1,21 +1,23 @@
-import React from "react";
-import { Metadata } from "next";
-import dynamic from "next/dynamic";
+import dynamic from 'next/dynamic';
+import { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: "Membership | Student Dashboard | Medh",
-  description: "Manage your membership plans and subscription details",
-};
-
-// Client component wrapper for the membership dashboard
-const MembershipDashboardWrapper = dynamic(
-  () => import("@/components/sections/dashboards/MembershipDashboard"),
+const MembershipDashboard = dynamic(
+  () => import('@/components/sections/dashboards/MembershipDashboard'),
   {
-    loading: () => <div className="min-h-screen flex items-center justify-center">Loading...</div>,
+    loading: () => (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
   }
 );
 
-// Server component
-export default function MembershipDashboardPage() {
-  return <MembershipDashboardWrapper />;
+export const metadata: Metadata = {
+  title: 'My Membership | Student Dashboard',
+  description: 'Manage your membership subscription and benefits on Medh platform.',
+  keywords: ['membership', 'subscription', 'dashboard', 'student', 'benefits']
+};
+
+export default function MembershipPage() {
+  return <MembershipDashboard />;
 } 
