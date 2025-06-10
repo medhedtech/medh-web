@@ -530,6 +530,42 @@ export const apiUrls = {
       return `${apiBaseUrl}/dashboard/export-data?format=${format}&report_type=${report_type}`;
     }
   },
+  analytics: {
+    // Student Analytics
+    getStudentWeeklyActivity: (studentId: string, options?: {
+      start?: string;
+      end?: string;
+    }): string => {
+      if (!studentId) throw new Error('Student ID is required');
+      const queryParams = new URLSearchParams();
+      if (options?.start) queryParams.append('start', options.start);
+      if (options?.end) queryParams.append('end', options.end);
+      
+      const queryString = queryParams.toString();
+      return `${apiBaseUrl}/analytics/student/${studentId}/weekly-activity${queryString ? `?${queryString}` : ''}`;
+    },
+    getStudentDashboardStats: (studentId: string): string => {
+      if (!studentId) throw new Error('Student ID is required');
+      return `${apiBaseUrl}/analytics/student/${studentId}/dashboard-stats`;
+    },
+    getStudentProgressHistory: (studentId: string, options?: {
+      courseId?: string;
+      period?: 'week' | 'month' | 'year';
+    }): string => {
+      if (!studentId) throw new Error('Student ID is required');
+      const queryParams = new URLSearchParams();
+      if (options?.courseId) queryParams.append('course_id', options.courseId);
+      if (options?.period) queryParams.append('period', options.period);
+      
+      const queryString = queryParams.toString();
+      return `${apiBaseUrl}/analytics/student/${studentId}/progress-history${queryString ? `?${queryString}` : ''}`;
+    },
+    getStudentCourseProgress: (studentId: string, courseId: string): string => {
+      if (!studentId) throw new Error('Student ID is required');
+      if (!courseId) throw new Error('Course ID is required');
+      return `${apiBaseUrl}/analytics/student/${studentId}/course/${courseId}/progress`;
+    }
+  },
   upload: {
     uploadFile: "/upload",
     uploadMultiple: "/upload/multiple",
@@ -1337,6 +1373,111 @@ export const apiUrls = {
     register: "/auth/register",
     logout: "/auth/logout",
     verifyToken: "/auth/verify-token"
+  },
+  goals: {
+    getAllGoals: (studentId: string): string => {
+      if (!studentId) throw new Error('Student ID is required');
+      return `${apiBaseUrl}/goals/student/${studentId}`;
+    },
+    createGoal: `${apiBaseUrl}/goals/create`,
+    updateGoal: (goalId: string): string => {
+      if (!goalId) throw new Error('Goal ID is required');
+      return `${apiBaseUrl}/goals/update/${goalId}`;
+    },
+    deleteGoal: (goalId: string): string => {
+      if (!goalId) throw new Error('Goal ID is required');
+      return `${apiBaseUrl}/goals/delete/${goalId}`;
+    },
+    getGoalById: (goalId: string): string => {
+      if (!goalId) throw new Error('Goal ID is required');
+      return `${apiBaseUrl}/goals/${goalId}`;
+    },
+    updateGoalProgress: (goalId: string): string => {
+      if (!goalId) throw new Error('Goal ID is required');
+      return `${apiBaseUrl}/goals/${goalId}/progress`;
+    },
+    toggleGoalCompletion: (goalId: string): string => {
+      if (!goalId) throw new Error('Goal ID is required');
+      return `${apiBaseUrl}/goals/${goalId}/toggle-completion`;
+    },
+    getGoalStats: (studentId: string): string => {
+      if (!studentId) throw new Error('Student ID is required');
+      return `${apiBaseUrl}/goals/stats/${studentId}`;
+    },
+    addGoalMilestone: (goalId: string): string => {
+      if (!goalId) throw new Error('Goal ID is required');
+      return `${apiBaseUrl}/goals/${goalId}/milestones`;
+    },
+    updateGoalMilestone: (goalId: string, milestoneId: string): string => {
+      if (!goalId || !milestoneId) throw new Error('Goal ID and Milestone ID are required');
+      return `${apiBaseUrl}/goals/${goalId}/milestones/${milestoneId}`;
+    },
+    deleteGoalMilestone: (goalId: string, milestoneId: string): string => {
+      if (!goalId || !milestoneId) throw new Error('Goal ID and Milestone ID are required');
+      return `${apiBaseUrl}/goals/${goalId}/milestones/${milestoneId}`;
+    }
+  },
+  assignments: {
+    getAllAssignments: (studentId: string, options: { 
+      page?: number; 
+      limit?: number; 
+      status?: string; 
+      course_id?: string; 
+      search?: string; 
+      sort_by?: string; 
+      sort_order?: 'asc' | 'desc' 
+    } = {}): string => {
+      if (!studentId) throw new Error('Student ID is required');
+      const { page = 1, limit = 10, status = '', course_id = '', search = '', sort_by = 'dueDate', sort_order = 'asc' } = options;
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', String(page));
+      queryParams.append('limit', String(limit));
+      if (status) queryParams.append('status', status);
+      if (course_id) queryParams.append('course_id', course_id);
+      if (search) queryParams.append('search', search);
+      queryParams.append('sort_by', sort_by);
+      queryParams.append('sort_order', sort_order);
+      return `${apiBaseUrl}/assignments/student/${studentId}?${queryParams.toString()}`;
+    },
+    getAssignmentById: (assignmentId: string, studentId: string): string => {
+      if (!assignmentId) throw new Error('Assignment ID is required');
+      if (!studentId) throw new Error('Student ID is required');
+      return `${apiBaseUrl}/assignments/${assignmentId}/student/${studentId}`;
+    },
+    submitAssignment: (assignmentId: string): string => {
+      if (!assignmentId) throw new Error('Assignment ID is required');
+      return `${apiBaseUrl}/assignments/${assignmentId}/submit`;
+    },
+    getAssignmentSubmission: (assignmentId: string, studentId: string): string => {
+      if (!assignmentId) throw new Error('Assignment ID is required');
+      if (!studentId) throw new Error('Student ID is required');
+      return `${apiBaseUrl}/assignments/${assignmentId}/submission/${studentId}`;
+    },
+    updateAssignmentSubmission: (assignmentId: string, studentId: string): string => {
+      if (!assignmentId) throw new Error('Assignment ID is required');
+      if (!studentId) throw new Error('Student ID is required');
+      return `${apiBaseUrl}/assignments/${assignmentId}/submission/${studentId}`;
+    },
+    deleteAssignmentSubmission: (assignmentId: string, studentId: string): string => {
+      if (!assignmentId) throw new Error('Assignment ID is required');
+      if (!studentId) throw new Error('Student ID is required');
+      return `${apiBaseUrl}/assignments/${assignmentId}/submission/${studentId}`;
+    },
+    getAssignmentStats: (studentId: string): string => {
+      if (!studentId) throw new Error('Student ID is required');
+      return `${apiBaseUrl}/assignments/stats/${studentId}`;
+    },
+    downloadAssignmentFile: (assignmentId: string, fileId: string): string => {
+      if (!assignmentId) throw new Error('Assignment ID is required');
+      if (!fileId) throw new Error('File ID is required');
+      return `${apiBaseUrl}/assignments/${assignmentId}/files/${fileId}/download`;
+    },
+    downloadSubmissionFile: (assignmentId: string, studentId: string, fileId: string): string => {
+      if (!assignmentId) throw new Error('Assignment ID is required');
+      if (!studentId) throw new Error('Student ID is required');
+      if (!fileId) throw new Error('File ID is required');
+      return `${apiBaseUrl}/assignments/${assignmentId}/submission/${studentId}/files/${fileId}/download`;
+    }
   },
   batches: {
     getAllBatches: `${apiBaseUrl}/batches`,
@@ -2201,6 +2342,359 @@ export interface ICurriculumValidationResult {
     validLessons: number;
     missingContent: number;
     brokenLinks: number;
+  };
+}
+
+// Assignment-related interfaces
+export interface IAssignmentAttachment {
+  _id: string;
+  filename: string;
+  originalName: string;
+  fileUrl: string;
+  fileSize: number;
+  fileType: string;
+  uploadedAt: string;
+}
+
+export interface IAssignmentSubmission {
+  _id: string;
+  assignmentId: string;
+  studentId: string;
+  content?: string;
+  submittedAt: string;
+  status: 'draft' | 'submitted' | 'graded' | 'returned';
+  grade?: number;
+  feedback?: string;
+  attachments?: IAssignmentAttachment[];
+  submissionNumber: number;
+  isLate: boolean;
+  gradedAt?: string;
+  gradedBy?: string;
+}
+
+export interface IAssignment {
+  _id: string;
+  title: string;
+  description: string;
+  courseId: string;
+  courseName: string;
+  instructorId: string;
+  instructorName: string;
+  dueDate: string;
+  createdAt: string;
+  updatedAt: string;
+  status: 'pending' | 'submitted' | 'graded' | 'overdue';
+  type: 'Essay' | 'Project' | 'Coding' | 'Design' | 'Report' | 'Presentation' | 'Quiz' | 'Other';
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  maxGrade: number;
+  estimatedTime: string;
+  instructions?: string;
+  attachments?: IAssignmentAttachment[];
+  allowedFileTypes?: string[];
+  maxFileSize?: number;
+  maxSubmissions?: number;
+  isGroupAssignment?: boolean;
+  groupSize?: number;
+  rubric?: Array<{
+    criteria: string;
+    maxPoints: number;
+    description: string;
+  }>;
+  submission?: IAssignmentSubmission;
+  grade?: number;
+  submittedDate?: string;
+  feedback?: string;
+  isLate?: boolean;
+}
+
+export interface IAssignmentStats {
+  totalAssignments: number;
+  pendingAssignments: number;
+  submittedAssignments: number;
+  gradedAssignments: number;
+  overdueAssignments: number;
+  averageGrade: number;
+  completionRate: number;
+  onTimeSubmissionRate: number;
+  totalPointsEarned: number;
+  totalPointsPossible: number;
+  assignmentsByType: Record<string, number>;
+  assignmentsByDifficulty: Record<string, number>;
+  gradeTrend: Array<{
+    month: string;
+    averageGrade: number;
+    submissionCount: number;
+  }>;
+  upcomingDeadlines: Array<{
+    assignmentId: string;
+    title: string;
+    dueDate: string;
+    daysUntilDue: number;
+  }>;
+}
+
+export interface IAssignmentCreateInput {
+  title: string;
+  description: string;
+  courseId: string;
+  dueDate: string;
+  type: string;
+  difficulty: string;
+  maxGrade: number;
+  estimatedTime: string;
+  instructions?: string;
+  allowedFileTypes?: string[];
+  maxFileSize?: number;
+  maxSubmissions?: number;
+  isGroupAssignment?: boolean;
+  groupSize?: number;
+  rubric?: Array<{
+    criteria: string;
+    maxPoints: number;
+    description: string;
+  }>;
+}
+
+export interface IAssignmentUpdateInput extends Partial<IAssignmentCreateInput> {}
+
+export interface ISubmissionCreateInput {
+  assignmentId: string;
+  studentId: string;
+  content?: string;
+  attachments?: File[];
+}
+
+export interface ISubmissionUpdateInput {
+  content?: string;
+  attachments?: File[];
+}
+
+export interface IAssignmentResponse {
+  success: boolean;
+  message: string;
+  data: {
+    assignment: IAssignment;
+  };
+}
+
+export interface IAssignmentsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    assignments: IAssignment[];
+    pagination?: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  };
+}
+
+export interface IAssignmentStatsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    stats: IAssignmentStats;
+  };
+}
+
+export interface ISubmissionResponse {
+  success: boolean;
+  message: string;
+  data: {
+    submission: IAssignmentSubmission;
+  };
+}
+
+// Goals-related interfaces
+export interface IGoalMilestone {
+  _id: string;
+  title: string;
+  completed: boolean;
+  completedAt?: string;
+  value?: number;
+  order?: number;
+}
+
+export interface IGoal {
+  _id: string;
+  studentId: string;
+  title: string;
+  description?: string;
+  category: 'course' | 'assignment' | 'exam' | 'project' | 'skill' | 'career' | 'personal';
+  type: 'completion' | 'time' | 'grade' | 'count' | 'custom';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  status: 'active' | 'completed' | 'paused' | 'archived';
+  progress: number;
+  targetValue?: number;
+  currentValue?: number;
+  unit?: string;
+  deadline: string;
+  createdAt: string;
+  updatedAt: string;
+  courseId?: string;
+  courseName?: string;
+  color: string;
+  reminders?: boolean;
+  milestones?: IGoalMilestone[];
+  tags?: string[];
+}
+
+export interface IGoalStats {
+  totalGoals: number;
+  completedGoals: number;
+  activeGoals: number;
+  overduedGoals: number;
+  completionRate: number;
+  averageProgress: number;
+  streakDays: number;
+  upcomingDeadlines: number;
+  goalsByCategory: Record<string, number>;
+  goalsByPriority: Record<string, number>;
+  monthlyProgress: Array<{
+    month: string;
+    completed: number;
+    created: number;
+  }>;
+}
+
+export interface IGoalCreateInput {
+  title: string;
+  description?: string;
+  category: 'course' | 'assignment' | 'exam' | 'project' | 'skill' | 'career' | 'personal';
+  type: 'completion' | 'time' | 'grade' | 'count' | 'custom';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  deadline: string;
+  targetValue?: number;
+  unit?: string;
+  courseId?: string;
+  reminders?: boolean;
+  tags?: string[];
+  milestones?: Array<{
+    title: string;
+    order?: number;
+  }>;
+}
+
+export interface IGoalUpdateInput extends Partial<IGoalCreateInput> {
+  progress?: number;
+  currentValue?: number;
+  status?: 'active' | 'completed' | 'paused' | 'archived';
+}
+
+export interface IGoalProgressUpdate {
+  progress: number;
+  currentValue?: number;
+  status?: 'active' | 'completed';
+}
+
+export interface IGoalResponse {
+  success: boolean;
+  message: string;
+  data: {
+    goal: IGoal;
+  };
+}
+
+export interface IGoalsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    goals: IGoal[];
+    pagination?: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  };
+}
+
+export interface IGoalStatsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    stats: IGoalStats;
+  };
+}
+
+// Student Analytics Interfaces
+export interface IWeeklyActivityData {
+  day: string;
+  dayOfWeek: number;
+  date: string;
+  hours: number;
+  studyHours: number;
+  complete: number;
+  completedActivities: number;
+  sessionsAttended: number;
+  assignmentsCompleted: number;
+  lessonsCompleted: number;
+}
+
+export interface IWeeklyActivityResponse {
+  success: boolean;
+  message: string;
+  data: {
+    activity: IWeeklyActivityData[];
+    summary: {
+      totalHours: number;
+      totalActivities: number;
+      averageDailyHours: number;
+      mostActiveDay: string;
+    };
+  };
+}
+
+export interface IStudentDashboardStatsData {
+  coursesEnrolled: number;
+  coursesCompleted: number;
+  totalStudyHours: number;
+  assignmentsCompleted: number;
+  averageGrade: number;
+  streakDays: number;
+  goalsAchieved: number;
+  certificatesEarned: number;
+  upcomingDeadlines: number;
+  recentAchievements: Array<{
+    type: 'course_complete' | 'assignment_submit' | 'goal_achieve' | 'certificate_earn';
+    title: string;
+    date: string;
+    description?: string;
+  }>;
+}
+
+export interface IStudentDashboardStatsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    stats: IStudentDashboardStatsData;
+  };
+}
+
+export interface IProgressHistoryData {
+  period: string;
+  date: string;
+  progress: number;
+  hoursStudied: number;
+  lessonsCompleted: number;
+  assignmentsSubmitted: number;
+  coursesCompleted: number;
+  goalsAchieved: number;
+}
+
+export interface IProgressHistoryResponse {
+  success: boolean;
+  message: string;
+  data: {
+    history: IProgressHistoryData[];
+    summary: {
+      totalProgress: number;
+      averageMonthlyHours: number;
+      improvementRate: number;
+      consistency: number;
+    };
   };
 }
 
