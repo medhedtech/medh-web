@@ -86,7 +86,8 @@ import {
   ShieldCheck,
   Banknote,
   Activity,
-  ChevronUp
+  ChevronUp,
+  Crown
 } from "lucide-react";
 import Cookies from 'js-cookie';
 import { motion, AnimatePresence } from "framer-motion";
@@ -742,6 +743,11 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       icon: <HomeIcon className="w-5 h-5" />
     },
         {
+          name: "My Demo Classes",
+      path: formatRoute("student", "demo-classes"),
+          icon: <MonitorPlay className="w-5 h-5" />
+        },
+        {
           name: "My Courses",
       path: formatRoute("student", "my-courses"),
           icon: <BookOpen className="w-5 h-5" />,
@@ -762,6 +768,11 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           icon: <CheckCircle className="w-4 h-4" />
             }
           ]
+        },
+        {
+          name: "My Membership",
+          path: formatRoute("student", "membership"),
+          icon: <Crown className="w-5 h-5" />
         },
         {
           name: "Resources",
