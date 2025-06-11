@@ -29,7 +29,7 @@ interface ICertificate {
   course: string;
   instructor: string;
   completionDate: string;
-  issueDate: string;
+  issueDate: string | null;
   certificateId: string;
   status: "issued" | "pending" | "expired";
   grade: number;
@@ -406,8 +406,6 @@ const CertificateMain: React.FC = () => {
           </div>
         )}
 
-
-
         {/* Actions */}
         <div className="flex space-x-2">
           <button className="flex-1 flex items-center justify-center px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm">
@@ -489,8 +487,6 @@ const CertificateMain: React.FC = () => {
             View, download, and share your course completion certificates
           </p>
         </motion.div>
-
-
 
         {/* Search and Filter */}
         <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">

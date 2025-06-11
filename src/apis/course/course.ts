@@ -10,6 +10,40 @@ import {
 } from '@/types/api-responses';
 import axios from 'axios';
 
+// Course Image Upload Types
+export interface ICourseImageUploadResponse {
+  success: boolean;
+  message: string;
+  data: {
+    courseId: string;
+    imageUrl: string;
+    key: string;
+    size: number;
+    course: {
+      id: string;
+      title: string;
+      image: string;
+      [key: string]: any;
+    };
+  };
+  timestamp: string;
+}
+
+export interface ICourseImageUploadRequest {
+  base64String: string;
+  fileType: string;
+}
+
+export interface ICourseImageUploadError {
+  success: false;
+  message: string;
+  error: {
+    code: string;
+    details: string[];
+  };
+  timestamp: string;
+}
+
 /**
  * Fetches all courses based on specified parameters.
  * @param params - Search parameters for filtering and pagination.
@@ -276,6 +310,389 @@ export const updateRecordedVideos = (id: string): string => {
   if (!id) throw new Error('Course ID cannot be empty');
   return `${apiBaseUrl}/courses/recorded-videos/${id}`;
 }
+
+/**
+ * Provides the endpoint URL for uploading a course image using base64 (RECOMMENDED).
+ * This endpoint uploads the image and automatically updates the course record.
+ * Note: This requires a POST request with JSON containing base64String and fileType.
+ * @param id - The ID of the course.
+ * @returns The API URL string.
+ */
+export const uploadCourseImageBase64 = (id: string): string => {
+  if (!id) throw new Error('Course ID cannot be empty');
+  return `${apiBaseUrl}/courses/${id}/upload-image`;
+}
+
+/**
+ * Provides the endpoint URL for uploading a course image using multipart form data (RECOMMENDED).
+ * This endpoint uploads the image and automatically updates the course record.
+ * Note: This requires a POST request with multipart/form-data containing the image file.
+ * @param id - The ID of the course.
+ * @returns The API URL string.
+ */
+export const uploadCourseImageFile = (id: string): string => {
+  if (!id) throw new Error('Course ID cannot be empty');
+  return `${apiBaseUrl}/courses/${id}/upload-image-file`;
+}
+
+/**
+ * Constructs the URL and data payload for uploading a course image using base64.
+ * @param courseId - The ID of the course.
+ * @param base64String - The base64 encoded image string (with data URL prefix).
+ * @param fileType - The type of file (e.g., 'image', 'jpeg', 'png').
+ * @returns An object containing the URL and the data payload.
+ */
+export const uploadCourseImageBase64WithData = (
+  courseId: string,
+  base64String: string,
+  fileType: string = 'image'
+): { url: string; data: { base64String: string; fileType: string } } => {
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!base64String) throw new Error('Base64 string cannot be empty');
+  
+  return {
+    url: `${apiBaseUrl}/courses/${courseId}/upload-image`,
+    data: {
+      base64String,
+      fileType
+    }
+  };
+};
+
+/**
+ * Prepares FormData for uploading a course image file.
+ * @param courseId - The ID of the course.
+ * @param imageFile - The image file to upload.
+ * @returns An object containing the URL and FormData.
+ */
+export const uploadCourseImageFileWithData = (
+  courseId: string,
+  imageFile: File
+): { url: string; formData: FormData } => {
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!imageFile) throw new Error('Image file cannot be empty');
+  
+  const formData = new FormData();
+  formData.append('image', imageFile);
+  
+  return {
+    url: `${apiBaseUrl}/courses/${courseId}/upload-image-file`,
+    formData
+  };
+};
+
+// ASYNC UPLOAD FUNCTIONS WITH FULL API INTEGRATION
+
+/**
+ * Uploads a course image using base64 string and automatically updates the course.
+ * @param courseId - The ID of the course.
+ * @param base64String - The base64 encoded image string (with data URL prefix).
+ * @param fileType - The type of file (e.g., 'image', 'jpeg', 'png').
+ * @returns Promise containing the upload response or error.
+ */
+export const uploadCourseImageBase64Async = async (
+  courseId: string,
+  base64String: string,
+  fileType: string = 'image'
+): Promise<ICourseImageUploadResponse | ICourseImageUploadError> => {
+  try {
+    if (!courseId) throw new Error('Course ID cannot be empty');
+    if (!base64String) throw new Error('Base64 string cannot be empty');
+    
+    const response = await axios.post<ICourseImageUploadResponse>(
+      `${apiBaseUrl}/courses/${courseId}/upload-image`,
+      {
+        base64String,
+        fileType
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    return response.data;
+  } catch (error) {
+    return handleImageUploadError(error, 'Failed to upload course image');
+  }
+};
+
+/**
+ * Uploads a course image using a file and automatically updates the course.
+ * @param courseId - The ID of the course.
+ * @param imageFile - The image file to upload.
+ * @returns Promise containing the upload response or error.
+ */
+export const uploadCourseImageFileAsync = async (
+  courseId: string,
+  imageFile: File
+): Promise<ICourseImageUploadResponse | ICourseImageUploadError> => {
+  try {
+    if (!courseId) throw new Error('Course ID cannot be empty');
+    if (!imageFile) throw new Error('Image file cannot be empty');
+    
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    
+    const response = await axios.post<ICourseImageUploadResponse>(
+      `${apiBaseUrl}/courses/${courseId}/upload-image-file`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+    );
+    
+    return response.data;
+  } catch (error) {
+    return handleImageUploadError(error, 'Failed to upload course image file');
+  }
+};
+
+/**
+ * Converts a File object to base64 string and uploads it to the course.
+ * This is a complete solution that handles file conversion and upload in one function.
+ * @param courseId - The ID of the course.
+ * @param file - The image file to convert and upload.
+ * @param authToken - Optional auth token for the request.
+ * @returns Promise containing the upload response or error.
+ */
+export const uploadCourseImageFromFileAsync = async (
+  courseId: string,
+  file: File,
+  authToken?: string
+): Promise<ICourseImageUploadResponse | ICourseImageUploadError> => {
+  try {
+    if (!courseId) throw new Error('Course ID cannot be empty');
+    if (!file) throw new Error('File cannot be empty');
+    
+    console.log('🚀 Starting file-to-base64 upload...');
+    console.log('📁 File details:', {
+      name: file.name,
+      size: file.size,
+      type: file.type
+    });
+    
+    // Convert file to base64
+    const base64String = await convertFileToBase64(file);
+    console.log('📦 Base64 conversion complete, length:', base64String.length);
+    
+    // Prepare request headers
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    
+    // Make the upload request
+    const response = await axios.post<ICourseImageUploadResponse>(
+      `${apiBaseUrl}/courses/${courseId}/upload-image`,
+      {
+        base64String,
+        fileType: 'image'
+      },
+      { headers }
+    );
+    
+    console.log('✅ Upload successful!', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Upload failed:', error);
+    return handleImageUploadError(error, 'Failed to upload course image from file');
+  }
+};
+
+/**
+ * Helper function to convert File to base64 string
+ * @param file - The file to convert
+ * @returns Promise that resolves to base64 string
+ */
+export const convertFileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    if (!file) {
+      reject(new Error('No file provided'));
+      return;
+    }
+    
+    const reader = new FileReader();
+    
+    reader.onload = () => {
+      const result = reader.result as string;
+      resolve(result);
+    };
+    
+    reader.onerror = () => {
+      reject(new Error('Failed to read file'));
+    };
+    
+    reader.readAsDataURL(file);
+  });
+};
+
+/**
+ * Upload course image with detailed logging and error handling.
+ * This function provides comprehensive logging for debugging.
+ * @param courseId - The ID of the course.
+ * @param base64String - The base64 encoded image string.
+ * @param fileType - The type of file (default: 'image').
+ * @param authToken - Optional auth token for the request.
+ * @returns Promise containing the upload response or error.
+ */
+export const uploadCourseImageBase64WithAuth = async (
+  courseId: string,
+  base64String: string,
+  fileType: string = 'image',
+  authToken?: string
+): Promise<ICourseImageUploadResponse | ICourseImageUploadError> => {
+  try {
+    if (!courseId) throw new Error('Course ID cannot be empty');
+    if (!base64String) throw new Error('Base64 string cannot be empty');
+    
+    console.log('🚀 Starting base64 image upload...');
+    console.log('📋 Upload details:', {
+      courseId,
+      base64Length: base64String.length,
+      fileType,
+      hasAuthToken: !!authToken
+    });
+    
+    // Prepare request headers
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    
+    // Prepare request body
+    const requestBody = {
+      base64String,
+      fileType
+    };
+    
+    console.log('📤 Making POST request to:', `${apiBaseUrl}/courses/${courseId}/upload-image`);
+    console.log('📦 Request body prepared:', {
+      base64Length: base64String.length,
+      fileType
+    });
+    
+    // Make the upload request
+    const response = await axios.post<ICourseImageUploadResponse>(
+      `${apiBaseUrl}/courses/${courseId}/upload-image`,
+      requestBody,
+      { headers }
+    );
+    
+    console.log('✅ Upload successful!');
+    console.log('🖼️ Image URL:', response.data.data.imageUrl);
+    console.log('📊 Response data:', response.data);
+    
+    return response.data;
+  } catch (error) {
+    console.error('❌ Upload failed:', error);
+    
+    if (axios.isAxiosError(error)) {
+      console.error('📋 Error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data
+      });
+    }
+    
+    return handleImageUploadError(error, 'Failed to upload course image with auth');
+  }
+};
+
+/**
+ * Quick upload function for React components with file input.
+ * Handles the complete flow from file selection to upload.
+ * @param courseId - The ID of the course.
+ * @param event - The file input change event.
+ * @param authToken - Optional auth token for the request.
+ * @returns Promise containing the upload response or error.
+ */
+export const handleFileInputUpload = async (
+  courseId: string,
+  event: Event,
+  authToken?: string
+): Promise<ICourseImageUploadResponse | ICourseImageUploadError> => {
+  try {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+    
+    if (!file) {
+      throw new Error('No file selected');
+    }
+    
+    console.log('📁 File selected from input:', {
+      name: file.name,
+      size: file.size,
+      type: file.type
+    });
+    
+    return await uploadCourseImageFromFileAsync(courseId, file, authToken);
+  } catch (error) {
+    console.error('❌ File input upload failed:', error);
+    return handleImageUploadError(error, 'Failed to handle file input upload');
+  }
+};
+
+// Helper function for handling image upload errors
+const handleImageUploadError = (error: unknown, defaultMessage: string): ICourseImageUploadError => {
+  if (axios.isAxiosError(error)) {
+    return {
+      success: false,
+      message: error.response?.data?.message || defaultMessage,
+      error: {
+        code: error.response?.data?.error?.code || 'IMAGE_UPLOAD_ERROR',
+        details: error.response?.data?.error?.details || [error.message]
+      },
+      timestamp: new Date().toISOString()
+    };
+  }
+  
+  return {
+    success: false,
+    message: defaultMessage,
+    error: {
+      code: 'UNKNOWN_ERROR',
+      details: [error instanceof Error ? error.message : 'An unexpected error occurred']
+    },
+    timestamp: new Date().toISOString()
+  };
+};
+
+// LEGACY ENDPOINTS (Deprecated - use the new course-specific endpoints above)
+
+/**
+ * @deprecated Use uploadCourseImageFile instead
+ * Provides the endpoint URL for updating a course thumbnail/image.
+ * Note: This requires a PATCH request with multipart/form-data containing the image file.
+ * @param id - The ID of the course.
+ * @returns The API URL string.
+ */
+export const updateCourseThumbnail = (id: string): string => {
+  if (!id) throw new Error('Course ID cannot be empty');
+  return `${apiBaseUrl}/courses/${id}/thumbnail`;
+}
+
+/**
+ * @deprecated Use uploadCourseImageBase64 instead
+ * Provides the endpoint URL for updating a course thumbnail/image using base64.
+ * Note: This requires a PATCH request with JSON containing base64String and fileType.
+ * @param id - The ID of the course.
+ * @returns The API URL string.
+ */
+export const updateCourseThumbnailBase64 = (id: string): string => {
+  if (!id) throw new Error('Course ID cannot be empty');
+  return `${apiBaseUrl}/courses/${id}/upload-image-file`;
+}
+
 
 /**
  * Provides the endpoint URL for permanently deleting a course.
@@ -750,6 +1167,211 @@ export const bulkUpdateCourseFees = (updateData: {
   };
 };
 
+// LESSON MANAGEMENT FUNCTIONS
+
+/**
+ * Creates a new lesson for a specific course and week.
+ * @param courseType - The type of course ('live', 'blended', 'free')
+ * @param courseId - The ID of the course
+ * @param weekId - The ID of the week
+ * @param lessonData - The lesson data to create
+ * @returns An object containing the URL and the data payload
+ */
+export const createLesson = (
+  courseType: string,
+  courseId: string,
+  weekId: string,
+  lessonData: {
+    title: string;
+    description?: string;
+    content_type: 'video' | 'text' | 'quiz' | 'assignment';
+    content_url?: string;
+    duration?: number;
+    order: number;
+    is_preview?: boolean;
+  }
+): { url: string; data: any } => {
+  if (!courseType) throw new Error('Course type cannot be empty');
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!weekId) throw new Error('Week ID cannot be empty');
+  if (!lessonData.title) throw new Error('Lesson title is required');
+  
+  return {
+    url: `${apiBaseUrl}/tcourse/${courseType}/${courseId}/curriculum/${weekId}/lessons`,
+    data: {
+      ...lessonData,
+      created_at: new Date().toISOString()
+    }
+  };
+};
+
+/**
+ * Updates an existing lesson.
+ * @param courseType - The type of course ('live', 'blended', 'free')
+ * @param courseId - The ID of the course
+ * @param weekId - The ID of the week
+ * @param lessonId - The ID of the lesson to update
+ * @param lessonData - The lesson data to update
+ * @returns An object containing the URL and the data payload
+ */
+export const updateLesson = (
+  courseType: string,
+  courseId: string,
+  weekId: string,
+  lessonId: string,
+  lessonData: Partial<{
+    title: string;
+    description?: string;
+    content_type: 'video' | 'text' | 'quiz' | 'assignment';
+    content_url?: string;
+    duration?: number;
+    order: number;
+    is_preview?: boolean;
+  }>
+): { url: string; data: any } => {
+  if (!courseType) throw new Error('Course type cannot be empty');
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!weekId) throw new Error('Week ID cannot be empty');
+  if (!lessonId) throw new Error('Lesson ID cannot be empty');
+  
+  return {
+    url: `${apiBaseUrl}/tcourse/${courseType}/${courseId}/curriculum/${weekId}/lessons/${lessonId}`,
+    data: {
+      ...lessonData,
+      updated_at: new Date().toISOString()
+    }
+  };
+};
+
+/**
+ * Deletes a lesson from a course week.
+ * @param courseType - The type of course ('live', 'blended', 'free')
+ * @param courseId - The ID of the course
+ * @param weekId - The ID of the week
+ * @param lessonId - The ID of the lesson to delete
+ * @returns The API URL string
+ */
+export const deleteLesson = (
+  courseType: string,
+  courseId: string,
+  weekId: string,
+  lessonId: string
+): string => {
+  if (!courseType) throw new Error('Course type cannot be empty');
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!weekId) throw new Error('Week ID cannot be empty');
+  if (!lessonId) throw new Error('Lesson ID cannot be empty');
+  
+  return `${apiBaseUrl}/tcourse/${courseType}/${courseId}/curriculum/${weekId}/lessons/${lessonId}`;
+};
+
+/**
+ * Reorders lessons within a week.
+ * @param courseType - The type of course ('live', 'blended', 'free')
+ * @param courseId - The ID of the course
+ * @param weekId - The ID of the week
+ * @param lessonOrders - Array of lesson IDs in their new order
+ * @returns An object containing the URL and the data payload
+ */
+export const reorderLessons = (
+  courseType: string,
+  courseId: string,
+  weekId: string,
+  lessonOrders: { lessonId: string; order: number }[]
+): { url: string; data: any } => {
+  if (!courseType) throw new Error('Course type cannot be empty');
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!weekId) throw new Error('Week ID cannot be empty');
+  if (!lessonOrders || lessonOrders.length === 0) throw new Error('Lesson orders cannot be empty');
+  
+  return {
+    url: `${apiBaseUrl}/tcourse/${courseType}/${courseId}/curriculum/${weekId}/lessons/reorder`,
+    data: {
+      lesson_orders: lessonOrders,
+      updated_at: new Date().toISOString()
+    }
+  };
+};
+
+/**
+ * Gets a specific lesson from a course week.
+ * @param courseType - The type of course ('live', 'blended', 'free')
+ * @param courseId - The ID of the course
+ * @param weekId - The ID of the week
+ * @param lessonId - The ID of the lesson
+ * @returns The API URL string
+ */
+export const getLesson = (
+  courseType: string,
+  courseId: string,
+  weekId: string,
+  lessonId: string
+): string => {
+  if (!courseType) throw new Error('Course type cannot be empty');
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!weekId) throw new Error('Week ID cannot be empty');
+  if (!lessonId) throw new Error('Lesson ID cannot be empty');
+  
+  return `${apiBaseUrl}/tcourse/${courseType}/${courseId}/curriculum/${weekId}/lessons/${lessonId}`;
+};
+
+/**
+ * Gets all lessons for a specific week.
+ * @param courseType - The type of course ('live', 'blended', 'free')
+ * @param courseId - The ID of the course
+ * @param weekId - The ID of the week
+ * @returns The API URL string
+ */
+export const getWeekLessons = (
+  courseType: string,
+  courseId: string,
+  weekId: string
+): string => {
+  if (!courseType) throw new Error('Course type cannot be empty');
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!weekId) throw new Error('Week ID cannot be empty');
+  
+  return `${apiBaseUrl}/tcourse/${courseType}/${courseId}/curriculum/${weekId}/lessons`;
+};
+
+/**
+ * Bulk creates multiple lessons for a week.
+ * @param courseType - The type of course ('live', 'blended', 'free')
+ * @param courseId - The ID of the course
+ * @param weekId - The ID of the week
+ * @param lessons - Array of lesson data to create
+ * @returns An object containing the URL and the data payload
+ */
+export const bulkCreateLessons = (
+  courseType: string,
+  courseId: string,
+  weekId: string,
+  lessons: Array<{
+    title: string;
+    description?: string;
+    content_type: 'video' | 'text' | 'quiz' | 'assignment';
+    content_url?: string;
+    duration?: number;
+    order: number;
+    is_preview?: boolean;
+  }>
+): { url: string; data: any } => {
+  if (!courseType) throw new Error('Course type cannot be empty');
+  if (!courseId) throw new Error('Course ID cannot be empty');
+  if (!weekId) throw new Error('Week ID cannot be empty');
+  if (!lessons || lessons.length === 0) throw new Error('Lessons array cannot be empty');
+  
+  return {
+    url: `${apiBaseUrl}/tcourse/${courseType}/${courseId}/curriculum/${weekId}/lessons/bulk`,
+    data: {
+      lessons: lessons.map(lesson => ({
+        ...lesson,
+        created_at: new Date().toISOString()
+      }))
+    }
+  };
+};
+
 // PRICE MANAGEMENT ENDPOINTS
 
 /**
@@ -994,4 +1616,197 @@ export const prepareBasicCourseData = (data: {
   }
   
   return formData;
+};
+
+/**
+ * Enhanced Lesson Management Utilities
+ * Based on the backend API structure from course-controller.js
+ */
+
+// Course type determination helper
+export const determineCourseType = (course: any): string => {
+  if (!course) return 'unknown';
+  
+  // Check class_type field first
+  if (course.class_type) {
+    const classType = course.class_type.toLowerCase();
+    if (classType.includes('live')) return 'live';
+    if (classType.includes('blend')) return 'blended'; 
+    if (classType.includes('self') || classType.includes('record')) return 'free';
+  }
+  
+  // Check category_type field
+  if (course.category_type) {
+    const categoryType = course.category_type.toLowerCase();
+    if (categoryType.includes('live')) return 'live';
+    if (categoryType.includes('blend')) return 'blended';
+    if (categoryType.includes('free') || categoryType.includes('self')) return 'free';
+  }
+  
+  // Check if course is marked as free
+  if (course.isFree === true || course.course_fee === 0) return 'free';
+  
+  // Default fallback
+  return 'blended';
+};
+
+// Add lesson resource to existing lesson
+export const addLessonResource = (courseId: string, lessonId: string, resourceData: {
+  title: string;
+  type: 'pdf' | 'video' | 'link' | 'document' | 'image';
+  url: string;
+  description?: string;
+  mimeType?: string;
+  size?: number;
+}) => {
+  return {
+    url: `${apiBaseUrl}/courses/${courseId}/lessons/${lessonId}/resources`,
+    data: {
+      ...resourceData,
+      id: `resource_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+  };
+};
+
+// Remove lesson resource
+export const removeLessonResource = (courseId: string, lessonId: string, resourceId: string) => {
+  return {
+    url: `${apiBaseUrl}/courses/${courseId}/lessons/${lessonId}/resources/${resourceId}`,
+    method: 'DELETE'
+  };
+};
+
+// Get course curriculum with detailed lesson structure
+export const getCurriculumWithLessons = (courseId: string) => {
+  return `${apiBaseUrl}/courses/${courseId}/curriculum`;
+};
+
+// Update entire course curriculum structure
+export const updateCourseCurriculum = (courseId: string, curriculumData: any) => {
+  return {
+    url: `${apiBaseUrl}/courses/${courseId}`,
+    data: {
+      curriculum: curriculumData,
+      updated_at: new Date().toISOString(),
+    }
+  };
+};
+
+// Mark lesson as complete for student progress tracking
+export const markLessonCompleted = (courseId: string, lessonId: string, studentId: string) => {
+  return {
+    url: `${apiBaseUrl}/courses/${courseId}/lessons/${lessonId}/complete`,
+    data: {
+      student_id: studentId,
+      completed_at: new Date().toISOString(),
+    }
+  };
+};
+
+// Get course progress for dashboard
+export const getCourseProgressSummary = (courseId: string, studentId?: string) => {
+  const params = studentId ? `?student_id=${studentId}` : '';
+  return `${apiBaseUrl}/courses/${courseId}/progress${params}`;
+};
+
+// Bulk import lessons from CSV or JSON
+export const bulkImportLessons = (courseId: string, weekId: string, lessonsData: any[]) => {
+  return {
+    url: `${apiBaseUrl}/courses/${courseId}/curriculum/weeks/${weekId}/lessons/bulk`,
+    data: {
+      lessons: lessonsData.map((lesson, index) => ({
+        ...lesson,
+        id: `lesson_${Date.now()}_${index}`,
+        order: lesson.order || index + 1,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }))
+    }
+  };
+};
+
+// Duplicate lesson to another week or course
+export const duplicateLesson = (sourceCoursId: string, sourceLessonId: string, targetCourseId: string, targetWeekId: string) => {
+  return {
+    url: `${apiBaseUrl}/courses/${sourceCoursId}/lessons/${sourceLessonId}/duplicate`,
+    data: {
+      target_course_id: targetCourseId,
+      target_week_id: targetWeekId,
+      created_at: new Date().toISOString(),
+    }
+  };
+};
+
+// Export course curriculum to different formats
+export const exportCourseCurriculum = (courseId: string, format: 'json' | 'csv' | 'pdf' = 'json') => {
+  return `${apiBaseUrl}/courses/${courseId}/curriculum/export?format=${format}`;
+};
+
+// Get lesson analytics and engagement data
+export const getLessonAnalytics = (courseId: string, lessonId: string) => {
+  return `${apiBaseUrl}/courses/${courseId}/lessons/${lessonId}/analytics`;
+};
+
+// Schedule lesson for auto-publishing
+export const scheduleLessonPublish = (courseId: string, lessonId: string, publishDate: string) => {
+  return {
+    url: `${apiBaseUrl}/courses/${courseId}/lessons/${lessonId}/schedule`,
+    data: {
+      publish_date: publishDate,
+      scheduled_at: new Date().toISOString(),
+    }
+  };
+};
+
+// Enhanced lesson form helpers for the UI
+export const createEnhancedLessonForm = () => {
+  return {
+    title: '',
+    description: '',
+    content_type: 'video' as 'video' | 'text' | 'quiz' | 'assignment',
+    content_url: '',
+    duration: 0,
+    order: 1,
+    is_preview: false,
+    resources: [],
+    quiz_questions: [],
+    assignment_details: null,
+    video_metadata: {
+      thumbnail: '',
+      captions: false,
+      quality: '720p',
+    }
+  };
+};
+
+// Validate lesson form data
+export const validateLessonForm = (lessonData: any) => {
+  const errors: string[] = [];
+  
+  if (!lessonData.title?.trim()) {
+    errors.push('Lesson title is required');
+  }
+  
+  if (!lessonData.content_type) {
+    errors.push('Content type is required');
+  }
+  
+  if (lessonData.content_type === 'video' && !lessonData.content_url) {
+    errors.push('Video URL is required for video lessons');
+  }
+  
+  if (lessonData.duration <= 0) {
+    errors.push('Duration must be greater than 0');
+  }
+  
+  if (lessonData.order <= 0) {
+    errors.push('Order must be greater than 0');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
 };

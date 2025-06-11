@@ -1,21 +1,22 @@
 import { Metadata } from 'next';
-import { getCourseById } from '@/apis/courses';
+import { courseAPI } from '@/apis/courses';
 import { ICourse, ICourseWeek } from '@/types/course.types';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 
 interface CoursePageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({ params }: CoursePageProps): Promise<Metadata> {
   try {
-    const id = params?.id;
+    const { id } = await params;
     if (!id) return notFound();
 
-    const course = await getCourseById(id);
+    const response = await courseAPI.getCourseById(id);
+    const course = response.course;
 
     return {
       title: course.course_title,
@@ -37,10 +38,11 @@ export async function generateMetadata({ params }: CoursePageProps): Promise<Met
 
 export default async function CoursePage({ params }: CoursePageProps) {
   try {
-    const id = params?.id;
+    const { id } = await params;
     if (!id) return notFound();
 
-    const course = await getCourseById(id);
+    const response = await courseAPI.getCourseById(id);
+    const course = response.course;
 
     return (
       <div className="container mx-auto px-4 py-8">
