@@ -288,7 +288,7 @@ const InstructorDashboardLayout: React.FC<InstructorDashboardLayoutProps> = ({
         <ComingSoonPage 
           title={comingSoonTitle} 
           description="We're working on this feature. It will be available soon!"
-          returnPath="/dashboards/instructor/"
+          returnPath="/dashboards/instructor"
         />
       );
     }

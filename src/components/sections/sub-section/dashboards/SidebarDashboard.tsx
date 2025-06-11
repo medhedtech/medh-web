@@ -156,7 +156,7 @@ interface SidebarDashboardProps {
   onExpandedChange?: (isExpanded: boolean) => void;  // Callback when expanded state changes
 }
 
-// Sidebar animation variants
+// Enhanced sidebar animation variants for better mobile experience
 const sidebarVariants = {
   expanded: {
     width: '260px', // Increased from 220px to provide more space
@@ -183,7 +183,31 @@ const sidebarVariants = {
   }
 };
 
-// Animation variants for menu items
+// Enhanced mobile-specific sidebar variants
+const mobileSidebarVariants = {
+  expanded: {
+    width: '100%',
+    transition: {
+      type: 'spring',
+      stiffness: 300,
+      damping: 25,
+      duration: 0.3,
+      ease: "easeOut"
+    }
+  },
+  collapsed: {
+    width: '100%',
+    transition: {
+      type: 'spring',
+      stiffness: 300,
+      damping: 25,
+      duration: 0.3,
+      ease: "easeIn"
+    }
+  }
+};
+
+// Enhanced animation variants for menu items with mobile optimizations
 const itemVariants = {
   expanded: {
     opacity: 1,
@@ -204,6 +228,19 @@ const itemVariants = {
     },
     transitionEnd: {
       display: "none"
+    }
+  }
+};
+
+// Enhanced mobile item variants - always expanded with better animations
+const mobileItemVariants = {
+  expanded: {
+    opacity: 1,
+    x: 0,
+    display: "block",
+    transition: {
+      duration: 0.2,
+      ease: [0.3, 0.0, 0.2, 1]
     }
   }
 };
@@ -287,7 +324,7 @@ const iconContainerVariants = {
   }
 };
 
-// Chevron animation variants
+// Enhanced chevron animation variants
 const chevronVariants = {
   open: {
     rotate: 180,
@@ -325,7 +362,7 @@ const activeIconVariants = {
   }
 };
 
-// Animation variants for submenu
+// Enhanced animation variants for submenu with mobile optimizations
 const submenuVariants = {
   open: {
     height: 'auto',
@@ -381,11 +418,14 @@ const containerVariants = {
   }
 };
 
-// Define consistent icon size and container sizes
-const ICON_SIZE_MAIN = 22;
-const ICON_SIZE_SUB = 18; // Increased from 16 to 18 for better visibility
-const CHEVRON_SIZE = 18;
-const ICON_CONTAINER_SIZE = "44px"; // Consistent size for all icon containers
+// Enhanced responsive icon sizes and container sizes
+const getIconSizes = (isMobile: boolean, isTablet: boolean) => ({
+  ICON_SIZE_MAIN: isMobile ? 24 : isTablet ? 22 : 20,
+  ICON_SIZE_SUB: isMobile ? 20 : isTablet ? 18 : 16,
+  CHEVRON_SIZE: isMobile ? 20 : isTablet ? 18 : 16,
+  ICON_CONTAINER_SIZE: isMobile ? "48px" : isTablet ? "46px" : "44px"
+});
+
 const SUBMENU_MAX_HEIGHT = 500; // Increased from 300 to 500 for more spacious dropdowns
 
 const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
@@ -407,6 +447,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
   const [mounted, setMounted] = useState<boolean>(false);
   const [isMobileDevice, setIsMobileDevice] = useState<boolean>(false);
+  const [isTabletDevice, setIsTabletDevice] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [isCollapsible, setIsCollapsible] = useState<boolean>(true);
@@ -416,6 +457,9 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
   
   // Use the prop values if provided, otherwise use internal state
   const effectiveIsExpanded = typeof propIsExpanded !== 'undefined' ? propIsExpanded : isExpanded;
+
+  // Get responsive icon sizes
+  const iconSizes = getIconSizes(isMobileDevice, isTabletDevice);
 
   // Function to check scroll position and update indicators
   const updateScrollIndicators = useCallback(() => {
@@ -431,20 +475,27 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     });
   }, []);
   
-  // Initialize component
+  // Enhanced device detection and initialization
   useEffect(() => {
     setMounted(true);
     
-    // Check if device is mobile
-    const checkMobile = () => {
-      const isMobile = window.innerWidth < 1024;
+    // Enhanced device detection with better breakpoints
+    const checkDevice = () => {
+      const isMobile = window.innerWidth < 768;
+      const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
       setIsMobileDevice(isMobile);
-      // Don't auto-expand sidebar on any device - always start collapsed
-      // This ensures consistent behavior across all dashboard layouts
+      setIsTabletDevice(isTablet);
+      
+      // On mobile/tablet, disable hover expand/collapse behavior
+      if (isMobile || isTablet) {
+        setIsCollapsible(false); // Disable hover expand/collapse on mobile/tablet
+      } else {
+        setIsCollapsible(true);
+      }
     };
     
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
+    checkDevice();
+    window.addEventListener("resize", checkDevice);
     
     // Get user name from localStorage with better fallbacks
     const getUserName = () => {
@@ -528,7 +579,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     
     getPermissionsAndRole();
     
-    // Click outside handler to collapse sidebar on mobile
+    // Enhanced click outside handler for mobile
     const handleClickOutside = (event: MouseEvent) => {
       if (isMobileDevice && 
           sidebarRef.current && 
@@ -545,10 +596,10 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     
     // Clean up event listeners
     return () => {
-      window.removeEventListener("resize", checkMobile);
+      window.removeEventListener("resize", checkDevice);
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isMobileDevice, updateScrollIndicators]);
+  }, [isMobileDevice, isTabletDevice, updateScrollIndicators]);
 
   // Update expanded state when prop changes
   useEffect(() => {
@@ -716,7 +767,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     }
   };
 
-  // Handle menu clicks with scrolling behavior
+  // Enhanced menu click handler with mobile-specific behavior
   const handleMenuClick = (menuName: string, item: MenuItem) => {
     if (item.subItems && item.subItems.length > 0) {
       // Close other open submenus when opening a new one (accordion behavior)
@@ -729,16 +780,24 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     } else if (item.onClick) {
       // Execute onClick callback if provided
       item.onClick();
+      // Auto-close sidebar on mobile/tablet after navigation
+      if ((isMobileDevice || isTabletDevice) && onOpenChange) {
+        onOpenChange(false);
+      }
     } else if (item.path) {
       // Navigate to the path
       router.push(item.path);
+      // Auto-close sidebar on mobile/tablet after navigation
+      if ((isMobileDevice || isTabletDevice) && onOpenChange) {
+        onOpenChange(false);
+      }
     }
   };
 
   // Modern student sidebar items
   const studentMenuItems: MenuItem[] = [
-        {
-          name: "Dashboard",
+    {
+      name: "Dashboard",
       path: "/dashboards",
       icon: <HomeIcon className="w-5 h-5" />
     },
@@ -749,17 +808,19 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
         },
         {
           name: "My Courses",
+    {
+      name: "My Courses",
       path: formatRoute("student", "my-courses"),
-          icon: <BookOpen className="w-5 h-5" />,
-          subItems: [
-            {
+      icon: <BookOpen className="w-5 h-5" />,
+      subItems: [
+        {
           name: "All Courses",
           path: "/dashboards/student/all-courses",
           icon: <LayoutGrid className="w-4 h-4" />
         },
         {
           name: "In Progress",
-              path: formatRoute("student", "enrolled-courses"),
+          path: formatRoute("student", "enrolled-courses"),
           icon: <TrendingUp className="w-4 h-4" />
         },
         {
@@ -776,23 +837,28 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
         },
         {
           name: "Resources",
+        }
+      ]
+    },
+    {
+      name: "Resources",
       path: formatRoute("student", "resources"),
-          icon: <FolderOpen className="w-5 h-5" />,
-          subItems: [
-            {
+      icon: <FolderOpen className="w-5 h-5" />,
+      subItems: [
+        {
           name: "Course Materials",
-              path: formatRoute("student", "lesson-course-materials"),
-              icon: <FileText className="w-4 h-4" />
-            },
-            {
+          path: formatRoute("student", "lesson-course-materials"),
+          icon: <FileText className="w-4 h-4" />
+        },
+        {
           name: "Assignments",
-              path: formatRoute("student", "assignments"),
-              icon: <Clipboard className="w-4 h-4" />
-            },
-            {
+          path: formatRoute("student", "assignments"),
+          icon: <Clipboard className="w-4 h-4" />
+        },
+        {
           name: "Quizzes",
-              path: formatRoute("student", "quiz"),
-              icon: <CheckSquare className="w-4 h-4" />
+          path: formatRoute("student", "quiz"),
+          icon: <CheckSquare className="w-4 h-4" />
         }
       ]
     },
@@ -800,25 +866,25 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       name: "Live Classes",
       path: formatRoute("student", "upcoming-classes"),
       icon: <Video className="w-5 h-5" />,
-          subItems: [
-            {
+      subItems: [
+        {
           name: "Upcoming Classes",
           path: formatRoute("student", "upcoming-classes"),
-              icon: <CalendarDays className="w-4 h-4" />
-            },
-            {
+          icon: <CalendarDays className="w-4 h-4" />
+        },
+        {
           name: "Join Live Class",
           path: formatRoute("student", "join-live"),
           icon: <Play className="w-4 h-4" />
-            },
-            {
-              name: "Recorded Sessions",
-          path: formatRoute("student", "access-recorded-sessions"),
-              icon: <Video className="w-4 h-4" />
-            }
-          ]
         },
         {
+          name: "Recorded Sessions",
+          path: formatRoute("student", "access-recorded-sessions"),
+          icon: <Video className="w-4 h-4" />
+        }
+      ]
+    },
+    {
       name: "Certificates",
       path: formatRoute("student", "certificate"),
       icon: <Award className="w-5 h-5" />
@@ -909,7 +975,6 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           path: formatRoute("admin", "Instuctoremange"),
           icon: <GraduationCap className="w-4 h-4" />
         },
-        
         {
           name: "Add Instructor",
           path: formatRoute("admin", "add-instructor"),
@@ -1270,81 +1335,104 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
   const menuItems = getMenuItemsByRole(userRole);
   const currentActionItems = getActionItemsByRole(userRole);
 
-  // Main return with improved sidebar
+  // Enhanced main return with improved mobile/tablet sidebar
   return (
     <motion.div 
       ref={sidebarRef}
-      variants={sidebarVariants}
+      variants={isMobileDevice || isTabletDevice ? mobileSidebarVariants : sidebarVariants}
       initial="collapsed"
       animate={effectiveIsExpanded ? "expanded" : "collapsed"}
-      className="flex flex-col h-auto bg-white dark:bg-gray-900 border-r dark:border-gray-700 shadow-md z-20 fixed lg:relative"
+      className={`flex flex-col h-auto bg-white dark:bg-gray-900 shadow-md z-20 ${
+        isMobileDevice || isTabletDevice 
+          ? 'w-full' 
+          : 'border-r dark:border-gray-700 fixed lg:relative'
+      }`}
       style={{ 
-        minHeight: 'calc(100vh - 64px)',
-        top: '70px', /* Increased from 64px to add spacing */
-        position: 'fixed',
-        overflow: 'hidden' /* Hide overflow at container level */
+        minHeight: isMobileDevice || isTabletDevice ? '100%' : 'calc(100vh - 64px)',
+        top: isMobileDevice || isTabletDevice ? '0px' : '70px',
+        position: isMobileDevice || isTabletDevice ? 'relative' : 'fixed',
+        overflow: 'hidden'
       }}
-      onMouseEnter={() => isCollapsible && handleExpandedChange(true)}
-      onMouseLeave={() => isCollapsible && !isMobileDevice && handleExpandedChange(false)}
+      onMouseEnter={() => isCollapsible && !isMobileDevice && !isTabletDevice && handleExpandedChange(true)}
+      onMouseLeave={() => isCollapsible && !isMobileDevice && !isTabletDevice && handleExpandedChange(false)}
     >
       {/* Main scrollable container */}
       <div 
         className="h-full flex flex-col overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent"
-        style={{ maxHeight: 'calc(100vh - 70px)' }}
+        style={{ 
+          maxHeight: isMobileDevice || isTabletDevice ? '100%' : 'calc(100vh - 70px)' 
+        }}
       >
-        {/* Minimal header - Sticky */}
-        <div className="pt-5 pb-3 px-2 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900 z-10">
-        <div className="h-12 flex items-center justify-center">
-          <AnimatePresence mode="wait">
-            {effectiveIsExpanded ? (
-              <motion.span 
-                key="expanded-title"
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -5 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                className="text-sm font-medium bg-gradient-to-r from-primary-500 to-violet-500 bg-clip-text text-transparent"
-              >
+        {/* Enhanced responsive header */}
+        <div className={`${
+          isMobileDevice || isTabletDevice 
+            ? 'pt-4 pb-3 px-4' 
+            : 'pt-5 pb-3 px-2'
+        } border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900 z-10`}>
+          <div className={`${
+            isMobileDevice || isTabletDevice 
+              ? 'h-14 flex items-center justify-start' 
+              : 'h-12 flex items-center justify-center'
+          }`}>
+            <AnimatePresence mode="wait">
+              {(effectiveIsExpanded || isMobileDevice || isTabletDevice) ? (
+                <motion.span 
+                  key="expanded-title"
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className={`${
+                    isMobileDevice 
+                      ? 'text-lg font-semibold' 
+                      : isTabletDevice 
+                        ? 'text-base font-semibold' 
+                        : 'text-sm font-medium'
+                  } bg-gradient-to-r from-primary-500 to-violet-500 bg-clip-text text-transparent`}
+                >
                   {userRole.charAt(0).toUpperCase() + userRole.slice(1)} Dashboard
-              </motion.span>
-            ) : (
-              <motion.div 
-                key="collapsed-icon"
-                variants={headerIconVariants}
-                initial="expanded"
-                animate="collapsed"
-                exit="expanded"
-                className="flex items-center justify-center w-11 h-11 rounded-full bg-gradient-to-br from-primary-100 to-violet-100 dark:from-primary-900/30 dark:to-violet-900/30 shadow-sm"
-              >
-                <LayoutDashboard className="w-[22px] h-[22px] text-primary-600 dark:text-primary-400" />
-              </motion.div>
-            )}
-          </AnimatePresence>
+                </motion.span>
+              ) : (
+                <motion.div 
+                  key="collapsed-icon"
+                  variants={headerIconVariants}
+                  initial="expanded"
+                  animate="collapsed"
+                  exit="expanded"
+                  className="flex items-center justify-center w-11 h-11 rounded-full bg-gradient-to-br from-primary-100 to-violet-100 dark:from-primary-900/30 dark:to-violet-900/30 shadow-sm"
+                >
+                  <LayoutDashboard className="w-[22px] h-[22px] text-primary-600 dark:text-primary-400" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
-      </div>
       
         {/* Main navigation area */}
         <div className="flex-1">
-      <motion.div 
+          <motion.div 
             ref={sidebarNavRef}
-        variants={containerVariants}
-            className="py-2"
+            variants={containerVariants}
+            className={`${isMobileDevice || isTabletDevice ? 'py-4 px-4' : 'py-2'}`}
             onScroll={updateScrollIndicators}
           >
-            <div className="py-2 space-y-1"> {/* Increased from space-y-0.5 to space-y-1 for better spacing */}
-              {/* Menu items rendering (unchanged) */}
+            <div className={`${
+              isMobileDevice || isTabletDevice 
+                ? 'py-2 space-y-2' 
+                : 'py-2 space-y-1'
+            }`}>
+              {/* Enhanced menu items rendering with mobile optimizations */}
               {menuItems.map((item, index) => {
-            const isActive = isMenuActive(item);
-                    const hasSubItems = item.subItems && item.subItems.length > 0;
-            const isSubMenuOpen = openSubMenu === item.name;
+                const isActive = isMenuActive(item);
+                const hasSubItems = item.subItems && item.subItems.length > 0;
+                const isSubMenuOpen = openSubMenu === item.name;
                 const hasLongSubMenu = hasSubItems && item.subItems!.length > 5;
                 
-                // Enhanced compaction logic
+                // Enhanced compaction logic - disabled on mobile/tablet
                 const getCompactMode = () => {
+                  if (isMobileDevice || isTabletDevice) return "normal";
                   if (!effectiveIsExpanded || openSubMenu === null) return "normal";
-                  // Active item or its submenu is open - keep normal
                   if (isSubMenuOpen) return "normal";
-                  // Extra compact for items far from the active menu
                   const activeIndex = menuItems.findIndex(m => m.name === openSubMenu);
                   const distance = Math.abs(activeIndex - index);
                   return distance > 2 ? "veryCompact" : "compact";
@@ -1354,155 +1442,190 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
                 const isVeryCompact = compactMode === "veryCompact";
                 const isCompact = compactMode === "compact";
                     
-                    return (
+                return (
                   <motion.div 
                     key={index} 
-                    className={`select-none px-2 ${isCompact || isVeryCompact ? 'opacity-80' : 'opacity-100'}`}
+                    className={`select-none ${
+                      isMobileDevice || isTabletDevice ? 'px-0' : 'px-2'
+                    } ${isCompact || isVeryCompact ? 'opacity-80' : 'opacity-100'}`}
                     id={`menu-item-${item.name}`}
                     variants={compactItemVariants}
                     initial="normal"
                     animate={compactMode}
                   >
-                    {/* Menu item button */}
-                        <button
-                  onClick={() => handleMenuClick(item.name, item)}
-                      className={`flex items-center w-full rounded-xl transition-all duration-200
-                    ${isActive 
-                      ? "bg-primary-50/80 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400" 
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60"
-                    }
-                    ${effectiveIsExpanded ? "justify-between" : "justify-center"}
-                    ${isSubMenuOpen ? "mb-1" : ""}
-                        ${isVeryCompact ? "py-1.5" : isCompact ? "py-2" : "p-3"}
-                  `}
-                >
-                  <div className="flex items-center min-w-[42px]">
-                    <motion.div 
-                      variants={iconContainerVariants}
-                      initial="expanded"
-                      animate={effectiveIsExpanded ? "expanded" : "collapsed"}
-                      className={`flex items-center justify-center rounded-full transition-colors duration-200
-                        ${isActive 
-                          ? "bg-gradient-to-br from-primary-100 to-primary-50 dark:from-primary-900/40 dark:to-primary-900/20 shadow-sm" 
-                          : "bg-gray-50 dark:bg-gray-800/80"
-                            }
-                            ${isVeryCompact ? "scale-85" : isCompact ? "scale-90" : ""}
-                          `}
-                      style={{ 
-                            width: isVeryCompact ? "38px" : isCompact ? "40px" : ICON_CONTAINER_SIZE, 
-                            height: isVeryCompact ? "38px" : isCompact ? "40px" : ICON_CONTAINER_SIZE,
-                            minWidth: isVeryCompact ? "38px" : isCompact ? "40px" : ICON_CONTAINER_SIZE,
-                            minHeight: isVeryCompact ? "38px" : isCompact ? "40px" : ICON_CONTAINER_SIZE
-                      }}
+                    {/* Enhanced menu item button with mobile optimizations */}
+                    <button
+                      onClick={() => handleMenuClick(item.name, item)}
+                      className={`flex items-center w-full rounded-xl transition-all duration-200 ${
+                        isMobileDevice || isTabletDevice 
+                          ? 'p-4 min-h-[56px]' // Larger touch targets for mobile/tablet
+                          : isVeryCompact ? 'py-1.5' : isCompact ? 'py-2' : 'p-3'
+                      } ${
+                        isActive 
+                          ? "bg-primary-50/80 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400" 
+                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60"
+                      } ${
+                        (effectiveIsExpanded || isMobileDevice || isTabletDevice) ? "justify-between" : "justify-center"
+                      } ${isSubMenuOpen ? "mb-1" : ""}`}
+                      style={{ minHeight: isMobileDevice || isTabletDevice ? '56px' : 'auto' }}
                     >
-                      <div className={`flex items-center justify-center text-${isActive ? 'primary-600 dark:text-primary-400' : 'gray-600 dark:text-gray-400'}`}>
-                            <div className={`${isVeryCompact ? "w-[18px] h-[18px]" : isCompact ? "w-[20px] h-[20px]" : "w-[22px] h-[22px]"} flex items-center justify-center`}>
+                      <div className="flex items-center min-w-[42px]">
+                        <motion.div 
+                          variants={iconContainerVariants}
+                          initial="expanded"
+                          animate={(effectiveIsExpanded || isMobileDevice || isTabletDevice) ? "expanded" : "collapsed"}
+                          className={`flex items-center justify-center rounded-full transition-colors duration-200 ${
+                            isActive 
+                              ? "bg-gradient-to-br from-primary-100 to-primary-50 dark:from-primary-900/40 dark:to-primary-900/20 shadow-sm" 
+                              : "bg-gray-50 dark:bg-gray-800/80"
+                          } ${
+                            isMobileDevice || isTabletDevice 
+                              ? '' // No scaling on mobile/tablet
+                              : isVeryCompact ? "scale-85" : isCompact ? "scale-90" : ""
+                          }`}
+                          style={{ 
+                            width: iconSizes.ICON_CONTAINER_SIZE, 
+                            height: iconSizes.ICON_CONTAINER_SIZE,
+                            minWidth: iconSizes.ICON_CONTAINER_SIZE,
+                            minHeight: iconSizes.ICON_CONTAINER_SIZE
+                          }}
+                        >
+                          <div className={`flex items-center justify-center text-${isActive ? 'primary-600 dark:text-primary-400' : 'gray-600 dark:text-gray-400'}`}>
+                            <div className={`flex items-center justify-center`} style={{
+                              width: `${iconSizes.ICON_SIZE_MAIN}px`,
+                              height: `${iconSizes.ICON_SIZE_MAIN}px`
+                            }}>
                               {item.icon}
+                            </div>
                           </div>
-                      </div>
-                    </motion.div>
-                    
-                    {effectiveIsExpanded && (
-                      <motion.span
-                        variants={itemVariants}
-                        initial="collapsed"
-                        animate="expanded"
-                        exit="collapsed"
-                            className={`ml-3 font-medium text-left line-clamp-1 whitespace-normal overflow-visible
-                              ${isVeryCompact ? "text-[12px]" : isCompact ? "text-[13px]" : "text-[14px]"}
-                            `}
-                      >
-                        {item.name}
-                      </motion.span>
-                    )}
-                  </div>
-                  
-                  {effectiveIsExpanded && hasSubItems && (
-                    <motion.div
-                      variants={chevronVariants}
-                      initial="closed"
-                      animate={isSubMenuOpen ? "open" : "closed"}
-                          className={`flex items-center justify-center rounded-full
-                            ${isVeryCompact ? "w-5 h-5 mr-0" : isCompact ? "w-6 h-6 mr-0" : "w-6 h-6 mr-1"}
-                          `}
-                    >
-                          <ChevronDown className={`${isVeryCompact ? "w-[14px] h-[14px]" : isCompact ? "w-[16px] h-[16px]" : "w-[18px] h-[18px]"} text-gray-500 dark:text-gray-400`} />
-                    </motion.div>
-                          )}
-                        </button>
+                        </motion.div>
                         
-                    {/* Submenu - with improved compact style and max height */}
-                <AnimatePresence initial={false}>
-                  {effectiveIsExpanded && isSubMenuOpen && hasSubItems && (
-                            <motion.div
-                      key={`submenu-${item.name}`}
-                      variants={submenuVariants}
-                      initial="closed"
-                      animate="open"
-                      exit="closed"
-                          className="overflow-hidden px-2 mt-2"
+                        {(effectiveIsExpanded || isMobileDevice || isTabletDevice) && (
+                          <motion.span
+                            variants={isMobileDevice || isTabletDevice ? mobileItemVariants : itemVariants}
+                            initial="collapsed"
+                            animate="expanded"
+                            exit="collapsed"
+                            className={`ml-3 font-medium text-left line-clamp-1 whitespace-normal overflow-visible`}
+                            style={{
+                              fontSize: isMobileDevice 
+                                ? "16px" 
+                                : isTabletDevice 
+                                  ? "15px" 
+                                  : isVeryCompact ? "12px" : isCompact ? "13px" : "14px"
+                            }}
+                          >
+                            {item.name}
+                          </motion.span>
+                        )}
+                      </div>
+                      
+                      {(effectiveIsExpanded || isMobileDevice || isTabletDevice) && hasSubItems && (
+                        <motion.div
+                          variants={chevronVariants}
+                          initial="closed"
+                          animate={isSubMenuOpen ? "open" : "closed"}
+                          className={`flex items-center justify-center rounded-full ${
+                            isMobileDevice || isTabletDevice 
+                              ? "w-8 h-8 mr-0" 
+                              : isVeryCompact ? "w-5 h-5 mr-0" : isCompact ? "w-6 h-6 mr-0" : "w-6 h-6 mr-1"
+                          }`}
+                        >
+                          <ChevronDown style={{
+                            width: `${iconSizes.CHEVRON_SIZE}px`,
+                            height: `${iconSizes.CHEVRON_SIZE}px`
+                          }} className="text-gray-500 dark:text-gray-400" />
+                        </motion.div>
+                      )}
+                    </button>
+                        
+                    {/* Enhanced submenu with mobile optimizations */}
+                    <AnimatePresence initial={false}>
+                      {(effectiveIsExpanded || isMobileDevice || isTabletDevice) && isSubMenuOpen && hasSubItems && (
+                        <motion.div
+                          key={`submenu-${item.name}`}
+                          variants={submenuVariants}
+                          initial="closed"
+                          animate="open"
+                          exit="closed"
+                          className={`overflow-hidden ${
+                            isMobileDevice || isTabletDevice ? 'px-0 mt-2' : 'px-2 mt-2'
+                          }`}
                         >
                           <div 
-                            className={`py-3 space-y-1.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 shadow-md ${
+                            className={`${
+                              isMobileDevice || isTabletDevice 
+                                ? 'py-4 space-y-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 shadow-sm' 
+                                : 'py-3 space-y-1.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 shadow-md'
+                            } ${
                               hasLongSubMenu ? `max-h-[${SUBMENU_MAX_HEIGHT}px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent` : ''
                             }`}
                           >
-                        {item.subItems?.map((subItem, subIndex) => {
-                          const isSubItemActive = subItem.path && pathname?.startsWith(subItem.path);
-                          
-                          return (
-                                  <button
-                              key={subIndex}
-                              onClick={() => {
-                                if (subItem.onClick) {
-                                  subItem.onClick();
-                                } else if (subItem.path) {
-                                  router.push(subItem.path);
-                                }
-                              }}
-                                  className={`flex items-center w-full text-left rounded-lg px-4 py-2.5 transition-all duration-200
-                                ${isSubItemActive 
-                                  ? "bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium" 
-                                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100"
-                                }`}
-                            >
-                                  <div className={`w-5 h-5 mr-2.5 flex-shrink-0 flex items-center justify-center ${
-                                isSubItemActive ? 'text-primary-600 dark:text-primary-300' : 'text-gray-600 dark:text-gray-400'
-                              }`}>
-                                    <div className="w-[18px] h-[18px] flex items-center justify-center">
+                            {item.subItems?.map((subItem, subIndex) => {
+                              const isSubItemActive = subItem.path && pathname?.startsWith(subItem.path);
+                              
+                              return (
+                                <button
+                                  key={subIndex}
+                                  onClick={() => {
+                                    if (subItem.onClick) {
+                                      subItem.onClick();
+                                    } else if (subItem.path) {
+                                      router.push(subItem.path);
+                                    }
+                                    // Auto-close sidebar on mobile/tablet after sub-item selection
+                                    if ((isMobileDevice || isTabletDevice) && onOpenChange) {
+                                      onOpenChange(false);
+                                    }
+                                  }}
+                                  className={`flex items-center w-full text-left rounded-lg transition-all duration-200 ${
+                                    isMobileDevice || isTabletDevice 
+                                      ? 'px-4 py-3 min-h-[48px]' // Larger touch targets
+                                      : 'px-4 py-2.5'
+                                  } ${
+                                    isSubItemActive 
+                                      ? "bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium" 
+                                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100"
+                                  }`}
+                                  style={{ minHeight: isMobileDevice || isTabletDevice ? '48px' : 'auto' }}
+                                >
+                                  <div className={`flex-shrink-0 flex items-center justify-center ${
+                                    isSubItemActive ? 'text-primary-600 dark:text-primary-300' : 'text-gray-600 dark:text-gray-400'
+                                  }`} style={{
+                                    width: `${iconSizes.ICON_SIZE_SUB + 4}px`,
+                                    height: `${iconSizes.ICON_SIZE_SUB + 4}px`,
+                                    marginRight: isMobileDevice || isTabletDevice ? '12px' : '10px'
+                                  }}>
+                                    <div style={{
+                                      width: `${iconSizes.ICON_SIZE_SUB}px`,
+                                      height: `${iconSizes.ICON_SIZE_SUB}px`
+                                    }} className="flex items-center justify-center">
                                       {subItem.icon}
-                                </div>
-                              </div>
-                                  <span className="text-[13px] font-medium leading-tight whitespace-normal">{subItem.name}</span>
-                                  </button>
-                          );
-                        })}
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
+                                    </div>
+                                  </div>
+                                  <span className="font-medium leading-tight whitespace-normal" style={{
+                                    fontSize: isMobileDevice 
+                                      ? "15px" 
+                                      : isTabletDevice 
+                                        ? "14px" 
+                                        : "13px"
+                                  }}>
+                                    {subItem.name}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
-                    );
-                  })}
-                </div>
-      </motion.div>
+                );
+              })}
+            </div>
+          </motion.div>
         </div>
       </div>
-      
-      {/* Mobile overlay */}
-      {isMobileDevice && effectiveIsExpanded && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ 
-            duration: 0.4,
-            ease: "easeInOut"
-          }}
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-10"
-          onClick={() => handleExpandedChange(false)}
-        />
-      )}
     </motion.div>
   );
 };

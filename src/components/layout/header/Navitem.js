@@ -72,9 +72,6 @@ export default function Navitem({ navItem, idx, children }) {
       isMobile
     });
   };
-
-  // Check if this is the EduStore item to apply special styles
-  const isStore = name === "EduStore";
   
   return (
     <li 
@@ -86,11 +83,7 @@ export default function Navitem({ navItem, idx, children }) {
         <Link
           href={path || "#"}
           onClick={handleNavItemClick}
-          className={`px-3 lg:px-2.5 xl:px-3 2xl:px-4 py-10 lg:py-5 2xl:py-6 leading-none whitespace-nowrap text-base lg:text-sm 2xl:text-base font-semibold flex items-center transition-all duration-300 
-            ${isStore 
-              ? "text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300" 
-              : "hover:text-primary-500 dark:text-gray-200 dark:hover:text-primary-400"} 
-            hover:-translate-y-0.5`}
+          className="px-3 lg:px-2.5 xl:px-3 2xl:px-4 py-10 lg:py-5 2xl:py-6 leading-none whitespace-nowrap text-base lg:text-sm 2xl:text-base font-semibold flex items-center transition-all duration-300 hover:text-primary-500 dark:text-gray-200 dark:hover:text-primary-400 hover:-translate-y-0.5"
           aria-expanded={dropdown ? isOpen : undefined}
           aria-haspopup={dropdown ? "true" : undefined}
         >
@@ -117,7 +110,7 @@ export default function Navitem({ navItem, idx, children }) {
         </Link>
         
         {/* Add a subtle underline indicator for the active nav item */}
-        <div className={`h-0.5 w-0 bg-primary-500 rounded-full transition-all duration-300 ${isOpen ? 'w-1/2' : ''} ${isStore ? 'w-1/2' : ''}`}></div>
+        <div className={`h-0.5 w-0 bg-primary-500 rounded-full transition-all duration-300 ${isOpen ? 'w-1/2' : ''}`}></div>
         
         {/* Pass the isOpen state to the dropdown */}
         {renderChildren()}

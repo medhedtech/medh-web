@@ -65,7 +65,7 @@ export const MENU_CONFIG = {
         },
         { 
           name: "All Courses", 
-          path: "/courses",
+          path: "/all-courses",
           icon: Book,
           color: 'text-blue-500'
         }

@@ -1,28 +1,36 @@
 "use client";
-import React, { useRef, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
-import { Navigation, Autoplay, Pagination } from "swiper/modules";
-import ArrowIcon from "@/assets/images/icon/ArrowIcon";
+import dynamic from "next/dynamic";
 import placement from "@/assets/images/iso/pllacement-logo.png";
 import hire from "@/assets/images/hire/placement.png";
 import bgImg from "@/assets/images/herobanner/bg-img.jpeg";
 import Certified from "./Certified";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, CheckCircle, Info, ArrowUpRight, ChevronRight } from "lucide-react";
+import { CheckCircle, ChevronRight } from "lucide-react";
+
+// Dynamically import Swiper component to prevent SSR issues
+const DynamicSwiperComponent = dynamic(
+  () => import('./SwiperComponent'),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="pb-10">
+        <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm h-full border border-gray-100 dark:border-gray-700/50">
+          <div className="w-8 h-8 flex items-center justify-center bg-primary-50 dark:bg-primary-900/20 rounded-full mb-3">
+            <CheckCircle className="text-primary-500 dark:text-primary-400" size={16} />
+          </div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2 animate-pulse"></div>
+          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+        </div>
+      </div>
+    )
+  }
+);
 
 const WhyMedh = () => {
   const router = useRouter();
   const [isVisible, setIsVisible] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Custom navigation refs
-  const prevRef = useRef(null);
-  const nextRef = useRef(null);
-  const swiperRef = useRef(null);
 
   const content = [
     {
@@ -52,37 +60,21 @@ const WhyMedh = () => {
   ];
 
   useEffect(() => {
-    // Initialize Swiper navigation
-    if (swiperRef.current) {
-      swiperRef.current.params.navigation.prevEl = prevRef.current;
-      swiperRef.current.params.navigation.nextEl = nextRef.current;
-      swiperRef.current.navigation.update();
-    }
-    
     // Show with animation after loading
     const timer = setTimeout(() => {
       setIsVisible(true);
     }, 100);
     
-    // Check if mobile device
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    // Initial check
-    checkIfMobile();
-    
-    // Add resize listener
-    window.addEventListener('resize', checkIfMobile);
-    
     return () => {
       clearTimeout(timer);
-      window.removeEventListener('resize', checkIfMobile);
     };
   }, []);
 
   return (
-    <div className={`transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+    <div 
+      className={`transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+      suppressHydrationWarning={true}
+    >
       {/* Job Guarantee Section - Optimized for mobile */}
       <section className="py-10 md:py-16 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6">
@@ -95,10 +87,10 @@ const WhyMedh = () => {
             <div className="w-full max-w-xl text-center">
               <Image
                 src={placement}
-                width={isMobile ? 200 : 260}
-                height={isMobile ? 108 : 140}
+                width={260}
+                height={140}
                 alt="100% Job-guaranteed"
-                className="mx-auto mb-4 md:mb-6 w-auto h-auto max-w-[80%] md:max-w-full"
+                className="mx-auto mb-4 md:mb-6 w-auto h-auto max-w-[200px] sm:max-w-[260px]"
                 priority
               />
               
@@ -167,39 +159,7 @@ const WhyMedh = () => {
             
             {/* Mobile-only slider - optimized for mobile viewing */}
             <div className="block sm:hidden w-full">
-              <Swiper
-                modules={[Pagination, Autoplay]}
-                loop={true}
-                autoplay={{
-                  delay: 5000,
-                  disableOnInteraction: false,
-                }}
-                pagination={{
-                  clickable: true,
-                  dynamicBullets: true,
-                }}
-                spaceBetween={12}
-                slidesPerView={1}
-                className="pb-10"
-              >
-                {content.map((item) => (
-                  <SwiperSlide key={item.id}>
-                    <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm h-full border border-gray-100 dark:border-gray-700/50">
-                      <div className="w-8 h-8 flex items-center justify-center bg-primary-50 dark:bg-primary-900/20 rounded-full mb-3">
-                        <CheckCircle className="text-primary-500 dark:text-primary-400" size={16} />
-                      </div>
-                      
-                      <h3 className="text-base font-semibold text-gray-800 dark:text-white mb-2">
-                        {item.title}
-                      </h3>
-                      
-                      <p className="text-gray-600 dark:text-gray-300 text-sm">
-                        {item.desc}
-                      </p>
-                    </div>
-                  </SwiperSlide>
-                ))}
-              </Swiper>
+              <DynamicSwiperComponent content={content} />
             </div>
             
             {/* Tablet and desktop grid - hidden on mobile */}

@@ -574,4 +574,115 @@ export const willTokenExpireSoon = (token: string | null, thresholdSeconds = 300
     console.error('Error decoding token:', error);
     return true; // Assume will expire soon if we can't decode it
   }
+};
+
+/**
+ * Generate a development token for testing purposes
+ * This should only be used in development environments
+ * @returns A mock JWT token that can be used for testing
+ */
+export const generateDevelopmentToken = (): string => {
+  if (typeof window === 'undefined') return '';
+  
+  try {
+    // Check if we're in development mode
+    const isDevelopment = process.env.NODE_ENV === 'development' || 
+                         window.location.hostname === 'localhost' ||
+                         window.location.hostname === '127.0.0.1';
+    
+    if (!isDevelopment) {
+      console.warn('Development token generation is only available in development mode');
+      return '';
+    }
+    
+    // Create a mock token that will last for 1 hour
+    const now = Math.floor(Date.now() / 1000);
+    const payload = {
+      sub: 'dev-user-' + Date.now(),
+      name: 'Development User',
+      email: 'dev@medh.co',
+      iat: now,
+      exp: now + 3600, // 1 hour
+      role: 'admin', // Give admin role for testing
+      userId: 'dev-user-id',
+      permissions: ['video:upload', 'video:manage']
+    };
+    
+    // Base64 encode (compatible with both browser and Node)
+    const safeBase64 = (str: string) => {
+      return window.btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    };
+    
+    const header = safeBase64(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+    const encodedPayload = safeBase64(JSON.stringify(payload));
+    const signature = 'DEV_SIGNATURE_' + Date.now(); // Not a real signature, just for development
+    
+    const mockToken = `${header}.${encodedPayload}.${signature}`;
+    
+    console.log('🔧 Generated development token (expires in 1 hour)');
+    console.log('⚠️  This is a mock token for development only!');
+    
+    // Save the token
+    saveAuthToken(mockToken);
+    
+    // Set some mock user data
+    localStorage.setItem('userId', payload.sub);
+    localStorage.setItem('role', payload.role);
+    localStorage.setItem('fullName', payload.name);
+    localStorage.setItem('email', payload.email);
+    
+    return mockToken;
+  } catch (error) {
+    console.error('Failed to generate development token:', error);
+    return '';
+  }
+};
+
+/**
+ * Check if the current token is valid and not expired
+ * @param token Optional token to check, otherwise gets from storage
+ * @returns Boolean indicating if token is valid
+ */
+export const isTokenValid = (token?: string): boolean => {
+  try {
+    const tokenToCheck = token || getAuthToken();
+    if (!tokenToCheck) return false;
+    
+    const decoded = jwtDecode<{ exp: number }>(tokenToCheck);
+    const currentTime = Date.now() / 1000;
+    
+    return decoded.exp > currentTime;
+  } catch (error) {
+    console.error('Error validating token:', error);
+    return false;
+  }
+};
+
+/**
+ * Get a valid authentication token, generating a development one if needed
+ * @returns A valid token or null if none available
+ */
+export const getValidAuthToken = (): string | null => {
+  // First try to get existing token
+  let token = getAuthToken();
+  
+  // Check if token is valid
+  if (token && isTokenValid(token)) {
+    return token;
+  }
+  
+  // If token is invalid or missing, try to generate a development token
+  if (typeof window !== 'undefined') {
+    const isDevelopment = process.env.NODE_ENV === 'development' || 
+                         window.location.hostname === 'localhost' ||
+                         window.location.hostname === '127.0.0.1';
+    
+    if (isDevelopment) {
+      console.log('🔧 No valid token found, generating development token...');
+      token = generateDevelopmentToken();
+      return token || null;
+    }
+  }
+  
+  return null;
 }; 
