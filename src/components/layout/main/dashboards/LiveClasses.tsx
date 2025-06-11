@@ -19,25 +19,24 @@ import {
   Video,
   Plus,
   AlertCircle,
-  RefreshCw
-=======
-  LucideCalendar, 
-  LucideClock, 
-  LucideUser, 
-  LucideBookOpen,
-  LucideVideo,
-  LucidePlay,
-  LucideUsers,
-  LucideInfo,
-  LucideExternalLink,
-  LucideVideoOff,
-  LucideCheck,
-  LucideDownload,
-  LucideBookmark,
-  LucideMessageCircle,
-  LucideFileText,
-  LucideFile,
-  LucideSend
+  RefreshCw,
+  Calendar as LucideCalendar, 
+  Clock as LucideClock, 
+  User as LucideUser, 
+  BookOpen as LucideBookOpen,
+  Video as LucideVideo,
+  Play as LucidePlay,
+  Users as LucideUsers,
+  Info as LucideInfo,
+  ExternalLink as LucideExternalLink,
+  VideoOff as LucideVideoOff,
+  Check as LucideCheck,
+  Download as LucideDownload,
+  Bookmark as LucideBookmark,
+  MessageCircle as LucideMessageCircle,
+  FileText as LucideFileText,
+  File as LucideFile,
+  Send as LucideSend
 } from "lucide-react";
 import { format } from "date-fns";
 import defaultCourseImage from "@/assets/images/courses/Ai&Ml.jpeg";

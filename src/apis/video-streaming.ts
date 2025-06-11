@@ -3,6 +3,7 @@ import { apiClient } from './apiClient';
 import { apiUtils, type IApiResponse } from './index';
 import { getValidAuthToken } from '@/utils/auth';
 import VideoUploadErrorHandler from '@/utils/videoUploadErrorHandler';
+import { getVideoConfig, videoConfigUtils } from '@/config/video.config';
 
 /**
  * Video Streaming API Types and Interfaces
@@ -253,27 +254,26 @@ export interface IVideoAnalyticsParams {
  */
 export const videoStreamingUtils = {
   /**
-   * Calculate optimal chunk size based on file size
+   * Calculate optimal chunk size based on file size and configuration
    * @param fileSize - File size in bytes
+   * @param connectionSpeed - Optional connection speed in Mbps
    * @returns Optimal chunk size in bytes
    */
-  calculateOptimalChunkSize: (fileSize: number): number => {
-    const MB = 1024 * 1024;
-    const defaultChunkSize = 1 * MB; // 1MB for testing (was 10MB)
-    
-    // Use smaller chunks for testing
-    return 1 * MB; // 1MB chunks for debugging
+  calculateOptimalChunkSize: (fileSize: number, connectionSpeed?: number): number => {
+    // Use the centralized configuration utility
+    return videoConfigUtils.calculateOptimalChunkSize(fileSize, connectionSpeed);
   },
 
   /**
-   * Validate video file format
+   * Validate video file format using configuration
    * @param fileName - Name of the video file
    * @returns Boolean indicating if format is supported
    */
   isValidVideoFormat: (fileName: string): boolean => {
-    const supportedFormats: TVideoFormat[] = ['mp4', 'mov', 'webm', 'avi', 'mkv'];
-    const extension = fileName.split('.').pop()?.toLowerCase() as TVideoFormat;
-    return supportedFormats.includes(extension);
+    const config = getVideoConfig();
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    const mimeType = `video/${extension}`;
+    return videoConfigUtils.isFormatSupported(mimeType);
   },
 
   /**

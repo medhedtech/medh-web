@@ -282,19 +282,22 @@ h6 {
 @font-face {
   font-family: "Bulgathi";
   src: url("/fonts/Bulgathi.ttf") format("truetype");
-  font-weight: normal;
+  font-weight: 100 900; /* Support all weights */
   font-style: normal;
+  font-display: swap;
 }
 
 .mumkinMedh {
-  font-family: "Bulgathi", sans-serif;
-  font-weight: semibold;
+  font-family: "Bulgathi", var(--font-poppins), sans-serif;
+  font-weight: 600 !important; /* Semi-bold - fallback to Poppins if Bulgathi doesn't support it */
   color: #40AB62 !important;
-  font-size: clamp(2rem, 5vw, 2.8rem) !important;
+  font-size: clamp(2rem, 6vw, 4rem) !important; /* Increased size significantly */
   line-height: 1.2 !important;
-  padding: 0.5rem 0;
+  padding: 0.25rem 0;
   background-size: 200% auto;
   animation: text-shimmer 3s linear infinite;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 .hero-heading-text {
@@ -352,23 +355,25 @@ h6 {
 
 @media (max-width: 1200px) {
   .mumkinMedh {
-    font-size: clamp(2.2rem, 4.5vw, 2.5rem) !important;
+    font-size: clamp(1.75rem, 5vw, 3rem) !important;
   }
 }
 
 @media (max-width: 768px) {
   .mumkinMedh {
-    font-family: "Bulgathi", sans-serif;
-    font-weight: semibold;
-    font-size: clamp(1.8rem, 4vw, 2.2rem) !important;
-    letter-spacing: 0.03em;
+    font-family: "Bulgathi", var(--font-poppins), sans-serif;
+    font-weight: 600 !important; /* Semi-bold */
+    font-size: clamp(1.5rem, 4.5vw, 2.5rem) !important;
+    letter-spacing: 0.02em;
+    padding: 0.2rem 0;
   }
 }
 
 @media (max-width: 480px) {
   .mumkinMedh {
-    font-size: clamp(2rem, 3.5vw, 1.8rem) !important;
-    padding: 0.3rem 0;
+    font-size: clamp(1.25rem, 4vw, 2rem) !important;
+    padding: 0.15rem 0;
+    letter-spacing: 0.01em;
   }
 }
 

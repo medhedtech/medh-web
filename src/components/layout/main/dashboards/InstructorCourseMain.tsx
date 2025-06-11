@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import useAuth from '@/hooks/useAuth';
 import { useGetQuery } from '@/hooks/getQuery.hook';
 import { apiUrls } from '@/apis';
 import { toast } from 'react-toastify';

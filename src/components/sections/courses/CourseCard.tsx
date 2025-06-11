@@ -66,6 +66,7 @@ interface ICourseCardProps {
   showDuration?: boolean;
   hidePrice?: boolean;
   hideDescription?: boolean;
+  showJobGuarantee?: boolean;
   onShowRelated?: (course: ICourse) => void;
 }
 
@@ -130,6 +131,7 @@ const CourseCard: React.FC<ICourseCardProps> = ({
   showDuration = true,
   hidePrice = false,
   hideDescription = false,
+  showJobGuarantee = false,
   onShowRelated,
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -444,8 +446,24 @@ const CourseCard: React.FC<ICourseCardProps> = ({
           </span>
         </div>
 
+        {/* Job Guarantee Badge */}
+        {showJobGuarantee && (
+          <div className="absolute top-3 right-3 z-30">
+            <div className="relative bg-gradient-to-br from-emerald-500 via-green-500 to-teal-600 text-white rounded-lg shadow-xl border border-white/20 backdrop-blur-sm">
+              <div className="px-2.5 py-1.5 text-center">
+                <div className="text-[10px] font-extrabold tracking-wide leading-tight">100%</div>
+                <div className="text-[8px] font-semibold leading-tight">
+                  <div className="font-medium">JOB</div>
+                  <div className="font-medium -mt-0.5">GUARANTEE</div>
+                </div>
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-lg pointer-events-none"></div>
+            </div>
+          </div>
+        )}
+
         {/* Price Badge */}
-        {!hidePrice && (
+        {!hidePrice && !showJobGuarantee && (
           <div className="absolute top-3 right-3">
             {isFreeCourse ? (
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100/90 text-green-700 dark:bg-green-900/50 dark:text-green-400 backdrop-blur-sm border border-green-200/50">

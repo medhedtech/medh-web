@@ -116,7 +116,7 @@ const nextConfig = {
   },
   // Enable production source maps for better debugging
   productionBrowserSourceMaps: true,
-  // Add headers for better caching and security
+  // Add headers for better caching, security, and video optimization
   async headers() {
     return [
       {
@@ -126,6 +126,63 @@ const nextConfig = {
           {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // Video file headers for streaming optimization
+      {
+        source: '/:all*(mp4|webm|mov|avi|mkv|m3u8|ts|m4s)',
+        locale: false,
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400, stale-while-revalidate=3600',
+          },
+          {
+            key: 'Accept-Ranges',
+            value: 'bytes',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'cross-origin',
+          },
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'require-corp',
+          },
+        ],
+      },
+      // HLS manifest files
+      {
+        source: '/:all*(m3u8)',
+        locale: false,
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+          {
+            key: 'Content-Type',
+            value: 'application/vnd.apple.mpegurl',
+          },
+        ],
+      },
+      // DASH manifest files
+      {
+        source: '/:all*(mpd)',
+        locale: false,
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+          {
+            key: 'Content-Type',
+            value: 'application/dash+xml',
           },
         ],
       },
@@ -151,6 +208,11 @@ const nextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin',
+          },
+          // Video streaming preconnect hints
+          {
+            key: 'Link',
+            value: '</medh-videos.cloudfront.net>; rel=preconnect; crossorigin, </fonts.googleapis.com>; rel=preconnect; crossorigin',
           },
         ],
       },
