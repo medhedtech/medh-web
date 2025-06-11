@@ -21,7 +21,8 @@ import {
   LucideExternalLink,
   LucideFilter,
   LucideCode,
-  LucideCalendar
+  LucideCalendar,
+  LucideRefreshCw
 } from "lucide-react";
 
 // Component imports
@@ -39,11 +40,60 @@ import Modal from "@/components/shared/modals/Modal";
 import DefaultResourceImage from "@/assets/images/courses/image1.png";
 
 // Types
+interface Course {
+  _id: string;
+  course_title: string;
+  course_image?: string;
+  course_description?: string;
+  sections?: Section[];
+}
+
+interface Section {
+  _id: string;
+  title: string;
+  lessons?: Lesson[];
+}
+
+interface Lesson {
+  _id: string;
+  title: string;
+  type: string;
+  video_url?: string;
+  content_url?: string;
+  duration?: string;
+  resources?: LessonResource[];
+}
+
+interface LessonResource {
+  _id: string;
+  title: string;
+  type: string;
+  url: string;
+}
+
+interface Certificate {
+  _id: string;
+  course_title: string;
+  certificate_url: string;
+  issued_date: string;
+  student_name: string;
+}
+
+interface Brochure {
+  _id: string;
+  title: string;
+  description?: string;
+  course_id: string;
+  brochure_url: string;
+  download_count: number;
+  created_at: string;
+}
+
 interface Resource {
   _id: string;
   title: string;
   description?: string;
-  type: string; // pdf, video, link, etc.
+  type: 'pdf' | 'video' | 'link' | 'code' | 'assignment' | 'certificate' | 'brochure';
   url: string;
   thumbnail?: string;
   course?: {
@@ -57,16 +107,14 @@ interface Resource {
   duration?: string;
   author?: string;
   isBookmarked?: boolean;
-}
-
-interface ApiResponse {
-  resources: Resource[];
+  source: 'course' | 'certificate' | 'brochure' | 'assignment';
 }
 
 interface FilterState {
   type: string;
   category: string;
   searchTerm: string;
+  source: string;
 }
 
 // Animation variants
@@ -109,17 +157,20 @@ const LearningResources: React.FC = () => {
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   
   // Filter and search state
   const [filters, setFilters] = useState<FilterState>({
     type: "all",
     category: "all",
-    searchTerm: ""
+    searchTerm: "",
+    source: "all"
   });
   
   // Resource type and categories for filter options
-  const resourceTypes = ["all", "pdf", "video", "link", "code", "assignment"];
-  const [categories, setCategories] = useState<string[]>([]);
+  const resourceTypes = ["all", "pdf", "video", "link", "code", "assignment", "certificate", "brochure"];
+  const resourceSources = ["all", "course", "certificate", "brochure", "assignment"];
+  const [categories, setCategories] = useState<string[]>(["all"]);
   
   // Fetch user ID from localStorage on mount
   useEffect(() => {
@@ -131,152 +182,223 @@ const LearningResources: React.FC = () => {
     }
   }, []);
   
-  // Fetch resources data
-  useEffect(() => {
-    if (!userId) return;
+  // API Functions
+  const fetchEnrolledCoursesResources = async (studentId: string): Promise<Resource[]> => {
+    try {
+      const response = await getQuery({
+        url: apiUrls.enrolledCourses.getEnrollmentsByStudent(studentId),
+        showLoader: false
+      });
+
+      if (response?.data) {
+        const courseResources: Resource[] = [];
+        
+        response.data.forEach((enrollment: any) => {
+          const course = enrollment.course || enrollment;
+          
+          if (course.sections) {
+            course.sections.forEach((section: Section) => {
+              if (section.lessons) {
+                section.lessons.forEach((lesson: Lesson) => {
+                  // Add lesson as video resource
+                  if (lesson.video_url) {
+                    courseResources.push({
+                      _id: `lesson_${lesson._id}`,
+                      title: lesson.title,
+                      description: `Lesson from ${course.course_title}`,
+                      type: 'video',
+                      url: lesson.video_url,
+              course: {
+                        _id: course._id,
+                        title: course.course_title
+                      },
+                      category: 'Course Content',
+                      tags: ['lesson', 'video'],
+                      dateAdded: enrollment.enrolledAt || new Date().toISOString(),
+                      duration: lesson.duration,
+                      author: course.assigned_instructor || 'Instructor',
+                      isBookmarked: false,
+                      source: 'course'
+                    });
+                  }
+
+                  // Add lesson resources
+                  if (lesson.resources) {
+                    lesson.resources.forEach((resource: LessonResource) => {
+                      courseResources.push({
+                        _id: `resource_${resource._id}`,
+                        title: resource.title,
+                        description: `Resource from ${lesson.title}`,
+                        type: resource.type as any,
+                        url: resource.url,
+              course: {
+                          _id: course._id,
+                          title: course.course_title
+                        },
+                        category: 'Course Resources',
+                        tags: ['resource', resource.type],
+                        dateAdded: enrollment.enrolledAt || new Date().toISOString(),
+                        author: course.assigned_instructor || 'Instructor',
+                        isBookmarked: false,
+                        source: 'course'
+                      });
+                    });
+                  }
+                });
+              }
+            });
+          }
+        });
+
+        return courseResources;
+      }
+      return [];
+    } catch (error) {
+      console.error("Error fetching enrolled courses resources:", error);
+      return [];
+    }
+  };
+
+  const fetchCertificates = async (studentId: string): Promise<Resource[]> => {
+    try {
+      const response = await getQuery({
+        url: `${apiUrls.certificate.getCertificatesByStudentId}?studentId=${studentId}`,
+        showLoader: false
+      });
+
+      if (response?.certificates) {
+        return response.certificates.map((cert: Certificate) => ({
+          _id: `cert_${cert._id}`,
+          title: `${cert.course_title} Certificate`,
+          description: `Certificate for completing ${cert.course_title}`,
+          type: 'certificate' as const,
+          url: cert.certificate_url,
+          category: 'Certificates',
+          tags: ['certificate', 'achievement'],
+          dateAdded: cert.issued_date,
+          author: 'Medh Platform',
+          isBookmarked: false,
+          source: 'certificate' as const
+        }));
+      }
+      return [];
+    } catch (error) {
+      console.error("Error fetching certificates:", error);
+      return [];
+    }
+  };
+
+  const fetchBrochures = async (): Promise<Resource[]> => {
+    try {
+      const response = await getQuery({
+        url: apiUrls.brouchers.getAllBrouchers(),
+        showLoader: false
+      });
+
+      if (response?.brochures) {
+        return response.brochures.map((brochure: Brochure) => ({
+          _id: `brochure_${brochure._id}`,
+          title: brochure.title,
+          description: brochure.description || 'Course brochure with detailed information',
+          type: 'brochure' as const,
+          url: brochure.brochure_url,
+          category: 'Brochures',
+          tags: ['brochure', 'course-info'],
+          dateAdded: brochure.created_at,
+          author: 'Medh Platform',
+          isBookmarked: false,
+          source: 'brochure' as const
+        }));
+      }
+      return [];
+    } catch (error) {
+      console.error("Error fetching brochures:", error);
+      return [];
+    }
+  };
+
+  const fetchSavedCourses = async (studentId: string): Promise<Resource[]> => {
+    try {
+      const response = await getQuery({
+        url: `${apiUrls.enrolledCourses.getSavedCourses}?studentId=${studentId}`,
+        showLoader: false
+      });
+
+      if (response?.savedCourses) {
+        return response.savedCourses.map((savedCourse: any) => ({
+          _id: `saved_${savedCourse._id}`,
+          title: `${savedCourse.course_title} (Saved)`,
+          description: savedCourse.course_description || 'Saved course for future reference',
+          type: 'link' as const,
+          url: `/courses/${savedCourse._id}`,
+          thumbnail: savedCourse.course_image,
+          category: 'Saved Courses',
+          tags: ['saved', 'course'],
+          dateAdded: savedCourse.savedAt || new Date().toISOString(),
+          author: savedCourse.assigned_instructor || 'Instructor',
+          isBookmarked: true,
+          source: 'course' as const
+        }));
+      }
+      return [];
+    } catch (error) {
+      console.error("Error fetching saved courses:", error);
+      return [];
+    }
+  };
+
+  // Fetch all resources data
+  const fetchAllResources = async (studentId: string) => {
+    setIsRefreshing(true);
+    setErrorMessage("");
     
-    const fetchResources = async () => {
-      try {
-        // Mock data for development - replace with actual API call when available
-        // This simulates the API response structure
-        
-        const mockData = {
-          resources: [
-            {
-              _id: "1",
-              title: "React Fundamentals PDF Guide",
-              description: "A comprehensive guide to React fundamentals including hooks, state management, and component lifecycle.",
-              type: "pdf",
-              url: "https://example.com/resources/react-fundamentals.pdf",
-              thumbnail: "/images/resources/react-guide.jpg",
-              course: {
-                _id: "course1",
-                title: "React from Zero to Hero"
-              },
-              category: "Web Development",
-              tags: ["react", "frontend", "javascript"],
-              dateAdded: "2023-07-15T10:30:00Z",
-              fileSize: "2.5 MB",
-              author: "John Doe",
-              isBookmarked: true
-            },
-            {
-              _id: "2",
-              title: "JavaScript ES6 Features Tutorial",
-              description: "Video tutorial covering all the essential ES6 features for modern JavaScript development.",
-              type: "video",
-              url: "https://example.com/resources/es6-tutorial.mp4",
-              thumbnail: "/images/resources/js-tutorial.jpg",
-              course: {
-                _id: "course2",
-                title: "Advanced JavaScript"
-              },
-              category: "Programming",
-              tags: ["javascript", "es6", "tutorial"],
-              dateAdded: "2023-08-02T14:20:00Z",
-              duration: "45 minutes",
-              author: "Jane Smith",
-              isBookmarked: false
-            },
-            {
-              _id: "3",
-              title: "UI/UX Design Principles Cheatsheet",
-              description: "A single-page cheatsheet with essential UI/UX design principles and best practices.",
-              type: "pdf",
-              url: "https://example.com/resources/uiux-cheatsheet.pdf",
-              course: {
-                _id: "course3",
-                title: "UI/UX Design Fundamentals"
-              },
-              category: "Design",
-              tags: ["design", "ui", "ux", "cheatsheet"],
-              dateAdded: "2023-06-10T09:15:00Z",
-              fileSize: "1.2 MB",
-              author: "Alex Johnson",
-              isBookmarked: true
-            },
-            {
-              _id: "4",
-              title: "Node.js API Development Guide",
-              description: "Learn how to build robust and scalable APIs with Node.js and Express.",
-              type: "link",
-              url: "https://example.com/guides/nodejs-api",
-              thumbnail: "/images/resources/nodejs-api.jpg",
-              course: {
-                _id: "course4",
-                title: "Node.js Backend Development"
-              },
-              category: "Web Development",
-              tags: ["nodejs", "api", "backend"],
-              dateAdded: "2023-08-13T16:45:00Z",
-              author: "Mike Williams",
-              isBookmarked: false
-            },
-            {
-              _id: "5",
-              title: "Python Data Science Cookbook",
-              description: "A collection of Python code snippets and recipes for common data science tasks.",
-              type: "code",
-              url: "https://example.com/resources/python-data-science-code.zip",
-              course: {
-                _id: "course5",
-                title: "Python Data Science"
-              },
-              category: "Data Science",
-              tags: ["python", "data science", "code"],
-              dateAdded: "2023-08-16T11:30:00Z",
-              fileSize: "3.8 MB",
-              author: "Sarah Miller",
-              isBookmarked: false
-            },
-            {
-              _id: "6",
-              title: "Machine Learning Algorithms Assignment",
-              description: "Practice implementing common machine learning algorithms from scratch.",
-              type: "assignment",
-              url: "https://example.com/assignments/ml-algorithms",
-              course: {
-                _id: "course5",
-                title: "Python Data Science"
-              },
-              category: "Data Science",
-              tags: ["machine learning", "algorithms", "assignment"],
-              dateAdded: "2023-08-18T13:20:00Z",
-              author: "Sarah Miller",
-              isBookmarked: false
-            }
-          ]
-        };
-        
-        // In real implementation, this would be replaced with:
-        // getQuery({
-        //   url: `${apiUrls?.resources?.getStudentResources(userId)}`,
-        //   onSuccess: (res: ApiResponse) => {
-        //     setResources(res.resources || []);
-        //     setErrorMessage("");
-        //   },
-        //   onFail: (err) => {
-        //     console.error("Error fetching resources:", err);
-        //     setErrorMessage("Failed to load resources. Please try again later.");
-        //   }
-        // });
-        
-        // Using mock data
-        setResources(mockData.resources);
+    try {
+      const [
+        courseResources,
+        certificates,
+        brochures,
+        savedCourses
+      ] = await Promise.all([
+        fetchEnrolledCoursesResources(studentId),
+        fetchCertificates(studentId),
+        fetchBrochures(),
+        fetchSavedCourses(studentId)
+      ]);
+
+      const allResources = [
+        ...courseResources,
+        ...certificates,
+        ...brochures,
+        ...savedCourses
+      ];
+
+      setResources(allResources);
         
         // Extract unique categories for filters
-        const uniqueCategories = [...new Set(mockData.resources.map(resource => resource.category || "Uncategorized"))];
+      const uniqueCategories = [...new Set(allResources.map(resource => resource.category || "Uncategorized"))];
         setCategories(["all", ...uniqueCategories]);
         
-        setErrorMessage("");
       } catch (error) {
-        console.error("Error in resources fetch:", error);
-        setErrorMessage("An unexpected error occurred. Please try again.");
-      }
-    };
-    
-    fetchResources();
+      console.error("Error fetching resources:", error);
+      setErrorMessage("Failed to load resources. Please try again later.");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Fetch resources data when userId is available
+  useEffect(() => {
+    if (userId) {
+      fetchAllResources(userId);
+    }
   }, [userId]);
+
+  // Handle refresh
+  const handleRefresh = () => {
+    if (userId) {
+      fetchAllResources(userId);
+    }
+  };
   
   // Format date with user-friendly formatting
   const formatDate = (dateString: string): string => {
@@ -301,6 +423,10 @@ const LearningResources: React.FC = () => {
         return <LucideCode className="w-6 h-6" />;
       case 'assignment':
         return <LucideBookOpen className="w-6 h-6" />;
+      case 'certificate':
+        return <LucideFileText className="w-6 h-6" />;
+      case 'brochure':
+        return <LucideFile className="w-6 h-6" />;
       default:
         return <LucideFile className="w-6 h-6" />;
     }
@@ -319,6 +445,10 @@ const LearningResources: React.FC = () => {
         return "text-purple-500 bg-purple-50 dark:bg-purple-900/20";
       case 'assignment':
         return "text-orange-500 bg-orange-50 dark:bg-orange-900/20";
+      case 'certificate':
+        return "text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20";
+      case 'brochure':
+        return "text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20";
       default:
         return "text-gray-500 bg-gray-50 dark:bg-gray-700";
     }
@@ -332,11 +462,15 @@ const LearningResources: React.FC = () => {
       case 'video':
         return "Watch Video";
       case 'link':
-        return "Visit Resource";
+        return "View Course";
       case 'code':
         return "View Code";
       case 'assignment':
         return "Start Assignment";
+      case 'certificate':
+        return "Download Certificate";
+      case 'brochure':
+        return "Download Brochure";
       default:
         return "Access Resource";
     }
@@ -351,6 +485,11 @@ const LearningResources: React.FC = () => {
     
     // Apply category filter
     if (filters.category !== "all" && resource.category !== filters.category) {
+      return false;
+    }
+
+    // Apply source filter
+    if (filters.source !== "all" && resource.source !== filters.source) {
       return false;
     }
     
@@ -375,8 +514,14 @@ const LearningResources: React.FC = () => {
   };
   
   // Handle resource access
-  const handleAccessResource = (url: string) => {
-    window.open(url, "_blank");
+  const handleAccessResource = (resource: Resource) => {
+    if (resource.type === 'link' && resource.url.startsWith('/')) {
+      // Internal link - use router
+      router.push(resource.url);
+    } else {
+      // External link or file - open in new tab
+      window.open(resource.url, "_blank");
+    }
   };
   
   // Handle filter changes
@@ -398,13 +543,31 @@ const LearningResources: React.FC = () => {
   };
   
   // Toggle bookmark
-  const handleToggleBookmark = (resourceId: string) => {
-    // In a real implementation, you would make an API call here
+  const handleToggleBookmark = async (resourceId: string) => {
+    try {
+      // Update local state optimistically
+      setResources(resources.map(resource => 
+        resource._id === resourceId 
+          ? { ...resource, isBookmarked: !resource.isBookmarked } 
+          : resource
+      ));
+
+      // In real implementation, make API call to save bookmark preference
+      // await getQuery({
+      //   url: apiUrls.bookmarks.toggle,
+      //   method: 'POST',
+      //   data: { resourceId, userId }
+      // });
+      
+    } catch (error) {
+      console.error("Error toggling bookmark:", error);
+      // Revert the optimistic update on error
     setResources(resources.map(resource => 
       resource._id === resourceId 
         ? { ...resource, isBookmarked: !resource.isBookmarked } 
         : resource
     ));
+    }
   };
   
   // Render a resource card
@@ -466,19 +629,25 @@ const LearningResources: React.FC = () => {
               <span>Added on {formatDate(resource.dateAdded)}</span>
             </div>
             
+            <div className="flex flex-wrap gap-2">
             {resource.fileSize && (
-              <div className="inline-flex items-center text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-md mt-1 mr-2">
+                <div className="inline-flex items-center text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-md">
                 <LucideFile className="w-3 h-3 mr-1" />
                 {resource.fileSize}
               </div>
             )}
             
             {resource.duration && (
-              <div className="inline-flex items-center text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-md mt-1">
+                <div className="inline-flex items-center text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-md">
                 <LucideVideo className="w-3 h-3 mr-1" />
                 {resource.duration}
               </div>
             )}
+
+              <div className="inline-flex items-center text-xs bg-primary-100 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 px-2 py-1 rounded-md">
+                {resource.source}
+              </div>
+            </div>
           </div>
           
           <div className="flex flex-wrap gap-2 mt-4">
@@ -490,7 +659,7 @@ const LearningResources: React.FC = () => {
             </button>
             
             <button
-              onClick={() => handleAccessResource(resource.url)}
+              onClick={() => handleAccessResource(resource)}
               className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
             >
               {getActionText(resource.type)}
@@ -503,32 +672,60 @@ const LearningResources: React.FC = () => {
   
   return (
     <div className="px-4 py-6 md:px-6 lg:px-8">
-      <div className="mb-6">
+      <div className="mb-6 flex justify-between items-start">
+        <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
           Learning Resources
         </h1>
         <p className="text-gray-600 dark:text-gray-300">
-          Access all your learning materials, ebooks, videos, and more in one place.
-        </p>
+            Access all your learning materials, certificates, courses, and more in one place.
+          </p>
+        </div>
+        
+        <button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="inline-flex items-center px-4 py-2 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 dark:bg-primary-900/10 dark:text-primary-400 dark:hover:bg-primary-900/20 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50"
+        >
+          <LucideRefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+          {isRefreshing ? 'Refreshing...' : 'Refresh'}
+        </button>
       </div>
       
-      {/* Tabs */}
-      <div className="mb-6">
+      {/* Tabs and Filter Labels Row */}
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-end gap-4 mb-2">
+        <div className="flex-1">
         <TabNavigation
           tabs={[
             { id: "all", label: "All Resources" },
-            { id: "pdf", label: "PDF Documents" },
             { id: "video", label: "Videos" },
-            { id: "link", label: "Web Resources" },
-            { id: "code", label: "Code Samples" }
+              { id: "pdf", label: "Documents" },
+              { id: "certificate", label: "Certificates" },
+              { id: "brochure", label: "Brochures" },
+              { id: "link", label: "Courses" }
           ]}
           activeTab={activeTab}
           onChange={handleTabChange}
         />
       </div>
       
-      {/* Filters and Search */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row gap-3 lg:gap-4">
+          <div className="min-w-0 flex-shrink-0 lg:w-48">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Category
+            </label>
+          </div>
+          
+          <div className="min-w-0 flex-shrink-0 lg:w-40">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Source
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      {/* Search and Filter Dropdowns Row */}
+      <div className="flex flex-col lg:flex-row gap-4 mb-6">
         <div className="flex-1">
           <SearchBar
             placeholder="Search resources..."
@@ -538,14 +735,26 @@ const LearningResources: React.FC = () => {
           />
         </div>
         
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 lg:gap-4">
+          <div className="min-w-0 flex-shrink-0">
           <Select
-            label="Category"
+              label=""
             options={categories.map(cat => ({ value: cat, label: cat === "all" ? "All Categories" : cat }))}
             value={filters.category}
             onChange={(value: string) => handleFilterChange("category", value)}
+              className="w-full sm:w-48"
+            />
+          </div>
+          
+          <div className="min-w-0 flex-shrink-0">
+            <Select
+              label=""
+              options={resourceSources.map(source => ({ value: source, label: source === "all" ? "All Sources" : source.charAt(0).toUpperCase() + source.slice(1) }))}
+              value={filters.source}
+              onChange={(value: string) => handleFilterChange("source", value)}
             className="w-full sm:w-40"
           />
+          </div>
         </div>
       </div>
       
@@ -560,7 +769,7 @@ const LearningResources: React.FC = () => {
       )}
       
       {/* Resources Grid */}
-      {loading ? (
+      {loading || isRefreshing ? (
         <div className="min-h-[400px] flex items-center justify-center">
           <LoadingIndicator type="spinner" size="lg" color="primary" text="Loading resources..." />
         </div>
@@ -576,16 +785,23 @@ const LearningResources: React.FC = () => {
       ) : (
         <EmptyState
           icon={<LucideSearch size={48} />}
-          title="No resources found"
-          description={activeTab === "all" ? "There are no resources available." : `No ${activeTab} resources available.`}
+          title={errorMessage ? "Failed to load resources" : "No resources found"}
+          description={
+            errorMessage 
+              ? "Please try refreshing the page or check your internet connection."
+              : activeTab === "all" 
+                ? "No learning resources are available yet. Start by enrolling in a course!"
+                : `No ${activeTab} resources available.`
+          }
           action={{
-            label: "Clear filters",
-            onClick: () => {
+            label: errorMessage ? "Try Again" : "Clear filters",
+            onClick: errorMessage ? handleRefresh : () => {
               setActiveTab("all");
               setFilters({
                 type: "all",
                 category: "all",
-                searchTerm: ""
+                searchTerm: "",
+                source: "all"
               });
             }
           }}
@@ -667,6 +883,11 @@ const LearningResources: React.FC = () => {
                   <LucideCalendar className="w-5 h-5 mr-3 text-primary-500" />
                   <span>Added: {formatDate(selectedResource.dateAdded)}</span>
                 </div>
+
+                <div className="flex items-center text-gray-700 dark:text-gray-300">
+                  <LucideInfo className="w-5 h-5 mr-3 text-primary-500" />
+                  <span>Source: <span className="capitalize">{selectedResource.source}</span></span>
+                </div>
                 
                 {selectedResource.fileSize && (
                   <div className="flex items-center text-gray-700 dark:text-gray-300">
@@ -699,26 +920,19 @@ const LearningResources: React.FC = () => {
                 </div>
               )}
               
-              <div className="flex flex-wrap gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <Button
+                  variant="secondary"
+                  onClick={() => setIsDetailsModalOpen(false)}
+                >
+                  Close
+                </Button>
                 <Button
                   variant="primary"
-                  className="flex-1"
-                  onClick={() => handleAccessResource(selectedResource.url)}
-                  leftIcon={<LucideExternalLink size={18} />}
+                  onClick={() => handleAccessResource(selectedResource)}
                 >
                   {getActionText(selectedResource.type)}
                 </Button>
-                
-                {selectedResource.type === "pdf" && (
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    leftIcon={<LucideDownload size={18} />}
-                    onClick={() => handleAccessResource(selectedResource.url)}
-                  >
-                    Download PDF
-                  </Button>
-                )}
               </div>
             </motion.div>
           </Modal>
