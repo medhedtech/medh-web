@@ -14,12 +14,14 @@ interface OTPVerificationProps {
   email: string;
   onVerificationSuccess: () => void;
   onBack: () => void;
+  backButtonText?: string;
 }
 
 const OTPVerification: React.FC<OTPVerificationProps> = ({
   email,
   onVerificationSuccess,
-  onBack
+  onBack,
+  backButtonText = "Back to Sign Up"
 }) => {
   const [otp, setOtp] = useState<string[]>(new Array(6).fill(''));
   const [loading, setLoading] = useState<boolean>(false);
@@ -297,7 +299,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
           className="w-full py-2.5 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-300 flex items-center justify-center"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Sign Up
+          {backButtonText}
         </button>
       </div>
       

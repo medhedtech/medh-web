@@ -44,12 +44,12 @@ const ProgramsMenu = ({ programMenuOpen, toggleProgramMenu }) => {
           Digital Marketing With Data Analytics
         </Link>
 
-        {/* View Other Courses */}
+        {/* View All Courses */}
         <Link
-          href="/courses/"
+          href="/all-courses/"
           className="focus:text-green-400 text-[#252525] font-Poppins"
         >
-          ~View Other Courses~
+          ~View All Courses~
         </Link>
       </div>
     </div>

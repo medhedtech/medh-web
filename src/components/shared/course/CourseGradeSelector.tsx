@@ -104,6 +104,13 @@ const CourseGradeSelector: React.FC<CourseGradeSelectorProps> = ({
     return `${currencySymbols[currency] || currency} ${price.toLocaleString()}`;
   };
 
+  const formatCourseGrade = (grade: string): string => {
+    if (grade === "UG - Graduate - Professionals") {
+      return "UG/Grad/Pro";
+    }
+    return grade;
+  };
+
   const handleCourseSelect = (courseId: string) => {
     onCourseSelect(courseId);
     setIsOpen(false);
@@ -139,7 +146,7 @@ const CourseGradeSelector: React.FC<CourseGradeSelectorProps> = ({
                 <div className="font-medium truncate">{selectedCourseInfo.course_title}</div>
                 {selectedCourseInfo.course_grade && (
                   <div className="text-xs text-purple-600 dark:text-purple-400 font-medium">
-                    🎓 {selectedCourseInfo.course_grade}
+                    🎓 {formatCourseGrade(selectedCourseInfo.course_grade)}
                   </div>
                 )}
               </div>
@@ -226,7 +233,7 @@ const CourseGradeSelector: React.FC<CourseGradeSelectorProps> = ({
                       {course.course_grade && (
                         <div className="mb-2">
                           <span className="inline-flex items-center bg-gradient-to-r from-purple-500 to-purple-600 text-white text-xs font-medium px-3 py-1 rounded-full">
-                            🎓 {course.course_grade}
+                            🎓 {formatCourseGrade(course.course_grade)}
                           </span>
                         </div>
                       )}
@@ -299,7 +306,7 @@ const CourseGradeSelector: React.FC<CourseGradeSelectorProps> = ({
                 </div>
                 {selectedCourseInfo.course_grade && (
                   <div className="text-xs text-purple-600 dark:text-purple-400">
-                    🎓 {selectedCourseInfo.course_grade}
+                    🎓 {formatCourseGrade(selectedCourseInfo.course_grade)}
                   </div>
                 )}
               </div>

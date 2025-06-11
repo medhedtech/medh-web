@@ -32,7 +32,7 @@ const AccordionCourses = () => {
         },
         {
           name: "View All Courses",
-      path: "/courses",
+      path: "/all-courses",
       status: "new",
     },
   ];

@@ -8,17 +8,40 @@ import CourseBanner from "@/components/course-banner/courseBanner";
 import CourseBannerImg from "../../../assets/images/personality/coursebannerimg.png";
 import DotIcon from "@/assets/images/corporate-training/dot-icon.svg";
 
-function CourceBanner() {
+interface IFeature {
+  icon: React.ReactElement;
+  title: string;
+  description: string;
+}
+
+interface IStat {
+  label: string;
+  value: string;
+}
+
+interface ICourse {
+  heading: string;
+  headings: string;
+  description: string;
+  buttonText: string;
+  imageUrl: string;
+  buttonBgColor: string;
+  buttonTextColor: string;
+  icon: string;
+  stats: IStat[];
+}
+
+const CourceBanner: React.FC = () => {
   const router = useRouter();
-  const [isVisible, setIsVisible] = useState(false);
-  const [activeFeature, setActiveFeature] = useState(0);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [activeFeature, setActiveFeature] = useState<number>(0);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 300);
     return () => clearTimeout(timer);
   }, []);
 
-  const features = [
+  const features: IFeature[] = [
     {
       icon: <Star className="w-6 h-6" />,
       title: "Expert-Led Training",
@@ -36,16 +59,16 @@ function CourceBanner() {
     }
   ];
 
-  const courses = [
+  const courses: ICourse[] = [
     {
       heading: "Let's collaborate and discuss your",
       headings: "training needs.",
       description: "Embark on a transformative journey towards success and unparalleled growth.",
       buttonText: "Let's Connect",
-      imageUrl: CourseBannerImg,
+      imageUrl: CourseBannerImg.src,
       buttonBgColor: "#7ECA9D",
       buttonTextColor: "white",
-      icon: DotIcon,
+      icon: DotIcon.src,
       stats: [
         { label: "Success Rate", value: "95%" },
         { label: "Expert Trainers", value: "50+" },
@@ -53,6 +76,18 @@ function CourceBanner() {
       ]
     }
   ];
+
+  const handleGetStarted = (): void => {
+    router.push("/corporate-training/contact");
+  };
+
+  const handleLearnMore = (): void => {
+    router.push("/contact");
+  };
+
+  const handleStartJourney = (): void => {
+    router.push("/corporate-training/contact");
+  };
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -94,7 +129,7 @@ function CourceBanner() {
               <motion.button
                 whileHover={{ scale: 1.02, translateY: -2 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => router.push("/corporate-training/contact")}
+                onClick={handleGetStarted}
                 className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-medium rounded-lg transition-all shadow-lg shadow-primary-500/30 hover:shadow-xl hover:shadow-primary-500/40"
               >
                 Get Started
@@ -104,7 +139,7 @@ function CourceBanner() {
               <motion.button
                 whileHover={{ scale: 1.02, translateY: -2 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => router.push("/contact")}
+                onClick={handleLearnMore}
                 className="inline-flex items-center px-6 py-3 bg-white dark:bg-gray-800 text-primary-500 dark:text-primary-400 border-2 border-primary-500 dark:border-primary-400 hover:bg-primary-50 dark:hover:bg-gray-700 font-medium rounded-lg transition-all shadow-md hover:shadow-lg"
               >
                 <Info size={18} className="mr-2" />
@@ -113,16 +148,16 @@ function CourceBanner() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-6 pt-8">
+            <div className="grid grid-cols-3 gap-4 pt-6">
               {courses[0].stats.map((stat, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 + index * 0.1 }}
+                  transition={{ delay: 0.3 + index * 0.1 }}
                   className="text-center"
                 >
-                  <div className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
+                  <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
                     {stat.value}
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -133,47 +168,55 @@ function CourceBanner() {
             </div>
           </motion.div>
 
+          {/* Features Section */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-            className="relative"
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="space-y-6"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-secondary-500/10 rounded-2xl transform rotate-3"></div>
-            <Image
-              src={CourseBannerImg}
-              alt="Corporate Training"
-              className="relative rounded-2xl shadow-2xl"
-            />
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl border border-gray-200 dark:border-gray-700">
+              <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
+                Why Choose Our Training?
+              </h3>
+              
+              <div className="space-y-4">
+                {features.map((feature, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 + index * 0.1 }}
+                    className={`p-4 rounded-xl transition-all cursor-pointer ${
+                      activeFeature === index 
+                        ? 'bg-primary-50 dark:bg-primary-900/20 border-2 border-primary-200 dark:border-primary-700' 
+                        : 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600'
+                    }`}
+                    onClick={() => setActiveFeature(index)}
+                  >
+                    <div className="flex items-start space-x-4">
+                      <div className={`p-2 rounded-lg ${
+                        activeFeature === index 
+                          ? 'bg-primary-100 dark:bg-primary-800 text-primary-600 dark:text-primary-400' 
+                          : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
+                      }`}>
+                        {feature.icon}
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-800 dark:text-white mb-1">
+                          {feature.title}
+                        </h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          {feature.description}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </motion.div>
         </div>
-
-        {/* Features Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="grid md:grid-cols-3 gap-8 mt-16"
-        >
-          {features.map((feature, index) => (
-            <motion.div
-              key={index}
-              whileHover={{ scale: 1.02, translateY: -5 }}
-              className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition-all border border-gray-100 dark:border-gray-700"
-              onMouseEnter={() => setActiveFeature(index)}
-            >
-              <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-lg flex items-center justify-center text-primary-600 dark:text-primary-400 mb-4">
-                {feature.icon}
-              </div>
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
-                {feature.title}
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300 text-sm">
-                {feature.description}
-              </p>
-            </motion.div>
-          ))}
-        </motion.div>
 
         {/* Call to Action */}
         <motion.div
@@ -188,7 +231,7 @@ function CourceBanner() {
           <motion.button
             whileHover={{ scale: 1.02, translateY: -2 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => router.push("/corporate-training/contact")}
+            onClick={handleStartJourney}
             className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white font-medium rounded-lg transition-all shadow-lg shadow-primary-500/30 hover:shadow-xl hover:shadow-primary-500/40"
           >
             Start Your Journey
@@ -198,6 +241,6 @@ function CourceBanner() {
       </div>
     </section>
   );
-}
+};
 
-export default CourceBanner;
+export default CourceBanner; 

@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import { 
   GraduationCap, 
   Blocks, 
-  Star, 
   HelpCircle, 
   FileBadge 
 } from 'lucide-react';
@@ -52,19 +51,10 @@ const SECTIONS = [
     id: 'curriculum', 
     label: 'Curriculum', 
     icon: Blocks, 
-    mobileLabel: 'Content',
+    mobileLabel: 'Curriculum',
     color: 'blue',
     lightColor: 'text-blue-500 dark:text-blue-400',
     indicatorColor: 'bg-blue-500 dark:bg-blue-400'
-  },
-  { 
-    id: 'reviews', 
-    label: 'Reviews', 
-    icon: Star, 
-    mobileLabel: 'Reviews',
-    color: 'amber',
-    lightColor: 'text-amber-500 dark:text-amber-400',
-    indicatorColor: 'bg-amber-500 dark:bg-amber-400'
   },
   { 
     id: 'faq', 
@@ -132,7 +122,7 @@ const CourseNavigation = ({
       animate="animate"
       variants={fadeIn}
     >
-      <div className="grid grid-cols-5 sm:flex w-full sm:space-x-2">
+      <div className="grid grid-cols-4 sm:flex w-full sm:space-x-2">
         {visibleSections.map((section) => {
           const Icon = section.icon;
           const isActive = activeSection === section.id;
