@@ -12,8 +12,6 @@ import {
   Play, 
   Bookmark, 
   Star, 
-  Filter, 
-  Search, 
   CheckCircle, 
   User, 
   Eye,
@@ -78,8 +76,6 @@ const DemoClassesContent: React.FC<IDemoClassesDashboardProps> = ({ studentId })
   const router = useRouter();
   
   // State management
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDemoOption, setSelectedDemoOption] = useState<string | null>(null);
@@ -112,29 +108,8 @@ const DemoClassesContent: React.FC<IDemoClassesDashboardProps> = ({ studentId })
     fetchDemoClasses();
   }, [fetchDemoClasses]);
 
-  // Filter logic
-  const filteredDemoClasses = React.useMemo(() => {
-    let filtered = demoClasses;
-
-    // Filter by category
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(demo => demo.category === selectedCategory);
-    }
-
-    // Filter by search query
-    if (searchQuery) {
-      filtered = filtered.filter(demo =>
-        demo.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        demo.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        demo.instructor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        demo.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-    }
-
-    return filtered;
-  }, [demoClasses, selectedCategory, searchQuery]);
-
-  const categories = ['all', 'Data Science', 'Web Development', 'Marketing', 'AI & Machine Learning'];
+  // Demo classes display (no filtering needed since search/category removed)
+  const filteredDemoClasses = demoClasses;
 
   // Demo videos data for each option - Empty for now, to be populated from API
   const demoVideos = {
@@ -197,40 +172,11 @@ const DemoClassesContent: React.FC<IDemoClassesDashboardProps> = ({ studentId })
             Explore free demo classes, join live sessions, and access recorded content to preview our courses.
           </p>
           
-          {/* Search Bar */}
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search demo classes, instructors, or topics..."
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white bg-white dark:bg-gray-700"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
 
-            {/* Category Filter */}
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <select
-                className="pl-10 pr-8 py-3 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white appearance-none bg-white min-w-[200px]"
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-              >
-                {categories.map(category => (
-                  <option key={category} value={category}>
-                    {category === 'all' ? 'All Categories' : category}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
         </div>
 
         {/* Demo Options Section */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Demo Options</h2>
           <div className="flex flex-wrap justify-center gap-4">
             {/* Demo Scheduled Details */}
             <div 
