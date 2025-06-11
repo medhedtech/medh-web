@@ -123,6 +123,13 @@ const CourseEducation: React.FC<CourseEducationProps> = ({ courseId, courseDetai
     error: razorpayError 
   } = useRazorpay();
 
+  const formatCourseGrade = (grade: string): string => {
+    if (grade === "UG - Graduate - Professionals") {
+      return "UG/Grad/Pro";
+    }
+    return grade;
+  };
+
   const parseDescription = (description: string | undefined): FormattedContent => {
     if (!description) return { overview: '', benefits: [] };
 
@@ -253,7 +260,7 @@ const CourseEducation: React.FC<CourseEducationProps> = ({ courseId, courseDetai
     },
     {
       label: "Course Level",
-      value: courseData?.course_grade || "All Levels",
+      value: courseData?.course_grade ? formatCourseGrade(courseData.course_grade) : "All Levels",
       icon: Lightbulb,
       color: "amber" 
     },
@@ -521,7 +528,7 @@ const CourseEducation: React.FC<CourseEducationProps> = ({ courseId, courseDetai
               >
                 <div className="flex items-center space-x-2 mb-3">
                   <span className="inline-block px-3 py-1 bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs font-medium rounded-full">
-                    {courseData?.course_grade || "All Levels"}
+                    {courseData?.course_grade ? formatCourseGrade(courseData.course_grade) : "All Levels"}
                   </span>
                   {courseData?.is_Popular === "Yes" && (
                     <span className="inline-block px-3 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full flex items-center">

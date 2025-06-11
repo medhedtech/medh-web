@@ -41,6 +41,8 @@ const PageWrapper: React.FC<PageWrapperProps> = ({
   // Handle dynamic footer height
   useDynamicFooterHeight(contentRef);
 
+
+
   // Effect for smooth scroll anchor handling
   useEffect(() => {
     // Add event listeners
@@ -69,6 +71,8 @@ const PageWrapper: React.FC<PageWrapperProps> = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [scrollToTop]);
+
+
 
   return (
     <div className="flex flex-col min-h-screen w-full bg-white dark:bg-gray-950 overflow-x-hidden">
@@ -162,6 +166,24 @@ const PageWrapper: React.FC<PageWrapperProps> = ({
       {/* Header - Fixed height */}
       <Header className="h-[var(--header-height)]" />
 
+
+
+      {/* Main content with dynamic min-height */}
+      <main 
+        ref={contentRef}
+        id={skipToContentId}
+        role="main"
+        tabIndex={-1}
+        className={`flex-grow w-full transition-opacity duration-700 pt-[var(--header-height)] will-change-opacity ${hasPageLoaded ? 'opacity-100' : 'opacity-0'}`}
+      >
+        <div className="animate-fadeIn">
+          {children}
+        </div>
+      </main>
+      
+      {/* Footer with theme prop */}
+              <Footer />
+
       {/* Enhanced scroll to top button */}
       <AnimatePresence>
         {showScrollTop && (
@@ -180,24 +202,6 @@ const PageWrapper: React.FC<PageWrapperProps> = ({
           </motion.button>
         )}
       </AnimatePresence>
-
-      {/* Main content with dynamic min-height */}
-      <main 
-        ref={contentRef}
-        id={skipToContentId}
-        role="main"
-        tabIndex={-1}
-        className={`flex-grow w-full transition-opacity duration-700 pt-[var(--header-height)] will-change-opacity ${hasPageLoaded ? 'opacity-100' : 'opacity-0'}`}
-      >
-        <div className="animate-fadeIn">
-          {children}
-        </div>
-      </main>
-      
-      {/* Footer - No margin/padding at bottom */}
-      <div className="mt-auto w-full">
-        <Footer className="w-full" />
-      </div>
     </div>
   );
 };

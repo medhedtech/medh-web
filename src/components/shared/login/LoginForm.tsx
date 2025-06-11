@@ -14,12 +14,13 @@ import Preloader from "../others/Preloader";
 import { toast } from "react-toastify";
 import { useRouter, useSearchParams } from "next/navigation";
 import { jwtDecode, JwtPayload } from "jwt-decode";
-import { Eye, EyeOff, Mail, Lock, Loader2, CheckCircle, AlertCircle, Sparkles, ArrowRight, ChevronLeft, Home } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Loader2, CheckCircle, AlertCircle, Sparkles, ArrowRight, ChevronLeft, Home, Check } from "lucide-react";
 import CustomReCaptcha from '../ReCaptcha';
 import { useStorage } from "@/contexts/StorageContext";
 import FixedShadow from "../others/FixedShadow";
 import { events } from "@/utils/analytics";
 import { useTheme } from "next-themes";
+import OTPVerification from './OTPVerification';
 import { 
   sanitizeAuthData, 
   storeAuthData, 
@@ -56,6 +57,7 @@ interface LoginResponseData {
   permissions: string[];
   access_token: string;
   refresh_token: string;
+  emailVerified?: boolean; // Add email verification status
 }
 
 interface LoginResponse {
@@ -118,6 +120,12 @@ const LoginForm = () => {
     email: "",
     password: "",
   });
+
+  // Add email verification states
+  const [showOTPVerification, setShowOTPVerification] = useState<boolean>(false);
+  const [verificationEmail, setVerificationEmail] = useState<string>('');
+  const [pendingLoginData, setPendingLoginData] = useState<LoginResponseData | null>(null);
+  const [currentStep, setCurrentStep] = useState<number>(1);
   
   const {
     register,
@@ -232,6 +240,121 @@ const LoginForm = () => {
       handleSubmit(onSubmit)();
     }
   };
+
+  // Handle verification success
+  const handleVerificationSuccess = (): void => {
+    if (pendingLoginData) {
+      // If we have incomplete login data, attempt login again after verification
+      if (!pendingLoginData.access_token || !pendingLoginData.id) {
+        // Re-attempt login now that email is verified
+        const formData = getValues();
+        
+        postQuery({
+          url: apiUrls?.user?.login,
+          postData: {
+            email: formData.email,
+            password: formData.password,
+            agree_terms: formData.agree_terms,
+          },
+          onSuccess: (res: LoginResponse) => {
+            console.log('Login after verification successful:', res);
+            completeLoginProcess(res.data);
+          },
+          onFail: (error) => {
+            console.error('Login failed after verification:', error);
+            toast.error("Login failed after verification. Please try logging in again.");
+            // Reset to login form
+            handleBackFromVerification();
+          }
+        });
+      } else {
+        // Complete the login process with existing data
+        completeLoginProcess(pendingLoginData);
+      }
+    } else {
+      // Fallback: redirect to login
+      toast.success("Email verified successfully! Please log in again.");
+      handleBackFromVerification();
+    }
+  };
+
+  // Complete login process after verification
+  const completeLoginProcess = (loginData: LoginResponseData): void => {
+    // Prepare auth data with the exact structure
+    const authData: AuthData = {
+      token: loginData.access_token,
+      refresh_token: loginData.refresh_token,
+      id: loginData.id,
+      full_name: loginData.full_name,
+      email: loginData.email
+    };
+
+    const authSuccess = storeAuthData(
+      authData,
+      rememberMe,
+      loginData.email
+    );
+
+    if (!authSuccess) {
+      toast.error("Failed to save authentication data. Please try again.");
+      return;
+    }
+
+    // Extract user role from the response
+    const userRole = Array.isArray(loginData.role) ? loginData.role[0] : loginData.role;
+    const fullName = loginData.full_name;
+
+    // Store role and full name in localStorage
+    if (userRole) {
+      localStorage.setItem("role", userRole);
+    }
+    if (fullName) {
+      localStorage.setItem("fullName", fullName);
+    }
+
+    // Store data in storage manager
+    const storageData: StorageManagerLoginData = {
+      token: loginData.access_token,
+      refresh_token: loginData.refresh_token,
+      userId: loginData.id,
+      email: loginData.email,
+      password: rememberMe ? getValues('password') : undefined,
+      role: userRole,
+      fullName: fullName,
+      permissions: loginData.permissions,
+      rememberMe: rememberMe
+    };
+
+    storageManager.login(storageData);
+
+    // Track login event
+    events.login(userRole || 'user');
+    
+    // Show success message and redirect
+    toast.success("Login successful! Redirecting...");
+    
+    // Enhanced redirect logic to ensure proper URL handling
+    if (redirectPath && redirectPath.startsWith('/')) {
+      router.push(redirectPath);
+    } else {
+      const dashboardPath = getRoleBasedRedirectPath(userRole);
+      router.push(dashboardPath);
+    }
+    
+    // Reset verification states
+    setShowOTPVerification(false);
+    setPendingLoginData(null);
+    setVerificationEmail('');
+    setCurrentStep(1);
+  };
+
+  // Handle back from verification
+  const handleBackFromVerification = (): void => {
+    setShowOTPVerification(false);
+    setPendingLoginData(null);
+    setVerificationEmail('');
+    setCurrentStep(1);
+  };
   
   // Updated submit handler using the enhanced auth utilities
   const onSubmit = async (data: FormInputs): Promise<void> => {
@@ -250,71 +373,75 @@ const LoginForm = () => {
           agree_terms: data?.agree_terms,
         },
         onSuccess: (res: LoginResponse) => {
-          // Prepare auth data with the exact structure
-          const authData: AuthData = {
-            token: res.data.access_token,
-            refresh_token: res.data.refresh_token,
-            id: res.data.id,
-            full_name: res.data.full_name,
-            email: res.data.email
-          };
+          console.log('Login response:', res);
 
-          const authSuccess = storeAuthData(
-            authData,
-            rememberMe,
-            data.email
-          );
-
-          if (!authSuccess) {
-            toast.error("Failed to save authentication data. Please try again.");
+          // Check if email verification is required (legacy check)
+          if (res.data.emailVerified === false) {
+            // User needs to verify email first
+            setPendingLoginData(res.data);
+            setVerificationEmail(res.data.email);
+            setCurrentStep(2);
+            setShowOTPVerification(true);
+            
+            // Send verification email
+            postQuery({
+              url: apiUrls?.user?.resendOTP,
+              postData: { email: res.data.email },
+              requireAuth: false,
+              onSuccess: () => {
+                toast.info("Please verify your email. A verification code has been sent to your inbox.");
+              },
+              onFail: (error) => {
+                console.error("Failed to send verification email:", error);
+                toast.warning("Login successful, but we couldn't send a verification email. Please contact support.");
+              }
+            });
+            
             return;
           }
 
-          // Extract user role from the response
-          const userRole = Array.isArray(res.data.role) ? res.data.role[0] : res.data.role;
-          const fullName = res.data.full_name;
-
-          // Store role and full name in localStorage
-          if (userRole) {
-            localStorage.setItem("role", userRole);
-          }
-          if (fullName) {
-            localStorage.setItem("fullName", fullName);
-          }
-
-          // Store data in storage manager
-          const storageData: StorageManagerLoginData = {
-            token: res.data.access_token,
-            refresh_token: res.data.refresh_token,
-            userId: res.data.id,
-            email: res.data.email,
-            password: rememberMe ? data.password : undefined,
-            role: userRole,
-            fullName: fullName,
-            permissions: res.data.permissions,
-            rememberMe: rememberMe
-          };
-
-          storageManager.login(storageData);
-
-          // Track login event
-          events.login(userRole || 'user');
-          
-          // Show success message and redirect
-          toast.success(res.message || "Login successful! Redirecting...");
-          
-          // Enhanced redirect logic to ensure proper URL handling
-          if (redirectPath && redirectPath.startsWith('/')) {
-            router.push(redirectPath);
-          } else {
-            const dashboardPath = getRoleBasedRedirectPath(userRole);
-            router.push(dashboardPath);
-          }
+          // Email is verified, proceed with normal login
+          completeLoginProcess(res.data);
           
           setRecaptchaError(false);
           setRecaptchaValue(null);
         },
         onFail: (error) => {
+          console.log('Login error:', error);
+          
+          // Check if this is an email verification error
+          const errorResponse = error?.response?.data;
+          const isEmailNotVerified = errorResponse?.error_code === "EMAIL_NOT_VERIFIED" || 
+                                   errorResponse?.message?.includes("Email not verified");
+          
+          if (isEmailNotVerified) {
+            // Handle email verification required
+            const email = errorResponse?.data?.email || data.email;
+            
+            // Create mock login data for verification flow
+            const mockLoginData: LoginResponseData = {
+              id: '', // Will be filled after verification
+              email: email,
+              full_name: '', // Will be filled after verification
+              role: [],
+              permissions: [],
+              access_token: '', // Will be filled after verification
+              refresh_token: '', // Will be filled after verification
+              emailVerified: false
+            };
+            
+            setPendingLoginData(mockLoginData);
+            setVerificationEmail(email);
+            setCurrentStep(2);
+            setShowOTPVerification(true);
+            
+            // Show appropriate message
+            toast.info(errorResponse?.message || "Please verify your email. A verification code has been sent to your inbox.");
+            
+            return;
+          }
+          
+          // Handle other login errors
           toast.error(error?.message || "Login failed. Please check your credentials.");
           
           // Don't log sensitive information to console in production
@@ -335,6 +462,86 @@ const LoginForm = () => {
       }
     }
   };
+
+  // Show OTP verification if needed
+  if (showOTPVerification) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-4 px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md relative">
+          {/* Decorative elements - hidden on mobile */}
+          <div className="absolute -top-10 -left-10 w-20 h-20 bg-primary-300/30 dark:bg-primary-600/20 rounded-full blur-xl hidden sm:block"></div>
+          <div className="absolute -bottom-12 -right-12 w-24 h-24 bg-indigo-300/30 dark:bg-indigo-600/20 rounded-full blur-xl hidden sm:block"></div>
+          
+          {/* Card container with glass morphism effect */}
+          <div className="login-card bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300">
+            
+            {/* Header area */}
+            <div className="px-4 sm:px-8 pt-4 sm:pt-8 pb-2 sm:pb-4 text-center relative">
+              <Link href="/" className="inline-block mb-2 sm:mb-4">
+                <Image 
+                  src={theme === 'dark' ? logo1 : logo2} 
+                  alt="Medh Logo" 
+                  width={100} 
+                  height={32} 
+                  className="mx-auto w-24 sm:w-32"
+                  priority
+                />
+              </Link>
+            </div>
+
+            {/* Stepper UI */}
+            <div className="px-4 sm:px-8 mb-4">
+              <div className="flex items-center justify-between max-w-md mx-auto">
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex items-center justify-center">
+                    <Check className="w-4 h-4" />
+                  </div>
+                  <span className="text-xs mt-1 text-primary-600 dark:text-primary-400 font-medium">Login</span>
+                </div>
+                <div className="flex-1 mx-2">
+                  <div className="h-0.5 bg-primary-500"></div>
+                </div>
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center">
+                    <span className="text-xs font-medium">2</span>
+                  </div>
+                  <span className="text-xs mt-1 text-primary-600 dark:text-primary-400 font-medium">Verification</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="px-4 sm:px-8 mb-4 text-center">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">Email Verification Required</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Please verify your email to complete the login process<br />
+                <span className="font-medium text-gray-900 dark:text-white">{verificationEmail}</span>
+              </p>
+            </div>
+            
+            {/* Form area */}
+            <div className="px-4 sm:px-8 pb-4 sm:pb-8">
+              <OTPVerification
+                email={verificationEmail}
+                onVerificationSuccess={handleVerificationSuccess}
+                onBack={handleBackFromVerification}
+                backButtonText="Back to Login"
+              />
+            </div>
+          </div>
+          
+          {/* Footer */}
+          <div className="text-center mt-3 sm:mt-4 text-xs text-gray-500 dark:text-gray-400">
+            <p>Trusted by students worldwide 🌎</p>
+          </div>
+          
+          {/* Copyright notice */}
+          <div className="text-center mt-2 text-xs text-gray-400 dark:text-gray-500">
+            <p>© {new Date().getFullYear()} Medh Learning. All rights reserved.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

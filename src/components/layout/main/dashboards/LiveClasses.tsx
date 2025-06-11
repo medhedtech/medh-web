@@ -20,6 +20,24 @@ import {
   Plus,
   AlertCircle,
   RefreshCw
+=======
+  LucideCalendar, 
+  LucideClock, 
+  LucideUser, 
+  LucideBookOpen,
+  LucideVideo,
+  LucidePlay,
+  LucideUsers,
+  LucideInfo,
+  LucideExternalLink,
+  LucideVideoOff,
+  LucideCheck,
+  LucideDownload,
+  LucideBookmark,
+  LucideMessageCircle,
+  LucideFileText,
+  LucideFile,
+  LucideSend
 } from "lucide-react";
 import { format } from "date-fns";
 import defaultCourseImage from "@/assets/images/courses/Ai&Ml.jpeg";

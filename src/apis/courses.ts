@@ -168,7 +168,9 @@ export interface IAdvancedSearchParams extends ICollaborativeFetchParams {
 export interface ICurriculumWeek {
   _id?: string;
   title: string;
+  weekTitle?: string; // Backend expects this field for creation
   description?: string;
+  weekDescription?: string; // Backend might expect this field too
   order: number;
   lessons?: ICurriculumLesson[];
   sections?: ICurriculumSection[];
@@ -617,11 +619,56 @@ export interface ICourseTypesResponse<T = TNewCourse> {
 
 export interface IAllCoursesResponse {
   success: boolean;
-  message: string;
+  count: number;
   data: (TNewCourse | ILegacyCourse)[];
-  totalCount: number;
-  newModelCount: number;
-  legacyModelCount: number;
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+  sources: {
+    new_model: number;
+    legacy_model: number;
+  };
+}
+
+/**
+ * Response interface for the new courses by category API
+ */
+export interface ICoursesByCategoryResponse {
+  success: boolean;
+  message: string;
+  data: {
+    coursesByCategory: {
+      [categoryName: string]: (TNewCourse | ILegacyCourse)[];
+    };
+    pagination?: {
+      currentPage: number;
+      totalPages: number;
+      totalCourses: number;
+      coursesPerPage: number;
+      hasNextPage: boolean;
+      hasPrevPage: boolean;
+      nextPage: number | null;
+      prevPage: number | null;
+    };
+    filters?: {
+      category: string;
+      status: string;
+      class_type: string;
+      category_type: string;
+      search: string | null;
+    };
+    sorting?: {
+      sort_by: string;
+      sort_order: string;
+    };
+    sources?: {
+      legacy_model: number;
+      new_model: number;
+    };
+  };
 }
 
 /**
@@ -889,6 +936,18 @@ export const courseTypesAPI = {
   getAllCourses: async () => {
     return apiClient.get<IAllCoursesResponse>(
       `${apiBaseUrl}/tcourse/all`
+    );
+  },
+
+  /**
+   * Get courses by category with pagination
+   * @param params - Query parameters for filtering
+   * @returns Promise with categorized courses response
+   */
+  getCoursesByCategory: async (params: ICourseQueryParams = {}) => {
+    const queryString = apiUtils.buildQueryString(params);
+    return apiClient.get<ICoursesByCategoryResponse>(
+      `${apiBaseUrl}/courses/category${queryString}`
     );
   },
 
