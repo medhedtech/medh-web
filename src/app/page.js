@@ -1,4 +1,4 @@
-import Home1 from "@/components/layout/main/Home1";
+import Home2 from "@/components/layout/main/Home2";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
 export default function Home() {
@@ -6,7 +6,7 @@ export default function Home() {
     <PageWrapper>
       <div className="w-full min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
         <div className="max-w-[2100px] mx-auto w-full">
-          <Home1 />
+          <Home2 />
         </div>
       </div>
     </PageWrapper>
