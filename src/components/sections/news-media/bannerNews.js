@@ -127,12 +127,12 @@ export default function BannerNews() {
               <h2 className="text-sm sm:text-base text-gray-600 dark:text-gray-400 font-medium tracking-wider uppercase">
                 STAY UPDATED WITH MEDH
               </h2>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white leading-tight">
+              <h1 className="text-4xl sm:text-4xl md:text-3xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight">
                 <span className="block">STAY INFORMED</span>
                 <span className="block">GROW DYNAMICALLY</span>
                 <span className="text-medhgreen">with MEDH</span>
               </h1>
-              <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 leading-relaxed max-w-3xl mx-auto">
+              <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 leading-relaxed max-w-3xl mx-auto px-4 sm:px-6 md:px-8 mb-8 pb-8">
                 Become part of our mission to redefine Innovative EdTech and transform Skill Development for the future.
               </p>
             </motion.div>
@@ -143,10 +143,10 @@ export default function BannerNews() {
             initial="hidden"
             animate={isLoaded ? "visible" : "hidden"}
             transition={{ delay: 0.6 }}
-            className="flex flex-col items-center gap-6"
+            className="flex flex-col items-center gap-8 mb-16 px-4 sm:px-6"
           >
-            <div className="flex flex-wrap gap-4 justify-center">
-              <Link href="/contact-us/" className="inline-flex items-center px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all transform hover:-translate-y-1 shadow-lg shadow-blue-500/25 font-medium">
+            <div className="flex flex-wrap gap-4 sm:gap-6 justify-center">
+              <Link href="/contact-us/" className="inline-flex items-center px-8 py-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all transform hover:-translate-y-1 shadow-lg shadow-blue-500/25 font-medium text-base sm:text-lg">
                 Let's Connect
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
@@ -157,11 +157,9 @@ export default function BannerNews() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7 }}
-              className="text-2xl sm:text-3xl md:text-4xl font-medium italic text-center"
+              className="mumkinMedh text-2xl sm:text-3xl md:text-4xl font-medium italic text-center"
             >
-              <span className="mumkinMedh">
-                Medh Hai Toh Mumkin Hai!
-              </span>
+              Medh Hai Toh Mumkin Hai!
             </motion.div>
 
           {/* Highlights Grid */}
@@ -230,7 +228,7 @@ export default function BannerNews() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
-              className="flex flex-col items-center mt-4 animate-bounce"
+              className="flex flex-col items-center mt-8 animate-bounce"
             >
               <span className="text-sm text-gray-500 dark:text-gray-400 mb-2">Explore Our News</span>
               <ChevronDown className="text-gray-400 w-6 h-6" />

@@ -105,15 +105,13 @@ function DigiMarketingCource() {
             hideSearch={true}
             hideSortOptions={true}
             hideFilterBar={true}
-            hideViewModeSwitch={true}
             hideHeader={true}
-            forceViewMode="grid"
-            gridColumns={viewSettings.gridColumns}
-            itemsPerPage={viewSettings.itemsPerPage}
+            gridColumns={4}
+            itemsPerPage={12}
             simplePagination={true}
-            scrollToTop={handleScrollToTop}
+            scrollToTop={true}
             description="Master the art of digital marketing with our comprehensive courses combining modern marketing techniques with data analytics."
-            customGridClassName={`grid ${viewSettings.spacing.mobile} sm:${viewSettings.spacing.tablet} lg:${viewSettings.spacing.desktop}`}
+            customGridClassName="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4"
             customGridStyle={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',

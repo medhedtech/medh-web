@@ -10,9 +10,6 @@ const PrivacyPolicy = () => {
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mb-8">
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Privacy Policy
-            </h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               At medh.co ("Medh," "we," "us," or "our"), we are committed to
               safeguarding your privacy and take data protection seriously. This

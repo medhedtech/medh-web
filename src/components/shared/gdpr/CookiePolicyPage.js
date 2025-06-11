@@ -28,9 +28,6 @@ const CookiePolicyPage = () => {
         <div className="max-w-4xl w-full">
           <div className="bg-white dark:bg-gray-700 rounded-lg shadow-lg p-6 sm:p-8 mb-8">
             <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                Cookie Policy for MEDH
-              </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                 This Cookie Policy explains how MEDH ("we", "us", or "our") uses cookies and similar technologies
                 on our website. This policy is designed to help you understand what cookies are, how we use them,
