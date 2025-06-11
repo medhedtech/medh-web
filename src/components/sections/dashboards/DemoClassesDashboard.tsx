@@ -12,8 +12,6 @@ import {
   Play, 
   Bookmark, 
   Star, 
-  Filter, 
-  Search, 
   CheckCircle, 
   User, 
   Eye,
@@ -78,11 +76,9 @@ const DemoClassesContent: React.FC<IDemoClassesDashboardProps> = ({ studentId })
   const router = useRouter();
   
   // State management
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedDemoOption, setSelectedDemoOption] = useState<string | null>(null);
+  const [selectedDemoOption, setSelectedDemoOption] = useState<string | null>('scheduled');
 
   // Demo classes data - In production, this would come from an API
   const [demoClasses, setDemoClasses] = useState<IDemoClass[]>([]);
@@ -112,29 +108,8 @@ const DemoClassesContent: React.FC<IDemoClassesDashboardProps> = ({ studentId })
     fetchDemoClasses();
   }, [fetchDemoClasses]);
 
-  // Filter logic
-  const filteredDemoClasses = React.useMemo(() => {
-    let filtered = demoClasses;
-
-    // Filter by category
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(demo => demo.category === selectedCategory);
-    }
-
-    // Filter by search query
-    if (searchQuery) {
-      filtered = filtered.filter(demo =>
-        demo.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        demo.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        demo.instructor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        demo.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-    }
-
-    return filtered;
-  }, [demoClasses, selectedCategory, searchQuery]);
-
-  const categories = ['all', 'Data Science', 'Web Development', 'Marketing', 'AI & Machine Learning'];
+  // Show all demo classes without filtering
+  const filteredDemoClasses = demoClasses;
 
   // Demo videos data for each option - Empty for now, to be populated from API
   const demoVideos = {
@@ -197,117 +172,78 @@ const DemoClassesContent: React.FC<IDemoClassesDashboardProps> = ({ studentId })
             Explore free demo classes, join live sessions, and access recorded content to preview our courses.
           </p>
           
-          {/* Search Bar */}
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search demo classes, instructors, or topics..."
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white bg-white dark:bg-gray-700"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
 
-            {/* Category Filter */}
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <select
-                className="pl-10 pr-8 py-3 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white appearance-none bg-white min-w-[200px]"
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-              >
-                {categories.map(category => (
-                  <option key={category} value={category}>
-                    {category === 'all' ? 'All Categories' : category}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
         </div>
 
-        {/* Demo Options Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Demo Options</h2>
-          <div className="flex flex-wrap justify-center gap-4">
-            {/* Demo Scheduled Details */}
-            <div 
-              onClick={() => handleDemoOptionClick('scheduled')}
-              className={`border rounded-full px-6 py-3 hover:shadow-md transition-all duration-200 cursor-pointer group ${
-                selectedDemoOption === 'scheduled' 
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                  : 'border-gray-200 dark:border-gray-700'
-              }`}
-            >
-              <h3 className="font-medium text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors text-center whitespace-nowrap">
-                Demo Scheduled Details
-              </h3>
-            </div>
-
-            {/* Demo Attend Details */}
-            <div 
-              onClick={() => handleDemoOptionClick('attend')}
-              className={`border rounded-full px-6 py-3 hover:shadow-md transition-all duration-200 cursor-pointer group ${
-                selectedDemoOption === 'attend' 
-                  ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
-                  : 'border-gray-200 dark:border-gray-700'
-              }`}
-            >
-              <h3 className="font-medium text-gray-900 dark:text-white group-hover:text-green-600 transition-colors text-center whitespace-nowrap">
-                Demo Attend Details
-              </h3>
-            </div>
-
-            {/* Demo Attend Certificate */}
-            <div 
-              onClick={() => handleDemoOptionClick('certificate')}
-              className={`border rounded-full px-6 py-3 hover:shadow-md transition-all duration-200 cursor-pointer group ${
-                selectedDemoOption === 'certificate' 
-                  ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' 
-                  : 'border-gray-200 dark:border-gray-700'
-              }`}
-            >
-              <h3 className="font-medium text-gray-900 dark:text-white group-hover:text-purple-600 transition-colors text-center whitespace-nowrap">
-                Demo Attend Certificate
-              </h3>
-            </div>
-
-            {/* Demo Feedback/Summary */}
-            <div 
-              onClick={() => handleDemoOptionClick('feedback')}
-              className={`border rounded-full px-6 py-3 hover:shadow-md transition-all duration-200 cursor-pointer group ${
-                selectedDemoOption === 'feedback' 
-                  ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20' 
-                  : 'border-gray-200 dark:border-gray-700'
-              }`}
-            >
-              <h3 className="font-medium text-gray-900 dark:text-white group-hover:text-orange-600 transition-colors text-center whitespace-nowrap">
-                Demo Feedback/Summary
-              </h3>
-            </div>
+        {/* Demo Options - Brought out of box */}
+        <div className="flex flex-wrap justify-center gap-4 mb-8">
+          {/* Demo Scheduled Details */}
+          <div 
+            onClick={() => handleDemoOptionClick('scheduled')}
+            className={`border rounded-full px-6 py-3 hover:shadow-md transition-all duration-200 cursor-pointer group ${
+              selectedDemoOption === 'scheduled' 
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                : 'border-gray-200 dark:border-gray-700'
+            }`}
+          >
+            <h3 className="font-medium text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors text-center whitespace-nowrap">
+              Demo Scheduled Details
+            </h3>
           </div>
-                </div>
+
+          {/* Demo Attend Details */}
+          <div 
+            onClick={() => handleDemoOptionClick('attend')}
+            className={`border rounded-full px-6 py-3 hover:shadow-md transition-all duration-200 cursor-pointer group ${
+              selectedDemoOption === 'attend' 
+                ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
+                : 'border-gray-200 dark:border-gray-700'
+            }`}
+          >
+            <h3 className="font-medium text-gray-900 dark:text-white group-hover:text-green-600 transition-colors text-center whitespace-nowrap">
+              Demo Attend Details
+            </h3>
+          </div>
+
+          {/* Demo Attend Certificate */}
+          <div 
+            onClick={() => handleDemoOptionClick('certificate')}
+            className={`border rounded-full px-6 py-3 hover:shadow-md transition-all duration-200 cursor-pointer group ${
+              selectedDemoOption === 'certificate' 
+                ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' 
+                : 'border-gray-200 dark:border-gray-700'
+            }`}
+          >
+            <h3 className="font-medium text-gray-900 dark:text-white group-hover:text-purple-600 transition-colors text-center whitespace-nowrap">
+              Demo Attend Certificate
+            </h3>
+          </div>
+
+          {/* Demo Feedback/Summary */}
+          <div 
+            onClick={() => handleDemoOptionClick('feedback')}
+            className={`border rounded-full px-6 py-3 hover:shadow-md transition-all duration-200 cursor-pointer group ${
+              selectedDemoOption === 'feedback' 
+                ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20' 
+                : 'border-gray-200 dark:border-gray-700'
+            }`}
+          >
+            <h3 className="font-medium text-gray-900 dark:text-white group-hover:text-orange-600 transition-colors text-center whitespace-nowrap">
+              Demo Feedback/Summary
+            </h3>
+          </div>
+        </div>
 
         {/* Selected Demo Option Videos */}
         {selectedDemoOption && (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-8">
-            <div className="flex items-center justify-between mb-6">
+            <div className="mb-6">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                 {selectedDemoOption === 'scheduled' && 'Scheduled Demo Sessions'}
                 {selectedDemoOption === 'attend' && 'Attendance Records'}
                 {selectedDemoOption === 'certificate' && 'Available Certificates'}
                 {selectedDemoOption === 'feedback' && 'Feedback & Summaries'}
               </h3>
-              <button 
-                onClick={() => setSelectedDemoOption(null)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
             </div>
             
             {demoVideos[selectedDemoOption as keyof typeof demoVideos]?.length === 0 ? (
@@ -463,7 +399,10 @@ const DemoClassesContent: React.FC<IDemoClassesDashboardProps> = ({ studentId })
                     <MonitorPlay className="w-8 h-8 text-gray-400" />
                   </div>
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                    No Videos Available
+                    {selectedDemoOption === 'scheduled' && 'No Demo Sessions Available'}
+                    {selectedDemoOption === 'attend' && 'No Attendance Records'}
+                    {selectedDemoOption === 'certificate' && 'No Certificates Available'}
+                    {selectedDemoOption === 'feedback' && 'No Feedback Available'}
                   </h3>
                   <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
                     {selectedDemoOption === 'scheduled' && 'No demo sessions are currently scheduled. Check back soon for upcoming sessions.'}

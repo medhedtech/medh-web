@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { getCourseById } from '@/apis/courses';
+import { courseAPI } from '@/apis/courses';
 import { ICourse, ICourseWeek } from '@/types/course.types';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -15,14 +15,15 @@ export async function generateMetadata({ params }: CoursePageProps): Promise<Met
     const id = params?.id;
     if (!id) return notFound();
 
-    const course = await getCourseById(id);
+    const response = await courseAPI.getCourseById(id);
+    const course = response.course;
 
     return {
-      title: course.course_title,
-      description: course.course_description.program_overview,
+      title: course.course_title || course.title,
+      description: course.course_description?.program_overview || course.description,
       openGraph: {
-        title: course.course_title,
-        description: course.course_description.program_overview,
+        title: course.course_title || course.title,
+        description: course.course_description?.program_overview || course.description,
         images: [course.course_image],
       },
     };
@@ -40,7 +41,8 @@ export default async function CoursePage({ params }: CoursePageProps) {
     const id = params?.id;
     if (!id) return notFound();
 
-    const course = await getCourseById(id);
+    const response = await courseAPI.getCourseById(id);
+    const course = response.course;
 
     return (
       <div className="container mx-auto px-4 py-8">
@@ -54,39 +56,43 @@ export default async function CoursePage({ params }: CoursePageProps) {
             <div className="grid grid-cols-2 gap-4 mb-8">
               <div>
                 <h3 className="font-semibold">Duration</h3>
-                <p>{course.course_duration}</p>
+                <p>{course.course_duration || 'Not specified'}</p>
               </div>
               <div>
                 <h3 className="font-semibold">Level</h3>
-                <p>{course.course_level}</p>
+                <p>{course.course_level || course.skill_level || 'Not specified'}</p>
               </div>
               <div>
                 <h3 className="font-semibold">Language</h3>
-                <p>{course.language}</p>
+                <p>{course.language || 'Not specified'}</p>
               </div>
               <div>
                 <h3 className="font-semibold">Category</h3>
-                <p>{course.course_category}</p>
+                <p>{course.course_category || 'Not specified'}</p>
               </div>
             </div>
 
             {/* Course Curriculum */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-4">Course Curriculum</h2>
-              {course.curriculum.map((week: ICourseWeek) => (
-                <div key={week.id} className="mb-6">
-                  <h3 className="text-xl font-semibold mb-2">
-                    Week {week.weekNumber}: {week.weekTitle}
-                  </h3>
-                  <p className="text-gray-600 mb-4">{week.weekDescription}</p>
-                  <ul className="list-disc list-inside">
-                    {week.topics.map((topic: string, index: number) => (
-                      <li key={index} className="mb-2">{topic}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
+            {course.curriculum && course.curriculum.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold mb-4">Course Curriculum</h2>
+                {course.curriculum.map((week: ICourseWeek, index: number) => (
+                  <div key={week.id || index} className="mb-6">
+                    <h3 className="text-xl font-semibold mb-2">
+                      Week {week.weekNumber}: {week.weekTitle}
+                    </h3>
+                    <p className="text-gray-600 mb-4">{week.weekDescription}</p>
+                    {week.topics && week.topics.length > 0 && (
+                      <ul className="list-disc list-inside">
+                        {week.topics.map((topic: string, topicIndex: number) => (
+                          <li key={topicIndex} className="mb-2">{topic}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Course Sidebar */}
@@ -102,9 +108,9 @@ export default async function CoursePage({ params }: CoursePageProps) {
               
               <div className="mb-6">
                 <h3 className="text-2xl font-bold mb-2">
-                  {course.isFree ? 'Free' : `$${course.course_fee}`}
+                  {course.isFree || course.course_fee === 0 ? 'Free' : `$${course.course_fee || 0}`}
                 </h3>
-                {course.prices.length > 0 && (
+                {course.prices && course.prices.length > 0 && (
                   <p className="text-sm text-gray-600">
                     Group discounts available
                   </p>
@@ -115,22 +121,24 @@ export default async function CoursePage({ params }: CoursePageProps) {
                 Enroll Now
               </button>
 
-              <div className="mt-6">
+                            <div className="mt-6">
                 <h4 className="font-semibold mb-2">This course includes:</h4>
                 <ul className="space-y-2">
-                  {course.is_Certification === 'Yes' && (
+                  {(course.is_Certification === 'Yes' || course.is_certification) && (
                     <li>✓ Certificate of completion</li>
                   )}
-                  {course.is_Assignments === 'Yes' && (
+                  {(course.is_Assignments === 'Yes' || course.is_assignments) && (
                     <li>✓ Practice assignments</li>
                   )}
-                  {course.is_Projects === 'Yes' && (
+                  {(course.is_Projects === 'Yes' || course.is_projects) && (
                     <li>✓ Hands-on projects</li>
                   )}
-                  {course.is_Quizes === 'Yes' && (
+                  {(course.is_Quizes === 'Yes' || course.is_quizzes) && (
                     <li>✓ Interactive quizzes</li>
                   )}
-                  <li>✓ {course.no_of_Sessions} live sessions</li>
+                  {course.no_of_Sessions && (
+                    <li>✓ {course.no_of_Sessions} live sessions</li>
+                  )}
                   <li>✓ Lifetime access</li>
                 </ul>
               </div>
