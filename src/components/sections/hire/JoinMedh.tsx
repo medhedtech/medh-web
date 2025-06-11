@@ -8,7 +8,24 @@ import SchoolBg from "@/assets/images/about/Image.svg";
 import { useRouter } from "next/navigation";
 import { GraduationCap, Users, ChevronRight, Sparkles, Building, ArrowUpRight, Trophy, Award, LucideTarget, Zap } from "lucide-react";
 
-const JoinMedh = ({
+// Define interfaces
+interface IFeature {
+  icon: React.ReactNode;
+  text: string;
+}
+
+interface IJoinMedhProps {
+  educatorImage?: string;
+  educatorTitle?: string;
+  educatorText?: string;
+  educatorButtonText?: string;
+  partnerImage?: string;
+  partnerTitle?: string;
+  partnerText?: string;
+  partnerButtonText?: string;
+}
+
+const JoinMedh: React.FC<IJoinMedhProps> = ({
   educatorImage = Educator,
   educatorTitle = "Join Medh as an Educator",
   educatorText = "Join Medh's pioneering learning community and contribute to shaping a transformative educational journey for learners worldwide.",
@@ -19,20 +36,20 @@ const JoinMedh = ({
   partnerButtonText = "Let's Collaborate",
 }) => {
   const router = useRouter();
-  const [isVisible, setIsVisible] = useState(false);
-  const [activeCard, setActiveCard] = useState(null);
-  const educatorRef = useRef(null);
-  const partnerRef = useRef(null);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [activeCard, setActiveCard] = useState<string | null>(null);
+  const educatorRef = useRef<HTMLDivElement>(null);
+  const partnerRef = useRef<HTMLDivElement>(null);
   
-  // Define features lists like in Hire.js
-  const educatorFeatures = [
+  // Define features lists
+  const educatorFeatures: IFeature[] = [
     { icon: <Trophy size={16} className="text-primary-500 dark:text-primary-400" />, text: "Global teaching platform" },
     { icon: <LucideTarget size={16} className="text-primary-500 dark:text-primary-400" />, text: "Flexible scheduling" },
     { icon: <Zap size={16} className="text-primary-500 dark:text-primary-400" />, text: "Competitive compensation" },
     { icon: <Award size={16} className="text-primary-500 dark:text-primary-400" />, text: "Teaching resources provided" }
   ];
   
-  const partnerFeatures = [
+  const partnerFeatures: IFeature[] = [
     { icon: <Zap size={16} className="text-amber-500 dark:text-amber-400" />, text: "Customized training programs" },
     { icon: <Award size={16} className="text-amber-500 dark:text-amber-400" />, text: "Industry-aligned curriculum" },
     { icon: <Trophy size={16} className="text-amber-500 dark:text-amber-400" />, text: "Cutting-edge resources" },
@@ -42,7 +59,7 @@ const JoinMedh = ({
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 300);
     
-    const handleScroll = () => {
+    const handleScroll = (): void => {
       if (educatorRef.current && partnerRef.current) {
         const educatorRect = educatorRef.current.getBoundingClientRect();
         const partnerRect = partnerRef.current.getBoundingClientRect();
@@ -80,6 +97,14 @@ const JoinMedh = ({
     };
   }, []);
 
+  const handleEducatorNavigate = (): void => {
+    router.push("/join-us-as-educator");
+  };
+
+  const handlePartnerNavigate = (): void => {
+    router.push("/join-us-as-school-institute");
+  };
+
   return (
     <div className={`py-4 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
       <div className="mb-10 text-center max-w-md mx-auto">
@@ -92,7 +117,7 @@ const JoinMedh = ({
         </p>
       </div>
       
-      {/* Add decorative elements like in Hire.js */}
+      {/* Add decorative elements */}
       <div className="relative">
         <div className="absolute top-0 left-0 w-64 h-64 bg-primary-100/40 dark:bg-primary-900/10 rounded-full blur-3xl opacity-60 -translate-y-1/2 -translate-x-1/3"></div>
         <div className="absolute bottom-0 right-0 w-64 h-64 bg-amber-100/40 dark:bg-amber-900/10 rounded-full blur-3xl opacity-60 translate-y-1/2 translate-x-1/3"></div>
@@ -143,7 +168,7 @@ const JoinMedh = ({
                   />
                 </div>
                 
-                {/* Features - Updated to match Hire.js style */}
+                {/* Features */}
                 <div className="mb-8">
                   <p className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-4">Why join as an educator?</p>
                   <div className="grid grid-cols-2 gap-4">
@@ -161,7 +186,7 @@ const JoinMedh = ({
                 {/* Button */}
                 <div className="mt-auto">
                   <button
-                    onClick={() => router.push("/join-us-as-educator")}
+                    onClick={handleEducatorNavigate}
                     className="relative w-full group/btn inline-flex items-center justify-center px-5 py-3.5 text-base font-medium text-white bg-gradient-to-r from-primary-500 to-indigo-600 hover:from-primary-600 hover:to-indigo-700 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg overflow-hidden"
                   >
                     <span className="relative z-10">{educatorButtonText}</span>
@@ -211,16 +236,16 @@ const JoinMedh = ({
                   <div className="absolute inset-0 bg-gradient-to-t from-amber-500/10 to-transparent"></div>
                   <Image
                     src={partnerImage}
-                    alt="Partner with Medh"
+                    alt="Partner with us"
                     fill
                     className="object-cover object-center transform group-hover:scale-105 transition-transform duration-700"
                     style={{ objectPosition: '50% 30%' }}
                   />
                 </div>
                 
-                {/* Features - Updated to match Hire.js style */}
+                {/* Features */}
                 <div className="mb-8">
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-4">Partnership advantages:</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-4">Partnership benefits</p>
                   <div className="grid grid-cols-2 gap-4">
                     {partnerFeatures.map((feature, i) => (
                       <div key={i} className="flex items-start p-3 rounded-lg bg-amber-50 dark:bg-amber-900/10">
@@ -236,8 +261,8 @@ const JoinMedh = ({
                 {/* Button */}
                 <div className="mt-auto">
                   <button
-                    onClick={() => router.push("/join-us-as-school-institute")}
-                    className="relative w-full group/btn inline-flex items-center justify-center px-5 py-3.5 text-base font-medium text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg overflow-hidden"
+                    onClick={handlePartnerNavigate}
+                    className="relative w-full group/btn inline-flex items-center justify-center px-5 py-3.5 text-base font-medium text-white bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg overflow-hidden"
                   >
                     <span className="relative z-10">{partnerButtonText}</span>
                     <ArrowUpRight size={18} className="ml-2 relative z-10 transform group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform duration-300" />
@@ -250,21 +275,23 @@ const JoinMedh = ({
         </div>
       </div>
 
+      {/* Animation styles */}
       <style jsx>{`
         .card-animation {
-          opacity: 0;
-          transform: translateY(1rem);
-          transition: opacity 0.8s ease, transform 0.8s ease;
+          transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        
+        .card-animation.delay-100 {
+          transition-delay: 0.1s;
         }
         
         .card-visible {
           opacity: 1 !important;
           transform: translateY(0) !important;
-          transition: opacity 0.8s ease, transform 0.8s ease;
         }
       `}</style>
     </div>
   );
 };
 
-export default JoinMedh;
+export default JoinMedh; 

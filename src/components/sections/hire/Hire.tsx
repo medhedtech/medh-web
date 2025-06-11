@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import hire from "@/assets/images/hire/Hire.png";
@@ -6,7 +6,24 @@ import Traning from "@/assets/images/hire/Traning.png";
 import { useRouter } from "next/navigation";
 import { Briefcase, Users, ArrowUpRight, Sparkles, LucideTarget, Award, Zap, Trophy } from "lucide-react";
 
-const Hire = ({
+// Define interfaces
+interface IHireFeature {
+  icon: React.ReactNode;
+  text: string;
+}
+
+interface IHireProps {
+  hireImage?: string;
+  hireTitle?: string;
+  hireText?: string;
+  hireButtonText?: string;
+  trainingImage?: string;
+  trainingTitle?: string;
+  trainingText?: string;
+  trainingButtonText?: string;
+}
+
+const Hire: React.FC<IHireProps> = ({
   hireImage = hire,
   hireTitle = "Hire from Medh",
   hireText = "Recruit industry-trained, job-ready top talents to meet your business needs through our placement services.",
@@ -17,15 +34,15 @@ const Hire = ({
   trainingButtonText = "Empower Your Team",
 }) => {
   const router = useRouter();
-  const [isVisible, setIsVisible] = useState(false);
-  const [activeCard, setActiveCard] = useState(null);
-  const hireRef = useRef(null);
-  const trainingRef = useRef(null);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [activeCard, setActiveCard] = useState<string | null>(null);
+  const hireRef = useRef<HTMLDivElement>(null);
+  const trainingRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 300);
     
-    const handleScroll = () => {
+    const handleScroll = (): void => {
       if (hireRef.current && trainingRef.current) {
         const hireRect = hireRef.current.getBoundingClientRect();
         const trainingRect = trainingRef.current.getBoundingClientRect();
@@ -58,19 +75,27 @@ const Hire = ({
     };
   }, []);
   
-  const hireFeatures = [
+  const hireFeatures: IHireFeature[] = [
     { icon: <Trophy size={16} className="text-purple-500 dark:text-purple-400" />, text: "Pre-screened talent pool" },
     { icon: <LucideTarget size={16} className="text-purple-500 dark:text-purple-400" />, text: "Targeted skill matching" },
     { icon: <Zap size={16} className="text-purple-500 dark:text-purple-400" />, text: "Streamlined hiring process" },
     { icon: <Award size={16} className="text-purple-500 dark:text-purple-400" />, text: "Quality assured candidates" }
   ];
   
-  const trainingFeatures = [
+  const trainingFeatures: IHireFeature[] = [
     { icon: <Zap size={16} className="text-green-500 dark:text-green-400" />, text: "Customized training modules" },
     { icon: <Award size={16} className="text-green-500 dark:text-green-400" />, text: "Industry expert trainers" },
     { icon: <Trophy size={16} className="text-green-500 dark:text-green-400" />, text: "Hands-on practical sessions" },
     { icon: <LucideTarget size={16} className="text-green-500 dark:text-green-400" />, text: "Skill-gap analysis included" }
   ];
+
+  const handleHireNavigate = (): void => {
+    router.push("/hire-from-medh");
+  };
+
+  const handleTrainingNavigate = (): void => {
+    router.push("/corporate-training-courses");
+  };
 
   return (
     <div className={`py-4 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
@@ -148,7 +173,7 @@ const Hire = ({
               {/* Button */}
               <div className="mt-auto">
                 <button
-                  onClick={() => router.push("/hire-from-medh")}
+                  onClick={handleHireNavigate}
                   className="relative w-full group/btn inline-flex items-center justify-center px-5 py-3.5 text-base font-medium text-white bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg overflow-hidden"
                 >
                   <span className="relative z-10">{hireButtonText}</span>
@@ -207,7 +232,7 @@ const Hire = ({
               
               {/* Features */}
               <div className="mb-8">
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-4">Training advantages:</p>
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-4">Why choose our training?</p>
                 <div className="grid grid-cols-2 gap-4">
                   {trainingFeatures.map((feature, i) => (
                     <div key={i} className="flex items-start p-3 rounded-lg bg-green-50 dark:bg-green-900/10">
@@ -223,8 +248,8 @@ const Hire = ({
               {/* Button */}
               <div className="mt-auto">
                 <button
-                  onClick={() => router.push("/corporate-training-courses")}
-                  className="relative w-full group/btn inline-flex items-center justify-center px-5 py-3.5 text-base font-medium text-white bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg overflow-hidden"
+                  onClick={handleTrainingNavigate}
+                  className="relative w-full group/btn inline-flex items-center justify-center px-5 py-3.5 text-base font-medium text-white bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg overflow-hidden"
                 >
                   <span className="relative z-10">{trainingButtonText}</span>
                   <ArrowUpRight size={18} className="ml-2 relative z-10 transform group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform duration-300" />
@@ -236,21 +261,23 @@ const Hire = ({
         </div>
       </div>
 
+      {/* Animation styles */}
       <style jsx>{`
         .card-animation {
-          opacity: 0;
-          transform: translateY(1rem);
-          transition: opacity 0.8s ease, transform 0.8s ease;
+          transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        
+        .card-animation.delay-100 {
+          transition-delay: 0.1s;
         }
         
         .card-visible {
           opacity: 1 !important;
           transform: translateY(0) !important;
-          transition: opacity 0.8s ease, transform 0.8s ease;
         }
       `}</style>
     </div>
   );
 };
 
-export default Hire;
+export default Hire; 
