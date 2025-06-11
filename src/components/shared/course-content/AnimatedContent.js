@@ -63,12 +63,63 @@ function AnimatedContent({
 
   // State management
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const prefersReducedMotion = useReducedMotion();
   const mainRef = useRef(null);
 
   useEffect(() => {
+    setIsMounted(true);
     setIsLoaded(true);
   }, []);
+
+  // Don't render animations on server or until component is mounted
+  if (!isMounted) {
+    return (
+      <div className="relative w-full overflow-hidden">
+        {/* Static version without animations for SSR */}
+        <section className="relative w-full">
+          {CourseBanner && <CourseBanner {...bannerProps} />}
+          <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-gray-50 dark:from-gray-900 to-transparent" />
+        </section>
+
+        {CourseContent && (
+          <section className="w-full py-3 md:py-16 relative z-10">
+            <CourseContent />
+          </section>
+        )}
+
+        <main className="relative w-full bg-gray-50 dark:bg-gray-900">
+          {CourseOverview && (
+            <section className="w-full py-3 md:py-16 relative z-10">
+              <CourseOverview />
+            </section>
+          )}
+
+          {CourseFAQ && (
+            <section className="w-full py-3 md:py-16 relative z-10">
+              <div className="">
+                <div className="py-0">
+                  <CourseFAQ />
+                </div>
+              </div>
+            </section>
+          )}
+
+          {CourseRelatedCourses && (
+            <section className="w-full py-3 md:py-16 relative z-10">
+              <CourseRelatedCourses />
+            </section>
+          )}
+        </main>
+
+        {ThemeController && (
+          <div className="fixed bottom-4 left-4 z-50">
+            <ThemeController />
+          </div>
+        )}
+      </div>
+    );
+  }
 
   // Animation variants with hardware acceleration hints
   const fadeInUp = {

@@ -8,6 +8,7 @@ import { BookOpen, ChevronRight, Layers, Sparkles, Video, Clock, Users, Calendar
 import PropTypes from 'prop-types';
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import mobileMenu from "@/libs/mobileMenu";
 import { getCoursePriceValue, getMinBatchSize } from '@/utils/priceUtils';
 import axios from 'axios';
@@ -28,6 +29,7 @@ const fallbackLiveCourses: ICourse[] = [
     course_title: "AI & Data Science",
     course_description: "Master the fundamentals of artificial intelligence and data science with hands-on projects and industry mentorship.",
     url: "/ai-and-data-science-course", // URL for redirection
+    course_image: "/images/courses/ai-data-science.png",
     duration_range: "4-18 months",
     effort_hours: "4-6",
     no_of_Sessions: "24-120",
@@ -79,6 +81,7 @@ const fallbackLiveCourses: ICourse[] = [
     course_title: "Digital Marketing with Data Analytics",
     course_description: "Learn how to leverage digital platforms and data analytics to create successful marketing campaigns.",
     url: "/digital-marketing-with-data-analytics-course", // URL for redirection
+    course_image: "/images/courses/digital-marketing.png",
     duration_range: "4-18 months",
     effort_hours: "4-6",
     no_of_Sessions: "24-120",
@@ -130,6 +133,7 @@ const fallbackLiveCourses: ICourse[] = [
     course_title: "Personality Development",
     course_description: "Develop essential soft skills, communication abilities, and confidence for personal and professional growth.",
     url: "/personality-development-course", // URL for redirection
+    course_image: "/images/courses/pd.jpg",
     duration_range: "3-9 months",
     effort_hours: "4-6",
     no_of_Sessions: "24-72",
@@ -181,6 +185,7 @@ const fallbackLiveCourses: ICourse[] = [
     course_title: "Vedic Mathematics",
     course_description: "Learn ancient Indian mathematical techniques for faster calculations and enhanced problem-solving abilities.",
     url: "/vedic-mathematics-course", // URL for redirection
+    course_image: "/images/courses/vd.jpg",
     duration_range: "3-9 months",
     effort_hours: "4-6",
     no_of_Sessions: "24-72",
@@ -640,6 +645,18 @@ const HomeCourseSection = ({
                 const courseTitle = course.course_title || course.title || 'Untitled Course';
                 console.log("Processing live course:", courseId, courseTitle);
                 
+                // Set specific images for known courses
+                let courseImage = course.course_image || course.thumbnail || '/fallback-course-image.jpg';
+                if (courseId === 'ai_data_science' || courseTitle.toLowerCase().includes('ai') || courseTitle.toLowerCase().includes('data science')) {
+                  courseImage = '/images/courses/ai-data-science.png';
+                } else if (courseId === 'digital_marketing' || courseTitle.toLowerCase().includes('digital marketing')) {
+                  courseImage = '/images/courses/digital-marketing.png';
+                } else if (courseId === 'personality_development' || courseTitle.toLowerCase().includes('personality development')) {
+                  courseImage = '/images/courses/pd.jpg';
+                } else if (courseId === 'vedic_mathematics' || courseTitle.toLowerCase().includes('vedic mathematics')) {
+                  courseImage = '/images/courses/vd.jpg';
+                }
+                
                 return {
                   ...course,
                   _id: courseId,
@@ -647,7 +664,7 @@ const HomeCourseSection = ({
                   classType: 'live', // Explicitly set classType
                   course_title: courseTitle,
                   course_category: course.course_category || course.category || 'Uncategorized',
-                  course_image: course.course_image || course.thumbnail || '/fallback-course-image.jpg',
+                  course_image: courseImage,
                   course_duration: course.duration_range || course.course_duration || "4-18 months",
                   // Ensure prices is always an array
                   prices: Array.isArray(course.prices) ? course.prices : []
@@ -995,20 +1012,20 @@ const HomeCourseSection = ({
   }
 
   return (
-    // Improve background and section sizing
-    <div className="w-full py-4 md:py-6 lg:py-8 relative">
-      {/* Section Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 md:mb-6 lg:mb-7">
+    // Improve background and section sizing with enhanced spacing
+    <div className="w-full py-6 md:py-8 lg:py-12 xl:py-16 relative">
+      {/* Section Header with improved spacing */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 md:mb-10 lg:mb-12 px-4 sm:px-6 md:px-8 lg:px-10">
         <div>
-          <h2 className="text-sm md:text-2xl lg:text-base font-extrabold mb-2  dark:text-gray-300 max-w-2xl font-medium">
+          <h2 className="text-sm md:text-2xl lg:text-base font-extrabold mb-3 md:mb-4 dark:text-gray-300 max-w-2xl font-medium">
             {textCustomization?.sectionTitle || CustomText}
           </h2>
-          <p className="text-2xl md:text-base lg:text-3xl text-gray-600 text-gray-800 dark:text-white text:bol">
+          <p className="text-2xl md:text-base lg:text-3xl text-gray-600 text-gray-800 dark:text-white font-bold">
             {textCustomization?.sectionDescription || CustomDescription}
           </p>
         </div>
         {/* Desktop View All Courses button */}
-        <div className="mt-4 md:mt-0 hidden md:block">
+        <div className="mt-6 md:mt-0 hidden md:block">
           <ViewAllButton 
             href="/courses" 
             text="View All Courses" 
@@ -1016,21 +1033,21 @@ const HomeCourseSection = ({
         </div>
       </div>
 
-      {/* Live Courses Section */}
+      {/* Live Courses Section with enhanced padding */}
       <div 
-        className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-[#379392]/10 via-white to-[#379392]/10 dark:from-[#379392]/25 dark:via-gray-800 dark:to-[#379392]/25 p-4 sm:p-5 md:p-6 lg:p-7 mb-8 md:mb-8 lg:mb-10 shadow-md transition-all duration-500`}
+        className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-[#379392]/10 via-white to-[#379392]/10 dark:from-[#379392]/25 dark:via-gray-800 dark:to-[#379392]/25 p-6 sm:p-7 md:p-8 lg:p-10 xl:p-12 mb-10 md:mb-12 lg:mb-16 mx-4 sm:mx-6 md:mx-8 lg:mx-10 shadow-md transition-all duration-500`}
         style={{
           borderRadius: cardConfig?.borderRadius ? `${cardConfig.borderRadius}px` : undefined,
           boxShadow: cardConfig?.shadowIntensity ? `0 ${cardConfig.shadowIntensity * 4}px ${cardConfig.shadowIntensity * 8}px rgba(0,0,0,${cardConfig.shadowIntensity * 0.05})` : undefined
         }}
       >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-5 lg:mb-6">
-          <div className="flex items-center mb-3 sm:mb-0">
-            <Video className="w-6 h-6 mr-2.5 text-[#379392]" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 md:mb-7 lg:mb-8">
+          <div className="flex items-center mb-4 sm:mb-0">
+            <Video className="w-6 h-6 mr-3 text-[#379392]" />
             <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-white">
               {textCustomization?.liveCoursesTitle || "Live Interactive Courses"}
               <span className="hidden sm:inline"> (Weekend / Weekday Classes Available)</span>
-              <span className="block sm:hidden text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">Weekend / Weekday Classes Available</span>
+              <span className="block sm:hidden text-sm font-medium text-gray-600 dark:text-gray-400 mt-2">Weekend / Weekday Classes Available</span>
             </h3>
           </div>
         </div>
@@ -1043,6 +1060,7 @@ const HomeCourseSection = ({
         ) : liveCourses.length > 0 ? (
           <motion.div 
             className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-5 md:gap-6 course-grid"
+            style={{gridAutoRows: '480px'}}
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -1060,8 +1078,10 @@ const HomeCourseSection = ({
               <motion.div 
                 key={course._id || course.id}
                 variants={itemVariants} 
-                className={`h-full live-course-card ${course.id === "digital_marketing" ? "active" : ""}`}
+                className={`h-full live-course-card ${course.id === "digital_marketing" ? "active" : ""} relative`}
               >
+
+                
                 <CourseCard 
                   course={{
                     _id: course._id || course.id,
@@ -1092,6 +1112,11 @@ const HomeCourseSection = ({
                   showDuration={cardConfig.showDuration}
                   hidePrice={cardConfig.hidePrice}
                   hideDescription={cardConfig.hideDescription}
+                  showJobGuarantee={((course._id === 'ai_data_science' || course.id === 'ai_data_science') || 
+                    (course._id === 'digital_marketing' || course.id === 'digital_marketing') ||
+                    course.course_title.toLowerCase().includes('ai') || 
+                    course.course_title.toLowerCase().includes('data science') ||
+                    course.course_title.toLowerCase().includes('digital marketing'))}
                 />
               </motion.div>
             )})}
@@ -1105,22 +1130,22 @@ const HomeCourseSection = ({
       {!showOnlyLive && (
         <div 
           ref={blendedRef}
-          className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-[#379392]/10 via-white to-[#379392]/10 dark:from-[#379392]/20 dark:via-gray-800 dark:to-[#379392]/20 p-4 sm:p-5 md:p-6 lg:p-7 shadow-md transition-all duration-500`}
+          className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-[#379392]/10 via-white to-[#379392]/10 dark:from-[#379392]/20 dark:via-gray-800 dark:to-[#379392]/20 p-6 sm:p-7 md:p-8 lg:p-10 xl:p-12 mb-10 md:mb-12 lg:mb-16 mx-4 sm:mx-6 md:mx-8 lg:mx-10 shadow-md transition-all duration-500`}
           style={{
             borderRadius: cardConfig?.borderRadius ? `${cardConfig.borderRadius}px` : undefined,
             boxShadow: cardConfig?.shadowIntensity ? `0 ${cardConfig.shadowIntensity * 4}px ${cardConfig.shadowIntensity * 8}px rgba(0,0,0,${cardConfig.shadowIntensity * 0.05})` : undefined
           }}
         >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-5 lg:mb-6">
-            <div className="flex items-center mb-3 sm:mb-0">
-              <Layers className="w-6 h-6 mr-2.5 text-[#379392]" />
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 md:mb-7 lg:mb-8">
+            <div className="flex items-center mb-4 sm:mb-0">
+              <Layers className="w-6 h-6 mr-3 text-[#379392]" />
               <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-white">
                 {textCustomization?.blendedCoursesTitle || "Blended Self Paced Certification Courses"}
               </h3>
             </div>
             
             {/* Filter buttons for blended courses */}
-            <div className="flex flex-wrap gap-2 md:gap-2.5">
+            <div className="flex flex-wrap gap-2 md:gap-3">
               <FilterButton 
                 active={activeBlendedFilters.beginner} 
                 icon={<BookOpen size={14} />} 
@@ -1187,7 +1212,8 @@ const HomeCourseSection = ({
 
             return coursesToRender.length > 0 ? (
               <motion.div 
-                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 course-grid"
+                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 md:gap-7 lg:gap-8 course-grid"
+                style={{gridAutoRows: '480px'}}
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
@@ -1264,14 +1290,14 @@ const HomeCourseSection = ({
       )}
 
       {/* Mobile View All Courses button - positioned after courses instead of fixed */}
-      <div className="md:hidden mt-6 mb-10 flex justify-center px-4">
+      <div className="md:hidden mt-8 mb-12 flex justify-center px-4 sm:px-6 md:px-8">
         <Link
           href="/courses"
-          className="w-full max-w-md px-5 py-3.5 flex items-center justify-center bg-gradient-to-r from-[#379392] to-[#379392]/90 text-white font-medium rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:from-[#2d7978] hover:to-[#2d7978]/90"
+          className="w-full max-w-md px-6 py-4 flex items-center justify-center bg-gradient-to-r from-[#379392] to-[#379392]/90 text-white font-medium rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:from-[#2d7978] hover:to-[#2d7978]/90"
           onClick={scrollToTop}
         >
           <span suppressHydrationWarning={true}>View All Courses</span>
-          <ChevronRight size={18} className="ml-1.5" />
+          <ChevronRight size={18} className="ml-2" />
         </Link>
       </div>
 
@@ -1293,8 +1319,9 @@ const HomeCourseSection = ({
         }
         
         :global(.course-grid > div) {
-          height: 460px !important;
-          min-height: 460px !important;
+          height: 480px !important;
+          min-height: 480px !important;
+          max-height: 480px !important;
           display: flex;
           flex-direction: column;
         }
@@ -1334,28 +1361,28 @@ const HomeCourseSection = ({
         /* Make sure all cards have equal heights */
         .live-course-card, .blended-course-card {
           display: flex;
-          height: 460px !important; /* Force fixed height for all cards */
-          min-height: 460px !important;
-          max-height: 460px !important;
-          flex: 1 0 460px !important;
+          height: 480px !important; /* Force fixed height for all cards */
+          min-height: 480px !important;
+          max-height: 480px !important;
+          flex: 1 0 480px !important;
           transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         
         /* Standard heights for live course cards to ensure consistency */
         .live-course-card {
-          height: 460px !important; /* Force fixed height */
-          min-height: 460px !important;
-          max-height: 460px !important;
-          flex: 1 0 460px !important;
+          height: 480px !important; /* Force fixed height */
+          min-height: 480px !important;
+          max-height: 480px !important;
+          flex: 1 0 480px !important;
         }
         
         /* Desktop-specific heights to prevent scrolling */
         @media (min-width: 768px) {
           .live-course-card, .blended-course-card {
-            height: 460px !important; /* Fixed consistent height */
-            min-height: 460px !important;
-            max-height: 460px !important;
-            flex: 1 0 460px !important;
+            height: 480px !important; /* Fixed consistent height */
+            min-height: 480px !important;
+            max-height: 480px !important;
+            flex: 1 0 480px !important;
           }
           
           /* Desktop hover card styles */
@@ -1368,8 +1395,8 @@ const HomeCourseSection = ({
         .live-course-card :global(.course-card), 
         .blended-course-card :global(.course-card) {
           height: 100% !important;
-          min-height: 460px !important;
-          max-height: 460px !important;
+          min-height: 480px !important;
+          max-height: 480px !important;
           display: flex;
           flex-direction: column;
           flex: 1 0 auto !important;
@@ -1394,14 +1421,14 @@ const HomeCourseSection = ({
           position: relative; /* Ensure positioned elements inside use this as reference */
         }
         
-        /* Handle content sizing for different screen sizes */
+        /* Handle content sizing for different screen sizes - All Equal Heights */
         @media (min-width: 1024px) {
           .live-course-card, .blended-course-card,
           .live-course-card :global(.course-card),
           .blended-course-card :global(.course-card) {
-            height: 460px !important; /* Fixed consistent height */
-            min-height: 460px !important;
-            max-height: 460px !important;
+            height: 480px !important; /* Fixed consistent height */
+            min-height: 480px !important;
+            max-height: 480px !important;
           }
         }
         
@@ -1409,9 +1436,9 @@ const HomeCourseSection = ({
           .live-course-card, .blended-course-card,
           .live-course-card :global(.course-card),
           .blended-course-card :global(.course-card) {
-            height: 460px !important; /* Fixed consistent height */
-            min-height: 460px !important;
-            max-height: 460px !important;
+            height: 480px !important; /* Fixed consistent height */
+            min-height: 480px !important;
+            max-height: 480px !important;
           }
         }
         
@@ -1419,9 +1446,9 @@ const HomeCourseSection = ({
           .live-course-card, .blended-course-card,
           .live-course-card :global(.course-card),
           .blended-course-card :global(.course-card) {
-            height: 460px !important; /* Fixed consistent height */
-            min-height: 460px !important;
-            max-height: 460px !important;
+            height: 480px !important; /* Fixed consistent height */
+            min-height: 480px !important;
+            max-height: 480px !important;
           }
         }
         
@@ -1717,35 +1744,35 @@ const HomeCourseSection = ({
         
         /* Specific fix for grid items to ensure equal height */
         .grid > div {
-          height: 460px !important;
-          min-height: 460px !important;
-          max-height: 460px !important;
+          height: 480px !important;
+          min-height: 480px !important;
+          max-height: 480px !important;
           display: flex;
         }
         
         /* Force equal heights for motion.div elements in grid */
         :global(.course-grid > .col-span-1),
         :global(.course-grid > motion.div) {
-          height: 460px !important;
-          min-height: 460px !important;
-          max-height: 460px !important;
+          height: 480px !important;
+          min-height: 480px !important;
+          max-height: 480px !important;
           display: flex !important;
         }
         
         /* Force equal heights even on Safari and other browsers */
         :global(*[class*="course-card"]) {
-          height: 460px !important;
-          min-height: 460px !important;
-          max-height: 460px !important;
+          height: 480px !important;
+          min-height: 480px !important;
+          max-height: 480px !important;
         }
         
         /* Handle IE and legacy browsers */
         @media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
           .live-course-card, .live-course-card :global(.course-card),
           .blended-course-card, .blended-course-card :global(.course-card) {
-            height: 460px !important;
-            min-height: 460px !important;
-            max-height: 460px !important;
+            height: 480px !important;
+            min-height: 480px !important;
+            max-height: 480px !important;
           }
         }
 
