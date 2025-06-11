@@ -27,39 +27,39 @@ interface IHomeState {
 // Enhanced glassmorphism styles for global use with theme support
 const getGlobalStyles = (isDark: boolean) => `
   .global-glass-container {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: ${isDark ? 'rgba(126, 127, 135, 0.1)' : 'rgba(255, 255, 255, 0.16)'};
+    backdrop-filter: blur(24px);
+    border: 1px solid ${isDark ? 'rgba(126, 127, 135, 0.2)' : 'rgba(126, 127, 135, 0.12)'};
     box-shadow: 
-      0 8px 32px rgba(0, 0, 0, 0.25),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      ${isDark ? '0 8px 32px rgba(126, 127, 135, 0.18), 0 16px 64px rgba(0, 0, 0, 0.12)' : '0 8px 32px rgba(126, 127, 135, 0.12), 0 16px 64px rgba(126, 127, 135, 0.06)'},
+      inset 0 1px 0 ${isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.8)'};
   }
   
   .global-glass-card {
-    background: rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: ${isDark ? 'rgba(126, 127, 135, 0.08)' : 'rgba(255, 255, 255, 0.14)'};
+    backdrop-filter: blur(20px);
+    border: 1px solid ${isDark ? 'rgba(126, 127, 135, 0.18)' : 'rgba(126, 127, 135, 0.1)'};
     box-shadow: 
-      0 4px 24px rgba(0, 0, 0, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      ${isDark ? '0 6px 28px rgba(126, 127, 135, 0.15), 0 12px 56px rgba(0, 0, 0, 0.1)' : '0 6px 28px rgba(126, 127, 135, 0.1), 0 12px 56px rgba(126, 127, 135, 0.05)'},
+      inset 0 1px 0 ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.7)'};
   }
   
   .global-glass-light {
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: ${isDark ? 'rgba(126, 127, 135, 0.06)' : 'rgba(255, 255, 255, 0.2)'};
+    backdrop-filter: blur(18px);
+    border: 1px solid ${isDark ? 'rgba(126, 127, 135, 0.15)' : 'rgba(126, 127, 135, 0.18)'};
     box-shadow: 
-      0 2px 16px rgba(0, 0, 0, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      ${isDark ? '0 4px 20px rgba(126, 127, 135, 0.12), 0 8px 40px rgba(0, 0, 0, 0.08)' : '0 4px 20px rgba(126, 127, 135, 0.08), 0 8px 40px rgba(126, 127, 135, 0.04)'},
+      inset 0 1px 0 ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.9)'};
   }
   
   .global-glass-dark {
-    background: rgba(0, 0, 0, 0.15);
-    backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: ${isDark ? 'rgba(126, 127, 135, 0.12)' : 'rgba(255, 255, 255, 0.12)'};
+    backdrop-filter: blur(22px);
+    border: 1px solid ${isDark ? 'rgba(126, 127, 135, 0.22)' : 'rgba(126, 127, 135, 0.08)'};
     box-shadow: 
-      0 6px 28px rgba(0, 0, 0, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      ${isDark ? '0 8px 32px rgba(126, 127, 135, 0.18), 0 16px 64px rgba(0, 0, 0, 0.15)' : '0 8px 32px rgba(126, 127, 135, 0.12), 0 16px 64px rgba(126, 127, 135, 0.06)'},
+      inset 0 1px 0 ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.6)'};
   }
   
   .scrolling-video-overlay {
@@ -244,17 +244,18 @@ const Home2: React.FC = () => {
         }}
       >
         <video
+          key={`background-video-${isDark ? 'dark' : 'light'}`}
           autoPlay
           muted
           loop
           playsInline
           className="absolute inset-0 w-full h-full object-cover enhanced-parallax"
           style={{ 
-            filter: 'brightness(0.3) contrast(1.3) saturate(1.2)',
+            filter: isDark ? 'brightness(0.3) contrast(1.4) saturate(0.8) hue-rotate(15deg)' : 'brightness(0.25) contrast(1.3) saturate(1.1) sepia(0.15)',
             transform: `translateY(${state.scrollY * 0.5}px)` // Parallax effect
           }}
         >
-          <source src="/video/1659171_Trapcode_Particles_3840x2160.mp4" type="video/mp4" />
+          <source src={isDark ? "https://d2cxn2x1vtrou8.cloudfront.net/Website/1659171_Trapcode_Particles_3840x2160.mp4" : "https://d2cxn2x1vtrou8.cloudfront.net/Website/0_Technology_Abstract_4096x2304.mp4"} type="video/mp4" />
         </video>
         
         {/* Enhanced scrolling overlay */}
@@ -284,16 +285,14 @@ const Home2: React.FC = () => {
           <div className={`flex flex-col gap-y-4 sm:gap-y-6 md:gap-y-8 lg:gap-y-10 relative z-10 ${
             isLaptopHeight ? '-mt-4' : '-mt-8'
           }`}>
-            {/* Courses Section - Enhanced Glassmorphism */}
-            <section className="w-full px-3 sm:px-4 md:px-5 lg:px-6 py-2 sm:py-1 md:py-2 laptop:py-3 relative z-10">
-              <div className="max-w-[1366px] mx-auto global-glass-container rounded-2xl shadow-2xl animate-gentle-float">
-                <div className="p-4 sm:p-6 md:p-8">
-                  <HomeCourseSection
-                    CustomText="Discover our comprehensive range of "
-                    CustomDescription="Skill Development Courses"
-                    hideGradeFilter
-                  />
-                </div>
+            {/* Courses Section - Edge to Edge with Glassmorphism */}
+            <section className="w-full relative z-10">
+              <div className="w-full global-glass-container animate-gentle-float">
+                <HomeCourseSection
+                  CustomText="Discover our comprehensive range of "
+                  CustomDescription="Skill Development Courses"
+                  hideGradeFilter
+                />
               </div>
             </section>
 
