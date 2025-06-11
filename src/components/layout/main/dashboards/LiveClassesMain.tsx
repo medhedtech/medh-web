@@ -8,7 +8,7 @@ import LiveClasses from "./LiveClasses";
  */
 const LiveClassesMain: React.FC = () => {
   return (
-    <div>
+    <div className="space-y-6">
       <LiveClasses />
     </div>
   );

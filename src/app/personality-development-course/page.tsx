@@ -1,5 +1,7 @@
 'use client';
 
+import React from "react";
+import { NextPage } from "next";
 import PersonalityFaq from "@/components/sections/personality-development/personalityFaq";
 import PersonalityOvereveiw from "@/components/sections/personality-development/personality-overview";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
@@ -14,8 +16,51 @@ import Banner from "@/assets/Header-Images/Personality-Development/personality-d
 import DevelopmentImg from "@/assets/Header-Images/Personality-Development/multiracial-teenage-high-school-students-looking-a-2023-11-27-05-15-38-utc.jpg";
 import AnimatedContent from './AnimatedContent';
 
-function PersonalityDevelopment() {
-  const bannerProps = {
+interface IStat {
+  icon: React.ReactElement;
+  value: string;
+  label: string;
+}
+
+interface IFeature {
+  icon: React.ReactElement;
+  title: string;
+  description: string;
+}
+
+interface IThemeClasses {
+  badge: string;
+  badgeContainer: string;
+  title: string;
+  button: string;
+  secondaryButton: string;
+  gradientFrom: string;
+  gradientVia: string;
+  gradientTo: string;
+  backgroundPrimary: string;
+  backgroundSecondary: string;
+}
+
+interface IBannerProps {
+  badge: string;
+  title: string;
+  titleHighlight: string;
+  description: string;
+  enrollmentPath: string;
+  stats: IStat[];
+  features: IFeature[];
+  mainImage: string;
+  studentImage: string;
+  themeClasses: IThemeClasses;
+}
+
+interface IExploreJourneyProps {
+  mainText: string;
+  subText: string;
+}
+
+const PersonalityDevelopment: NextPage = () => {
+  const bannerProps: IBannerProps = {
     badge: "All Ages Welcome",
     title: "Comprehensive",
     titleHighlight: "Personality Development",
@@ -55,8 +100,8 @@ function PersonalityDevelopment() {
         description: "Master public speaking"
       }
     ],
-    mainImage: Banner,
-    studentImage: DevelopmentImg,
+    mainImage: Banner.src,
+    studentImage: DevelopmentImg.src,
     themeClasses: {
       badge: "bg-primary-500",
       badgeContainer: "bg-primary-500/10",
@@ -69,6 +114,11 @@ function PersonalityDevelopment() {
       backgroundPrimary: "bg-primary-500/10",
       backgroundSecondary: "bg-indigo-500/10"
     }
+  };
+
+  const exploreJourneyProps: IExploreJourneyProps = {
+    mainText: "Discover Your Potential. Empower Yourself. Elevate Your Self-Image.",
+    subText: "Enroll Today!"
   };
 
   return (
@@ -101,10 +151,7 @@ function PersonalityDevelopment() {
               ExploreJourney,
               ThemeController
             }}
-            exploreJourneyProps={{
-              mainText: "Discover Your Potential. Empower Yourself. Elevate Your Self-Image.",
-              subText: "Enroll Today!"
-            }}
+            exploreJourneyProps={exploreJourneyProps}
             bannerProps={bannerProps}
           />
         </main>
@@ -119,6 +166,6 @@ function PersonalityDevelopment() {
       </div>
     </PageWrapper>
   );
-}
+};
 
-export default PersonalityDevelopment;
+export default PersonalityDevelopment; 

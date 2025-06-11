@@ -44,8 +44,9 @@
 	|___ tailwind directives
 
 ***************************************************************/
-@import "slick-carousel/slick/slick.css";
-@import "slick-carousel/slick/slick-theme.css";
+
+/* Import vendor styles including slick carousel */
+@import "../styles/vendor.css";
 
 /* Prevent horizontal scroll */
 html, body {

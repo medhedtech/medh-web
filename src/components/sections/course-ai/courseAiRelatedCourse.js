@@ -52,7 +52,7 @@ function CourseAiRelatedCourses() {
         <br /> dynamic fields, preparing you to excel in an ever-evolving
         industry.
       </p> */}
-      <div className="md:w-[80%] w-[88%] h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="md:w-[80%] w-[88%] h-full grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-6">
         {relatedCourses.length > 0 ? (
           relatedCourses.map((course) => (
             <CourseCard key={course._id} course={course} />

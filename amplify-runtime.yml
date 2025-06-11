@@ -1,0 +1,71 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - echo "=== Amplify Runtime Configuration ==="
+        - "echo \"Available Node.js version $(node -v)\""
+        - "echo \"Available npm version $(npm -v)\""
+        - "echo \"Expected Node.js version $(cat .nvmrc 2>/dev/null || echo 'Not specified')\""
+        - echo ""
+        
+        # Check Node.js compatibility
+        - |
+          CURRENT_NODE_VERSION=$(node -v | sed 's/v//' | cut -d. -f1)
+          echo "Current Node.js major version v$CURRENT_NODE_VERSION"
+          
+          if [ "$CURRENT_NODE_VERSION" -ge "18" ]; then
+            echo "✅ Node.js version is compatible (v$CURRENT_NODE_VERSION >= v18)"
+          else
+            echo "❌ Node.js version is too old (v$CURRENT_NODE_VERSION < v18)"
+            exit 1
+          fi
+        
+        # Configure npm settings
+        - echo ""
+        - echo "Configuring npm..."
+        - npm config set legacy-peer-deps true
+        - npm config set audit-level moderate
+        - npm config set fund false
+        - npm config set update-notifier false
+        
+        # Install dependencies
+        - echo ""
+        - echo "Installing dependencies..."
+        - npm ci --no-audit --prefer-offline --no-fund
+        
+    build:
+      commands:
+        - echo ""
+        - echo "=== Building Application ==="
+        - "echo \"Node.js version $(node -v)\""
+        - "echo \"npm version $(npm -v)\""
+        - "echo \"Build environment $AWS_BRANCH\""
+        
+        # Set Node.js options for build
+        - export NODE_OPTIONS="--max-old-space-size=4096"
+        - "echo \"Node options $NODE_OPTIONS\""
+        
+        # Run the build
+        - echo ""
+        - echo "Starting Next.js build..."
+        - npm run build
+        
+        # Verify build output
+        - echo ""
+        - echo "Build completed, checking output..."
+        - ls -la .next/ || echo "No .next directory found"
+        - "echo \"Build artifacts\""
+        - find .next -name "*.js" -o -name "*.html" | head -10 || echo "No build artifacts found"
+        
+  artifacts:
+    baseDirectory: .next
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
+      - .next/cache/**/*
+      - .npm/**/*
+      - ~/.npm/**/*
+appRoot: . 
