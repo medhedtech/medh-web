@@ -1,7 +1,8 @@
 import Home1 from "@/components/layout/main/Home1";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
+import { NextPage } from "next";
 
-export default function Home() {
+const HomePage: NextPage = () => {
   return (
     <PageWrapper>
       <div className="w-full min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
@@ -11,4 +12,6 @@ export default function Home() {
       </div>
     </PageWrapper>
   );
-}
+};
+
+export default HomePage; 
