@@ -8,7 +8,8 @@ import useIsTrue from "@/hooks/useIsTrue";
 import NavbarTop from "./NavbarTop";
 import { useState, useEffect, useRef, useCallback } from "react";
 import NavbarSearch from "@/components/shared/search/NavbarSearch";
-import { Search } from "lucide-react";
+import { Search, ShoppingCart } from "lucide-react";
+import Link from "next/link";
 
 /**
  * Modern navigation component with enhanced styling and interactions
@@ -235,7 +236,7 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
                 <NavItems />
               </div>
 
-              {/* Right section with search icon and profile */}
+              {/* Right section with search icon, store icon and profile */}
               <div className="flex items-center space-x-3 sm:space-x-4 lg:space-x-5">
                 {/* Search icon with inline search bar */}
                 <div 
@@ -277,6 +278,28 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
                       </div>
                     </div>
                   )}
+                </div>
+
+                {/* EduStore Icon - positioned near search */}
+                <div className="hidden lg:flex relative">
+                  <div className="relative group">
+                    <button
+                      className="p-2.5 rounded-full text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+                      aria-label="EduStore - Coming Soon"
+                      title="EduStore - Coming Soon"
+                    >
+                      <ShoppingCart size={22} className="transform group-hover:rotate-12 transition-transform duration-300" />
+                    </button>
+                    
+                    {/* Coming Soon Tooltip */}
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-500 dark:to-primary-600 text-white text-sm font-medium rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50">
+                      <span className="relative z-10">🚀 Coming Soon!</span>
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-primary-600 dark:border-b-primary-500"></div>
+                      
+                      {/* Animated background */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary-400 to-primary-500 rounded-lg opacity-0 group-hover:opacity-20 transition-opacity duration-500"></div>
+                    </div>
+                  </div>
                 </div>
                 
                 {/* DashboardProfileComponent instead of NavbarRight */}

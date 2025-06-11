@@ -55,7 +55,7 @@ const courseGrades = [
   'Grade 7-8',
   'Grade 9-10',
   'Grade 11-12',
-  'UG - Graduate - Professionals'
+  'UG/Grad/Pro'
 ];
 
 const CourseOverview: React.FC<CourseOverviewProps> = ({

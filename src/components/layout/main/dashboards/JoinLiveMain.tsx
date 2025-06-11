@@ -395,7 +395,6 @@ const JoinLiveMain: React.FC = () => {
           </div>
         </div>
       )}
-
       {/* Search and filters */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative w-full md:w-1/2">
