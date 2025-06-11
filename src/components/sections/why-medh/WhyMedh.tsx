@@ -9,6 +9,14 @@ import Certified from "./Certified";
 import { useRouter } from "next/navigation";
 import { CheckCircle, ChevronRight } from "lucide-react";
 
+// Define interfaces
+interface IWhyMedhContent {
+  id: number;
+  title: string;
+  desc: string;
+  icon: string;
+}
+
 // Dynamically import Swiper component to prevent SSR issues
 const DynamicSwiperComponent = dynamic(
   () => import('./SwiperComponent'),
@@ -28,11 +36,11 @@ const DynamicSwiperComponent = dynamic(
   }
 );
 
-const WhyMedh = () => {
+const WhyMedh: React.FC = () => {
   const router = useRouter();
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
 
-  const content = [
+  const content: IWhyMedhContent[] = [
     {
       id: 1,
       title: "Quality Content",
@@ -70,6 +78,10 @@ const WhyMedh = () => {
     };
   }, []);
 
+  const handleNavigateToPlacement = (): void => {
+    router.push("/placement-guaranteed-courses");
+  };
+
   return (
     <div 
       className={`transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
@@ -95,7 +107,7 @@ const WhyMedh = () => {
               />
               
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 md:mb-4 text-gray-800 dark:text-white leading-tight">
-                100% Job-guaranteed Courses from <span className="text-medhgreen dark:text-medhgreen" >Medh</span>.
+                100% Job-guaranteed Courses from <span className="text-medhgreen dark:text-medhgreen">Medh</span>.
               </h2>
               
               {/* todo: break after or */}
@@ -124,7 +136,7 @@ const WhyMedh = () => {
             </div>
             
             <button
-              onClick={() => router.push("/placement-guaranteed-courses")}
+              onClick={handleNavigateToPlacement}
               className="mt-1 md:mt-2 inline-flex items-center px-5 py-2.5 md:px-6 md:py-3.5 bg-primary-500 hover:bg-primary-600 text-white text-sm md:text-base font-medium rounded-full transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 group"
             >
               Explore Job Guaranteed Courses
@@ -197,4 +209,4 @@ const WhyMedh = () => {
   );
 };
 
-export default WhyMedh;
+export default WhyMedh; 

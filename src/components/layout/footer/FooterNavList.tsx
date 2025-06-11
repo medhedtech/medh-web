@@ -237,33 +237,33 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
     { name: "Refund Policy", path: "/cancellation-and-refund-policy" }
   ];
 
-  // Theme-aware styling
+  // Theme-aware styling - Made darker
   const themeStyles = {
     light: {
       container: 'text-gray-900',
-      ribbonBg: 'bg-gray-100',
-      ribbonBorder: 'border-gray-300',
+      ribbonBg: 'bg-gray-300',
+      ribbonBorder: 'border-gray-400',
       titleText: 'text-gray-900',
       bodyText: 'text-gray-700',
       linkText: 'text-gray-600 hover:text-gray-900',
       contactText: 'text-gray-600 hover:text-gray-900',
       qrShadow: 'shadow-lg',
-      navBorder: 'border-gray-300',
-      learningBg: 'bg-gray-50',
-      learningBorder: 'border-gray-200',
+      navBorder: 'border-gray-400',
+      learningBg: 'bg-gray-200',
+      learningBorder: 'border-gray-300',
     },
     dark: {
       container: 'text-white',
-      ribbonBg: 'bg-gray-850',
-      ribbonBorder: 'border-gray-700',
+      ribbonBg: 'bg-gray-950',
+      ribbonBorder: 'border-gray-800',
       titleText: 'text-white',
       bodyText: 'text-gray-300',
       linkText: 'text-gray-400 hover:text-white',
       contactText: 'text-gray-300 hover:text-white',
       qrShadow: 'shadow-xl',
-      navBorder: 'border-gray-700',
-      learningBg: 'bg-gray-800',
-      learningBorder: 'border-gray-700',
+      navBorder: 'border-gray-800',
+      learningBg: 'bg-gray-950',
+      learningBorder: 'border-gray-800',
     }
   };
 
@@ -274,9 +274,9 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
   }
 
   return (
-    <div className={currentTheme.container}>
+    <div className={`${currentTheme.container} ${theme === 'light' ? 'bg-gray-200' : 'bg-gray-950'}`}>
       {/* Company Info Ribbon - Full Width */}
-      <div className={`${currentTheme.ribbonBg} border-b ${currentTheme.ribbonBorder} py-12 mb-12`}>
+      <div className={`${currentTheme.ribbonBg} border-b ${currentTheme.ribbonBorder} py-12 mb-12 rounded-t-2xl`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
             
@@ -407,11 +407,13 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
 
       {/* Learning Section - Full Width */}
       {navigationSections.find(section => section.title === "Learning") && (
-        <div className={`mt-16 pt-8 border-t ${currentTheme.navBorder}`}>
-          <h2 className={`text-2xl font-bold ${currentTheme.titleText} mb-8 text-center`}>Learning</h2>
-          
-          <div className="space-y-12">
-            {navigationSections.find(section => section.title === "Learning")?.items.map((item, itemIndex) => (
+        <div className="mt-16">
+          <div className={`border-t ${currentTheme.navBorder}`}></div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+            <h2 className={`text-2xl font-bold ${currentTheme.titleText} mb-8 text-center`}>Learning</h2>
+            
+            <div className="space-y-12">
+              {navigationSections.find(section => section.title === "Learning")?.items.map((item, itemIndex) => (
               <div key={itemIndex}>
                 {/* Section Header */}
                 <div className="mb-6">
@@ -468,7 +470,7 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                       <Link 
                         key={childIndex}
                         href={child.path}
-                        className={`${currentTheme.linkText} transition-colors text-sm flex items-center gap-3 py-2 px-4 ${currentTheme.learningBg} rounded-lg hover:${theme === 'light' ? 'bg-gray-200' : 'bg-gray-700'}`}
+                        className={`${currentTheme.linkText} transition-colors text-sm flex items-center gap-3 py-2 px-4 ${currentTheme.learningBg} rounded-lg hover:${theme === 'light' ? 'bg-gray-400' : 'bg-black'}`}
                       >
                         <span className="w-2 h-2 bg-primary-400 rounded-full flex-shrink-0"></span>
                         {child.name}
@@ -478,58 +480,65 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                 )}
               </div>
             ))}
+            </div>
           </div>
         </div>
       )}
 
       {/* Bottom Section */}
-      <div className={`mt-12 pt-8 border-t ${currentTheme.navBorder}`}>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          
-          {/* Policy Links */}
-          <div className="flex flex-wrap gap-4">
-            {policyLinks.map((link, index) => (
-              <Link
-                key={index}
-                href={link.path}
-                className={`${currentTheme.linkText} transition-colors text-sm`}
-              >
-                {link.name}
-              </Link>
-            ))}
-          </div>
+      <div className="mt-12">
+        <div className={`border-t ${currentTheme.navBorder}`}></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            
+            {/* Policy Links */}
+            <div className="flex flex-wrap justify-center md:justify-start gap-4">
+              {policyLinks.map((link, index) => (
+                <Link
+                  key={index}
+                  href={link.path}
+                  className={`${currentTheme.linkText} transition-colors text-sm`}
+                >
+                  {link.name}
+                </Link>
+              ))}
+            </div>
 
-          {/* Social Media */}
-          <div className="flex items-center gap-4">
-            <span className={`text-sm ${currentTheme.bodyText}`}>Follow us:</span>
-            <div className="flex gap-3">
-              {socialLinks.map((link, index) => {
-                const IconComponent = link.icon;
-                return (
-                  <a
-                    key={index}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`Visit our ${link.name} page`}
-                    className={`w-8 h-8 flex items-center justify-center rounded-full ${theme === 'light' ? 'bg-gray-200 hover:bg-primary-600 text-gray-600 hover:text-white' : 'bg-gray-800 hover:bg-primary-600 text-gray-400 hover:text-white'} transition-colors`}
-                  >
-                    <IconComponent className="w-4 h-4" />
-                  </a>
-                );
-              })}
+            {/* Social Media */}
+            <div className="flex items-center gap-4">
+              <span className={`text-sm ${currentTheme.bodyText}`}>Follow us:</span>
+              <div className="flex gap-3">
+                {socialLinks.map((link, index) => {
+                  const IconComponent = link.icon;
+                  return (
+                    <a
+                      key={index}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Visit our ${link.name} page`}
+                      className={`w-8 h-8 flex items-center justify-center rounded-full ${theme === 'light' ? 'bg-gray-400 hover:bg-primary-600 text-gray-700 hover:text-white' : 'bg-black hover:bg-primary-600 text-gray-400 hover:text-white'} transition-colors`}
+                    >
+                      <IconComponent className="w-4 h-4" />
+                    </a>
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Copyright */}
-        <div className={`mt-6 pt-6 border-t ${currentTheme.navBorder} text-center`}>
-          <p className={`${currentTheme.bodyText} text-sm`}>
-            Copyright © {currentYear} MEDH. All Rights Reserved.
-          </p>
-          <p className="text-primary-400 text-sm font-medium mt-2">
-            LEARN. UPSKILL. ELEVATE.
-          </p>
+          {/* Copyright */}
+          <div className="mt-6">
+            <div className={`border-t ${currentTheme.navBorder}`}></div>
+            <div className="text-center pt-6">
+              <p className={`${currentTheme.bodyText} text-sm`}>
+                Copyright © {currentYear} MEDH. All Rights Reserved.
+              </p>
+              <p className="text-primary-400 text-sm font-medium mt-2">
+                LEARN. UPSKILL. ELEVATE.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

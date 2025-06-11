@@ -26,10 +26,11 @@ const Footer: React.FC<FooterProps> = ({ className = "" }) => {
   }, [isClient]);
 
   // Theme-aware styling - use resolvedTheme which is typed as 'light' | 'dark'
+  // Updated to blend with darker FooterNavList
   const currentTheme = resolvedTheme || 'dark'; // Default to dark if undefined
-  const footerBg = currentTheme === 'light' ? 'bg-white' : 'bg-gray-900';
-  const footerBorder = currentTheme === 'light' ? 'border-gray-200' : 'border-gray-800';
-  const loadingBg = currentTheme === 'light' ? 'bg-gray-100' : 'bg-gray-700';
+  const footerBg = currentTheme === 'light' ? 'bg-gray-200' : 'bg-gray-950';
+  const footerBorder = currentTheme === 'light' ? 'border-gray-400' : 'border-gray-800';
+  const loadingBg = currentTheme === 'light' ? 'bg-gray-300' : 'bg-gray-800';
 
   // Show a loading state until client-side hydration is complete
   if (!isClient) {
