@@ -43,10 +43,10 @@ async function fetchBlogData(id: string): Promise<IBlog | null> {
   }
 }
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   try {
     // Use params directly as it's already properly typed and validated by Next.js
-    const id = params.id;
+    const { id } = await params;
     
     if (!id) {
       return {
@@ -79,7 +79,7 @@ interface BlogPageParams {
 }
 
 type Props = {
-  params: BlogPageParams;
+  params: Promise<BlogPageParams>;
 }
 
 // Utility function to calculate read time
@@ -103,7 +103,7 @@ const formatDate = (dateString: string): string => {
 
 export default async function BlogDetails({ params }: Props) {
   // Use params directly as it's already properly typed and validated by Next.js
-  const id = params.id;
+  const { id } = await params;
   
   if (!id) {
     return (

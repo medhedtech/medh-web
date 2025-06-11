@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Download } from "lucide-react";
 import { calculateDiscountPercentage } from "@/utils/priceUtils";
-import DownloadBrochureModal from "@/components/shared/download-broucher";
 import { useCourseCardSettings } from "@/contexts/CourseCardSettingsContext";
 
 interface Price {
@@ -113,6 +112,7 @@ const CourseCard: React.FC<CourseProps> = ({
   const { settings } = useCourseCardSettings();
   const { cardConfig } = settings;
   
+  // Initialize selectedPricing based on class_type
   const [selectedPricing, setSelectedPricing] = useState<"individual" | "batch">(
     class_type === "Live" ? "batch" : "individual"
   );
@@ -132,9 +132,17 @@ const CourseCard: React.FC<CourseProps> = ({
   const borderRadius = cardConfig?.borderRadius ? `${cardConfig.borderRadius}px` : '0.5rem';
   const shadowIntensity = cardConfig?.shadowIntensity || 1;
 
+  // Check if this is a live course
+  const isLiveCourse = class_type?.toLowerCase().includes("live");
+
   useEffect(() => {
-    setSelectedPricing(class_type === "Live" ? "batch" : "individual");
-  }, [class_type]);
+    // Set default pricing based on course type
+    if (isLiveCourse) {
+      setSelectedPricing("batch");
+    } else {
+      setSelectedPricing("individual");
+    }
+  }, [class_type, isLiveCourse]);
 
   useEffect(() => {
     // Simulate price loading state
@@ -193,6 +201,8 @@ const CourseCard: React.FC<CourseProps> = ({
   console.log("Discounted Batch Price:", discountedBatchPrice);
   console.log("Is Free:", isFree);
   console.log("Class Type:", class_type);
+  console.log("Is Live Course:", isLiveCourse);
+  console.log("Selected Pricing:", selectedPricing);
 
   // Calculate discount percentages for display
   const individualDiscountPercentage = earlyBirdDiscount;
@@ -234,6 +244,28 @@ const CourseCard: React.FC<CourseProps> = ({
   // Determine if the course is truly free
   const isTrulyFree = isFree || (individualPriceValue === 0 && batchPriceValue === 0);
 
+  // Get current price based on selected pricing
+  const getCurrentPrice = () => {
+    if (isTrulyFree) return "Free";
+    
+    const price = selectedPricing === "individual" ? discountedIndividualPrice : discountedBatchPrice;
+    return formatPrice(price, currency);
+  };
+
+  // Get original price for strikethrough display
+  const getOriginalPrice = () => {
+    if (isTrulyFree) return null;
+    
+    const discount = selectedPricing === "individual" ? individualDiscountPercentage : batchDiscountPercentage;
+    if (discount === 0) return null;
+    
+    const originalPrice = selectedPricing === "individual" ? individualPriceValue : batchPriceValue;
+    return formatPrice(originalPrice, currency);
+  };
+
+  // Check if pricing toggle should be shown (for live courses with valid batch pricing)
+  const shouldShowPricingToggle = isLiveCourse && !isTrulyFree && batchPriceValue > 0 && individualPriceValue > 0;
+
   return (
     <div 
       className="bg-white dark:bg-gray-800 overflow-hidden hover:shadow-lg transition-shadow duration-300"
@@ -261,20 +293,10 @@ const CourseCard: React.FC<CourseProps> = ({
           </div>
         )}
         
-        {/* Price badge on top right */}
-        {!applyHidePrice && !isPriceLoading && !priceError && !isTrulyFree && (
-          <div className="absolute top-2 right-2 bg-primaryColor text-white px-3 py-1 rounded-full text-sm font-semibold">
-            {formatPrice(
-              selectedPricing === "individual" ? discountedIndividualPrice : discountedBatchPrice,
-              currency
-            )}
-          </div>
-        )}
-        
-        {/* Free badge for free courses */}
-        {!applyHidePrice && !isPriceLoading && !priceError && isTrulyFree && (
-          <div className="absolute top-2 right-2 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-            Free
+        {/* Class type badge */}
+        {class_type && (
+          <div className="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium">
+            {class_type}
           </div>
         )}
       </div>
@@ -329,83 +351,93 @@ const CourseCard: React.FC<CourseProps> = ({
           )}
         </div>
 
-        {/* Pricing options */}
-        {!applyHidePrice && !isPriceLoading && !priceError && !isTrulyFree && (
-          <div className="flex flex-col mb-4">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                {selectedPricing === "individual" ? "Individual Price" : "Batch Price"}
-              </span>
-              <div className="flex items-center">
-                <span className="text-lg font-bold text-primaryColor">
-                  {formatPrice(
-                    selectedPricing === "individual"
-                      ? discountedIndividualPrice
-                      : discountedBatchPrice,
-                    currency
-                  )}
+        {/* Pricing section */}
+        {!applyHidePrice && !isPriceLoading && !priceError && (
+          <div className="mb-4">
+            {isTrulyFree ? (
+              <div className="mb-4">
+                <span className="bg-green-100 text-green-800 px-3 py-1.5 rounded-md text-sm font-medium">
+                  Free Course
                 </span>
-                {/* Display original price if there's a discount */}
-                {((selectedPricing === "individual" && individualDiscountPercentage > 0) ||
-                  (selectedPricing === "batch" && batchDiscountPercentage > 0)) && (
-                  <span className="text-sm text-gray-500 line-through ml-2">
-                    {formatPrice(
-                      selectedPricing === "individual"
-                        ? individualPriceValue
-                        : batchPriceValue,
-                      currency
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {/* Pricing toggle for live courses */}
+                {shouldShowPricingToggle && (
+                  <div className="flex rounded-md overflow-hidden border border-gray-200 dark:border-gray-700">
+                    <button
+                      className={`flex-1 py-2 px-3 text-xs font-medium transition-colors ${
+                        selectedPricing === "individual"
+                          ? "bg-primaryColor text-white"
+                          : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                      }`}
+                      onClick={() => setSelectedPricing("individual")}
+                    >
+                      Individual
+                    </button>
+                    <button
+                      className={`flex-1 py-2 px-3 text-xs font-medium transition-colors ${
+                        selectedPricing === "batch"
+                          ? "bg-primaryColor text-white"
+                          : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                      }`}
+                      onClick={() => setSelectedPricing("batch")}
+                    >
+                      Batch ({actualMinBatchSize}+ students)
+                    </button>
+                  </div>
+                )}
+
+                {/* Price display */}
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                    {selectedPricing === "individual" ? "Individual Price" : "Batch Price"}
+                    {isLiveCourse && selectedPricing === "batch" && (
+                      <span className="text-xs text-gray-500 ml-1">
+                        (per student)
+                      </span>
                     )}
                   </span>
+                  <div className="flex items-center">
+                    <span className="text-lg font-bold text-primaryColor">
+                      {getCurrentPrice()}
+                    </span>
+                    {/* Display original price if there's a discount */}
+                    {getOriginalPrice() && (
+                      <span className="text-sm text-gray-500 line-through ml-2">
+                        {getOriginalPrice()}
+                      </span>
+                    )}
+                    {isLiveCourse && (
+                      <span className="text-xs text-gray-500 ml-1">onwards</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Discount badges */}
+                <div className="flex gap-2">
+                  {individualDiscountPercentage > 0 && selectedPricing === "individual" && (
+                    <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">
+                      {individualDiscountPercentage}% off
+                    </span>
+                  )}
+                  {batchDiscountPercentage > 0 && selectedPricing === "batch" && (
+                    <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">
+                      {batchDiscountPercentage}% off
+                    </span>
+                  )}
+                </div>
+
+                {/* Batch pricing info for live courses */}
+                {isLiveCourse && selectedPricing === "batch" && actualMinBatchSize > 0 && (
+                  <div className="text-xs text-gray-500 bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
+                    <strong>Batch Pricing:</strong> Minimum {actualMinBatchSize} students required. 
+                    {actualMaxBatchSize > 0 && ` Maximum ${actualMaxBatchSize} students.`}
+                    {groupDiscount > 0 && ` Includes ${groupDiscount}% group discount.`}
+                  </div>
                 )}
               </div>
-            </div>
-
-            {/* Pricing toggle */}
-            <div className="flex rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 mb-2">
-              <button
-                className={`flex-1 py-1.5 text-xs font-medium ${
-                  selectedPricing === "individual"
-                    ? "bg-primaryColor text-white"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
-                }`}
-                onClick={() => setSelectedPricing("individual")}
-              >
-                Individual
-              </button>
-              <button
-                className={`flex-1 py-1.5 text-xs font-medium ${
-                  selectedPricing === "batch"
-                    ? "bg-primaryColor text-white"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
-                }`}
-                onClick={() => setSelectedPricing("batch")}
-              >
-                Batch ({actualMinBatchSize}+ students)
-              </button>
-            </div>
-
-            {/* Discount badges */}
-            <div className="flex gap-2">
-              {individualDiscountPercentage > 0 && selectedPricing === "individual" && (
-                <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">
-                  {individualDiscountPercentage}% off
-                </span>
-              )}
-              {batchDiscountPercentage > 0 && selectedPricing === "batch" && (
-                <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">
-                  {batchDiscountPercentage}% off
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Free course badge */}
-        {!applyHidePrice && !isPriceLoading && !priceError && isTrulyFree && (
-          <div className="mb-4">
-            <span className="bg-green-100 text-green-800 px-3 py-1.5 rounded-md text-sm font-medium">
-              Free Course
-            </span>
+            )}
           </div>
         )}
 
@@ -451,13 +483,29 @@ const CourseCard: React.FC<CourseProps> = ({
 
       {/* Brochure download modal */}
       {showBrochureModal && (
-        <DownloadBrochureModal
-          isOpen={showBrochureModal}
-          onClose={() => setShowBrochureModal(false)}
-          courseId={_id}
-          courseName={course_title}
-          brochureUrl={brochures?.[0]?.url}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Download Brochure</h3>
+            <p className="text-gray-600 mb-4">
+              Download the course brochure for {course_title}
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={handleBrochureDownload}
+                className="flex-1 bg-primaryColor text-white py-2 px-4 rounded hover:bg-primaryColor/90"
+                disabled={isDownloading}
+              >
+                {isDownloading ? "Downloading..." : "Download"}
+              </button>
+              <button
+                onClick={() => setShowBrochureModal(false)}
+                className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
