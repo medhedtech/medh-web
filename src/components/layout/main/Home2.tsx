@@ -101,17 +101,6 @@ const getGlobalStyles = (isDark: boolean) => `
   }
 `;
 
-// Inject global styles
-if (typeof document !== 'undefined') {
-  const existingStyle = document.getElementById('global-glassmorphism-styles');
-  if (!existingStyle) {
-    const styleSheet = document.createElement("style");
-    styleSheet.id = 'global-glassmorphism-styles';
-    styleSheet.innerText = globalStyles;
-    document.head.appendChild(styleSheet);
-  }
-}
-
 const Home2: React.FC = () => {
   const router = useRouter();
   const { theme } = useTheme();
@@ -129,45 +118,54 @@ const Home2: React.FC = () => {
 
   // Memoize the resize handler to prevent unnecessary re-renders
   const handleResize = useCallback((): void => {
-    setState(prev => ({
-      ...prev,
-      windowWidth: window.innerWidth
-    }));
+    if (typeof window !== 'undefined') {
+      setState(prev => ({
+        ...prev,
+        windowWidth: window.innerWidth
+      }));
+    }
   }, []);
 
   // Enhanced scroll handler for seamless video background
   const handleScroll = useCallback((): void => {
-    const scrollY = window.scrollY;
-    const windowHeight = window.innerHeight;
-    
-    // Show scrolling video after scrolling past 30% of hero section
-    setState(prev => ({
-      ...prev,
-      showScrollingVideo: scrollY > windowHeight * 0.3,
-      scrollY: scrollY
-    }));
+    if (typeof window !== 'undefined') {
+      const scrollY = window.scrollY;
+      const windowHeight = window.innerHeight;
+      
+      // Show scrolling video after scrolling past 30% of hero section
+      setState(prev => ({
+        ...prev,
+        showScrollingVideo: scrollY > windowHeight * 0.3,
+        scrollY: scrollY
+      }));
+    }
   }, []);
 
   // Initial setup effect
   useEffect((): (() => void) => {
+    setState(prev => ({
+      ...prev,
+      mounted: true
+    }));
+
     // Prevent scroll during initial load
     if (typeof document !== 'undefined') {
       document.body.style.overflow = 'hidden';
     }
 
     // Set initial window width
-    setState(prev => ({
-      ...prev,
-      windowWidth: window.innerWidth
-    }));
-
-    // Add window resize listener
-    window.addEventListener('resize', handleResize);
-    // Add scroll listener for video background
-    window.addEventListener('scroll', handleScroll, { passive: true });
-
-    // Reset scroll position
     if (typeof window !== 'undefined') {
+      setState(prev => ({
+        ...prev,
+        windowWidth: window.innerWidth
+      }));
+
+      // Add window resize listener
+      window.addEventListener('resize', handleResize);
+      // Add scroll listener for video background
+      window.addEventListener('scroll', handleScroll, { passive: true });
+
+      // Reset scroll position
       window.scrollTo({
         top: 0,
         left: 0,
@@ -190,20 +188,48 @@ const Home2: React.FC = () => {
     // Cleanup function
     return () => {
       clearTimeout(loadTimer);
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('scroll', handleScroll);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('resize', handleResize);
+        window.removeEventListener('scroll', handleScroll);
+      }
       if (typeof document !== 'undefined') {
         document.body.style.overflow = 'auto';
       }
     };
   }, [handleResize, handleScroll]);
 
-  // Calculate dynamic spacing based on screen height
-  const isLaptopHeight: boolean = typeof window !== 'undefined' && window.innerHeight <= 768;
+  // Inject global styles only on client side
+  useEffect(() => {
+    if (typeof document !== 'undefined' && state.mounted) {
+      const existingStyle = document.getElementById('global-glassmorphism-styles');
+      if (!existingStyle) {
+        const styleSheet = document.createElement("style");
+        styleSheet.id = 'global-glassmorphism-styles';
+        styleSheet.innerText = getGlobalStyles(isDark);
+        document.head.appendChild(styleSheet);
+      }
+    }
+  }, [isDark, state.mounted]);
 
-  // Calculate video opacity based on scroll position
-  const videoOpacity = Math.min(0.6, Math.max(0.2, (state.scrollY / (window.innerHeight * 2))));
-  const videoScale = 1 + (state.scrollY * 0.0001); // Subtle parallax scaling
+  // Calculate dynamic spacing based on screen height (client-side only)
+  const isLaptopHeight: boolean = state.mounted && typeof window !== 'undefined' ? window.innerHeight <= 768 : false;
+
+  // Calculate video opacity based on scroll position (client-side only)
+  const videoOpacity = state.mounted && typeof window !== 'undefined' 
+    ? Math.min(0.6, Math.max(0.2, (state.scrollY / (window.innerHeight * 2))))
+    : 0.2;
+  const videoScale = state.mounted ? 1 + (state.scrollY * 0.0001) : 1; // Subtle parallax scaling
+
+  // Don't render until mounted to avoid hydration mismatch
+  if (!state.mounted) {
+    return (
+      <main className="min-h-screen flex flex-col relative bg-gray-50 dark:bg-gray-900">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <>
@@ -449,28 +475,9 @@ const Home2: React.FC = () => {
             .global-glass-card,
             .global-glass-light,
             .global-glass-dark {
+              padding: 1.5rem;
               backdrop-filter: blur(16px);
-              border-radius: 1.5rem;
             }
-          }
-
-          /* Performance optimizations for glassmorphism */
-          .global-glass-container,
-          .global-glass-card,
-          .global-glass-light,
-          .global-glass-dark {
-            transform: translateZ(0);
-            will-change: transform, opacity;
-            contain: layout style paint;
-          }
-
-          /* Smooth transitions for all glass elements */
-          .global-glass-container:hover,
-          .global-glass-card:hover,
-          .global-glass-light:hover,
-          .global-glass-dark:hover {
-            transform: translateY(-2px) translateZ(0);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           }
         `}</style>
       </main>
@@ -478,4 +485,4 @@ const Home2: React.FC = () => {
   );
 };
 
-export default React.memo(Home2); 
+export default Home2; 

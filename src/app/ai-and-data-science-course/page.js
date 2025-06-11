@@ -1,4 +1,7 @@
+'use client';
+
 import { Cpu, Database, Brain, Star, Users, BookOpen } from 'lucide-react';
+import dynamic from 'next/dynamic';
 
 // Core components
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
@@ -10,7 +13,21 @@ import CourseAiOverview from "@/components/sections/course-ai/courseai-overview"
 import CourseAiFaq from "@/components/sections/course-ai/courseAiFaq";
 import CourseAiRelatedCourses from "@/components/sections/course-ai/courseAiRelatedCourse";
 import CourseOptions from "@/components/sections/course-ai/courseOptions";
-import AnimatedContent from './AnimatedContent';
+
+// Dynamic import for AnimatedContent to avoid SSR issues
+const AnimatedContent = dynamic(
+  () => import('./AnimatedContent'),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+        </div>
+      </div>
+    )
+  }
+);
 
 // Assets
 import Banner from "@/assets/Header-Images/ai-and-data/ai-with-data-science.png";
