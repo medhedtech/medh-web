@@ -290,9 +290,9 @@ h6 {
   font-family: "Bulgathi", sans-serif;
   font-weight: semibold;
   color: #40AB62 !important;
-  font-size: clamp(2rem, 5vw, 2.8rem) !important;
-  line-height: 1.2 !important;
-  padding: 0.5rem 0;
+  font-size: clamp(1.25rem, 4vw, 2rem) !important;
+  line-height: 1.3 !important;
+  padding: 0.25rem 0;
   background-size: 200% auto;
   animation: text-shimmer 3s linear infinite;
 }
@@ -352,7 +352,7 @@ h6 {
 
 @media (max-width: 1200px) {
   .mumkinMedh {
-    font-size: clamp(2.2rem, 4.5vw, 2.5rem) !important;
+    font-size: clamp(1.125rem, 3.5vw, 1.75rem) !important;
   }
 }
 
@@ -360,15 +360,17 @@ h6 {
   .mumkinMedh {
     font-family: "Bulgathi", sans-serif;
     font-weight: semibold;
-    font-size: clamp(1.8rem, 4vw, 2.2rem) !important;
-    letter-spacing: 0.03em;
+    font-size: clamp(1rem, 3vw, 1.5rem) !important;
+    letter-spacing: 0.02em;
+    padding: 0.2rem 0;
   }
 }
 
 @media (max-width: 480px) {
   .mumkinMedh {
-    font-size: clamp(2rem, 3.5vw, 1.8rem) !important;
-    padding: 0.3rem 0;
+    font-size: clamp(0.875rem, 2.5vw, 1.25rem) !important;
+    padding: 0.15rem 0;
+    letter-spacing: 0.01em;
   }
 }
 
