@@ -15,7 +15,7 @@ function CourseOptions() {
   // Define available grades for AI courses
   const grades = [
     "Grade 11-12",
-    "UG - Graduate - Professionals"
+    "UG/Grad/Pro"
   ];
 
   // Custom empty state content

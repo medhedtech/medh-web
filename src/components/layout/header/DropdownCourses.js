@@ -150,7 +150,7 @@ const DropdownCourses = ({ isMenuOpen, onMenuToggle }) => {
           path: "/digital-marketing-with-data-analytics-course",
         },
         {
-          name: "~View Other Courses~",
+          name: "~View All Courses~",
           path: "/courses",
         },
       ],

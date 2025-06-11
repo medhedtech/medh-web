@@ -114,16 +114,21 @@ interface Lesson {
 }
 
 interface LessonData {
-  _id: string;
+  _id?: string;
   id?: string;
   title: string;
   description?: string;
-  lessonType: 'video' | 'quiz' | 'assessment';
+  lessonType?: 'video' | 'quiz' | 'assessment';
   videoUrl?: string;
   video_url?: string;
   thumbnailUrl?: string;
   is_completed?: boolean;
   completed?: boolean;
+  order?: number;
+  isPreview?: boolean;
+  duration?: string | number;
+  quiz_id?: string;
+  assignment_id?: string;
   meta?: {
     presenter?: string;
     transcript?: string;
@@ -132,6 +137,13 @@ interface LessonData {
     due_date?: string;
     max_score?: number;
   };
+  resources?: Array<{
+    id: string;
+    title: string;
+    url: string;
+    type: string;
+    description?: string;
+  }>;
 }
 
 interface LessonMeta {
@@ -147,7 +159,10 @@ interface Section {
   id?: string;
   title: string;
   description?: string;
-  lessons: Lesson[];
+  order?: number;
+  lessons: LessonData[];
+  resources?: any[];
+  _id?: string;
 }
 
 interface CourseSection extends Omit<Section, 'id'> {
@@ -159,8 +174,9 @@ interface Week {
   weekTitle: string;
   weekDescription?: string;
   sections?: Section[];
-  lessons?: Lesson[];
+  lessons?: LessonData[];
   topics?: string[];
+  _id?: string;
 }
 
 interface CourseWeek extends Omit<Week, 'sections'> {
@@ -168,7 +184,7 @@ interface CourseWeek extends Omit<Week, 'sections'> {
 }
 
 interface VideoBookmark {
-  id: string;
+  id: string | number;
   time: number;
   label: string;
 }
@@ -216,81 +232,29 @@ interface LessonProgress {
 }
 
 // Helper function to handle YouTube URLs
-const formatVideoUrl = (url) => {
-  console.log('formatVideoUrl called with:', url);
-  
-  if (!url) {
-    console.log('No URL provided');
-    return null;
-  }
+const formatVideoUrl = (url: string | undefined): string | null => {
+  if (!url) return null;
   
   try {
-    // Handle different video URL formats
-    const urlStr = String(url).trim();
-    console.log('Processing URL:', urlStr);
-    
-    // Check if it's a YouTube URL
-    if (urlStr.includes('youtube.com/watch') || urlStr.includes('youtu.be/') || urlStr.includes('m.youtube.com/watch')) {
-      console.log('Detected YouTube URL');
-      let videoId;
-      
-      if (urlStr.includes('v=')) {
-        // Handle youtube.com/watch?v=VIDEO_ID format
-        const urlParams = new URLSearchParams(urlStr.split('?')[1]);
-        videoId = urlParams.get('v');
-        console.log('Extracted video ID from v= parameter:', videoId);
-      } else if (urlStr.includes('youtu.be/')) {
-        // Handle youtu.be/VIDEO_ID format
-        videoId = urlStr.split('youtu.be/')[1];
-        if (videoId && videoId.includes('?')) {
-          videoId = videoId.split('?')[0];
-        }
-        console.log('Extracted video ID from youtu.be:', videoId);
-      }
-      
-      if (videoId) {
-        const embedUrl = `https://www.youtube.com/embed/${videoId}`;
-        console.log('Formatted YouTube embed URL:', embedUrl);
-        return embedUrl;
-      }
+    // If it's already a valid URL, return as is
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
     }
     
-    // Check if it's already a valid embed URL
-    if (urlStr.includes('youtube.com/embed/') || urlStr.includes('vimeo.com/video/')) {
-      console.log('Already an embed URL:', urlStr);
-      return urlStr;
+    // Handle YouTube URLs
+    if (url.includes('youtube.com/watch?v=') || url.includes('youtu.be/')) {
+      return url;
     }
     
-    // Handle direct video file URLs (.mp4, .webm, .mov, etc.)
-    if (urlStr.match(/\.(mp4|webm|ogg|mov|avi|mkv)(\?.*)?$/i)) {
-      console.log('Direct video file URL:', urlStr);
-      return urlStr;
+    // If it looks like a YouTube video ID, construct the full URL
+    if (url.match(/^[a-zA-Z0-9_-]{11}$/)) {
+      return `https://www.youtube.com/watch?v=${url}`;
     }
     
-    // Handle Vimeo URLs
-    if (urlStr.includes('vimeo.com/')) {
-      console.log('Detected Vimeo URL');
-      const vimeoMatch = urlStr.match(/vimeo\.com\/(\d+)/);
-      if (vimeoMatch) {
-        const vimeoId = vimeoMatch[1];
-        const vimeoEmbedUrl = `https://player.vimeo.com/video/${vimeoId}`;
-        console.log('Formatted Vimeo embed URL:', vimeoEmbedUrl);
-        return vimeoEmbedUrl;
-      }
-    }
-    
-    // Return original URL if it looks like a valid URL
-    if (urlStr.startsWith('http://') || urlStr.startsWith('https://')) {
-      console.log('Returning original URL:', urlStr);
-      return urlStr;
-    }
-    
-    console.warn('URL format not recognized, returning as-is:', urlStr);
-    return urlStr;
-    
+    // Return as is for other cases
+    return url;
   } catch (error) {
-    console.error("Error formatting video URL:", error);
-    console.error("Original URL:", url);
+    console.error('Error formatting video URL:', error);
     return url;
   }
 };
@@ -313,8 +277,8 @@ const IntegratedLessonPage = () => {
     postLoading,
   } = useCourseLesson(courseId, lessonId);
 
-  const { storage } = useStorage();
-  const savedProgress = storage?.getLessonProgress(lessonId);
+  const storageContext = useStorage();
+  const savedProgress = storageContext?.getLessonProgress?.(lessonId);
   
   const [activeTab, setActiveTab] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -377,7 +341,7 @@ const IntegratedLessonPage = () => {
     setMobileSidebarOpen(!mobileSidebarOpen);
   };
 
-  const handleAddVideoBookmark = (bookmark) => {
+  const handleAddVideoBookmark = (bookmark: VideoBookmark) => {
     setVideoBookmarks(prev => {
       const newBookmarks = [...prev, bookmark];
       // Save to localStorage
@@ -387,7 +351,7 @@ const IntegratedLessonPage = () => {
     });
   };
 
-  const formatTime = (seconds) => {
+  const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const remainingSeconds = Math.floor(seconds % 60);

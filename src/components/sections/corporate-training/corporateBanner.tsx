@@ -6,9 +6,34 @@ import Cource from "@/assets/Header-Images/Corporate/close-up-people-learning-jo
 import Iso from "@/assets/images/vedic-mathematics/vedic-logo.svg";
 import CourseBanner from "@/components/shared/banners/CourseBanner";
 
-export default function CorporateBanner() {
+interface IFeature {
+  icon: React.ReactElement;
+  title: string;
+  description: string;
+}
+
+interface IStat {
+  icon: React.ReactElement;
+  value: string;
+  label: string;
+}
+
+interface IThemeClasses {
+  badge: string;
+  badgeContainer: string;
+  title: string;
+  button: string;
+  secondaryButton: string;
+  gradientFrom: string;
+  gradientVia: string;
+  gradientTo: string;
+  backgroundPrimary: string;
+  backgroundSecondary: string;
+}
+
+const CorporateBanner: React.FC = () => {
   // Theme classes for corporate styling
-  const themeClasses = {
+  const themeClasses: IThemeClasses = {
     badge: "bg-primary-500",
     badgeContainer: "bg-primary-500/10",
     title: "text-primary-500",
@@ -22,7 +47,7 @@ export default function CorporateBanner() {
   };
 
   // Features for corporate training
-  const features = [
+  const features: IFeature[] = [
     {
       icon: <Target className="w-6 h-6 text-primary-500" />,
       title: "Customized Training",
@@ -51,7 +76,7 @@ export default function CorporateBanner() {
   );
 
   // Stats could be used in the description or elsewhere
-  const stats = [
+  const stats: IStat[] = [
     {
       icon: <Building className="w-5 h-5 text-primary-500" />,
       value: "250+",
@@ -83,7 +108,7 @@ export default function CorporateBanner() {
   );
 
   // Handle scroll to form
-  const handleScrollToForm = () => {
+  const handleScrollToForm = (): void => {
     const formElement = document.getElementById('enroll-form');
     if (formElement) {
       formElement.scrollIntoView({ behavior: 'smooth' });
@@ -104,8 +129,6 @@ export default function CorporateBanner() {
       themeClasses={themeClasses}
     />
   );
-}
+};
 
-
-
-
+export default CorporateBanner; 

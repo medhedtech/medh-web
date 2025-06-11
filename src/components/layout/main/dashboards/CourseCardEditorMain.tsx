@@ -62,6 +62,13 @@ const EditorContent: React.FC = () => {
   const [allCourses, setAllCourses] = useState<ICourse[]>([]);
   const [coursesLoading, setCoursesLoading] = useState(true);
 
+  const formatCourseGrade = (grade: string): string => {
+    if (grade === "UG - Graduate - Professionals") {
+      return "UG/Grad/Pro";
+    }
+    return grade;
+  };
+
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -336,7 +343,7 @@ const EditorContent: React.FC = () => {
               <div className="p-4">
                 {(settings.cardConfig.showCategoryBadge ?? true) && previewCourse.course_grade && (
                   <span className="text-xs font-medium uppercase text-gray-600">
-                    {previewCourse.course_grade}
+                    {formatCourseGrade(previewCourse.course_grade)}
                   </span>
                 )}
                 {(settings.cardConfig.showTitle ?? true) && (
