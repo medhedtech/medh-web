@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import React, { useState, useEffect, useRef, useContext } from "react";
-import hire from "@/assets/images/hire/hire.png";
+import hire from "@/assets/images/hire/Hire.png";
 import Traning from "@/assets/images/hire/Traning.png";
 import { useRouter } from "next/navigation";
 import { Briefcase, Users, ArrowUpRight, Sparkles, LucideTarget, Award, Zap, Trophy, Target, Clock, Globe, BookOpen, BarChart, TrendingUp, ArrowRight, Building } from "lucide-react";
