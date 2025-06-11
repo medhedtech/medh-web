@@ -245,9 +245,16 @@ interface IIntegratedLessonProps {
 
 const IntegratedLesson: React.FC<IIntegratedLessonProps> = ({ params }) => {
   const router = useRouter();
-  const [id, setId] = useState<string>("");
+  const [id, setId] = useState<string>('');
   const [isOnline, setIsOnline] = useState(true);
   const isLargeScreen = useMediaQuery("(min-width: 1024px)");
+
+  const formatCourseGrade = (grade: string): string => {
+    if (grade === "UG - Graduate - Professionals") {
+      return "UG/Grad/Pro";
+    }
+    return grade;
+  };
 
   // Extract id from params
   useEffect(() => {
@@ -467,7 +474,7 @@ const IntegratedLesson: React.FC<IIntegratedLessonProps> = ({ params }) => {
                               <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">Level</span>
                                                 </div>
                             <p className="font-bold text-base text-gray-900 dark:text-white">
-                              {courseData.course_grade || courseData.course_level || "All levels"}
+                              {courseData.course_grade ? formatCourseGrade(courseData.course_grade) : courseData.course_level || "All levels"}
                             </p>
                                             </div>
                           

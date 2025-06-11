@@ -10,6 +10,7 @@ import { batchAPI, IBatchSchedule, IZoomMeetingInput, IRecordedLessonInput, IRec
 import { toast } from "react-hot-toast";
 import { apiClient } from "@/apis/apiClient";
 import { UploadResponse } from "@/services/uploadService";
+import { videoStreamingAPI, VideoUploadClient, videoStreamingUtils, type TVideoUploadStatus, type TVideoProcessingStatus, type IVideoUploadMetadata } from "@/apis/video-streaming";
 
 // TypeScript interfaces
 interface IInstructor {
@@ -69,6 +70,9 @@ interface IOnlineClassManagementProps {
   backUrl?: string;
 }
 
+// Combined status type for video upload and processing
+type TVideoStatus = TVideoUploadStatus | TVideoProcessingStatus;
+
 export default function OnlineClassManagementPage({
   courseCategory,
   pageTitle,
@@ -98,13 +102,26 @@ export default function OnlineClassManagementPage({
   });
   const [currentBatchIdForSession, setCurrentBatchIdForSession] = useState<string | null>(null);
   const [showAddRecordingModal, setShowAddRecordingModal] = useState<boolean>(false);
-  const [recordingForm, setRecordingForm] = useState<{ title: string; url: string; recorded_date: string; uploadError: string; uploadSuccess: boolean; fileName: string }>({ 
+  const [recordingForm, setRecordingForm] = useState<{ 
+    title: string; 
+    url: string; 
+    recorded_date: string; 
+    uploadError: string; 
+    uploadSuccess: boolean; 
+    fileName: string;
+    videoId: string;
+    uploadStatus: TVideoStatus;
+    processingProgress: number;
+  }>({ 
     title: '', 
     url: '', 
     recorded_date: '', 
     uploadError: '', 
     uploadSuccess: false, 
-    fileName: '' 
+    fileName: '',
+    videoId: '',
+    uploadStatus: 'initialized' as TVideoStatus,
+    processingProgress: 0
   });
   const [currentBatchIdForRecording, setCurrentBatchIdForRecording] = useState<string | null>(null);
   const [currentSessionIdForRecording, setCurrentSessionIdForRecording] = useState<string | null>(null);
@@ -113,6 +130,7 @@ export default function OnlineClassManagementPage({
   const [selectedStudent, setSelectedStudent] = useState<string>("");
   const [showStudentDropdown, setShowStudentDropdown] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [videoUploadClient] = useState<VideoUploadClient>(() => new VideoUploadClient());
   
   // Refs for dropdown management
   const instructorDropdownRef = useRef<HTMLDivElement>(null);
@@ -384,7 +402,19 @@ export default function OnlineClassManagementPage({
   const openAddRecordingModal = (batchId: string, sessionId: string) => {
     setCurrentBatchIdForRecording(batchId);
     setCurrentSessionIdForRecording(sessionId);
-    setRecordingForm({ title: '', url: '', recorded_date: '', uploadError: '', uploadSuccess: false, fileName: '' });
+    setRecordingForm({ 
+      title: '', 
+      url: '', 
+      recorded_date: '', 
+      uploadError: '', 
+      uploadSuccess: false, 
+      fileName: '',
+      videoId: '',
+      uploadStatus: 'initialized' as TVideoStatus,
+      processingProgress: 0
+    });
+    setUploadProgress(0);
+    videoUploadClient.reset();
     setShowAddRecordingModal(true);
   };
 
@@ -411,357 +441,216 @@ export default function OnlineClassManagementPage({
     }
   };
 
-  // Handle video file upload with improved logic
+  // Enhanced video file upload with video streaming API
   const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Validate file type
-    const validTypes = ['video/mp4', 'video/avi', 'video/mov', 'video/quicktime', 'video/x-msvideo'];
-    if (!validTypes.includes(file.type)) {
-      setRecordingForm(prev => ({ ...prev, uploadError: 'Please select a valid video file (MP4, AVI, MOV)' }));
-      return;
-    }
-    
-    // Validate file size (500MB limit)
-    const maxSize = 500 * 1024 * 1024; // 500MB in bytes
-    if (file.size > maxSize) {
-      setRecordingForm(prev => ({ ...prev, uploadError: 'File size must be less than 500MB' }));
-      return;
-    }
-    
-    const fileSizeMB = file.size / (1024 * 1024);
-    const isLargeFile = file.size > 50 * 1024 * 1024; // Files larger than 50MB
-    
-    // Reset form state
-    setRecordingForm(prev => ({ ...prev, uploadError: '', uploadSuccess: false }));
-    setUploadProgress(1);
-    
-    let progressInterval: NodeJS.Timeout;
-    let controller: AbortController;
-    let timeoutId: NodeJS.Timeout;
-    
-    try {
-      // Start progress simulation
-      progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          const increment = isLargeFile ? Math.random() * 2 : Math.random() * 5;
-          if (prev < 80) return prev + increment; // Stop at 80% until real response
-          return prev;
-        });
-      }, isLargeFile ? 1500 : 500);
-      
-      console.log(`Starting upload for ${fileSizeMB.toFixed(1)}MB ${file.type} file`);
-      
-      // Convert file to base64 with progress tracking
-      setUploadProgress(5);
-      const base64String = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          setUploadProgress(15);
-          resolve(reader.result as string);
-        };
-        reader.onerror = () => reject(new Error('Failed to read file'));
-        reader.onprogress = (event) => {
-          if (event.lengthComputable) {
-            const progress = 5 + (event.loaded / event.total) * 10; // 5-15% for file reading
-            setUploadProgress(progress);
-          }
-        };
-        reader.readAsDataURL(file);
-      });
-      
-      const rawBase64 = base64String.includes(',') ? base64String.split(',')[1] : base64String;
-      setUploadProgress(20);
-      
-      console.log('File details:', {
-        name: file.name,
-        size: fileSizeMB.toFixed(1) + 'MB',
-        type: file.type,
-        base64Length: rawBase64.length
-      });
-      
-      // Calculate dynamic timeout
-      let baseTimeoutMinutes = 8; // Base timeout for videos
-      const additionalTimeoutMinutes = Math.ceil(fileSizeMB / 50) * 3; // 3 minutes per 50MB chunk
-      const totalTimeoutMinutes = baseTimeoutMinutes + additionalTimeoutMinutes;
-      const timeoutDuration = totalTimeoutMinutes * 60 * 1000;
-      
-      console.log(`Upload timeout set to ${totalTimeoutMinutes} minutes for ${fileSizeMB.toFixed(1)}MB file`);
-      
-      // Prepare upload payload - try with full data URL format first
-      const uploadPayload = {
-        base64String: base64String, // Use full data URL format
-        fileType: 'video'
-      };
-      
-      // Setup abort controller and timeout
-      controller = new AbortController();
-      timeoutId = setTimeout(() => {
-        console.log('Upload timeout reached, aborting request');
-        controller.abort();
-      }, timeoutDuration);
-      
-      // Get authentication
-      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-      const uploadUrl = `${apiBaseUrl}${apiUrls.upload.uploadMedia}`;
-      
-      console.log('Sending upload request to:', uploadUrl);
-      setUploadProgress(25);
-      
-      // Retry logic for upload with different payload formats
-      let lastError: Error | null = null;
-      let uploadData: any = null;
-      const maxRetries = 2;
-      
-      // Try different payload formats
-      const payloadFormats = [
-        { base64String: base64String, fileType: 'video' }, // Full data URL
-        { base64String: rawBase64, fileType: 'video' }, // Raw base64
-        { base64String: base64String, fileType: 'image' }, // Try as image type
-        { base64String: rawBase64, fileType: 'document' } // Try as document
-      ];
-      
-      for (let formatIndex = 0; formatIndex < payloadFormats.length; formatIndex++) {
-        const currentPayload = payloadFormats[formatIndex];
-        console.log(`Trying payload format ${formatIndex + 1}:`, {
-          hasDataPrefix: currentPayload.base64String.includes('data:'),
-          fileType: currentPayload.fileType,
-          base64Length: currentPayload.base64String.length
-        });
-        
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-          try {
-            console.log(`Upload attempt ${attempt}/${maxRetries} with format ${formatIndex + 1}`);
-            
-            const response = await fetch(uploadUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                ...(token && { 
-                  'Authorization': `Bearer ${token}`, 
-                  'x-access-token': token 
-                })
-              },
-              body: JSON.stringify(currentPayload),
-              signal: controller.signal,
-              credentials: 'include'
-            });
-            
-            console.log('Upload response status:', response.status, response.statusText);
-            
-            // Clear timeout on successful response
-            clearTimeout(timeoutId);
-            clearInterval(progressInterval);
-            setUploadProgress(90);
-            
-            // Handle response
-            if (!response.ok) {
-              let errorData: any = {};
-              const contentType = response.headers.get('content-type');
-              
-              try {
-                if (contentType && contentType.includes('application/json')) {
-                  errorData = await response.json();
-                } else {
-                  const textResponse = await response.text();
-                  console.log('Non-JSON error response:', textResponse);
-                  errorData = { message: textResponse || `HTTP ${response.status}: ${response.statusText}` };
-                }
-              } catch (parseError) {
-                console.error('Error parsing response:', parseError);
-                errorData = { message: `HTTP ${response.status}: ${response.statusText}` };
-              }
-              
-              const errorMessage = errorData.message || errorData.error || `HTTP ${response.status}: ${response.statusText}`;
-              
-              // If it's a server error and we have more formats to try, continue to next format
-              if (response.status >= 500 && formatIndex < payloadFormats.length - 1) {
-                console.log('Server error, trying next payload format...');
-                throw new Error(errorMessage);
-              }
-              
-              throw new Error(errorMessage);
-            }
-            
-            // Parse successful response
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-              uploadData = await response.json();
-            } else {
-              const textResponse = await response.text();
-              console.log('Non-JSON success response:', textResponse);
-              // Try to parse as JSON in case it's malformed
-              try {
-                uploadData = JSON.parse(textResponse);
-              } catch {
-                // If it's a plain URL string
-                if (textResponse.startsWith('http')) {
-                  uploadData = {
-                    success: true,
-                    message: 'Upload successful',
-                    data: { url: textResponse.trim() }
-                  };
-                } else {
-                  throw new Error('Invalid response format from server');
-                }
-              }
-            }
-            
-            console.log('Upload response data:', uploadData);
-            // Success! Break out of all loops
-            formatIndex = payloadFormats.length;
-            break;
-            
-          } catch (fetchError: any) {
-            console.error(`Upload attempt ${attempt} with format ${formatIndex + 1} failed:`, fetchError);
-            lastError = fetchError;
-            
-            if (fetchError.name === 'AbortError') {
-              throw new Error(`Upload timeout after ${totalTimeoutMinutes} minutes. File size: ${fileSizeMB.toFixed(1)}MB. The server may still be processing your file - please wait before trying again.`);
-            }
-            
-            // If this is the last attempt for this format, try next format
-            if (attempt === maxRetries) {
-              break; // Break to try next format
-            }
-            
-            // Wait before retry (exponential backoff)
-            const retryDelay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-            console.log(`Retrying in ${retryDelay}ms...`);
-            await new Promise(resolve => setTimeout(resolve, retryDelay));
-          }
-        }
-        
-        // If we got uploadData, break out of format loop
-        if (uploadData) break;
-      }
-      
-      // If all formats failed, throw the last error
-      if (!uploadData && lastError) {
-        throw lastError;
-      }
-      
-      setUploadProgress(95);
-      
-      // Validate upload response
-      if (!uploadData) {
-        throw new Error('No response received from upload service');
-      }
-      
-      // Handle different response structures
-      let success = false;
-      let uploadedUrl = '';
-      let responseMessage = '';
-      
-      // Check for success in various formats
-      if (uploadData.success === true || uploadData.status === 'success') {
-        success = true;
-        responseMessage = uploadData.message || 'Upload successful';
-      } else if (uploadData.success === false || uploadData.status === 'error') {
-        success = false;
-        responseMessage = uploadData.message || uploadData.error || 'Upload failed';
-      } else if (uploadData.url) {
-        // Direct URL response
-        success = true;
-        uploadedUrl = uploadData.url;
-        responseMessage = 'Upload successful';
-      } else {
-        // Assume success if we have data
-        success = true;
-        responseMessage = 'Upload successful';
-      }
-      
-      // Extract URL from various response structures
-      if (success && !uploadedUrl) {
-        uploadedUrl = uploadData.data?.url || 
-                     uploadData.url || 
-                     uploadData.data?.file_url || 
-                     uploadData.file_url ||
-                     uploadData.data?.link ||
-                     uploadData.link ||
-                     '';
-      }
-      
-      if (!success) {
-        throw new Error(responseMessage || 'Upload failed');
-      }
-      
-      if (!uploadedUrl) {
-        console.error('Upload response structure:', uploadData);
-        throw new Error('No URL returned from upload service. Response: ' + JSON.stringify(uploadData));
-      }
-      
-      // Clean up URL (remove quotes if present)
-      uploadedUrl = uploadedUrl.replace(/['"]+/g, '').trim();
-      
-      console.log('Upload successful! URL:', uploadedUrl);
-      setUploadProgress(100);
-      
-      // Update form state
+    // Validate file using video streaming utils
+    if (!videoStreamingUtils.isValidVideoFormat(file.name)) {
       setRecordingForm(prev => ({ 
         ...prev, 
-        url: uploadedUrl, 
-        uploadSuccess: true,
-        uploadError: '',
-        fileName: file.name
+        uploadError: 'Please select a valid video file (MP4, MOV, WebM, AVI, MKV)' 
       }));
+      return;
+    }
+    
+    // Validate file size (10GB limit from video streaming service)
+    const maxSize = 10 * 1024 * 1024 * 1024; // 10GB in bytes
+    if (file.size > maxSize) {
+      setRecordingForm(prev => ({ 
+        ...prev, 
+        uploadError: `File size must be less than ${videoStreamingUtils.formatFileSize(maxSize)}` 
+      }));
+      return;
+    }
+    
+    // Reset form state
+    setRecordingForm(prev => ({ 
+      ...prev, 
+      uploadError: '', 
+      uploadSuccess: false,
+      uploadStatus: 'initialized' as TVideoStatus,
+      processingProgress: 0,
+      fileName: file.name
+    }));
+    setUploadProgress(0);
+    
+    try {
+      // First, check if the video streaming service is available
+      console.log('Checking video streaming service health...');
+      try {
+        const healthResponse = await videoStreamingAPI.getHealth();
+        if (healthResponse.status !== 'success' || healthResponse.data?.status !== 'healthy') {
+          throw new Error('Video streaming service is currently unavailable. Please try again later.');
+        }
+        console.log('Video streaming service is healthy');
+      } catch (healthError: any) {
+        console.warn('Health check failed, proceeding with upload attempt:', healthError);
+        // Don't fail here, just log the warning and continue
+      }
       
-      // Show success message
-      toast.success('Video uploaded successfully!');
+      // Setup video upload client callbacks
+      videoUploadClient.onProgress = (progress, uploadedChunks, totalChunks) => {
+        setUploadProgress(progress);
+        console.log(`Upload progress: ${progress}% (${uploadedChunks}/${totalChunks} chunks)`);
+      };
       
-      // Reset progress after success animation
-      setTimeout(() => setUploadProgress(0), 3000);
+      videoUploadClient.onStatusChange = (status) => {
+        setRecordingForm(prev => ({ ...prev, uploadStatus: status }));
+        console.log(`Upload status changed: ${status}`);
+      };
+      
+      videoUploadClient.onError = (error) => {
+        console.error('Video upload error:', error);
+        setRecordingForm(prev => ({ 
+          ...prev, 
+          uploadError: error.message,
+          uploadSuccess: false 
+        }));
+        setUploadProgress(0);
+        toast.error(`Upload failed: ${error.message}`);
+      };
+      
+      // Initialize upload
+      console.log(`Initializing upload for ${videoStreamingUtils.formatFileSize(file.size)} video file`);
+      const { uploadId, videoId } = await videoUploadClient.initialize(file, {
+        courseId: currentBatchIdForRecording || 'default-course', // Ensure courseId is always provided
+        lessonId: currentSessionIdForRecording || undefined,
+        description: recordingForm.title || `Recorded lesson for ${file.name}`,
+        batchId: currentBatchIdForRecording || undefined,
+        sessionId: currentSessionIdForRecording || undefined,
+        originalFileName: file.name,
+        uploadedAt: new Date().toISOString()
+      });
+      
+      console.log(`Upload initialized - Upload ID: ${uploadId}, Video ID: ${videoId}`);
+      setRecordingForm(prev => ({ ...prev, videoId }));
+      
+      // Start upload
+      const result = await videoUploadClient.upload(file);
+      
+      console.log('Upload completed successfully:', result);
+      
+      // Get streaming URLs
+      const streamingResponse = await videoStreamingAPI.getStreamingUrls(result.videoId);
+      
+      if (streamingResponse.status === 'success' && streamingResponse.data) {
+        const streamingUrl = streamingResponse.data.hlsUrl || streamingResponse.data.qualities[0]?.url;
+        
+        setRecordingForm(prev => ({ 
+          ...prev, 
+          url: streamingUrl,
+          uploadSuccess: true,
+          uploadError: '',
+          videoId: result.videoId
+        }));
+        
+        toast.success('Video uploaded and processed successfully!');
+        
+        // Start monitoring processing status if needed
+        if (result.processingJobId) {
+          monitorProcessingStatus(result.videoId);
+        }
+      } else {
+        throw new Error('Failed to get streaming URLs');
+      }
       
     } catch (error: any) {
-      console.error('Upload failed:', error);
+      console.error('Video upload failed:', error);
       
-      // Clean up
-      if (progressInterval!) clearInterval(progressInterval);
-      if (timeoutId!) clearTimeout(timeoutId);
-      setUploadProgress(0);
-      
-      // Provide specific error messages
       let errorMessage = 'Upload failed. Please try again.';
       
-      if (error.message.includes('timeout') || error.message.includes('Upload timeout')) {
-        errorMessage = `Upload timeout. Large files (${fileSizeMB.toFixed(1)}MB) may take several minutes. Please try again or use a smaller file.`;
-      } else if (error.message.includes('Network Error') || error.message.includes('network') || error.message.includes('fetch')) {
-        errorMessage = 'Network error. Please check your connection and try again.';
-      } else if (error.message.includes('No response received')) {
-        errorMessage = 'Server did not respond. Please check your connection and try again.';
-      } else if (error.message.includes('Invalid response')) {
-        errorMessage = 'Server returned an invalid response. Please try again or contact support.';
-      } else if (error.message.includes('413') || error.message.includes('too large')) {
-        errorMessage = 'File too large for server. Please use a smaller file.';
-      } else if (error.message.includes('415') || error.message.includes('Unsupported')) {
-        errorMessage = 'Unsupported file type. Please use MP4, AVI, or MOV format.';
-      } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
-        errorMessage = 'Bad request. Please check the file and try again.';
-      } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
-        errorMessage = 'Authentication failed. Please log in again.';
-      } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
-        errorMessage = 'Access denied. Please check your permissions.';
-      } else if (error.message.includes('500') || error.message.includes('Internal Server Error')) {
-        errorMessage = 'Server error. Please try again later or contact support.';
-      } else if (error.message.includes('502') || error.message.includes('Bad Gateway')) {
-        errorMessage = 'Server temporarily unavailable. Please try again in a few minutes.';
-      } else if (error.message.includes('503') || error.message.includes('Service Unavailable')) {
-        errorMessage = 'Service temporarily unavailable. Please try again later.';
-      } else if (error.message) {
+      // Enhanced error message handling
+      if (error.response?.data) {
+        const responseData = error.response.data;
+        if (typeof responseData === 'string') {
+          errorMessage = responseData;
+        } else if (responseData.message) {
+          errorMessage = responseData.message;
+        } else if (responseData.error) {
+          errorMessage = responseData.error;
+        } else if (responseData.details) {
+          errorMessage = responseData.details;
+        }
+      } else if (error.message && error.message !== '[object Object]') {
         errorMessage = error.message;
+      }
+      
+      // Add specific error context
+      if (error.response?.status === 500) {
+        errorMessage = 'Server error: The video streaming service is currently unavailable. Please try again later.';
+      } else if (error.response?.status === 404) {
+        errorMessage = 'Video streaming service not found. Please contact support.';
+      } else if (error.message?.includes('timeout')) {
+        errorMessage = `Upload timeout. Large files may take several minutes. Please try again or use a smaller file.`;
+      } else if (error.message?.includes('network') || error.message?.includes('Network')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (error.message?.includes('Validation failed')) {
+        errorMessage = error.message;
+      } else if (error.message?.includes('413') || error.message?.includes('too large')) {
+        errorMessage = 'File too large for server. Please use a smaller file.';
+      } else if (error.message?.includes('415') || error.message?.includes('Unsupported')) {
+        errorMessage = 'Unsupported file type. Please use MP4, MOV, WebM, AVI, or MKV format.';
       }
       
       setRecordingForm(prev => ({ 
         ...prev, 
         uploadError: errorMessage,
-        uploadSuccess: false 
+        uploadSuccess: false,
+        uploadStatus: 'failed'
       }));
       
-      // Show error toast
+      setUploadProgress(0);
       toast.error(errorMessage);
     }
+  };
+
+  // Monitor video processing status
+  const monitorProcessingStatus = async (videoId: string) => {
+    const checkStatus = async () => {
+      try {
+        const statusResponse = await videoStreamingAPI.getProcessingStatus(videoId);
+        
+        if (statusResponse.status === 'success' && statusResponse.data) {
+          const { status, progress, error } = statusResponse.data;
+          
+          setRecordingForm(prev => ({ 
+            ...prev, 
+            processingProgress: progress || 0 
+          }));
+          
+          if (status === 'completed') {
+            console.log('Video processing completed');
+            // Get updated streaming URLs
+            const streamingResponse = await videoStreamingAPI.getStreamingUrls(videoId);
+            if (streamingResponse.status === 'success' && streamingResponse.data) {
+              const streamingUrl = streamingResponse.data.hlsUrl || streamingResponse.data.qualities[0]?.url;
+              setRecordingForm(prev => ({ ...prev, url: streamingUrl }));
+            }
+            return; // Stop monitoring
+          } else if (status === 'failed') {
+            console.error('Video processing failed:', error);
+            setRecordingForm(prev => ({ 
+              ...prev, 
+              uploadError: error?.message || 'Video processing failed',
+              uploadSuccess: false 
+            }));
+            return; // Stop monitoring
+          } else if (status === 'processing') {
+            // Continue monitoring
+            setTimeout(checkStatus, 5000); // Check every 5 seconds
+          }
+        }
+      } catch (error) {
+        console.error('Error checking processing status:', error);
+        // Continue monitoring despite errors
+        setTimeout(checkStatus, 10000); // Check every 10 seconds on error
+      }
+    };
+    
+    // Start monitoring
+    setTimeout(checkStatus, 2000); // Initial delay of 2 seconds
   };
 
   const toggleSessions = (sessionId: string) => setOpenSessions(prev => ({ ...prev, [sessionId]: !prev[sessionId] }));
@@ -1365,7 +1254,7 @@ export default function OnlineClassManagementPage({
       {/* Enhanced Add Recording Modal */}
       {showAddRecordingModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-300">
-          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 w-full max-w-lg mx-4 border border-gray-200/50 dark:border-gray-700/50 animate-in slide-in-from-bottom-4 duration-300">
+          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 w-full max-w-2xl mx-4 border border-gray-200/50 dark:border-gray-700/50 animate-in slide-in-from-bottom-4 duration-300 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center gap-4 mb-8">
               <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
                 <span className="text-white text-xl font-bold">🎥</span>
@@ -1388,6 +1277,7 @@ export default function OnlineClassManagementPage({
                   onChange={e => setRecordingForm(prev => ({ ...prev, title: e.target.value }))} 
                   className="w-full px-4 py-4 bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-600 border border-gray-300 dark:border-gray-600 rounded-2xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 group-hover:border-blue-400"
                   placeholder="Enter lesson title..."
+                  disabled={recordingForm.uploadStatus === 'uploading'}
                 />
               </div>
               
@@ -1395,25 +1285,28 @@ export default function OnlineClassManagementPage({
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
                   <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                   Upload Video
+                  <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
+                    (MP4, MOV, WebM, AVI, MKV up to {videoStreamingUtils.formatFileSize(10 * 1024 * 1024 * 1024)})
+                  </span>
                 </label>
                 <div className="relative">
                   <input 
                     type="file" 
                     accept="video/*" 
                     onChange={handleVideoUpload} 
-                    disabled={uploadProgress > 0}
+                    disabled={recordingForm.uploadStatus === 'uploading' || recordingForm.uploadStatus === 'processing'}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
                   />
-                  <div className={`w-full px-4 py-8 bg-gradient-to-br rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center gap-3 group-hover:scale-[1.02] ${
+                  <div className={`w-full px-6 py-8 bg-gradient-to-br rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center gap-4 group-hover:scale-[1.02] ${
                     recordingForm.uploadSuccess 
                       ? 'from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-300 dark:border-green-600 bg-green-50/50 dark:bg-green-900/10'
                       : recordingForm.uploadError
                       ? 'from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 border-red-300 dark:border-red-600 bg-red-50/50 dark:bg-red-900/10'
-                      : uploadProgress > 0
+                      : recordingForm.uploadStatus === 'uploading' || recordingForm.uploadStatus === 'processing'
                       ? 'from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-300 dark:border-blue-600 bg-blue-50/50 dark:bg-blue-900/10'
                       : 'from-gray-50 to-white dark:from-gray-700 dark:to-gray-600 border-gray-300 dark:border-gray-600 hover:border-green-500 hover:bg-green-50/50 dark:hover:bg-green-900/10'
                   }`}>
-                    {uploadProgress > 0 && uploadProgress < 100 ? (
+                    {recordingForm.uploadStatus === 'uploading' && uploadProgress < 100 ? (
                       <>
                         <div className="relative w-16 h-16">
                           <div className="absolute inset-0 bg-blue-100 dark:bg-blue-900/30 rounded-2xl animate-pulse"></div>
@@ -1423,25 +1316,29 @@ export default function OnlineClassManagementPage({
                         </div>
                         <div className="text-center">
                           <p className="text-blue-700 dark:text-blue-300 font-semibold">
-                            {uploadProgress < 85 ? 'Uploading video...' : 'Processing upload...'}
+                            Uploading video...
                           </p>
                           <p className="text-blue-600 dark:text-blue-400 text-sm">
-                            {(() => {
-                              const file = (document.querySelector('input[type="file"]') as HTMLInputElement)?.files?.[0];
-                              const fileSizeMB = file ? (file.size / (1024 * 1024)).toFixed(1) : '0';
-                              const isLarge = file && file.size > 50 * 1024 * 1024;
-                              
-                              if (isLarge && file) {
-                                const baseTimeoutMinutes = file.type.startsWith('video/') ? 8 : 5;
-                                const additionalTimeoutMinutes = file.type.startsWith('video/') 
-                                  ? Math.ceil(parseFloat(fileSizeMB) / 50) * 2 
-                                  : Math.ceil(parseFloat(fileSizeMB) / 25);
-                                const totalTimeoutMinutes = baseTimeoutMinutes + additionalTimeoutMinutes;
-                                return `Large video (${fileSizeMB}MB) - Up to ${totalTimeoutMinutes} minutes allowed`;
-                              }
-                              
-                              return 'Please wait while we process your file';
-                            })()}
+                            {recordingForm.fileName && `${recordingForm.fileName} • ${videoStreamingUtils.formatFileSize(
+                              (document.querySelector('input[type="file"]') as HTMLInputElement)?.files?.[0]?.size || 0
+                            )}`}
+                          </p>
+                        </div>
+                      </>
+                    ) : recordingForm.uploadStatus === 'processing' || recordingForm.processingProgress > 0 ? (
+                      <>
+                        <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg animate-pulse">
+                          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-yellow-700 dark:text-yellow-300 font-semibold">Processing video...</p>
+                          <p className="text-yellow-600 dark:text-yellow-400 text-sm">
+                            {recordingForm.processingProgress > 0 
+                              ? `${recordingForm.processingProgress}% complete`
+                              : 'Preparing video for streaming'
+                            }
                           </p>
                         </div>
                       </>
@@ -1455,7 +1352,9 @@ export default function OnlineClassManagementPage({
                         <div className="text-center">
                           <p className="text-green-700 dark:text-green-300 font-semibold">Upload successful!</p>
                           <p className="text-green-600 dark:text-green-400 text-sm">{recordingForm.fileName}</p>
-                          <p className="text-green-500 dark:text-green-500 text-xs mt-1">Ready to save recording</p>
+                          <p className="text-green-500 dark:text-green-500 text-xs mt-1">
+                            Video ID: {recordingForm.videoId}
+                          </p>
                         </div>
                       </>
                     ) : recordingForm.uploadError ? (
@@ -1479,7 +1378,9 @@ export default function OnlineClassManagementPage({
                         </div>
                         <div className="text-center">
                           <p className="text-gray-700 dark:text-gray-300 font-semibold">Click to upload video</p>
-                          <p className="text-gray-500 dark:text-gray-400 text-sm">MP4, AVI, MOV up to 500MB</p>
+                          <p className="text-gray-500 dark:text-gray-400 text-sm">
+                            Supports chunked upload for large files
+                          </p>
                         </div>
                       </>
                     )}
@@ -1487,33 +1388,69 @@ export default function OnlineClassManagementPage({
                 </div>
                 
                 {/* Enhanced Progress Bar */}
-                {uploadProgress > 0 && uploadProgress <= 100 && (
+                {(uploadProgress > 0 || recordingForm.processingProgress > 0) && (
                   <div className="mt-4 animate-in slide-in-from-top-2 duration-300">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                        {uploadProgress === 100 ? 'Processing...' : 'Uploading...'}
+                        {recordingForm.uploadStatus === 'uploading' ? 'Uploading...' : 
+                         recordingForm.uploadStatus === 'processing' ? 'Processing...' : 
+                         'Complete'}
                       </span>
                       <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                        {Math.round(uploadProgress)}%
+                        {recordingForm.uploadStatus === 'uploading' ? Math.round(uploadProgress) : 
+                         recordingForm.uploadStatus === 'processing' ? recordingForm.processingProgress : 
+                         100}%
                       </span>
                     </div>
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden shadow-inner">
                       <div 
                         className={`h-full rounded-full transition-all duration-300 ease-out ${
-                          uploadProgress === 100 
+                          recordingForm.uploadSuccess 
                             ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
+                            : recordingForm.uploadStatus === 'processing'
+                            ? 'bg-gradient-to-r from-yellow-500 to-orange-500'
                             : 'bg-gradient-to-r from-blue-500 to-indigo-500'
                         }`}
-                        style={{ width: `${uploadProgress}%` }}
+                        style={{ 
+                          width: `${recordingForm.uploadStatus === 'uploading' ? uploadProgress : 
+                                    recordingForm.uploadStatus === 'processing' ? recordingForm.processingProgress : 
+                                    100}%` 
+                        }}
                       >
                         <div className="h-full bg-white/20 rounded-full animate-pulse"></div>
                       </div>
                     </div>
-                    {uploadProgress === 100 && (
-                      <p className="text-xs text-green-600 dark:text-green-400 mt-1 animate-pulse">
-                        ✨ Finalizing upload...
+                    {recordingForm.uploadStatus === 'processing' && (
+                      <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1 animate-pulse">
+                        🎬 Converting video for optimal streaming...
                       </p>
                     )}
+                  </div>
+                )}
+                
+                {/* Upload Status Info */}
+                {recordingForm.uploadStatus !== 'initialized' && !recordingForm.uploadError && (
+                  <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-200 dark:border-blue-800 animate-in slide-in-from-top-2 duration-300">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-blue-700 dark:text-blue-400 font-semibold">Upload Status</p>
+                        <p className="text-blue-600 dark:text-blue-500 text-sm mt-1">
+                          {recordingForm.uploadStatus === 'uploading' && 'Uploading video chunks to cloud storage...'}
+                          {recordingForm.uploadStatus === 'processing' && 'Converting video for streaming optimization...'}
+                          {recordingForm.uploadStatus === 'completed' && 'Video ready for streaming!'}
+                        </p>
+                        {recordingForm.videoId && (
+                          <p className="text-blue-500 dark:text-blue-400 text-xs mt-1 font-mono">
+                            Video ID: {recordingForm.videoId}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
                 
@@ -1529,12 +1466,31 @@ export default function OnlineClassManagementPage({
                       <div className="flex-1">
                         <p className="text-red-700 dark:text-red-400 font-semibold">Upload Error</p>
                         <p className="text-red-600 dark:text-red-500 text-sm mt-1">{recordingForm.uploadError}</p>
-                        <button
-                          onClick={() => setRecordingForm(prev => ({ ...prev, uploadError: '' }))}
-                          className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs font-medium mt-2 underline"
-                        >
-                          Try again
-                        </button>
+                        <div className="flex gap-2 mt-3">
+                          <button
+                            onClick={() => setRecordingForm(prev => ({ ...prev, uploadError: '', uploadStatus: 'initialized' as TVideoStatus }))}
+                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs font-medium px-3 py-1 bg-red-100 dark:bg-red-900/30 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                          >
+                            Try Again
+                          </button>
+                          {recordingForm.videoId && (
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await videoStreamingAPI.retryProcessing(recordingForm.videoId);
+                                  setRecordingForm(prev => ({ ...prev, uploadError: '', uploadStatus: 'processing' as TVideoStatus }));
+                                  monitorProcessingStatus(recordingForm.videoId);
+                                  toast.success('Retrying video processing...');
+                                } catch (error: any) {
+                                  toast.error(`Retry failed: ${error.message}`);
+                                }
+                              }}
+                              className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-xs font-medium px-3 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                            >
+                              Retry Processing
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1551,6 +1507,7 @@ export default function OnlineClassManagementPage({
                   value={recordingForm.recorded_date} 
                   onChange={e => setRecordingForm(prev => ({ ...prev, recorded_date: e.target.value }))} 
                   className="w-full px-4 py-4 bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-600 border border-gray-300 dark:border-gray-600 rounded-2xl focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 transition-all duration-300 group-hover:border-orange-400"
+                  disabled={recordingForm.uploadStatus === 'uploading'}
                 />
               </div>
               
@@ -1558,32 +1515,57 @@ export default function OnlineClassManagementPage({
                 <div className="group">
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
                     <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                    Video URL
+                    Streaming URL
                   </label>
-                  <input 
-                    type="text" 
-                    value={recordingForm.url} 
-                    readOnly 
-                    className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl text-gray-600 dark:text-gray-400 font-mono text-sm"
-                  />
+                  <div className="relative">
+                    <input 
+                      type="text" 
+                      value={recordingForm.url} 
+                      readOnly 
+                      className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl text-gray-600 dark:text-gray-400 font-mono text-sm pr-12"
+                    />
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(recordingForm.url);
+                        toast.success('Streaming URL copied to clipboard!');
+                      }}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                    >
+                      <FaCopy className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
             
             <div className="mt-8 flex justify-end gap-4">
               <button 
-                onClick={() => setShowAddRecordingModal(false)} 
+                onClick={() => {
+                  if (recordingForm.uploadStatus === 'uploading') {
+                    videoUploadClient.abort().catch(console.error);
+                  }
+                  setShowAddRecordingModal(false);
+                }} 
                 className="px-6 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-2xl font-semibold transition-all duration-300 hover:scale-105"
+                disabled={recordingForm.uploadStatus === 'uploading'}
               >
-                Cancel
+                {recordingForm.uploadStatus === 'uploading' ? 'Abort & Close' : 'Cancel'}
               </button>
               <button 
                 onClick={submitAddRecording} 
-                disabled={!recordingForm.title || !recordingForm.url || uploadProgress > 0 || !recordingForm.uploadSuccess}
+                disabled={
+                  !recordingForm.title || 
+                  !recordingForm.url || 
+                  recordingForm.uploadStatus === 'uploading' || 
+                  recordingForm.uploadStatus === 'processing' ||
+                  !recordingForm.uploadSuccess
+                }
                 className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-2xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 <span className="text-lg">🚀</span>
-                {uploadProgress > 0 && uploadProgress < 100 ? 'Uploading...' : 'Save Recording'}
+                {recordingForm.uploadStatus === 'uploading' ? 'Uploading...' : 
+                 recordingForm.uploadStatus === 'processing' ? 'Processing...' : 
+                 'Save Recording'}
               </button>
             </div>
           </div>

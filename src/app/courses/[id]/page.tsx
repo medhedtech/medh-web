@@ -5,14 +5,14 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 
 interface CoursePageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({ params }: CoursePageProps): Promise<Metadata> {
   try {
-    const id = params?.id;
+    const { id } = await params;
     if (!id) return notFound();
 
     const response = await courseAPI.getCourseById(id);
@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: CoursePageProps): Promise<Met
 
 export default async function CoursePage({ params }: CoursePageProps) {
   try {
-    const id = params?.id;
+    const { id } = await params;
     if (!id) return notFound();
 
     const response = await courseAPI.getCourseById(id);

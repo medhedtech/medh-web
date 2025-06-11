@@ -42,7 +42,7 @@ function PersonalityDevelopmentCourses() {
     "Grade 7-8",
     "Grade 9-10",
     "Grade 11-12",
-    "UG - Graduate - Professionals",
+    "UG/Grad/Pro",
   ];
 
   // Custom header content with improved mobile styling
