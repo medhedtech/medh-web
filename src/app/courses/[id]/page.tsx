@@ -19,11 +19,11 @@ export async function generateMetadata({ params }: CoursePageProps): Promise<Met
     const course = response.course;
 
     return {
-      title: course.course_title || course.title,
-      description: course.course_description?.program_overview || course.description,
+      title: course.course_title,
+      description: course.course_description.program_overview,
       openGraph: {
-        title: course.course_title || course.title,
-        description: course.course_description?.program_overview || course.description,
+        title: course.course_title,
+        description: course.course_description.program_overview,
         images: [course.course_image],
       },
     };
@@ -56,43 +56,39 @@ export default async function CoursePage({ params }: CoursePageProps) {
             <div className="grid grid-cols-2 gap-4 mb-8">
               <div>
                 <h3 className="font-semibold">Duration</h3>
-                <p>{course.course_duration || 'Not specified'}</p>
+                <p>{course.course_duration}</p>
               </div>
               <div>
                 <h3 className="font-semibold">Level</h3>
-                <p>{course.course_level || course.skill_level || 'Not specified'}</p>
+                <p>{course.course_level}</p>
               </div>
               <div>
                 <h3 className="font-semibold">Language</h3>
-                <p>{course.language || 'Not specified'}</p>
+                <p>{course.language}</p>
               </div>
               <div>
                 <h3 className="font-semibold">Category</h3>
-                <p>{course.course_category || 'Not specified'}</p>
+                <p>{course.course_category}</p>
               </div>
             </div>
 
             {/* Course Curriculum */}
-            {course.curriculum && course.curriculum.length > 0 && (
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold mb-4">Course Curriculum</h2>
-                {course.curriculum.map((week: ICourseWeek, index: number) => (
-                  <div key={week.id || index} className="mb-6">
-                    <h3 className="text-xl font-semibold mb-2">
-                      Week {week.weekNumber}: {week.weekTitle}
-                    </h3>
-                    <p className="text-gray-600 mb-4">{week.weekDescription}</p>
-                    {week.topics && week.topics.length > 0 && (
-                      <ul className="list-disc list-inside">
-                        {week.topics.map((topic: string, topicIndex: number) => (
-                          <li key={topicIndex} className="mb-2">{topic}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold mb-4">Course Curriculum</h2>
+              {course.curriculum.map((week: ICourseWeek) => (
+                <div key={week.id} className="mb-6">
+                  <h3 className="text-xl font-semibold mb-2">
+                    Week {week.weekNumber}: {week.weekTitle}
+                  </h3>
+                  <p className="text-gray-600 mb-4">{week.weekDescription}</p>
+                  <ul className="list-disc list-inside">
+                    {week.topics.map((topic: string, index: number) => (
+                      <li key={index} className="mb-2">{topic}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Course Sidebar */}
@@ -108,9 +104,9 @@ export default async function CoursePage({ params }: CoursePageProps) {
               
               <div className="mb-6">
                 <h3 className="text-2xl font-bold mb-2">
-                  {course.isFree || course.course_fee === 0 ? 'Free' : `$${course.course_fee || 0}`}
+                  {course.isFree ? 'Free' : `$${course.course_fee}`}
                 </h3>
-                {course.prices && course.prices.length > 0 && (
+                {course.prices.length > 0 && (
                   <p className="text-sm text-gray-600">
                     Group discounts available
                   </p>
@@ -121,24 +117,22 @@ export default async function CoursePage({ params }: CoursePageProps) {
                 Enroll Now
               </button>
 
-                            <div className="mt-6">
+              <div className="mt-6">
                 <h4 className="font-semibold mb-2">This course includes:</h4>
                 <ul className="space-y-2">
-                  {(course.is_Certification === 'Yes' || course.is_certification) && (
+                  {course.is_Certification === 'Yes' && (
                     <li>✓ Certificate of completion</li>
                   )}
-                  {(course.is_Assignments === 'Yes' || course.is_assignments) && (
+                  {course.is_Assignments === 'Yes' && (
                     <li>✓ Practice assignments</li>
                   )}
-                  {(course.is_Projects === 'Yes' || course.is_projects) && (
+                  {course.is_Projects === 'Yes' && (
                     <li>✓ Hands-on projects</li>
                   )}
-                  {(course.is_Quizes === 'Yes' || course.is_quizzes) && (
+                  {course.is_Quizes === 'Yes' && (
                     <li>✓ Interactive quizzes</li>
                   )}
-                  {course.no_of_Sessions && (
-                    <li>✓ {course.no_of_Sessions} live sessions</li>
-                  )}
+                  <li>✓ {course.no_of_Sessions} live sessions</li>
                   <li>✓ Lifetime access</li>
                 </ul>
               </div>
