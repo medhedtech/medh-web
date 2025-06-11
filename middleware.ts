@@ -1,16 +1,20 @@
-// middleware.js
-import { NextResponse } from "next/server";
-import { protectedRoutes } from "./protectedRoutes";
+import { NextRequest, NextResponse } from "next/server";
+import { protectedRoutes } from "./protectedRoutesConfig";
+
+// Types
+interface ISecurityHeaders {
+  [key: string]: string;
+}
 
 // Helper to check if the user is authenticated (works with custom JWT)
-async function isAuthenticated(req) {
+async function isAuthenticated(req: NextRequest): Promise<boolean> {
   // Use only our custom token implementation
-  const customToken = req.cookies.get("token")?.value;
+  const customToken: string | undefined = req.cookies.get("token")?.value;
   return !!customToken;
 }
 
 // Security headers for better performance and security
-const securityHeaders = {
+const securityHeaders: ISecurityHeaders = {
   'X-DNS-Prefetch-Control': 'on',
   'X-XSS-Protection': '1; mode=block',
   'X-Frame-Options': 'SAMEORIGIN',
@@ -33,11 +37,11 @@ const securityHeaders = {
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(self), interest-cohort=()'
 };
 
-export async function middleware(request) {
-  const path = request.nextUrl.pathname;
-  const isLoginPage = path === "/login" || path === "/signup" || path === "/forgot-password";
-  const isPublicPage = !protectedRoutes.some((route) => path.startsWith(route));
-  const isAuthenticated_ = await isAuthenticated(request);
+export async function middleware(request: NextRequest): Promise<NextResponse> {
+  const path: string = request.nextUrl.pathname;
+  const isLoginPage: boolean = path === "/login" || path === "/signup" || path === "/forgot-password";
+  const isPublicPage: boolean = !protectedRoutes.some((route: string) => path.startsWith(route));
+  const isAuthenticated_: boolean = await isAuthenticated(request);
 
   // Handle authentication redirects
   if (isLoginPage && isAuthenticated_) {
@@ -45,17 +49,17 @@ export async function middleware(request) {
   }
 
   if (!isPublicPage && !isAuthenticated_) {
-    const loginUrl = new URL('/login', request.url);
+    const loginUrl: URL = new URL('/login', request.url);
     // Use 'redirect' parameter for consistency with client-side redirects
     loginUrl.searchParams.set('redirect', encodeURIComponent(path));
     return NextResponse.redirect(loginUrl);
   }
 
   // Apply security headers and performance optimizations
-  const response = NextResponse.next();
+  const response: NextResponse = NextResponse.next();
   
   // Apply security headers to all responses
-  Object.entries(securityHeaders).forEach(([key, value]) => {
+  Object.entries(securityHeaders).forEach(([key, value]: [string, string]) => {
     response.headers.set(key, value);
   });
   
@@ -98,4 +102,4 @@ export const config = {
       ],
     },
   ],
-};
+}; 
