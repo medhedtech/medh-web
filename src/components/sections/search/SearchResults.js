@@ -148,20 +148,14 @@ const SearchResults = ({ initialQuery = "" }) => {
   // Fetch section data
   const fetchSectionData = useCallback(async (sectionId, filter) => {
     try {
-      const apiUrl = getAllCoursesWithLimits(
-        1, // page
-        4, // limit to 4 courses per section
-        '', // course_title
-        '', // course_tag
-        filter.category || '', // course_category
-        'Published', // status
-        '', // search
-        '', // course_grade
-        '', // category
-        '' // courseId
-      );
+      const apiUrl = getAllCoursesWithLimits({
+        page: 1,
+        limit: 4,
+        course_category: filter.category || '',
+        status: 'Published'
+      });
 
-      const response = await axios.get(`${apiBaseUrl}${apiUrl}`);
+      const response = await axios.get(apiUrl);
       if (response.data && response.data.courses) {
         setSectionData(prev => ({
           ...prev,
@@ -267,22 +261,17 @@ const SearchResults = ({ initialQuery = "" }) => {
         filters.dateRange.end = now.toISOString();
       }
       
-      const apiUrl = getAllCoursesWithLimits(
-        1, // Always first page
-        5, // Limit to 5 latest courses
-        "", // No course_title filter
-        "", // course_tag
-        selectedCategory.join(','), // course_category
-        "Published", // status
-        "", // No search term
-        "", // grade
-        [], // category
-        filters // filters object
-      );
+      const apiUrl = getAllCoursesWithLimits({
+        page: 1,
+        limit: 5,
+        course_category: selectedCategory.join(','),
+        status: "Published",
+        filters: filters
+      });
       
-      console.log('Latest Filtered Courses URL:', `${apiBaseUrl}${apiUrl}`);
+      console.log('Latest Filtered Courses URL:', apiUrl);
       
-      const response = await axios.get(`${apiBaseUrl}${apiUrl}`);
+      const response = await axios.get(apiUrl);
       
       if (response.data) {
         // Transform and validate each course object
@@ -290,25 +279,43 @@ const SearchResults = ({ initialQuery = "" }) => {
           if (!course) return null;
           
           try {
+            // Handle course description - can be string or object
+            let description = '';
+            if (typeof course.course_description === 'string') {
+              description = course.course_description;
+            } else if (course.course_description?.program_overview) {
+              description = course.course_description.program_overview;
+            } else if (course.description) {
+              description = course.description;
+            }
+
+            // Handle pricing - get first available price
+            let price = 0;
+            if (course.prices && Array.isArray(course.prices) && course.prices.length > 0) {
+              price = course.prices[0].individual || course.prices[0].batch || 0;
+            } else if (course.price) {
+              price = course.price;
+            }
+
             return {
               ...course,
               id: course._id || course.id,
               title: course.title || course.course_title || 'Untitled Course',
               thumbnail_url: course.thumbnail_url || course.course_image || course.thumbnail || "/fallback-course-image.jpg",
               duration: formatDuration(course.course_duration),
-              rating: parseFloat(course.avg_rating || course.rating) || 0,
-              enrolled_count: Array.isArray(course.enrolled_students) ? course.enrolled_students.length : (course.enrolled_count || 0),
+              rating: parseFloat(course.meta?.ratings?.average || course.avg_rating || course.rating) || 0,
+              enrolled_count: course.meta?.enrollments || Array.isArray(course.enrolled_students) ? course.enrolled_students.length : (course.enrolled_count || 0),
               category: course.course_category || course.category || "Uncategorized",
               completion_rate: calculateCompletionRate(course),
-              skill_level: course.skill_level || "All Levels",
-              last_updated: formatLastUpdated(course.updatedAt || course.updated_at),
+              skill_level: course.course_grade || course.skill_level || "All Levels",
+              last_updated: formatLastUpdated(course.meta?.lastUpdated || course.updatedAt || course.updated_at || course.createdAt),
               instructor: formatInstructor(course.instructor),
               preview_available: !!course.preview_video,
-              certification: !!course.certification,
+              certification: course.is_Certification === "Yes" || !!course.certification,
               language: course.language || "English",
-              description: course.description || course.course_description || '',
-              price: course.price || 0,
-              reviews_count: course.reviews_count || 0,
+              description: description,
+              price: price,
+              reviews_count: course.meta?.ratings?.count || course.reviews_count || 0,
               tags: Array.isArray(course.tags) ? course.tags : [],
               status: course.status || "Published"
             };
@@ -426,20 +433,16 @@ const SearchResults = ({ initialQuery = "" }) => {
           filters.sortBy = "relevance";
       }
       
-      const apiUrl = getAllCoursesWithLimits(
-        currentPage,
-        12, // items per page
-        query.trim(), // course_title
-        "", // course_tag
-        selectedCategory.join(','), // course_category
-        "Published", // status
-        query.trim(), // search term
-        "", // grade
-        [], // category
-        filters // filters object
-      );
+      const apiUrl = getAllCoursesWithLimits({
+        page: currentPage,
+        limit: 12,
+        search: query.trim(),
+        course_category: selectedCategory.join(','),
+        status: "Published",
+        filters: filters
+      });
       
-      console.log('Search URL:', `${apiBaseUrl}${apiUrl}`);
+      console.log('Search URL:', apiUrl);
       console.log('Search Parameters:', {
         query: query.trim(),
         categoryFilter: selectedCategory,
@@ -451,35 +454,61 @@ const SearchResults = ({ initialQuery = "" }) => {
         filters
       });
       
-      const response = await axios.get(`${apiBaseUrl}${apiUrl}`);
+      const response = await axios.get(apiUrl);
       
       console.log('Search Response:', response.data);
+      console.log('Response structure:', Object.keys(response.data));
+      console.log('Response.data.data:', response.data.data);
+      console.log('Response.data.courses:', response.data.courses);
       
-      if (response.data) {
+      // The API might return data nested in a 'data' property
+      const responseData = response.data.data || response.data;
+      console.log('Using responseData:', responseData);
+      console.log('ResponseData.courses:', responseData.courses);
+      
+      if (responseData) {
         // Transform and validate each course object
-        const transformedResults = (response.data.courses || []).map(course => {
+        const transformedResults = (responseData.courses || []).map(course => {
           if (!course) return null;
           
           try {
+            // Handle course description - can be string or object
+            let description = '';
+            if (typeof course.course_description === 'string') {
+              description = course.course_description;
+            } else if (course.course_description?.program_overview) {
+              description = course.course_description.program_overview;
+            } else if (course.description) {
+              description = course.description;
+            }
+
+            // Handle pricing - get first available price
+            let price = 0;
+            if (course.prices && Array.isArray(course.prices) && course.prices.length > 0) {
+              price = course.prices[0].individual || course.prices[0].batch || 0;
+            } else if (course.price) {
+              price = course.price;
+            }
+
             return {
               ...course,
               id: course._id || course.id,
               title: course.title || course.course_title || 'Untitled Course',
               thumbnail_url: course.thumbnail_url || course.course_image || course.thumbnail || "/fallback-course-image.jpg",
               duration: formatDuration(course.course_duration),
-              rating: parseFloat(course.avg_rating || course.rating) || 0,
-              enrolled_count: Array.isArray(course.enrolled_students) ? course.enrolled_students.length : (course.enrolled_count || 0),
+              rating: parseFloat(course.meta?.ratings?.average || course.avg_rating || course.rating) || 0,
+              enrolled_count: course.meta?.enrollments || Array.isArray(course.enrolled_students) ? course.enrolled_students.length : (course.enrolled_count || 0),
               category: course.course_category || course.category || "Uncategorized",
               completion_rate: calculateCompletionRate(course),
-              skill_level: course.skill_level || "All Levels",
-              last_updated: formatLastUpdated(course.updatedAt || course.updated_at),
+              skill_level: course.course_grade || course.skill_level || "All Levels",
+              last_updated: formatLastUpdated(course.meta?.lastUpdated || course.updatedAt || course.updated_at || course.createdAt),
               instructor: formatInstructor(course.instructor),
               preview_available: !!course.preview_video,
-              certification: !!course.certification,
+              certification: course.is_Certification === "Yes" || !!course.certification,
               language: course.language || "English",
-              description: course.description || course.course_description || '',
-              price: course.price || 0,
-              reviews_count: course.reviews_count || 0,
+              description: description,
+              price: price,
+              reviews_count: course.meta?.ratings?.count || course.reviews_count || 0,
               tags: Array.isArray(course.tags) ? course.tags : [],
               status: course.status || "Published"
             };
@@ -493,19 +522,22 @@ const SearchResults = ({ initialQuery = "" }) => {
         
         // Additional debug logging
         if (transformedResults.length === 0) {
-          console.log('No results after transformation. Original data:', response.data.courses);
+          console.log('No results after transformation. Original data:', responseData.courses);
         } else {
           console.log('First result sample:', transformedResults[0]);
         }
 
+        console.log('Setting totalResults to:', responseData.pagination?.total || responseData.total || transformedResults.length);
+        console.log('Setting results array length:', transformedResults.length);
+
         setResults(transformedResults);
-        setTotalResults(response.data.pagination?.totalCourses || response.data.total || transformedResults.length);
-        setTotalPages(Math.max(1, Math.ceil((response.data.pagination?.totalCourses || response.data.total || transformedResults.length) / 12)));
+        setTotalResults(responseData.pagination?.total || responseData.total || transformedResults.length);
+        setTotalPages(Math.max(1, Math.ceil((responseData.pagination?.total || responseData.total || transformedResults.length) / 12)));
         
         // Update available filters based on facets
-        if (response.data.facets) {
+        if (responseData.facets) {
           try {
-            updateAvailableFilters(response.data.facets);
+            updateAvailableFilters(responseData.facets);
           } catch (err) {
             console.error('Error updating filters:', err);
             // Don't set an error state here as the search results are still valid
@@ -621,8 +653,10 @@ const SearchResults = ({ initialQuery = "" }) => {
 
   // Update search when query changes with debounce
   useEffect(() => {
+    console.log('Query changed:', query);
     const debounceTimer = setTimeout(() => {
       if (query) {
+        console.log('Triggering search for:', query);
         fetchResults();
       }
     }, 300); // 300ms debounce
@@ -694,11 +728,22 @@ const SearchResults = ({ initialQuery = "" }) => {
   
   // Initial search on load
   useEffect(() => {
+    console.log('Component mounted with initialQuery:', initialQuery);
     if (initialQuery) {
+      console.log('Triggering initial search for:', initialQuery);
       fetchResults();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialQuery]); // Remove fetchResults from dependency array
+
+  // Also trigger search immediately if query exists on mount
+  useEffect(() => {
+    if (query && !loading) {
+      console.log('Component has query on mount, triggering search:', query);
+      fetchResults();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount
   
   // Update URL when query changes
   useEffect(() => {

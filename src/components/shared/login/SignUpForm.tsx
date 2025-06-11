@@ -295,6 +295,7 @@ const SignUpForm: React.FC = () => {
       role: "student",
       status: "Active",
       age_group: "18-24",
+      agree_terms: true, // Pre-accept terms and privacy policy
       meta: {
         gender: "Male",
         age_group: "18-24"
@@ -1403,8 +1404,8 @@ const SignUpForm: React.FC = () => {
                             {errors.agree_terms 
                               ? 'Terms acceptance required' 
                               : watch('agree_terms')
-                                ? 'Terms accepted'
-                                : 'Click to accept terms and privacy policy'}
+                                ? 'Terms of use and Privacy Policy accepted'
+                                : 'Click to accept Terms of use and Privacy Policy'}
                           </span>
                         </div>
                       </div>
@@ -1418,7 +1419,7 @@ const SignUpForm: React.FC = () => {
                       {errors.agree_terms && (
                         <p className="mt-1 text-xs text-red-500 dark:text-red-400 flex items-start">
                           <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
-                          <span>Please accept our terms and privacy policy to continue</span>
+                          <span>Please accept our Terms of use and Privacy Policy to continue</span>
                         </p>
                       )}
                     </div>

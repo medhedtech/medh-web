@@ -131,10 +131,10 @@ const FormInput: React.FC<{
   <div>
     <div className="relative group">
       <div className="absolute inset-y-0 left-0 flex items-center pl-3 sm:pl-4 pointer-events-none">
-        {React.cloneElement(icon as React.ReactElement, { 
+        {React.isValidElement(icon) && React.cloneElement(icon, { 
           className: `${error ? 'text-red-500' : 'text-gray-400 dark:text-gray-500 group-hover:text-primary-500 dark:group-hover:text-primary-400'}`,
           size: 18 
-        })}
+        } as any)}
       </div>
       <label 
         htmlFor={id} 
@@ -182,10 +182,10 @@ const FormSelect: React.FC<{
   <div>
     <div className="relative group">
       <div className="absolute inset-y-0 left-0 flex items-center pl-3 sm:pl-4 pointer-events-none z-10">
-        {React.cloneElement(icon as React.ReactElement, { 
+        {React.isValidElement(icon) && React.cloneElement(icon, { 
           className: `${error ? 'text-red-500' : 'text-gray-400 dark:text-gray-500 group-hover:text-primary-500 dark:group-hover:text-primary-400'}`, 
           size: 18 
-        })}
+        } as any)}
       </div>
       <label 
         htmlFor={id} 
@@ -298,10 +298,10 @@ const FormTextarea: React.FC<{
   <div>
     <div className="relative">
       <div className="absolute top-4 left-3 sm:left-4 pointer-events-none">
-        {React.cloneElement(icon as React.ReactElement, { 
+        {React.isValidElement(icon) && React.cloneElement(icon, { 
           className: `${error ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`, 
           size: 18 
-        })}
+        } as any)}
       </div>
       <textarea
         {...register}
@@ -533,18 +533,19 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
           const base64 = reader.result as string;
           const postData = { base64String: base64 };
 
-          await postQuery({
+          const result = await postQuery({
             url: apiUrls?.upload?.uploadDocument,
             postData,
-            onSuccess: (data: any) => {
-              toast.success("File uploaded successfully!");
-              setPdfBrochure(data?.data);
-            },
-            onError: (error: any) => {
-              toast.error(error?.message || "Error uploading file");
-              setFileName("No file chosen");
-            },
+            showToast: true,
+            successMessage: "File uploaded successfully!",
+            errorMessage: "Error uploading file",
           });
+          
+          if (result?.data) {
+            setPdfBrochure(result.data?.data);
+          } else {
+            setFileName("No file chosen");
+          }
         };
       } catch (error) {
         toast.error("Error processing file");
@@ -659,22 +660,22 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
         ...(pdfBrochure && { resume_image: pdfBrochure }),
       };
 
-      await postQuery({
+      const result = await postQuery({
         url: apiUrls?.Contacts?.createContact,
         postData,
-        onSuccess: () => {
-          setShowModal(true);
-          setRecaptchaError(false);
-          setRecaptchaValue(null);
-          setPdfBrochure(null);
-          setFileName("No file chosen");
-          reset();
-          toast.success("Form submitted successfully!");
-        },
-        onError: (error: any) => {
-          toast.error(error?.message || "Error submitting form");
-        },
+        showToast: true,
+        successMessage: "Form submitted successfully!",
+        errorMessage: "Error submitting form",
       });
+
+      if (result?.data) {
+        setShowModal(true);
+        setRecaptchaError(false);
+        setRecaptchaValue(null);
+        setPdfBrochure(null);
+        setFileName("No file chosen");
+        reset();
+      }
     } catch (error) {
       toast.error("An unexpected error occurred");
     } finally {
