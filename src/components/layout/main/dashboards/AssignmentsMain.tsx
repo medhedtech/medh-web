@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useState, useEffect, useMemo } from 'react';
+import React, { Suspense, useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from "framer-motion";
 import Link from 'next/link';
 import {
@@ -20,8 +20,24 @@ import {
   BookOpen,
   Target,
   Award,
-  TrendingUp
+  TrendingUp,
+  RefreshCw
 } from 'lucide-react';
+
+// Import API hooks and types
+import useGetQuery from '@/hooks/getQuery.hook';
+import usePostQuery from '@/hooks/postQuery.hook';
+import usePutQuery from '@/hooks/putQuery.hook';
+import useDeleteQuery from '@/hooks/deleteQuery.hook';
+import { 
+  apiUrls, 
+  IAssignment, 
+  IAssignmentStats, 
+  IAssignmentsResponse, 
+  IAssignmentStatsResponse,
+  ISubmissionCreateInput,
+  ISubmissionResponse
+} from '@/apis/index';
 
 /**
  * AssignmentsMain - Component that displays the assignments content
@@ -31,10 +47,154 @@ const AssignmentsMain: React.FC = () => {
   const [isClient, setIsClient] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<"all" | "pending" | "submitted" | "graded" | "overdue">("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [assignments, setAssignments] = useState<IAssignment[]>([]);
+  const [stats, setStats] = useState<IAssignmentStats>({
+    totalAssignments: 0,
+    pendingAssignments: 0,
+    submittedAssignments: 0,
+    gradedAssignments: 0,
+    overdueAssignments: 0,
+    averageGrade: 0,
+    completionRate: 0,
+    onTimeSubmissionRate: 0,
+    totalPointsEarned: 0,
+    totalPointsPossible: 0,
+    assignmentsByType: {},
+    assignmentsByDifficulty: {},
+    gradeTrend: [],
+    upcomingDeadlines: []
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // API hooks
+  const { getQuery } = useGetQuery();
+  const { postQuery } = usePostQuery();
+  const { putQuery } = usePutQuery();
+  const { deleteQuery } = useDeleteQuery();
 
   useEffect(() => {
     setIsClient(true);
+    // Get user ID from localStorage or context
+    const storedUserId = localStorage.getItem('userId') || localStorage.getItem('user_id');
+    if (storedUserId) {
+      setUserId(storedUserId);
+    } else {
+      setError('User not authenticated. Please log in again.');
+      setIsLoading(false);
+    }
   }, []);
+
+  // Fetch assignments and stats
+  useEffect(() => {
+    if (userId) {
+      fetchAssignments();
+    }
+  }, [userId]);
+
+  const fetchAssignments = useCallback(async () => {
+    if (!userId) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Fetch assignments
+      await getQuery({
+        url: apiUrls.assignments.getAllAssignments(userId, {
+          page: 1,
+          limit: 50,
+          sort_by: 'dueDate',
+          sort_order: 'asc'
+        }),
+        onSuccess: (response: IAssignmentsResponse) => {
+          if (response && response.data && response.data.assignments && Array.isArray(response.data.assignments)) {
+            setAssignments(response.data.assignments);
+          } else {
+            console.warn('Assignments API returned unexpected response structure:', response);
+            setAssignments([]);
+          }
+        },
+        onFail: (error) => {
+          console.error('Error fetching assignments:', error);
+          if (error?.status === 404) {
+            console.warn('Assignments API endpoint not implemented yet. Using empty state.');
+            setError('Assignments feature is not available yet. Please check back later.');
+          } else {
+            setError('Failed to load assignments. Please try again later.');
+          }
+          setAssignments([]);
+        }
+      });
+
+      // Fetch assignment stats
+      await getQuery({
+        url: apiUrls.assignments.getAssignmentStats(userId),
+        onSuccess: (response: IAssignmentStatsResponse) => {
+          if (response && response.data && response.data.stats) {
+            setStats(response.data.stats);
+          } else {
+            console.warn('Assignment stats API returned unexpected response structure:', response);
+          }
+        },
+        onFail: (error) => {
+          console.error('Error fetching assignment stats:', error);
+          if (error?.status === 404) {
+            console.warn('Assignment stats API endpoint not implemented yet. Using default stats.');
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error in fetchAssignments:', error);
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userId, getQuery]);
+
+  // Handle assignment submission
+  const handleSubmitAssignment = useCallback(async (assignmentId: string) => {
+    if (!userId) return;
+
+    try {
+      const submissionData: ISubmissionCreateInput = {
+        assignmentId,
+        studentId: userId,
+        content: 'Assignment submitted via dashboard'
+      };
+
+      await postQuery({
+        url: apiUrls.assignments.submitAssignment(assignmentId),
+        data: submissionData,
+        onSuccess: (response: ISubmissionResponse) => {
+          if (response && response.data) {
+            // Update assignment status locally
+            setAssignments(prev => prev.map(assignment => 
+              assignment._id === assignmentId 
+                ? { ...assignment, status: 'submitted' as const, submittedDate: new Date().toISOString() }
+                : assignment
+            ));
+            // Refresh data
+            fetchAssignments();
+          }
+        },
+        onFail: (error) => {
+          console.error('Error submitting assignment:', error);
+          setError('Failed to submit assignment. Please try again.');
+        }
+      });
+    } catch (error) {
+      console.error('Error in assignment submission:', error);
+    }
+  }, [userId, postQuery, fetchAssignments]);
+
+  // Handle refresh
+  const handleRefresh = useCallback(() => {
+    if (userId) {
+      fetchAssignments();
+    }
+  }, [userId, fetchAssignments]);
 
   // Animation variants
   const containerVariants = useMemo(() => ({
@@ -60,120 +220,17 @@ const AssignmentsMain: React.FC = () => {
     }
   }), []);
 
-  // Mock assignments data
-  const assignments = useMemo(() => [
-    {
-      id: 1,
-      title: "Digital Marketing Campaign Analysis",
-      course: "Digital Marketing Fundamentals",
-      dueDate: "2024-04-15",
-      submittedDate: "2024-04-12",
-      status: "graded",
-      grade: 92,
-      maxGrade: 100,
-      description: "Analyze a real-world digital marketing campaign and provide recommendations",
-      type: "Project",
-      difficulty: "Medium",
-      estimatedTime: "8 hours",
-      attachments: ["campaign_brief.pdf", "analysis_template.docx"]
-    },
-    {
-      id: 2,
-      title: "Python Data Structures Implementation",
-      course: "Data Science with Python",
-      dueDate: "2024-04-20",
-      submittedDate: null,
-      status: "pending",
-      grade: null,
-      maxGrade: 100,
-      description: "Implement various data structures using Python and analyze their performance",
-      type: "Coding",
-      difficulty: "Hard",
-      estimatedTime: "12 hours",
-      attachments: ["starter_code.py", "requirements.txt"]
-    },
-    {
-      id: 3,
-      title: "UI/UX Design Prototype",
-      course: "UI/UX Design Principles",
-      dueDate: "2024-04-18",
-      submittedDate: "2024-04-17",
-      status: "submitted",
-      grade: null,
-      maxGrade: 100,
-      description: "Create a high-fidelity prototype for a mobile application",
-      type: "Design",
-      difficulty: "Medium",
-      estimatedTime: "10 hours",
-      attachments: ["design_brief.pdf", "figma_template.fig"]
-    },
-    {
-      id: 4,
-      title: "Project Management Case Study",
-      course: "Project Management Essentials",
-      dueDate: "2024-04-10",
-      submittedDate: null,
-      status: "overdue",
-      grade: null,
-      maxGrade: 100,
-      description: "Analyze a failed project and propose alternative management strategies",
-      type: "Essay",
-      difficulty: "Easy",
-      estimatedTime: "6 hours",
-      attachments: ["case_study.pdf", "template.docx"]
-    },
-    {
-      id: 5,
-      title: "Machine Learning Model Training",
-      course: "Data Science with Python",
-      dueDate: "2024-04-25",
-      submittedDate: "2024-04-22",
-      status: "graded",
-      grade: 88,
-      maxGrade: 100,
-      description: "Train and evaluate a machine learning model on provided dataset",
-      type: "Coding",
-      difficulty: "Hard",
-      estimatedTime: "15 hours",
-      attachments: ["dataset.csv", "notebook_template.ipynb"]
-    },
-    {
-      id: 6,
-      title: "SEO Audit Report",
-      course: "Digital Marketing Fundamentals",
-      dueDate: "2024-04-22",
-      submittedDate: null,
-      status: "pending",
-      grade: null,
-      maxGrade: 100,
-      description: "Conduct a comprehensive SEO audit for a given website",
-      type: "Report",
-      difficulty: "Medium",
-      estimatedTime: "8 hours",
-      attachments: ["audit_checklist.pdf", "report_template.docx"]
-    }
-  ], []);
-
-  // Assignment stats
+  // Assignment stats derived from fetched data
   const assignmentStats = useMemo(() => {
-    const total = assignments.length;
-    const pending = assignments.filter(a => a.status === "pending").length;
-    const submitted = assignments.filter(a => a.status === "submitted").length;
-    const graded = assignments.filter(a => a.status === "graded").length;
-    const overdue = assignments.filter(a => a.status === "overdue").length;
-    const averageGrade = assignments
-      .filter(a => a.grade !== null)
-      .reduce((sum, a) => sum + (a.grade || 0), 0) / assignments.filter(a => a.grade !== null).length;
-
     return {
-      total,
-      pending,
-      submitted,
-      graded,
-      overdue,
-      averageGrade: averageGrade ? averageGrade.toFixed(1) : "N/A"
+      total: stats.totalAssignments,
+      pending: stats.pendingAssignments,
+      submitted: stats.submittedAssignments,
+      graded: stats.gradedAssignments,
+      overdue: stats.overdueAssignments,
+      averageGrade: stats.averageGrade ? stats.averageGrade.toFixed(1) : "N/A"
     };
-  }, [assignments]);
+  }, [stats]);
 
   // Filter assignments based on status and search
   const filteredAssignments = useMemo(() => {
@@ -186,7 +243,7 @@ const AssignmentsMain: React.FC = () => {
     if (searchTerm) {
       filtered = filtered.filter(assignment => 
         assignment.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        assignment.course.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assignment.courseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         assignment.description.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -277,12 +334,24 @@ const AssignmentsMain: React.FC = () => {
           <div className="text-2xl sm:text-3xl font-bold mb-1">{assignmentStats.graded}</div>
           <div className="text-primary-100 text-xs sm:text-sm font-medium">Graded</div>
         </div>
+
+        {/* Refresh Button */}
+        <div className="flex-shrink-0">
+          <button
+            onClick={handleRefresh}
+            disabled={isLoading}
+            className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors disabled:opacity-50"
+            title="Refresh assignments"
+          >
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
     </div>
   );
 
   // Assignment Card Component
-  const AssignmentCard = ({ assignment }: { assignment: any }) => {
+  const AssignmentCard = ({ assignment }: { assignment: IAssignment }) => {
     const statusInfo = getStatusInfo(assignment.status);
     const isOverdue = assignment.status === "overdue";
     const daysUntilDue = Math.ceil((new Date(assignment.dueDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
@@ -304,7 +373,7 @@ const AssignmentsMain: React.FC = () => {
               {assignment.title}
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-              {assignment.course}
+              {assignment.courseName}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
               {assignment.description}
@@ -333,7 +402,7 @@ const AssignmentsMain: React.FC = () => {
         </div>
 
         {/* Grade Display */}
-        {assignment.grade !== null && (
+        {assignment.grade !== null && assignment.grade !== undefined && (
           <div className="flex items-center justify-between mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
             <div className="flex items-center">
               <Star className="w-4 h-4 text-yellow-400 fill-current mr-2" />
@@ -362,10 +431,10 @@ const AssignmentsMain: React.FC = () => {
           <div className="mb-4">
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Attachments:</p>
             <div className="flex flex-wrap gap-2">
-              {assignment.attachments.map((file: string, index: number) => (
+              {assignment.attachments.map((file, index) => (
                 <span key={index} className="inline-flex items-center px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs">
                   <Download className="w-3 h-3 mr-1" />
-                  {file}
+                  {file.filename}
                 </span>
               ))}
             </div>
@@ -379,7 +448,10 @@ const AssignmentsMain: React.FC = () => {
             View Details
           </button>
           {assignment.status === "pending" && (
-            <button className="flex-1 flex items-center justify-center px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
+            <button 
+              onClick={() => handleSubmitAssignment(assignment._id)}
+              className="flex-1 flex items-center justify-center px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm"
+            >
               <Upload className="w-4 h-4 mr-2" />
               Submit
             </button>
@@ -420,10 +492,38 @@ const AssignmentsMain: React.FC = () => {
     </div>
   );
 
-  if (!isClient) {
+  // Error display component
+  const ErrorDisplay = ({ message }: { message: string }) => (
+    <div className="text-center py-12">
+      <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+        Unable to Load Assignments
+      </h3>
+      <p className="text-gray-600 dark:text-gray-400 mb-6">
+        {message}
+      </p>
+      <button
+        onClick={handleRefresh}
+        className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+      >
+        <RefreshCw className="w-4 h-4 mr-2" />
+        Try Again
+      </button>
+    </div>
+  );
+
+  if (!isClient || isLoading) {
     return (
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <AssignmentPreloader />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <ErrorDisplay message={error} />
       </div>
     );
   }
@@ -449,7 +549,10 @@ const AssignmentsMain: React.FC = () => {
           </p>
         </motion.div>
 
-
+        {/* Assignment Stats */}
+        <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
+          <AssignmentStats />
+        </motion.div>
 
         {/* Search and Filter */}
         <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
@@ -497,7 +600,7 @@ const AssignmentsMain: React.FC = () => {
           {filteredAssignments.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {filteredAssignments.map((assignment) => (
-                <AssignmentCard key={assignment.id} assignment={assignment} />
+                <AssignmentCard key={assignment._id} assignment={assignment} />
               ))}
             </div>
           ) : (
@@ -507,17 +610,22 @@ const AssignmentsMain: React.FC = () => {
                 No assignments found
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Try adjusting your search or filter criteria
+                {assignments.length === 0 
+                  ? "You don't have any assignments yet. Check back later or contact your instructor."
+                  : "Try adjusting your search or filter criteria"
+                }
               </p>
-              <button
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedStatus("all");
-                }}
-                className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-              >
-                Clear Filters
-              </button>
+              {assignments.length > 0 && (
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setSelectedStatus("all");
+                  }}
+                  className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                >
+                  Clear Filters
+                </button>
+              )}
             </div>
           )}
         </motion.div>
