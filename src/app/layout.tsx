@@ -9,7 +9,6 @@ import '@/components/sidebar/sidebar-styles.css';
 import ThemeController from '@/components/shared/others/ThemeController';
 import GoogleAnalytics from '@/components/shared/analytics/GoogleAnalytics';
 import { Suspense } from 'react';
-import { ToastProvider } from '@/components/shared/ui/ToastProvider';
 import localFont from 'next/font/local';
 
 // Use local fonts instead of Google Fonts to avoid timeout issues
@@ -150,19 +149,17 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
       </head>
       <body className={`${poppins.className} antialiased min-h-screen overflow-x-hidden`} suppressHydrationWarning>
-        <ToastProvider>
-          <Suspense fallback={<div>Loading...</div>}>
-            <Providers>
-              <ThemeController className="hidden sm:block" />
-              {/* Google Analytics - now inside Providers to access CookieConsentProvider */}
-              {GA_MEASUREMENT_ID && <GoogleAnalytics GA_MEASUREMENT_ID={GA_MEASUREMENT_ID} />}
-              {children}
-              <Toaster position="top-center" />
-              <Analytics />
-              <SpeedInsights />
-            </Providers>
-          </Suspense>
-        </ToastProvider>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Providers>
+            <ThemeController className="hidden sm:block" />
+            {/* Google Analytics - now inside Providers to access CookieConsentProvider */}
+            {GA_MEASUREMENT_ID && <GoogleAnalytics GA_MEASUREMENT_ID={GA_MEASUREMENT_ID} />}
+            {children}
+            <Toaster position="top-center" />
+            <Analytics />
+            <SpeedInsights />
+          </Providers>
+        </Suspense>
       </body>
     </html>
   );
