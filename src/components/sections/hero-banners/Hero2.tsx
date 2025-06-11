@@ -92,16 +92,15 @@ const getThemeStyles = (isDark: boolean) => `
   }
   
   .glass-container {
-    background: ${isDark ? 'rgba(0, 38, 64, 0.15)' : 'rgba(255, 255, 255, 0.25)'};
-    backdrop-filter: blur(20px);
-    border: 1px solid transparent;
-    border-image: linear-gradient(135deg, ${isDark ? 'rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.05)'}) 1;
+    background: ${isDark ? 'rgba(0, 38, 64, 0.15)' : 'rgba(0, 0, 0, 0.45)'};
+    
+    backdrop-filter: blur(24px);
+    border: 1px solid ${isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.20)'};
     border-radius: 1.5rem;
     box-shadow: 
-      ${isDark ? '0 8px 32px rgba(0, 38, 64, 0.3)' : '0 8px 32px rgba(0, 0, 0, 0.1)'},
-      inset 0 1px 0 ${isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.8)'},
-      inset 0 -1px 0 ${isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'},
-      0 0 0 1px ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)'};
+      ${isDark ? '0 8px 32px rgba(0, 0, 0, 0.2), 0 16px 64px rgba(0, 0, 0, 0.15)' : '0 8px 32px rgba(0, 0, 0, 0.25), 0 16px 64px rgba(0, 0, 0, 0.15)'},
+      inset 0 1px 0 ${isDark ? 'rgba(255, 255, 255, 0.30)' : 'rgba(255, 255, 255, 0.25)'},
+      inset 0 -1px 0 ${isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.10)'};
     position: relative;
   }
   
@@ -114,23 +113,23 @@ const getThemeStyles = (isDark: boolean) => `
     bottom: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.1));
+    background: linear-gradient(135deg, ${isDark ? 'rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.1)'});
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask-composite: exclude;
     pointer-events: none;
   }
   
   .glass-card {
-    background: rgba(255, 255, 255, 0.08);
+    background: ${isDark ? 'rgba(0, 38, 64, 0.15)' : 'rgba(0, 0, 0, 0.25)'};
     backdrop-filter: blur(15px);
     border: 1px solid transparent;
-    border-image: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.08)) 1;
+    border-image: linear-gradient(135deg, ${isDark ? 'rgba(255, 255, 255, 0.30), rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.15)'}) 1;
     border-radius: 1rem;
     box-shadow: 
-      0 4px 20px rgba(0, 0, 0, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 0.15),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.03),
-      0 0 0 1px rgba(255, 255, 255, 0.06);
+      ${isDark ? '0 4px 20px rgba(0, 0, 0, 0.15)' : '0 4px 20px rgba(0, 0, 0, 0.25)'},
+      inset 0 1px 0 ${isDark ? 'rgba(255, 255, 255, 0.35)' : 'rgba(255, 255, 255, 0.25)'},
+      inset 0 -1px 0 ${isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.08)'},
+      0 0 0 1px ${isDark ? 'rgba(255, 255, 255, 0.20)' : 'rgba(255, 255, 255, 0.12)'};
     position: relative;
   }
   
@@ -143,23 +142,21 @@ const getThemeStyles = (isDark: boolean) => `
     bottom: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.08));
+    background: linear-gradient(135deg, ${isDark ? 'rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.08)'});
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask-composite: exclude;
     pointer-events: none;
   }
   
   .glass-stats {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(12px);
-    border: 1px solid transparent;
-    border-image: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.06)) 1;
+    background: ${isDark ? 'rgba(0, 38, 64, 0.15)' : 'rgba(0, 0, 0, 0.30)'};
+    backdrop-filter: blur(16px);
+    border: 1px solid ${isDark ? 'rgba(255, 255, 255, 0.20)' : 'rgba(255, 255, 255, 0.18)'};
     border-radius: 1rem;
     box-shadow: 
-      0 2px 16px rgba(0, 0, 0, 0.1),
-      inset 0 1px 0 rgba(255, 255, 255, 0.12),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.02),
-      0 0 0 1px rgba(255, 255, 255, 0.05);
+      ${isDark ? '0 4px 20px rgba(0, 0, 0, 0.15), 0 8px 40px rgba(0, 0, 0, 0.08)' : '0 4px 20px rgba(0, 0, 0, 0.20), 0 8px 40px rgba(0, 0, 0, 0.12)'},
+      inset 0 1px 0 ${isDark ? 'rgba(255, 255, 255, 0.28)' : 'rgba(255, 255, 255, 0.22)'},
+      inset 0 -1px 0 ${isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.08)'};
     position: relative;
   }
   
@@ -172,23 +169,23 @@ const getThemeStyles = (isDark: boolean) => `
     bottom: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.06));
+    background: linear-gradient(135deg, ${isDark ? 'rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.10)' : 'rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.06)'});
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask-composite: exclude;
     pointer-events: none;
   }
   
   .glass-primary {
-    background: rgba(59, 172, 99, 0.12);
+    background: ${isDark ? 'rgba(0, 38, 64, 0.15)' : 'rgba(59, 172, 99, 0.12)'};
     backdrop-filter: blur(15px);
     border: 1px solid transparent;
-    border-image: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.08)) 1;
+    border-image: linear-gradient(135deg, ${isDark ? 'rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.08)'}) 1;
     border-radius: 1rem;
     box-shadow: 
-      0 4px 20px rgba(59, 172, 99, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.15),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.03),
-      0 0 0 1px rgba(255, 255, 255, 0.06);
+      ${isDark ? '0 4px 20px rgba(59, 172, 99, 0.15)' : '0 4px 20px rgba(59, 172, 99, 0.2)'},
+      inset 0 1px 0 ${isDark ? 'rgba(255, 255, 255, 0.22)' : 'rgba(255, 255, 255, 0.15)'},
+      inset 0 -1px 0 ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.03)'},
+      0 0 0 1px ${isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.06)'};
     position: relative;
   }
   
@@ -201,23 +198,23 @@ const getThemeStyles = (isDark: boolean) => `
     bottom: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.08));
+    background: linear-gradient(135deg, ${isDark ? 'rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.08)'});
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask-composite: exclude;
     pointer-events: none;
   }
   
   .glass-purple {
-    background: rgba(147, 51, 234, 0.12);
+    background: ${isDark ? 'rgba(0, 38, 64, 0.15)' : 'rgba(147, 51, 234, 0.12)'};
     backdrop-filter: blur(15px);
     border: 1px solid transparent;
-    border-image: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.08)) 1;
+    border-image: linear-gradient(135deg, ${isDark ? 'rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.08)'}) 1;
     border-radius: 1rem;
     box-shadow: 
-      0 4px 20px rgba(147, 51, 234, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.15),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.03),
-      0 0 0 1px rgba(255, 255, 255, 0.06);
+      ${isDark ? '0 4px 20px rgba(147, 51, 234, 0.15)' : '0 4px 20px rgba(147, 51, 234, 0.2)'},
+      inset 0 1px 0 ${isDark ? 'rgba(255, 255, 255, 0.22)' : 'rgba(255, 255, 255, 0.15)'},
+      inset 0 -1px 0 ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.03)'},
+      0 0 0 1px ${isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.06)'};
     position: relative;
   }
   
@@ -230,23 +227,23 @@ const getThemeStyles = (isDark: boolean) => `
     bottom: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.08));
+    background: linear-gradient(135deg, ${isDark ? 'rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.08)'});
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask-composite: exclude;
     pointer-events: none;
   }
   
   .glass-secondary {
-    background: rgba(34, 197, 94, 0.12);
+    background: ${isDark ? 'rgba(0, 38, 64, 0.15)' : 'rgba(34, 197, 94, 0.12)'};
     backdrop-filter: blur(15px);
     border: 1px solid transparent;
-    border-image: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.08)) 1;
+    border-image: linear-gradient(135deg, ${isDark ? 'rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.08)'}) 1;
     border-radius: 1rem;
     box-shadow: 
-      0 4px 20px rgba(34, 197, 94, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.15),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.03),
-      0 0 0 1px rgba(255, 255, 255, 0.06);
+      ${isDark ? '0 4px 20px rgba(34, 197, 94, 0.15)' : '0 4px 20px rgba(34, 197, 94, 0.2)'},
+      inset 0 1px 0 ${isDark ? 'rgba(255, 255, 255, 0.22)' : 'rgba(255, 255, 255, 0.15)'},
+      inset 0 -1px 0 ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.03)'},
+      0 0 0 1px ${isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.06)'};
     position: relative;
   }
   
@@ -259,23 +256,23 @@ const getThemeStyles = (isDark: boolean) => `
     bottom: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.08));
+    background: linear-gradient(135deg, ${isDark ? 'rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.08)'});
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask-composite: exclude;
     pointer-events: none;
   }
   
   .glass-blue {
-    background: rgba(59, 130, 246, 0.12);
+    background: ${isDark ? 'rgba(0, 38, 64, 0.15)' : 'rgba(59, 130, 246, 0.12)'};
     backdrop-filter: blur(15px);
     border: 1px solid transparent;
-    border-image: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.08)) 1;
+    border-image: linear-gradient(135deg, ${isDark ? 'rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.08)'}) 1;
     border-radius: 1rem;
     box-shadow: 
-      0 4px 20px rgba(59, 130, 246, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.15),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.03),
-      0 0 0 1px rgba(255, 255, 255, 0.06);
+      ${isDark ? '0 4px 20px rgba(59, 130, 246, 0.15)' : '0 4px 20px rgba(59, 130, 246, 0.2)'},
+      inset 0 1px 0 ${isDark ? 'rgba(255, 255, 255, 0.22)' : 'rgba(255, 255, 255, 0.15)'},
+      inset 0 -1px 0 ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.03)'},
+      0 0 0 1px ${isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.06)'};
     position: relative;
   }
   
@@ -288,7 +285,7 @@ const getThemeStyles = (isDark: boolean) => `
     bottom: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.08));
+    background: linear-gradient(135deg, ${isDark ? 'rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.08)'});
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask-composite: exclude;
     pointer-events: none;
@@ -393,43 +390,33 @@ const InfiniteScrollerCards: React.FC<IInfiniteScrollerCardsProps> = ({ isDark =
             return 'glass-stats'; // Use same glass class as stats cards
           };
 
-          const getIconBg = (categoryId: string) => {
-            switch(categoryId) {
-              case 'children-teens': return 'bg-primary-500/20';
-              case 'professionals': return 'bg-secondary-500/20';
-              case 'homemakers': return 'bg-purple-500/20';
-              case 'lifelong-learners': return 'bg-blue-500/20';
-              default: return 'bg-primary-500/20';
-            }
-          };
-
           const getIconColor = (categoryId: string) => {
             switch(categoryId) {
-              case 'children-teens': return 'text-primary-400';
-              case 'professionals': return 'text-secondary-400';
-              case 'homemakers': return 'text-purple-400';
-              case 'lifelong-learners': return 'text-blue-400';
-              default: return 'text-primary-400';
-            }
-          };
-
-          const getHoverColor = (categoryId: string) => {
-            switch(categoryId) {
-              case 'children-teens': return 'group-hover:text-primary-300';
-              case 'professionals': return 'group-hover:text-secondary-300';
-              case 'homemakers': return 'group-hover:text-purple-300';
-              case 'lifelong-learners': return 'group-hover:text-blue-300';
-              default: return 'group-hover:text-primary-300';
+              case 'children-teens': return isDark ? 'text-emerald-400' : 'text-emerald-500';
+              case 'professionals': return isDark ? 'text-blue-400' : 'text-cyan-500';
+              case 'homemakers': return isDark ? 'text-pink-400' : 'text-pink-500';
+              case 'lifelong-learners': return isDark ? 'text-violet-400' : 'text-violet-500';
+              default: return isDark ? 'text-emerald-400' : 'text-emerald-500';
             }
           };
 
           const getGradient = (categoryId: string) => {
             switch(categoryId) {
-              case 'children-teens': return 'from-primary-500/10 to-transparent';
-              case 'professionals': return 'from-secondary-500/10 to-transparent';
-              case 'homemakers': return 'from-purple-500/10 to-transparent';
-              case 'lifelong-learners': return 'from-blue-500/10 to-transparent';
-              default: return 'from-primary-500/10 to-transparent';
+              case 'children-teens': return 'from-emerald-500/10 to-transparent';
+              case 'professionals': return 'from-blue-500/10 to-transparent';
+              case 'homemakers': return 'from-rose-500/10 to-transparent';
+              case 'lifelong-learners': return 'from-purple-500/10 to-transparent';
+              default: return 'from-emerald-500/10 to-transparent';
+            }
+          };
+
+          const getHoverColor = (categoryId: string) => {
+            switch(categoryId) {
+              case 'children-teens': return isDark ? 'group-hover:text-emerald-300' : 'group-hover:text-emerald-400';
+              case 'professionals': return isDark ? 'group-hover:text-blue-300' : 'group-hover:text-cyan-400';
+              case 'homemakers': return isDark ? 'group-hover:text-pink-300' : 'group-hover:text-pink-400';
+              case 'lifelong-learners': return isDark ? 'group-hover:text-violet-300' : 'group-hover:text-violet-400';
+              default: return isDark ? 'group-hover:text-emerald-300' : 'group-hover:text-emerald-400';
             }
           };
 
@@ -441,13 +428,13 @@ const InfiniteScrollerCards: React.FC<IInfiniteScrollerCardsProps> = ({ isDark =
               <div className={`absolute inset-0 bg-gradient-to-br ${getGradient(category.id)} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
               <div className="absolute inset-0 animate-shimmer opacity-0 group-hover:opacity-100"></div>
               <div className="relative z-10 text-center flex flex-col items-center justify-center h-full">
-                <div className={`inline-flex p-1.5 md:p-2.5 ${getIconBg(category.id)} rounded-lg md:rounded-xl group-hover:scale-110 transition-all duration-300 mb-1.5 md:mb-2.5 shadow-lg`}>
-                  <IconComponent className={`w-4 h-4 md:w-5 md:h-5 ${getIconColor(category.id)}`} />
+                <div className="mb-2 group-hover:scale-110 transition-all duration-300">
+                  <IconComponent className={`w-6 h-6 md:w-7 md:h-7 ${getIconColor(category.id)} drop-shadow-lg`} />
                 </div>
-                <h3 className={`font-medium text-xs md:text-sm ${getHoverColor(category.id)} transition-colors whitespace-nowrap truncate max-w-full px-1 drop-shadow-sm ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                <h3 className={`font-semibold text-xs md:text-sm ${getHoverColor(category.id)} transition-colors whitespace-nowrap truncate max-w-full px-1 text-white`}>
                   {category.title}
                 </h3>
-                <p className={`text-xs opacity-80 mt-0.5 hidden md:block ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                <p className={`text-xs mt-0.5 hidden md:block text-white font-medium`}>
                   {category.subtitle}
                 </p>
               </div>
@@ -474,6 +461,9 @@ const HeroMobile: React.FC<IHeroMobileProps> = ({ isLoaded, featuredCourses, loa
   useEffect(() => {
     if (!mounted) return;
     
+    // Debug log for theme changes
+    console.log('Hero Mobile theme changed:', isDark ? 'dark' : 'light');
+    
     const existingStyle = document.getElementById('hero-mobile-theme-styles');
     if (existingStyle) {
       existingStyle.remove();
@@ -497,14 +487,15 @@ const HeroMobile: React.FC<IHeroMobileProps> = ({ isLoaded, featuredCourses, loa
       {/* Video Background */}
       <div className="absolute inset-0 overflow-hidden">
         <video
+          key={`mobile-video-${isDark ? 'dark' : 'light'}`}
           autoPlay
           muted
           loop
           playsInline
           className={`absolute inset-0 w-full h-full object-cover scale-105 transition-all duration-2000 ease-out ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-          style={{ filter: isDark ? 'brightness(0.4) contrast(1.2) saturate(1.1)' : 'brightness(0.7) contrast(1.1) saturate(1.2)' }}
+          style={{ filter: isDark ? 'brightness(0.35) contrast(1.3) saturate(0.9) hue-rotate(10deg)' : 'brightness(0.6) contrast(1.2) saturate(1.1) sepia(0.1)' }}
         >
-          <source src={isDark ? "/video/1659171_Trapcode_Particles_3840x2160.mp4" : "/video/0_Technology_Abstract_4096x2304.mp4"} type="video/mp4" />
+          <source src={isDark ? "https://d2cxn2x1vtrou8.cloudfront.net/Website/1659171_Trapcode_Particles_3840x2160.mp4" : "https://d2cxn2x1vtrou8.cloudfront.net/Website/0_Technology_Abstract_4096x2304.mp4"} type="video/mp4" />
         </video>
         
         {/* Video overlay for better text readability - theme aware */}
@@ -521,22 +512,27 @@ const HeroMobile: React.FC<IHeroMobileProps> = ({ isLoaded, featuredCourses, loa
           <div className="mx-auto mb-4 glass-container rounded-2xl p-4 shadow-2xl max-w-md">
             <div className="text-center">
               {/* Badge */}
-              <div className={`inline-flex items-center px-2 py-1 glass-stats rounded-full text-xs font-normal mb-2 opacity-90 ${isDark ? 'text-primary-300' : 'text-primary-600'}`}>
+              <div className={`inline-flex items-center px-2 py-1 glass-stats rounded-full text-xs font-medium mb-2 opacity-95 ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
                 <Sparkles size={10} className="mr-1" />
                 Expert-Led Learning Platform
               </div>
               
               {/* Main Heading */}
-              <h1 className={`text-2xl sm:text-3xl font-bold mb-2 sm:mb-3 leading-tight tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Unlock Your Potential With{' '}
-                <span className="relative" style={{ color: '#3bac63' }}>
+              <h1 className={`text-2xl sm:text-3xl font-bold mb-2 sm:mb-3 leading-tight tracking-tight ${isDark ? 'text-white' : 'text-white'}`}>
+                Unlock Your Potential Journey With{' '}
+                <span className="relative font-extrabold" style={{ color: '#3bac63' }}>
                   Medh
-                  <span className="absolute -inset-1 blur-lg -z-10 animate-pulse" style={{ backgroundColor: '#3bac63', opacity: 0.3 }}></span>
+                  <span className="absolute -inset-1 blur-lg -z-10 animate-pulse" style={{ backgroundColor: '#3bac63', opacity: 0.4 }}></span>
                 </span>
-          </h1>
+              </h1>
+              
+              {/* Description */}
+              <p className={`text-sm leading-relaxed mb-3 sm:mb-4 max-w-sm mx-auto text-white font-medium ${isDark ? 'text-white' : 'text-white'}`}>
+                Join our expert-led courses and master the skills that drive industry innovation globally.
+              </p>
               
               {/* Tagline - Enhanced Size */}
-              <div className="mumkinMedh text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-5 text-gradient leading-tight">
+              <div className="mumkinMedh text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4 sm:mb-5 leading-tight text-white">
                 Medh Hai Toh Mumkin Hai!
               </div>
 
@@ -562,10 +558,10 @@ const HeroMobile: React.FC<IHeroMobileProps> = ({ isLoaded, featuredCourses, loa
                 <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
                 <div className="relative z-10 flex flex-col items-center">
                   <div className="mb-1 p-1 bg-primary-500/20 rounded-md w-fit">
-                    <GraduationCap className="w-3 h-3 text-primary-400" />
+                    <GraduationCap className={`w-3 h-3 ${isDark ? 'text-primary-300' : 'text-primary-700'}`} />
                   </div>
-                  <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>100+</div>
-                  <div className={`text-xs opacity-90 ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Courses</div>
+                  <div className={`text-sm font-bold text-white`}>100+</div>
+                  <div className={`text-xs text-white font-medium`}>Courses</div>
                 </div>
               </div>
 
@@ -574,10 +570,10 @@ const HeroMobile: React.FC<IHeroMobileProps> = ({ isLoaded, featuredCourses, loa
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
                 <div className="relative z-10 flex flex-col items-center">
                   <div className="mb-1 p-1 bg-purple-500/20 rounded-md w-fit">
-                    <Users className="w-3 h-3 text-purple-400" />
+                    <Users className={`w-3 h-3 ${isDark ? 'text-purple-300' : 'text-purple-700'}`} />
                   </div>
-                  <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>All</div>
-                  <div className={`text-xs opacity-90 ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Ages</div>
+                  <div className={`text-sm font-bold text-white`}>All</div>
+                  <div className={`text-xs text-white font-medium`}>Ages</div>
                 </div>
               </div>
               
@@ -586,11 +582,11 @@ const HeroMobile: React.FC<IHeroMobileProps> = ({ isLoaded, featuredCourses, loa
                 <div className="absolute inset-0 bg-gradient-to-br from-secondary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
                 <div className="relative z-10 flex flex-col items-center">
                   <div className="mb-1 p-1 bg-secondary-500/20 rounded-md w-fit relative">
-                    <Clock className="w-3 h-3 text-secondary-400" />
-                    <div className="absolute -top-0.5 -right-0.5 w-1 h-1 bg-red-500 rounded-full animate-pulse"></div>
+                    <Clock className={`w-3 h-3 ${isDark ? 'text-secondary-300' : 'text-secondary-700'}`} />
+                    <div className="absolute -top-0.5 -right-0.5 w-1 h-1 bg-red-600 rounded-full animate-pulse shadow-sm"></div>
                   </div>
-                  <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Live</div>
-                  <div className={`text-xs opacity-90 ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Classes</div>
+                  <div className={`text-sm font-bold text-white`}>Live</div>
+                  <div className={`text-xs text-white font-medium`}>Classes</div>
                 </div>
               </div>
 
@@ -599,10 +595,10 @@ const HeroMobile: React.FC<IHeroMobileProps> = ({ isLoaded, featuredCourses, loa
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
                 <div className="relative z-10 flex flex-col items-center">
                   <div className="mb-1 p-1 bg-blue-500/20 rounded-md w-fit">
-                    <Star className="w-3 h-3 text-blue-400" />
+                    <Star className={`w-3 h-3 ${isDark ? 'text-blue-300' : 'text-blue-700'}`} />
                   </div>
-                  <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Global</div>
-                  <div className={`text-xs opacity-90 ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Access</div>
+                  <div className={`text-sm font-bold text-white`}>Global</div>
+                  <div className={`text-xs text-white font-medium`}>Access</div>
                 </div>
               </div>
             </div>
@@ -642,6 +638,9 @@ const Hero1: React.FC<IHero1Props> = ({ isCompact = false }) => {
   // Inject theme-aware styles
   useEffect(() => {
     if (!mounted) return;
+    
+    // Debug log for theme changes
+    console.log('Hero Desktop theme changed:', isDark ? 'dark' : 'light');
     
     const existingStyle = document.getElementById('hero-desktop-theme-styles');
     if (existingStyle) {
@@ -736,14 +735,15 @@ const Hero1: React.FC<IHero1Props> = ({ isCompact = false }) => {
       {/* Enhanced Video Background */}
       <div className="absolute inset-0 overflow-hidden">
         <video
+          key={`desktop-video-${isDark ? 'dark' : 'light'}`}
           autoPlay
           muted
           loop
           playsInline
           className={`absolute inset-0 w-full h-full object-cover scale-105 transition-all duration-2000 ease-out ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-          style={{ filter: isDark ? 'brightness(0.5) contrast(1.2) saturate(1.1)' : 'brightness(0.7) contrast(1.1) saturate(1.2)' }}
+          style={{ filter: isDark ? 'brightness(0.4) contrast(1.3) saturate(0.9) hue-rotate(10deg)' : 'brightness(0.65) contrast(1.2) saturate(1.1) sepia(0.1)' }}
         >
-          <source src={isDark ? "/video/1659171_Trapcode_Particles_3840x2160.mp4" : "/video/0_Technology_Abstract_4096x2304.mp4"} type="video/mp4" />
+          <source src={isDark ? "https://d2cxn2x1vtrou8.cloudfront.net/Website/1659171_Trapcode_Particles_3840x2160.mp4" : "https://d2cxn2x1vtrou8.cloudfront.net/Website/0_Technology_Abstract_4096x2304.mp4"} type="video/mp4" />
         </video>
         
         {/* Enhanced overlay for professional look - theme aware */}
@@ -753,30 +753,30 @@ const Hero1: React.FC<IHero1Props> = ({ isCompact = false }) => {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
         {/* Main Content with Enhanced Glassmorphism */}
-        <div className="flex flex-col items-center justify-center min-h-screen text-center py-8 md:py-12 lg:py-16">
+        <div className="flex flex-col items-center justify-center min-h-screen text-center py-4 md:py-6 lg:py-8">
           
           {/* Hero Text Section with Glass Container */}
-          <div className={`mb-8 md:mb-12 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <div className="glass-container rounded-3xl p-8 md:p-12 mb-6">
-              <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-normal mb-2 sm:mb-3 opacity-90 ${isDark ? 'text-primary-300' : 'text-primary-600'}`}>
+          <div className={`mb-2 md:mb-3 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+            <div className="glass-container rounded-3xl p-8 md:p-12 mb-1 transform scale-90">
+              <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium mb-2 sm:mb-3 opacity-95 ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
                 <Sparkles size={10} className="mr-1 sm:w-3 sm:h-3" />
                 Expert-Led Learning Platform
               </div>
                
-              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-4 md:mb-6 tracking-tight max-w-4xl mx-auto ${isDark ? 'text-white' : 'text-gray-900'}`}>
+               <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-4 md:mb-6 tracking-tight max-w-4xl mx-auto text-white`}>
                  Unlock Your Potential Journey With{' '}
-                 <span className="relative" style={{ color: '#3bac63' }}>
+                 <span className="relative font-extrabold" style={{ color: '#3bac63' }}>
                    Medh
-                   <span className="absolute -inset-1 blur-lg -z-10 animate-pulse" style={{ backgroundColor: '#3bac63', opacity: 0.3 }}></span>
+                   <span className="absolute -inset-1 blur-lg -z-10 animate-pulse" style={{ backgroundColor: '#3bac63', opacity: 0.4 }}></span>
                   </span>
                 </h1>
                 
-               <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto opacity-90 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+               <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto text-white font-medium`}>
                  Join our expert-led courses and master the skills that drive industry innovation globally.
                 </p>
 
                {/* Tagline - Enhanced Size */}
-               <div className="mumkinMedh text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 md:mb-8 text-gradient leading-tight">
+               <div className="mumkinMedh text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-4 sm:mb-6 md:mb-8 leading-tight text-white">
                  Medh Hai Toh Mumkin Hai!
                </div>
 
@@ -784,7 +784,8 @@ const Hero1: React.FC<IHero1Props> = ({ isCompact = false }) => {
                <div className="mt-4 sm:mt-6 md:mt-8">
                  <Link 
                    href="/courses" 
-                   className="inline-flex items-center justify-center px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 bg-gradient-to-r from-primary-500 to-purple-500 text-white font-medium rounded-xl transition-all duration-300 hover:shadow-2xl hover:shadow-primary-500/30 hover:scale-105 group text-sm sm:text-base md:text-lg overflow-hidden glass-stats"
+                   className="inline-flex items-center justify-center px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 bg-gradient-to-r from-primary-500 to-purple-500 text-white font-semibold rounded-xl transition-all duration-300 hover:shadow-2xl hover:shadow-primary-500/30 hover:scale-105 group text-sm sm:text-base md:text-lg overflow-hidden glass-stats"
+                   style={{ textShadow: '1px 1px 4px rgba(0, 0, 0, 0.5)' }}
                  >
                    <span className="relative z-10">Explore Courses</span>
                    <ArrowRight size={16} className="relative z-10 ml-2 group-hover:translate-x-1 transition-transform sm:w-4 sm:h-4 md:w-5 md:h-5" />
@@ -794,7 +795,7 @@ const Hero1: React.FC<IHero1Props> = ({ isCompact = false }) => {
           </div>
           
            {/* Enhanced Infinite Scroller Section */}
-           <div className={`w-full mb-6 sm:mb-8 md:mb-12 transition-all duration-1000 delay-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+           <div className={`w-full mb-2 sm:mb-3 md:mb-4 transition-all duration-1000 delay-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
              <InfiniteScrollerCards isDark={isDark} />
                   </div>
                   
@@ -805,9 +806,9 @@ const Hero1: React.FC<IHero1Props> = ({ isCompact = false }) => {
                 <div className="glass-stats rounded-xl p-2 sm:p-3 md:p-4 lg:p-6 text-center hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
                   <div className="relative z-10">
-                    <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-white' : 'text-gray-900'}`}>100+</div>
-                    <div className={`font-medium text-xs sm:text-sm md:text-base group-hover:text-primary-300 transition-colors ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Expert Courses</div>
-                    <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>All Skill Levels</div>
+                    <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-transform text-white`} style={{ textShadow: '2px 2px 8px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 0, 0, 0.6)' }}>100+</div>
+                    <div className={`font-semibold text-xs sm:text-sm md:text-base group-hover:text-primary-300 transition-colors text-white`} style={{ textShadow: '1px 1px 4px rgba(0, 0, 0, 0.7)' }}>Expert Courses</div>
+                    <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 text-white font-medium`} style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 0.6)' }}>All Skill Levels</div>
                   </div>
                 </div>
               
@@ -815,9 +816,9 @@ const Hero1: React.FC<IHero1Props> = ({ isCompact = false }) => {
                <div className="glass-stats rounded-xl p-2 sm:p-3 md:p-4 lg:p-6 text-center hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden">
                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
                  <div className="relative z-10">
-                   <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-white' : 'text-gray-900'}`}>Every</div>
-                   <div className={`font-medium text-xs sm:text-sm md:text-base group-hover:text-purple-300 transition-colors ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Age Group</div>
-                   <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>8 to 80+ Years</div>
+                   <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-transform text-white`} style={{ textShadow: '2px 2px 8px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 0, 0, 0.6)' }}>Every</div>
+                   <div className={`font-semibold text-xs sm:text-sm md:text-base group-hover:text-purple-300 transition-colors text-white`} style={{ textShadow: '1px 1px 4px rgba(0, 0, 0, 0.7)' }}>Age Group</div>
+                   <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 text-white font-medium`} style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 0.6)' }}>8 to 80+ Years</div>
                  </div>
                </div>
               
@@ -825,9 +826,9 @@ const Hero1: React.FC<IHero1Props> = ({ isCompact = false }) => {
                <div className="glass-stats rounded-xl p-2 sm:p-3 md:p-4 lg:p-6 text-center hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden">
                  <div className="absolute inset-0 bg-gradient-to-br from-secondary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
                  <div className="relative z-10">
-                   <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-white' : 'text-gray-900'}`}>Live</div>
-                   <div className={`font-medium text-xs sm:text-sm md:text-base group-hover:text-secondary-300 transition-colors ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Interactive</div>
-                   <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Real-time Classes</div>
+                   <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-transform text-white`} style={{ textShadow: '2px 2px 8px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 0, 0, 0.6)' }}>Live</div>
+                   <div className={`font-semibold text-xs sm:text-sm md:text-base group-hover:text-secondary-300 transition-colors text-white`} style={{ textShadow: '1px 1px 4px rgba(0, 0, 0, 0.7)' }}>Interactive</div>
+                   <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 text-white font-medium`} style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 0.6)' }}>Real-time Classes</div>
                  </div>
                </div>
               
@@ -835,9 +836,9 @@ const Hero1: React.FC<IHero1Props> = ({ isCompact = false }) => {
                <div className="glass-stats rounded-xl p-2 sm:p-3 md:p-4 lg:p-6 text-center hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden">
                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
                  <div className="relative z-10">
-                   <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-white' : 'text-gray-900'}`}>Global</div>
-                   <div className={`font-medium text-xs sm:text-sm md:text-base group-hover:text-blue-300 transition-colors ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Learning</div>
-                   <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Worldwide Access</div>
+                   <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-transform text-white`} style={{ textShadow: '2px 2px 8px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 0, 0, 0.6)' }}>Global</div>
+                   <div className={`font-semibold text-xs sm:text-sm md:text-base group-hover:text-blue-300 transition-colors text-white`} style={{ textShadow: '1px 1px 4px rgba(0, 0, 0, 0.7)' }}>Learning</div>
+                   <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 text-white font-medium`} style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 0.6)' }}>Worldwide Access</div>
                  </div>
                </div>
               </div>
