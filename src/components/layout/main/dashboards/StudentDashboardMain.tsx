@@ -385,7 +385,7 @@ const StudentDashboardMain: React.FC = () => {
   useEffect(() => {
     if (!userName) return;
 
-    // Create the 3 official MEDH slides
+    // Create the 3 official MEDH slides with custom gradient colors
     const medhSlides = [
       {
         id: 'python-fundamentals',
@@ -394,7 +394,7 @@ const StudentDashboardMain: React.FC = () => {
         nextLesson: 'Functions and Modules',
         instructor: 'Dr. Alex Morgan',
         image: '/courses/python-course.jpg',
-        color: 'from-blue-600 to-blue-800',
+        color: 'from-emerald-400 via-emerald-500 to-emerald-600',
         isEnrolled: true,
         completed: 6,
         remaining: 4,
@@ -407,7 +407,7 @@ const StudentDashboardMain: React.FC = () => {
         nextLesson: 'CSS Flexbox Layout',
         instructor: 'Sarah Wilson',
         image: '/courses/web-dev.jpg',
-        color: 'from-purple-600 to-purple-800',
+        color: 'from-fuchsia-400 via-purple-500 to-purple-600',
         isEnrolled: true,
         completed: 4,
         remaining: 6,
@@ -420,7 +420,7 @@ const StudentDashboardMain: React.FC = () => {
         nextLesson: 'Statistical Analysis', 
         instructor: 'Prof. Michael Chen',
         image: '/courses/data-science.jpg',
-        color: 'from-green-600 to-green-800',
+        color: 'from-cyan-400 via-blue-500 to-blue-600',
         isEnrolled: true,
         completed: 7,
         remaining: 3,
@@ -433,12 +433,12 @@ const StudentDashboardMain: React.FC = () => {
     setCoursesLoading(false);
   }, [userName]);
 
-  // Helper function to get course gradient colors (MEDH official theme)
+  // Helper function to get custom gradient colors
   const getCourseColor = (index: number): string => {
     const colors = [
-      'from-blue-600 to-blue-800',         // Blue like first slide
-      'from-purple-600 to-purple-800',     // Purple like second slide  
-      'from-green-600 to-green-800'        // Green like third slide
+      'from-emerald-400 via-emerald-500 to-emerald-600',    // Emerald gradient
+      'from-fuchsia-400 via-purple-500 to-purple-600',      // Bright purple gradient  
+      'from-cyan-400 via-blue-500 to-blue-600'              // Blue gradient
     ];
     return colors[index % colors.length];
   };
@@ -480,6 +480,37 @@ const StudentDashboardMain: React.FC = () => {
       variants={containerVariants}
       className="min-h-screen bg-gray-50 dark:bg-gray-900"
     >
+      {/* Custom styles for carousel text optimization */}
+      <style jsx>{`
+        .carousel-title {
+          word-wrap: break-word;
+          hyphens: auto;
+          overflow-wrap: break-word;
+        }
+        .carousel-text {
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .carousel-slide {
+          display: flex;
+          align-items: center;
+          min-height: inherit;
+        }
+        .gradient-animation {
+          background-size: 200% 200%;
+          animation: gradientShift 8s ease-in-out infinite;
+        }
+        @keyframes gradientShift {
+          0%, 100% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+        }
+      `}</style>
       {/* Dynamic Course Banner */}
       <motion.div 
         variants={itemVariants}
@@ -497,24 +528,31 @@ const StudentDashboardMain: React.FC = () => {
           >
             {courseCards.length === 0 ? (
               // Fallback when no courses are available
-              <div className="relative w-full flex-shrink-0 bg-gradient-to-br from-emerald-400 to-green-500 dark:from-emerald-600 dark:to-green-700 overflow-hidden">
+              <div className="relative w-full flex-shrink-0 bg-gradient-to-br from-violet-500 via-purple-500 to-pink-500 gradient-animation overflow-hidden min-h-[250px] md:min-h-[280px] lg:min-h-[320px]">
                 <div className="absolute inset-0 bg-[url('/backgrounds/grid-pattern.svg')] opacity-10"></div>
-                <div className="w-full px-4 py-8 sm:py-10 lg:py-12 sm:px-6 lg:px-8 relative z-10">
-                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
-                    <div>
-                      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">
+                <div className="w-full px-12 py-6 sm:py-7 lg:py-8 sm:px-16 lg:px-20 relative z-10 h-full flex items-center">
+                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 w-full max-w-[1400px] mx-auto">
+                    <div className="flex-1">
+                      <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white mb-3 leading-tight">
                         {greeting}, {userName}
                       </h1>
-                      <p className="text-emerald-100 text-base sm:text-lg max-w-xl">
-                        Welcome to your learning dashboard. Track your progress, manage your courses, and stay updated.
+                      <p className="text-white/90 text-xs sm:text-sm leading-relaxed max-w-xl mb-4">
+                        Welcome to your learning dashboard. Track your progress, manage your courses, and stay updated with your learning journey.
                       </p>
-                      <div className="mt-4">
+                      <div className="flex flex-wrap gap-1.5">
                         <Link 
                           href="/courses" 
-                          className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors inline-flex"
+                          className="bg-white/20 hover:bg-white/30 text-white px-2.5 py-1.5 rounded-md flex items-center transition-all duration-200 font-medium text-xs backdrop-blur-sm"
                         >
-                          <BookOpen className="mr-2 h-5 w-5" />
+                          <BookOpen className="mr-1 h-3 w-3" />
                           Browse Courses
+                        </Link>
+                        <Link 
+                          href="/dashboards/student/goals" 
+                          className="border border-white/30 hover:bg-white/10 text-white px-2.5 py-1.5 rounded-md flex items-center transition-all duration-200 text-xs backdrop-blur-sm"
+                        >
+                          <Target className="mr-1 h-3 w-3" />
+                          Set Learning Goals
                         </Link>
                       </div>
                     </div>
@@ -529,7 +567,7 @@ const StudentDashboardMain: React.FC = () => {
                 {courseCards.map((course, index) => (
                   <div 
                     key={course.id}
-                    className={`relative w-full flex-shrink-0 bg-gradient-to-br ${course.color} overflow-hidden h-[300px] md:h-[320px] transition-all duration-300`}
+                    className={`relative w-full flex-shrink-0 bg-gradient-to-br ${course.color} gradient-animation overflow-hidden min-h-[250px] md:min-h-[280px] lg:min-h-[320px] transition-all duration-300`}
                   >
                     {/* Course background image with overlay */}
                     <div className="absolute inset-0 bg-black/40 mix-blend-multiply"></div>
@@ -544,27 +582,27 @@ const StudentDashboardMain: React.FC = () => {
                       <div className="w-full h-full bg-[url('/backgrounds/grid-pattern.svg')] opacity-10 absolute inset-0"></div>
                     </div>
                     
-                    <div className="relative z-10 w-full px-4 py-6 sm:py-8 sm:px-8 lg:px-12 h-full flex items-center transition-all duration-300">
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-full w-full max-w-[1400px] mx-auto">
+                    <div className="carousel-slide relative z-10 w-full px-12 py-6 sm:py-7 sm:px-16 lg:px-20 xl:px-24 h-full transition-all duration-300">
+                      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8 h-full w-full max-w-[1400px] mx-auto">
                         {/* Left side - Course information */}
-                        <div className="lg:col-span-2 flex flex-col justify-center">
-                          <div className="flex flex-wrap items-center mb-4">
-                            <span className="text-sm bg-white/20 text-white px-3 py-1 rounded-full mr-3 mb-1">
+                        <div className="lg:col-span-3 flex flex-col justify-center space-y-4">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <span className="text-xs bg-white/20 text-white px-2.5 py-1 rounded-full backdrop-blur-sm">
                               {course.instructor}
                             </span>
-                            <span className="text-sm text-white/90 mb-1">
+                            <span className="text-xs text-white/90 hidden sm:block">
                               {greeting}, Student
                             </span>
                           </div>
                         
-                          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6 line-clamp-2 transition-all duration-300">
-                            {course.title}
+                          <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white leading-tight carousel-title">
+                            <span className="block">{course.title}</span>
                           </h1>
                           
                           {/* Progress bar - always show for enrolled courses */}
                           {course.isEnrolled && (
-                            <div className="mb-6">
-                              <div className="flex items-center mb-2 max-w-lg">
+                            <div className="space-y-2">
+                              <div className="flex items-center max-w-md">
                                 <div className="w-full bg-white/30 rounded-full h-2">
                                   <div 
                                     className="bg-white h-2 rounded-full transition-all duration-1000 ease-out"
@@ -572,33 +610,33 @@ const StudentDashboardMain: React.FC = () => {
                                   ></div>
                                 </div>
                               </div>
-                              <span className="text-white/90 text-base font-medium">
+                              <span className="text-white/90 text-xs font-medium">
                                 {course.progress}% complete
                               </span>
                             </div>
                           )}
                           
-                          <div className="text-white/90 text-lg mb-8 leading-relaxed max-w-2xl">
+                          <div className="text-white/90 text-xs sm:text-sm leading-relaxed max-w-xl carousel-text">
                             Continue your learning journey with {course.instructor}. Your next lesson covers {course.nextLesson}.
                           </div>
                           
-                          <div className="flex flex-wrap items-center gap-3 mt-1">
+                          <div className="flex flex-wrap items-center gap-1.5 pt-1">
                             {course.isWelcome ? (
                               // Welcome slide buttons
                               <>
                                 <Link 
                                   href="/courses" 
-                                  className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors font-medium text-sm mb-1"
+                                  className="bg-white/20 hover:bg-white/30 text-white px-2.5 py-1.5 rounded-md flex items-center transition-all duration-200 font-medium text-xs backdrop-blur-sm"
                                 >
-                                  <BookOpen className="mr-1.5 h-4 w-4" />
+                                  <BookOpen className="mr-1 h-3 w-3" />
                                   Explore Courses
                                 </Link>
                                 
                                 <Link 
                                   href="/dashboards/student/goals" 
-                                  className="border border-white/30 hover:bg-white/10 text-white px-4 py-2 rounded-lg flex items-center transition-colors text-sm mb-1"
+                                  className="border border-white/30 hover:bg-white/10 text-white px-2.5 py-1.5 rounded-md flex items-center transition-all duration-200 text-xs backdrop-blur-sm"
                                 >
-                                  <Target className="mr-1.5 h-4 w-4" />
+                                  <Target className="mr-1 h-3 w-3" />
                                   Set Goals
                                 </Link>
                               </>
@@ -607,18 +645,18 @@ const StudentDashboardMain: React.FC = () => {
                               <>
                                 <Link 
                                   href={`/course/${course.id}`} 
-                                  className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors font-medium text-sm mb-1"
+                                  className="bg-white/20 hover:bg-white/30 text-white px-2.5 py-1.5 rounded-md flex items-center transition-all duration-200 font-medium text-xs backdrop-blur-sm"
                                 >
-                                  <PlayCircle className="mr-1.5 h-4 w-4" />
+                                  <PlayCircle className="mr-1 h-3 w-3" />
                                   Continue Learning
                                 </Link>
                                 
                                 <Link 
                                   href={`/course/${course.id}/materials`} 
-                                  className="border border-white/30 hover:bg-white/10 text-white px-4 py-2 rounded-lg flex items-center transition-colors text-sm mb-1"
+                                  className="border border-white/30 hover:bg-white/10 text-white px-2.5 py-1.5 rounded-md flex items-center transition-all duration-200 text-xs backdrop-blur-sm"
                                 >
-                                  <FileText className="mr-1.5 h-4 w-4" />
-                                  Course Materials
+                                  <FileText className="mr-1 h-3 w-3" />
+                                  Materials
                                 </Link>
                               </>
                             ) : (
@@ -626,17 +664,17 @@ const StudentDashboardMain: React.FC = () => {
                               <>
                                 <Link 
                                   href={`/course-details/${course.id}`} 
-                                  className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors font-medium text-sm mb-1"
+                                  className="bg-white/20 hover:bg-white/30 text-white px-2.5 py-1.5 rounded-md flex items-center transition-all duration-200 font-medium text-xs backdrop-blur-sm"
                                 >
-                                  <BookOpen className="mr-1.5 h-4 w-4" />
+                                  <BookOpen className="mr-1 h-3 w-3" />
                                   View Course
                                 </Link>
                                 
                                 <Link 
                                   href={`/course-details/${course.id}#enroll`} 
-                                  className="border border-white/30 hover:bg-white/10 text-white px-4 py-2 rounded-lg flex items-center transition-colors text-sm mb-1"
+                                  className="border border-white/30 hover:bg-white/10 text-white px-2.5 py-1.5 rounded-md flex items-center transition-all duration-200 text-xs backdrop-blur-sm"
                                 >
-                                  <GraduationCap className="mr-1.5 h-4 w-4" />
+                                  <GraduationCap className="mr-1 h-3 w-3" />
                                   {course.price && course.price !== 'Free' ? `Enroll - ${course.price}` : 'Enroll Now'}
                                 </Link>
                               </>
@@ -645,36 +683,36 @@ const StudentDashboardMain: React.FC = () => {
                         </div>
                         
                         {/* Right side - Next Up Card */}
-                        <div className="lg:col-span-1 flex flex-col justify-center mt-6 lg:mt-0">
-                          <div className="bg-white/15 backdrop-blur-md rounded-2xl p-6 border border-white/20 transition-all duration-300">
-                            <h3 className="text-white text-lg font-semibold mb-4 flex items-center">
-                              <Calendar className="h-5 w-5 mr-2" /> 
-                              Next Up
+                        <div className="lg:col-span-2 flex flex-col justify-center mt-4 lg:mt-0">
+                          <div className="bg-white/15 backdrop-blur-md rounded-xl p-3 border border-white/20 transition-all duration-300 max-w-sm lg:max-w-none">
+                            <h3 className="text-white text-xs lg:text-sm font-semibold mb-2 flex items-center">
+                              <Calendar className="h-3 w-3 mr-1.5 flex-shrink-0" /> 
+                              <span>Next Up</span>
                             </h3>
                             
-                            <div className="space-y-4">
+                            <div className="space-y-2">
                               {/* Next Lesson Info */}
                               <div>
-                                <h4 className="text-white font-medium text-base mb-2 line-clamp-1">
+                                <h4 className="text-white font-medium text-xs mb-1 leading-tight">
                                   {course.nextLesson}
                                 </h4>
-                                <div className="flex items-center text-white/80 text-sm">
-                                  <Clock className="h-4 w-4 mr-1.5 flex-shrink-0" /> 
-                                  Estimated: 25 mins
+                                <div className="flex items-center text-white/80 text-xs">
+                                  <Clock className="h-3 w-3 mr-1 flex-shrink-0" /> 
+                                  <span>Est: 25 mins</span>
                                 </div>
                               </div>
                               
                               {/* Progress Stats */}
-                              <div className="grid grid-cols-2 gap-3">
-                                <div className="bg-white/10 rounded-xl p-3 text-center">
-                                  <p className="text-white/70 text-sm mb-1">Completed</p>
-                                  <p className="text-white text-xl font-bold">
+                              <div className="grid grid-cols-2 gap-1.5">
+                                <div className="bg-white/10 rounded-lg p-2 text-center">
+                                  <p className="text-white/70 text-xs mb-0.5">Done</p>
+                                  <p className="text-white text-sm font-bold">
                                     {course.completed || Math.floor(course.progress * 10 / 100)}/10
                                   </p>
                                 </div>
-                                <div className="bg-white/10 rounded-xl p-3 text-center">
-                                  <p className="text-white/70 text-sm mb-1">Remaining</p>
-                                  <p className="text-white text-xl font-bold">
+                                <div className="bg-white/10 rounded-lg p-2 text-center">
+                                  <p className="text-white/70 text-xs mb-0.5">Left</p>
+                                  <p className="text-white text-sm font-bold">
                                     {course.remaining || (10 - Math.floor(course.progress * 10 / 100))}/10
                                   </p>
                                 </div>
@@ -690,44 +728,30 @@ const StudentDashboardMain: React.FC = () => {
             )}
             
             {/* Navigation elements - Only show if we have courses */}
-            {courseCards.length > 0 && (
+            {courseCards.length > 1 && (
               <>
-                {/* Navigation arrows - Adjusted position further away from content */}
+                {/* Navigation arrows - Positioned to avoid text overlap */}
                 <button 
                   onClick={() => navigateToCourse(activeCourseIndex === 0 ? courseCards.length - 1 : activeCourseIndex - 1)}
-                  className="absolute left-2 md:left-4 lg:left-6 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-2 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 shadow-md z-20"
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full p-2 sm:p-2.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-lg z-30 backdrop-blur-sm"
                   aria-label="Previous course"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
                 
                 <button 
                   onClick={() => navigateToCourse(activeCourseIndex === courseCards.length - 1 ? 0 : activeCourseIndex + 1)}
-                  className="absolute right-2 md:right-4 lg:right-6 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-2 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 shadow-md z-20"
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full p-2 sm:p-2.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-lg z-30 backdrop-blur-sm"
                   aria-label="Next course"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
                 
-                {/* Navigation dots - Made more visible */}
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3 bg-black/20 backdrop-blur-sm px-3 py-2 rounded-full">
-                  {courseCards.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => navigateToCourse(index)}
-                      className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                        activeCourseIndex === index 
-                          ? 'bg-white scale-110' 
-                          : 'bg-white/40 hover:bg-white/60'
-                      } focus:outline-none`}
-                      aria-label={`Go to slide ${index + 1}`}
-                    />
-                  ))}
-                </div>
+
               </>
             )}
           </div>
