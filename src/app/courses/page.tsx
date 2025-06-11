@@ -383,8 +383,8 @@ const Courses = () => {
                   hideSearch={false}
                   description="Everything you need to level up your skills"
                   renderCourse={renderAllCourse}
-                  scrollToTop={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                  fixedCategory={false}
+                  scrollToTop={false}
+                  fixedCategory=""
                   hideCategoryFilter={false}
                   availableCategories={[]}
                   categoryTitle="Categories"
@@ -404,8 +404,8 @@ const Courses = () => {
                   hideSearch={false}
                   description="Real-time learning with expert instructors"
                   renderCourse={renderLiveCourse}
-                  scrollToTop={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                  fixedCategory={false}
+                  scrollToTop={false}
+                  fixedCategory=""
                   hideCategoryFilter={false}
                   availableCategories={[]}
                   categoryTitle="Categories"
@@ -427,8 +427,8 @@ const Courses = () => {
                   hideGradeFilter={true}
                   description="Self-paced with live support sessions"
                   renderCourse={renderBlendedCourse}
-                  scrollToTop={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                  fixedCategory={false}
+                  scrollToTop={false}
+                  fixedCategory=""
                   hideCategoryFilter={false}
                   availableCategories={[]}
                   categoryTitle="Categories"
