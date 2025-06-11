@@ -42,7 +42,9 @@ interface ICourse {
   class_type?: string;
   course_duration?: string;
   course_sessions?: string;
-  no_of_Sessions?: number;
+  no_of_Sessions?: string;
+  session_display?: string;
+  display_duration?: boolean;
   is_Certification?: string;
   is_Assignments?: string;
   is_Projects?: string;
@@ -88,6 +90,30 @@ const formatCourseGrade = (grade: string): string => {
     return "UG/Grad/Pro";
   }
   return grade;
+};
+
+const formatCourseDuration = (duration: string | undefined, isLiveCourse: boolean = false): string => {
+  if (!duration) {
+    return isLiveCourse ? "Up to 18 months" : "Flexible Duration";
+  }
+  
+  // Convert to string if it's not already
+  const durationStr = String(duration);
+  
+  // If it's a live course and doesn't already start with "Up to", add it
+  if (isLiveCourse && !durationStr.toLowerCase().startsWith('up to')) {
+    // Handle duration ranges like "4-18 months"
+    if (durationStr.includes('-')) {
+      const [min, maxWithUnit] = durationStr.split('-');
+      if (maxWithUnit) {
+        return `Up to ${maxWithUnit.trim()}`;
+      }
+    }
+    // Convert "18 Months" to "Up to 18 months" (normalize case)
+    return `Up to ${durationStr.toLowerCase()}`;
+  }
+  
+  return durationStr;
 };
 
 const getClassTypeStyles = (classType: string) => {
@@ -343,7 +369,7 @@ const CourseCard: React.FC<ICourseCardProps> = ({
               {showDuration && course.course_duration && (
                 <div className="flex items-center">
                   <Clock className="w-4 h-4 mr-1" />
-                  {course.course_duration}
+                  {formatCourseDuration(course.course_duration, isLiveCourse)}
                 </div>
               )}
               {course.no_of_Sessions && (
@@ -375,6 +401,140 @@ const CourseCard: React.FC<ICourseCardProps> = ({
                 )}
               </div>
             )}
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // Live Course Card Layout
+  if (isLiveCourse) {
+    return (
+      <motion.div
+        className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col h-full"
+        variants={cardVariants}
+        initial="rest"
+        animate="rest"
+        whileHover="hover"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {/* Header Section */}
+        <div className="p-6 pb-4">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 line-clamp-2">
+            {course.course_title}
+          </h3>
+          
+          {/* Sessions Info */}
+          <div className="mb-4">
+            <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+              {typeof course.no_of_Sessions === 'string' && (course.no_of_Sessions as string).includes('-') 
+                ? course.no_of_Sessions 
+                : `${course.no_of_Sessions || 24}-120`} Live Sessions
+            </div>
+            <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Course Duration</div>
+            <div className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+              {formatCourseDuration(course.course_duration, true)}
+            </div>
+          </div>
+
+          {/* Price */}
+          {!hidePrice && (
+            <div className="mb-4">
+              <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                {getCurrentPrice()}
+              </div>
+              <div className="text-sm text-gray-500">onwards</div>
+            </div>
+          )}
+        </div>
+
+        {/* Divider */}
+        <hr className="border-gray-200 dark:border-gray-700" />
+
+        {/* Details Section */}
+        <div className="p-6 pt-4 flex-1 flex flex-col">
+          <h4 className="font-bold text-gray-900 dark:text-white mb-4">
+            {course.course_title}
+          </h4>
+
+          {/* Stats Grid */}
+          <div className="space-y-4 mb-6">
+            {/* Total Sessions */}
+            <div className="flex justify-between items-center">
+              <div>
+                <div className="text-lg font-bold text-gray-900 dark:text-white">
+                  {typeof course.no_of_Sessions === 'string' && (course.no_of_Sessions as string).includes('-') 
+                    ? (course.no_of_Sessions as string).split('-')[1] || '120'
+                    : course.no_of_Sessions || '120'}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Total Sessions</div>
+              </div>
+            </div>
+
+            {/* Required Effort */}
+            <div className="flex justify-between items-center">
+              <div>
+                <div className="text-lg font-bold text-gray-900 dark:text-white">
+                  {course.effort_hours || '4-6'} hrs/week
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Required Effort</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Features */}
+          <div className="mb-6 flex-1">
+            <div className="flex flex-wrap gap-2">
+              {course.is_Projects === "Yes" && (
+                <span className="px-3 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 rounded-full text-sm font-medium">
+                  Projects
+                </span>
+              )}
+              {course.is_Assignments === "Yes" && (
+                <span className="px-3 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 rounded-full text-sm font-medium">
+                  Assignments
+                </span>
+              )}
+              {(course._id === 'ai_data_science' || course._id === 'digital_marketing') && (
+                <>
+                  <span className="px-3 py-1 bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 rounded-full text-sm font-medium">
+                    3 months internship
+                  </span>
+                  <span className="px-3 py-1 bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-full text-sm font-medium">
+                    Job Guarantee (18 Months)
+                  </span>
+                </>
+              )}
+              {(course._id === 'personality_development' || course._id === 'vedic_mathematics') && (
+                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-full text-sm font-medium">
+                  Job Assistance
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Bottom Price and Button */}
+          <div className="mt-auto">
+            {!hidePrice && (
+              <div className="mb-4">
+                <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
+                  {getCurrentPrice()}
+                </div>
+                <div className="text-sm text-gray-500">onwards</div>
+              </div>
+            )}
+            
+            <Link href={`/course-details/${course._id}`} className="block">
+              <motion.button
+                className="w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Explore Course
+                <ChevronRight className="w-4 h-4" />
+              </motion.button>
+            </Link>
           </div>
         </div>
       </motion.div>
@@ -547,7 +707,7 @@ const CourseCard: React.FC<ICourseCardProps> = ({
             {showDuration && course.course_duration && (
               <div className="flex items-center">
                 <Clock className="w-4 h-4 mr-1" />
-                {course.course_duration}
+                {formatCourseDuration(course.course_duration, isLiveCourse)}
               </div>
             )}
             {course.no_of_Sessions && (

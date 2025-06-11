@@ -21,11 +21,20 @@ import {
   Globe
 } from 'lucide-react';
 
-// TypeScript interfaces
-interface Course {
-  id?: string;
-  title?: string;
+// TypeScript interfaces - Updated to match CoursesFilter expected interface
+interface ICourse {
+  _id: string;
+  course_title: string;
+  course_image?: string;
+  course_category: string;
+  course_fee: number;
+  course_grade?: string;
   class_type?: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  // Extended properties for enhanced functionality
+  course_subtitle?: string;
   format?: string;
   lectures_count?: number;
   live_sessions?: number;
@@ -90,6 +99,28 @@ const cacheManager = {
     }
   }
 };
+
+// Custom Button Components
+const ExploreAllButton: React.FC = () => (
+  <div className="inline-flex items-center px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white text-sm font-medium rounded-xl transition-colors">
+    <Search className="w-4 h-4 mr-2" />
+    Explore All
+  </div>
+);
+
+const ViewScheduleButton: React.FC = () => (
+  <div className="inline-flex items-center px-6 py-3 bg-rose-500 hover:bg-rose-600 text-white text-sm font-medium rounded-xl transition-colors">
+    <Calendar className="w-4 h-4 mr-2" />
+    View Schedule
+  </div>
+);
+
+const StartLearningButton: React.FC = () => (
+  <div className="inline-flex items-center px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-xl transition-colors">
+    <Laptop className="w-4 h-4 mr-2" />
+    Start Learning
+  </div>
+);
 
 const Courses = () => {
   const cachedState = typeof window !== 'undefined' ? cacheManager.get() : null;
@@ -170,7 +201,7 @@ const Courses = () => {
     return duration;
   }, []);
 
-  const getBlendedCourseSessions = useCallback((course: Course) => {
+  const getBlendedCourseSessions = useCallback((course: ICourse) => {
     const defaultVideoCount = course.lectures_count || 20;
     return {
       videoCount: defaultVideoCount,
@@ -178,7 +209,7 @@ const Courses = () => {
     };
   }, []);
 
-  const renderAllCourse = useCallback((course: Course): Course => {
+  const renderAllCourse = useCallback((course: ICourse): ICourse => {
     const courseType = (course.class_type || '').toLowerCase();
     
     const isLive = courseType.includes('live') || 
@@ -255,7 +286,7 @@ const Courses = () => {
     };
   }, [formatCourseDuration, getBlendedCourseSessions]);
   
-  const renderLiveCourse = useCallback((course: Course): Course => ({
+  const renderLiveCourse = useCallback((course: ICourse): ICourse => ({
     ...course,
     class_type: "live",
     courseType: 'live',
@@ -278,7 +309,7 @@ const Courses = () => {
     ]
   }), [formatCourseDuration]);
   
-  const renderBlendedCourse = useCallback((course: Course): Course => {
+  const renderBlendedCourse = useCallback((course: ICourse): ICourse => {
     const { videoCount } = getBlendedCourseSessions(course);
     return {
       ...course,
@@ -316,65 +347,8 @@ const Courses = () => {
   return (
     <PageWrapper>
       <main className="min-h-screen bg-white dark:bg-gray-950">
-        {/* Minimalist Hero Section */}
-        <section className="relative pt-20 pb-16 px-4">
-          {/* Subtle background elements */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-20 right-10 w-32 h-32 bg-purple-100 dark:bg-purple-900/20 rounded-full blur-3xl opacity-60"></div>
-            <div className="absolute bottom-20 left-10 w-40 h-40 bg-blue-100 dark:bg-blue-900/20 rounded-full blur-3xl opacity-60"></div>
-          </div>
-
-          <div className="max-w-6xl mx-auto relative">
-            {/* Hero Content */}
-            <div className="text-center mb-16">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="mb-12"
-              >
-                <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4 tracking-tight">
-                  Learn
-                  <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent"> Anything</span>
-                </h1>
-                <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
-                  Discover courses that actually matter. Built for the future, designed for you.
-                </p>
-              </motion.div>
-
-              {/* Course Type Tabs */}
-              {isClient && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
-                  className="inline-flex p-1 bg-gray-100 dark:bg-gray-800 rounded-2xl"
-                >
-                  {[
-                    { key: "all", label: "All Courses", color: "purple" },
-                    { key: "live", label: "Live", color: "rose" },
-                    { key: "blended", label: "Blended", color: "blue" }
-                  ].map((tab) => (
-                    <button
-                      key={tab.key}
-                      onClick={() => handleTabChange(tab.key as "all" | "live" | "blended")}
-                      className={`px-6 py-3 text-sm font-medium rounded-xl transition-all duration-300 ${
-                        activeTab === tab.key
-                          ? `bg-${tab.color}-500 text-white shadow-lg`
-                          : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </motion.div>
-              )}
-            </div>
-          </div>
-        </section>
-
         {/* Courses Section */}
-        <section className="pb-20">
+        <section className="pb-12">
           <div className="max-w-7xl mx-auto px-4">
             <Suspense fallback={<CoursePreloader />}>
               {isClient && activeTab === "all" && (
@@ -389,12 +363,7 @@ const Courses = () => {
                   availableCategories={[]}
                   categoryTitle="Categories"
                   hideCategories={false}
-                  CustomButton={
-                    <div className="inline-flex items-center px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white text-sm font-medium rounded-xl transition-colors">
-                      <Search className="w-4 h-4 mr-2" />
-                      Explore All
-                    </div>
-                  }
+                  CustomButton={ExploreAllButton}
                 />
               )}
               
@@ -411,12 +380,7 @@ const Courses = () => {
                   categoryTitle="Categories"
                   hideCategories={false}
                   classType="live"
-                  CustomButton={
-                    <div className="inline-flex items-center px-6 py-3 bg-rose-500 hover:bg-rose-600 text-white text-sm font-medium rounded-xl transition-colors">
-                      <Calendar className="w-4 h-4 mr-2" />
-                      View Schedule
-                    </div>
-                  }
+                  CustomButton={ViewScheduleButton}
                 />
               )}
               
@@ -434,12 +398,7 @@ const Courses = () => {
                   categoryTitle="Categories"
                   hideCategories={false}
                   classType="blended"
-                  CustomButton={
-                    <div className="inline-flex items-center px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-xl transition-colors">
-                      <Laptop className="w-4 h-4 mr-2" />
-                      Start Learning
-                    </div>
-                  }
+                  CustomButton={StartLearningButton}
                 />
               )}
 

@@ -757,7 +757,7 @@ const LoginForm = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        terms
+                        Terms of use
                       </a>{" "}
                       and{" "}
                       <a
@@ -766,7 +766,7 @@ const LoginForm = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        privacy
+                        Privacy Policy
                       </a>
                     </span>
                   </label>

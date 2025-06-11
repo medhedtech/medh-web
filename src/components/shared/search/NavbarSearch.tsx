@@ -1,7 +1,22 @@
 "use client";
-import { useState, useRef, useEffect, useCallback } from "react";
+
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X, ArrowRight, History, Loader2 } from "lucide-react";
+
+// TypeScript interfaces
+interface INavbarSearchProps {
+  isScrolled?: boolean;
+  smallScreen?: boolean;
+  isImmersiveInMobileMenu?: boolean;
+  onMobileMenuClose?: () => void;
+  setIsSearchActive?: (isActive: boolean) => void;
+}
+
+interface IRecentSearch {
+  term: string;
+  timestamp: number;
+}
 
 /**
  * Enhanced search bar for the navbar with immersive mobile experience
@@ -13,22 +28,22 @@ import { Search, X, ArrowRight, History, Loader2 } from "lucide-react";
  * - Improved accessibility
  */
 const NavbarSearch = ({ 
-  isScrolled, 
+  isScrolled = false, 
   smallScreen = false, 
   isImmersiveInMobileMenu = false,
   onMobileMenuClose,
   setIsSearchActive
-}) => {
-  const [query, setQuery] = useState("");
-  const [isExpanded, setIsExpanded] = useState(true); // Default to expanded for inline mode
-  const [isImmersive, setIsImmersive] = useState(false);
-  const [recentSearches, setRecentSearches] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasFocus, setHasFocus] = useState(false);
-  const inputRef = useRef(null);
-  const searchContainerRef = useRef(null);
+}: INavbarSearchProps) => {
+  const [query, setQuery] = useState<string>("");
+  const [isExpanded, setIsExpanded] = useState<boolean>(true); // Default to expanded for inline mode
+  const [isImmersive, setIsImmersive] = useState<boolean>(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [hasFocus, setHasFocus] = useState<boolean>(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const isInlineSearch = typeof setIsSearchActive === 'function';
+  const isInlineSearch: boolean = typeof setIsSearchActive === 'function';
 
   // Load recent searches from localStorage
   useEffect(() => {
@@ -37,20 +52,20 @@ const NavbarSearch = ({
       if (savedSearches) {
         try {
           setRecentSearches(JSON.parse(savedSearches).slice(0, 5));
-        } catch (e) {
-          console.error('Error loading recent searches:', e);
+        } catch (error) {
+          console.error('Error loading recent searches:', error);
         }
       }
     }
   }, []);
 
   // Save a search to history
-  const saveToHistory = useCallback((searchTerm) => {
+  const saveToHistory = useCallback((searchTerm: string): void => {
     if (!searchTerm.trim()) return;
     
-    const newSearches = [
+    const newSearches: string[] = [
       searchTerm,
-      ...recentSearches.filter(item => item !== searchTerm)
+      ...recentSearches.filter((item: string) => item !== searchTerm)
     ].slice(0, 5);
     
     setRecentSearches(newSearches);
@@ -61,7 +76,7 @@ const NavbarSearch = ({
   }, [recentSearches]);
 
   // Clear search history
-  const clearHistory = useCallback(() => {
+  const clearHistory = useCallback((): void => {
     setRecentSearches([]);
     if (typeof window !== 'undefined') {
       localStorage.removeItem('recentSearches');
@@ -69,7 +84,7 @@ const NavbarSearch = ({
   }, []);
 
   // Handle search submission
-  const handleSearch = useCallback((e) => {
+  const handleSearch = useCallback((e?: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLInputElement>): void => {
     e?.preventDefault();
     if (query.trim()) {
       setIsLoading(true);
@@ -89,7 +104,7 @@ const NavbarSearch = ({
         }
 
         // Close inline search if in navbar inline mode
-        if (isInlineSearch) {
+        if (isInlineSearch && setIsSearchActive) {
           setIsSearchActive(false);
         }
       }, 300);
@@ -97,12 +112,12 @@ const NavbarSearch = ({
   }, [query, router, saveToHistory, isImmersiveInMobileMenu, onMobileMenuClose, isInlineSearch, setIsSearchActive]);
   
   // Clear search and collapse on mobile when ESC key is pressed
-  const handleKeyDown = useCallback((e) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>): void => {
     if (e.key === "Escape") {
       setQuery("");
       setHasFocus(false);
       
-      if (isInlineSearch) {
+      if (isInlineSearch && setIsSearchActive) {
         setIsSearchActive(false);
       } else if (smallScreen) {
         setIsExpanded(false);
@@ -114,7 +129,7 @@ const NavbarSearch = ({
   }, [smallScreen, query, handleSearch, isInlineSearch, setIsSearchActive]);
   
   // Handle selection of a recent search
-  const selectRecentSearch = useCallback((searchTerm) => {
+  const selectRecentSearch = useCallback((searchTerm: string): void => {
     setQuery(searchTerm);
     router.push(`/search?q=${encodeURIComponent(searchTerm)}`);
     setIsExpanded(false);
@@ -122,13 +137,13 @@ const NavbarSearch = ({
     setHasFocus(false);
     
     // Close inline search if in navbar inline mode
-    if (isInlineSearch) {
+    if (isInlineSearch && setIsSearchActive) {
       setIsSearchActive(false);
     }
   }, [router, isInlineSearch, setIsSearchActive]);
   
   // Open the immersive search experience
-  const openImmersiveSearch = useCallback(() => {
+  const openImmersiveSearch = useCallback((): void => {
     // First expand 
     setIsExpanded(true);
     
@@ -148,7 +163,7 @@ const NavbarSearch = ({
   }, []);
   
   // Close the search experience
-  const closeSearch = useCallback(() => {
+  const closeSearch = useCallback((): void => {
     setIsImmersive(false);
     setHasFocus(false);
     
@@ -160,7 +175,7 @@ const NavbarSearch = ({
       setIsExpanded(false);
       
       // Close inline search if in navbar inline mode
-      if (isInlineSearch) {
+      if (isInlineSearch && setIsSearchActive) {
         setIsSearchActive(false);
       }
     }, 300);
@@ -175,10 +190,10 @@ const NavbarSearch = ({
   
   // Handle clicks outside to collapse search on mobile
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = (event: MouseEvent): void => {
       if (
         searchContainerRef.current && 
-        !searchContainerRef.current.contains(event.target)
+        !searchContainerRef.current.contains(event.target as Node)
       ) {
         setHasFocus(false);
         
@@ -213,6 +228,19 @@ const NavbarSearch = ({
     }
   }, [isInlineSearch]);
 
+  // Handle suggestion click
+  const handleSuggestionClick = useCallback((suggestion: string): void => {
+    setQuery(suggestion);
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
+
+  // Handle recent search in mobile menu
+  const handleRecentSearchInMobileMenu = useCallback((): void => {
+    handleSearch();
+  }, [handleSearch]);
+
   return (
     <>
       {/* Backdrop for immersive mode - only show when not in mobile menu */}
@@ -240,6 +268,7 @@ const NavbarSearch = ({
             onClick={openImmersiveSearch}
             className="p-2.5 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             aria-label="Open search"
+            type="button"
           >
             <Search size={22} />
           </button>
@@ -274,7 +303,7 @@ const NavbarSearch = ({
               ref={inputRef}
               type="text"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               onFocus={() => setHasFocus(true)}
               placeholder={isInlineSearch ? "Type to search..." : isImmersive ? "What do you want to learn?" : "Search..."}
@@ -334,12 +363,13 @@ const NavbarSearch = ({
                   <button 
                     onClick={clearHistory}
                     className="text-xs text-gray-500 hover:text-primary-500 dark:text-gray-400 dark:hover:text-primary-400"
+                    type="button"
                   >
                     Clear
                   </button>
                 </div>
                 <ul className="py-1">
-                  {recentSearches.map((term, idx) => (
+                  {recentSearches.map((term: string, idx: number) => (
                     <li key={idx}>
                       <button
                         type="button"
@@ -413,14 +443,12 @@ const NavbarSearch = ({
           <div className="fixed left-0 right-0 top-[35%] text-center text-white z-50 px-6">
             <p className="text-sm opacity-90 mb-4 font-medium">Try searching for:</p>
             <div className="flex flex-wrap justify-center gap-3 max-w-md mx-auto">
-              {["Python", "Web Development", "Data Science", "Machine Learning", "Mobile Development"].map((suggestion, idx) => (
+              {["Python", "Web Development", "Data Science", "Machine Learning", "Mobile Development"].map((suggestion: string, idx: number) => (
                 <button
                   key={idx}
-                  onClick={() => {
-                    setQuery(suggestion);
-                    if (inputRef.current) inputRef.current.focus();
-                  }}
+                  onClick={() => handleSuggestionClick(suggestion)}
                   className="px-4 py-2.5 bg-gray-800/70 backdrop-blur-sm rounded-full text-sm hover:bg-gray-700/80 transition-colors border border-gray-700/50"
+                  type="button"
                 >
                   {suggestion}
                 </button>
@@ -439,19 +467,21 @@ const NavbarSearch = ({
               <button 
                 onClick={clearHistory}
                 className="text-xs text-gray-500 hover:text-primary-500 dark:text-gray-400 dark:hover:text-primary-400"
+                type="button"
               >
                 Clear
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
-              {recentSearches.slice(0, 3).map((term, idx) => (
+              {recentSearches.slice(0, 3).map((term: string, idx: number) => (
                 <button
                   key={idx}
                   onClick={() => {
                     setQuery(term);
-                    handleSearch();
+                    handleRecentSearchInMobileMenu();
                   }}
                   className="px-3 py-1.5 bg-gray-200 dark:bg-gray-800 rounded-full text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700"
+                  type="button"
                 >
                   {term}
                 </button>

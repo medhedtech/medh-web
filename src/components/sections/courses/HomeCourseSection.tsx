@@ -14,6 +14,55 @@ import { getCoursePriceValue, getMinBatchSize } from '@/utils/priceUtils';
 import axios from 'axios';
 import { apiBaseUrl, apiUrls } from '@/apis/index';
 import { useCourseCardSettings } from '@/contexts/CourseCardSettingsContext';
+import { useTheme } from "next-themes";
+
+// Glassmorphism styles matching Hero2.tsx glass-container exactly
+const getGlassmorphismStyles = (isDark: boolean) => `
+  .glass-container {
+    background: ${isDark 
+      ? 'rgba(15, 23, 42, 0.08)' 
+      : 'rgba(255, 255, 255, 0.08)'
+    };
+    backdrop-filter: blur(25px);
+    border: 1px solid ${isDark 
+      ? 'rgba(255, 255, 255, 0.12)' 
+      : 'rgba(255, 255, 255, 0.25)'
+    };
+    border-radius: 1.5rem;
+    box-shadow: 
+      ${isDark 
+        ? '0 8px 32px rgba(0, 0, 0, 0.15), 0 16px 64px rgba(0, 0, 0, 0.08)' 
+        : '0 8px 32px rgba(0, 0, 0, 0.06), 0 16px 64px rgba(0, 0, 0, 0.02)'
+      },
+      inset 0 1px 0 ${isDark 
+        ? 'rgba(255, 255, 255, 0.15)' 
+        : 'rgba(255, 255, 255, 0.35)'
+      },
+      inset 0 -1px 0 ${isDark 
+        ? 'rgba(255, 255, 255, 0.08)' 
+        : 'rgba(255, 255, 255, 0.18)'
+      };
+    position: relative;
+  }
+  
+  .glass-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, ${isDark 
+      ? 'rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.10)' 
+      : 'rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.70), rgba(255, 255, 255, 0.85)'
+    });
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+`;
 
 // List of specific course durations to display (in weeks)
 const TARGET_DURATIONS = [
@@ -488,6 +537,10 @@ const HomeCourseSection = ({
 }) => {
   const { settings } = useCourseCardSettings();
   const { selectedLiveCourseIds, selectedBlendedCourseIds, cardConfig, textCustomization } = settings;
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  
+  const isDark = mounted ? theme === 'dark' : true;
 
   const [blendedCourses, setBlendedCourses] = useState<ICourse[]>([]);
   const [liveCourses, setLiveCourses] = useState<ICourse[]>([]);
@@ -786,6 +839,33 @@ const HomeCourseSection = ({
     setActiveBlendedFilters(newFilters);
   };
 
+  // Mount effect
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Inject glassmorphism styles
+  useEffect(() => {
+    if (!mounted) return;
+    
+    const existingStyle = document.getElementById('home-course-section-header-glassmorphism-styles');
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+    
+    const styleSheet = document.createElement("style");
+    styleSheet.id = 'home-course-section-header-glassmorphism-styles';
+    styleSheet.innerText = getGlassmorphismStyles(isDark);
+    document.head.appendChild(styleSheet);
+    
+    return () => {
+      const styleToRemove = document.getElementById('home-course-section-header-glassmorphism-styles');
+      if (styleToRemove) {
+        styleToRemove.remove();
+      }
+    };
+  }, [mounted, isDark]);
+
   // Initialize user currency and fetch courses on component mount
   useEffect(() => {
     // Detect user's location and currency on mount
@@ -912,12 +992,28 @@ const HomeCourseSection = ({
     );
   }
 
-  // Custom link button component
+  // Custom link button component with enhanced light mode styling
   const ViewAllButton = ({ href, text }: { href: string; text: string }) => (
     <Link href={href} 
-      className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg md:px-5 md:py-2.5">
-      <span suppressHydrationWarning={true}>{text}</span>
-      <ChevronRight size={16} className="ml-1" />
+      className={`inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 shadow-md hover:shadow-lg md:px-5 md:py-2.5 relative overflow-hidden group ${
+        isDark 
+          ? 'bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white' 
+          : 'bg-white/95 backdrop-blur-lg text-gray-900 border-2 border-primary-500/40 hover:border-primary-500/70 hover:bg-white shadow-2xl hover:shadow-3xl'
+      }`}
+    >
+      {!isDark && (
+        <>
+          <div className="absolute inset-0 bg-gradient-to-r from-primary-50/60 to-purple-50/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-primary-100/20 to-purple-100/20 animate-pulse"></div>
+        </>
+      )}
+      <span className="relative z-10 font-extrabold tracking-wide" suppressHydrationWarning={true}>{text}</span>
+      <ChevronRight size={16} className="relative z-10 ml-1 group-hover:translate-x-1 transition-transform" />
+      
+      {/* Shine effect for light mode */}
+      {!isDark && (
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+      )}
     </Link>
   );
 
@@ -1014,22 +1110,26 @@ const HomeCourseSection = ({
   return (
     // Improve background and section sizing with enhanced spacing
     <div className="w-full py-6 md:py-8 lg:py-12 xl:py-16 relative">
-      {/* Section Header with improved spacing */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 md:mb-10 lg:mb-12 px-4 sm:px-6 md:px-8 lg:px-10">
-        <div>
-          <h2 className="text-sm md:text-2xl lg:text-base font-extrabold mb-3 md:mb-4 dark:text-gray-300 max-w-2xl font-medium">
-            {textCustomization?.sectionTitle || CustomText}
-          </h2>
-          <p className="text-2xl md:text-base lg:text-3xl text-gray-600 text-gray-800 dark:text-white font-bold">
-            {textCustomization?.sectionDescription || CustomDescription}
-          </p>
-        </div>
-        {/* Desktop View All Courses button */}
-        <div className="mt-6 md:mt-0 hidden md:block">
-          <ViewAllButton 
-            href="/courses" 
-            text="View All Courses" 
-          />
+      {/* Section Header with glassmorphism styling */}
+      <div className="mb-8 md:mb-10 lg:mb-12 mx-4 sm:mx-6 md:mx-8 lg:mx-10">
+        <div className="glass-container p-6 md:p-8 lg:p-10">
+          <div className="flex flex-col md:flex-row md:items-center justify-between">
+            <div>
+              <h2 className="text-sm md:text-2xl lg:text-base font-extrabold mb-3 md:mb-4 dark:text-gray-300 max-w-2xl font-medium">
+                {textCustomization?.sectionTitle || CustomText}
+              </h2>
+              <p className="text-2xl md:text-base lg:text-3xl text-gray-600 text-gray-800 dark:text-white font-bold">
+                {textCustomization?.sectionDescription || CustomDescription}
+              </p>
+            </div>
+            {/* Desktop View All Courses button */}
+            <div className="mt-6 md:mt-0 hidden md:block">
+              <ViewAllButton 
+                href="/courses" 
+                text="View All Courses" 
+              />
+            </div>
+          </div>
         </div>
       </div>
 
