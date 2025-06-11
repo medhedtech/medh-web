@@ -1,6 +1,6 @@
 "use client";
 import About1 from "@/components/sections/abouts/About1";
-import Blogs from "@/components/sections/blogs/Blogs2";
+import Blogs from "@/components/sections/blogs/Blogs";
 import BrowseCategories from "@/components/sections/browse-categories/BrowseCategories";
 import HomeCourseSection from "@/components/sections/courses/HomeCourseSection2";
 import Hero2 from "@/components/sections/hero-banners/Hero2";
