@@ -60,7 +60,7 @@ const MembershipContent: React.FC = () => {
   const [availablePlans, setAvailablePlans] = useState<IMembershipPlan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'benefits' | 'history' | 'upgrade'>('overview');
+  const [activeTab, setActiveTab] = useState<'enrolled' | 'upgrade-downgrade' | 'pay-subscription'>('enrolled');
 
   // Format date function
   const formatDate = (dateString: string): string => {
@@ -174,10 +174,9 @@ const MembershipContent: React.FC = () => {
       <div className="border-b border-gray-200">
         <nav className="flex space-x-8 overflow-x-auto">
           {[
-            { key: 'overview', label: 'Overview', icon: <Crown className="w-4 h-4" /> },
-            { key: 'benefits', label: 'Benefits', icon: <Gift className="w-4 h-4" /> },
-            { key: 'history', label: 'History', icon: <Clock className="w-4 h-4" /> },
-            { key: 'upgrade', label: 'Upgrade', icon: <Star className="w-4 h-4" /> }
+            { key: 'enrolled', label: 'Enrolled Membership', icon: <CheckCircle className="w-4 h-4" /> },
+            { key: 'upgrade-downgrade', label: 'Upgrade / Downgrade Membership', icon: <RefreshCw className="w-4 h-4" /> },
+            { key: 'pay-subscription', label: 'Pay Periodical Subscription', icon: <CreditCard className="w-4 h-4" /> }
           ].map((tab) => (
             <button
               key={tab.key}
@@ -195,18 +194,51 @@ const MembershipContent: React.FC = () => {
         </nav>
       </div>
 
-      {/* Empty State */}
-      <div className="text-center py-12">
-        <Crown className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Membership Plan</h3>
-        <p className="text-gray-600 mb-6 max-w-md mx-auto">
-          You don't have an active membership plan yet. Choose from our available plans to unlock premium features and benefits.
-        </p>
-        <button className="inline-flex items-center px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
-          <Crown className="w-5 h-5 mr-2" />
-          Browse Membership Plans
-        </button>
-      </div>
+      {/* Tab Content */}
+      {activeTab === 'enrolled' && (
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="text-center py-12">
+            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Enrolled Membership</h3>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              View and manage your current membership enrollment details, including plan features and benefits.
+            </p>
+            <div className="bg-gray-50 rounded-lg p-4 max-w-md mx-auto">
+              <p className="text-sm text-gray-500">No active enrollment found</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'upgrade-downgrade' && (
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="text-center py-12">
+            <RefreshCw className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Upgrade / Downgrade Membership</h3>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              Modify your current membership plan. Upgrade to unlock more features or downgrade to reduce costs.
+            </p>
+            <div className="bg-gray-50 rounded-lg p-4 max-w-md mx-auto">
+              <p className="text-sm text-gray-500">Plan modification options will appear here</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'pay-subscription' && (
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="text-center py-12">
+            <CreditCard className="w-16 h-16 text-purple-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Pay Periodical Subscription</h3>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              Manage your subscription payments, view billing history, and update payment methods.
+            </p>
+            <div className="bg-gray-50 rounded-lg p-4 max-w-md mx-auto">
+              <p className="text-sm text-gray-500">Payment options and billing details will appear here</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
