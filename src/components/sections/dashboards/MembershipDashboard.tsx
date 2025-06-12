@@ -60,7 +60,7 @@ const MembershipContent: React.FC = () => {
   const [availablePlans, setAvailablePlans] = useState<IMembershipPlan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'benefits' | 'history' | 'upgrade'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'benefits' | 'history'>('overview');
 
   // Format date function
   const formatDate = (dateString: string): string => {
@@ -174,10 +174,9 @@ const MembershipContent: React.FC = () => {
       <div className="border-b border-gray-200">
         <nav className="flex space-x-8 overflow-x-auto">
           {[
-            { key: 'overview', label: 'Overview', icon: <Crown className="w-4 h-4" /> },
-            { key: 'benefits', label: 'Benefits', icon: <Gift className="w-4 h-4" /> },
-            { key: 'history', label: 'History', icon: <Clock className="w-4 h-4" /> },
-            { key: 'upgrade', label: 'Upgrade', icon: <Star className="w-4 h-4" /> }
+            { key: 'overview', label: 'Enrolled Membership', icon: <Crown className="w-4 h-4" /> },
+            { key: 'benefits', label: 'Upgrade / Downgrade Membership', icon: <Gift className="w-4 h-4" /> },
+            { key: 'history', label: 'Pay Periodical Subscription', icon: <Clock className="w-4 h-4" /> }
           ].map((tab) => (
             <button
               key={tab.key}

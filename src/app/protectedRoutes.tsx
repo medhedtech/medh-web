@@ -1,22 +1,33 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 
-const ProtectedPage = ({ children }) => {
+// Types
+interface IProtectedPageProps {
+  children: ReactNode;
+}
+
+interface IDecodedToken {
+  exp: number;
+  iat?: number;
+  [key: string]: any;
+}
+
+const ProtectedPage: React.FC<IProtectedPageProps> = ({ children }) => {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token: string | null = localStorage.getItem("token");
 
     if (!token) {
       console.log("No token found. Redirecting to login.");
       router.push("/login");
     } else {
       try {
-        const decoded = jwtDecode(token);
-        const currentTime = Math.floor(Date.now() / 1000);
+        const decoded: IDecodedToken = jwtDecode(token);
+        const currentTime: number = Math.floor(Date.now() / 1000);
         if (decoded.exp < currentTime) {
           console.log("Token expired. Redirecting to login.");
           router.push("/login");
@@ -32,4 +43,4 @@ const ProtectedPage = ({ children }) => {
   return <>{children}</>;
 };
 
-export default ProtectedPage;
+export default ProtectedPage; 
