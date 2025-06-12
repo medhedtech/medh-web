@@ -1,4 +1,4 @@
-import CourseCard from "../courses/CourseCard";
+import DashboardCourseCard from "./CourseCard";
 
 interface Course {
   _id: string;
@@ -67,7 +67,7 @@ const DraftContent: React.FC<DraftContentProps> = ({ courses, loading = false })
   return (
     <>
       {courses.map((course, idx) => (
-        <CourseCard key={course._id || idx} course={course} type={"primary"} />
+        <DashboardCourseCard key={course._id || idx} course={course} type={"primary"} />
       ))}
     </>
   );
