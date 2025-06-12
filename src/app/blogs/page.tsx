@@ -107,7 +107,7 @@ const Blogs = async ({ searchParams }: { searchParams: Promise<SearchParams> }) 
 
   return (
     <PageWrapper>
-      <main className="min-h-screen bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-black">
+      <main className="min-h-screen bg-white dark:bg-gray-900">
         <BlogsMain 
           initialBlogs={initialBlogs} 
           totalBlogs={totalBlogs}
