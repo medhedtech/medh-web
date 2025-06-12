@@ -652,43 +652,7 @@ export default function AboutProgram({ courseId }) {
                   </motion.div>
                 )}
 
-                {/* Download Brochure */}
-                <motion.div 
-                  className="bg-gradient-to-r from-emerald-50 via-green-50 to-blue-50 dark:from-emerald-900/20 dark:via-green-900/20 dark:to-blue-900/20 rounded-lg overflow-hidden shadow-md mt-8"
-                  variants={fadeIn}
-                  whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
-                >
-                  <div className="p-6 flex flex-col md:flex-row items-center">
-                    <div className="md:w-1/4 flex justify-center mb-6 md:mb-0">
-                      <motion.div
-                        whileHover={{ rotate: -5, scale: 1.05 }}
-                      >
-                        <Image src={Pdf} width={120} alt="PDF Brochure" className="object-contain drop-shadow-md" />
-                      </motion.div>
-                    </div>
-                    
-                    <div className="md:w-2/4 text-center md:text-left md:px-6 mb-6 md:mb-0">
-                      <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">
-                        Download Course Brochure
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-300">
-                        Get detailed information about curriculum, instructors, career opportunities, and more.
-                      </p>
-                    </div>
-                    
-                    <div className="md:w-1/4 flex justify-center">
-                      <motion.button
-                        onClick={openModal}
-                        className="flex items-center px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-medium rounded-lg transition-all duration-300 shadow-md"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <DownloadIcon size={18} className="mr-2" />
-                        Download
-                      </motion.button>
-                    </div>
-                  </div>
-                </motion.div>
+
               </motion.div>
             </AnimatePresence>
           ) : (
