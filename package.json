@@ -107,6 +107,7 @@
     "next": "^15.2.4",
     "next-auth": "^4.24.11",
     "next-themes": "^0.4.4",
+    "openai": "^5.3.0",
     "quill": "^2.0.0-beta.2",
     "rc-time-picker": "^3.7.3",
     "react": "^18.2.0",
