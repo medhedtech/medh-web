@@ -14,7 +14,7 @@ const FreeCourses = () => {
   const [freeCourses, setFreeCourses] = useState([]);
   const { getQuery, loading } = useGetQuery();
   const [limit] = useState(90);
-  const [page] = useState(1);
+  const [page] = useState(1); 
 
   // Animation variants
   const containerVariants = {

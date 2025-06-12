@@ -1,14 +1,16 @@
+import { Metadata } from "next";
 import ProtectedPage from "@/app/protectedRoutes";
 import InstructorCourseMain from "@/components/layout/main/dashboards/InstructorCourseMain";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
-
 import DashboardWrapper from "@/components/shared/wrappers/DashboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
-export const metadata = {
+
+export const metadata: Metadata = {
   title: "Instructor Course | Medh - Education LMS Template",
   description: "Instructor Course | Medh - Education LMS Template",
 };
-const Instructor_Course = () => {
+
+const InstructorCoursePage = () => {
   return (
     <ProtectedPage>
       <PageWrapper>
@@ -18,11 +20,10 @@ const Instructor_Course = () => {
               <InstructorCourseMain />
             </DashboardContainer>
           </DashboardWrapper>
-          
         </main>
       </PageWrapper>
     </ProtectedPage>
   );
 };
 
-export default Instructor_Course;
+export default InstructorCoursePage;

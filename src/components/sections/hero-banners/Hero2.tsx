@@ -2,7 +2,7 @@
 import HeadingLg from "@/components/shared/headings/HeadingLg";
 import HreoName from "@/components/shared/section-names/HreoName";
 import Image from "next/image";
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef, useCallback, useMemo } from "react";
 import stemImg from "@/assets/images/iso/iso-STEM.jpg";
 import Group from "@/assets/Header-Images/Home/cheerful-arab.jpg";
 import bgImage from "@/assets/Header-Images/Home/Home_Banner_2_e7389bb905.jpg";
@@ -401,8 +401,9 @@ const getThemeStyles = (isDark: boolean) => `
 
 // Theme-aware style injection - will be handled in component
 import CourseCard from "@/components/sections/courses/CourseCard";
-import { ArrowRight, ChevronRight, GraduationCap, Users, Star, Clock, Sparkles, BookOpen, Target, TrendingUp, Menu, Brain, Lightbulb, Calculator, Rocket, Play, CheckCircle } from "lucide-react";
+import { ArrowRight, ChevronRight, GraduationCap, Users, Star, Clock, Sparkles, BookOpen, Target, TrendingUp, Menu, Brain, Lightbulb, Calculator, Rocket, Play, CheckCircle, Heart, Shield, Briefcase, MessageCircle, BarChart3, DollarSign, Activity, Settings, Globe, Scale, Smile, ShoppingCart, Code, Leaf, Laptop, Camera, Music, PenTool, Zap, Award } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import Preloader2 from "@/components/shared/others/Preloader2";
@@ -412,6 +413,12 @@ import medhLogo from "@/assets/images/logo/medh.png";
 import { getAllCoursesWithLimits } from "@/apis/course/course";
 import { ICourse } from "@/types/course.types";
 
+// Simple video optimization for better performance
+const OPTIMIZED_VIDEO_URLS = {
+  DARK_THEME: "https://d2cxn2x1vtrou8.cloudfront.net/Website/1659171_Trapcode_Particles_3840x2160.mp4",
+  LIGHT_THEME: "https://d2cxn2x1vtrou8.cloudfront.net/Website/0_Technology_Abstract_4096x2304.mp4"
+};
+
 // Define interfaces for component props
 interface IHeroMobileProps {
   isLoaded: boolean;
@@ -419,39 +426,228 @@ interface IHeroMobileProps {
   loading: boolean;
 }
 
-// Learner categories data for infinite scroll
-const learnerCategories = [
+
+
+// Comprehensive course categories data for infinite scroll
+const courseCategories = [
+  // Live Courses
   {
-    id: "children-teens",
-    icon: BookOpen,
-    title: "Children & Teens",
-    description: "Future-ready STEM education and creative thinking",
-    subtitle: "Perfect for ages 8-18",
-    badge: "Interactive"
+    name: "AI & Data Science",
+    description: "Learn cutting-edge artificial intelligence and data science techniques",
+    type: "live" as const,
+    icon: Brain,
+    badge: "Live",
+    url: "/courses?category=AI%20and%20Data%20Science&classType=live"
   },
   {
-    id: "professionals",
-    icon: Users,
-    title: "Professionals",
-    description: "Industry-relevant skills for career advancement",
-    subtitle: "Industry certifications",
-    badge: "Practical"
-  },
-  {
-    id: "homemakers",
-    icon: Star,
-    title: "Homemakers",
-    description: "Flexible learning paths for personal growth",
-    subtitle: "Flexible scheduling",
-    badge: "Adaptable"
-  },
-  {
-    id: "lifelong-learners",
+    name: "Digital Marketing",
+    description: "Master digital marketing strategies and data analytics",
+    type: "live" as const,
     icon: TrendingUp,
-    title: "Lifelong Learners",
-    description: "Continuous skills development at any age",
-    subtitle: "Age-inclusive content",
-    badge: "Continuous"
+    badge: "Live",
+    url: "/courses?category=Digital%20Marketing%20with%20Data%20Analytics&classType=live"
+  },
+  {
+    name: "Personality Development",
+    description: "Enhance your personal and professional skills",
+    type: "live" as const,
+    icon: Users,
+    badge: "Live",
+    url: "/courses?category=Personality%20Development&classType=live"
+  },
+  {
+    name: "Vedic Mathematics",
+    description: "Ancient mathematical techniques for modern problem-solving",
+    type: "live" as const,
+    icon: Calculator,
+    badge: "Live",
+    url: "/courses?category=Vedic%20Mathematics&classType=live"
+  },
+  
+  // Blended Courses - 14 core categories
+  {
+    name: "AI For Professionals",
+    description: "AI applications for working professionals",
+    type: "blended" as const,
+    icon: Rocket,
+    badge: "Blended",
+    url: "/courses?category=AI%20For%20Professionals"
+  },
+  {
+    name: "Business And Management",
+    description: "Strategic business and leadership skills",
+    type: "blended" as const,
+    icon: Briefcase,
+    badge: "Blended",
+    url: "/courses?category=Business%20And%20Management"
+  },
+  {
+    name: "Career Development",
+    description: "Advance your career with proven strategies",
+    type: "blended" as const,
+    icon: Target,
+    badge: "Blended",
+    url: "/courses?category=Career%20Development"
+  },
+  {
+    name: "Communication & Soft Skills",
+    description: "Master interpersonal and communication skills",
+    type: "blended" as const,
+    icon: MessageCircle,
+    badge: "Blended",
+    url: "/courses?category=Communication%20And%20Soft%20Skills"
+  },
+  {
+    name: "Data & Analytics",
+    description: "Advanced data analysis and visualization",
+    type: "blended" as const,
+    icon: BarChart3,
+    badge: "Blended",
+    url: "/courses?category=Data%20%26%20Analytics"
+  },
+  {
+    name: "Finance & Accounts",
+    description: "Financial management and accounting skills",
+    type: "blended" as const,
+    icon: DollarSign,
+    badge: "Blended",
+    url: "/courses?category=Finance%20%26%20Accounts"
+  },
+  {
+    name: "Health & Wellness",
+    description: "Comprehensive health and wellness programs",
+    type: "blended" as const,
+    icon: Heart,
+    badge: "Blended",
+    url: "/courses?category=Health%20%26%20Wellness"
+  },
+  {
+    name: "Industry-Specific Skills",
+    description: "Specialized skills for various industries",
+    type: "blended" as const,
+    icon: Settings,
+    badge: "Blended",
+    url: "/courses?category=Industry-Specific%20Skills"
+  },
+  {
+    name: "Language & Linguistic",
+    description: "Master new languages and communication",
+    type: "blended" as const,
+    icon: Globe,
+    badge: "Blended",
+    url: "/courses?category=Language%20%26%20Linguistic"
+  },
+  {
+    name: "Legal & Compliance Skills",
+    description: "Legal knowledge and compliance training",
+    type: "blended" as const,
+    icon: Scale,
+    badge: "Blended",
+    url: "/courses?category=Legal%20%26%20Compliance%20Skills"
+  },
+  {
+    name: "Personal Well-Being",
+    description: "Mental health and personal development",
+    type: "blended" as const,
+    icon: Smile,
+    badge: "Blended",
+    url: "/courses?category=Personal%20Well-Being"
+  },
+  {
+    name: "Sales & Marketing",
+    description: "Advanced sales techniques and marketing strategies",
+    type: "blended" as const,
+    icon: ShoppingCart,
+    badge: "Blended",
+    url: "/courses?category=Sales%20%26%20Marketing"
+  },
+  {
+    name: "Technical Skills",
+    description: "Programming, development, and technical expertise",
+    type: "blended" as const,
+    icon: Code,
+    badge: "Blended",
+    url: "/courses?category=Technical%20Skills"
+  },
+  {
+    name: "Environmental & Sustainability",
+    description: "Green skills for a sustainable future",
+    type: "blended" as const,
+    icon: Leaf,
+    badge: "Blended",
+    url: "/courses?category=Environmental%20and%20Sustainability%20Skills"
+  },
+  {
+    name: "Creative & Design",
+    description: "Unleash your creativity with design skills",
+    type: "blended" as const,
+    icon: PenTool,
+    badge: "Blended",
+    url: "/courses?category=Creative%20%26%20Design"
+  },
+  {
+    name: "Entrepreneurship",
+    description: "Build and scale your own business",
+    type: "blended" as const,
+    icon: Zap,
+    badge: "Blended",
+    url: "/courses?category=Entrepreneurship"
+  },
+  {
+    name: "Project Management",
+    description: "Master project planning and execution",
+    type: "blended" as const,
+    icon: CheckCircle,
+    badge: "Blended",
+    url: "/courses?category=Project%20Management"
+  },
+  {
+    name: "Cybersecurity",
+    description: "Protect digital assets and systems",
+    type: "blended" as const,
+    icon: Shield,
+    badge: "Blended",
+    url: "/courses?category=Cybersecurity"
+  },
+  {
+    name: "Content Creation",
+    description: "Create engaging digital content",
+    type: "blended" as const,
+    icon: Camera,
+    badge: "Blended",
+    url: "/courses?category=Content%20Creation"
+  },
+  {
+    name: "Music & Arts",
+    description: "Explore creative expression through arts",
+    type: "blended" as const,
+    icon: Music,
+    badge: "Blended",
+    url: "/courses?category=Music%20%26%20Arts"
+  },
+  {
+    name: "Fitness & Sports",
+    description: "Physical fitness and sports training",
+    type: "blended" as const,
+    icon: Activity,
+    badge: "Blended",
+    url: "/courses?category=Fitness%20%26%20Sports"
+  },
+  {
+    name: "Web Development",
+    description: "Build modern websites and applications",
+    type: "blended" as const,
+    icon: Laptop,
+    badge: "Blended",
+    url: "/courses?category=Web%20Development"
+  },
+  {
+    name: "Quality Assurance",
+    description: "Master software testing and QA processes",
+    type: "blended" as const,
+    icon: Award,
+    badge: "Blended",
+    url: "/courses?category=Quality%20Assurance"
   }
 ];
 
@@ -460,84 +656,94 @@ interface IInfiniteScrollerCardsProps {
   isDark?: boolean;
 }
 
-const InfiniteScrollerCards: React.FC<IInfiniteScrollerCardsProps> = ({ isDark = false }) => {
-  // Create a seamless ring with enough repetitions
-  const ringCategories = [
-    ...learnerCategories, 
-    ...learnerCategories, 
-    ...learnerCategories, 
-    ...learnerCategories, 
-    ...learnerCategories, 
-    ...learnerCategories
-  ];
+const InfiniteScrollerCards: React.FC<IInfiniteScrollerCardsProps> = React.memo(({ isDark = false }) => {
+  const router = useRouter();
+  
+  // Memoized ring categories to prevent unnecessary recalculations
+  const ringCategories = useMemo(() => [
+    ...courseCategories, 
+    ...courseCategories, 
+    ...courseCategories, 
+    ...courseCategories, 
+    ...courseCategories, 
+    ...courseCategories
+  ], []);
+
+  // Memoized category click handler
+  const handleCategoryClick = useCallback((category: typeof courseCategories[0]) => {
+    router.push(category.url);
+  }, [router]);
 
   return (
     <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] overflow-hidden">
       <div className="animate-scroll-infinite scroll-container flex gap-2 md:gap-3 pl-2 md:pl-4 pr-2 md:pr-4" style={{ width: 'calc(600%)', minWidth: 'calc(600%)' }}>
         {ringCategories.map((category, index) => {
           const IconComponent = category.icon;
-          const getGlassClass = (categoryId: string) => {
-            return 'glass-stats'; // Use same glass class as stats cards
+          const getGlassClass = (type: string) => {
+            return type === 'live' ? 'glass-primary' : 'glass-stats';
           };
 
-          const getIconColor = (categoryId: string) => {
-            switch(categoryId) {
-              case 'children-teens': return isDark ? 'text-emerald-400' : 'text-emerald-500';
-              case 'professionals': return isDark ? 'text-blue-400' : 'text-cyan-500';
-              case 'homemakers': return isDark ? 'text-pink-400' : 'text-pink-500';
-              case 'lifelong-learners': return isDark ? 'text-violet-400' : 'text-violet-500';
-              default: return isDark ? 'text-emerald-400' : 'text-emerald-500';
-            }
+          const getIconColor = (type: string) => {
+            return type === 'live' 
+              ? (isDark ? 'text-primary-300' : 'text-primary-600')
+              : (isDark ? 'text-blue-300' : 'text-blue-600');
           };
 
-          const getGradient = (categoryId: string) => {
-            switch(categoryId) {
-              case 'children-teens': return 'from-emerald-500/10 to-transparent';
-              case 'professionals': return 'from-blue-500/10 to-transparent';
-              case 'homemakers': return 'from-rose-500/10 to-transparent';
-              case 'lifelong-learners': return 'from-purple-500/10 to-transparent';
-              default: return 'from-emerald-500/10 to-transparent';
-            }
+          const getGradient = (type: string) => {
+            return type === 'live' 
+              ? 'from-primary-500/10 to-transparent'
+              : 'from-blue-500/10 to-transparent';
           };
 
-          const getHoverColor = (categoryId: string) => {
-            switch(categoryId) {
-              case 'children-teens': return isDark ? 'group-hover:text-emerald-300' : 'group-hover:text-emerald-400';
-              case 'professionals': return isDark ? 'group-hover:text-blue-300' : 'group-hover:text-cyan-400';
-              case 'homemakers': return isDark ? 'group-hover:text-pink-300' : 'group-hover:text-pink-400';
-              case 'lifelong-learners': return isDark ? 'group-hover:text-violet-300' : 'group-hover:text-violet-400';
-              default: return isDark ? 'group-hover:text-emerald-300' : 'group-hover:text-emerald-400';
-            }
+          const getHoverColor = (type: string) => {
+            return type === 'live'
+              ? (isDark ? 'group-hover:text-primary-200' : 'group-hover:text-primary-500')
+              : (isDark ? 'group-hover:text-blue-200' : 'group-hover:text-blue-500');
+          };
+
+          const getBadgeColor = (type: string) => {
+            return type === 'live'
+              ? (isDark ? 'bg-primary-500/20 text-primary-300' : 'bg-primary-100 text-primary-700')
+              : (isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700');
           };
 
           return (
-            <div
-              key={`${category.id}-${index}`}
-              className={`relative ${getGlassClass(category.id)} rounded-xl md:rounded-2xl p-3 md:p-4 hover:scale-105 transition-all duration-500 group cursor-pointer overflow-hidden flex-shrink-0 w-36 md:w-48 h-24 md:h-32 flex flex-col items-center justify-center`}
-            >
-              <div className={`absolute inset-0 bg-gradient-to-br ${getGradient(category.id)} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
-              <div className="absolute inset-0 animate-shimmer opacity-0 group-hover:opacity-100"></div>
-              <div className="relative z-10 text-center flex flex-col items-center justify-center h-full">
-                <div className="mb-2 group-hover:scale-110 transition-all duration-300">
-                  <IconComponent className={`w-6 h-6 md:w-7 md:h-7 ${getIconColor(category.id)} drop-shadow-lg`} />
+              <div
+                key={`${category.name}-${index}`}
+                onClick={() => handleCategoryClick(category)}
+                className={`relative ${getGlassClass(category.type)} rounded-xl md:rounded-2xl p-3 md:p-4 hover:scale-105 transition-all duration-500 group cursor-pointer overflow-hidden flex-shrink-0 w-40 md:w-52 h-28 md:h-36 flex flex-col items-center justify-center`}
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${getGradient(category.type)} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
+                <div className="absolute inset-0 animate-shimmer opacity-0 group-hover:opacity-100"></div>
+                
+                {/* Badge */}
+                <div className={`absolute top-2 right-2 px-1.5 py-0.5 rounded-full text-xs font-medium ${getBadgeColor(category.type)} opacity-90`}>
+                  {category.badge}
                 </div>
-                <h3 className={`font-semibold text-xs md:text-sm ${getHoverColor(category.id)} transition-colors whitespace-nowrap truncate max-w-full px-1 ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-medium`}>
-                  {category.title}
-                </h3>
-                <p className={`text-xs mt-0.5 hidden md:block ${isDark ? 'text-white' : 'text-gray-800'} font-medium text-shadow-subtle`}>
-                  {category.subtitle}
-                </p>
+                
+                <div className="relative z-10 text-center flex flex-col items-center justify-center h-full">
+                  <div className="mb-2 group-hover:scale-110 transition-all duration-300">
+                    <IconComponent className={`w-6 h-6 md:w-7 md:h-7 ${getIconColor(category.type)} drop-shadow-lg`} />
+                  </div>
+                  <h3 className={`font-semibold text-xs md:text-sm ${getHoverColor(category.type)} transition-colors text-center px-1 ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-medium line-clamp-2`}>
+                    {category.name}
+                  </h3>
+                  <p className={`text-xs mt-1 hidden md:block ${isDark ? 'text-gray-200' : 'text-gray-700'} font-medium text-shadow-subtle text-center px-1 line-clamp-1`}>
+                    {category.description}
+                  </p>
+                </div>
               </div>
-            </div>
-          );
+            );
         })}
       </div>
     </div>
   );
-};
+});
+
+InfiniteScrollerCards.displayName = 'InfiniteScrollerCards';
 
 // Enhanced Mobile version with glassmorphism and theme support
-const HeroMobile: React.FC<IHeroMobileProps> = ({ isLoaded, featuredCourses, loading }) => {
+const HeroMobile: React.FC<IHeroMobileProps> = React.memo(({ isLoaded, featuredCourses, loading }) => {
   const { theme } = useTheme();
   const [mounted, setMounted] = useState<boolean>(false);
   const videoContext = useContext(VideoBackgroundContext);
@@ -575,33 +781,19 @@ const HeroMobile: React.FC<IHeroMobileProps> = ({ isLoaded, featuredCourses, loa
   
   return (
     <div className="mobile-hero-wrapper h-screen max-h-[100vh] relative overflow-hidden animate-theme-transition">
-      {/* Video Background - Use shared video if available */}
+      {/* Video Background */}
       <div className="absolute inset-0 overflow-hidden">
-        {videoContext?.videoRef?.current ? (
-          // Use shared video from Home2.tsx
-          <div 
-            className={`absolute inset-0 w-full h-full object-cover scale-105 transition-all duration-2000 ease-out ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-            style={{ 
-              filter: isDark ? 'brightness(0.6) contrast(1.2) saturate(0.9) hue-rotate(10deg)' : 'brightness(0.9) contrast(1.0) saturate(1.0)',
-              background: `url(${videoContext.videoRef.current.currentSrc})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}
-          />
-        ) : (
-          // Fallback video for standalone usage
-          <video
-            key={`mobile-video-${isDark ? 'dark' : 'light'}`}
-            autoPlay
-            muted
-            loop
-            playsInline
-            className={`absolute inset-0 w-full h-full object-cover scale-105 transition-all duration-2000 ease-out ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-            style={{ filter: isDark ? 'brightness(0.6) contrast(1.2) saturate(0.9) hue-rotate(10deg)' : 'brightness(0.9) contrast(1.0) saturate(1.0)' }}
-          >
-            <source src={isDark ? "https://d2cxn2x1vtrou8.cloudfront.net/Website/1659171_Trapcode_Particles_3840x2160.mp4" : "https://d2cxn2x1vtrou8.cloudfront.net/Website/0_Technology_Abstract_4096x2304.mp4"} type="video/mp4" />
-          </video>
-        )}
+        <video
+          key={`mobile-video-${isDark ? 'dark' : 'light'}`}
+          autoPlay
+          muted
+          loop
+          playsInline
+          className={`absolute inset-0 w-full h-full object-cover scale-105 transition-all duration-2000 ease-out ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+          style={{ filter: isDark ? 'brightness(0.6) contrast(1.2) saturate(0.9) hue-rotate(10deg)' : 'brightness(0.9) contrast(1.0) saturate(1.0)' }}
+        >
+          <source src={isDark ? "https://d2cxn2x1vtrou8.cloudfront.net/Website/1659171_Trapcode_Particles_3840x2160.mp4" : "https://d2cxn2x1vtrou8.cloudfront.net/Website/0_Technology_Abstract_4096x2304.mp4"} type="video/mp4" />
+        </video>
         
         {/* Video overlay for better text readability - theme aware */}
         <div className={`absolute inset-0 ${isDark ? 'video-overlay' : ''}`}></div>
@@ -634,13 +826,47 @@ const HeroMobile: React.FC<IHeroMobileProps> = ({ isLoaded, featuredCourses, loa
                 Join our expert-led courses and master the skills that drive industry innovation globally.
               </p>
               
-              {/* Tagline - Enhanced Size */}
-              <div className={`mumkinMedh text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4 sm:mb-5 leading-tight ${
-                isDark 
-                  ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
-                  : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
-              }`}>
-                Medh Hai Toh Mumkin Hai!
+              
+
+              {/* Category Chips */}
+              <div className="mt-3 mb-3">
+                <div className="grid grid-cols-2 gap-2 max-w-sm mx-auto">
+                  {/* Children & Teens */}
+                  <div className="glass-stats rounded-lg p-2 text-center hover:scale-105 transition-all duration-300 group relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
+                    <div className="relative z-10 flex items-center justify-center space-x-1">
+                      <BookOpen className={`w-3 h-3 ${isDark ? 'text-primary-300' : 'text-primary-600'}`} />
+                      <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-subtle`}>Children & Teens</span>
+                    </div>
+                  </div>
+
+                  {/* Professionals */}
+                  <div className="glass-stats rounded-lg p-2 text-center hover:scale-105 transition-all duration-300 group relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-secondary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
+                    <div className="relative z-10 flex items-center justify-center space-x-1">
+                      <Users className={`w-3 h-3 ${isDark ? 'text-secondary-300' : 'text-secondary-600'}`} />
+                      <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-subtle`}>Professionals</span>
+                    </div>
+                  </div>
+
+                  {/* Homemakers */}
+                  <div className="glass-stats rounded-lg p-2 text-center hover:scale-105 transition-all duration-300 group relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
+                    <div className="relative z-10 flex items-center justify-center space-x-1">
+                      <Star className={`w-3 h-3 ${isDark ? 'text-purple-300' : 'text-purple-600'}`} />
+                      <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-subtle`}>Homemakers</span>
+                    </div>
+                  </div>
+
+                  {/* Lifelong Learners */}
+                  <div className="glass-stats rounded-lg p-2 text-center hover:scale-105 transition-all duration-300 group relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
+                    <div className="relative z-10 flex items-center justify-center space-x-1">
+                      <TrendingUp className={`w-3 h-3 ${isDark ? 'text-blue-300' : 'text-blue-600'}`} />
+                      <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-subtle`}>Lifelong Learners</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* CTA Button */}
@@ -659,6 +885,14 @@ const HeroMobile: React.FC<IHeroMobileProps> = ({ isLoaded, featuredCourses, loa
                   <span className="relative z-10 font-bold">Explore Courses</span>
                   <ArrowRight size={14} className="relative z-10 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Link>
+              </div>
+              {/* Tagline - Enhanced Size */}
+              <div className={`mumkinMedh text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4 sm:mb-5 leading-tight ${
+                isDark 
+                  ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
+                  : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
+              }`}>
+                Medh Hai Toh Mumkin Hai!
               </div>
             </div>
           </div>
@@ -726,14 +960,16 @@ const HeroMobile: React.FC<IHeroMobileProps> = ({ isLoaded, featuredCourses, loa
       </div>
     </div>
   );
-};
+});
+
+HeroMobile.displayName = 'HeroMobile';
 
 interface IHero1Props {
   isCompact?: boolean;
 }
 
 // Enhanced Main Hero component with professional video background and theme support
-const Hero1: React.FC<IHero1Props> = ({ isCompact = false }) => {
+const Hero1: React.FC<IHero1Props> = React.memo(({ isCompact = false }) => {
   const { theme } = useTheme();
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [featuredCourses, setFeaturedCourses] = useState<ICourse[]>([]);
@@ -847,37 +1083,23 @@ const Hero1: React.FC<IHero1Props> = ({ isCompact = false }) => {
   // Enhanced Desktop version with professional video background and theme support
   return (
         <section className="relative min-h-screen overflow-hidden animate-theme-transition">
-      {/* Enhanced Video Background - Use shared video if available */}
-      <div className="absolute inset-0 overflow-hidden">
-        {videoContext?.videoRef?.current ? (
-          // Use shared video from Home2.tsx
-          <div 
-            className={`absolute inset-0 w-full h-full object-cover scale-105 transition-all duration-2000 ease-out ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-            style={{ 
-              filter: isDark ? 'brightness(0.65) contrast(1.2) saturate(0.9) hue-rotate(10deg)' : 'brightness(0.95) contrast(1.0) saturate(1.0)',
-              background: `url(${videoContext.videoRef.current.currentSrc})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}
-          />
-        ) : (
-          // Fallback video for standalone usage
-          <video
-            key={`desktop-video-${isDark ? 'dark' : 'light'}`}
-            autoPlay
-            muted
-            loop
-            playsInline
-            className={`absolute inset-0 w-full h-full object-cover scale-105 transition-all duration-2000 ease-out ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-            style={{ filter: isDark ? 'brightness(0.65) contrast(1.2) saturate(0.9) hue-rotate(10deg)' : 'brightness(0.95) contrast(1.0) saturate(1.0)' }}
-          >
-            <source src={isDark ? "https://d2cxn2x1vtrou8.cloudfront.net/Website/1659171_Trapcode_Particles_3840x2160.mp4" : "https://d2cxn2x1vtrou8.cloudfront.net/Website/0_Technology_Abstract_4096x2304.mp4"} type="video/mp4" />
-          </video>
-        )}
-        
-        {/* Enhanced overlay for professional look - theme aware */}
-        <div className={`absolute inset-0 ${isDark ? 'video-overlay' : ''}`}></div>
-      </div>
+             {/* Video Background */}
+       <div className="absolute inset-0 overflow-hidden">
+         <video
+           key={`desktop-video-${isDark ? 'dark' : 'light'}`}
+           autoPlay
+           muted
+           loop
+           playsInline
+           className={`absolute inset-0 w-full h-full object-cover scale-105 transition-all duration-2000 ease-out ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+           style={{ filter: isDark ? 'brightness(0.65) contrast(1.2) saturate(0.9) hue-rotate(10deg)' : 'brightness(0.95) contrast(1.0) saturate(1.0)' }}
+         >
+           <source src={isDark ? "https://d2cxn2x1vtrou8.cloudfront.net/Website/1659171_Trapcode_Particles_3840x2160.mp4" : "https://d2cxn2x1vtrou8.cloudfront.net/Website/0_Technology_Abstract_4096x2304.mp4"} type="video/mp4" />
+         </video>
+         
+         {/* Enhanced overlay for professional look - theme aware */}
+         <div className={`absolute inset-0 ${isDark ? 'video-overlay' : ''}`}></div>
+       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
         {/* Main Content with Enhanced Glassmorphism */}
@@ -902,13 +1124,46 @@ const Hero1: React.FC<IHero1Props> = ({ isCompact = false }) => {
                  Join our expert-led courses and master the skills that drive industry innovation globally.
                 </p>
 
-               {/* Tagline - Enhanced Size */}
-               <div className={`mumkinMedh text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-4 sm:mb-6 md:mb-8 leading-tight ${
-                 isDark 
-                   ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
-                   : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
-               }`}>
-                 Medh Hai Toh Mumkin Hai!
+
+               {/* Category Chips - Desktop */}
+               <div className="mt-4 mb-4 sm:mt-6 sm:mb-6">
+                 <div className="grid grid-cols-4 gap-3 max-w-4xl mx-auto">
+                   {/* Children & Teens */}
+                   <div className="glass-stats rounded-xl p-3 sm:p-4 text-center hover:scale-105 transition-all duration-300 group relative overflow-hidden">
+                     <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
+                     <div className="relative z-10 flex flex-col items-center space-y-2">
+                       <BookOpen className={`w-5 h-5 sm:w-6 sm:h-6 ${isDark ? 'text-primary-300' : 'text-primary-600'} group-hover:scale-110 transition-transform`} />
+                       <span className={`text-sm md:text-base lg:text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-subtle text-center leading-tight`}>Children & Teens</span>
+                     </div>
+                   </div>
+
+                   {/* Professionals */}
+                   <div className="glass-stats rounded-xl p-3 sm:p-4 text-center hover:scale-105 transition-all duration-300 group relative overflow-hidden">
+                     <div className="absolute inset-0 bg-gradient-to-br from-secondary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
+                     <div className="relative z-10 flex flex-col items-center space-y-2">
+                       <Users className={`w-5 h-5 sm:w-6 sm:h-6 ${isDark ? 'text-secondary-300' : 'text-secondary-600'} group-hover:scale-110 transition-transform`} />
+                       <span className={`text-sm md:text-base lg:text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-subtle text-center leading-tight`}>Professionals</span>
+                     </div>
+                   </div>
+
+                   {/* Homemakers */}
+                   <div className="glass-stats rounded-xl p-3 sm:p-4 text-center hover:scale-105 transition-all duration-300 group relative overflow-hidden">
+                     <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
+                     <div className="relative z-10 flex flex-col items-center space-y-2">
+                       <Star className={`w-5 h-5 sm:w-6 sm:h-6 ${isDark ? 'text-purple-300' : 'text-purple-600'} group-hover:scale-110 transition-transform`} />
+                       <span className={`text-sm md:text-base lg:text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-subtle text-center leading-tight`}>Homemakers</span>
+                     </div>
+                   </div>
+
+                   {/* Lifelong Learners */}
+                   <div className="glass-stats rounded-xl p-3 sm:p-4 text-center hover:scale-105 transition-all duration-300 group relative overflow-hidden">
+                     <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
+                     <div className="relative z-10 flex flex-col items-center space-y-2">
+                       <TrendingUp className={`w-5 h-5 sm:w-6 sm:h-6 ${isDark ? 'text-blue-300' : 'text-blue-600'} group-hover:scale-110 transition-transform`} />
+                       <span className={`text-sm md:text-base lg:text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-subtle text-center leading-tight`}>Lifelong Learners</span>
+                     </div>
+                   </div>
+                 </div>
                </div>
 
                {/* Enhanced CTA Button */}
@@ -936,6 +1191,14 @@ const Hero1: React.FC<IHero1Props> = ({ isCompact = false }) => {
                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                    )}
                  </Link>
+               </div>
+               {/* Tagline - Enhanced Size */}
+               <div className={`mumkinMedh text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-2 leading-tight pt-5 ${
+                 isDark 
+                   ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
+                   : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
+               }`}>
+                 Medh Hai Toh Mumkin Hai!
                </div>
              </div>
           </div>
@@ -995,6 +1258,8 @@ const Hero1: React.FC<IHero1Props> = ({ isCompact = false }) => {
         </div>
       </section>
   );
-};
+});
+
+Hero1.displayName = 'Hero1';
 
 export default Hero1; 

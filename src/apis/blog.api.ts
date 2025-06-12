@@ -7,7 +7,8 @@ import {
   IBlogUpdateInput,
   IBlogCommentInput,
   IBlogQueryParams,
-  IBlogSearchParams
+  IBlogSearchParams,
+  IBlogStatusUpdateInput
 } from '../types/blog.types';
 
 /**
@@ -89,6 +90,7 @@ export interface IBlogQueryParams {
   with_content?: boolean;
   count_only?: boolean;
   exclude_ids?: string[];
+  featured?: boolean;
 }
 
 /**
@@ -97,6 +99,7 @@ export interface IBlogQueryParams {
 export const blogAPI = {
   /**
    * Get all blogs with optional filtering
+   * GET /api/blogs?page=1&limit=10&status=published&sort_by=createdAt&sort_order=desc&featured=true&search=keyword
    * @param params - Query parameters for filtering
    * @returns Promise with blog list response
    */
@@ -107,41 +110,168 @@ export const blogAPI = {
       search = "",
       sort_by = "createdAt",
       sort_order = "desc",
-      status = "",
+      status = "published",
       category = "",
       tags = "",
       author = "",
       date_range = {},
       with_content = false,
       count_only = false,
+      exclude_ids = [],
+      featured
+    } = params;
+    
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', String(page));
+    queryParams.append('limit', String(limit));
+    queryParams.append('sort_by', sort_by);
+    queryParams.append('sort_order', sort_order);
+    queryParams.append('status', status);
+    
+    if (search) queryParams.append('search', search);
+    if (category) queryParams.append('category', Array.isArray(category) ? category.join(',') : category);
+    if (tags) queryParams.append('tags', Array.isArray(tags) ? tags.join(',') : tags);
+    if (author) queryParams.append('author', author);
+    if (featured !== undefined) queryParams.append('featured', String(featured));
+    if (with_content) queryParams.append('with_content', 'true');
+    if (count_only) queryParams.append('count_only', 'true');
+    if (exclude_ids.length > 0) queryParams.append('exclude_ids', exclude_ids.join(','));
+    
+    if (date_range.start) queryParams.append('date_start', date_range.start);
+    if (date_range.end) queryParams.append('date_end', date_range.end);
+    
+         return apiClient.get<{ success: boolean; data: IBlog[]; pagination: { total: number; pages: number; page: number; limit: number } }>(
+       `/blogs?${queryParams.toString()}`
+     );
+  },
+
+  /**
+   * Search blogs by keyword
+   * GET /api/blogs/search?query=keyword&page=1&limit=10&status=published&sort_by=score
+   * @param params - Search parameters
+   * @returns Promise with search results
+   */
+  searchBlogs: async (params: IBlogSearchParams) => {
+    const {
+      query,
+      limit = 10,
+      fields = ["title", "content"],
+      category = "",
+      tags = ""
+    } = params;
+    
+    if (!query || query.trim().length === 0) {
+      throw new Error('Search query is required');
+    }
+    
+    const queryParams = new URLSearchParams();
+    queryParams.append('query', query.trim());
+    queryParams.append('limit', String(limit));
+    queryParams.append('status', 'published');
+    queryParams.append('sort_by', 'score');
+    
+    if (category) queryParams.append('category', category);
+    if (tags) queryParams.append('tags', tags);
+    if (fields.length > 0) queryParams.append('fields', fields.join(','));
+    
+         return apiClient.get<{ success: boolean; data: IBlog[]; pagination?: { total: number; pages: number; page: number; limit: number } }>(
+       `/blogs/search?${queryParams.toString()}`
+     );
+  },
+
+  /**
+   * Get featured blogs
+   * GET /api/blogs/featured?page=1&limit=5&status=published
+   * @param params - Query parameters
+   * @returns Promise with featured blogs
+   */
+  getFeaturedBlogs: async (params: IBlogQueryParams = {}) => {
+    const {
+      page = 1,
+      limit = 5,
+      status = "published",
+      category = "",
+      tags = "",
       exclude_ids = []
     } = params;
     
     const queryParams = new URLSearchParams();
     queryParams.append('page', String(page));
     queryParams.append('limit', String(limit));
-    apiUtils.appendParam('search', search, queryParams);
-    apiUtils.appendParam('status', status, queryParams);
-    apiUtils.appendParam('author', author, queryParams);
-    apiUtils.appendArrayParam('category', category, queryParams);
-    apiUtils.appendArrayParam('tags', tags, queryParams);
-    if (date_range && Object.keys(date_range).length > 0) {
-      apiUtils.appendParam('date_start', date_range.start, queryParams);
-      apiUtils.appendParam('date_end', date_range.end, queryParams);
-    }
-    apiUtils.appendParam('sort_by', sort_by, queryParams);
-    apiUtils.appendParam('sort_order', sort_order, queryParams);
-    apiUtils.appendParam('with_content', with_content ? 'true' : 'false', queryParams);
-    apiUtils.appendParam('count_only', count_only ? 'true' : 'false', queryParams);
-    apiUtils.appendArrayParam('exclude_ids', exclude_ids, queryParams);
+    queryParams.append('status', status);
     
-    return apiClient.get<{ blogs: IBlog[]; totalCount: number }>(
-      `${apiBaseUrl}/blogs${queryParams.toString() ? '?' + queryParams.toString() : ''}`
-    );
+         if (category) queryParams.append('category', Array.isArray(category) ? category.join(',') : category);
+     if (tags) queryParams.append('tags', Array.isArray(tags) ? tags.join(',') : tags);
+     if (exclude_ids.length > 0) queryParams.append('exclude_ids', exclude_ids.join(','));
+    
+         return apiClient.get<{ success: boolean; data: IBlog[]; pagination: { total: number; pages: number; page: number; limit: number } }>(
+       `/blogs/featured?${queryParams.toString()}`
+     );
+  },
+
+  /**
+   * Get blogs by category
+   * GET /api/blogs/category/:category?page=1&limit=10&status=published
+   * @param category - Category name
+   * @param params - Query parameters
+   * @returns Promise with blogs in category
+   */
+  getBlogsByCategory: async (category: string, params: IBlogQueryParams = {}) => {
+    if (!category) throw new Error('Category is required');
+    
+    const {
+      page = 1,
+      limit = 10,
+      status = "published",
+      sort_by = "createdAt",
+      sort_order = "desc"
+    } = params;
+    
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', String(page));
+    queryParams.append('limit', String(limit));
+    queryParams.append('status', status);
+    queryParams.append('sort_by', sort_by);
+    queryParams.append('sort_order', sort_order);
+    
+         return apiClient.get<{ success: boolean; data: IBlog[]; pagination: { total: number; pages: number; page: number; limit: number }; category: string }>(
+       `/blogs/category/${encodeURIComponent(category)}?${queryParams.toString()}`
+     );
+  },
+
+  /**
+   * Get blogs by tag
+   * GET /api/blogs/tag/:tag?page=1&limit=10&status=published
+   * @param tag - Tag name
+   * @param params - Query parameters
+   * @returns Promise with blogs with tag
+   */
+  getBlogsByTag: async (tag: string, params: IBlogQueryParams = {}) => {
+    if (!tag) throw new Error('Tag is required');
+    
+    const {
+      page = 1,
+      limit = 10,
+      status = "published",
+      sort_by = "createdAt",
+      sort_order = "desc"
+    } = params;
+    
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', String(page));
+    queryParams.append('limit', String(limit));
+    queryParams.append('status', status);
+    queryParams.append('sort_by', sort_by);
+    queryParams.append('sort_order', sort_order);
+    
+         return apiClient.get<{ success: boolean; data: IBlog[]; pagination: { total: number; pages: number; page: number; limit: number }; tag: string }>(
+       `/blogs/tag/${encodeURIComponent(tag)}?${queryParams.toString()}`
+     );
   },
 
   /**
    * Get a blog by its ID
+   * GET /api/blogs/id/:id
    * @param id - Blog ID
    * @returns Promise with blog detail
    */
@@ -154,6 +284,7 @@ export const blogAPI = {
 
   /**
    * Get a blog by its slug
+   * GET /api/blogs/:slug
    * @param slug - Blog slug
    * @param incrementViews - Whether to increment view count
    * @returns Promise with blog detail
@@ -161,102 +292,94 @@ export const blogAPI = {
   getBlogBySlug: async (slug: string, incrementViews: boolean = true) => {
     if (!slug) throw new Error('Blog slug is required');
     const queryParams = new URLSearchParams();
-    queryParams.append('increment_views', incrementViews ? 'true' : 'false');
+    if (!incrementViews) queryParams.append('increment_views', 'false');
     
     return apiClient.get<{ blog: IBlog }>(
-      `${apiBaseUrl}/blogs/slug/${slug}?${queryParams.toString()}`
+      `${apiBaseUrl}/blogs/${slug}${queryParams.toString() ? '?' + queryParams.toString() : ''}`
     );
   },
 
   /**
-   * Create a new blog
+   * Create a new blog (Protected route)
+   * POST /api/blogs
    * @param blogData - Blog data to create
    * @returns Promise with created blog
    */
   createBlog: async (blogData: IBlogCreateInput) => {
-    return apiClient.post<{ blog: IBlog }>(
+    return apiClient.post<{ blog: IBlog; message: string }>(
       `${apiBaseUrl}/blogs`,
       blogData
     );
   },
 
   /**
-   * Update an existing blog
+   * Update an existing blog (Protected route)
+   * PUT /api/blogs/:id
    * @param id - Blog ID to update
    * @param blogData - Updated blog data
    * @returns Promise with updated blog
    */
   updateBlog: async (id: string, blogData: IBlogUpdateInput) => {
     if (!id) throw new Error('Blog ID is required');
-    return apiClient.put<{ blog: IBlog }>(
+    return apiClient.put<{ blog: IBlog; message: string }>(
       `${apiBaseUrl}/blogs/${id}`,
       blogData
     );
   },
 
   /**
-   * Delete a blog
+   * Delete a blog (Protected route)
+   * DELETE /api/blogs/:id
    * @param id - Blog ID to delete
    * @returns Promise with deletion response
    */
   deleteBlog: async (id: string) => {
     if (!id) throw new Error('Blog ID is required');
-    return apiClient.delete(
+    return apiClient.delete<{ message: string }>(
       `${apiBaseUrl}/blogs/${id}`
     );
   },
 
   /**
-   * Toggle the featured status of a blog
+   * Like a blog post (Protected route)
+   * POST /api/blogs/:id/like
    * @param id - Blog ID
-   * @returns Promise with toggle response
-   */
-  toggleFeatured: async (id: string) => {
-    if (!id) throw new Error('Blog ID is required');
-    return apiClient.patch<{ blog: IBlog }>(
-      `${apiBaseUrl}/blogs/${id}/feature`
-    );
-  },
-
-  /**
-   * Update the publication status of a blog
-   * @param id - Blog ID
-   * @param status - New status (draft, published, archived)
-   * @returns Promise with status update response
-   */
-  updateBlogStatus: async (id: string, status: 'draft' | 'published' | 'archived') => {
-    if (!id) throw new Error('Blog ID is required');
-    return apiClient.patch<{ blog: IBlog }>(
-      `${apiBaseUrl}/blogs/${id}/status`,
-      { status }
-    );
-  },
-
-  /**
-   * Like a blog post
-   * @param id - Blog ID
-   * @param userId - User ID performing the like
    * @returns Promise with like response
    */
-  likeBlog: async (id: string, userId: string) => {
+  likeBlog: async (id: string) => {
     if (!id) throw new Error('Blog ID is required');
-    return apiClient.post<{ blog: IBlog }>(
-      `${apiBaseUrl}/blogs/${id}/like`,
-      { userId }
+    return apiClient.post<{ blog: IBlog; message: string; liked: boolean }>(
+      `${apiBaseUrl}/blogs/${id}/like`
     );
   },
 
   /**
-   * Add a comment to a blog
+   * Add a comment to a blog (Protected route)
+   * POST /api/blogs/:id/comment
    * @param id - Blog ID
    * @param comment - Comment data
    * @returns Promise with comment response
    */
   addComment: async (id: string, comment: IBlogCommentInput) => {
     if (!id) throw new Error('Blog ID is required');
-    return apiClient.post<{ comment: IBlogComment }>(
+    return apiClient.post<{ comment: IBlogComment; message: string }>(
       `${apiBaseUrl}/blogs/${id}/comment`,
       comment
+    );
+  },
+
+  /**
+   * Update the publication status of a blog (Protected route)
+   * PUT /api/blogs/:id/status
+   * @param id - Blog ID
+   * @param status - New status data
+   * @returns Promise with status update response
+   */
+  updateBlogStatus: async (id: string, statusData: IBlogStatusUpdateInput) => {
+    if (!id) throw new Error('Blog ID is required');
+    return apiClient.put<{ blog: IBlog; message: string }>(
+      `${apiBaseUrl}/blogs/${id}/status`,
+      statusData
     );
   },
 
@@ -313,57 +436,11 @@ export const blogAPI = {
     
     const queryParams = new URLSearchParams();
     queryParams.append('limit', String(limit));
-    apiUtils.appendArrayParam('tags', tags, queryParams);
-    apiUtils.appendArrayParam('category', category, queryParams);
+    if (tags) queryParams.append('tags', tags);
+    if (category) queryParams.append('category', category);
     
     return apiClient.get<{ blogs: IBlog[] }>(
       `${apiBaseUrl}/blogs/${blogId}/related?${queryParams.toString()}`
-    );
-  },
-
-  /**
-   * Get featured blogs
-   * @param limit - Maximum number of featured blogs to return
-   * @param withContent - Whether to include full blog content
-   * @param category - Optional category filter
-   * @param tags - Optional tags filter
-   * @param excludeIds - Blog IDs to exclude
-   * @returns Promise with featured blogs
-   */
-  getFeaturedBlogs: async (limit: number = 6, withContent: boolean = false, category?: string, tags?: string, excludeIds: string[] = []) => {
-    const queryParams = new URLSearchParams();
-    queryParams.append('limit', String(limit));
-    apiUtils.appendParam('with_content', withContent ? 'true' : 'false', queryParams);
-    apiUtils.appendArrayParam('category', category, queryParams);
-    apiUtils.appendArrayParam('tags', tags, queryParams);
-    apiUtils.appendArrayParam('exclude_ids', excludeIds, queryParams);
-    
-    return apiClient.get<{ blogs: IBlog[] }>(
-      `${apiBaseUrl}/blogs/featured?${queryParams.toString()}`
-    );
-  },
-
-  /**
-   * Search blogs by keyword
-   * @param query - Search query string
-   * @param limit - Maximum number of results
-   * @param fields - Fields to search within
-   * @param category - Optional category filter
-   * @param tags - Optional tags filter
-   * @returns Promise with search results
-   */
-  searchBlogs: async (query: string, limit: number = 10, fields: string[] = ["title", "content"], category?: string, tags?: string) => {
-    if (!query || query.trim().length === 0) throw new Error('Search query is required');
-    
-    const queryParams = new URLSearchParams();
-    queryParams.append('query', query.trim());
-    queryParams.append('limit', String(limit));
-    apiUtils.appendArrayParam('fields', fields, queryParams);
-    apiUtils.appendArrayParam('category', category, queryParams);
-    apiUtils.appendArrayParam('tags', tags, queryParams);
-    
-    return apiClient.get<{ blogs: IBlog[] }>(
-      `${apiBaseUrl}/blogs/search?${queryParams.toString()}`
     );
   },
 
