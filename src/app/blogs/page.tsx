@@ -1,7 +1,9 @@
 import BlogsMain from "@/components/layout/main/BlogsMain";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
-import { apiBaseUrl } from "@/apis";
-import { apiUrls } from "@/apis";
+import { IBlog } from "@/types/blog.types";
+// import BlogsDebug from "@/components/debug/BlogsDebug";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
 
 // Define the SearchParams interface
 interface SearchParams {
@@ -59,51 +61,48 @@ const Blogs = async ({ searchParams }: { searchParams: Promise<SearchParams> }) 
   const featured = params?.featured === 'true';
 
   // Fetch initial blogs server-side for better SEO
-  let initialBlogs = [];
+  let initialBlogs: IBlog[] = [];
+  let totalBlogs = 0;
+  
   try {
-    const apiUrl = featured 
-      ? apiUrls.Blogs.getFeaturedBlogs({ limit: 9 })
-      : apiUrls.Blogs.getAllBlogs({
-          limit: 9,
-          category: category || '',
-          tags: tag || '',
-          sort_by: 'createdAt',
-          sort_order: 'desc',
-          status: 'published'
-        });
+    let endpoint = '/blogs';
+    const params = new URLSearchParams();
     
-    const res = await fetch(`${apiBaseUrl}${apiUrl}`, {
+    params.append('limit', '9');
+    params.append('page', '1');
+    params.append('status', 'published');
+    params.append('sort_by', 'createdAt');
+    params.append('sort_order', 'desc');
+    
+    if (featured) {
+      endpoint = '/blogs/featured';
+    } else if (category) {
+      endpoint = `/blogs/category/${encodeURIComponent(category)}`;
+    } else if (tag) {
+      endpoint = `/blogs/tag/${encodeURIComponent(tag)}`;
+    } else {
+      if (category) params.append('category', category);
+      if (tag) params.append('tags', tag);
+    }
+    
+    const url = `${API_BASE_URL}${endpoint}?${params.toString()}`;
+    const response = await fetch(url, {
       next: { revalidate: 3600 }, // Revalidate every hour
     });
-    const data = await res.json();
     
-    if (data.success && data.data) {
-      initialBlogs = data.data;
+    if (response.ok) {
+      const result = await response.json();
+      console.log('Server-side blog fetch result:', { success: result.success, dataLength: result.data?.length, pagination: result.pagination });
+      if (result.success && result.data) {
+        initialBlogs = result.data || [];
+        totalBlogs = result.pagination?.total || 0;
+      }
     }
   } catch (error) {
     console.error("Error fetching initial blogs:", error);
-  }
-  
-  // Get total blogs count for pagination
-  let totalBlogs = 0;
-  try {
-    const countUrl = apiUrls.Blogs.getAllBlogs({
-      count_only: true,
-      category: category || '',
-      tags: tag || '',
-      status: 'published'
-    });
-    
-    const countRes = await fetch(`${apiBaseUrl}${countUrl}`, {
-      next: { revalidate: 3600 },
-    });
-    const countData = await countRes.json();
-    
-    if (countData.success && countData.data) {
-      totalBlogs = countData.data.count || 0;
-    }
-  } catch (error) {
-    console.error("Error fetching blogs count:", error);
+    // Don't throw error, just log it and continue with empty data
+    initialBlogs = [];
+    totalBlogs = 0;
   }
 
   return (
