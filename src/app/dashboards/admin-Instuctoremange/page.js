@@ -1,5 +1,5 @@
 import ProtectedPage from "@/app/protectedRoutes";
-import InstructoreManage from "@/components/layout/main/dashboards/InstructoreManage";
+import InstructoreManage from "@/components/layout/main/dashboards/InstructorManage";
 import DashboardContainer from "@/components/shared/containers/DashboardContainer";
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 
