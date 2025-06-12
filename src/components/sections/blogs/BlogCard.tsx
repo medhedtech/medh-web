@@ -1,550 +1,514 @@
 "use client";
 import Image from "next/image";
-import React, { useState, useRef, useEffect } from "react";
-import { ArrowRight, Calendar, Clock, User, ExternalLink, BookOpen, Tag, EyeIcon, Heart, ChevronRight, Sparkles, Share } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { ArrowRight, Calendar, Clock, User, ExternalLink, BookOpen, Tag, EyeIcon, Heart, ChevronRight, Star, Sparkles, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
+import { formatDistanceToNow } from "date-fns";
 import { useTheme } from "next-themes";
-import { motion, AnimatePresence } from "framer-motion";
 
-interface IBlogCardProps {
-  blog?: {
-    _id?: string;
-    title?: string;
-    featured_image?: string;
-    author?: string | { name?: string; email?: string; };
-    createdAt?: string;
-    readTime?: string;
-    category?: string;
-    tags?: string[];
+interface BlogCardProps {
+  blog: {
+    _id: string;
+    title: string;
+    description?: string; // API uses description instead of excerpt
     excerpt?: string;
+    author: {
+      _id?: string;
+      name?: string;
+      email?: string;
+    };
+    publishedAt?: string;
+    createdAt?: string; // API uses createdAt
+    category?: string;
+    categories?: Array<{
+      _id: string;
+      category_name: string;
+      category_image?: string;
+    }> | string[];
+    tags?: string[];
+    featured_image?: string;
+    upload_image?: string; // API uses upload_image
+    read_time?: number;
+    reading_time?: number; // API uses reading_time
+    featured?: boolean;
+    views?: number;
+    likes?: number;
+    blog_link?: string;
+    slug?: string;
+    status?: string;
+    meta_title?: string;
+    meta_description?: string;
   };
-  imageSrc?: string;
-  title?: string;
-  id?: string;
-  buttonText?: string;
-  author?: string;
-  date?: string;
-  readTime?: string;
-  category?: string;
-  tags?: string[];
-  excerpt?: string;
+  className?: string;
 }
 
-// Theme-aware glassmorphism styles (matching improved Blogs.tsx)
-const getThemeStyles = (isDark: boolean) => `
-  @keyframes shimmer-card {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-  }
-  
-  @keyframes float-slow {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-5px); }
-  }
-  
-  @keyframes glow-pulse {
-    0%, 100% { box-shadow: ${isDark 
-      ? '0 0 20px rgba(59, 172, 99, 0.3)' 
-      : '0 0 20px rgba(59, 172, 99, 0.2)'}; }
-    50% { box-shadow: ${isDark 
-      ? '0 0 30px rgba(59, 172, 99, 0.4)' 
-      : '0 0 30px rgba(59, 172, 99, 0.3)'}; }
-  }
-  
-  .blog-card-glass {
+// Enhanced professional glassmorphic card styles
+const getGlassCardStyles = (isDark: boolean) => `
+  .professional-card {
     background: ${isDark 
-      ? 'rgba(15, 23, 42, 0.15)' 
-      : 'rgba(255, 255, 255, 0.25)'};
-    backdrop-filter: blur(20px);
+      ? 'rgba(15, 23, 42, 0.7)' 
+      : 'rgba(255, 255, 255, 0.95)'};
+    backdrop-filter: blur(32px);
+    -webkit-backdrop-filter: blur(32px);
     border: 1px solid ${isDark 
-      ? 'rgba(255, 255, 255, 0.1)' 
-      : 'rgba(255, 255, 255, 0.4)'};
+      ? 'rgba(255, 255, 255, 0.12)' 
+      : 'rgba(255, 255, 255, 0.6)'};
     border-radius: 1.5rem;
     box-shadow: 
       ${isDark 
-        ? '0 8px 32px rgba(0, 0, 0, 0.3), 0 16px 64px rgba(0, 0, 0, 0.1)' 
-        : '0 8px 32px rgba(0, 0, 0, 0.1), 0 16px 64px rgba(0, 0, 0, 0.02)'},
-      inset 0 1px 0 ${isDark 
-        ? 'rgba(255, 255, 255, 0.1)' 
-        : 'rgba(255, 255, 255, 0.6)'},
-      inset 0 -1px 0 ${isDark 
-        ? 'rgba(255, 255, 255, 0.05)' 
-        : 'rgba(255, 255, 255, 0.2)'};
+        ? '0 20px 60px rgba(0, 0, 0, 0.5), 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)' 
+        : '0 20px 60px rgba(0, 0, 0, 0.08), 0 8px 32px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9)'};
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
     position: relative;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(0);
   }
   
-  .blog-card-glass::before {
+  .professional-card::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    bottom: 0;
-    border-radius: inherit;
+    height: 2px;
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      ${isDark ? 'rgba(59, 172, 99, 0.4)' : 'rgba(59, 172, 99, 0.5)'} 20%, 
+      ${isDark ? 'rgba(99, 102, 241, 0.4)' : 'rgba(99, 102, 241, 0.5)'} 80%, 
+      transparent 100%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  
+  .professional-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 1.5rem;
     padding: 1px;
-    background: linear-gradient(135deg, ${isDark 
-      ? 'rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.05)' 
-      : 'rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.5)'});
+    background: linear-gradient(135deg, 
+      ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.8)'} 0%,
+      transparent 50%,
+      ${isDark ? 'rgba(59, 172, 99, 0.1)' : 'rgba(59, 172, 99, 0.2)'} 100%);
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
+    mask-composite: xor;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
-    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
   }
   
-  .blog-card-glass:hover {
-    transform: translateY(-8px) scale(1.02);
-    background: ${isDark 
-      ? 'rgba(15, 23, 42, 0.25)' 
-      : 'rgba(255, 255, 255, 0.35)'};
+  .professional-card:hover {
+    transform: translateY(-12px) scale(1.02);
+    box-shadow: 
+      ${isDark 
+        ? '0 32px 80px rgba(0, 0, 0, 0.6), 0 16px 48px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15)' 
+        : '0 32px 80px rgba(0, 0, 0, 0.12), 0 16px 48px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 1)'};
     border-color: ${isDark 
-      ? 'rgba(59, 172, 99, 0.3)' 
-      : 'rgba(59, 172, 99, 0.5)'};
-    box-shadow: 
-      ${isDark 
-        ? '0 20px 60px rgba(0, 0, 0, 0.4), 0 30px 120px rgba(0, 0, 0, 0.15)' 
-        : '0 20px 60px rgba(0, 0, 0, 0.15), 0 30px 120px rgba(0, 0, 0, 0.05)'},
-      ${isDark 
-        ? '0 0 40px rgba(59, 172, 99, 0.3)' 
-        : '0 0 40px rgba(59, 172, 99, 0.2)'};
-  }
-  
-  .blog-card-shimmer {
-    background: linear-gradient(90deg, transparent, ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.4)'}, transparent);
-    background-size: 200% 100%;
-    animation: shimmer-card 2s infinite;
-  }
-  
-  .blog-card-badge {
-    background: ${isDark 
-      ? 'rgba(15, 23, 42, 0.6)' 
-      : 'rgba(255, 255, 255, 0.9)'};
-    backdrop-filter: blur(12px);
-    border: 1px solid ${isDark 
-      ? 'rgba(255, 255, 255, 0.15)' 
-      : 'rgba(255, 255, 255, 0.5)'};
-    border-radius: 2rem;
-    box-shadow: 
-      ${isDark 
-        ? '0 4px 16px rgba(0, 0, 0, 0.2)' 
-        : '0 4px 16px rgba(0, 0, 0, 0.08)'};
-  }
-  
-  .blog-card-content {
-    background: ${isDark 
-      ? 'rgba(15, 23, 42, 0.4)' 
-      : 'rgba(255, 255, 255, 0.5)'};
-    backdrop-filter: blur(15px);
-    border: 1px solid ${isDark 
-      ? 'rgba(255, 255, 255, 0.08)' 
-      : 'rgba(255, 255, 255, 0.3)'};
-    border-radius: 1.25rem;
-  }
-  
-  .blog-text-shadow {
-    text-shadow: ${isDark 
-      ? '1px 1px 3px rgba(0, 0, 0, 0.8)' 
-      : '0.5px 0.5px 2px rgba(0, 0, 0, 0.3)'};
-  }
-  
-  .blog-tag-glass {
-    background: ${isDark 
-      ? 'rgba(59, 172, 99, 0.2)' 
-      : 'rgba(59, 172, 99, 0.15)'};
-    backdrop-filter: blur(8px);
-    border: 1px solid ${isDark 
-      ? 'rgba(59, 172, 99, 0.3)' 
-      : 'rgba(59, 172, 99, 0.4)'};
-    color: ${isDark ? '#34d399' : '#059669'};
-  }
-  
-  .blog-cta-button {
-    background: ${isDark 
-      ? 'linear-gradient(135deg, rgba(59, 172, 99, 0.8), rgba(34, 197, 94, 0.8))' 
-      : 'linear-gradient(135deg, rgba(59, 172, 99, 0.9), rgba(34, 197, 94, 0.9))'};
-    backdrop-filter: blur(10px);
-    border: 1px solid ${isDark 
       ? 'rgba(59, 172, 99, 0.4)' 
       : 'rgba(59, 172, 99, 0.6)'};
-    box-shadow: 
-      ${isDark 
-        ? '0 4px 16px rgba(59, 172, 99, 0.3)' 
-        : '0 4px 16px rgba(59, 172, 99, 0.2)'};
   }
   
-  .blog-cta-button:hover {
+  .professional-card:hover::before,
+  .professional-card:hover::after {
+    opacity: 1;
+  }
+  
+  .professional-card.featured {
+    border: 2px solid ${isDark 
+      ? 'rgba(59, 172, 99, 0.5)' 
+      : 'rgba(59, 172, 99, 0.6)'};
     background: ${isDark 
-      ? 'linear-gradient(135deg, rgba(59, 172, 99, 1), rgba(34, 197, 94, 1))' 
-      : 'linear-gradient(135deg, rgba(59, 172, 99, 1), rgba(34, 197, 94, 1))'};
+      ? 'rgba(15, 23, 42, 0.8)' 
+      : 'rgba(255, 255, 255, 0.98)'};
     box-shadow: 
       ${isDark 
-        ? '0 6px 24px rgba(59, 172, 99, 0.4), 0 0 30px rgba(59, 172, 99, 0.3)' 
-        : '0 6px 24px rgba(59, 172, 99, 0.3), 0 0 30px rgba(59, 172, 99, 0.2)'};
+        ? '0 24px 70px rgba(59, 172, 99, 0.15), 0 12px 40px rgba(0, 0, 0, 0.3)' 
+        : '0 24px 70px rgba(59, 172, 99, 0.1), 0 12px 40px rgba(0, 0, 0, 0.06)'};
+  }
+  
+  .glass-badge {
+    background: ${isDark 
+      ? 'rgba(59, 172, 99, 0.3)' 
+      : 'rgba(59, 172, 99, 0.2)'};
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid ${isDark 
+      ? 'rgba(59, 172, 99, 0.5)' 
+      : 'rgba(59, 172, 99, 0.4)'};
+    border-radius: 1rem;
+    box-shadow: 
+      0 8px 24px rgba(59, 172, 99, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 8px 24px rgba(59, 172, 99, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2); }
+    50% { box-shadow: 0 8px 32px rgba(59, 172, 99, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3); }
+  }
+  
+  .category-badge {
+    background: ${isDark 
+      ? 'rgba(15, 23, 42, 0.9)' 
+      : 'rgba(255, 255, 255, 0.95)'};
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid ${isDark 
+      ? 'rgba(255, 255, 255, 0.15)' 
+      : 'rgba(0, 0, 0, 0.08)'};
+    border-radius: 0.75rem;
+    box-shadow: 
+      0 4px 16px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.8)'};
+  }
+  
+  .stats-badge {
+    background: ${isDark 
+      ? 'rgba(15, 23, 42, 0.8)' 
+      : 'rgba(255, 255, 255, 0.9)'};
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid ${isDark 
+      ? 'rgba(255, 255, 255, 0.1)' 
+      : 'rgba(0, 0, 0, 0.06)'};
+    border-radius: 0.625rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
+  
+  .read-more-btn {
+    background: ${isDark 
+      ? 'rgba(59, 172, 99, 0.25)' 
+      : 'rgba(59, 172, 99, 0.15)'};
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid ${isDark 
+      ? 'rgba(59, 172, 99, 0.4)' 
+      : 'rgba(59, 172, 99, 0.3)'};
+    border-radius: 1rem;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 16px rgba(59, 172, 99, 0.1);
+  }
+  
+  .read-more-btn:hover {
+    background: ${isDark 
+      ? 'rgba(59, 172, 99, 0.4)' 
+      : 'rgba(59, 172, 99, 0.25)'};
+    transform: translateX(6px) scale(1.1);
+    box-shadow: 0 6px 24px rgba(59, 172, 99, 0.2);
+  }
+  
+  .image-overlay {
+    background: linear-gradient(
+      135deg,
+      ${isDark ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.15)'} 0%,
+      transparent 40%,
+      transparent 60%,
+      ${isDark ? 'rgba(59, 172, 99, 0.15)' : 'rgba(59, 172, 99, 0.08)'} 100%
+    );
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  
+  .professional-card:hover .image-overlay {
+    opacity: 1;
+  }
+  
+  .content-gradient {
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      ${isDark ? 'rgba(15, 23, 42, 0.05)' : 'rgba(255, 255, 255, 0.05)'} 100%
+    );
+  }
+  
+  .tag-chip {
+    background: ${isDark 
+      ? 'rgba(99, 102, 241, 0.15)' 
+      : 'rgba(99, 102, 241, 0.1)'};
+    border: 1px solid ${isDark 
+      ? 'rgba(99, 102, 241, 0.3)' 
+      : 'rgba(99, 102, 241, 0.2)'};
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+  }
+  
+  .tag-chip:hover {
+    background: ${isDark 
+      ? 'rgba(99, 102, 241, 0.25)' 
+      : 'rgba(99, 102, 241, 0.15)'};
+    transform: translateY(-1px);
+  }
+  
+  .author-avatar {
+    background: linear-gradient(135deg, 
+      ${isDark ? 'rgba(59, 172, 99, 0.3)' : 'rgba(59, 172, 99, 0.2)'} 0%,
+      ${isDark ? 'rgba(99, 102, 241, 0.3)' : 'rgba(99, 102, 241, 0.2)'} 100%);
+    border: 2px solid ${isDark 
+      ? 'rgba(255, 255, 255, 0.15)' 
+      : 'rgba(255, 255, 255, 0.8)'};
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   }
 `;
 
-const BlogCard: React.FC<IBlogCardProps> = ({ 
-  blog = {},
-  imageSrc, 
-  title, 
-  id, 
-  buttonText = "Read More",
-  author = "Medh Team",
-  date = "Recently Published",
-  readTime = "5 min read",
-  category = "Blog",
-  tags = [],
-  excerpt
-}) => {
+const BlogCard: React.FC<BlogCardProps> = ({ blog, className = "" }) => {
   const router = useRouter();
   const { theme } = useTheme();
-  const [isHovered, setIsHovered] = useState<boolean>(false);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
-  const [isImageLoaded, setIsImageLoaded] = useState<boolean>(false);
-  const [isImageError, setIsImageError] = useState<boolean>(false);
-  const [mounted, setMounted] = useState<boolean>(false);
-  const [isLiked, setIsLiked] = useState<boolean>(false);
-  const cardRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   
-  const isDark = mounted ? theme === 'dark' : true; // Default to dark during SSR
-  
-  // Get actual props from blog object if available
-  const blogId = blog._id || id;
-  const blogTitle = blog.title || title;
-  const blogImage = blog.featured_image || imageSrc || "/images/blog/blog_1.png";
-  const blogAuthor = typeof blog.author === 'object' ? blog.author.name : (blog.author || author);
-  const blogDate = blog.createdAt ? new Date(blog.createdAt).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  }) : date;
-  const blogReadTime = blog.readTime || readTime;
-  const blogCategory = blog.category || category;
-  const blogTags = blog.tags || tags;
-  const blogExcerpt = blog.excerpt || excerpt || "Discover valuable insights in this article...";
-  
-  // Mount effect
+  const isDark = mounted ? theme === 'dark' : false;
+
   useEffect(() => {
     setMounted(true);
   }, []);
-  
-  // Inject theme-aware styles
+
+  // Inject glassmorphic styles
   useEffect(() => {
     if (!mounted) return;
     
-    const existingStyle = document.getElementById(`blog-card-theme-styles-${blogId}`);
+    const existingStyle = document.getElementById('professional-card-styles');
     if (existingStyle) {
       existingStyle.remove();
     }
     
     const styleSheet = document.createElement("style");
-    styleSheet.id = `blog-card-theme-styles-${blogId}`;
-    styleSheet.innerText = getThemeStyles(isDark);
+    styleSheet.id = 'professional-card-styles';
+    styleSheet.innerText = getGlassCardStyles(isDark);
     document.head.appendChild(styleSheet);
     
     return () => {
-      const styleToRemove = document.getElementById(`blog-card-theme-styles-${blogId}`);
+      const styleToRemove = document.getElementById('professional-card-styles');
       if (styleToRemove) {
         styleToRemove.remove();
       }
     };
-  }, [mounted, isDark, blogId]);
-  
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkIfMobile();
-    window.addEventListener('resize', checkIfMobile);
-    
-    return () => window.removeEventListener('resize', checkIfMobile);
-  }, []);
-  
-  const handleMouseEnter = () => {
-    if (!isMobile) {
-      setIsHovered(true);
-    }
+  }, [mounted, isDark]);
+
+  // Helper functions to extract data from API response
+  const getImageUrl = () => {
+    return blog.upload_image || blog.featured_image || "/api/placeholder/600/400";
   };
-  
-  const handleMouseLeave = () => {
-    if (!isMobile) {
-      setIsHovered(false);
-    }
+
+  const getExcerpt = () => {
+    const description = blog.description || blog.excerpt || "";
+    // Clean HTML tags if present
+    const cleanDescription = description.replace(/<[^>]*>/g, '');
+    // Limit to reasonable length
+    return cleanDescription.length > 160 
+      ? cleanDescription.substring(0, 160) + "..." 
+      : cleanDescription;
   };
-  
-  const handleImageLoad = () => setIsImageLoaded(true);
-  const handleImageError = () => setIsImageError(true);
-  
-  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>, blogId?: string) => {
-    try {
-      const target = e.target as HTMLElement;
-      if (isMobile && 
-          !target.closest('button') && 
-          !target.closest('a') && 
-          !target.closest('input') &&
-          !target.closest('[role="button"]') &&
-          blogId) {
-        e.preventDefault();
-        router.push(`/blogs/${blogId}`);
+
+  const getCategoryName = () => {
+    if (blog.category) return blog.category;
+    
+    if (blog.categories && Array.isArray(blog.categories) && blog.categories.length > 0) {
+      const firstCategory = blog.categories[0];
+      if (typeof firstCategory === 'object' && firstCategory.category_name) {
+        return firstCategory.category_name;
       }
-    } catch (error) {
-      console.error('Error navigating to blog:', error);
-      if (blogId) {
-        window.location.href = `/blogs/${blogId}`;
+      if (typeof firstCategory === 'string') {
+        return firstCategory;
       }
     }
+    
+    return 'General';
   };
-  
-  const handleLikeClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsLiked(!isLiked);
-  };
-  
-  const handleShareClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (navigator.share) {
-      navigator.share({
-        title: blogTitle,
-        text: blogExcerpt,
-        url: `/blogs/${blogId}`,
-      });
+
+  const getAuthorName = () => {
+    if (blog.author?.name) return blog.author.name;
+    if (blog.author?.email) {
+      // Extract name from email if no name provided
+      return blog.author.email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     }
+    return 'Anonymous';
   };
-  
-  // Error boundary
-  if (!blog && !title) {
-    return (
-      <div className="blog-card-glass p-6 h-[350px] flex items-center justify-center">
-        <p className={`${isDark ? 'text-gray-400' : 'text-gray-500'} text-center`}>
-          Blog post not available
-        </p>
-      </div>
-    );
-  }
-  
+
+  const getPublishedDate = () => {
+    const date = blog.publishedAt || blog.createdAt;
+    return date ? new Date(date) : new Date();
+  };
+
+  const getReadTime = () => {
+    if (blog.reading_time) return blog.reading_time;
+    if (blog.read_time) return blog.read_time;
+    
+    // Estimate read time based on description length
+    const text = blog.description || blog.excerpt || "";
+    const wordsPerMinute = 200;
+    const wordCount = text.split(/\s+/).length;
+    return Math.max(1, Math.ceil(wordCount / wordsPerMinute));
+  };
+
+  const getCleanTags = () => {
+    if (!blog.tags || !Array.isArray(blog.tags)) return [];
+    
+    // Filter out malformed tags (like JSON strings)
+    return blog.tags.filter(tag => {
+      if (typeof tag !== 'string') return false;
+      // Filter out JSON-like strings
+      if (tag.includes('{') || tag.includes('}') || tag.includes('"')) return false;
+      return tag.trim().length > 0;
+    });
+  };
+
+  const getBlogUrl = () => {
+    // Use _id for routing to match the [id] dynamic route in page.tsx
+    // The page.tsx expects the ID parameter and fetches by ID
+    return `/blogs/${blog._id}`;
+  };
+
+  const formatViews = (views: number) => {
+    if (views >= 1000) {
+      return `${(views / 1000).toFixed(1)}k`;
+    }
+    return views.toString();
+  };
+
+  const defaultImage = "/api/placeholder/600/400";
+  const imageUrl = getImageUrl();
+  const timeAgo = formatDistanceToNow(getPublishedDate(), { addSuffix: true });
+  const excerpt = getExcerpt();
+  const categoryName = getCategoryName();
+  const authorName = getAuthorName();
+  const readTime = getReadTime();
+  const cleanTags = getCleanTags();
+
   return (
-    <motion.div 
-      ref={cardRef}
-      className={`blog-card-glass h-[450px] md:h-[480px] flex flex-col group relative overflow-hidden ${isMobile ? 'active:scale-[0.98]' : ''}`}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onClick={(e) => handleCardClick(e, blogId)}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      whileHover={{ y: -8, scale: 1.02 }}
-    >
-      {/* Shimmer effect overlay */}
-      <div className="absolute inset-0 blog-card-shimmer opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-      
-      {/* Enhanced Image container */}
-      <div className="relative overflow-hidden rounded-t-3xl h-[220px]">
-        {/* Gradient overlay */}
-        <div className={`absolute inset-0 bg-gradient-to-t ${
-          isDark 
-            ? 'from-slate-900/80 via-slate-900/30 to-transparent' 
-            : 'from-black/60 via-black/20 to-transparent'
-        } z-10 transition-opacity duration-300 ${isHovered ? 'opacity-70' : 'opacity-40'}`}></div>
-        
-        {/* Loading skeleton */}
-        {!isImageLoaded && !isImageError && (
-          <div className={`absolute inset-0 animate-pulse ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`}></div>
-        )}
-        
-        {/* Main image */}
-        <Image
-          src={blogImage}
-          alt={blogTitle || "Blog image"}
-          fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          className={`object-cover object-center transform group-hover:scale-110 transition-all duration-700 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
-          loading="lazy"
-          quality={85}
-          onLoad={handleImageLoad}
-          onError={handleImageError}
-        />
-        
-        {/* Enhanced badges and interactions */}
-        <div className="absolute top-4 left-4 right-4 z-20 flex justify-between items-start">
-          {/* Category badge */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="blog-card-badge px-3 py-1.5"
-          >
-            <div className="flex items-center gap-1.5">
-              <Sparkles size={12} className={isDark ? 'text-primary-400' : 'text-primary-600'} />
-              <span className={`text-xs font-bold ${isDark ? 'text-white' : 'text-gray-900'} blog-text-shadow`}>
-                {blogCategory}
-              </span>
+    <article className={`professional-card ${blog.featured ? 'featured' : ''} group ${className}`}>
+      <Link href={getBlogUrl()} className="block h-full">
+        {/* Image Section */}
+        <div className="relative h-64 overflow-hidden">
+          {/* Loading skeleton */}
+          {!imageLoaded && (
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 animate-pulse">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
             </div>
-          </motion.div>
+          )}
           
-          {/* Action buttons */}
-          <div className="flex gap-2">
-            <motion.button
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={handleLikeClick}
-              className={`blog-card-badge w-8 h-8 flex items-center justify-center transition-all duration-300 ${
-                isLiked ? 'text-red-500' : isDark ? 'text-gray-300 hover:text-red-400' : 'text-gray-600 hover:text-red-500'
-              }`}
-            >
-              <Heart size={14} className={isLiked ? 'fill-current' : ''} />
-            </motion.button>
-            
-            <motion.button
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={handleShareClick}
-              className={`blog-card-badge w-8 h-8 flex items-center justify-center transition-all duration-300 ${
-                isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-500'
-              }`}
-            >
-              <Share size={14} />
-            </motion.button>
+          <Image
+            src={imageError ? defaultImage : imageUrl}
+            alt={blog.title}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className={`object-cover transition-all duration-700 group-hover:scale-110 ${
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageError(true)}
+            priority={blog.featured}
+          />
+          
+          {/* Image overlay */}
+          <div className="image-overlay absolute inset-0"></div>
+          
+          {/* Featured Badge */}
+          {blog.featured && (
+            <div className="absolute top-4 left-4 z-10">
+              <div className="glass-badge flex items-center gap-2 px-4 py-2 text-xs font-bold text-white">
+                <Sparkles className="w-4 h-4" />
+                <span>Featured</span>
+              </div>
+            </div>
+          )}
+
+          {/* Category Badge */}
+          <div className="absolute top-4 right-4 z-10">
+            <div className="category-badge px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+              {categoryName}
+            </div>
+          </div>
+
+          {/* Bottom Stats Row */}
+          <div className="absolute bottom-4 left-4 right-4 z-10 flex items-center justify-between">
+            {/* Read Time */}
+            <div className="stats-badge flex items-center gap-2 px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-400">
+              <Clock className="w-3.5 h-3.5" />
+              <span>{readTime} min</span>
+            </div>
+
+            {/* Views & External Link */}
+            <div className="flex items-center gap-2">
+              {blog.views !== undefined && blog.views > 0 && (
+                <div className="stats-badge flex items-center gap-2 px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-400">
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  <span>{formatViews(blog.views)}</span>
+                </div>
+              )}
+              
+              {blog.blog_link && (
+                <div className="stats-badge p-2 text-gray-600 dark:text-gray-400">
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </div>
+              )}
+            </div>
           </div>
         </div>
-        
-        {/* Read time badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="absolute bottom-4 left-4 z-20"
-        >
-          <div className="blog-card-badge px-3 py-1.5">
-            <div className="flex items-center gap-1.5">
-              <Clock size={12} className={isDark ? 'text-primary-400' : 'text-primary-600'} />
-              <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'} blog-text-shadow`}>
-                {blogReadTime}
-              </span>
+
+        {/* Content Section */}
+        <div className="content-gradient p-7 flex flex-col h-full">
+          {/* Title */}
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-300 leading-tight">
+            {blog.title}
+          </h3>
+
+          {/* Excerpt */}
+          {excerpt && (
+            <p className="text-gray-600 dark:text-gray-300 mb-6 line-clamp-3 text-sm leading-relaxed flex-grow">
+              {excerpt}
+            </p>
+          )}
+
+          {/* Tags */}
+          {cleanTags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-6">
+              {cleanTags.slice(0, 2).map((tag, index) => (
+                <span
+                  key={index}
+                  className="tag-chip px-3 py-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400 rounded-full"
+                >
+                  #{tag}
+                </span>
+              ))}
+              {cleanTags.length > 2 && (
+                <span className="px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-500 bg-gray-100/50 dark:bg-gray-800/30 rounded-full">
+                  +{cleanTags.length - 2}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Meta Information */}
+          <div className="flex items-center justify-between pt-5 border-t border-gray-200/60 dark:border-gray-700/60 mt-auto">
+            {/* Author */}
+            <div className="flex items-center gap-3">
+              <div className="author-avatar w-9 h-9 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                  {authorName}
+                </span>
+                <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                  <Calendar className="w-3 h-3" />
+                  <span>{timeAgo}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Read More Button */}
+            <div className="read-more-btn p-3 opacity-0 group-hover:opacity-100 transition-all duration-400">
+              <ArrowRight className="w-5 h-5 text-primary-600 dark:text-primary-400" />
             </div>
           </div>
-        </motion.div>
-      </div>
-      
-      {/* Enhanced Content area */}
-      <div className="blog-card-content p-6 flex flex-col flex-grow m-1 rounded-b-3xl">
-        {/* Meta information */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className={`flex items-center gap-4 text-sm mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}
-        >
-          <div className="flex items-center gap-1.5">
-            <User size={14} className={isDark ? 'text-primary-400' : 'text-primary-600'} />
-            <span className="font-semibold blog-text-shadow">{blogAuthor}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Calendar size={14} className={isDark ? 'text-primary-400' : 'text-primary-600'} />
-            <span className="blog-text-shadow">{blogDate}</span>
-          </div>
-        </motion.div>
-        
-        {/* Enhanced Title */}
-        <motion.h3
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className={`text-xl font-bold mb-4 line-clamp-2 flex-grow transition-colors duration-300 ${
-            isDark 
-              ? 'text-white group-hover:text-primary-300' 
-              : 'text-gray-900 group-hover:text-primary-600'
-          } blog-text-shadow leading-tight`}
-        >
-          {blogTitle}
-        </motion.h3>
-        
-        {/* Enhanced Excerpt */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className={`mb-4 text-sm line-clamp-2 transition-all duration-300 ${
-            isDark ? 'text-gray-300' : 'text-gray-600'
-          } blog-text-shadow leading-relaxed`}
-        >
-          {blogExcerpt}
-        </motion.div>
-        
-        {/* Enhanced Tags */}
-        {blogTags && blogTags.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9 }}
-            className="flex flex-wrap gap-2 mb-4"
-          >
-            {blogTags.slice(0, 3).map((tag, index) => (
-              <motion.span
-                key={index}
-                whileHover={{ scale: 1.05 }}
-                className="blog-tag-glass text-xs font-medium px-2.5 py-1 rounded-full transition-all duration-300"
-              >
-                #{tag}
-              </motion.span>
-            ))}
-          </motion.div>
-        )}
-        
-        {/* Enhanced CTA Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.0 }}
-          className="mt-auto"
-        >
-          <Link href={`/blogs/${blogId}`}>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="blog-cta-button w-full py-3 px-4 rounded-xl font-bold text-white transition-all duration-300 flex items-center justify-center gap-2 group/btn relative overflow-hidden"
-            >
-              {/* Button shimmer effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700"></div>
-              
-              <BookOpen size={16} className="relative z-10 group-hover/btn:rotate-12 transition-transform" />
-              <span className="relative z-10 blog-text-shadow">{buttonText}</span>
-              <ChevronRight size={16} className="relative z-10 group-hover/btn:translate-x-1 transition-transform" />
-            </motion.button>
-          </Link>
-        </motion.div>
-      </div>
-      
-      {/* Enhanced Mobile floating button */}
-      {isMobile && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 1.2 }}
-          className="absolute bottom-4 right-4 z-20"
-        >
-          <Link href={`/blogs/${blogId}`}>
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="blog-cta-button w-12 h-12 rounded-full flex items-center justify-center shadow-lg group/fab"
-            >
-              <ArrowRight size={18} className="text-white group-hover/fab:translate-x-0.5 transition-transform" />
-            </motion.button>
-          </Link>
-        </motion.div>
-      )}
-    </motion.div>
+        </div>
+      </Link>
+    </article>
   );
 };
 
-export default BlogCard; 
+export default BlogCard;
