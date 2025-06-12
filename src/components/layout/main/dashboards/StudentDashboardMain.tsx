@@ -394,7 +394,7 @@ const StudentDashboardMain: React.FC = () => {
         nextLesson: 'Functions and Modules',
         instructor: 'Dr. Alex Morgan',
         image: '/courses/python-course.jpg',
-        color: 'bg-gradient-to-br from-violet-400 via-purple-400 via-fuchsia-400 via-pink-400 to-rose-500',
+        color: 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500',
         isEnrolled: true,
         completed: 6,
         remaining: 4,
@@ -407,7 +407,7 @@ const StudentDashboardMain: React.FC = () => {
         nextLesson: 'CSS Flexbox Layout',
         instructor: 'Sarah Wilson',
         image: '/courses/web-dev.jpg',
-        color: 'bg-gradient-to-br from-cyan-400 via-sky-400 via-blue-500 via-indigo-500 to-purple-600',
+        color: 'bg-gradient-to-br from-blue-500 via-cyan-500 to-teal-500',
         isEnrolled: true,
         completed: 4,
         remaining: 6,
@@ -420,7 +420,7 @@ const StudentDashboardMain: React.FC = () => {
         nextLesson: 'Statistical Analysis', 
         instructor: 'Prof. Michael Chen',
         image: '/courses/data-science.jpg',
-        color: 'bg-gradient-to-br from-emerald-400 via-green-400 via-lime-400 via-yellow-500 to-orange-500',
+        color: 'bg-gradient-to-br from-emerald-500 via-green-500 to-lime-500',
         isEnrolled: true,
         completed: 7,
         remaining: 3,
@@ -436,9 +436,9 @@ const StudentDashboardMain: React.FC = () => {
   // Helper function to get course gradient colors (MEDH official theme)
   const getCourseColor = (index: number): string => {
     const colors = [
-      'bg-gradient-to-br from-violet-400 via-purple-400 via-fuchsia-400 via-pink-400 to-rose-500',         // Purple spectrum rainbow
-      'bg-gradient-to-br from-cyan-400 via-sky-400 via-blue-500 via-indigo-500 to-purple-600',         // Blue spectrum rainbow  
-      'bg-gradient-to-br from-emerald-400 via-green-400 via-lime-400 via-yellow-500 to-orange-500'        // Green to orange spectrum
+      'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500',         // Indigo to pink
+      'bg-gradient-to-br from-blue-500 via-cyan-500 to-teal-500',            // Blue to teal  
+      'bg-gradient-to-br from-emerald-500 via-green-500 to-lime-500'         // Emerald to lime
     ];
     return colors[index % colors.length];
   };
@@ -497,23 +497,33 @@ const StudentDashboardMain: React.FC = () => {
           >
             {courseCards.length === 0 ? (
               // Fallback when no courses are available
-              <div className="relative w-full flex-shrink-0 bg-gradient-to-br from-pink-300 via-purple-300 via-indigo-300 via-blue-400 to-cyan-500 dark:from-pink-500 dark:via-purple-500 dark:via-indigo-500 dark:via-blue-600 dark:to-cyan-700 overflow-hidden h-[250px] md:h-[280px] lg:h-[300px]">
+              <div className="relative w-full flex-shrink-0 bg-gradient-to-br from-slate-600 via-blue-600 to-indigo-600 dark:from-slate-700 dark:via-blue-700 dark:to-indigo-700 overflow-hidden min-h-[220px] md:min-h-[260px] lg:min-h-[280px]">
                 <div className="absolute inset-0 bg-[url('/backgrounds/grid-pattern.svg')] opacity-10"></div>
-                <div className="w-full px-12 py-4 sm:py-6 sm:px-16 lg:px-20 relative z-10 h-full flex items-center">
-                  <div className="flex flex-col md:flex-row items-center md:items-center justify-center gap-3 md:gap-4 w-full max-w-[1200px] mx-auto">
-                    <div className="text-center md:text-left">
-                      <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white mb-2">
+                <div className="w-full px-6 py-4 sm:py-6 sm:px-12 lg:px-16 relative z-10 h-full flex items-center">
+                  <div className="flex flex-col md:flex-row items-center md:items-center justify-center gap-4 md:gap-6 w-full max-w-[1200px] mx-auto">
+                    <div className="text-center md:text-left space-y-3">
+                      <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight"
+                        style={{ 
+                          textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                          wordWrap: 'break-word',
+                          overflowWrap: 'anywhere'
+                        }}>
                         {greeting}, {userName}
                       </h1>
-                      <p className="text-emerald-100 text-sm sm:text-base max-w-xl mx-auto md:mx-0">
+                      <p className="text-white/95 text-sm sm:text-base max-w-2xl mx-auto md:mx-0 leading-relaxed"
+                        style={{ 
+                          textShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                          wordWrap: 'break-word',
+                          overflowWrap: 'anywhere'
+                        }}>
                         Welcome to your learning dashboard. Track your progress, manage your courses, and stay updated.
                       </p>
-                      <div className="mt-3 flex justify-center md:justify-start">
+                      <div className="mt-4 flex justify-center md:justify-start">
                         <Link 
                           href="/courses" 
-                          className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-md flex items-center transition-colors inline-flex text-xs"
+                          className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors inline-flex text-sm font-medium backdrop-blur-sm shadow-sm"
                         >
-                          <BookOpen className="mr-1 h-3 w-3" />
+                          <BookOpen className="mr-2 h-4 w-4" />
                           Browse Courses
                         </Link>
                       </div>
@@ -529,7 +539,7 @@ const StudentDashboardMain: React.FC = () => {
                 {courseCards.map((course, index) => (
                   <div 
                     key={course.id}
-                    className={`relative w-full flex-shrink-0 ${course.color} overflow-hidden h-[250px] md:h-[280px] lg:h-[300px] transition-all duration-300`}
+                    className={`relative w-full flex-shrink-0 ${course.color} overflow-hidden min-h-[220px] md:min-h-[260px] lg:min-h-[280px] transition-all duration-300`}
                   >
                     {/* Course background image with overlay */}
                     <div className="absolute inset-0 bg-black/40 mix-blend-multiply"></div>
@@ -544,61 +554,73 @@ const StudentDashboardMain: React.FC = () => {
                       <div className="w-full h-full bg-[url('/backgrounds/grid-pattern.svg')] opacity-10 absolute inset-0"></div>
                     </div>
                     
-                    <div className="relative z-10 w-full px-12 py-4 sm:py-6 sm:px-16 lg:px-20 h-full flex items-center transition-all duration-300">
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full w-full max-w-[1200px] mx-auto">
+                    <div className="relative z-10 w-full px-6 py-4 sm:py-6 sm:px-12 lg:px-16 h-full flex items-center transition-all duration-300">
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full w-full max-w-[1200px] mx-auto">
                         {/* Left side - Course information */}
-                        <div className="lg:col-span-2 flex flex-col justify-center">
-                          <div className="flex flex-wrap items-center mb-3">
-                            <span className="text-xs bg-white/20 text-white px-2.5 py-0.5 rounded-full mr-2 mb-1">
+                        <div className="lg:col-span-2 flex flex-col justify-center space-y-3">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs bg-white/20 text-white px-3 py-1 rounded-full backdrop-blur-sm">
                               {course.instructor}
                             </span>
-                            <span className="text-xs text-white/90 mb-1">
+                            <span className="text-xs text-white/90">
                               {greeting}, Student
                             </span>
                           </div>
                         
-                          <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white mb-4 line-clamp-2 transition-all duration-300 text-center sm:text-left" style={{ wordWrap: 'break-word', overflowWrap: 'break-word', lineHeight: '1.3' }}>
+                          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white transition-all duration-300 text-center sm:text-left leading-tight" 
+                            style={{ 
+                              wordWrap: 'break-word', 
+                              overflowWrap: 'anywhere', 
+                              lineHeight: '1.2',
+                              textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                            }}>
                             {course.title}
                           </h1>
                           
                           {/* Progress bar - always show for enrolled courses */}
                           {course.isEnrolled && (
-                            <div className="mb-4 flex flex-col items-center sm:items-start">
-                              <div className="flex items-center mb-1 max-w-md w-full">
-                                <div className="w-full bg-white/30 rounded-full h-1.5">
+                            <div className="flex flex-col items-center sm:items-start space-y-2">
+                              <div className="flex items-center w-full max-w-md">
+                                <div className="w-full bg-white/30 rounded-full h-2 backdrop-blur-sm">
                                   <div 
-                                    className="bg-white h-1.5 rounded-full transition-all duration-1000 ease-out"
+                                    className="bg-white h-2 rounded-full transition-all duration-1000 ease-out shadow-sm"
                                     style={{ width: `${course.progress}%` }}
                                   ></div>
                                 </div>
                               </div>
-                              <span className="text-white/90 text-sm font-medium">
+                              <span className="text-white/95 text-sm font-medium">
                                 {course.progress}% complete
                               </span>
                             </div>
                           )}
                           
-                          <div className="text-white/90 text-sm mb-4 leading-relaxed max-w-xl text-center sm:text-left mx-auto sm:mx-0" style={{ wordWrap: 'break-word', overflowWrap: 'break-word', lineHeight: '1.4' }}>
+                          <div className="text-white/95 text-sm leading-relaxed max-w-2xl text-center sm:text-left mx-auto sm:mx-0" 
+                            style={{ 
+                              wordWrap: 'break-word', 
+                              overflowWrap: 'anywhere', 
+                              lineHeight: '1.5',
+                              textShadow: '0 1px 2px rgba(0,0,0,0.2)'
+                            }}>
                             Continue your learning journey with {course.instructor}. Your next lesson covers {course.nextLesson}.
                           </div>
                           
-                          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-1">
+                          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mt-2">
                             {course.isWelcome ? (
                               // Welcome slide buttons
                               <>
                                 <Link 
                                   href="/courses" 
-                                  className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-md flex items-center transition-colors font-medium text-xs mb-1"
+                                  className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors font-medium text-sm backdrop-blur-sm shadow-sm"
                                 >
-                                  <BookOpen className="mr-1 h-3 w-3" />
+                                  <BookOpen className="mr-2 h-4 w-4" />
                                   Explore Courses
                                 </Link>
                                 
                                 <Link 
                                   href="/dashboards/student/goals" 
-                                  className="border border-white/30 hover:bg-white/10 text-white px-3 py-1.5 rounded-md flex items-center transition-colors text-xs mb-1"
+                                  className="border border-white/30 hover:bg-white/10 text-white px-4 py-2 rounded-lg flex items-center transition-colors text-sm backdrop-blur-sm"
                                 >
-                                  <Target className="mr-1 h-3 w-3" />
+                                  <Target className="mr-2 h-4 w-4" />
                                   Set Goals
                                 </Link>
                               </>
@@ -607,17 +629,17 @@ const StudentDashboardMain: React.FC = () => {
                               <>
                                 <Link 
                                   href={`/course/${course.id}`} 
-                                  className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-md flex items-center transition-colors font-medium text-xs mb-1"
+                                  className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors font-medium text-sm backdrop-blur-sm shadow-sm"
                                 >
-                                  <PlayCircle className="mr-1 h-3 w-3" />
+                                  <PlayCircle className="mr-2 h-4 w-4" />
                                   Continue Learning
                                 </Link>
                                 
                                 <Link 
                                   href={`/course/${course.id}/materials`} 
-                                  className="border border-white/30 hover:bg-white/10 text-white px-3 py-1.5 rounded-md flex items-center transition-colors text-xs mb-1"
+                                  className="border border-white/30 hover:bg-white/10 text-white px-4 py-2 rounded-lg flex items-center transition-colors text-sm backdrop-blur-sm"
                                 >
-                                  <FileText className="mr-1 h-3 w-3" />
+                                  <FileText className="mr-2 h-4 w-4" />
                                   Course Materials
                                 </Link>
                               </>
@@ -626,17 +648,17 @@ const StudentDashboardMain: React.FC = () => {
                               <>
                                 <Link 
                                   href={`/course-details/${course.id}`} 
-                                  className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-md flex items-center transition-colors font-medium text-xs mb-1"
+                                  className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors font-medium text-sm backdrop-blur-sm shadow-sm"
                                 >
-                                  <BookOpen className="mr-1 h-3 w-3" />
+                                  <BookOpen className="mr-2 h-4 w-4" />
                                   View Course
                                 </Link>
                                 
                                 <Link 
                                   href={`/course-details/${course.id}#enroll`} 
-                                  className="border border-white/30 hover:bg-white/10 text-white px-3 py-1.5 rounded-md flex items-center transition-colors text-xs mb-1"
+                                  className="border border-white/30 hover:bg-white/10 text-white px-4 py-2 rounded-lg flex items-center transition-colors text-sm backdrop-blur-sm"
                                 >
-                                  <GraduationCap className="mr-1 h-3 w-3" />
+                                  <GraduationCap className="mr-2 h-4 w-4" />
                                   {course.price && course.price !== 'Free' ? `Enroll - ${course.price}` : 'Enroll Now'}
                                 </Link>
                               </>
@@ -645,36 +667,42 @@ const StudentDashboardMain: React.FC = () => {
                         </div>
                         
                         {/* Right side - Next Up Card */}
-                        <div className="lg:col-span-1 flex flex-col justify-center mt-2 lg:mt-0">
-                          <div className="bg-white/15 backdrop-blur-md rounded-lg p-4 border border-white/20 transition-all duration-300">
+                        <div className="lg:col-span-1 flex flex-col justify-center mt-3 lg:mt-0">
+                          <div className="bg-white/15 backdrop-blur-md rounded-xl p-4 border border-white/20 transition-all duration-300 shadow-lg">
                             <h3 className="text-white text-sm font-semibold mb-3 flex items-center">
-                              <Calendar className="h-4 w-4 mr-1.5" /> 
+                              <Calendar className="h-4 w-4 mr-2" /> 
                               Next Up
                             </h3>
                             
                             <div className="space-y-3">
                               {/* Next Lesson Info */}
                               <div>
-                                <h4 className="text-white font-medium text-sm mb-1 line-clamp-2" style={{ wordWrap: 'break-word', overflowWrap: 'break-word', lineHeight: '1.3' }}>
+                                <h4 className="text-white font-medium text-sm mb-2 leading-relaxed" 
+                                  style={{ 
+                                    wordWrap: 'break-word', 
+                                    overflowWrap: 'anywhere', 
+                                    lineHeight: '1.4',
+                                    textShadow: '0 1px 2px rgba(0,0,0,0.2)'
+                                  }}>
                                   {course.nextLesson}
                                 </h4>
-                                <div className="flex items-center text-white/80 text-xs">
-                                  <Clock className="h-3 w-3 mr-1 flex-shrink-0" /> 
+                                <div className="flex items-center text-white/85 text-sm">
+                                  <Clock className="h-4 w-4 mr-2 flex-shrink-0" /> 
                                   Estimated: 25 mins
                                 </div>
                               </div>
                               
                               {/* Progress Stats */}
-                              <div className="grid grid-cols-2 gap-2">
-                                <div className="bg-white/10 rounded-lg p-2 text-center">
-                                  <p className="text-white/70 text-xs mb-0.5">Completed</p>
-                                  <p className="text-white text-lg font-bold">
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className="bg-white/10 rounded-lg p-3 text-center backdrop-blur-sm">
+                                  <p className="text-white/80 text-xs mb-1">Completed</p>
+                                  <p className="text-white text-xl font-bold">
                                     {course.completed || Math.floor(course.progress * 10 / 100)}/10
                                   </p>
                                 </div>
-                                <div className="bg-white/10 rounded-lg p-2 text-center">
-                                  <p className="text-white/70 text-xs mb-0.5">Remaining</p>
-                                  <p className="text-white text-lg font-bold">
+                                <div className="bg-white/10 rounded-lg p-3 text-center backdrop-blur-sm">
+                                  <p className="text-white/80 text-xs mb-1">Remaining</p>
+                                  <p className="text-white text-xl font-bold">
                                     {course.remaining || (10 - Math.floor(course.progress * 10 / 100))}/10
                                   </p>
                                 </div>
