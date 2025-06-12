@@ -1499,7 +1499,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
                             initial="collapsed"
                             animate="expanded"
                             exit="collapsed"
-                            className={`ml-3 font-medium text-left line-clamp-1 whitespace-normal overflow-visible`}
+                            className={`ml-3 font-medium text-left line-clamp-1 whitespace-nowrap overflow-hidden`}
                             style={{
                               fontSize: isMobileDevice 
                                 ? "16px" 
@@ -1596,7 +1596,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
                                       {subItem.icon}
                                     </div>
                                   </div>
-                                  <span className="font-medium leading-tight whitespace-normal" style={{
+                                  <span className="font-medium leading-tight whitespace-nowrap" style={{
                                     fontSize: isMobileDevice 
                                       ? "15px" 
                                       : isTabletDevice 
