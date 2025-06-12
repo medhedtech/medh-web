@@ -416,7 +416,7 @@ import { ICourse } from "@/types/course.types";
 // Simple video optimization for better performance
 const OPTIMIZED_VIDEO_URLS = {
   DARK_THEME: "https://d2cxn2x1vtrou8.cloudfront.net/Website/1659171_Trapcode_Particles_3840x2160.mp4",
-  LIGHT_THEME: "https://d2cxn2x1vtrou8.cloudfront.net/Website/0_Technology_Abstract_4096x2304.mp4"
+  LIGHT_THEME: "https://d2cxn2x1vtrou8.cloudfront.net/Website/0_Wind_Flowing_3840x2160.mp4"
 };
 
 // Define interfaces for component props
@@ -792,7 +792,7 @@ const HeroMobile: React.FC<IHeroMobileProps> = React.memo(({ isLoaded, featuredC
           className={`absolute inset-0 w-full h-full object-cover scale-105 transition-all duration-2000 ease-out ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
           style={{ filter: isDark ? 'brightness(0.6) contrast(1.2) saturate(0.9) hue-rotate(10deg)' : 'brightness(0.9) contrast(1.0) saturate(1.0)' }}
         >
-          <source src={isDark ? "https://d2cxn2x1vtrou8.cloudfront.net/Website/1659171_Trapcode_Particles_3840x2160.mp4" : "https://d2cxn2x1vtrou8.cloudfront.net/Website/0_Technology_Abstract_4096x2304.mp4"} type="video/mp4" />
+          <source src={isDark ? "https://d2cxn2x1vtrou8.cloudfront.net/Website/1659171_Trapcode_Particles_3840x2160.mp4" : "https://d2cxn2x1vtrou8.cloudfront.net/Website/0_Wind_Flowing_3840x2160.mp4"} type="video/mp4" />
         </video>
         
         {/* Video overlay for better text readability - theme aware */}
@@ -1094,7 +1094,7 @@ const Hero1: React.FC<IHero1Props> = React.memo(({ isCompact = false }) => {
            className={`absolute inset-0 w-full h-full object-cover scale-105 transition-all duration-2000 ease-out ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
            style={{ filter: isDark ? 'brightness(0.65) contrast(1.2) saturate(0.9) hue-rotate(10deg)' : 'brightness(0.95) contrast(1.0) saturate(1.0)' }}
          >
-           <source src={isDark ? "https://d2cxn2x1vtrou8.cloudfront.net/Website/1659171_Trapcode_Particles_3840x2160.mp4" : "https://d2cxn2x1vtrou8.cloudfront.net/Website/0_Technology_Abstract_4096x2304.mp4"} type="video/mp4" />
+           <source src={isDark ? "https://d2cxn2x1vtrou8.cloudfront.net/Website/1659171_Trapcode_Particles_3840x2160.mp4" : "https://d2cxn2x1vtrou8.cloudfront.net/Website/0_Wind_Flowing_3840x2160.mp4"} type="video/mp4" />
          </video>
          
          {/* Enhanced overlay for professional look - theme aware */}

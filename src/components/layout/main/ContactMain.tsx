@@ -1,181 +1,420 @@
-'use client';
-import ContactBanner from "@/components/sections/contact/ContactBanner";
-import ContactPrimary from "@/components/sections/contact/ContactPrimary";
-import HirePage from "@/components/sections/hire/HirePage";
-import Registration from "@/components/sections/registrations/Registration";
-import React from "react";
-import { MessageSquare, Sparkles, Star, Send, Rocket, ArrowDown, Phone, Mail, MapPin } from "lucide-react";
-import Head from "next/head";
+"use client";
 
-interface IContactMainProps {}
+import React, { useState, useEffect } from "react";
+import { Mail, Phone, MapPin, Send, ArrowRight, MessageCircle } from "lucide-react";
+import { useTheme } from "next-themes";
 
-const ContactMain: React.FC<IContactMainProps> = () => {
-  // Smooth scroll to the next section
-  const scrollToNextSection = (sectionId: string): void => {
-    const section = document.getElementById(sectionId);
-    if (section) {
-      section.scrollIntoView({ behavior: "smooth" });
-    }
+// TypeScript interfaces
+interface IContactMethod {
+  icon: React.ReactNode;
+  title: string;
+  value: string;
+  href: string;
+  description: string;
+}
+
+interface IFormData {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
+
+// Contact methods data
+const contactMethods: IContactMethod[] = [
+  {
+    icon: <Mail className="w-6 h-6" />,
+    title: "Email",
+    value: "care@medh.co",
+    href: "mailto:care@medh.co",
+    description: "Send us an email anytime"
+  },
+  {
+    icon: <Phone className="w-6 h-6" />,
+    title: "Phone",
+    value: "+91 77108 96496",
+    href: "tel:+917710896496",
+    description: "Call us during business hours"
+  },
+  {
+    icon: <MessageCircle className="w-6 h-6" />,
+    title: "WhatsApp",
+    value: "+91 77180 01580",
+    href: "https://wa.me/917718001580",
+    description: "Chat with us on WhatsApp"
+  }
+];
+
+const ContactMain: React.FC = () => {
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState<boolean>(false);
+  const [formData, setFormData] = useState<IFormData>({
+    name: "",
+    email: "",
+    subject: "",
+    message: ""
+  });
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+
+  const isDark: boolean = mounted ? theme === 'dark' : false;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    // Simulate form submission
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    setIsSubmitting(false);
+    setIsSubmitted(true);
+    
+    // Reset form after 3 seconds
+    setTimeout(() => {
+      setIsSubmitted(false);
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    }, 3000);
+  };
+
+  if (!mounted) {
+    return <div className="min-h-screen bg-white dark:bg-gray-900" />;
+  }
+
   return (
-    <div className="bg-white dark:bg-gray-900 min-h-screen w-full">
-      <Head>
-        <title>Contact Us - Medh | Professional Learning Solutions</title>
-        <meta name="description" content="Connect with Medh for professional learning solutions. Get in touch with our expert team for courses, training, and educational opportunities." />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-      </Head>
-
+    <div className={`min-h-screen transition-colors duration-300 ${
+      isDark ? 'bg-gray-900' : 'bg-white'
+    }`}>
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-slate-900 py-20 sm:py-24 lg:py-32">
-        {/* Background Elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-96 h-96 bg-blue-100 dark:bg-blue-900/20 rounded-full blur-3xl opacity-60" />
-          <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-100 dark:bg-emerald-900/20 rounded-full blur-3xl opacity-60" />
-        </div>
+      <section className="relative pt-20 pb-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto text-center">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-sm font-medium mb-6">
+            <MessageCircle className="w-4 h-4" />
+            Get in Touch
+          </div>
 
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="mb-6">
-              <span className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium">
-                <Phone className="w-4 h-4" />
-                Get in Touch
-              </span>
+          {/* Main Heading */}
+          <h1 className={`text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight ${
+            isDark ? 'text-white' : 'text-gray-900'
+          }`}>
+            Let's Start a{' '}
+            <span className="relative">
+              <span className="text-emerald-500">Conversation</span>
+              <svg
+                className="absolute -bottom-2 left-0 w-full h-3 text-emerald-200 dark:text-emerald-800"
+                viewBox="0 0 100 12"
+                fill="currentColor"
+              >
+                <path d="M0 8c30-6 70-6 100 0v4H0z" />
+              </svg>
+            </span>
+          </h1>
+
+          {/* Subtitle */}
+          <p className={`text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed ${
+            isDark ? 'text-gray-300' : 'text-gray-600'
+          }`}>
+            We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+          </p>
+        </div>
+      </section>
+
+      {/* Main Content */}
+      <section className="pb-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 lg:gap-20">
+            
+            {/* Contact Form */}
+            <div className="order-2 lg:order-1">
+              <div className={`rounded-2xl p-8 shadow-sm border ${
+                isDark 
+                  ? 'bg-gray-800 border-gray-700' 
+                  : 'bg-gray-50 border-gray-200'
+              }`}>
+                <h2 className={`text-2xl font-semibold mb-6 ${
+                  isDark ? 'text-white' : 'text-gray-900'
+                }`}>
+                  Send us a message
+                </h2>
+
+                {isSubmitted ? (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Send className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <h3 className={`text-xl font-semibold mb-2 ${
+                      isDark ? 'text-white' : 'text-gray-900'
+                    }`}>
+                      Message Sent!
+                    </h3>
+                    <p className={`${
+                      isDark ? 'text-gray-300' : 'text-gray-600'
+                    }`}>
+                      Thank you for reaching out. We'll get back to you soon.
+                    </p>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid sm:grid-cols-2 gap-6">
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${
+                          isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                          Name
+                        </label>
+                        <input
+                          type="text"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleInputChange}
+                          required
+                          className={`w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+                            isDark
+                              ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                          }`}
+                          placeholder="Your name"
+                        />
+                      </div>
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${
+                          isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          required
+                          className={`w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+                            isDark
+                              ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                          }`}
+                          placeholder="your@email.com"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${
+                        isDark ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
+                        Subject
+                      </label>
+                      <input
+                        type="text"
+                        name="subject"
+                        value={formData.subject}
+                        onChange={handleInputChange}
+                        required
+                        className={`w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+                          isDark
+                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                        }`}
+                        placeholder="What's this about?"
+                      />
+                    </div>
+
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${
+                        isDark ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
+                        Message
+                      </label>
+                      <textarea
+                        name="message"
+                        value={formData.message}
+                        onChange={handleInputChange}
+                        required
+                        rows={6}
+                        className={`w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none ${
+                          isDark
+                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                        }`}
+                        placeholder="Tell us more about your inquiry..."
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-400 text-white font-semibold py-4 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          Send Message
+                          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        </>
+                      )}
+                    </button>
+                  </form>
+                )}
+              </div>
             </div>
-            
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-              Let's Start a{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-600">
-                Conversation
-              </span>
-            </h1>
-            
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Ready to advance your career with professional learning? Our expert team is here to guide you through the best educational opportunities tailored to your goals.
-            </p>
-            
-            <button 
-              onClick={() => scrollToNextSection("contact-form")}
-              className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg shadow-blue-600/25 transition-all duration-300 hover:shadow-xl hover:shadow-blue-600/40 hover:-translate-y-1"
+
+            {/* Contact Information */}
+            <div className="order-1 lg:order-2">
+              <div className="lg:sticky lg:top-8">
+                <h2 className={`text-2xl font-semibold mb-8 ${
+                  isDark ? 'text-white' : 'text-gray-900'
+                }`}>
+                  Get in touch
+                </h2>
+
+                <div className="space-y-6 mb-12">
+                  {contactMethods.map((method, index) => (
+                    <a
+                      key={index}
+                      href={method.href}
+                      className={`block p-6 rounded-xl border transition-all duration-200 hover:scale-105 group ${
+                        isDark
+                          ? 'bg-gray-800 border-gray-700 hover:border-emerald-500'
+                          : 'bg-white border-gray-200 hover:border-emerald-300 hover:shadow-lg'
+                      }`}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0 w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
+                          {method.icon}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className={`font-semibold mb-1 ${
+                            isDark ? 'text-white' : 'text-gray-900'
+                          }`}>
+                            {method.title}
+                          </h3>
+                          <p className={`font-medium mb-1 ${
+                            isDark ? 'text-emerald-400' : 'text-emerald-600'
+                          }`}>
+                            {method.value}
+                          </p>
+                          <p className={`text-sm ${
+                            isDark ? 'text-gray-400' : 'text-gray-500'
+                          }`}>
+                            {method.description}
+                          </p>
+                        </div>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+
+                                 {/* Company Information */}
+                 <div className={`p-6 rounded-xl mb-6 ${
+                   isDark ? 'bg-gray-800' : 'bg-gray-50'
+                 }`}>
+                   <h3 className={`font-semibold mb-3 ${
+                     isDark ? 'text-white' : 'text-gray-900'
+                   }`}>
+                     Company Information
+                   </h3>
+                   <div className="space-y-3">
+                     <div>
+                       <p className={`font-medium ${
+                         isDark ? 'text-emerald-400' : 'text-emerald-600'
+                       }`}>
+                         eSampark Tech Solutions Pvt Ltd
+                       </p>
+                     </div>
+                     <div className="flex items-start gap-2">
+                       <MapPin className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
+                         isDark ? 'text-gray-400' : 'text-gray-500'
+                       }`} />
+                       <div>
+                         <p className={`text-sm ${
+                           isDark ? 'text-gray-300' : 'text-gray-600'
+                         }`}>
+                           Mumbai (Maharashtra)
+                         </p>
+                         <p className={`text-sm ${
+                           isDark ? 'text-gray-300' : 'text-gray-600'
+                         }`}>
+                           Gurugram (Delhi NCR)
+                         </p>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+
+                 {/* Response Time */}
+                 <div className={`p-6 rounded-xl ${
+                   isDark ? 'bg-gray-800' : 'bg-gray-50'
+                 }`}>
+                   <h3 className={`font-semibold mb-3 ${
+                     isDark ? 'text-white' : 'text-gray-900'
+                   }`}>
+                     Response Time
+                   </h3>
+                   <p className={`text-sm leading-relaxed ${
+                     isDark ? 'text-gray-300' : 'text-gray-600'
+                   }`}>
+                     We typically respond to all inquiries within 24 hours during business days. 
+                     For urgent matters, please call us directly.
+                   </p>
+                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Bottom CTA */}
+      <section className={`py-16 px-4 sm:px-6 lg:px-8 border-t ${
+        isDark ? 'border-gray-800' : 'border-gray-200'
+      }`}>
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className={`text-2xl sm:text-3xl font-bold mb-4 ${
+            isDark ? 'text-white' : 'text-gray-900'
+          }`}>
+            Ready to get started?
+          </h2>
+          <p className={`text-lg mb-8 ${
+            isDark ? 'text-gray-300' : 'text-gray-600'
+          }`}>
+            Join thousands of learners who have transformed their careers with Medh.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="/courses"
+              className="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
             >
-              <span>Start Your Journey</span>
-              <ArrowDown className="w-5 h-5" />
-            </button>
+              Explore Courses
+              <ArrowRight className="w-5 h-5" />
+            </a>
+            <a
+              href="/about"
+              className={`inline-flex items-center justify-center gap-2 font-semibold py-3 px-6 rounded-lg border transition-colors ${
+                isDark
+                  ? 'border-gray-600 text-gray-300 hover:bg-gray-800'
+                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Learn More
+            </a>
           </div>
         </div>
       </section>
-
-      {/* Contact Form Section */}
-      <section id="contact-form" className="py-20 sm:py-24 bg-white dark:bg-gray-900">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mx-auto text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Send Us a Message
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300">
-              Fill out the form below and we'll get back to you within 24 hours
-            </p>
-          </div>
-          
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <Registration pageTitle="contact_us" />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Details Section */}
-      <section id="contact-details" className="py-20 sm:py-24 bg-gray-50 dark:bg-gray-800">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mx-auto text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Other Ways to Reach Us
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300">
-              Choose the method that works best for you
-            </p>
-          </div>
-          
-          <ContactPrimary />
-        </div>
-      </section>
-
-      {/* Career Opportunities Section */}
-      <section className="py-20 sm:py-24 bg-white dark:bg-gray-900">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mx-auto text-center mb-12">
-            <div className="mb-4">
-              <span className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200 rounded-full text-sm font-medium">
-                <Rocket className="w-4 h-4" />
-                Join Our Team
-              </span>
-            </div>
-            
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Career Opportunities
-            </h2>
-            
-            <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-              Join our team of education innovators and help shape the future of learning
-            </p>
-          </div>
-          
-          <div className="max-w-5xl mx-auto">
-            <HirePage />
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 sm:py-24 bg-gradient-to-br from-blue-600 to-emerald-600 text-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Send className="w-8 h-8 text-white" />
-            </div>
-            
-            <h2 className="text-3xl sm:text-4xl font-bold mb-6">
-              Still Have Questions?
-            </h2>
-            
-            <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-              Our dedicated team is ready to help you discover the perfect learning path for your career goals.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <a
-                href="mailto:care@medh.co"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-50 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1"
-              >
-                <Mail className="w-5 h-5" />
-                Email Our Team
-              </a>
-              
-              <a
-                href="tel:+917701840696"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-white/10 text-white font-semibold rounded-lg hover:bg-white/20 transition-all duration-300 backdrop-blur-sm border border-white/20"
-              >
-                <Phone className="w-5 h-5" />
-                Call Us Now
-              </a>
-            </div>
-            
-            <div className="mt-8 pt-8 border-t border-white/20">
-              <p className="text-blue-100 text-sm">
-                Available Monday to Friday, 9:00 AM - 6:00 PM IST
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="py-6 bg-gray-900 dark:bg-gray-950 text-center text-sm text-gray-400">
-        <div className="container mx-auto px-4">
-          <p>© 2024 Medh. All rights reserved. | Made with ❤️ by Medh Team</p>
-        </div>
-      </footer>
     </div>
   );
 };
