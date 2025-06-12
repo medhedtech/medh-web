@@ -5,26 +5,38 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 
+// Types
+interface IDecodedToken {
+  user?: {
+    role?: string | string[];
+  };
+  role?: string | string[];
+  exp?: number;
+  iat?: number;
+}
+
+type TUserRole = 'admin' | 'super-admin' | 'instructor' | 'student' | 'coorporate' | 'coorporate-student';
+
 /**
  * Dashboard routing page
  * Automatically redirects users to their appropriate dashboard based on their role
  */
-export default function DashboardRouter() {
+const DashboardRouter: React.FC = () => {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Function to handle redirection based on user role
-    const redirectToRoleDashboard = () => {
+    const redirectToRoleDashboard = (): void => {
       try {
-        setLoading(true);
+        setIsLoading(true);
         
         // Check if we're in a browser environment
         if (typeof window === "undefined") return;
         
         // Get token from localStorage
-        const token = localStorage.getItem("token");
+        const token: string | null = localStorage.getItem("token");
         if (!token) {
           // No token found, redirect to login
           router.push("/login");
@@ -32,15 +44,16 @@ export default function DashboardRouter() {
         }
         
         // Try to get role from multiple sources
-        let userRole = '';
+        let userRole: string = '';
         
         // First, check localStorage for role (set during login)
-        userRole = localStorage.getItem("role");
+        const storedRole: string | null = localStorage.getItem("role");
+        userRole = storedRole || '';
         
         // If role wasn't found in localStorage, try to decode token
         if (!userRole && token) {
           try {
-            const decoded = jwtDecode(token);
+            const decoded: IDecodedToken = jwtDecode(token);
             console.log("Decoded token:", decoded);
             
             // Try different possible paths for role in the token
@@ -74,7 +87,7 @@ export default function DashboardRouter() {
         console.log("User role found:", userRole);
         
         // Convert role to lowercase for case-insensitive comparison
-        const roleLower = userRole.toLowerCase();
+        const roleLower: string = userRole.toLowerCase();
         
         // Handle routing based on role
         if (roleLower === "admin" || roleLower === "super-admin") {
@@ -96,7 +109,7 @@ export default function DashboardRouter() {
         console.error("Error during redirection:", err);
         setError("An unexpected error occurred. Please try again.");
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
@@ -105,7 +118,7 @@ export default function DashboardRouter() {
   }, [router]);
 
   // Loading state
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
         <Loader2 size={40} className="text-primary-500 animate-spin mb-4" />
@@ -146,4 +159,6 @@ export default function DashboardRouter() {
       </div>
     </div>
   );
-}
+};
+
+export default DashboardRouter; 
