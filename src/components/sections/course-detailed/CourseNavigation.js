@@ -6,7 +6,8 @@ import {
   GraduationCap, 
   Blocks, 
   HelpCircle, 
-  FileBadge 
+  FileBadge,
+  Download
 } from 'lucide-react';
 
 // Animation variants
@@ -85,7 +86,9 @@ const CourseNavigation = ({
   bgClass,
   isMobile = false,
   categoryColorClasses,
-  compact = false
+  compact = false,
+  showDownloadBrochure = false,
+  onDownloadBrochure
 }) => {
   // Use the provided category color classes or fall back to prop-based styling
   const activeColorClass = colorClass || `text-${primaryColor}-600 dark:text-${primaryColor}-400`;
@@ -122,7 +125,8 @@ const CourseNavigation = ({
       animate="animate"
       variants={fadeIn}
     >
-      <div className="grid grid-cols-4 sm:flex w-full sm:space-x-2">
+      {/* All navigation options evenly spaced */}
+      <div className={`grid ${showDownloadBrochure ? 'grid-cols-5' : 'grid-cols-4'} sm:flex w-full justify-evenly sm:justify-between gap-1 sm:gap-2`}>
         {visibleSections.map((section) => {
           const Icon = section.icon;
           const isActive = activeSection === section.id;
@@ -185,6 +189,45 @@ const CourseNavigation = ({
             </motion.button>
           );
         })}
+        
+        {/* Download Brochure CTA Button */}
+        {showDownloadBrochure && onDownloadBrochure && (
+          <motion.button
+            onClick={onDownloadBrochure}
+            className={`group relative flex flex-col sm:flex-row items-center justify-center ${compact ? 'py-1.5 sm:py-2' : 'py-2 sm:py-2.5'} px-2 sm:px-3 md:px-4 rounded-lg ${compact ? 'text-[9px] sm:text-xs' : 'text-[10px] sm:text-sm'} font-semibold transition-all duration-300 shadow-md hover:shadow-lg overflow-hidden bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white`}
+            aria-label="Download course brochure"
+            title="Download Brochure"
+            initial="initial"
+            whileHover={{ scale: 1.05, y: -1 }}
+            whileTap={{ scale: 0.98 }}
+            variants={{
+              initial: { scale: 1 },
+              hover: { scale: 1.05, y: -1, transition: { duration: 0.2 } },
+              tap: { scale: 0.98, transition: { duration: 0.1 } },
+            }}
+          >
+            {/* Subtle shine effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 rounded-lg"></div>
+            
+            <div className="relative transition-transform duration-200 z-10">
+              <Download 
+                className={`${compact ? 'h-3.5 w-3.5 sm:h-4 sm:w-4' : 'h-4 w-4 sm:h-[18px] sm:w-[18px]'} text-white transition-colors duration-200`} 
+                strokeWidth={2.2}
+                fill="none"
+              />
+            </div>
+            
+            {/* Only show text on larger screens with text truncation */}
+            <span className={`hidden sm:block sm:ml-1.5 transition-all duration-200 whitespace-nowrap ${compact ? 'max-w-[80px] md:max-w-[120px]' : 'max-w-[100px] md:max-w-[140px]'} overflow-hidden text-clip text-white z-10 relative`}>
+              Brochure
+            </span>
+            
+            {/* Show mobile label on small screens */}
+            <span className={`block sm:hidden ${compact ? 'text-[8px]' : 'text-[9px]'} mt-0.5 whitespace-nowrap overflow-hidden text-white z-10 relative`}>
+              Brochure
+            </span>
+          </motion.button>
+        )}
       </div>
     </motion.div>
   );
