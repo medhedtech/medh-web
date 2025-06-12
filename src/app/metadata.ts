@@ -1,8 +1,12 @@
-// Central metadata configuration for Next.js app
-// This file provides default metadata values that can be imported by other pages
+import { Metadata } from 'next';
+
+// Types
+interface ICustomMetadata extends Partial<Metadata> {
+  keywords?: string;
+}
 
 // Get the base URL from environment variables or use a default
-const getBaseUrl = () => {
+const getBaseUrl = (): string => {
   if (process.env.NEXT_PUBLIC_SITE_URL) {
     return process.env.NEXT_PUBLIC_SITE_URL;
   }
@@ -17,10 +21,10 @@ const getBaseUrl = () => {
 };
 
 // Create the base URL
-const baseUrl = getBaseUrl();
+const baseUrl: string = getBaseUrl();
 
 // Default metadata configuration
-export const defaultMetadata = {
+export const defaultMetadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
     default: 'Medh - Leading Education Platform for Career Growth',
@@ -41,7 +45,7 @@ export const defaultMetadata = {
     'online certification',
     'career advancement',
     'industry training'
-  ].join(', '),
+  ] as string[],
   authors: [{ name: 'Medh Team', url: baseUrl }],
   creator: 'Medh',
   publisher: 'Medh',
@@ -103,7 +107,9 @@ export const defaultMetadata = {
 };
 
 // Helper function to merge custom metadata with default metadata
-export const mergeMetadata = (customMetadata) => {
+export const mergeMetadata = (customMetadata: ICustomMetadata): Metadata => {
+  const keywordsArray = defaultMetadata.keywords as string[];
+  
   return {
     ...defaultMetadata,
     ...customMetadata,
@@ -111,7 +117,7 @@ export const mergeMetadata = (customMetadata) => {
     metadataBase: defaultMetadata.metadataBase,
     // Merge keywords arrays if they exist
     keywords: customMetadata.keywords 
-      ? `${defaultMetadata.keywords}, ${customMetadata.keywords}`
-      : defaultMetadata.keywords,
+      ? [...keywordsArray, ...customMetadata.keywords.split(', ')]
+      : keywordsArray,
   };
 }; 
