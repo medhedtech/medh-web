@@ -553,12 +553,12 @@ const CourseView: React.FC = () => {
           ) : error ? (
             <ErrorDisplay />
           ) : (
-            <div className="container mx-auto px-3 sm:px-4">
+            <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12">
 
               
               <div className="flex flex-col lg:flex-row gap-5 lg:gap-8">
                 {/* Left Column - Course Content */}
-                <div className="w-full lg:w-8/12 space-y-4 lg:space-y-8 pb-20 sm:pb-24 lg:pb-0">
+                <div className="w-full lg:w-9/12 space-y-4 lg:space-y-8 pb-20 sm:pb-24 lg:pb-0">
                   {/* Course Details */}
                   {course && (
                     <div className="relative z-20">
@@ -573,7 +573,7 @@ const CourseView: React.FC = () => {
                 </div>
                 
                 {/* Right Column - Enrollment Details */}
-                <div className="w-full lg:w-4/12 mb-8 lg:mb-0 pt-8">
+                <div className="w-full lg:w-3/12 mb-8 lg:mb-0">
                   <div className="lg:sticky lg:top-24 space-y-5 sm:space-y-6 relative z-20">
                     {/* Enrollment Details */}
                     {course && (
