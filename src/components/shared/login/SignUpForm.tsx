@@ -811,7 +811,7 @@ const SignUpForm: React.FC = () => {
           {/* Footer */}
           <div className="text-center mt-2">
             <p className="text-xs text-gray-400 dark:text-gray-500">
-              © {new Date().getFullYear()} Medh Learning
+              © {new Date().getFullYear()} Medh
             </p>
           </div>
         </div>
@@ -1475,7 +1475,7 @@ const SignUpForm: React.FC = () => {
           {/* Footer */}
           <div className="text-center mt-2">
             <p className="text-xs text-gray-400 dark:text-gray-500">
-              © {new Date().getFullYear()} Medh Learning
+              © {new Date().getFullYear()} Medh
             </p>
           </div>
         </div>

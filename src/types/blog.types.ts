@@ -18,18 +18,22 @@ export interface IBlogComment {
  */
 export interface IBlog {
   _id: string;
+  id: string;
   title: string;
   slug: string;
-  content: string;
-  excerpt: string;
-  blog_link: string;
+  description: string;
+  blog_link: string | null;
   upload_image: string;
   author: {
     _id: string;
-    name: string;
     email: string;
+    name?: string;
   };
-  categories: string[];
+  categories: {
+    _id: string;
+    category_name: string;
+    category_image: string;
+  }[];
   tags: string[];
   meta_title: string;
   meta_description: string;
@@ -40,6 +44,9 @@ export interface IBlog {
   comments: IBlogComment[];
   createdAt: string;
   updatedAt: string;
+  reading_time: number;
+  commentCount: number;
+  __v: number;
 }
 
 /**
@@ -99,6 +106,7 @@ export interface IBlogQueryParams {
   with_content?: boolean;
   count_only?: boolean;
   exclude_ids?: string[];
+  featured?: boolean;
 }
 
 /**

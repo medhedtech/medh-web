@@ -536,7 +536,7 @@ const LoginForm = () => {
           
           {/* Copyright notice */}
           <div className="text-center mt-2 text-xs text-gray-400 dark:text-gray-500">
-            <p>© {new Date().getFullYear()} Medh Learning. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Medh. All rights reserved.</p>
           </div>
         </div>
       </div>
@@ -820,7 +820,7 @@ const LoginForm = () => {
           
           {/* Copyright notice */}
           <div className="text-center mt-2 text-xs text-gray-400 dark:text-gray-500">
-            <p>© {new Date().getFullYear()} Medh Learning. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Medh. All rights reserved.</p>
           </div>
         </div>
       </div>
