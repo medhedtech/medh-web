@@ -1,232 +1,514 @@
 "use client";
 import Image from "next/image";
-import React, { useState, useRef, useEffect } from "react";
-import { ArrowRight, Calendar, Clock, User, ExternalLink, BookOpen, Tag, EyeIcon, Heart, ChevronRight } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { ArrowRight, Calendar, Clock, User, ExternalLink, BookOpen, Tag, EyeIcon, Heart, ChevronRight, Star, Sparkles, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
+import { formatDistanceToNow } from "date-fns";
+import { useTheme } from "next-themes";
 
-interface IBlogCardProps {
-  blog?: {
-    _id?: string;
-    title?: string;
-    featured_image?: string;
-    author?: string | { name?: string; email?: string; };
-    createdAt?: string;
-    readTime?: string;
-    category?: string;
-    tags?: string[];
+interface BlogCardProps {
+  blog: {
+    _id: string;
+    title: string;
+    description?: string; // API uses description instead of excerpt
     excerpt?: string;
+    author: {
+      _id?: string;
+      name?: string;
+      email?: string;
+    };
+    publishedAt?: string;
+    createdAt?: string; // API uses createdAt
+    category?: string;
+    categories?: Array<{
+      _id: string;
+      category_name: string;
+      category_image?: string;
+    }> | string[];
+    tags?: string[];
+    featured_image?: string;
+    upload_image?: string; // API uses upload_image
+    read_time?: number;
+    reading_time?: number; // API uses reading_time
+    featured?: boolean;
+    views?: number;
+    likes?: number;
+    blog_link?: string;
+    slug?: string;
+    status?: string;
+    meta_title?: string;
+    meta_description?: string;
   };
-  imageSrc?: string;
-  title?: string;
-  id?: string;
-  buttonText?: string;
-  author?: string;
-  date?: string;
-  readTime?: string;
-  category?: string;
-  tags?: string[];
-  excerpt?: string;
+  className?: string;
 }
 
-const BlogCard: React.FC<IBlogCardProps> = ({ 
-  blog = {},
-  imageSrc, 
-  title, 
-  id, 
-  buttonText = "Read More",
-  author = "Medh Team",
-  date = "Recently Published",
-  readTime = "5 min read",
-  category = "Blog",
-  tags = [],
-  excerpt
-}) => {
-  const router = useRouter();
-  const [isHovered, setIsHovered] = useState<boolean>(false);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
-  const [isImageLoaded, setIsImageLoaded] = useState<boolean>(false);
-  const [isImageError, setIsImageError] = useState<boolean>(false);
-  const cardRef = useRef<HTMLDivElement>(null);
+// Enhanced professional glassmorphic card styles
+const getGlassCardStyles = (isDark: boolean) => `
+  .professional-card {
+    background: ${isDark 
+      ? 'rgba(15, 23, 42, 0.7)' 
+      : 'rgba(255, 255, 255, 0.95)'};
+    backdrop-filter: blur(32px);
+    -webkit-backdrop-filter: blur(32px);
+    border: 1px solid ${isDark 
+      ? 'rgba(255, 255, 255, 0.12)' 
+      : 'rgba(255, 255, 255, 0.6)'};
+    border-radius: 1.5rem;
+    box-shadow: 
+      ${isDark 
+        ? '0 20px 60px rgba(0, 0, 0, 0.5), 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)' 
+        : '0 20px 60px rgba(0, 0, 0, 0.08), 0 8px 32px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9)'};
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    position: relative;
+    transform: translateY(0);
+  }
   
-  // Get actual props from blog object if available
-  const blogId = blog._id || id;
-  const blogTitle = blog.title || title;
-  const blogImage = blog.featured_image || imageSrc || "/images/blog/blog_1.png";
-  const blogAuthor = typeof blog.author === 'object' ? blog.author.name : (blog.author || author);
-  const blogDate = blog.createdAt ? new Date(blog.createdAt).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  }) : date;
-  const blogReadTime = blog.readTime || readTime;
-  const blogCategory = blog.category || category;
-  const blogTags = blog.tags || tags;
-  const blogExcerpt = blog.excerpt || excerpt || "Discover valuable insights in this article...";
+  .professional-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      ${isDark ? 'rgba(59, 172, 99, 0.4)' : 'rgba(59, 172, 99, 0.5)'} 20%, 
+      ${isDark ? 'rgba(99, 102, 241, 0.4)' : 'rgba(99, 102, 241, 0.5)'} 80%, 
+      transparent 100%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
   
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    // Initial check
-    checkIfMobile();
-    
-    // Add event listener for window resize
-    window.addEventListener('resize', checkIfMobile);
-    
-    // Cleanup
-    return () => window.removeEventListener('resize', checkIfMobile);
-  }, []);
+  .professional-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 1.5rem;
+    padding: 1px;
+    background: linear-gradient(135deg, 
+      ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.8)'} 0%,
+      transparent 50%,
+      ${isDark ? 'rgba(59, 172, 99, 0.1)' : 'rgba(59, 172, 99, 0.2)'} 100%);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: xor;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
   
-  const handleMouseEnter = () => {
-    if (!isMobile) {
-      setIsHovered(true);
-    }
-  };
+  .professional-card:hover {
+    transform: translateY(-12px) scale(1.02);
+    box-shadow: 
+      ${isDark 
+        ? '0 32px 80px rgba(0, 0, 0, 0.6), 0 16px 48px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15)' 
+        : '0 32px 80px rgba(0, 0, 0, 0.12), 0 16px 48px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 1)'};
+    border-color: ${isDark 
+      ? 'rgba(59, 172, 99, 0.4)' 
+      : 'rgba(59, 172, 99, 0.6)'};
+  }
   
-  const handleMouseLeave = () => {
-    if (!isMobile) {
-      setIsHovered(false);
-    }
-  };
+  .professional-card:hover::before,
+  .professional-card:hover::after {
+    opacity: 1;
+  }
   
-  const handleImageLoad = () => setIsImageLoaded(true);
-  const handleImageError = () => setIsImageError(true);
+  .professional-card.featured {
+    border: 2px solid ${isDark 
+      ? 'rgba(59, 172, 99, 0.5)' 
+      : 'rgba(59, 172, 99, 0.6)'};
+    background: ${isDark 
+      ? 'rgba(15, 23, 42, 0.8)' 
+      : 'rgba(255, 255, 255, 0.98)'};
+    box-shadow: 
+      ${isDark 
+        ? '0 24px 70px rgba(59, 172, 99, 0.15), 0 12px 40px rgba(0, 0, 0, 0.3)' 
+        : '0 24px 70px rgba(59, 172, 99, 0.1), 0 12px 40px rgba(0, 0, 0, 0.06)'};
+  }
   
-  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>, blogId?: string) => {
-    try {
-      // Only trigger this on mobile and not when clicking the button, link, or other interactive elements
-      if (isMobile && 
-          !e.target.closest('button') && 
-          !e.target.closest('a') && 
-          !e.target.closest('input') &&
-          !e.target.closest('[role="button"]') &&
-          blogId) {
-        e.preventDefault();
-        router.push(`/blogs/${blogId}`);
-      }
-    } catch (error) {
-      console.error('Error navigating to blog:', error);
-      // Fallback to regular link navigation
-      if (blogId) {
-        window.location.href = `/blogs/${blogId}`;
-      }
-    }
-  };
+  .glass-badge {
+    background: ${isDark 
+      ? 'rgba(59, 172, 99, 0.3)' 
+      : 'rgba(59, 172, 99, 0.2)'};
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid ${isDark 
+      ? 'rgba(59, 172, 99, 0.5)' 
+      : 'rgba(59, 172, 99, 0.4)'};
+    border-radius: 1rem;
+    box-shadow: 
+      0 8px 24px rgba(59, 172, 99, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
   
-  // Add error boundary for the entire component
-  if (!blog) {
-    return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
-        <p className="text-gray-500 dark:text-gray-400">Blog post not available</p>
-      </div>
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 8px 24px rgba(59, 172, 99, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2); }
+    50% { box-shadow: 0 8px 32px rgba(59, 172, 99, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3); }
+  }
+  
+  .category-badge {
+    background: ${isDark 
+      ? 'rgba(15, 23, 42, 0.9)' 
+      : 'rgba(255, 255, 255, 0.95)'};
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid ${isDark 
+      ? 'rgba(255, 255, 255, 0.15)' 
+      : 'rgba(0, 0, 0, 0.08)'};
+    border-radius: 0.75rem;
+    box-shadow: 
+      0 4px 16px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.8)'};
+  }
+  
+  .stats-badge {
+    background: ${isDark 
+      ? 'rgba(15, 23, 42, 0.8)' 
+      : 'rgba(255, 255, 255, 0.9)'};
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid ${isDark 
+      ? 'rgba(255, 255, 255, 0.1)' 
+      : 'rgba(0, 0, 0, 0.06)'};
+    border-radius: 0.625rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
+  
+  .read-more-btn {
+    background: ${isDark 
+      ? 'rgba(59, 172, 99, 0.25)' 
+      : 'rgba(59, 172, 99, 0.15)'};
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid ${isDark 
+      ? 'rgba(59, 172, 99, 0.4)' 
+      : 'rgba(59, 172, 99, 0.3)'};
+    border-radius: 1rem;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 16px rgba(59, 172, 99, 0.1);
+  }
+  
+  .read-more-btn:hover {
+    background: ${isDark 
+      ? 'rgba(59, 172, 99, 0.4)' 
+      : 'rgba(59, 172, 99, 0.25)'};
+    transform: translateX(6px) scale(1.1);
+    box-shadow: 0 6px 24px rgba(59, 172, 99, 0.2);
+  }
+  
+  .image-overlay {
+    background: linear-gradient(
+      135deg,
+      ${isDark ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.15)'} 0%,
+      transparent 40%,
+      transparent 60%,
+      ${isDark ? 'rgba(59, 172, 99, 0.15)' : 'rgba(59, 172, 99, 0.08)'} 100%
+    );
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  
+  .professional-card:hover .image-overlay {
+    opacity: 1;
+  }
+  
+  .content-gradient {
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      ${isDark ? 'rgba(15, 23, 42, 0.05)' : 'rgba(255, 255, 255, 0.05)'} 100%
     );
   }
   
+  .tag-chip {
+    background: ${isDark 
+      ? 'rgba(99, 102, 241, 0.15)' 
+      : 'rgba(99, 102, 241, 0.1)'};
+    border: 1px solid ${isDark 
+      ? 'rgba(99, 102, 241, 0.3)' 
+      : 'rgba(99, 102, 241, 0.2)'};
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+  }
+  
+  .tag-chip:hover {
+    background: ${isDark 
+      ? 'rgba(99, 102, 241, 0.25)' 
+      : 'rgba(99, 102, 241, 0.15)'};
+    transform: translateY(-1px);
+  }
+  
+  .author-avatar {
+    background: linear-gradient(135deg, 
+      ${isDark ? 'rgba(59, 172, 99, 0.3)' : 'rgba(59, 172, 99, 0.2)'} 0%,
+      ${isDark ? 'rgba(99, 102, 241, 0.3)' : 'rgba(99, 102, 241, 0.2)'} 100%);
+    border: 2px solid ${isDark 
+      ? 'rgba(255, 255, 255, 0.15)' 
+      : 'rgba(255, 255, 255, 0.8)'};
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+`;
+
+const BlogCard: React.FC<BlogCardProps> = ({ blog, className = "" }) => {
+  const router = useRouter();
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  
+  const isDark = mounted ? theme === 'dark' : false;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Inject glassmorphic styles
+  useEffect(() => {
+    if (!mounted) return;
+    
+    const existingStyle = document.getElementById('professional-card-styles');
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+    
+    const styleSheet = document.createElement("style");
+    styleSheet.id = 'professional-card-styles';
+    styleSheet.innerText = getGlassCardStyles(isDark);
+    document.head.appendChild(styleSheet);
+    
+    return () => {
+      const styleToRemove = document.getElementById('professional-card-styles');
+      if (styleToRemove) {
+        styleToRemove.remove();
+      }
+    };
+  }, [mounted, isDark]);
+
+  // Helper functions to extract data from API response
+  const getImageUrl = () => {
+    return blog.upload_image || blog.featured_image || "/api/placeholder/600/400";
+  };
+
+  const getExcerpt = () => {
+    const description = blog.description || blog.excerpt || "";
+    // Clean HTML tags if present
+    const cleanDescription = description.replace(/<[^>]*>/g, '');
+    // Limit to reasonable length
+    return cleanDescription.length > 160 
+      ? cleanDescription.substring(0, 160) + "..." 
+      : cleanDescription;
+  };
+
+  const getCategoryName = () => {
+    if (blog.category) return blog.category;
+    
+    if (blog.categories && Array.isArray(blog.categories) && blog.categories.length > 0) {
+      const firstCategory = blog.categories[0];
+      if (typeof firstCategory === 'object' && firstCategory.category_name) {
+        return firstCategory.category_name;
+      }
+      if (typeof firstCategory === 'string') {
+        return firstCategory;
+      }
+    }
+    
+    return 'General';
+  };
+
+  const getAuthorName = () => {
+    if (blog.author?.name) return blog.author.name;
+    if (blog.author?.email) {
+      // Extract name from email if no name provided
+      return blog.author.email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    }
+    return 'Anonymous';
+  };
+
+  const getPublishedDate = () => {
+    const date = blog.publishedAt || blog.createdAt;
+    return date ? new Date(date) : new Date();
+  };
+
+  const getReadTime = () => {
+    if (blog.reading_time) return blog.reading_time;
+    if (blog.read_time) return blog.read_time;
+    
+    // Estimate read time based on description length
+    const text = blog.description || blog.excerpt || "";
+    const wordsPerMinute = 200;
+    const wordCount = text.split(/\s+/).length;
+    return Math.max(1, Math.ceil(wordCount / wordsPerMinute));
+  };
+
+  const getCleanTags = () => {
+    if (!blog.tags || !Array.isArray(blog.tags)) return [];
+    
+    // Filter out malformed tags (like JSON strings)
+    return blog.tags.filter(tag => {
+      if (typeof tag !== 'string') return false;
+      // Filter out JSON-like strings
+      if (tag.includes('{') || tag.includes('}') || tag.includes('"')) return false;
+      return tag.trim().length > 0;
+    });
+  };
+
+  const getBlogUrl = () => {
+    // Use _id for routing to match the [id] dynamic route in page.tsx
+    // The page.tsx expects the ID parameter and fetches by ID
+    return `/blogs/${blog._id}`;
+  };
+
+  const formatViews = (views: number) => {
+    if (views >= 1000) {
+      return `${(views / 1000).toFixed(1)}k`;
+    }
+    return views.toString();
+  };
+
+  const defaultImage = "/api/placeholder/600/400";
+  const imageUrl = getImageUrl();
+  const timeAgo = formatDistanceToNow(getPublishedDate(), { addSuffix: true });
+  const excerpt = getExcerpt();
+  const categoryName = getCategoryName();
+  const authorName = getAuthorName();
+  const readTime = getReadTime();
+  const cleanTags = getCleanTags();
+
   return (
-    <div 
-      ref={cardRef}
-      className={`bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 h-full flex flex-col group relative ${isMobile ? 'active:scale-[0.98]' : ''}`}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onClick={(e) => handleCardClick(e, blogId)}
-    >
-      {/* Image container with overlay effect */}
-      <div className="relative overflow-hidden aspect-[16/9]">
-        <div className={`absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10 ${isHovered ? 'opacity-70' : 'opacity-30'} group-hover:opacity-60 transition-opacity duration-300`}></div>
-        
-        {/* Skeleton loader */}
-        {!isImageLoaded && !isImageError && (
-          <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-        )}
-        
-        <Image
-          src={blogImage}
-          alt={blogTitle || "Blog image"}
-          fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          className={`object-cover object-center transform group-hover:scale-105 transition-transform duration-500 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
-          loading="lazy"
-          quality={80}
-          onLoad={handleImageLoad}
-          onError={handleImageError}
-        />
-        
-        {/* Category tag */}
-        <div className="absolute top-4 right-4 z-20">
-          <span className="inline-block bg-primary-500/80 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
-            {blogCategory}
-          </span>
-        </div>
-        
-        {/* Read time badge */}
-        <div className="absolute bottom-4 left-4 z-20">
-          <span className="inline-flex items-center bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
-            <Clock size={12} className="mr-1" />
-            {blogReadTime}
-          </span>
-        </div>
-      </div>
-      
-      {/* Content area */}
-      <div className="p-6 flex flex-col flex-grow">
-        {/* Meta information */}
-        <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
-          <div className="flex items-center gap-1">
-            <User size={14} className="text-primary-500" />
-            <span className="font-medium">{blogAuthor}</span>
+    <article className={`professional-card ${blog.featured ? 'featured' : ''} group ${className}`}>
+      <Link href={getBlogUrl()} className="block h-full">
+        {/* Image Section */}
+        <div className="relative h-64 overflow-hidden">
+          {/* Loading skeleton */}
+          {!imageLoaded && (
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 animate-pulse">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+            </div>
+          )}
+          
+          <Image
+            src={imageError ? defaultImage : imageUrl}
+            alt={blog.title}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className={`object-cover transition-all duration-700 group-hover:scale-110 ${
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageError(true)}
+            priority={blog.featured}
+          />
+          
+          {/* Image overlay */}
+          <div className="image-overlay absolute inset-0"></div>
+          
+          {/* Featured Badge */}
+          {blog.featured && (
+            <div className="absolute top-4 left-4 z-10">
+              <div className="glass-badge flex items-center gap-2 px-4 py-2 text-xs font-bold text-white">
+                <Sparkles className="w-4 h-4" />
+                <span>Featured</span>
+              </div>
+            </div>
+          )}
+
+          {/* Category Badge */}
+          <div className="absolute top-4 right-4 z-10">
+            <div className="category-badge px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+              {categoryName}
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Calendar size={14} className="text-primary-500" />
-            <span>{blogDate}</span>
+
+          {/* Bottom Stats Row */}
+          <div className="absolute bottom-4 left-4 right-4 z-10 flex items-center justify-between">
+            {/* Read Time */}
+            <div className="stats-badge flex items-center gap-2 px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-400">
+              <Clock className="w-3.5 h-3.5" />
+              <span>{readTime} min</span>
+            </div>
+
+            {/* Views & External Link */}
+            <div className="flex items-center gap-2">
+              {blog.views !== undefined && blog.views > 0 && (
+                <div className="stats-badge flex items-center gap-2 px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-400">
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  <span>{formatViews(blog.views)}</span>
+                </div>
+              )}
+              
+              {blog.blog_link && (
+                <div className="stats-badge p-2 text-gray-600 dark:text-gray-400">
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </div>
+              )}
+            </div>
           </div>
         </div>
-        
-        {/* Title */}
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 flex-grow group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-          {blogTitle}
-        </h3>
-        
-        {/* Excerpt - show only on hover for desktop or always for mobile */}
-        <div className={`mb-3 text-sm text-gray-600 dark:text-gray-400 line-clamp-2 transition-opacity duration-300 ${isMobile ? 'block' : (isHovered ? 'opacity-100' : 'opacity-0 h-0 mb-0')}`}>
-          {blogExcerpt}
-        </div>
-        
-        {/* Tags - show on hover */}
-        {blogTags && blogTags.length > 0 && (
-          <div className={`flex flex-wrap gap-2 mb-3 transition-opacity duration-300 ${isMobile ? 'block' : (isHovered ? 'opacity-100' : 'opacity-0 h-0 mb-0')}`}>
-            {blogTags.slice(0, 3).map((tag, index) => (
-              <span key={index} className="text-xs text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 px-2 py-1 rounded-md">
-                #{tag}
-              </span>
-            ))}
+
+        {/* Content Section */}
+        <div className="content-gradient p-7 flex flex-col h-full">
+          {/* Title */}
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-300 leading-tight">
+            {blog.title}
+          </h3>
+
+          {/* Excerpt */}
+          {excerpt && (
+            <p className="text-gray-600 dark:text-gray-300 mb-6 line-clamp-3 text-sm leading-relaxed flex-grow">
+              {excerpt}
+            </p>
+          )}
+
+          {/* Tags */}
+          {cleanTags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-6">
+              {cleanTags.slice(0, 2).map((tag, index) => (
+                <span
+                  key={index}
+                  className="tag-chip px-3 py-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400 rounded-full"
+                >
+                  #{tag}
+                </span>
+              ))}
+              {cleanTags.length > 2 && (
+                <span className="px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-500 bg-gray-100/50 dark:bg-gray-800/30 rounded-full">
+                  +{cleanTags.length - 2}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Meta Information */}
+          <div className="flex items-center justify-between pt-5 border-t border-gray-200/60 dark:border-gray-700/60 mt-auto">
+            {/* Author */}
+            <div className="flex items-center gap-3">
+              <div className="author-avatar w-9 h-9 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                  {authorName}
+                </span>
+                <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                  <Calendar className="w-3 h-3" />
+                  <span>{timeAgo}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Read More Button */}
+            <div className="read-more-btn p-3 opacity-0 group-hover:opacity-100 transition-all duration-400">
+              <ArrowRight className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+            </div>
           </div>
-        )}
-        
-        {/* Read More Button */}
-        <Link 
-          href={`/blogs/${blogId}`}
-          className="inline-flex items-center text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-semibold transition-colors"
-        >
-          {buttonText}
-          <ChevronRight size={16} className="ml-1 transition-transform group-hover:translate-x-1" />
-        </Link>
-      </div>
-      
-      {/* View more button for mobile - only visible on mobile */}
-      {isMobile && (
-        <div className="absolute bottom-3 right-3 z-20">
-          <Link
-            href={`/blogs/${blogId}`}
-            className="flex items-center justify-center p-2 bg-gradient-to-r from-primary-500 to-secondary-500 text-white text-xs font-medium rounded-full shadow-md"
-          >
-            <ArrowRight size={16} />
-          </Link>
         </div>
-      )}
-    </div>
+      </Link>
+    </article>
   );
 };
 
-export default BlogCard; 
+export default BlogCard;

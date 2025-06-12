@@ -26,7 +26,13 @@ import {
   ArrowRight,
   Heart,
   Lock,
-  Info
+  Info,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Maximize,
+  Loader
 } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
@@ -49,6 +55,210 @@ import Preloader from '@/components/shared/others/Preloader';
 // Assets
 import Pdf from '@/assets/images/course-detailed/pdf-icon.svg';
 import { getCourseById } from '@/apis/course/course';
+
+// Course Video Player Component
+const CourseVideoPlayer = ({ courseId, courseTitle, courseVideos, primaryColor }) => {
+  const [isPlaying, setIsPlaying] = useState(true); // Start with playing state
+  const [isMuted, setIsMuted] = useState(true); // Start muted for autoplay
+  const [showControls, setShowControls] = useState(false); // Hide controls by default
+  const [isLoading, setIsLoading] = useState(false);
+  const [videoUrl, setVideoUrl] = useState('');
+  const videoRef = useRef(null);
+  const containerRef = useRef(null);
+
+  // Extract video URL from course videos or use a default promotional video
+  useEffect(() => {
+    if (courseVideos && courseVideos.length > 0) {
+      // Use the first course video as promotional video
+      setVideoUrl(courseVideos[0].video_url || courseVideos[0].url);
+    } else {
+      // You can set a default promotional video URL here
+      setVideoUrl('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4');
+    }
+  }, [courseVideos]);
+
+  const togglePlay = async () => {
+    if (!videoRef.current) return;
+    
+    setIsLoading(true);
+    try {
+      if (isPlaying) {
+        await videoRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        await videoRef.current.play();
+        setIsPlaying(true);
+      }
+    } catch (error) {
+      console.error('Video play error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const handleVideoLoad = () => {
+    setIsLoading(false);
+    // Auto play when video is loaded
+    if (videoRef.current) {
+      videoRef.current.play().catch(error => {
+        console.log('Autoplay failed:', error);
+        setIsPlaying(false);
+      });
+    }
+  };
+
+  const handleVideoError = () => {
+    setIsLoading(false);
+    setIsPlaying(false);
+    console.error('Video failed to load');
+  };
+
+  const toggleFullscreen = async () => {
+    if (!containerRef.current) return;
+    
+    try {
+      if (!document.fullscreenElement) {
+        await containerRef.current.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (error) {
+      console.error('Fullscreen error:', error);
+    }
+  };
+
+  if (!videoUrl) {
+    return (
+      <div className="relative w-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-xl flex items-center justify-center" style={{ aspectRatio: '21/9' }}>
+        <div className="text-center">
+          <div className={`w-16 h-16 bg-${primaryColor}-100 dark:bg-${primaryColor}-900/30 rounded-full flex items-center justify-center mb-3`}>
+            <Play className={`w-8 h-8 text-${primaryColor}-600 dark:text-${primaryColor}-400`} />
+          </div>
+          <p className="text-gray-600 dark:text-gray-400">Course preview video coming soon</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-full group">
+      {/* Video Container */}
+      <div 
+        ref={containerRef}
+        className="relative w-full bg-black rounded-xl overflow-hidden shadow-lg group cursor-pointer"
+        style={{ aspectRatio: '21/9' }}
+        onMouseEnter={() => setShowControls(true)}
+        onMouseLeave={() => setShowControls(false)}
+      >
+        <video
+          ref={videoRef}
+          className="w-full h-full object-cover"
+          poster={courseVideos?.[0]?.thumbnail || ''}
+          autoPlay
+          muted
+          loop
+          playsInline
+          onLoadStart={() => setIsLoading(true)}
+          onCanPlay={handleVideoLoad}
+          onError={handleVideoError}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+        >
+          <source src={videoUrl} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+
+        {/* Video Controls Overlay - Show on hover with play/pause icon */}
+        <motion.div 
+          className={`absolute inset-0 bg-black/30 flex items-center justify-center transition-all duration-300 ${
+            showControls ? 'opacity-100' : 'opacity-0'
+          }`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: showControls ? 1 : 0 }}
+          onClick={togglePlay}
+        >
+          {/* Play/Pause Icon */}
+          <motion.div
+            className="flex items-center justify-center w-20 h-20 bg-white/90 dark:bg-gray-900/90 rounded-full shadow-xl hover:bg-white dark:hover:bg-gray-800 transition-all duration-300 backdrop-blur-sm"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ 
+              scale: showControls ? 1 : 0.8, 
+              opacity: showControls ? 1 : 0 
+            }}
+            transition={{ duration: 0.3 }}
+          >
+            {isLoading ? (
+              <Loader className="w-10 h-10 text-gray-600 dark:text-gray-300 animate-spin" />
+            ) : isPlaying ? (
+              <Pause className="w-10 h-10 text-gray-800 dark:text-gray-200" />
+            ) : (
+              <Play className="w-10 h-10 text-gray-800 dark:text-gray-200 ml-1" />
+            )}
+          </motion.div>
+        </motion.div>
+
+        {/* Bottom Controls */}
+        <motion.div 
+          className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 transition-opacity duration-300 ${
+            showControls ? 'opacity-100' : 'opacity-0'
+          }`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: showControls ? 1 : 0 }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={toggleMute}
+                className="text-white hover:text-gray-300 transition-colors"
+              >
+                {isMuted ? (
+                  <VolumeX className="w-5 h-5" />
+                ) : (
+                  <Volume2 className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+            
+            {/* Fullscreen Button */}
+            <div className="flex items-center">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleFullscreen();
+                }}
+                className="text-white hover:text-gray-300 transition-colors p-1 rounded hover:bg-white/20"
+                title="Toggle Fullscreen"
+              >
+                <Maximize className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Loading Overlay */}
+        {isLoading && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+            <div className="text-center text-white">
+              <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
+              <p className="text-sm">Loading video...</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+
+    </div>
+  );
+};
 
 const CourseDetailsPage = ({ ...props }) => {
   // State for active section and navigation
@@ -1705,7 +1915,7 @@ const CourseDetailsPage = ({ ...props }) => {
       {/* Course Header with Download Brochure */}
       <div className="mb-3 sm:mb-4 md:mb-6">
         <div className="relative overflow-hidden rounded-lg sm:rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="p-4 sm:p-6">
+          <div className="py-4 sm:py-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div className="flex-1">
                 {/* Course Title and Description - Premium Glassmorphic Design - More Compact */}
@@ -1716,63 +1926,34 @@ const CourseDetailsPage = ({ ...props }) => {
                   transition={{ duration: 0.4 }}
                 >
                   {/* Glassmorphic Container */}
-                  <div className="relative backdrop-blur-md bg-white/30 dark:bg-gray-900/40 rounded-xl p-5 sm:p-6 shadow-lg border border-white/20 dark:border-gray-700/30 overflow-hidden">
+                  <div className="relative backdrop-blur-md bg-white/30 dark:bg-gray-900/40 rounded-xl p-4 sm:p-6 md:p-8 shadow-lg border border-white/20 dark:border-gray-700/30 overflow-hidden">
                     {/* Background Elements */}
                     <div className="absolute -top-24 -right-24 w-40 h-40 rounded-full bg-gradient-to-br from-purple-300/30 to-blue-300/30 dark:from-purple-500/20 dark:to-blue-500/20 blur-2xl"></div>
                     <div className="absolute -bottom-24 -left-24 w-40 h-40 rounded-full bg-gradient-to-tr from-amber-300/30 to-rose-300/30 dark:from-amber-500/20 dark:to-rose-500/20 blur-2xl"></div>
                     
                     {/* Content with proper z-index */}
                     <div className="relative z-10">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-                        <div className="flex-1">
-                          {/* Title with refined typography */}
-                          <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-2 leading-tight text-gray-900 dark:text-white`}>
-                            {courseDetails?.course_title}
-                            <span className={`text-sm sm:text-base block mt-1 text-transparent bg-clip-text bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-600 to-${getCategoryColorClasses().primaryColor}-400 dark:from-${getCategoryColorClasses().primaryColor}-400 dark:to-${getCategoryColorClasses().primaryColor}-300`}>
-                              Excellence in Learning
-                            </span>
-                          </h1>
-                          
-                          {/* Compact Separator */}
-                          <div className="flex items-center my-3">
-                            <div className={`flex-grow h-0.5 max-w-[60px] bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-500 to-transparent rounded-full`}></div>
-                            <div className={`mx-2 h-1.5 w-1.5 rounded-full bg-${getCategoryColorClasses().primaryColor}-500`}></div>
-                            <div className={`flex-grow h-0.5 max-w-[20px] bg-gradient-to-l from-${getCategoryColorClasses().primaryColor}-500 to-transparent rounded-full`}></div>
-                          </div>
+                      {/* Title with refined typography */}
+                      <h1 className={`text-xl sm:text-2xl lg:text-3xl font-extrabold mb-2 leading-tight text-gray-900 dark:text-white`}>
+                        {courseDetails?.course_title}
+                      </h1>
+                      
+                      {/* Full Width Separator */}
+                      <div className="my-3">
+                        <div className="w-full h-0.5 bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 rounded-full"></div>
+                      </div>
+                        
+                        {/* Course Video Player */}
+                        <div className="mt-4 w-full px-1">
+                          <CourseVideoPlayer 
+                            courseId={courseId}
+                            courseTitle={courseDetails?.course_title}
+                            courseVideos={courseDetails?.course_videos}
+                            primaryColor={getCategoryColorClasses().primaryColor}
+                          />
                         </div>
                         
-                        {/* Download Brochure Button - Glassmorphic Style */}
-                        <div className="flex-shrink-0">
-                          <button
-                            onClick={() => setShowBrochureModal(true)}
-                            className="group relative overflow-hidden backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 px-4 py-2.5 rounded-lg border border-white/30 dark:border-gray-700/30 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-2"
-                          >
-                            {/* Button Background Effect */}
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-                            
-                            <Download className={`h-4 w-4 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400 relative z-10`} />
-                            <span className="text-sm font-medium text-gray-800 dark:text-gray-200 relative z-10">Download Brochure</span>
-                          </button>
-                        </div>
-                      </div>
-                      
-                      {/* Description with improved readability - More Compact */}
-                      <div className="text-sm sm:text-base text-gray-700/90 dark:text-gray-300/90 leading-relaxed font-light mt-3">
-                        <p>{(() => {
-                          // Handle both string and object formats for course_description
-                          let description = '';
-                          if (typeof courseDetails?.course_description === 'string') {
-                            description = courseDetails.course_description;
-                          } else if (typeof courseDetails?.course_description === 'object' && courseDetails?.course_description?.program_overview) {
-                            description = courseDetails.course_description.program_overview;
-                          } else {
-                            description = 'Course description not available.';
-                          }
-                          return description.length > 180 ? description.slice(0, 180) + '...' : description;
-                        })()}</p>
-                      </div>
-                      
-                      {/* Premium UI Feature Indicators - More Compact */}
+                        {/* Premium UI Feature Indicators - More Compact */}
                       <div className="flex flex-wrap gap-2 mt-4">
                         <div className="flex items-center px-2.5 py-1 bg-white/70 dark:bg-gray-800/70 rounded-lg shadow-sm border border-gray-100/80 dark:border-gray-700/80">
                           <Clock className={`h-3.5 w-3.5 text-${getCategoryColorClasses().primaryColor}-500 mr-1.5`} />
@@ -1803,25 +1984,27 @@ const CourseDetailsPage = ({ ...props }) => {
       </div>
 
       {/* Navigation */}
-      <div className="sticky top-14 z-40 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+      <div className="sticky top-14 z-40 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 py-2">
         <CourseNavigation 
           activeSection={activeSection} 
           scrollToSection={scrollToSection} 
           showCertificate={hasCertificate()}
           primaryColor={getCategoryColorClasses().primaryColor}
           categoryColorClasses={getCategoryColorClasses()}
+          showDownloadBrochure={hasBrochure()}
+          onDownloadBrochure={() => setShowBrochureModal(true)}
         />
       </div>
 
       {/* Content Area */}
-      <div className="px-3 sm:px-4 pt-2 sm:pt-4 pb-4">
+      <div className="pt-2 sm:pt-4 pb-4">
         <AnimatePresence mode="wait">
           {renderActiveSection()}
         </AnimatePresence>
       </div>
 
       {/* Mobile Stats */}
-      <div className="block sm:hidden px-3 mb-2">
+      <div className="block sm:hidden mb-2">
         <CourseStats 
           duration={formatDuration(courseDetails)}
           students="75+" 
