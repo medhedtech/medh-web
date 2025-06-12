@@ -159,7 +159,7 @@ interface SidebarDashboardProps {
 // Enhanced sidebar animation variants for better mobile experience
 const sidebarVariants = {
   expanded: {
-    width: '260px', // Increased from 220px to provide more space
+    width: '280px', // Increased to 280px to provide more space for longer text
     transition: {
       type: 'spring',
       stiffness: 190,
@@ -1452,7 +1452,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
                       className={`flex items-center w-full rounded-xl transition-all duration-200 ${
                         isMobileDevice || isTabletDevice 
                           ? 'p-4 min-h-[56px]' // Larger touch targets for mobile/tablet
-                          : isVeryCompact ? 'py-1.5' : isCompact ? 'py-2' : 'p-3'
+                          : isVeryCompact ? 'py-2 px-3' : isCompact ? 'py-2.5 px-3' : 'p-3'
                       } ${
                         isActive 
                           ? "bg-primary-50/80 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400" 
@@ -1499,13 +1499,18 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
                             initial="collapsed"
                             animate="expanded"
                             exit="collapsed"
-                            className={`ml-3 font-medium text-left line-clamp-1 whitespace-nowrap overflow-hidden`}
+                            className={`ml-3 mt-0.5 font-medium text-left leading-tight ${
+                              isMobileDevice || isTabletDevice 
+                                ? 'line-clamp-2' // Allow 2 lines on mobile/tablet
+                                : 'line-clamp-2' // Allow 2 lines on desktop too
+                            }`}
                             style={{
                               fontSize: isMobileDevice 
                                 ? "16px" 
                                 : isTabletDevice 
                                   ? "15px" 
-                                  : isVeryCompact ? "12px" : isCompact ? "13px" : "14px"
+                                  : isVeryCompact ? "12px" : isCompact ? "13px" : "14px",
+                              lineHeight: isMobileDevice || isTabletDevice ? "1.3" : "1.25"
                             }}
                           >
                             {item.name}
