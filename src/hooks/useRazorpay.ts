@@ -752,7 +752,7 @@ export const useRazorpay = (): UseRazorpayReturn => {
         key,
         amount: order.amount.toString(),
         currency: order.currency, // Use the currency from the order
-        name: 'MEDH Learning Platform',
+        name: 'MEDH',
         description: payload.productInfo.description,
         order_id: order.id,
         handler: handlePaymentSuccess,
