@@ -2,6 +2,7 @@
 
 import React from "react";
 import DashboardLayout from "./StudentDashboardLayout";
+import EnrolledCoursesMain from "@/components/layout/main/dashboards/EnrolledCoursesMain";
 
 /**
  * EnrolledCoursesDashboard - Component that displays the student's enrolled courses page
@@ -20,7 +21,9 @@ const EnrolledCoursesDashboard: React.FC = () => {
         language: "en",
         notifications: true
       }}
-    />
+    >
+      <EnrolledCoursesMain />
+    </DashboardLayout>
   );
 };
 
