@@ -1595,7 +1595,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   const renderCourseList = useCallback(() => {
     if (loading) {
       return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 xl:gap-6 2xl:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2">
           {Array.from({ length: itemsPerPage }).map((_, idx) => (
             <div 
               key={idx} 
@@ -1603,9 +1603,9 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
               role="presentation"
             >
               {/* Skeleton Image */}
-              <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded-t-2xl mb-4"></div>
+                <div className="h-40 bg-gray-200 dark:bg-gray-700 rounded-t-2xl mb-3"></div>
               {/* Skeleton Content */}
-              <div className="px-4 pb-4 flex-1 space-y-3">
+              <div className="px-3 pb-3 flex-1 space-y-2">
                 <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
                 <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
                 <div className="space-y-2 mt-4">
@@ -1627,10 +1627,10 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
       return emptyStateContent || renderNoResults();
     }
 
-    return (
-      <div className="relative">
+          return (
+      <div className="relative px-1">
         {/* Enhanced Course Cards Grid - Responsive for all screen sizes */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 xl:gap-6 2xl:gap-8 auto-rows-fr">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 auto-rows-fr">
             {filteredCourses.map((course, index) => {
               if (!course || !course._id) {
                 console.warn('Invalid course data:', course);
@@ -1943,9 +1943,9 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     if (hideCategoryFilter) return null;
     
     return (
-      <div className={`lg:w-1/4 ${showFilters ? "block" : "hidden lg:block"}`}>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between mb-6">
+      <div className={`lg:w-[20%] ${showFilters ? "block" : "hidden lg:block"}`}>
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Filters</h3>
             <button
               onClick={handleClearFilters}
@@ -1957,8 +1957,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
           
           {/* Categories Section */}
           {!hideCategoryFilter && !hideCategories && (
-            <div className="space-y-4">
-              <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-4">Categories</h4>
+            <div className="space-y-2">
+                <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Categories</h4>
               
               {/* Live Courses */}
               <div className="bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/30 overflow-hidden" data-live-courses-dropdown>
@@ -2051,7 +2051,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                     {blendedLearningOptions.map((option, index) => (
                       <label
                         key={option}
-                        className={`flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 transform hover:scale-[1.02] ${isBlendedLearningDropdownOpen ? 'animate-slideIn' : ''}`}
+                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-200 ${isBlendedLearningDropdownOpen ? 'animate-slideIn' : ''}`}
                         style={{ animationDelay: `${index * 50}ms` }}
                       >
                         <div className="flex items-center space-x-3">
@@ -2593,7 +2593,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             <div 
               ref={filterScrollRef}
               onScroll={handleDropdownScroll}
-              className="overflow-y-auto max-h-80 p-4 space-y-6"
+              className="overflow-y-auto max-h-80 p-3 space-y-3"
             >
               {/* Clear All Button - moved to top */}
               <div className="flex justify-end">
@@ -2606,7 +2606,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             </div>
               
               {filterOptions.map((filterGroup) => (
-                <div key={filterGroup.id} className="space-y-3">
+                <div key={filterGroup.id} className="space-y-2">
                   <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
                     {filterGroup.label}
                   </h4>
@@ -2676,13 +2676,13 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   // Modern main content renderer
   const renderMainContent = (): React.ReactNode => {
     return (
-      <div className={!hideCategoryFilter ? "lg:w-3/4" : "w-full"}>
+      <div className={!hideCategoryFilter ? "lg:w-[80%]" : "w-full"}>
         {/* Header Section */}
-        <div className="mb-6">
+                  <div className="mb-3">
           {/* Results count - Improved styling */}
           {!hideFilterBar && (
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-              <div className="flex items-center gap-4 mb-4 sm:mb-0">
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
+              <div className="flex items-center gap-2 mb-2 sm:mb-0">
                 <div className="text-gray-700 dark:text-gray-300">
                   <span className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                     {totalItems.toLocaleString()}
@@ -2727,8 +2727,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
         </div>
 
         {/* Pagination Section - Fixed styling */}
-        {totalPages > 1 && (
-          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  {totalPages > 1 && (
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <nav className="flex justify-center" aria-label="Pagination">
               {simplePagination ? (
                 <SimplePaginationWrapper
@@ -2794,10 +2794,10 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
 
   return (
     <ErrorBoundary>
-      <section className="py-8" role="region" aria-label="Course Filter">
+      <section className="py-2" role="region" aria-label="Course Filter">
         {/* Modern header */}
         {!hideHeader && (
-          <div className="text-center mb-12">
+          <div className="text-center mb-6">
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
               {typeof CustomText === 'string' ? CustomText : "Explore Courses"}
             </h1>
@@ -2807,12 +2807,12 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
           </div>
         )}
 
-        {/* Main container */}
-        <div className="max-w-7xl mx-auto px-4">
+        {/* Main container - Remove side padding */}
+        <div className="max-w-full mx-auto">
           {/* Search and filters bar */}
           {!hideFilterBar && (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 mb-8 border border-gray-200 dark:border-gray-700 shadow-sm">
-              <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 mx-2 mb-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+                              <div className="flex flex-col md:flex-row gap-3 mb-4">
                 {!hideSearch && <SearchInput searchTerm={searchTerm} handleSearch={handleSearch} setSearchTerm={setSearchTerm} />}
                 
                 <div className="flex gap-4">
@@ -2855,7 +2855,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
           )}
 
           {/* Main content area with dynamic layout */}
-          <div className="flex flex-col lg:flex-row gap-8 relative">
+          <div className="flex flex-col lg:flex-row gap-4 relative">
             {renderSidebar()}
             {renderMainContent()}
           </div>
