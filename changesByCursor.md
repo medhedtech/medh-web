@@ -1,5 +1,6 @@
 # Changes By Cursor - AboutProgram Component Enhancements
 
+
 ## Summary
 Enhanced the AboutProgram component with modern UI/UX improvements, including sticky navigation, advanced animations, and interactive elements to provide a more engaging and user-friendly course details experience.
 
