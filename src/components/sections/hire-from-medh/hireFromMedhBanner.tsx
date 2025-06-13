@@ -1,9 +1,11 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Users, Target, Award, Brain, Database, ChevronRight, ArrowRight, Sparkles, ChevronDown, Globe, TrendingUp } from 'lucide-react';
+import { Users, Target, Award, Brain, Database, ChevronRight, ArrowRight, Sparkles, ChevronDown, Globe, TrendingUp, Shield } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import medhLogo from "@/assets/images/logo/medh.png";
 
 // Enhanced custom animations for the hire banner with theme-aware glassmorphism
 const getThemeStyles = (isDark: boolean) => `
@@ -331,25 +333,38 @@ const HireFromMedhBanner: React.FC<HireFromMedhBannerProps> = ({ onLearnMoreClic
             {/* Hero Content Card with Enhanced Glassmorphism */}
             <div className="mx-auto mb-4 glass-container rounded-2xl p-6 md:p-8 shadow-2xl max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-3xl">
               <div className="text-center">
-                {/* Badge */}
-                <div className={`inline-flex items-center px-2 py-1 glass-stats rounded-full text-xs font-medium mb-3 opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
-                  <Sparkles size={10} className="mr-1" />
-                  HIRE PROFESSIONALS FROM MEDH
+                {/* Certification Badges */}
+                <div className="flex flex-wrap justify-center gap-2 mb-3">
+                  <div className={`inline-flex items-center px-2 py-1 glass-stats rounded-full text-xs font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                    <Shield size={10} className="mr-1" />
+                    ISO Certified
+                  </div>
+                  <div className={`inline-flex items-center px-2 py-1 glass-stats rounded-full text-xs font-medium opacity-95 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
+                    <Award size={10} className="mr-1" />
+                    STEM Certified
+                  </div>
                 </div>
                 
                 {/* Main Heading */}
-                <h1 className={`text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3 leading-tight tracking-tight ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-light`}>
+                <h1 className={`text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3 leading-tight tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   <span className="block text-sm font-medium uppercase tracking-widest mb-2 opacity-80">Hire From Medh</span>
                   <span className="block whitespace-nowrap">Elite Global Talent Hub</span>
-                  <span className="block">with{' '}
-                    <span className="relative font-extrabold" style={{ color: '#3bac63' }}>
-                      Medh
+                  <span className="block"><em className="font-normal">with</em>{' '}
+                    <span className="inline-flex items-center">
+                      <Image 
+                        src={medhLogo} 
+                        alt="Medh Logo" 
+                        width={24} 
+                        height={24} 
+                        className="inline-block mx-1 h-6 sm:h-8 w-auto"
+                        style={{ filter: 'brightness(1.1) contrast(1.2)' }}
+                      />
                     </span>
                   </span>
                 </h1>
                 
                 {/* Description */}
-                <p className={`text-sm leading-relaxed mb-3 sm:mb-4 max-w-sm mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium text-shadow-medium`}>
+                <p className={`text-sm leading-relaxed mb-3 sm:mb-4 max-w-sm mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
                   Recruit top IT professionals in AI, Data Science, Digital Marketing, and more. Pre-vetted talent pool.
                 </p>
 
@@ -376,8 +391,8 @@ const HireFromMedhBanner: React.FC<HireFromMedhBannerProps> = ({ onLearnMoreClic
                   isDark 
                     ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
                     : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
-                }`}>
-                  Medh Hai Toh Mumkin Hai!
+                }`} style={{ transform: 'scaleX(1.1)', letterSpacing: '0.05em' }}>
+                  Medh Hai Toh Mumkin Hai !
                 </div>
               </div>
             </div>
@@ -410,25 +425,36 @@ const HireFromMedhBanner: React.FC<HireFromMedhBannerProps> = ({ onLearnMoreClic
           <div className={`mb-2 md:mb-3 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             <div className="glass-container rounded-3xl p-6 md:p-8 lg:p-12 mb-1 transform scale-90 max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto">
               {/* Badges */}
-              <div className="flex flex-wrap justify-center gap-2 mb-4">
-                <div className={`inline-flex items-center px-3 py-1.5 glass-stats rounded-full text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
-                  <Sparkles size={14} className="mr-2" />
-                  HIRE PROFESSIONALS FROM MEDH
+              <div className="flex flex-wrap justify-center gap-3 mb-4">
+                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                  <Shield size={10} className="mr-1 sm:w-3 sm:h-3" />
+                  ISO Certified
+                </div>
+                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
+                  <Award size={10} className="mr-1 sm:w-3 sm:h-3" />
+                  STEM Certified
                 </div>
               </div>
                
               {/* Main Heading */}
-              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-4 md:mb-6 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-light`}>
+              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-4 md:mb-6 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 <span className="block text-sm sm:text-base font-medium uppercase tracking-widest mb-3 opacity-80">Hire From Medh</span>
                 <span className="block whitespace-nowrap">Elite Global Talent Hub</span>
-                <span className="block">with{' '}
-                  <span className="relative font-extrabold" style={{ color: '#3bac63' }}>
-                    Medh
+                <span className="block"><em className="font-semibold">with</em>{' '}
+                  <span className="inline-flex items-center">
+                    <Image 
+                      src={medhLogo} 
+                      alt="Medh Logo" 
+                      width={24} 
+                      height={24} 
+                      className="inline-block mx-2 h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto"
+                      style={{ filter: 'brightness(1.1) contrast(1.2)' }}
+                    />
                   </span>
                 </span>
               </h1>
                 
-              <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium text-shadow-medium`}>
+              <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
                 Recruit top IT professionals in areas including AI, Data Science, Digital Marketing, Analytics, Cybersecurity, and more. Save time and resources with our pre-vetted talent.
               </p>
 
@@ -475,8 +501,8 @@ const HireFromMedhBanner: React.FC<HireFromMedhBannerProps> = ({ onLearnMoreClic
                 isDark 
                   ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
                   : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
-              }`}>
-                Medh Hai Toh Mumkin Hai!
+              }`} style={{ transform: 'scaleX(1.1)', letterSpacing: '0.05em' }}>
+                Medh Hai Toh Mumkin Hai !
               </div>
             </div>
           </div>
