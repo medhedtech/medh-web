@@ -662,7 +662,7 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     } else if (viewMatches(['membership'])) {
       return <StudentMembership />;
     } else if (viewMatches(['enrolledcourses', 'enrolled-courses', 'enrolled'])) {
-      return <StudentEnrolledCourses />;
+      return <EnrolledCoursesMain />;
     } else if (viewMatches(['quiz', 'quizzes'])) {
       return <QuizMain />;
     } else if (viewMatches(['feedback', 'support'])) {
