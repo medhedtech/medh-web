@@ -5,6 +5,7 @@ import { CookieConsentProvider } from "@/contexts/CookieConsentContext";
 import { StorageProvider } from "@/contexts/StorageContext";
 import { PlacementFormProvider } from "@/context/PlacementFormContext";
 import { ServerLoadingProvider } from "@/providers/ServerLoadingProvider";
+import { LoadingProvider } from "@/contexts/LoadingContext";
 import { ThemeProvider } from "next-themes";
 import { ToastContainer } from "react-toastify";
 import { ReactNode } from "react";
@@ -24,14 +25,15 @@ export default function Providers({ children }: ProvidersProps) {
     >
       <StorageProvider>
         <CookieConsentProvider>
-          <ServerLoadingProvider 
-            showGlobalIndicator={true}
-            maxDisplayedStates={3}
-            autoHideDelay={5000}
-          >
-            <CartContextProvider>
-              <PlacementFormProvider>
-                {children}
+          <LoadingProvider>
+            <ServerLoadingProvider 
+              showGlobalIndicator={true}
+              maxDisplayedStates={3}
+              autoHideDelay={5000}
+            >
+              <CartContextProvider>
+                <PlacementFormProvider>
+                  {children}
                 <ToastContainer
                   position="top-right"
                   autoClose={5000}
@@ -44,9 +46,10 @@ export default function Providers({ children }: ProvidersProps) {
                   pauseOnHover
                   theme="light"
                 />
-              </PlacementFormProvider>
-            </CartContextProvider>
-          </ServerLoadingProvider>
+                              </PlacementFormProvider>
+              </CartContextProvider>
+            </ServerLoadingProvider>
+          </LoadingProvider>
         </CookieConsentProvider>
       </StorageProvider>
     </ThemeProvider>
