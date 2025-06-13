@@ -1438,9 +1438,14 @@ const HomeCourseSection = ({
             flex: 1 0 460px !important;
           }
           
-          .live-course-card:hover, .blended-course-card:hover {
+          .live-course-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+          }
+          
+          .blended-course-card:hover {
+            transform: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
           }
           
           /* Adjust course card padding since fixed button is gone */
@@ -1502,10 +1507,16 @@ const HomeCourseSection = ({
           flex: 1 0 auto !important;
         }
         
-        /* Add hover effect to live course cards similar to blended course cards */
-        .live-course-card:hover, .blended-course-card:hover {
+        /* Add hover effect to live course cards */
+        .live-course-card:hover {
           transform: translateY(-5px);
           box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+        }
+        
+        /* Remove hover effect for blended course cards */
+        .blended-course-card:hover {
+          transform: none;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
         
         /* Make sure content inside cards is properly aligned */
@@ -1564,9 +1575,13 @@ const HomeCourseSection = ({
         }
         
         /* Add hover effect to card content */
-        .live-course-card:hover :global(.course-card),
-        .blended-course-card:hover :global(.course-card) {
+        .live-course-card:hover :global(.course-card) {
           box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+        
+        /* Remove hover effect for blended course card content */
+        .blended-course-card:hover :global(.course-card) {
+          box-shadow: none;
         }
         
         /* Strict text control for card titles */
@@ -1722,25 +1737,26 @@ const HomeCourseSection = ({
         
         /* Blended course cards styling */
         .blended-course-card {
-          height: 460px !important;
-          min-height: 460px !important;
-          max-height: 460px !important;
-          transition: all 0.3s ease;
+          height: 520px !important;
+          min-height: 520px !important;
+          max-height: 520px !important;
+          transition: none; /* Remove transition */
           position: relative;
           border-radius: 0.75rem;
           overflow: hidden;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
         
+        /* Remove hover effect for blended course cards */
         .blended-course-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 12px 20px rgba(55, 147, 146, 0.12);
+          transform: none; /* Remove hover transform */
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Keep original shadow */
         }
         
         .blended-course-card :global(.course-card) {
           height: 100% !important;
-          min-height: 460px !important;
-          max-height: 460px !important;
+          min-height: 520px !important;
+          max-height: 520px !important;
           display: flex;
           flex-direction: column;
           position: relative;
@@ -1797,17 +1813,28 @@ const HomeCourseSection = ({
         
         /* Mobile responsiveness adjustments */
         @media (max-width: 768px) {
-          .live-course-card, .blended-course-card {
+          .live-course-card {
             height: 480px !important; /* Increased height for mobile */
             min-height: 480px !important;
             max-height: 480px !important;
           }
           
-          .live-course-card :global(.course-card), 
-          .blended-course-card :global(.course-card) {
+          .blended-course-card {
+            height: 540px !important; /* Extra height for blended cards on mobile */
+            min-height: 540px !important;
+            max-height: 540px !important;
+          }
+          
+          .live-course-card :global(.course-card) {
             height: 480px !important;
             min-height: 480px !important;
             max-height: 480px !important;
+          }
+          
+          .blended-course-card :global(.course-card) {
+            height: 540px !important;
+            min-height: 540px !important;
+            max-height: 540px !important;
           }
           
           .live-course-card :global(.relative),
@@ -1844,35 +1871,27 @@ const HomeCourseSection = ({
         
         /* Specific fix for grid items to ensure equal height */
         .grid > div {
-          height: 480px !important;
-          min-height: 480px !important;
-          max-height: 480px !important;
           display: flex;
         }
         
         /* Force equal heights for motion.div elements in grid */
         :global(.course-grid > .col-span-1),
         :global(.course-grid > motion.div) {
-          height: 480px !important;
-          min-height: 480px !important;
-          max-height: 480px !important;
           display: flex !important;
-        }
-        
-        /* Force equal heights even on Safari and other browsers */
-        :global(*[class*="course-card"]) {
-          height: 480px !important;
-          min-height: 480px !important;
-          max-height: 480px !important;
         }
         
         /* Handle IE and legacy browsers */
         @media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
-          .live-course-card, .live-course-card :global(.course-card),
+          .live-course-card, .live-course-card :global(.course-card) {
+            height: 460px !important;
+            min-height: 460px !important;
+            max-height: 460px !important;
+          }
+          
           .blended-course-card, .blended-course-card :global(.course-card) {
-            height: 480px !important;
-            min-height: 480px !important;
-            max-height: 480px !important;
+            height: 520px !important;
+            min-height: 520px !important;
+            max-height: 520px !important;
           }
         }
 
