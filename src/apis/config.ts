@@ -19,7 +19,7 @@ const getApiBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL_TEST || 'https://api.medh.co/api/v1';
   } else {
     // Development is the default
-    return process.env.NEXT_PUBLIC_API_URL_DEV || 'https://api.medh.co/api/v1';
+    return process.env.NEXT_PUBLIC_API_URL_DEV || 'http://localhost:8000/api/v1';
   }
 };
 
