@@ -28,7 +28,7 @@ const HireSectionPlacement = () => {
           is_live: true,
           schedule: "Flexible Schedule",
           effort_hours: "4-6",
-          course_duration: "18 Months (Including 3 Months Internship)", // Updated duration
+          course_duration: "18 Months (Including Corporate Internship)", // Updated duration
           features: [
             ...(course.features || []),
             "3 Months Corporate Internship Included"
