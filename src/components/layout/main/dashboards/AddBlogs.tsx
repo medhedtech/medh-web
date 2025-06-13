@@ -69,7 +69,6 @@ const QuillEditor = dynamic(
     loading: () => <div className="h-[300px] bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-gray-400">Loading editor...</div>
   }
 );
-import 'react-quill/dist/quill.snow.css';
 
 // Enhanced TypeScript interfaces following project conventions
 interface ICategory {
