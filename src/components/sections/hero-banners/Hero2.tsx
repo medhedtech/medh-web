@@ -174,15 +174,19 @@ const HeroMobile: React.FC<{
               
                             {/* Main Heading */}
               <h1 className={`text-2xl sm:text-3xl font-bold mb-2 sm:mb-3 leading-tight tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Unlock Your Potential Journey <em className="font-normal">with</em>{' '}
-                <span className="inline-flex items-center">
+                Unlock Your Potential Journey <em className="font-normal inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9)' }}>with</em>
+                <span className="inline-flex items-baseline align-baseline">
                   <Image 
                     src={medhLogo} 
                     alt="Medh Logo" 
                     width={24} 
                     height={24} 
-                    className="inline-block mx-1 h-6 sm:h-8 w-auto"
-                    style={{ filter: 'brightness(1.1) contrast(1.2)' }}
+                    className="inline-block h-6 sm:h-8 w-auto align-baseline"
+                    style={{ 
+                      filter: 'brightness(1.1) contrast(1.2)',
+                      transform: 'scale(0.9) translateY(2px)',
+                      verticalAlign: 'baseline'
+                    }}
                   />
                 </span>
               </h1>
@@ -354,15 +358,19 @@ const Hero2: React.FC<{ isCompact?: boolean }> = ({ isCompact = false }) => {
               </div>
                
                <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-4 md:mb-6 tracking-tight max-w-4xl mx-auto ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                 Unlock Your Potential Journey <em className="font-semibold">with</em>{' '}
-                 <span className="inline-flex items-center">
+                 Unlock Your Potential Journey <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9)' }}>with</em>
+                 <span className="inline-flex items-baseline align-baseline">
                    <Image 
                      src={medhLogo} 
                      alt="Medh Logo" 
                      width={24} 
                      height={24} 
-                     className="inline-block mx-2 h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto"
-                     style={{ filter: 'brightness(1.1) contrast(1.2)' }}
+                     className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline"
+                     style={{ 
+                         filter: 'brightness(1.1) contrast(1.2)',
+                         transform: 'scale(0.9) translateY(2px)',
+                         verticalAlign: 'baseline'
+                       }}
                    />
                   </span>
                 </h1>
