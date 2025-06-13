@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import Iso from "@/assets/images/courseai/iso.png";
-import { ArrowRight, ChevronDown, Users, Target, Award, Heart, Globe, Sparkles, Zap, Code, GraduationCap } from "lucide-react";
+import { ArrowRight, ChevronDown, Users, Target, Award, Heart, Globe, Sparkles, Zap, Code, GraduationCap, Shield } from "lucide-react";
+import medhLogo from "@/assets/images/logo/medh.png";
 import { useTheme } from "next-themes";
 
 // Enhanced custom animations for the hero banner with theme-aware glassmorphism
@@ -339,29 +340,36 @@ function CourseAiBanner({ onLearnMoreClick }) {
           <div className={`mb-2 md:mb-3 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             <div className="glass-container rounded-3xl p-6 md:p-8 lg:p-12 mb-1 transform scale-90 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
               {/* Badges */}
-              <div className="flex flex-wrap justify-center gap-2 mb-4">
-                <div className={`inline-flex items-center px-3 py-1.5 glass-stats rounded-full text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
-                  <Image src={Iso} alt="ISO Certification" width={16} height={16} className="w-4 h-4 mr-2" />
-                  ISO 9001:2015 CERTIFIED
+              <div className="flex flex-wrap justify-center gap-3 mb-4">
+                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                  <Shield size={10} className="mr-1 sm:w-3 sm:h-3" />
+                  ISO Certified
                 </div>
-                <div className={`inline-flex items-center px-3 py-1.5 glass-stats rounded-full text-sm font-medium opacity-95 ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
-                  <Sparkles size={14} className="mr-2" />
-                  Educational Excellence
+                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
+                  <Award size={10} className="mr-1 sm:w-3 sm:h-3" />
+                  STEM Certified
                 </div>
               </div>
                
               {/* Main Heading */}
-              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-4 md:mb-6 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-light`}>
+              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-4 md:mb-6 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 <span className="block text-sm sm:text-base font-medium uppercase tracking-widest mb-3 opacity-80">Welcome to Medh</span>
                 <span className="block">Make Your Dreams Happen</span>
-                <span className="block">with{' '}
-                  <span className="relative font-extrabold" style={{ color: '#3bac63' }}>
-                    Medh
+                <span className="block"><em className="font-semibold">with</em>{' '}
+                  <span className="inline-flex items-center">
+                    <Image 
+                      src={medhLogo} 
+                      alt="Medh Logo" 
+                      width={24} 
+                      height={24} 
+                      className="inline-block mx-2 h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto"
+                      style={{ filter: 'brightness(1.1) contrast(1.2)' }}
+                    />
                   </span>
                 </span>
               </h1>
                 
-              <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium text-shadow-medium`}>
+              <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
                 At Medh, we're more than just an EdTech platform. We're a community dedicated to transforming passionate learners into industry-ready professionals.
               </p>
 
@@ -408,8 +416,8 @@ function CourseAiBanner({ onLearnMoreClick }) {
                 isDark 
                   ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
                   : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
-              }`}>
-                Medh Hai Toh Mumkin Hai!
+              }`} style={{ transform: 'scaleX(1.1)', letterSpacing: '0.05em' }}>
+                Medh Hai Toh Mumkin Hai !
               </div>
             </div>
           </div>
