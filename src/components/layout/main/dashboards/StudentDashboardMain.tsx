@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useState, useRef, useCallback, memo } from "react";
 import { motion } from "framer-motion";
-import CounterStudent from "@/components/sections/sub-section/dashboards/CounterStudent";
 import ProgressOverview from "./ProgressOverview";
 import StudentUpcomingClasses from "./StudentUpcomingClasses";
 import FreeClasses from "@/components/shared/dashboards/FreeClasses";
@@ -318,7 +317,6 @@ const StudyGoals: React.FC = () => {
 };
 
 // Memoize components to prevent unnecessary re-renders
-const MemoizedCounterStudent = memo(CounterStudent);
 const MemoizedProgressOverview = memo(ProgressOverview);
 const MemoizedStudentUpcomingClasses = memo(StudentUpcomingClasses);
 const MemoizedFreeClasses = memo(FreeClasses);
@@ -770,14 +768,6 @@ const StudentDashboardMain: React.FC = () => {
             {/* Quick Actions Section */}
                           <QuickActionCard courseCards={courseCards} />
             
-            {/* Counter Stats Section */}
-            <motion.section 
-              variants={itemVariants}
-              className="col-span-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 overflow-hidden"
-            >
-                <MemoizedCounterStudent />
-            </motion.section>
-            
             {/* Progress Overview */}
             <motion.section 
               variants={itemVariants}
@@ -792,6 +782,14 @@ const StudentDashboardMain: React.FC = () => {
               className="col-span-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
             >
               <MemoizedStudentUpcomingClasses />
+            </motion.section>
+
+            {/* Study Goals Section */}
+            <motion.section 
+              variants={itemVariants}
+              className="col-span-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
+            >
+              <MemoizedStudyGoals />
             </motion.section>
           </div>
           
@@ -846,14 +844,6 @@ const StudentDashboardMain: React.FC = () => {
               className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
             >
               <MemoizedLearningResources />
-            </motion.div>
-            
-            {/* Study Goals Section */}
-            <motion.div 
-              variants={itemVariants}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
-            >
-              <MemoizedStudyGoals />
             </motion.div>
           </div>
         </div>
