@@ -1,14 +1,12 @@
-"use client";
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { ArrowRight, ChevronDown, Briefcase, Users2, Rocket, GraduationCap, Heart, Sparkles, Target, Trophy, Star } from "lucide-react";
-import { useTheme } from "next-themes";
-import Iso from "@/assets/images/courseai/iso.png";
+'use client';
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { Users, Target, Award, Brain, Database, ChevronRight, ArrowRight, Sparkles, ChevronDown, Globe, TrendingUp } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
-// Enhanced custom animations for the careers banner with theme-aware glassmorphism
-const getThemeStyles = (isDark) => `
+// Enhanced custom animations for the hire banner with theme-aware glassmorphism
+const getThemeStyles = (isDark: boolean) => `
   @keyframes animate-gradient-x {
     0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -218,54 +216,38 @@ const animations = {
   }
 };
 
-// Values data for careers
-const values = [
+
+
+// Features with enhanced icons and animations
+const features = [
   {
-    icon: <Rocket className="w-6 h-6" />,
-    title: "Innovation Culture",
-    description: "Drive change in education technology and shape the future",
+    icon: <Globe className="w-7 h-7" />,
+    title: "Global Talent Pool",
+    description: "Access worldwide expertise across various domains and technologies",
     color: "from-blue-500 to-cyan-500"
   },
   {
-    icon: <Heart className="w-6 h-6" />,
-    title: "Purpose-Driven Work",
-    description: "Make a meaningful impact on students' lives worldwide",
-    color: "from-emerald-500 to-teal-500"
+    icon: <Brain className="w-7 h-7" />,
+    title: "AI & Data Science",
+    description: "Specialized skills in machine learning, deep learning, and analytics",
+    color: "from-purple-500 to-indigo-500"
   },
   {
-    icon: <Sparkles className="w-6 h-6" />,
-    title: "Growth Mindset",
-    description: "Continuous learning and professional development opportunities",
-    color: "from-purple-500 to-indigo-500"
+    icon: <TrendingUp className="w-7 h-7" />,
+    title: "Digital Marketing",
+    description: "Analytics experts with proven track records in driving growth",
+    color: "from-emerald-500 to-teal-500"
   }
 ];
 
-// Key highlights for careers (reduced to 3 items)
-const highlights = [
-  {
-    icon: <Target className="w-8 h-8" />,
-    title: "Clear Mission",
-    description: "Transform education and empower learners globally",
-    color: "from-blue-500 to-cyan-500"
-  },
-  {
-    icon: <Users2 className="w-8 h-8" />,
-    title: "Dynamic Team",
-    description: "Work with passionate professionals who care about education",
-    color: "from-emerald-500 to-teal-500"
-  },
-  {
-    icon: <GraduationCap className="w-8 h-8" />,
-    title: "Learning Opportunities",
-    description: "Continuous skill development and career advancement",
-    color: "from-purple-500 to-indigo-500"
-  }
-];
+interface HireFromMedhBannerProps {
+  onLearnMoreClick?: () => void;
+}
 
-export default function CareerBanner({ onViewPositionsClick }) {
+const HireFromMedhBanner: React.FC<HireFromMedhBannerProps> = ({ onLearnMoreClick }) => {
   const { theme } = useTheme();
   const [isLoaded, setIsLoaded] = useState(false);
-  const [activeValue, setActiveValue] = useState(0);
+  const [currentFeature, setCurrentFeature] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -280,18 +262,18 @@ export default function CareerBanner({ onViewPositionsClick }) {
   useEffect(() => {
     if (!mounted) return;
     
-    const existingStyle = document.getElementById('careers-banner-theme-styles');
+    const existingStyle = document.getElementById('hire-banner-theme-styles');
     if (existingStyle) {
       existingStyle.remove();
     }
     
     const styleSheet = document.createElement("style");
-    styleSheet.id = 'careers-banner-theme-styles';
+    styleSheet.id = 'hire-banner-theme-styles';
     styleSheet.innerText = getThemeStyles(isDark);
     document.head.appendChild(styleSheet);
     
     return () => {
-      const styleToRemove = document.getElementById('careers-banner-theme-styles');
+      const styleToRemove = document.getElementById('hire-banner-theme-styles');
       if (styleToRemove) {
         styleToRemove.remove();
       }
@@ -312,23 +294,111 @@ export default function CareerBanner({ onViewPositionsClick }) {
 
   useEffect(() => {
     setIsLoaded(true);
+    // Auto-rotate features on mobile
     const interval = setInterval(() => {
-      setActiveValue((prev) => (prev + 1) % values.length);
-    }, 3000);
+      setCurrentFeature((prev) => (prev + 1) % features.length);
+    }, 4000);
     return () => clearInterval(interval);
   }, []);
 
+  // Handle scroll to registration form
+  const handleScrollToRegistration = () => {
+    const formElement = document.getElementById('registration-form');
+    if (formElement) {
+      formElement.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  // Mobile version with enhanced styling
+  if (isMobile) {
+    return (
+      <div className="mobile-hire-wrapper h-screen max-h-[100vh] relative overflow-hidden animate-theme-transition">
+        {/* Enhanced Background */}
+        <div className="absolute inset-0 overflow-hidden">
+          {/* Animated gradient blobs - theme aware */}
+          <div className={`absolute top-0 right-0 w-3/4 h-3/4 ${isDark ? 'bg-gradient-to-br from-blue-500/10 via-indigo-500/10 to-purple-500/10' : 'bg-gradient-to-br from-blue-300/20 via-indigo-300/15 to-purple-300/20'} rounded-full blur-3xl transform translate-x-1/4 -translate-y-1/4 animate-float`}></div>
+          <div className={`absolute bottom-0 left-0 w-3/4 h-3/4 ${isDark ? 'bg-gradient-to-tr from-blue-500/10 via-indigo-500/5 to-transparent' : 'bg-gradient-to-tr from-blue-300/15 via-indigo-300/10 to-transparent'} rounded-full blur-3xl transform -translate-x-1/4 translate-y-1/4 animate-float`} style={{ animationDelay: '2s' }}></div>
+          
+          {/* Decorative elements - theme aware */}
+          <div className={`absolute top-1/4 left-1/3 w-16 h-16 rounded-full border-4 ${isDark ? 'border-blue-500/20' : 'border-blue-400/30'} animate-bounce-slow`}></div>
+          <div className={`absolute bottom-1/4 right-1/3 w-24 h-24 rounded-full border-4 border-dashed ${isDark ? 'border-indigo-500/20' : 'border-indigo-400/30'} animate-pulse-slow`}></div>
+        </div>
+
+        {/* Content - Centered Layout with Glassmorphism */}
+        <div className="relative z-10 px-4 py-4 md:py-6 lg:py-8 flex flex-col h-full justify-center text-center">
+          <div className={`flex-1 flex flex-col justify-center transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+            
+            {/* Hero Content Card with Enhanced Glassmorphism */}
+            <div className="mx-auto mb-4 glass-container rounded-2xl p-6 md:p-8 shadow-2xl max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-3xl">
+              <div className="text-center">
+                {/* Badge */}
+                <div className={`inline-flex items-center px-2 py-1 glass-stats rounded-full text-xs font-medium mb-3 opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                  <Sparkles size={10} className="mr-1" />
+                  HIRE PROFESSIONALS FROM MEDH
+                </div>
+                
+                {/* Main Heading */}
+                <h1 className={`text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3 leading-tight tracking-tight ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-light`}>
+                  <span className="block text-sm font-medium uppercase tracking-widest mb-2 opacity-80">Hire From Medh</span>
+                  <span className="block whitespace-nowrap">Elite Global Talent Hub</span>
+                  <span className="block">with{' '}
+                    <span className="relative font-extrabold" style={{ color: '#3bac63' }}>
+                      Medh
+                    </span>
+                  </span>
+                </h1>
+                
+                {/* Description */}
+                <p className={`text-sm leading-relaxed mb-3 sm:mb-4 max-w-sm mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium text-shadow-medium`}>
+                  Recruit top IT professionals in AI, Data Science, Digital Marketing, and more. Pre-vetted talent pool.
+                </p>
+
+                {/* CTA Button */}
+                <div className="mt-3 sm:mt-4 mb-3">
+                  <button 
+                    onClick={onLearnMoreClick || handleScrollToRegistration}
+                    className={`inline-flex items-center justify-center py-2.5 px-5 font-semibold rounded-xl transition-all duration-300 hover:scale-105 group text-sm relative overflow-hidden ${
+                      isDark 
+                        ? 'bg-gradient-to-r from-primary-500 to-blue-500 text-white hover:shadow-lg hover:shadow-primary-500/25 glass-stats' 
+                        : 'bg-white/90 backdrop-blur-md text-gray-900 border-2 border-primary-500/30 hover:border-primary-500/60 hover:bg-white/95 shadow-lg hover:shadow-xl'
+                    }`}
+                  >
+                    {!isDark && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary-50/50 to-blue-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
+                    )}
+                    <span className="relative z-10 font-bold">Let's Connect</span>
+                    <ArrowRight size={14} className="relative z-10 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+
+                {/* Tagline */}
+                <div className={`mumkinMedh text-xl sm:text-2xl font-extrabold leading-tight ${
+                  isDark 
+                    ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
+                    : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
+                }`}>
+                  Medh Hai Toh Mumkin Hai!
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop version with professional styling
   return (
     <section className="relative min-h-screen overflow-hidden animate-theme-transition">
       {/* Enhanced Background */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Animated gradient blobs - theme aware */}
         <div className={`absolute top-0 right-0 w-3/4 h-3/4 ${isDark ? 'bg-gradient-to-br from-blue-500/10 via-indigo-500/10 to-purple-500/10' : 'bg-gradient-to-br from-blue-300/20 via-indigo-300/15 to-purple-300/20'} rounded-full blur-3xl transform translate-x-1/4 -translate-y-1/4 animate-float`}></div>
-        <div className={`absolute bottom-0 left-0 w-3/4 h-3/4 ${isDark ? 'bg-gradient-to-tr from-green-500/10 via-emerald-500/5 to-transparent' : 'bg-gradient-to-tr from-green-300/15 via-emerald-300/10 to-transparent'} rounded-full blur-3xl transform -translate-x-1/4 translate-y-1/4 animate-float`} style={{ animationDelay: '2s' }}></div>
+        <div className={`absolute bottom-0 left-0 w-3/4 h-3/4 ${isDark ? 'bg-gradient-to-tr from-blue-500/10 via-indigo-500/5 to-transparent' : 'bg-gradient-to-tr from-blue-300/15 via-indigo-300/10 to-transparent'} rounded-full blur-3xl transform -translate-x-1/4 translate-y-1/4 animate-float`} style={{ animationDelay: '2s' }}></div>
         
         {/* Decorative elements - theme aware */}
         <div className={`absolute top-1/4 left-1/3 w-16 h-16 md:w-24 md:h-24 rounded-full border-4 ${isDark ? 'border-blue-500/20' : 'border-blue-400/30'} animate-bounce-slow`}></div>
-        <div className={`absolute bottom-1/4 right-1/3 w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-dashed ${isDark ? 'border-green-500/20' : 'border-green-400/30'} animate-pulse-slow`}></div>
+        <div className={`absolute bottom-1/4 right-1/3 w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-dashed ${isDark ? 'border-indigo-500/20' : 'border-indigo-400/30'} animate-pulse-slow`}></div>
         <div className={`absolute top-3/4 left-1/2 w-12 h-12 md:w-16 md:h-16 rounded-xl border-2 ${isDark ? 'border-blue-500/20' : 'border-blue-400/30'} transform rotate-45 animate-float`}></div>
       </div>
 
@@ -338,38 +408,34 @@ export default function CareerBanner({ onViewPositionsClick }) {
           
           {/* Hero Text Section with Glass Container */}
           <div className={`mb-2 md:mb-3 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <div className="glass-container rounded-3xl p-6 md:p-8 lg:p-12 mb-1 transform scale-90 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
+            <div className="glass-container rounded-3xl p-6 md:p-8 lg:p-12 mb-1 transform scale-90 max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto">
               {/* Badges */}
               <div className="flex flex-wrap justify-center gap-2 mb-4">
                 <div className={`inline-flex items-center px-3 py-1.5 glass-stats rounded-full text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
-                  <Image src={Iso} alt="ISO Certification" width={16} height={16} className="w-4 h-4 mr-2" />
-                  ISO 9001:2015 CERTIFIED
-                </div>
-                <div className={`inline-flex items-center px-3 py-1.5 glass-stats rounded-full text-sm font-medium opacity-95 ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
                   <Sparkles size={14} className="mr-2" />
-                  Join Our Dynamic Team
+                  HIRE PROFESSIONALS FROM MEDH
                 </div>
               </div>
                
-                             {/* Main Heading */}
-               <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-4 md:mb-6 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-light`}>
-                 <span className="block text-sm sm:text-base font-medium uppercase tracking-widest mb-3 opacity-80">Careers at Medh</span>
-                 <span className="block">Grow Impact Thrive Meaningfully</span>
-                 <span className="block">with{' '}
-                   <span className="relative font-extrabold" style={{ color: '#3bac63' }}>
-                     Medh
-                   </span>
-                 </span>
+              {/* Main Heading */}
+              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-4 md:mb-6 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-light`}>
+                <span className="block text-sm sm:text-base font-medium uppercase tracking-widest mb-3 opacity-80">Hire From Medh</span>
+                <span className="block whitespace-nowrap">Elite Global Talent Hub</span>
+                <span className="block">with{' '}
+                  <span className="relative font-extrabold" style={{ color: '#3bac63' }}>
+                    Medh
+                  </span>
+                </span>
               </h1>
                 
               <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium text-shadow-medium`}>
-                Join our dynamic team dedicated to transforming education and creating meaningful opportunities for learners worldwide.
+                Recruit top IT professionals in areas including AI, Data Science, Digital Marketing, Analytics, Cybersecurity, and more. Save time and resources with our pre-vetted talent.
               </p>
 
               {/* Enhanced CTA Buttons */}
               <div className="mt-4 sm:mt-6 md:mt-8 flex flex-wrap gap-4 justify-center">
-                <Link
-                  href="/careers/apply"
+                <button 
+                  onClick={onLearnMoreClick || handleScrollToRegistration}
                   className={`inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-all duration-300 hover:scale-105 group text-sm sm:text-base md:text-lg relative overflow-hidden ${
                     isDark 
                       ? 'bg-gradient-to-r from-primary-500 to-blue-500 text-white hover:shadow-2xl hover:shadow-primary-500/30 glass-stats' 
@@ -383,24 +449,24 @@ export default function CareerBanner({ onViewPositionsClick }) {
                       <div className="absolute inset-0 bg-gradient-to-r from-primary-100/20 to-blue-100/20 animate-pulse"></div>
                     </>
                   )}
-                  <span className="relative z-10 font-extrabold tracking-wide">Apply Now</span>
+                  <span className="relative z-10 font-extrabold tracking-wide">Let's Connect</span>
                   <ArrowRight size={16} className="relative z-10 ml-3 group-hover:translate-x-1 transition-transform sm:w-4 sm:h-4 md:w-5 md:h-5" />
                   
                   {/* Shine effect for light mode */}
                   {!isDark && (
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                   )}
-                </Link>
+                </button>
                 
-                <button
-                  onClick={onViewPositionsClick}
+                <button 
+                  onClick={() => window.location.href = "/contact-us"}
                   className={`inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-all duration-300 hover:scale-105 text-sm sm:text-base md:text-lg ${
                     isDark 
                       ? 'glass-stats text-white hover:bg-white/10' 
                       : 'bg-gray-100/80 backdrop-blur-lg text-gray-700 border-2 border-gray-300/40 hover:border-gray-400/70 hover:bg-gray-200/80 shadow-lg hover:shadow-xl'
                   }`}
                 >
-                  View Positions
+                  Contact Us
                 </button>
               </div>
 
@@ -415,53 +481,30 @@ export default function CareerBanner({ onViewPositionsClick }) {
             </div>
           </div>
 
-          {/* Enhanced Highlights Section */}
-          <div className={`mb-4 md:mb-6 transition-all duration-1000 delay-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-5xl lg:max-w-6xl mx-auto">
-              {highlights.map((highlight, index) => (
-                <div
-                  key={index}
-                  className="glass-stats rounded-xl p-4 md:p-6 text-center hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
-                  <div className="relative z-10">
-                    <div className={`mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-primary-300' : 'text-primary-600'} flex justify-center`}>
-                      <div className={`bg-gradient-to-br ${highlight.color} text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform`}>
-                        <div className="w-6 h-6 md:w-8 md:h-8">
-                          {highlight.icon}
-                        </div>
-                      </div>
-                    </div>
-                    <div className={`font-semibold text-sm md:text-base group-hover:text-primary-300 transition-colors ${isDark ? 'text-white' : 'text-gray-800'} text-shadow-medium`}>{highlight.title}</div>
-                    <div className={`text-xs md:text-sm mt-1 ${isDark ? 'text-white' : 'text-gray-700'} font-medium text-shadow-subtle`}>{highlight.description}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
 
-          {/* Enhanced Values Section */}
+
+          {/* Enhanced Features Section */}
           <div className={`mb-6 md:mb-8 transition-all duration-1000 delay-500 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             <div className="glass-stats rounded-2xl p-6 md:p-8 max-w-5xl lg:max-w-6xl mx-auto">
-              <h3 className={`text-xl md:text-2xl font-bold mb-4 md:mb-6 text-center ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-medium`}>Our Career Values</h3>
+              <h3 className={`text-xl md:text-2xl font-bold mb-4 md:mb-6 text-center ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-medium`}>Our Expertise Areas</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-                {values.map((value, index) => (
+                {features.map((feature, index) => (
                   <div
                     key={index}
                     className={`relative overflow-hidden rounded-xl p-4 md:p-6 cursor-pointer group transition-all duration-300 text-center ${
-                      activeValue === index ? 'glass-primary scale-105' : 'glass-stats hover:scale-102'
+                      currentFeature === index ? 'glass-primary scale-105' : 'glass-stats hover:scale-102'
                     }`}
-                    onClick={() => setActiveValue(index)}
+                    onClick={() => setCurrentFeature(index)}
                   >
                     <div className="absolute inset-0 animate-shimmer opacity-0 group-hover:opacity-100"></div>
                     <div className="relative z-10">
-                      <div className={`bg-gradient-to-br ${value.color} text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform`}>
-                        <div className="w-5 h-5 md:w-6 md:h-6">
-                          {value.icon}
+                      <div className={`bg-gradient-to-br ${feature.color} text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform`}>
+                        <div className="w-5 h-5 md:w-7 md:h-7">
+                          {feature.icon}
                         </div>
                       </div>
-                      <h4 className={`text-base md:text-lg font-bold mb-2 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'} text-shadow-medium`}>{value.title}</h4>
-                      <p className={`text-sm md:text-base transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'} text-shadow-subtle`}>{value.description}</p>
+                      <h4 className={`text-base md:text-lg font-bold mb-2 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'} text-shadow-medium`}>{feature.title}</h4>
+                      <p className={`text-sm md:text-base transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'} text-shadow-subtle`}>{feature.description}</p>
                     </div>
                   </div>
                 ))}
@@ -471,7 +514,7 @@ export default function CareerBanner({ onViewPositionsClick }) {
 
           {/* Scroll Indicator */}
           <div className={`flex flex-col items-center mt-6 md:mt-8 transition-all duration-1000 delay-700 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <span className={`text-sm mb-2 ${isDark ? 'text-white' : 'text-gray-600'} font-medium text-shadow-subtle`}>Explore Career Opportunities</span>
+            <span className={`text-sm mb-2 ${isDark ? 'text-white' : 'text-gray-600'} font-medium text-shadow-subtle`}>Explore Our Services</span>
             <ChevronDown className={`w-6 h-6 animate-bounce ${isDark ? 'text-white' : 'text-gray-500'}`} />
           </div>
         </div>
@@ -480,6 +523,4 @@ export default function CareerBanner({ onViewPositionsClick }) {
   );
 }
 
-
-
-
+export default HireFromMedhBanner;

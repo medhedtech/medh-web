@@ -31,24 +31,8 @@ const DropdownMore = ({ isMenuOpen, onMenuToggle }) => {
           path: "/about-us",
         },
         {
-          name: "News and Media",
-          path: "/news-and-media",
-        },
-        {
           name: "Blog",
           path: "/blogs",
-        },
-        {
-          name: "Team",
-          path: "/medh-team",
-        },
-        {
-          name: "Join Us as an Educator",
-          path: "/join-us-as-educator",
-        },
-        {
-          name: "Join Us as a School / Institute",
-          path: "/join-us-as-school-institute",
         },
         {
           name: "Careers @medh",
@@ -57,6 +41,18 @@ const DropdownMore = ({ isMenuOpen, onMenuToggle }) => {
         {
           name: "Contact Us",
           path: "/contact-us",
+        },
+        {
+          name: "Join Us as a School / Institute",
+          path: "/join-us-as-school-institute",
+        },
+        {
+          name: "Join Us as an Educator",
+          path: "/join-us-as-educator",
+        },
+        {
+          name: "News and Media",
+          path: "/news-and-media",
         },
       ],
     },
