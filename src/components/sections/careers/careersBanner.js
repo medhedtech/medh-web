@@ -356,16 +356,21 @@ export default function CareerBanner({ onViewPositionsClick }) {
                <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-4 md:mb-6 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
                  <span className="block text-sm sm:text-base font-medium uppercase tracking-widest mb-3 opacity-80">Careers at Medh</span>
                  <span className="block">Grow Impact Thrive Meaningfully</span>
-                 <span className="block"><em className="font-semibold">with</em>{' '}
+                 <span className="block">
+                   <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9)' }}>with</em>
                    <span className="inline-flex items-center">
-                     <Image 
-                       src={medhLogo} 
-                       alt="Medh Logo" 
-                       width={24} 
-                       height={24} 
-                       className="inline-block mx-2 h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto"
-                       style={{ filter: 'brightness(1.1) contrast(1.2)' }}
-                     />
+                   <Image 
+                     src={medhLogo} 
+                     alt="Medh Logo" 
+                     width={24} 
+                     height={24} 
+                     className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline"
+                     style={{ 
+                         filter: 'brightness(1.1) contrast(1.2)',
+                         transform: 'scale(0.9) translateY(5px)',
+                         verticalAlign: 'baseline'
+                       }}
+                   />
                    </span>
                  </span>
               </h1>
