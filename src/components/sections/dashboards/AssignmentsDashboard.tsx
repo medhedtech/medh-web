@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import DashboardLayout from "./StudentDashboardLayout";
+import StudentDashboardLayout from "./StudentDashboardLayout";
+import AssignmentsMain from "@/components/layout/main/dashboards/AssignmentsMain";
 
 /**
  * AssignmentsDashboard - Component that displays the student's assignments page
@@ -9,7 +10,7 @@ import DashboardLayout from "./StudentDashboardLayout";
  */
 const AssignmentsDashboard: React.FC = () => {
   return (
-    <DashboardLayout 
+    <StudentDashboardLayout 
       userRole="student"
       fullName="Student"
       userEmail="student@example.com"
@@ -20,7 +21,9 @@ const AssignmentsDashboard: React.FC = () => {
         language: "en",
         notifications: true
       }}
-    />
+    >
+      <AssignmentsMain />
+    </StudentDashboardLayout>
   );
 };
 
