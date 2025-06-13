@@ -332,16 +332,7 @@ const DashboardProfileComponent: React.FC<DashboardProfileProps> = ({ isScrolled
               <span>Dashboard</span>
             </Link>
             
-            <Link
-              href="/profile/settings"
-              className="flex items-center gap-3 w-full px-3 py-2 text-sm text-left rounded-lg text-gray-700 hover:bg-primary-50 hover:text-primary-700 active:bg-primary-100 dark:text-gray-300 dark:hover:bg-gray-700/50 dark:hover:text-white transition-colors duration-150 mt-1"
-              onClick={() => setIsDropdownOpen(false)}
-            >
-              <div className="p-1.5 rounded-md bg-gray-100 dark:bg-gray-700">
-                <Settings size={DROPDOWN_ICON_SIZE} className="text-gray-600 dark:text-gray-300" />
-              </div>
-              <span>Settings</span>
-            </Link>
+
           </div>
           
           {/* Logout Section */}

@@ -126,12 +126,7 @@ const HeadingDashboardOnly: React.FC = () => {
                 >
                   Your Profile
                 </Link>
-                <Link
-                  href="/settings"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700"
-                >
-                  Settings
-                </Link>
+
                 <button
                   onClick={() => {/* Add logout logic */}}
                   className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 dark:text-red-400 dark:hover:bg-gray-700"

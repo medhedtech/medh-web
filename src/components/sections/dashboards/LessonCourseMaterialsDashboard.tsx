@@ -2,6 +2,7 @@
 
 import React from "react";
 import DashboardLayout from "./StudentDashboardLayout";
+import LessonCourseMaterialsMain from "@/components/layout/main/dashboards/LessonCourseMaterialsMain";
 
 /**
  * LessonCourseMaterialsDashboard - Component that displays the student's lesson course materials page
@@ -20,7 +21,9 @@ const LessonCourseMaterialsDashboard: React.FC = () => {
         language: "en",
         notifications: true
       }}
-    />
+    >
+      <LessonCourseMaterialsMain />
+    </DashboardLayout>
   );
 };
 

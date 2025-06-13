@@ -445,34 +445,13 @@ const ProgressOverview: React.FC = () => {
   return (
     <div id="progress-section" className="p-6">
       <div className="flex flex-col h-full">
-        {/* Header with tabs */}
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">Your Learning Metrics</h2>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Track your educational journey with real-time statistics
             </p>
-          </div>
-          
-          {/* Tab navigation */}
-          <div className="flex bg-gray-100 dark:bg-gray-800/50 rounded-lg p-1">
-            {[
-              { id: 'active', label: 'Active' }, 
-              { id: 'completed', label: 'Completed' },
-              { id: 'all', label: 'All' }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as 'all' | 'active' | 'completed')}
-                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
-                  activeTab === tab.id 
-                    ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm' 
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
           </div>
         </div>
         
