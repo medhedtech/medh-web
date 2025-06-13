@@ -1,14 +1,44 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, ChevronDown, Briefcase, Users2, Rocket, GraduationCap, Heart, Sparkles, Target, Trophy, Star } from "lucide-react";
+import { ArrowRight, ChevronDown, School, Users, BookOpen, Trophy, CheckCircle, Target, GraduationCap, Heart, Sparkles } from "lucide-react";
 import { useTheme } from "next-themes";
 import Iso from "@/assets/images/courseai/iso.png";
 
-// Enhanced custom animations for the careers banner with theme-aware glassmorphism
-const getThemeStyles = (isDark) => `
+// TypeScript interfaces
+interface IValueItem {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  color: string;
+}
+
+interface IHighlightItem {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  color: string;
+}
+
+interface IAnimationVariants {
+  fadeInUp: {
+    hidden: { opacity: number; y: number };
+    visible: { opacity: number; y: number };
+  };
+  fadeIn: {
+    hidden: { opacity: number };
+    visible: { opacity: number };
+  };
+  scaleIn: {
+    hidden: { opacity: number; scale: number };
+    visible: { opacity: number; scale: number };
+  };
+}
+
+// Enhanced custom animations for the school banner with theme-aware glassmorphism
+const getThemeStyles = (isDark: boolean): string => `
   @keyframes animate-gradient-x {
     0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -203,7 +233,7 @@ const getThemeStyles = (isDark) => `
 `;
 
 // Animation variants
-const animations = {
+const animations: IAnimationVariants = {
   fadeInUp: {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 }
@@ -218,58 +248,58 @@ const animations = {
   }
 };
 
-// Values data for careers
-const values = [
+// Values data for schools
+const values: IValueItem[] = [
   {
-    icon: <Rocket className="w-6 h-6" />,
-    title: "Innovation Culture",
-    description: "Drive change in education technology and shape the future",
+    icon: <GraduationCap className="w-6 h-6" />,
+    title: "Academic Excellence",
+    description: "Committed to elevating educational standards and outcomes",
     color: "from-blue-500 to-cyan-500"
   },
   {
     icon: <Heart className="w-6 h-6" />,
-    title: "Purpose-Driven Work",
-    description: "Make a meaningful impact on students' lives worldwide",
+    title: "Student-Centered Learning",
+    description: "Every solution designed with student success in mind",
     color: "from-emerald-500 to-teal-500"
   },
   {
     icon: <Sparkles className="w-6 h-6" />,
-    title: "Growth Mindset",
-    description: "Continuous learning and professional development opportunities",
+    title: "Innovation in Education",
+    description: "Embracing modern technology and teaching methodologies",
     color: "from-purple-500 to-indigo-500"
   }
 ];
 
-// Key highlights for careers (reduced to 3 items)
-const highlights = [
+// Key highlights for schools (reduced to 3 items)
+const highlights: IHighlightItem[] = [
   {
-    icon: <Target className="w-8 h-8" />,
-    title: "Clear Mission",
-    description: "Transform education and empower learners globally",
+    icon: <CheckCircle className="w-8 h-8" />,
+    title: "Digital Learning Solutions",
+    description: "Comprehensive platform for modern education",
     color: "from-blue-500 to-cyan-500"
   },
   {
-    icon: <Users2 className="w-8 h-8" />,
-    title: "Dynamic Team",
-    description: "Work with passionate professionals who care about education",
+    icon: <School className="w-8 h-8" />,
+    title: "Institutional Partnership",
+    description: "Collaborative solutions for educational institutions",
     color: "from-emerald-500 to-teal-500"
   },
   {
-    icon: <GraduationCap className="w-8 h-8" />,
-    title: "Learning Opportunities",
-    description: "Continuous skill development and career advancement",
+    icon: <Target className="w-8 h-8" />,
+    title: "Performance Analytics",
+    description: "Real-time insights into student progress and outcomes",
     color: "from-purple-500 to-indigo-500"
   }
 ];
 
-export default function CareerBanner({ onViewPositionsClick }) {
+const SchoolBanner: React.FC = () => {
   const { theme } = useTheme();
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [activeValue, setActiveValue] = useState(0);
-  const [mounted, setMounted] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const [activeValue, setActiveValue] = useState<number>(0);
+  const [mounted, setMounted] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
 
-  const isDark = mounted ? theme === 'dark' : true; // Default to dark during SSR
+  const isDark: boolean = mounted ? theme === 'dark' : true; // Default to dark during SSR
 
   // Mount and theme effects
   useEffect(() => {
@@ -280,18 +310,18 @@ export default function CareerBanner({ onViewPositionsClick }) {
   useEffect(() => {
     if (!mounted) return;
     
-    const existingStyle = document.getElementById('careers-banner-theme-styles');
+    const existingStyle = document.getElementById('school-banner-theme-styles');
     if (existingStyle) {
       existingStyle.remove();
     }
     
     const styleSheet = document.createElement("style");
-    styleSheet.id = 'careers-banner-theme-styles';
+    styleSheet.id = 'school-banner-theme-styles';
     styleSheet.innerText = getThemeStyles(isDark);
     document.head.appendChild(styleSheet);
     
     return () => {
-      const styleToRemove = document.getElementById('careers-banner-theme-styles');
+      const styleToRemove = document.getElementById('school-banner-theme-styles');
       if (styleToRemove) {
         styleToRemove.remove();
       }
@@ -300,7 +330,7 @@ export default function CareerBanner({ onViewPositionsClick }) {
 
   // Check for mobile view
   useEffect(() => {
-    const checkIfMobile = () => {
+    const checkIfMobile = (): void => {
       setIsMobile(window.innerWidth < 768);
     };
     
@@ -317,6 +347,17 @@ export default function CareerBanner({ onViewPositionsClick }) {
     }, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  const scrollToRegistration = (): void => {
+    const registrationSection = document.getElementById('registration-section');
+    if (registrationSection) {
+      registrationSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleContactUs = (): void => {
+    window.location.href = "/contact-us";
+  };
 
   return (
     <section className="relative min-h-screen overflow-hidden animate-theme-transition">
@@ -347,29 +388,29 @@ export default function CareerBanner({ onViewPositionsClick }) {
                 </div>
                 <div className={`inline-flex items-center px-3 py-1.5 glass-stats rounded-full text-sm font-medium opacity-95 ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
                   <Sparkles size={14} className="mr-2" />
-                  Join Our Dynamic Team
+                  Institutional Partnerships
                 </div>
               </div>
                
-                             {/* Main Heading */}
-               <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-4 md:mb-6 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-light`}>
-                 <span className="block text-sm sm:text-base font-medium uppercase tracking-widest mb-3 opacity-80">Careers at Medh</span>
-                 <span className="block">Grow Impact Thrive Meaningfully</span>
-                 <span className="block">with{' '}
-                   <span className="relative font-extrabold" style={{ color: '#3bac63' }}>
-                     Medh
-                   </span>
-                 </span>
+              {/* Main Heading */}
+              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-4 md:mb-6 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-light`}>
+                <span className="block text-sm sm:text-base font-medium uppercase tracking-widest mb-3 opacity-80">Schools & Institutions</span>
+                <span className="block">Transform Education Together</span>
+                <span className="block">with{' '}
+                  <span className="relative font-extrabold" style={{ color: '#3bac63' }}>
+                    Medh
+                  </span>
+                </span>
               </h1>
                 
               <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium text-shadow-medium`}>
-                Join our dynamic team dedicated to transforming education and creating meaningful opportunities for learners worldwide.
+                Partner with us to enhance your educational offerings and prepare students with future-ready skills through our collaborative platform.
               </p>
 
               {/* Enhanced CTA Buttons */}
               <div className="mt-4 sm:mt-6 md:mt-8 flex flex-wrap gap-4 justify-center">
-                <Link
-                  href="/careers/apply"
+                <button 
+                  onClick={scrollToRegistration}
                   className={`inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-all duration-300 hover:scale-105 group text-sm sm:text-base md:text-lg relative overflow-hidden ${
                     isDark 
                       ? 'bg-gradient-to-r from-primary-500 to-blue-500 text-white hover:shadow-2xl hover:shadow-primary-500/30 glass-stats' 
@@ -383,24 +424,24 @@ export default function CareerBanner({ onViewPositionsClick }) {
                       <div className="absolute inset-0 bg-gradient-to-r from-primary-100/20 to-blue-100/20 animate-pulse"></div>
                     </>
                   )}
-                  <span className="relative z-10 font-extrabold tracking-wide">Apply Now</span>
+                  <span className="relative z-10 font-extrabold tracking-wide">Explore Partnership</span>
                   <ArrowRight size={16} className="relative z-10 ml-3 group-hover:translate-x-1 transition-transform sm:w-4 sm:h-4 md:w-5 md:h-5" />
                   
                   {/* Shine effect for light mode */}
                   {!isDark && (
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                   )}
-                </Link>
+                </button>
                 
-                <button
-                  onClick={onViewPositionsClick}
+                <button 
+                  onClick={handleContactUs}
                   className={`inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-all duration-300 hover:scale-105 text-sm sm:text-base md:text-lg ${
                     isDark 
                       ? 'glass-stats text-white hover:bg-white/10' 
                       : 'bg-gray-100/80 backdrop-blur-lg text-gray-700 border-2 border-gray-300/40 hover:border-gray-400/70 hover:bg-gray-200/80 shadow-lg hover:shadow-xl'
                   }`}
                 >
-                  View Positions
+                  Learn More
                 </button>
               </div>
 
@@ -443,7 +484,7 @@ export default function CareerBanner({ onViewPositionsClick }) {
           {/* Enhanced Values Section */}
           <div className={`mb-6 md:mb-8 transition-all duration-1000 delay-500 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             <div className="glass-stats rounded-2xl p-6 md:p-8 max-w-5xl lg:max-w-6xl mx-auto">
-              <h3 className={`text-xl md:text-2xl font-bold mb-4 md:mb-6 text-center ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-medium`}>Our Career Values</h3>
+              <h3 className={`text-xl md:text-2xl font-bold mb-4 md:mb-6 text-center ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-medium`}>Our Educational Values</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                 {values.map((value, index) => (
                   <div
@@ -471,15 +512,13 @@ export default function CareerBanner({ onViewPositionsClick }) {
 
           {/* Scroll Indicator */}
           <div className={`flex flex-col items-center mt-6 md:mt-8 transition-all duration-1000 delay-700 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <span className={`text-sm mb-2 ${isDark ? 'text-white' : 'text-gray-600'} font-medium text-shadow-subtle`}>Explore Career Opportunities</span>
+            <span className={`text-sm mb-2 ${isDark ? 'text-white' : 'text-gray-600'} font-medium text-shadow-subtle`}>Discover Partnership Options</span>
             <ChevronDown className={`w-6 h-6 animate-bounce ${isDark ? 'text-white' : 'text-gray-500'}`} />
           </div>
         </div>
       </div>
     </section>
   );
-}
+};
 
-
-
-
+export default SchoolBanner; 
