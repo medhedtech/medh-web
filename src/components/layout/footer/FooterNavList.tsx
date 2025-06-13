@@ -237,7 +237,7 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
     { name: "Refund Policy", path: "/cancellation-and-refund-policy" }
   ];
 
-  // Theme-aware styling - Made darker
+  // Theme-aware styling - Improved dark mode colors
   const themeStyles = {
     light: {
       container: 'text-gray-900',
@@ -254,16 +254,16 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
     },
     dark: {
       container: 'text-white',
-      ribbonBg: 'bg-gray-950',
-      ribbonBorder: 'border-gray-800',
+      ribbonBg: 'bg-slate-800',
+      ribbonBorder: 'border-slate-700',
       titleText: 'text-white',
       bodyText: 'text-gray-300',
       linkText: 'text-gray-400 hover:text-white',
       contactText: 'text-gray-300 hover:text-white',
-      qrShadow: 'shadow-xl',
-      navBorder: 'border-gray-800',
-      learningBg: 'bg-gray-950',
-      learningBorder: 'border-gray-800',
+      qrShadow: 'shadow-xl shadow-black/20',
+      navBorder: 'border-slate-700',
+      learningBg: 'bg-slate-800',
+      learningBorder: 'border-slate-700',
     }
   };
 
@@ -274,92 +274,9 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
   }
 
   return (
-    <div className={`${currentTheme.container} ${theme === 'light' ? 'bg-gray-200' : 'bg-gray-950'}`}>
-      {/* Company Info Ribbon - Full Width */}
-      <div className={`${currentTheme.ribbonBg} border-b ${currentTheme.ribbonBorder} py-12 mb-12 rounded-t-2xl`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-            
-            {/* Logo & Description Section */}
-            <div className="space-y-6">
-              <Link href="/" className="inline-block">
-                <div className="relative w-[160px] h-[50px]">
-                  {/* Dark mode logo (LogoDark) */}
-                  <Image 
-                    src={LogoDark} 
-                    alt="Medh Logo Dark" 
-                    width={160}
-                    height={50}
-                    className={`object-contain transition-all duration-500 ease-in-out ${
-                      theme === 'dark' ? 'opacity-100 visible' : 'opacity-0 invisible'
-                    }`}
-                    priority
-                  />
-                  
-                  {/* Light mode logo (LogoLight) */}
-                  <Image 
-                    src={LogoLight} 
-                    alt="Medh Logo Light" 
-                    width={160}
-                    height={50}
-                    className={`object-contain transition-all duration-500 ease-in-out absolute top-0 left-0 ${
-                      theme === 'light' ? 'opacity-100 visible' : 'opacity-0 invisible'
-                    }`}
-                    priority
-                  />
-                </div>
-              </Link>
-              <p className={`${currentTheme.bodyText} text-base leading-relaxed`}>
-                Medh is an innovative ed-tech platform that empowers learners with industry-ready skills 
-                through expert-led courses, personalized learning paths, and guaranteed job placements.
-              </p>
-              
-              {/* Contact Info - Single Line */}
-              <div className="space-y-3">
-                <h3 className={`text-xl font-semibold ${currentTheme.titleText}`}>Contact Us</h3>
-                <div className={`flex flex-col sm:flex-row gap-4 sm:gap-8 ${currentTheme.bodyText}`}>
-                  <a 
-                    href="tel:+917710840696"
-                    className={`${currentTheme.contactText} transition-colors text-base font-medium`}
-                  >
-                    +917710840696
-                  </a>
-                  <a 
-                    href="mailto:care@medh.co"
-                    className={`${currentTheme.contactText} transition-colors text-base font-medium`}
-                  >
-                    care@medh.co
-                  </a>
-                  <span className="text-base font-medium">
-                    India
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* QR Code Section */}
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <div className={`w-32 h-32 bg-white rounded-2xl p-3 ${currentTheme.qrShadow}`}>
-                <Image 
-                  src={QRCode} 
-                  alt="Medh QR Code" 
-                  width={128}
-                  height={128}
-                  className="object-contain w-full h-full"
-                />
-              </div>
-              <div className="text-center space-y-1">
-                <p className={`text-lg font-semibold ${currentTheme.titleText}`}>Medh QR Code</p>
-                <p className={`text-base ${currentTheme.bodyText}`}>Scan to visit</p>
-                <p className={`text-base ${currentTheme.bodyText}`}>Our website</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <div className={`${currentTheme.container} ${theme === 'light' ? 'bg-gray-200' : 'bg-slate-900'}`}>
       {/* Navigation Sections - 3 Column Layout */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
           {navigationSections.map((section, index) => {
             // Skip Learning section in main grid - it will be rendered separately
@@ -470,7 +387,7 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                       <Link 
                         key={childIndex}
                         href={child.path}
-                        className={`${currentTheme.linkText} transition-colors text-sm flex items-center gap-3 py-2 px-4 ${currentTheme.learningBg} rounded-lg hover:${theme === 'light' ? 'bg-gray-400' : 'bg-black'}`}
+                        className={`${currentTheme.linkText} transition-colors text-sm flex items-center gap-3 py-2 px-4 ${currentTheme.learningBg} rounded-lg hover:${theme === 'light' ? 'bg-gray-400' : 'bg-slate-700'}`}
                       >
                         <span className="w-2 h-2 bg-primary-400 rounded-full flex-shrink-0"></span>
                         {child.name}
@@ -484,6 +401,92 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
           </div>
         </div>
       )}
+
+      {/* Company Info Section - Just above bottom section */}
+      <div className="mt-16">
+        <div className={`border-t ${currentTheme.navBorder}`}></div>
+        <div className={`${currentTheme.ribbonBg} border-b ${currentTheme.ribbonBorder} py-12 mt-0`}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+              
+              {/* Logo & Description Section */}
+              <div className="space-y-6">
+                <Link href="/" className="inline-block">
+                  <div className="relative w-[160px] h-[50px]">
+                    {/* Dark mode logo (LogoDark) */}
+                    <Image 
+                      src={LogoDark} 
+                      alt="Medh Logo Dark" 
+                      width={160}
+                      height={50}
+                      className={`object-contain transition-all duration-500 ease-in-out ${
+                        theme === 'dark' ? 'opacity-100 visible' : 'opacity-0 invisible'
+                      }`}
+                      priority
+                    />
+                    
+                    {/* Light mode logo (LogoLight) */}
+                    <Image 
+                      src={LogoLight} 
+                      alt="Medh Logo Light" 
+                      width={160}
+                      height={50}
+                      className={`object-contain transition-all duration-500 ease-in-out absolute top-0 left-0 ${
+                        theme === 'light' ? 'opacity-100 visible' : 'opacity-0 invisible'
+                      }`}
+                      priority
+                    />
+                  </div>
+                </Link>
+                <p className={`${currentTheme.bodyText} text-base leading-relaxed`}>
+                  Medh is an innovative ed-tech platform that empowers learners with industry-ready skills 
+                  through expert-led courses, personalized learning paths, and guaranteed job placements.
+                </p>
+                
+                {/* Contact Info - Single Line */}
+                <div className="space-y-3">
+                  <h3 className={`text-xl font-semibold ${currentTheme.titleText}`}>Contact Us</h3>
+                  <div className={`flex flex-col sm:flex-row gap-4 sm:gap-8 ${currentTheme.bodyText}`}>
+                    <a 
+                      href="tel:+917710840696"
+                      className={`${currentTheme.contactText} transition-colors text-base font-medium`}
+                    >
+                      +917710840696
+                    </a>
+                    <a 
+                      href="mailto:care@medh.co"
+                      className={`${currentTheme.contactText} transition-colors text-base font-medium`}
+                    >
+                      care@medh.co
+                    </a>
+                    <span className="text-base font-medium">
+                      India
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* QR Code Section */}
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <div className={`w-32 h-32 bg-white rounded-2xl p-3 ${currentTheme.qrShadow}`}>
+                  <Image 
+                    src={QRCode} 
+                    alt="Medh QR Code" 
+                    width={128}
+                    height={128}
+                    className="object-contain w-full h-full"
+                  />
+                </div>
+                <div className="text-center space-y-1">
+                  <p className={`text-lg font-semibold ${currentTheme.titleText}`}>Medh QR Code</p>
+                  <p className={`text-base ${currentTheme.bodyText}`}>Scan to visit</p>
+                  <p className={`text-base ${currentTheme.bodyText}`}>Our website</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Bottom Section */}
       <div className="mt-12">
@@ -517,7 +520,7 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={`Visit our ${link.name} page`}
-                      className={`w-8 h-8 flex items-center justify-center rounded-full ${theme === 'light' ? 'bg-gray-400 hover:bg-primary-600 text-gray-700 hover:text-white' : 'bg-black hover:bg-primary-600 text-gray-400 hover:text-white'} transition-colors`}
+                      className={`w-8 h-8 flex items-center justify-center rounded-full ${theme === 'light' ? 'bg-gray-400 hover:bg-primary-600 text-gray-700 hover:text-white' : 'bg-slate-700 hover:bg-primary-600 text-gray-300 hover:text-white'} transition-colors`}
                     >
                       <IconComponent className="w-4 h-4" />
                     </a>

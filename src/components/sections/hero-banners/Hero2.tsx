@@ -8,396 +8,13 @@ import Group from "@/assets/Header-Images/Home/cheerful-arab.jpg";
 import bgImage from "@/assets/Header-Images/Home/Home_Banner_2_e7389bb905.jpg";
 import { useTheme } from "next-themes";
 import "@/assets/css/ovalAnimation.css";
+import "@/styles/glassmorphism.css";
 import { VideoBackgroundContext } from "@/components/layout/main/Home2";
 
-// Enhanced custom animations for the hero section with theme-aware glassmorphism
-const getThemeStyles = (isDark: boolean) => `
-  @keyframes animate-gradient-x {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-  }
-  
-  @keyframes animate-bounce-slow {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
-  }
-  
-  @keyframes animate-pulse-slow {
-    0%, 100% { opacity: 0.8; }
-    50% { opacity: 0.4; }
-  }
-  
-  @keyframes animate-pulse-slower {
-    0%, 100% { opacity: 0.6; }
-    50% { opacity: 0.2; }
-  }
-  
-  @keyframes scroll-infinite {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-16.666%); }
-  }
-  
-  @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-  }
-  
-  @keyframes theme-transition {
-    0% { opacity: 0; }
-    100% { opacity: 1; }
-  }
-  
-  .animate-gradient-x {
-    background-size: 200% 200%;
-    animation: animate-gradient-x 3s ease infinite;
-  }
-  
-  .animate-bounce-slow {
-    animation: animate-bounce-slow 6s ease-in-out infinite;
-  }
-  
-  .animate-pulse-slow {
-    animation: animate-pulse-slow 4s ease-in-out infinite;
-  }
-  
-  .animate-pulse-slower {
-    animation: animate-pulse-slower 6s ease-in-out infinite;
-  }
-  
-  .animate-scroll-infinite {
-    animation: scroll-infinite 35s linear infinite;
-  }
-  
-  .animate-scroll-infinite:hover {
-    animation-play-state: paused;
-  }
-  
-  .animate-shimmer {
-    background: linear-gradient(90deg, transparent, ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.3)'}, transparent);
-    background-size: 200% 100%;
-    animation: shimmer 2s infinite;
-  }
-  
-  .animate-theme-transition {
-    animation: theme-transition 0.5s ease-in-out;
-  }
-  
-  .scroll-container {
-    will-change: transform;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-  }
-  
-  .bg-gradient-radial {
-    background: radial-gradient(circle, var(--tw-gradient-stops));
-  }
-  
-  .glass-container {
-    background: ${isDark 
-      ? 'rgba(15, 23, 42, 0.08)' 
-      : 'rgba(255, 255, 255, 0.08)'};
-    backdrop-filter: blur(25px);
-    border: 1px solid ${isDark 
-      ? 'rgba(255, 255, 255, 0.12)' 
-      : 'rgba(255, 255, 255, 0.25)'};
-    border-radius: 1.5rem;
-    box-shadow: 
-      ${isDark 
-        ? '0 8px 32px rgba(0, 0, 0, 0.15), 0 16px 64px rgba(0, 0, 0, 0.08)' 
-        : '0 8px 32px rgba(0, 0, 0, 0.06), 0 16px 64px rgba(0, 0, 0, 0.02)'},
-      inset 0 1px 0 ${isDark 
-        ? 'rgba(255, 255, 255, 0.15)' 
-        : 'rgba(255, 255, 255, 0.35)'},
-      inset 0 -1px 0 ${isDark 
-        ? 'rgba(255, 255, 255, 0.08)' 
-        : 'rgba(255, 255, 255, 0.18)'};
-    position: relative;
-  }
-  
-  .glass-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg, ${isDark 
-      ? 'rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.03)' 
-      : 'rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.4)'});
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-  
-  .glass-card {
-    background: ${isDark 
-      ? 'rgba(15, 23, 42, 0.2)' 
-      : 'rgba(255, 255, 255, 0.3)'};
-    backdrop-filter: blur(12px);
-    border: 1px solid ${isDark 
-      ? 'rgba(255, 255, 255, 0.03)' 
-      : 'rgba(255, 255, 255, 0.5)'};
-    border-radius: 1rem;
-    box-shadow: 
-      ${isDark 
-        ? '0 4px 20px rgba(0, 0, 0, 0.25)' 
-        : '0 4px 20px rgba(0, 0, 0, 0.08)'},
-      inset 0 1px 0 ${isDark 
-        ? 'rgba(255, 255, 255, 0.06)' 
-        : 'rgba(255, 255, 255, 0.7)'},
-      inset 0 -1px 0 ${isDark 
-        ? 'rgba(255, 255, 255, 0.02)' 
-        : 'rgba(255, 255, 255, 0.3)'};
-    position: relative;
-  }
-  
-  .glass-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg, ${isDark 
-      ? 'rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.02)' 
-      : 'rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.3)'});
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-  
-  .glass-stats {
-    background: ${isDark 
-      ? 'rgba(15, 23, 42, 0.12)' 
-      : 'rgba(255, 255, 255, 0.15)'};
-    backdrop-filter: blur(20px);
-    border: 1px solid ${isDark 
-      ? 'rgba(255, 255, 255, 0.12)' 
-      : 'rgba(255, 255, 255, 0.3)'};
-    border-radius: 1rem;
-    box-shadow: 
-      ${isDark 
-        ? '0 4px 20px rgba(0, 0, 0, 0.12), 0 8px 40px rgba(0, 0, 0, 0.06)' 
-        : '0 4px 20px rgba(0, 0, 0, 0.04), 0 8px 40px rgba(0, 0, 0, 0.015)'},
-      inset 0 1px 0 ${isDark 
-        ? 'rgba(255, 255, 255, 0.15)' 
-        : 'rgba(255, 255, 255, 0.4)'},
-      inset 0 -1px 0 ${isDark 
-        ? 'rgba(255, 255, 255, 0.08)' 
-        : 'rgba(255, 255, 255, 0.25)'};
-    position: relative;
-  }
-  
-  .glass-stats::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg, ${isDark 
-      ? 'rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.03)' 
-      : 'rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.4)'});
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-  
-  .glass-primary {
-    background: ${isDark 
-      ? 'rgba(15, 23, 42, 0.25)' 
-      : 'rgba(59, 172, 99, 0.15)'};
-    backdrop-filter: blur(15px);
-    border: 1px solid ${isDark 
-      ? 'rgba(59, 172, 99, 0.08)' 
-      : 'rgba(59, 172, 99, 0.4)'};
-    border-radius: 1rem;
-    box-shadow: 
-      ${isDark 
-        ? '0 4px 20px rgba(59, 172, 99, 0.2)' 
-        : '0 4px 20px rgba(59, 172, 99, 0.15)'},
-      inset 0 1px 0 ${isDark 
-        ? 'rgba(255, 255, 255, 0.06)' 
-        : 'rgba(255, 255, 255, 0.7)'},
-      inset 0 -1px 0 ${isDark 
-        ? 'rgba(255, 255, 255, 0.02)' 
-        : 'rgba(255, 255, 255, 0.3)'};
-    position: relative;
-  }
-  
-  .glass-primary::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg, ${isDark 
-      ? 'rgba(59, 172, 99, 0.05), rgba(59, 172, 99, 0.01), rgba(59, 172, 99, 0.03)' 
-      : 'rgba(59, 172, 99, 0.3), rgba(59, 172, 99, 0.1), rgba(59, 172, 99, 0.2)'});
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-  
-  .glass-purple {
-    background: ${isDark 
-      ? 'rgba(15, 23, 42, 0.25)' 
-      : 'rgba(147, 51, 234, 0.15)'};
-    backdrop-filter: blur(15px);
-    border: 1px solid ${isDark 
-      ? 'rgba(147, 51, 234, 0.08)' 
-      : 'rgba(147, 51, 234, 0.4)'};
-    border-radius: 1rem;
-    box-shadow: 
-      ${isDark 
-        ? '0 4px 20px rgba(147, 51, 234, 0.2)' 
-        : '0 4px 20px rgba(147, 51, 234, 0.15)'},
-      inset 0 1px 0 ${isDark 
-        ? 'rgba(255, 255, 255, 0.06)' 
-        : 'rgba(255, 255, 255, 0.7)'},
-      inset 0 -1px 0 ${isDark 
-        ? 'rgba(255, 255, 255, 0.02)' 
-        : 'rgba(255, 255, 255, 0.3)'};
-    position: relative;
-  }
-  
-  .glass-purple::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg, ${isDark 
-      ? 'rgba(147, 51, 234, 0.05), rgba(147, 51, 234, 0.01), rgba(147, 51, 234, 0.03)' 
-      : 'rgba(147, 51, 234, 0.3), rgba(147, 51, 234, 0.1), rgba(147, 51, 234, 0.2)'});
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-  
-  .glass-secondary {
-    background: ${isDark 
-      ? 'rgba(15, 23, 42, 0.25)' 
-      : 'rgba(34, 197, 94, 0.15)'};
-    backdrop-filter: blur(15px);
-    border: 1px solid ${isDark 
-      ? 'rgba(34, 197, 94, 0.08)' 
-      : 'rgba(34, 197, 94, 0.4)'};
-    border-radius: 1rem;
-    box-shadow: 
-      ${isDark 
-        ? '0 4px 20px rgba(34, 197, 94, 0.2)' 
-        : '0 4px 20px rgba(34, 197, 94, 0.15)'},
-      inset 0 1px 0 ${isDark 
-        ? 'rgba(255, 255, 255, 0.06)' 
-        : 'rgba(255, 255, 255, 0.7)'},
-      inset 0 -1px 0 ${isDark 
-        ? 'rgba(255, 255, 255, 0.02)' 
-        : 'rgba(255, 255, 255, 0.3)'};
-    position: relative;
-  }
-  
-  .glass-secondary::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg, ${isDark 
-      ? 'rgba(34, 197, 94, 0.05), rgba(34, 197, 94, 0.01), rgba(34, 197, 94, 0.03)' 
-      : 'rgba(34, 197, 94, 0.3), rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.2)'});
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-  
-  .glass-blue {
-    background: ${isDark 
-      ? 'rgba(15, 23, 42, 0.25)' 
-      : 'rgba(59, 130, 246, 0.15)'};
-    backdrop-filter: blur(15px);
-    border: 1px solid ${isDark 
-      ? 'rgba(59, 130, 246, 0.08)' 
-      : 'rgba(59, 130, 246, 0.4)'};
-    border-radius: 1rem;
-    box-shadow: 
-      ${isDark 
-        ? '0 4px 20px rgba(59, 130, 246, 0.2)' 
-        : '0 4px 20px rgba(59, 130, 246, 0.15)'},
-      inset 0 1px 0 ${isDark 
-        ? 'rgba(255, 255, 255, 0.06)' 
-        : 'rgba(255, 255, 255, 0.7)'},
-      inset 0 -1px 0 ${isDark 
-        ? 'rgba(255, 255, 255, 0.02)' 
-        : 'rgba(255, 255, 255, 0.3)'};
-    position: relative;
-  }
-  
-  .glass-blue::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg, ${isDark 
-      ? 'rgba(59, 130, 246, 0.05), rgba(59, 130, 246, 0.01), rgba(59, 130, 246, 0.03)' 
-      : 'rgba(59, 130, 246, 0.3), rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.2)'});
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-  
-  .video-overlay {
-    background: ${isDark 
-      ? 'linear-gradient(135deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.01) 50%, rgba(0, 0, 0, 0.02) 100%)' 
-      : 'transparent'};
-  }
-  
-  .hero-mumkin-mobile {
-    font-size: clamp(1rem, 3.5vw, 1.75rem) !important;
-  }
-  
-  .hero-mumkin-desktop {
-    font-size: clamp(1.5rem, 5vw, 3rem) !important;
-  }
-  
-  /* Enhanced text shadows for better readability */
-  .text-shadow-light {
-    text-shadow: ${isDark 
-      ? '2px 2px 8px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 0, 0, 0.6)' 
-      : '1px 1px 3px rgba(0, 0, 0, 0.3), 0 0 6px rgba(0, 0, 0, 0.2)'};
-  }
-  
-  .text-shadow-medium {
-    text-shadow: ${isDark 
-      ? '1px 1px 4px rgba(0, 0, 0, 0.7)' 
-      : '1px 1px 2px rgba(0, 0, 0, 0.4)'};
-  }
-  
-  .text-shadow-subtle {
-    text-shadow: ${isDark 
-      ? '1px 1px 3px rgba(0, 0, 0, 0.6)' 
-      : '0.5px 0.5px 1px rgba(0, 0, 0, 0.3)'};
-  }
-`;
+// Optimized theme attribute update
+const updateThemeAttribute = (isDark: boolean) => {
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+};
 
 // Theme-aware style injection - will be handled in component
 import CourseCard from "@/components/sections/courses/CourseCard";
@@ -413,11 +30,7 @@ import medhLogo from "@/assets/images/logo/medh.png";
 import { getAllCoursesWithLimits } from "@/apis/course/course";
 import { ICourse } from "@/types/course.types";
 
-// Simple video optimization for better performance
-const OPTIMIZED_VIDEO_URLS = {
-  DARK_THEME: "https://d2cxn2x1vtrou8.cloudfront.net/Website/1659171_Trapcode_Particles_3840x2160.mp4",
-  LIGHT_THEME: "https://d2cxn2x1vtrou8.cloudfront.net/Website/0_Wind_Flowing_3840x2160.mp4"
-};
+// Server-side video optimization is now handled in Home2.tsx - these URLs are managed globally
 
 // Define interfaces for component props
 interface IHeroMobileProps {
@@ -725,10 +338,10 @@ const InfiniteScrollerCards: React.FC<IInfiniteScrollerCardsProps> = React.memo(
                   <div className="mb-2 group-hover:scale-110 transition-all duration-300">
                     <IconComponent className={`w-6 h-6 md:w-7 md:h-7 ${getIconColor(category.type)} drop-shadow-lg`} />
                   </div>
-                  <h3 className={`font-semibold text-xs md:text-sm ${getHoverColor(category.type)} transition-colors text-center px-1 ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-medium line-clamp-2`}>
+                  <h3 className={`font-semibold text-xs md:text-sm ${getHoverColor(category.type)} transition-colors text-center px-1 ${isDark ? 'text-white' : 'text-gray-900'} line-clamp-2`}>
                     {category.name}
                   </h3>
-                  <p className={`text-xs mt-1 hidden md:block ${isDark ? 'text-gray-200' : 'text-gray-700'} font-medium text-shadow-subtle text-center px-1 line-clamp-1`}>
+                  <p className={`text-xs mt-1 hidden md:block ${isDark ? 'text-gray-200' : 'text-gray-700'} font-medium text-center px-1 line-clamp-1`}>
                     {category.description}
                   </p>
                 </div>
@@ -742,7 +355,7 @@ const InfiniteScrollerCards: React.FC<IInfiniteScrollerCardsProps> = React.memo(
 
 InfiniteScrollerCards.displayName = 'InfiniteScrollerCards';
 
-// Enhanced Mobile version with glassmorphism and theme support
+// Enhanced Mobile version with glassmorphism and theme support - Server optimized
 const HeroMobile: React.FC<IHeroMobileProps> = React.memo(({ isLoaded, featuredCourses, loading }) => {
   const { theme } = useTheme();
   const [mounted, setMounted] = useState<boolean>(false);
@@ -754,50 +367,16 @@ const HeroMobile: React.FC<IHeroMobileProps> = React.memo(({ isLoaded, featuredC
   
   const isDark = mounted ? theme === 'dark' : true; // Default to dark during SSR
   
-  // Inject theme-aware styles
+  // Optimized theme attribute update
   useEffect(() => {
-    if (!mounted) return;
-    
-    // Debug log for theme changes
-    console.log('Hero Mobile theme changed:', isDark ? 'dark' : 'light');
-    
-    const existingStyle = document.getElementById('hero-mobile-theme-styles');
-    if (existingStyle) {
-      existingStyle.remove();
+    if (mounted) {
+      updateThemeAttribute(isDark);
     }
-    
-    const styleSheet = document.createElement("style");
-    styleSheet.id = 'hero-mobile-theme-styles';
-    styleSheet.innerText = getThemeStyles(isDark);
-    document.head.appendChild(styleSheet);
-    
-    return () => {
-      const styleToRemove = document.getElementById('hero-mobile-theme-styles');
-      if (styleToRemove) {
-        styleToRemove.remove();
-      }
-    };
   }, [mounted, isDark]);
   
   return (
-    <div className="mobile-hero-wrapper h-screen max-h-[100vh] relative overflow-hidden animate-theme-transition">
-      {/* Video Background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <video
-          key={`mobile-video-${isDark ? 'dark' : 'light'}`}
-          autoPlay
-          muted
-          loop
-          playsInline
-          className={`absolute inset-0 w-full h-full object-cover scale-105 transition-all duration-2000 ease-out ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-          style={{ filter: isDark ? 'brightness(0.6) contrast(1.2) saturate(0.9) hue-rotate(10deg)' : 'brightness(0.9) contrast(1.0) saturate(1.0)' }}
-        >
-          <source src={isDark ? "https://d2cxn2x1vtrou8.cloudfront.net/Website/1659171_Trapcode_Particles_3840x2160.mp4" : "https://d2cxn2x1vtrou8.cloudfront.net/Website/0_Wind_Flowing_3840x2160.mp4"} type="video/mp4" />
-        </video>
-        
-        {/* Video overlay for better text readability - theme aware */}
-        <div className={`absolute inset-0 ${isDark ? 'video-overlay' : ''}`}></div>
-      </div>
+    <div className="mobile-hero-wrapper h-screen max-h-[100vh] relative overflow-hidden">
+      {/* No video background here - using shared video from Home2.tsx context */}
 
       {/* Content - Centered Layout with Glassmorphism */}
       <div className="relative z-10 px-4 py-2 flex flex-col h-full justify-center text-center">
@@ -807,22 +386,35 @@ const HeroMobile: React.FC<IHeroMobileProps> = React.memo(({ isLoaded, featuredC
           {/* Hero Content Card with Enhanced Glassmorphism */}
           <div className="mx-auto mb-4 glass-container rounded-2xl p-4 shadow-2xl max-w-md">
             <div className="text-center">
-              {/* Badge */}
-              <div className={`inline-flex items-center px-2 py-1 glass-stats rounded-full text-xs font-medium mb-2 opacity-95 ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
-                <Sparkles size={10} className="mr-1" />
-                Expert-Led Learning Platform
+              {/* Certification Badges */}
+              <div className="flex flex-wrap justify-center gap-2 mb-3">
+                <div className={`inline-flex items-center px-2 py-1 glass-stats rounded-full text-xs font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                  <Shield size={10} className="mr-1" />
+                  ISO Certified
+                </div>
+                <div className={`inline-flex items-center px-2 py-1 glass-stats rounded-full text-xs font-medium opacity-95 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
+                  <Award size={10} className="mr-1" />
+                  STEM Certified
+                </div>
               </div>
               
-              {/* Main Heading */}
+                            {/* Main Heading */}
               <h1 className={`text-2xl sm:text-3xl font-bold mb-2 sm:mb-3 leading-tight tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Unlock Your Potential Journey With{' '}
-                <span className="relative font-extrabold" style={{ color: '#3bac63' }}>
-                  Medh
+                Unlock Your Potential Journey <em className="font-normal">with</em>{' '}
+                <span className="inline-flex items-center">
+                  <Image 
+                    src={medhLogo} 
+                    alt="Medh Logo" 
+                    width={24} 
+                    height={24} 
+                    className="inline-block mx-1 h-6 sm:h-8 w-auto"
+                    style={{ filter: 'brightness(1.1) contrast(1.2)' }}
+                  />
                 </span>
               </h1>
               
               {/* Description */}
-              <p className={`text-sm leading-relaxed mb-3 sm:mb-4 max-w-sm mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium text-shadow-medium`}>
+              <p className={`text-sm leading-relaxed mb-3 sm:mb-4 max-w-sm mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
                 Join our expert-led courses and master the skills that drive industry innovation globally.
               </p>
               
@@ -836,7 +428,7 @@ const HeroMobile: React.FC<IHeroMobileProps> = React.memo(({ isLoaded, featuredC
                     <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
                     <div className="relative z-10 flex items-center justify-center space-x-1">
                       <BookOpen className={`w-3 h-3 ${isDark ? 'text-primary-300' : 'text-primary-600'}`} />
-                      <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-subtle`}>Children & Teens</span>
+                      <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Children & Teens</span>
                     </div>
                   </div>
 
@@ -845,7 +437,7 @@ const HeroMobile: React.FC<IHeroMobileProps> = React.memo(({ isLoaded, featuredC
                     <div className="absolute inset-0 bg-gradient-to-br from-secondary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
                     <div className="relative z-10 flex items-center justify-center space-x-1">
                       <Users className={`w-3 h-3 ${isDark ? 'text-secondary-300' : 'text-secondary-600'}`} />
-                      <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-subtle`}>Professionals</span>
+                      <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Professionals</span>
                     </div>
                   </div>
 
@@ -854,7 +446,7 @@ const HeroMobile: React.FC<IHeroMobileProps> = React.memo(({ isLoaded, featuredC
                     <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
                     <div className="relative z-10 flex items-center justify-center space-x-1">
                       <Star className={`w-3 h-3 ${isDark ? 'text-purple-300' : 'text-purple-600'}`} />
-                      <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-subtle`}>Homemakers</span>
+                      <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Homemakers</span>
                     </div>
                   </div>
 
@@ -863,7 +455,7 @@ const HeroMobile: React.FC<IHeroMobileProps> = React.memo(({ isLoaded, featuredC
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
                     <div className="relative z-10 flex items-center justify-center space-x-1">
                       <TrendingUp className={`w-3 h-3 ${isDark ? 'text-blue-300' : 'text-blue-600'}`} />
-                      <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-subtle`}>Lifelong Learners</span>
+                      <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Lifelong Learners</span>
                     </div>
                   </div>
                 </div>
@@ -886,13 +478,15 @@ const HeroMobile: React.FC<IHeroMobileProps> = React.memo(({ isLoaded, featuredC
                   <ArrowRight size={14} className="relative z-10 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
-              {/* Tagline - Enhanced Size */}
-              <div className={`mumkinMedh text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4 sm:mb-5 leading-tight ${
-                isDark 
-                  ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
-                  : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
-              }`}>
-                Medh Hai Toh Mumkin Hai!
+              {/* Tagline - Enhanced Size with spacing and horizontal expansion */}
+              <div className="mt-6 mb-4 sm:mb-5">
+                <div className={`mumkinMedh text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight ${
+                  isDark 
+                    ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
+                    : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
+                }`} style={{ transform: 'scaleX(1.1)', letterSpacing: '0.05em' }}>
+                  Medh Hai Toh Mumkin Hai !
+                </div>
               </div>
             </div>
           </div>
@@ -908,8 +502,8 @@ const HeroMobile: React.FC<IHeroMobileProps> = React.memo(({ isLoaded, featuredC
                   <div className="mb-1 p-1 bg-primary-500/20 rounded-md w-fit">
                     <GraduationCap className={`w-3 h-3 ${isDark ? 'text-primary-300' : 'text-primary-700'}`} />
                   </div>
-                  <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-medium`}>100+</div>
-                  <div className={`text-xs ${isDark ? 'text-white' : 'text-gray-800'} font-medium text-shadow-subtle`}>Courses</div>
+                  <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>100+</div>
+                  <div className={`text-xs ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>Courses</div>
                 </div>
               </div>
 
@@ -920,8 +514,8 @@ const HeroMobile: React.FC<IHeroMobileProps> = React.memo(({ isLoaded, featuredC
                   <div className="mb-1 p-1 bg-purple-500/20 rounded-md w-fit">
                     <Users className={`w-3 h-3 ${isDark ? 'text-purple-300' : 'text-purple-700'}`} />
                   </div>
-                  <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-medium`}>All</div>
-                  <div className={`text-xs ${isDark ? 'text-white' : 'text-gray-800'} font-medium text-shadow-subtle`}>Ages</div>
+                  <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>All</div>
+                  <div className={`text-xs ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>Ages</div>
                 </div>
               </div>
               
@@ -933,8 +527,8 @@ const HeroMobile: React.FC<IHeroMobileProps> = React.memo(({ isLoaded, featuredC
                     <Clock className={`w-3 h-3 ${isDark ? 'text-secondary-300' : 'text-secondary-700'}`} />
                     <div className="absolute -top-0.5 -right-0.5 w-1 h-1 bg-red-600 rounded-full animate-pulse shadow-sm"></div>
                   </div>
-                  <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-medium`}>Live</div>
-                  <div className={`text-xs ${isDark ? 'text-white' : 'text-gray-800'} font-medium text-shadow-subtle`}>Classes</div>
+                  <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Live</div>
+                  <div className={`text-xs ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>Classes</div>
                 </div>
               </div>
 
@@ -945,8 +539,8 @@ const HeroMobile: React.FC<IHeroMobileProps> = React.memo(({ isLoaded, featuredC
                   <div className="mb-1 p-1 bg-blue-500/20 rounded-md w-fit">
                     <Star className={`w-3 h-3 ${isDark ? 'text-blue-300' : 'text-blue-700'}`} />
                   </div>
-                  <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-medium`}>Global</div>
-                  <div className={`text-xs ${isDark ? 'text-white' : 'text-gray-800'} font-medium text-shadow-subtle`}>Access</div>
+                  <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Global</div>
+                  <div className={`text-xs ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>Access</div>
                 </div>
               </div>
             </div>
@@ -968,10 +562,9 @@ interface IHero1Props {
   isCompact?: boolean;
 }
 
-// Enhanced Main Hero component with professional video background and theme support
+// Enhanced Main Hero component with server-side optimization and theme support
 const Hero1: React.FC<IHero1Props> = React.memo(({ isCompact = false }) => {
   const { theme } = useTheme();
-  const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [featuredCourses, setFeaturedCourses] = useState<ICourse[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [isMobile, setIsMobile] = useState<boolean>(false);
@@ -980,54 +573,23 @@ const Hero1: React.FC<IHero1Props> = React.memo(({ isCompact = false }) => {
   const videoContext = useContext(VideoBackgroundContext);
   
   const isDark = mounted ? theme === 'dark' : true; // Default to dark during SSR
+  
+  // Use video context for loading state - server optimized
+  const isLoaded = videoContext.isLoaded;
 
   // Mount and theme effects
   useEffect(() => {
     setMounted(true);
   }, []);
   
-  // Inject theme-aware styles
+  // Optimized theme attribute update
   useEffect(() => {
-    if (!mounted) return;
-    
-    // Debug log for theme changes
-    console.log('Hero Desktop theme changed:', isDark ? 'dark' : 'light');
-    
-    const existingStyle = document.getElementById('hero-desktop-theme-styles');
-    if (existingStyle) {
-      existingStyle.remove();
+    if (mounted) {
+      updateThemeAttribute(isDark);
     }
-    
-    const styleSheet = document.createElement("style");
-    styleSheet.id = 'hero-desktop-theme-styles';
-    styleSheet.innerText = getThemeStyles(isDark);
-    document.head.appendChild(styleSheet);
-    
-    return () => {
-      const styleToRemove = document.getElementById('hero-desktop-theme-styles');
-      if (styleToRemove) {
-        styleToRemove.remove();
-      }
-    };
   }, [mounted, isDark]);
 
-  // Add scroll management on mount
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    document.body.style.overflow = 'hidden';
-    
-    const timer = setTimeout(() => {
-      setIsLoaded(true);
-      document.body.style.overflow = 'auto';
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-      document.body.style.overflow = 'auto';
-    };
-  }, []);
-
-  // Check for mobile view
+  // Check for mobile view - optimized
   useEffect(() => {
     const checkIfMobile = (): void => {
       setIsMobile(window.innerWidth < 768);
@@ -1037,10 +599,6 @@ const Hero1: React.FC<IHero1Props> = React.memo(({ isCompact = false }) => {
     window.addEventListener('resize', checkIfMobile);
     
     return () => window.removeEventListener('resize', checkIfMobile);
-  }, []);
-
-  useEffect(() => {
-    setIsLoaded(true);
   }, []);
 
   // Fetch featured courses
@@ -1069,7 +627,7 @@ const Hero1: React.FC<IHero1Props> = React.memo(({ isCompact = false }) => {
     fetchFeaturedCourses();
   }, [getQuery]);
 
-  // Conditionally render mobile or desktop version
+  // Conditionally render mobile or desktop version - server optimized
   if (isMobile) {
     return (
         <HeroMobile 
@@ -1080,26 +638,10 @@ const Hero1: React.FC<IHero1Props> = React.memo(({ isCompact = false }) => {
     );
   }
 
-  // Enhanced Desktop version with professional video background and theme support
+  // Enhanced Desktop version with server-side optimization - no duplicate video
   return (
-        <section className="relative min-h-screen overflow-hidden animate-theme-transition">
-             {/* Video Background */}
-       <div className="absolute inset-0 overflow-hidden">
-         <video
-           key={`desktop-video-${isDark ? 'dark' : 'light'}`}
-           autoPlay
-           muted
-           loop
-           playsInline
-           className={`absolute inset-0 w-full h-full object-cover scale-105 transition-all duration-2000 ease-out ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-           style={{ filter: isDark ? 'brightness(0.65) contrast(1.2) saturate(0.9) hue-rotate(10deg)' : 'brightness(0.95) contrast(1.0) saturate(1.0)' }}
-         >
-           <source src={isDark ? "https://d2cxn2x1vtrou8.cloudfront.net/Website/1659171_Trapcode_Particles_3840x2160.mp4" : "https://d2cxn2x1vtrou8.cloudfront.net/Website/0_Wind_Flowing_3840x2160.mp4"} type="video/mp4" />
-         </video>
-         
-         {/* Enhanced overlay for professional look - theme aware */}
-         <div className={`absolute inset-0 ${isDark ? 'video-overlay' : ''}`}></div>
-       </div>
+        <section className="relative min-h-screen overflow-hidden">
+             {/* No video background here - using shared video from Home2.tsx context */}
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
         {/* Main Content with Enhanced Glassmorphism */}
@@ -1107,20 +649,33 @@ const Hero1: React.FC<IHero1Props> = React.memo(({ isCompact = false }) => {
           
           {/* Hero Text Section with Glass Container */}
           <div className={`mb-2 md:mb-3 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <div className="glass-container rounded-3xl p-8 md:p-12 mb-1 transform scale-90">
-              <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium mb-2 sm:mb-3 opacity-95 ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
-                <Sparkles size={10} className="mr-1 sm:w-3 sm:h-3" />
-                Expert-Led Learning Platform
+            <div className="glass-container rounded-3xl p-8 md:p-12 mb-1" style={{ transform: 'scale(0.9)', transformOrigin: 'center' }}>
+              <div className="flex flex-wrap justify-center gap-3 mb-3 sm:mb-4">
+                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                  <Shield size={10} className="mr-1 sm:w-3 sm:h-3" />
+                  ISO Certified
+                </div>
+                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
+                  <Award size={10} className="mr-1 sm:w-3 sm:h-3" />
+                  STEM Certified
+                </div>
               </div>
                
                <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-4 md:mb-6 tracking-tight max-w-4xl mx-auto ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                 Unlock Your Potential Journey With{' '}
-                 <span className="relative font-extrabold" style={{ color: '#3bac63' }}>
-                   Medh
+                 Unlock Your Potential Journey <em className="font-semibold">with</em>{' '}
+                 <span className="inline-flex items-center">
+                   <Image 
+                     src={medhLogo} 
+                     alt="Medh Logo" 
+                     width={24} 
+                     height={24} 
+                     className="inline-block mx-2 h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto"
+                     style={{ filter: 'brightness(1.1) contrast(1.2)' }}
+                   />
                   </span>
                 </h1>
                 
-               <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium text-shadow-medium`}>
+               <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
                  Join our expert-led courses and master the skills that drive industry innovation globally.
                 </p>
 
@@ -1133,7 +688,7 @@ const Hero1: React.FC<IHero1Props> = React.memo(({ isCompact = false }) => {
                      <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
                      <div className="relative z-10 flex flex-col items-center space-y-2">
                        <BookOpen className={`w-5 h-5 sm:w-6 sm:h-6 ${isDark ? 'text-primary-300' : 'text-primary-600'} group-hover:scale-110 transition-transform`} />
-                       <span className={`text-sm md:text-base lg:text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-subtle text-center leading-tight`}>Children & Teens</span>
+                       <span className={`text-sm md:text-base lg:text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} text-center leading-tight`}>Children & Teens</span>
                      </div>
                    </div>
 
@@ -1142,7 +697,7 @@ const Hero1: React.FC<IHero1Props> = React.memo(({ isCompact = false }) => {
                      <div className="absolute inset-0 bg-gradient-to-br from-secondary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
                      <div className="relative z-10 flex flex-col items-center space-y-2">
                        <Users className={`w-5 h-5 sm:w-6 sm:h-6 ${isDark ? 'text-secondary-300' : 'text-secondary-600'} group-hover:scale-110 transition-transform`} />
-                       <span className={`text-sm md:text-base lg:text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-subtle text-center leading-tight`}>Professionals</span>
+                       <span className={`text-sm md:text-base lg:text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} text-center leading-tight`}>Professionals</span>
                      </div>
                    </div>
 
@@ -1151,7 +706,7 @@ const Hero1: React.FC<IHero1Props> = React.memo(({ isCompact = false }) => {
                      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
                      <div className="relative z-10 flex flex-col items-center space-y-2">
                        <Star className={`w-5 h-5 sm:w-6 sm:h-6 ${isDark ? 'text-purple-300' : 'text-purple-600'} group-hover:scale-110 transition-transform`} />
-                       <span className={`text-sm md:text-base lg:text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-subtle text-center leading-tight`}>Homemakers</span>
+                       <span className={`text-sm md:text-base lg:text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} text-center leading-tight`}>Homemakers</span>
                      </div>
                    </div>
 
@@ -1160,7 +715,7 @@ const Hero1: React.FC<IHero1Props> = React.memo(({ isCompact = false }) => {
                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
                      <div className="relative z-10 flex flex-col items-center space-y-2">
                        <TrendingUp className={`w-5 h-5 sm:w-6 sm:h-6 ${isDark ? 'text-blue-300' : 'text-blue-600'} group-hover:scale-110 transition-transform`} />
-                       <span className={`text-sm md:text-base lg:text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-subtle text-center leading-tight`}>Lifelong Learners</span>
+                       <span className={`text-sm md:text-base lg:text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} text-center leading-tight`}>Lifelong Learners</span>
                      </div>
                    </div>
                  </div>
@@ -1192,13 +747,15 @@ const Hero1: React.FC<IHero1Props> = React.memo(({ isCompact = false }) => {
                    )}
                  </Link>
                </div>
-               {/* Tagline - Enhanced Size */}
-               <div className={`mumkinMedh text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-2 leading-tight pt-5 ${
-                 isDark 
-                   ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
-                   : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
-               }`}>
-                 Medh Hai Toh Mumkin Hai!
+               {/* Tagline - Enhanced Size with spacing and horizontal expansion */}
+               <div className="pt-8 mb-2">
+                 <div className={`mumkinMedh text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold leading-tight ${
+                   isDark 
+                     ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
+                     : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
+                 }`} style={{ transform: 'scaleX(1.1)', letterSpacing: '0.05em' }}>
+                   Medh Hai Toh Mumkin Hai !
+                 </div>
                </div>
              </div>
           </div>
@@ -1215,9 +772,9 @@ const Hero1: React.FC<IHero1Props> = React.memo(({ isCompact = false }) => {
                 <div className="glass-stats rounded-xl p-2 sm:p-3 md:p-4 lg:p-6 text-center hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
                   <div className="relative z-10">
-                    <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-light`}>100+</div>
-                    <div className={`font-semibold text-xs sm:text-sm md:text-base group-hover:text-primary-300 transition-colors ${isDark ? 'text-white' : 'text-gray-800'} text-shadow-medium`}>Expert Courses</div>
-                    <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 ${isDark ? 'text-white' : 'text-gray-700'} font-medium text-shadow-subtle`}>All Skill Levels</div>
+                    <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-white' : 'text-gray-900'}`}>100+</div>
+                    <div className={`font-semibold text-xs sm:text-sm md:text-base group-hover:text-primary-300 transition-colors ${isDark ? 'text-white' : 'text-gray-800'}`}>Expert Courses</div>
+                    <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 ${isDark ? 'text-white' : 'text-gray-700'} font-medium`}>All Skill Levels</div>
                   </div>
                 </div>
               
@@ -1225,9 +782,9 @@ const Hero1: React.FC<IHero1Props> = React.memo(({ isCompact = false }) => {
                <div className="glass-stats rounded-xl p-2 sm:p-3 md:p-4 lg:p-6 text-center hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden">
                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
                  <div className="relative z-10">
-                   <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-light`}>Every</div>
-                   <div className={`font-semibold text-xs sm:text-sm md:text-base group-hover:text-purple-300 transition-colors ${isDark ? 'text-white' : 'text-gray-800'} text-shadow-medium`}>Age Group</div>
-                   <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 ${isDark ? 'text-white' : 'text-gray-700'} font-medium text-shadow-subtle`}>8 to 80+ Years</div>
+                   <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-white' : 'text-gray-900'}`}>Every</div>
+                   <div className={`font-semibold text-xs sm:text-sm md:text-base group-hover:text-purple-300 transition-colors ${isDark ? 'text-white' : 'text-gray-800'}`}>Age Group</div>
+                   <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 ${isDark ? 'text-white' : 'text-gray-700'} font-medium`}>8 to 80+ Years</div>
                  </div>
                </div>
               
@@ -1235,9 +792,9 @@ const Hero1: React.FC<IHero1Props> = React.memo(({ isCompact = false }) => {
                <div className="glass-stats rounded-xl p-2 sm:p-3 md:p-4 lg:p-6 text-center hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden">
                  <div className="absolute inset-0 bg-gradient-to-br from-secondary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
                  <div className="relative z-10">
-                   <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-light`}>Live</div>
-                   <div className={`font-semibold text-xs sm:text-sm md:text-base group-hover:text-secondary-300 transition-colors ${isDark ? 'text-white' : 'text-gray-800'} text-shadow-medium`}>Interactive</div>
-                   <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 ${isDark ? 'text-white' : 'text-gray-700'} font-medium text-shadow-subtle`}>Real-time Classes</div>
+                   <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-white' : 'text-gray-900'}`}>Live</div>
+                   <div className={`font-semibold text-xs sm:text-sm md:text-base group-hover:text-secondary-300 transition-colors ${isDark ? 'text-white' : 'text-gray-800'}`}>Interactive</div>
+                   <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 ${isDark ? 'text-white' : 'text-gray-700'} font-medium`}>Real-time Classes</div>
                  </div>
                </div>
               
@@ -1245,9 +802,9 @@ const Hero1: React.FC<IHero1Props> = React.memo(({ isCompact = false }) => {
                <div className="glass-stats rounded-xl p-2 sm:p-3 md:p-4 lg:p-6 text-center hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden">
                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
                  <div className="relative z-10">
-                   <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-light`}>Global</div>
-                   <div className={`font-semibold text-xs sm:text-sm md:text-base group-hover:text-blue-300 transition-colors ${isDark ? 'text-white' : 'text-gray-800'} text-shadow-medium`}>Learning</div>
-                   <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 ${isDark ? 'text-white' : 'text-gray-700'} font-medium text-shadow-subtle`}>Worldwide Access</div>
+                   <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-white' : 'text-gray-900'}`}>Global</div>
+                   <div className={`font-semibold text-xs sm:text-sm md:text-base group-hover:text-blue-300 transition-colors ${isDark ? 'text-white' : 'text-gray-800'}`}>Learning</div>
+                   <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 ${isDark ? 'text-white' : 'text-gray-700'} font-medium`}>Worldwide Access</div>
                  </div>
                </div>
               </div>
