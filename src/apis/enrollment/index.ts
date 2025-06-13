@@ -1,4 +1,6 @@
-import axios from 'axios';
+import { apiBaseUrl } from '../config';
+import { apiClient } from '../apiClient';
+import { type IApiResponse } from '../index';
 
 // Define types for the API responses
 export interface IBatch {
@@ -61,22 +63,18 @@ export interface IEnrollment {
 const EnrollmentAPI = {
   // Get student enrollments
   getStudentEnrollments: async (studentId: string): Promise<IEnrollment[]> => {
-    const response = await axios.get(`/api/v1/enrollments/students/${studentId}/enrollments`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
-    });
-    return response.data;
+    const response = await apiClient.get<IEnrollment[]>(
+      `${apiBaseUrl}/enrollments/students/${studentId}/enrollments`
+    );
+    return response.data || [];
   },
 
   // Get enrollment details
   getEnrollmentDetails: async (enrollmentId: string): Promise<IEnrollment> => {
-    const response = await axios.get(`/api/v1/enrollments/enrollments/${enrollmentId}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
-    });
-    return response.data;
+    const response = await apiClient.get<IEnrollment>(
+      `${apiBaseUrl}/enrollments/enrollments/${enrollmentId}`
+    );
+    return response.data!;
   },
 
   // Update lesson progress
@@ -89,15 +87,9 @@ const EnrollmentAPI = {
       time_spent_seconds: number;
     }
   ): Promise<any> => {
-    const response = await axios.put(
-      `/api/v1/enrollments/enrollments/${enrollmentId}/progress/${lessonId}`,
-      progress,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-      }
+    const response = await apiClient.put(
+      `${apiBaseUrl}/enrollments/enrollments/${enrollmentId}/progress/${lessonId}`,
+      progress
     );
     return response.data;
   },
@@ -113,15 +105,9 @@ const EnrollmentAPI = {
       attempts: number;
     }
   ): Promise<any> => {
-    const response = await axios.post(
-      `/api/v1/enrollments/enrollments/${enrollmentId}/assessments/${assessmentId}/scores`,
-      scoreData,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-      }
+    const response = await apiClient.post(
+      `${apiBaseUrl}/enrollments/enrollments/${enrollmentId}/assessments/${assessmentId}/scores`,
+      scoreData
     );
     return response.data;
   },
@@ -142,17 +128,11 @@ const EnrollmentAPI = {
       discount_code?: string;
     }
   ): Promise<IEnrollment> => {
-    const response = await axios.post(
-      `/api/v1/enrollments/students/${studentId}/enroll`,
-      enrollmentData,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-      }
+    const response = await apiClient.post<IEnrollment>(
+      `${apiBaseUrl}/enrollments/students/${studentId}/enroll`,
+      enrollmentData
     );
-    return response.data;
+    return response.data!;
   }
 };
 
