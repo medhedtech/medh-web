@@ -1,28 +1,61 @@
 "use client";
+import React, { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Search, Calendar, Clock, Star, Eye, Play, MonitorPlay, Users, User, FileText } from "lucide-react";
+import { toast } from "react-toastify";
+import StudentDashboardLayout from "./StudentDashboardLayout";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import Image from 'next/image';
-import DashboardLayout from './StudentDashboardLayout';
-import { 
-  MonitorPlay, 
-  Calendar, 
-  Clock, 
-  Play, 
-  Bookmark, 
-  Star, 
-  CheckCircle, 
-  User, 
-  Eye,
-  ArrowRight,
-  AlertCircle,
-  RefreshCw,
-  Users
-} from 'lucide-react';
+interface DemoClass {
+  id: string;
+  title: string;
+  instructor?: {
+    name: string;
+    rating: number;
+  };
+  category?: string;
+  duration?: number;
+  scheduledDate?: string;
+  status?: 'upcoming' | 'live' | 'completed' | 'recorded';
+  level?: 'beginner' | 'intermediate' | 'advanced';
+  participants?: number;
+  maxParticipants?: number;
+  description?: string;
+}
 
-// Utility function for formatting dates
-const formatDate = (dateString: string) => {
+interface TabButtonProps {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}
+
+// Updated TabButton with blog-style filter button styling
+const TabButton: React.FC<TabButtonProps> = ({ active, onClick, children }) => (
+  <motion.button
+    whileHover={{ scale: 1.02 }}
+    whileTap={{ scale: 0.98 }}
+    onClick={onClick}
+    className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 overflow-hidden group ${
+      active
+        ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-md hover:shadow-lg'
+        : 'glass-stats text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/20 dark:hover:bg-gray-700/20'
+    }`}
+  >
+    {/* Animated background for active state */}
+    {active && (
+      <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-emerald-600/20 animate-gradient-x"></div>
+    )}
+    
+    {/* Shimmer effect on hover */}
+    <div className="absolute inset-0 animate-shimmer opacity-0 group-hover:opacity-100"></div>
+    
+    <span className="relative z-10 group-hover:scale-110 transition-transform">{children}</span>
+  </motion.button>
+);
+
+// Demo Class Card Component - matching enrolled courses style
+const DemoClassCard = ({ demoClass, onViewMaterials }: { demoClass: DemoClass; onViewMaterials: (demoClass: DemoClass) => void }) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "Not scheduled";
   const date = new Date(dateString);
   const now = new Date();
   const diffTime = date.getTime() - now.getTime();
@@ -39,717 +72,640 @@ const formatDate = (dateString: string) => {
   }
 };
 
-// TypeScript interfaces
-interface IDemoClass {
-  _id: string;
-  title: string;
-  description: string;
-  instructor: {
-    name: string;
-    avatar?: string;
-    rating: number;
-  };
-  thumbnail: string;
-  duration: number; // in minutes
-  scheduledDate: string;
-  status: 'upcoming' | 'live' | 'completed' | 'recorded';
-  category: string;
-  level: 'beginner' | 'intermediate' | 'advanced';
-  participants: number;
-  maxParticipants: number;
-  isBookmarked: boolean;
-  hasWatched: boolean;
-  recordingUrl?: string;
-  joinUrl?: string;
-  tags: string[];
-}
-
-interface IDemoClassesDashboardProps {
-  studentId?: string;
-}
-
-/**
- * DemoClassesContent - The actual content component for demo classes
- * Features: Search, Filter, Categories, Responsive Design
- */
-const DemoClassesContent: React.FC<IDemoClassesDashboardProps> = ({ studentId }) => {
-  const router = useRouter();
-  
-  // State management
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedDemoOption, setSelectedDemoOption] = useState<string | null>('scheduled');
-
-  // Demo classes data - In production, this would come from an API
-  const [demoClasses, setDemoClasses] = useState<IDemoClass[]>([]);
-
-  // Function to fetch demo classes from API
-  const fetchDemoClasses = React.useCallback(async () => {
-    setLoading(true);
-    try {
-      // In production, replace this with actual API call
-      // const response = await fetch('/api/demo-classes');
-      // const data = await response.json();
-      // setDemoClasses(data);
-      
-      // For now, set empty array since dummy data is removed
-      setDemoClasses([]);
-      setError(null);
-    } catch (err) {
-      setError('Failed to load demo classes');
-      console.error('Error fetching demo classes:', err);
-    } finally {
-      setLoading(false);
+  const getStatusColor = (status?: string) => {
+    switch (status) {
+      case 'live':
+        return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
+      case 'upcoming':
+        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
+      case 'completed':
+        return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
+      case 'recorded':
+        return 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300';
+      default:
+        return 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300';
     }
+  };
+
+  const getLevelColor = (level?: string) => {
+    switch (level) {
+      case 'beginner':
+        return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
+      case 'intermediate':
+        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
+      case 'advanced':
+        return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
+      default:
+        return 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300';
+    }
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            {demoClass?.title || "No Title Available"}
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+            by {demoClass?.instructor?.name || "No instructor"}
+          </p>
+          <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
+            <div className="flex items-center">
+              <Calendar className="w-3 h-3 mr-1" />
+              {formatDate(demoClass?.scheduledDate)}
+            </div>
+              <div className="flex items-center">
+              <Clock className="w-3 h-3 mr-1" />
+              {demoClass?.duration ? `${demoClass.duration} min` : "Duration TBD"}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+          <MonitorPlay className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+        </div>
+        </div>
+        
+      {/* Category, Status and Level */}
+      <div className="mb-4">
+        <div className="flex flex-wrap gap-2">
+          {demoClass?.category && (
+            <span className="px-2 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs rounded-full">
+              {demoClass.category}
+            </span>
+          )}
+          {demoClass?.status && (
+            <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(demoClass.status)}`}>
+              {demoClass.status === 'live' && <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-1 animate-pulse"></span>}
+              {demoClass.status.charAt(0).toUpperCase() + demoClass.status.slice(1)}
+            </span>
+          )}
+          {demoClass?.level && (
+            <span className={`px-2 py-1 text-xs rounded-full ${getLevelColor(demoClass.level)}`}>
+              {demoClass.level.charAt(0).toUpperCase() + demoClass.level.slice(1)}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Rating and Participants */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center">
+          <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {demoClass?.instructor?.rating || "4.5"}
+          </span>
+        </div>
+        <div className="flex items-center text-blue-600 dark:text-blue-400">
+          <Users className="w-4 h-4 mr-1" />
+          <span className="text-sm font-medium">
+            {demoClass?.participants || 0}/{demoClass?.maxParticipants || 50}
+          </span>
+        </div>
+      </div>
+
+        {/* Description */}
+      {demoClass?.description && (
+        <div className="mb-4">
+          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+          {demoClass.description}
+        </p>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex space-x-2">
+        <button 
+          onClick={() => onViewMaterials(demoClass)}
+          className="flex-1 flex items-center justify-center px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm"
+        >
+          <Eye className="w-4 h-4 mr-2" />
+          View Details
+        </button>
+        <button
+          className={`flex-1 flex items-center justify-center px-3 py-2 rounded-lg transition-colors text-sm ${
+            demoClass?.status === 'live' 
+              ? 'bg-red-600 hover:bg-red-700 text-white' 
+              : demoClass?.status === 'upcoming'
+              ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+              : 'bg-primary-600 hover:bg-primary-700 text-white'
+          }`}
+        >
+          {demoClass?.status === 'live' ? (
+            <>
+              <Play className="w-4 h-4 mr-2" />
+              Join Live
+            </>
+          ) : demoClass?.status === 'upcoming' ? (
+            <>
+              <Calendar className="w-4 h-4 mr-2" />
+              Register
+            </>
+          ) : (
+            <>
+              <Play className="w-4 h-4 mr-2" />
+              Watch
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Demo Feedback Form Component
+const DemoFeedbackForm: React.FC = () => {
+  const [selectedSession, setSelectedSession] = useState<string>("");
+  const [overallRating, setOverallRating] = useState<number>(0);
+  const [contentQuality, setContentQuality] = useState<string>("");
+  const [instructorPerformance, setInstructorPerformance] = useState<string>("");
+  const [additionalComments, setAdditionalComments] = useState<string>("");
+  const [wouldRecommend, setWouldRecommend] = useState<string>("");
+
+  const handleSubmitFeedback = () => {
+    // Handle feedback submission
+    toast.success("Feedback submitted successfully!");
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      {/* Header */}
+      <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-6 mb-6">
+        <div className="flex items-center">
+          <div className="p-2 bg-emerald-500 rounded-full mr-4">
+            <Star className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">
+              Demo Session Feedback
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              Help us improve by sharing your experience
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Form */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+        <div className="space-y-6">
+          {/* Demo Session Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Which demo session would you like to provide feedback for?
+            </label>
+            <select
+              value={selectedSession}
+              onChange={(e) => setSelectedSession(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all duration-200"
+            >
+              <option value="">Select a demo session</option>
+            </select>
+          </div>
+
+          {/* Overall Rating */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              Overall Rating
+            </label>
+            <div className="flex space-x-2">
+              {[1, 2, 3, 4, 5].map((rating) => (
+                <button
+                  key={rating}
+                  onClick={() => setOverallRating(rating)}
+                  className={`p-2 rounded-lg border-2 transition-all duration-200 ${
+                    overallRating >= rating
+                      ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                      : 'border-gray-300 dark:border-gray-600 hover:border-emerald-300'
+                  }`}
+                >
+                  <Star
+                    className={`w-6 h-6 ${
+                      overallRating >= rating
+                        ? 'text-emerald-500 fill-current'
+                        : 'text-gray-400'
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Content Quality */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              How would you rate the content quality?
+            </label>
+            <div className="space-y-2">
+              {['Excellent', 'Good', 'Average'].map((option) => (
+                <label key={option} className="flex items-center">
+                  <input
+                    type="radio"
+                    name="contentQuality"
+                    value={option}
+                    checked={contentQuality === option}
+                    onChange={(e) => setContentQuality(e.target.value)}
+                    className="w-4 h-4 text-emerald-600 border-gray-300 focus:ring-emerald-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{option}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Instructor Performance */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              How was the instructor's performance?
+            </label>
+            <div className="space-y-2">
+              {['Excellent', 'Good', 'Average'].map((option) => (
+                <label key={option} className="flex items-center">
+                  <input
+                    type="radio"
+                    name="instructorPerformance"
+                    value={option}
+                    checked={instructorPerformance === option}
+                    onChange={(e) => setInstructorPerformance(e.target.value)}
+                    className="w-4 h-4 text-emerald-600 border-gray-300 focus:ring-emerald-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{option}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Additional Comments */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Additional Comments
+            </label>
+            <textarea
+              value={additionalComments}
+              onChange={(e) => setAdditionalComments(e.target.value)}
+              placeholder="Share your thoughts, suggestions, or any specific feedback about the demo session..."
+              rows={4}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all duration-200 resize-none"
+            />
+          </div>
+
+          {/* Recommendation */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              Would you recommend this demo to others?
+            </label>
+            <div className="space-y-2">
+              {['Yes', 'No'].map((option) => (
+                <label key={option} className="flex items-center">
+                  <input
+                    type="radio"
+                    name="wouldRecommend"
+                    value={option}
+                    checked={wouldRecommend === option}
+                    onChange={(e) => setWouldRecommend(e.target.value)}
+                    className="w-4 h-4 text-emerald-600 border-gray-300 focus:ring-emerald-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{option}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Submit Buttons */}
+          <div className="flex space-x-4 pt-4">
+            <button
+              onClick={handleSubmitFeedback}
+              className="flex-1 flex items-center justify-center px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors font-medium"
+            >
+              <Star className="w-5 h-5 mr-2" />
+              Submit Feedback
+            </button>
+            <button
+              type="button"
+              className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const StudentDemoClasses: React.FC = () => {
+  const [currentTab, setCurrentTab] = useState<number>(0);
+  const [allDemoClasses, setAllDemoClasses] = useState<DemoClass[]>([]);
+  const [upcomingClasses, setUpcomingClasses] = useState<DemoClass[]>([]);
+  const [completedClasses, setCompletedClasses] = useState<DemoClass[]>([]);
+  const [selectedClass, setSelectedClass] = useState<DemoClass | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDemoClasses = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // No demo data - empty arrays
+        const emptyDemoClasses: DemoClass[] = [];
+
+        setAllDemoClasses(emptyDemoClasses);
+        setUpcomingClasses(emptyDemoClasses);
+        setCompletedClasses(emptyDemoClasses);
+        
+      } catch (err) {
+        console.error("Error fetching demo classes:", err);
+        setError("Failed to load demo classes. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDemoClasses();
   }, []);
 
-  // Load demo classes on component mount
-  React.useEffect(() => {
-    fetchDemoClasses();
-  }, [fetchDemoClasses]);
+  const tabs = [
+    { name: "Demo Scheduled Details", content: allDemoClasses },
+    { name: "Demo Attend Details", content: upcomingClasses },
+    { name: "Demo Attend Certificate", content: completedClasses },
+    { name: "Demo Feedback/Summary", content: [] },
+  ];
 
-  // Demo classes display (no filtering needed since search/category removed)
-  const filteredDemoClasses = demoClasses;
-
-  // Demo videos data for each option - Empty for now, to be populated from API
-  const demoVideos = {
-    'scheduled': [],
-    'attend': [],
-    'certificate': [],
-    'feedback': []
+  const handleViewDetails = (demoClass: DemoClass) => {
+    setSelectedClass(demoClass);
   };
 
-  const handleDemoOptionClick = (option: string) => {
-    setSelectedDemoOption(option);
+  const handleCloseModal = () => {
+    setSelectedClass(null);
   };
 
-  const getStatusBadge = (status: IDemoClass['status']) => {
-    const statusConfig = {
-      upcoming: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Upcoming' },
-      live: { bg: 'bg-red-100', text: 'text-red-800', label: 'Live Now' },
-      completed: { bg: 'bg-green-100', text: 'text-green-800', label: 'Completed' },
-      recorded: { bg: 'bg-purple-100', text: 'text-purple-800', label: 'Recorded' }
-    };
-    
-    const config = statusConfig[status];
+  const filteredContent = tabs[currentTab].content.filter(demoClass => 
+    demoClass?.title?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (isLoading) {
     return (
-      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
-        {status === 'live' && <div className="w-2 h-2 bg-red-500 rounded-full mr-1 animate-pulse" />}
-        {config.label}
-      </span>
+      <div className="min-h-screen flex items-center justify-center">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          className="flex items-center gap-3"
+        >
+          <MonitorPlay className="w-8 h-8 text-primary-500" />
+          <span className="text-gray-600 dark:text-gray-400 text-lg">Loading your demo classes...</span>
+        </motion.div>
+      </div>
     );
-  };
-
-
+  }
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h2 className="text-2xl font-semibold text-red-600 mb-2">Error Loading Demo Classes</h2>
-        <p className="text-gray-600 text-center mb-4">{error}</p>
-        <button 
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          onClick={fetchDemoClasses}
-        >
-          <RefreshCw className="w-4 h-4" />
-          Try Again
-        </button>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 p-6 bg-red-50 dark:bg-red-900/20 rounded-lg max-w-md">
+          <MonitorPlay className="w-12 h-12 text-red-500" />
+          <h3 className="text-xl font-semibold text-red-700 dark:text-red-400">Error Loading Demo Classes</h3>
+          <p className="text-red-600 dark:text-red-300 text-center">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full">
-      <div className="container mx-auto p-4 md:p-6 max-w-7xl">
-        {/* Header Section with Search */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <MonitorPlay className="w-8 h-8 text-blue-600" />
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">My Demo Classes</h1>
-          </div>
-          <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base mb-6">
-            Explore free demo classes, join live sessions, and access recorded content to preview our courses.
-          </p>
-          
-
-        </div>
-
-        {/* Demo Options Section */}
-        <div className="flex flex-wrap justify-center gap-4 mb-8">
-          {/* Demo Scheduled Details */}
-          <button 
-            onClick={() => handleDemoOptionClick('scheduled')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-              selectedDemoOption === 'scheduled' 
-                ? 'bg-blue-600 text-white shadow-lg focus:ring-blue-500' 
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 focus:ring-gray-400'
-            }`}
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="p-8 lg:p-12 rounded-lg max-w-7xl mx-auto"
+    >
+      <div className="flex flex-col space-y-6">
+        {/* Header */}
+        <div className="text-center pt-6 pb-4">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center justify-center mb-4"
           >
-            Demo Scheduled Details
-          </button>
-
-          {/* Demo Attend Details */}
-          <button 
-            onClick={() => handleDemoOptionClick('attend')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-              selectedDemoOption === 'attend' 
-                ? 'bg-green-600 text-white shadow-lg focus:ring-green-500' 
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 focus:ring-gray-400'
-            }`}
-          >
-            Demo Attend Details
-          </button>
-
-          {/* Demo Attend Certificate */}
-          <button 
-            onClick={() => handleDemoOptionClick('certificate')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-              selectedDemoOption === 'certificate' 
-                ? 'bg-purple-600 text-white shadow-lg focus:ring-purple-500' 
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 focus:ring-gray-400'
-            }`}
-          >
-            Demo Attend Certificate
-          </button>
-
-          {/* Demo Feedback/Summary */}
-          <button 
-            onClick={() => handleDemoOptionClick('feedback')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-              selectedDemoOption === 'feedback' 
-                ? 'bg-orange-600 text-white shadow-lg focus:ring-orange-500' 
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 focus:ring-gray-400'
-            }`}
-          >
-            Demo Feedback/Summary
-          </button>
-        </div>
-
-        {/* Selected Demo Option Videos */}
-        {selectedDemoOption && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-8">
-            <div className="mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                {selectedDemoOption === 'scheduled' && 'Scheduled Demo Sessions'}
-                {selectedDemoOption === 'attend' && 'Attendance Records'}
-                {selectedDemoOption === 'certificate' && 'Available Certificates'}
-                {selectedDemoOption === 'feedback' && 'Feedback & Summaries'}
-              </h3>
+            <div className="p-2 bg-primary-100/80 dark:bg-primary-900/30 rounded-xl backdrop-blur-sm mr-3">
+              <MonitorPlay className="w-6 h-6 text-primary-600 dark:text-primary-400" />
             </div>
-            
-            {demoVideos[selectedDemoOption as keyof typeof demoVideos]?.length === 0 ? (
-              selectedDemoOption === 'feedback' ? (
-                // Feedback Form
-                <div className="max-w-2xl mx-auto">
-                  <div className="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg p-6 mb-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
-                        <Star className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Demo Session Feedback</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Help us improve by sharing your experience</p>
-                      </div>
-                    </div>
-                  </div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
+              Demo Classes
+            </h1>
+          </motion.div>
+          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed px-4 mb-6">
+            Explore and join our demo classes to get a preview of our courses
+          </p>
 
-                  <form className="space-y-6">
-                    {/* Demo Session Selection */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Which demo session would you like to provide feedback for?
-                      </label>
-                      <select className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
-                        <option value="">Select a demo session</option>
-                        <option value="python">Python Programming Fundamentals</option>
-                        <option value="webdev">Web Development Bootcamp</option>
-                        <option value="datascience">Data Science Essentials</option>
-                        <option value="ml">Machine Learning Basics</option>
-                      </select>
-                    </div>
+          {/* Search Bar */}
+          <motion.div 
+            className="relative max-w-md mx-auto"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search demo classes..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200"
+            />
+          </motion.div>
+        </div>
 
-                    {/* Rating */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Overall Rating
-                      </label>
-                      <div className="flex items-center gap-2">
-                        {[1, 2, 3, 4, 5].map((rating) => (
-                          <button
-                            key={rating}
-                            type="button"
-                            className="w-8 h-8 rounded-full border-2 border-gray-300 dark:border-gray-600 hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors flex items-center justify-center"
-                          >
-                            <Star className="w-5 h-5 text-gray-400 hover:text-orange-500" />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+        {/* Tabs - in a box container */}
+        <div className="flex justify-center">
+          <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+            {tabs.map((tab, idx) => {
+              return (
+                <TabButton
+                  key={idx}
+                  active={currentTab === idx}
+                  onClick={() => setCurrentTab(idx)}
+                >
+                  <span className="relative z-10 font-medium">{tab.name}</span>
+                </TabButton>
+              );
+            })}
+          </div>
+        </div>
 
-                    {/* Content Quality */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        How would you rate the content quality?
-                      </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {['Excellent', 'Good', 'Average'].map((quality) => (
-                          <label key={quality} className="flex items-center">
-                            <input
-                              type="radio"
-                              name="content_quality"
-                              value={quality.toLowerCase()}
-                              className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                            />
-                            <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{quality}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Instructor Performance */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        How was the instructor's performance?
-                      </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {['Excellent', 'Good', 'Average'].map((performance) => (
-                          <label key={performance} className="flex items-center">
-                            <input
-                              type="radio"
-                              name="instructor_performance"
-                              value={performance.toLowerCase()}
-                              className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                            />
-                            <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{performance}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Comments */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Additional Comments
-                      </label>
-                      <textarea
-                        rows={4}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                        placeholder="Share your thoughts, suggestions, or any specific feedback about the demo session..."
-                      ></textarea>
-                    </div>
-
-                    {/* Would Recommend */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Would you recommend this demo to others?
-                      </label>
-                      <div className="flex items-center gap-6">
-                        <label className="flex items-center">
-                          <input
-                            type="radio"
-                            name="recommend"
-                            value="yes"
-                            className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                          />
-                          <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Yes</span>
-                        </label>
-                        <label className="flex items-center">
-                          <input
-                            type="radio"
-                            name="recommend"
-                            value="no"
-                            className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                          />
-                          <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">No</span>
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Submit Button */}
-                    <div className="flex items-center gap-3 pt-4">
-                      <button
-                        type="submit"
-                        className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
-                      >
-                        <Star className="w-4 h-4" />
-                        Submit Feedback
-                      </button>
-                      <button
-                        type="button"
-                        className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                </div>
+        {/* Content */}
+        <AnimatePresence mode="wait">
+          {currentTab === 3 ? (
+            // Show feedback form for "Demo Feedback/Summary" tab
+            <motion.div
+              key="feedback-form"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <DemoFeedbackForm />
+            </motion.div>
+          ) : currentTab === 2 ? (
+            // Show certificate message for "Demo Attend Certificate" tab
+            <motion.div
+              key="certificate-message"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="flex flex-col items-center justify-center text-center py-12"
+            >
+              <MonitorPlay className="w-16 h-16 text-gray-400 mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                No certificate available
+              </h3>
+            </motion.div>
+          ) : (
+            // Show demo classes for other tabs
+            <motion.div
+              key={currentTab}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
+            >
+              {filteredContent.length > 0 ? (
+                filteredContent.map((demoClass, index) => (
+                  <motion.div
+                    key={demoClass.id || index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <DemoClassCard
+                      demoClass={demoClass}
+                      onViewMaterials={handleViewDetails}
+                    />
+                  </motion.div>
+                ))
               ) : (
-                // Empty state for other options
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                    <MonitorPlay className="w-8 h-8 text-gray-400" />
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                    {selectedDemoOption === 'scheduled' && 'No Demo Sessions Available'}
-                    {selectedDemoOption === 'attend' && 'No Attendance Records Available'}
-                    {selectedDemoOption === 'certificate' && 'No Certificates Available'}
-                    {selectedDemoOption === 'feedback' && 'No Feedback Available'}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="col-span-full flex flex-col items-center justify-center text-center py-12"
+                >
+                  <MonitorPlay className="w-16 h-16 text-gray-400 mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    {searchTerm ? "No demo classes found" : "No demo classes available"}
                   </h3>
-                  <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-                    {selectedDemoOption === 'scheduled' && 'No demo sessions are currently scheduled. Check back soon for upcoming sessions.'}
-                    {selectedDemoOption === 'attend' && 'No attendance records found. Join demo sessions to track your participation.'}
-                    {selectedDemoOption === 'certificate' && 'No certificates available yet. Complete demo sessions to earn certificates.'}
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {searchTerm 
+                      ? "Try adjusting your search term to find what you're looking for."
+                      : "There are no demo classes available in this category yet."}
+                  </p>
+                </motion.div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Details Modal */}
+        <AnimatePresence>
+          {selectedClass && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center p-4 z-50"
+              onClick={handleCloseModal}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl max-w-md w-full relative"
+              >
+                <motion.button
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handleCloseModal}
+                  className="absolute top-4 right-4 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </motion.button>
+
+                <div className="mb-6">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    Demo Class Details
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {selectedClass?.title}
                   </p>
                 </div>
-              )
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {demoVideos[selectedDemoOption as keyof typeof demoVideos]?.map((video: any) => (
-                  <div key={video.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200">
-                    {/* Video Thumbnail */}
-                    <div className="relative h-48 bg-gradient-to-br from-blue-500 to-purple-600">
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Play className="w-12 h-12 text-white opacity-80" />
-                      </div>
-                      
-                      {/* Status Badge */}
-                      <div className="absolute top-3 left-3">
-                        {selectedDemoOption === 'scheduled' && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            Upcoming
-                          </span>
-                        )}
-                        {selectedDemoOption === 'attend' && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            Attended
-                          </span>
-                        )}
-                        {selectedDemoOption === 'certificate' && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                            Available
-                          </span>
-                        )}
-                        {selectedDemoOption === 'feedback' && (
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                            video.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
-                          }`}>
-                            {video.status === 'pending' ? 'Pending' : 'Completed'}
-                          </span>
-                        )}
-                      </div>
 
-                      {/* Duration */}
-                      {video.duration && (
-                        <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full bg-black/40 backdrop-blur-sm text-white text-xs">
-                          <Clock className="w-3 h-3" />
-                          {video.duration}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-4">
-                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-1">
-                        {video.title}
-                      </h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
-                        {video.description}
-                      </p>
-
-                      {/* Instructor */}
-                      <div className="flex items-center gap-2 mb-3">
-                        <User className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">{video.instructor}</span>
-                      </div>
-
-                      {/* Additional Info based on type */}
-                      {selectedDemoOption === 'scheduled' && (
-                        <div className="flex items-center gap-2 mb-4 text-xs text-blue-600">
-                          <Calendar className="w-4 h-4" />
-                          <span>{video.scheduledTime}</span>
-                        </div>
-                      )}
-
-                      {selectedDemoOption === 'attend' && (
-                        <div className="space-y-2 mb-4">
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
-                            <Calendar className="w-4 h-4" />
-                            <span>Attended: {video.attendedDate}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-green-600">
-                            <CheckCircle className="w-4 h-4" />
-                            <span>Participation: {video.participation}</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {selectedDemoOption === 'certificate' && (
-                        <div className="flex items-center gap-2 mb-4 text-xs text-purple-600">
-                          <Calendar className="w-4 h-4" />
-                          <span>Completed: {video.completionDate}</span>
-                        </div>
-                      )}
-
-                      {selectedDemoOption === 'feedback' && (
-                        <div className="space-y-2 mb-4">
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
-                            <Calendar className="w-4 h-4" />
-                            <span>Session: {video.sessionDate}</span>
-                          </div>
-                          {video.rating && (
-                            <div className="flex items-center gap-2 text-xs text-yellow-600">
-                              <Star className="w-4 h-4 fill-current" />
-                              <span>Rating: {video.rating}/5</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Action Button */}
-                      <button className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                        selectedDemoOption === 'scheduled' 
-                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                          : selectedDemoOption === 'attend'
-                          ? 'bg-green-600 hover:bg-green-700 text-white'
-                          : selectedDemoOption === 'certificate'
-                          ? 'bg-purple-600 hover:bg-purple-700 text-white'
-                          : 'bg-orange-600 hover:bg-orange-700 text-white'
-                      }`}>
-                        {selectedDemoOption === 'scheduled' && (
-                          <>
-                            <Calendar className="w-4 h-4" />
-                            Join Session
-                          </>
-                        )}
-                        {selectedDemoOption === 'attend' && (
-                          <>
-                            <Eye className="w-4 h-4" />
-                            View Details
-                          </>
-                        )}
-                        {selectedDemoOption === 'certificate' && (
-                          <>
-                            <ArrowRight className="w-4 h-4" />
-                            Download Certificate
-                          </>
-                        )}
-                        {selectedDemoOption === 'feedback' && (
-                          <>
-                            <Star className="w-4 h-4" />
-                            {video.status === 'pending' ? 'Provide Feedback' : 'View Summary'}
-                          </>
-                        )}
-                      </button>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <User className="w-5 h-5 text-primary-500" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">Instructor</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{selectedClass?.instructor?.name}</p>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+                  
+                  <div className="flex items-center gap-3">
+                    <Calendar className="w-5 h-5 text-primary-500" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">Schedule</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {selectedClass?.scheduledDate ? new Date(selectedClass.scheduledDate).toLocaleString() : "Not scheduled"}
+                      </p>
+                    </div>
+                  </div>
 
-        {/* Demo Classes Grid */}
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {filteredDemoClasses.map((demoClass) => (
-              <DemoClassCard key={demoClass._id} demoClass={demoClass} />
-            ))}
-          </div>
-        )}
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5 text-primary-500" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">Duration</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {selectedClass?.duration ? `${selectedClass.duration} minutes` : "Duration TBD"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {selectedClass?.description && (
+                    <div className="flex items-start gap-3">
+                      <FileText className="w-5 h-5 text-primary-500 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">Description</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedClass.description}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {(!selectedClass?.description) && (
+                    <p className="text-center text-gray-500 dark:text-gray-400 py-4">
+                      No additional details available for this demo class.
+                    </p>
+                  )}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
-// Demo Class Card Component
-interface IDemoClassCardProps {
-  demoClass: IDemoClass;
-}
-
-const DemoClassCard: React.FC<IDemoClassCardProps> = ({ demoClass }) => {
-  const [isBookmarked, setIsBookmarked] = useState(demoClass.isBookmarked);
-
-  const toggleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
-    // In production, this would call an API to update the bookmark status
-  };
-
-  const handleJoinClass = () => {
-    if (demoClass.status === 'live' || demoClass.status === 'upcoming') {
-      window.open(demoClass.joinUrl, '_blank');
-    } else if (demoClass.recordingUrl) {
-      window.open(demoClass.recordingUrl, '_blank');
-    }
-  };
-
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden group">
-      {/* Thumbnail */}
-      <div className="relative h-48 bg-gradient-to-br from-blue-500 to-purple-600">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <MonitorPlay className="w-16 h-16 text-white opacity-80" />
-        </div>
-        
-        {/* Status Badge */}
-        <div className="absolute top-3 left-3">
-          {demoClass.status === 'live' ? (
-            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-              <div className="w-2 h-2 bg-red-500 rounded-full mr-1 animate-pulse" />
-              Live Now
-            </span>
-          ) : (
-            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-              demoClass.status === 'upcoming' ? 'bg-blue-100 text-blue-800' :
-              demoClass.status === 'completed' ? 'bg-green-100 text-green-800' :
-              'bg-purple-100 text-purple-800'
-            }`}>
-              {demoClass.status === 'upcoming' ? 'Upcoming' :
-               demoClass.status === 'completed' ? 'Completed' : 'Recorded'}
-            </span>
-          )}
-        </div>
-
-        {/* Bookmark Button */}
-        <button
-          onClick={toggleBookmark}
-          className="absolute top-3 right-3 p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors"
-        >
-          <Bookmark 
-            className={`w-4 h-4 ${isBookmarked ? 'fill-white text-white' : 'text-white'}`} 
-          />
-        </button>
-
-        {/* Duration */}
-        <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full bg-black/40 backdrop-blur-sm text-white text-xs">
-          <Clock className="w-3 h-3" />
-          {demoClass.duration}m
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="p-4 md:p-6">
-        {/* Category & Level */}
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
-            {demoClass.category}
-          </span>
-          <span className={`text-xs font-medium px-2 py-1 rounded ${
-            demoClass.level === 'beginner' ? 'bg-green-50 text-green-600' :
-            demoClass.level === 'intermediate' ? 'bg-yellow-50 text-yellow-600' :
-            'bg-red-50 text-red-600'
-          }`}>
-            {demoClass.level}
-          </span>
-        </div>
-
-        {/* Title */}
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
-          {demoClass.title}
-        </h3>
-
-        {/* Description */}
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-          {demoClass.description}
-        </p>
-
-        {/* Instructor */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-            <User className="w-4 h-4 text-gray-500" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-              {demoClass.instructor.name}
-            </p>
-            <div className="flex items-center gap-1">
-              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-              <span className="text-xs text-gray-500">{demoClass.instructor.rating}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Date/Time */}
-        <div className="flex items-center gap-2 mb-4 text-xs text-gray-500">
-          <Calendar className="w-4 h-4" />
-          <span>{formatDate(demoClass.scheduledDate)}</span>
-        </div>
-
-        {/* Participants */}
-        <div className="flex items-center gap-2 mb-4 text-xs text-gray-500">
-          <Users className="w-4 h-4" />
-          <span>{demoClass.participants}/{demoClass.maxParticipants} participants</span>
-        </div>
-
-        {/* Tags */}
-        <div className="flex flex-wrap gap-1 mb-4">
-          {demoClass.tags.slice(0, 3).map((tag, index) => (
-            <span key={index} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded">
-              {tag}
-            </span>
-          ))}
-        </div>
-
-        {/* Action Button */}
-        <button
-          onClick={handleJoinClass}
-          className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium text-sm transition-colors ${
-            demoClass.status === 'live' 
-              ? 'bg-red-600 hover:bg-red-700 text-white' 
-              : demoClass.status === 'upcoming'
-              ? 'bg-blue-600 hover:bg-blue-700 text-white'
-              : 'bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-          }`}
-        >
-          {demoClass.status === 'live' ? (
-            <>
-              <Play className="w-4 h-4" />
-              Join Live Class
-            </>
-          ) : demoClass.status === 'upcoming' ? (
-            <>
-              <Calendar className="w-4 h-4" />
-              Register for Class
-            </>
-          ) : (
-            <>
-              <Eye className="w-4 h-4" />
-              Watch Recording
-            </>
-          )}
-        </button>
-      </div>
-    </div>
-  );
-};
-
-/**
- * DemoClassesDashboard - Main wrapper component that includes the dashboard layout
- */
 const DemoClassesDashboard: React.FC = () => {
-  const [studentId, setStudentId] = useState<string | null>(null);
-
-  React.useEffect(() => {
-    // In a real implementation, you would get the student ID from authentication
-    // For demo purposes, we're using a mock ID
-    const mockStudentId = '123456789';
-    setStudentId(mockStudentId);
-    
-    // Alternative: Get from local storage or auth service
-    // const user = JSON.parse(localStorage.getItem('user') || '{}');
-    // setStudentId(user?.id || null);
-  }, []);
-
   return (
-    <DashboardLayout 
+    <StudentDashboardLayout 
       userRole="student"
-      fullName="Student User" // In real app, get from user data
-      userEmail="student@example.com" // In real app, get from user data
-      userImage="" // In real app, get from user data
+      fullName="Student"
+      userEmail="student@example.com"
+      userImage=""
       userNotifications={0}
       userSettings={{
         theme: "light",
@@ -757,8 +713,8 @@ const DemoClassesDashboard: React.FC = () => {
         notifications: true
       }}
     >
-      {studentId && <DemoClassesContent studentId={studentId} />}
-    </DashboardLayout>
+      <StudentDemoClasses />
+    </StudentDashboardLayout>
   );
 };
 
