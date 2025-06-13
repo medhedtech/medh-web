@@ -1,394 +1,458 @@
 "use client";
 
-import React, { Suspense, useState, useEffect, useMemo } from 'react';
-import { motion } from "framer-motion";
-import Link from 'next/link';
-import {
-  BookOpen,
-  Download,
-  FileText,
-  Video,
-  Image,
-  File,
-  Search,
-  Filter,
-  Calendar,
-  Clock,
-  Eye,
-  Star,
-  Folder,
-  PlayCircle,
-  FileText as FileIcon,
-  ExternalLink
-} from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { BookOpen, Search, FileText, Video, Image, File, Download, Eye, Calendar, Clock, Star, X } from "lucide-react";
+import { toast } from "react-toastify";
 
-/**
- * LessonCourseMaterialsMain - Component that displays the lesson course materials content
- * within the student dashboard layout
- */
-const LessonCourseMaterialsMain: React.FC = () => {
-  const [isClient, setIsClient] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<"all" | "videos" | "documents" | "images" | "assignments">("all");
-  const [searchTerm, setSearchTerm] = useState("");
+interface CourseMaterial {
+  id: string;
+  title: string;
+  course?: string;
+  type?: 'video' | 'document' | 'image' | 'assignment';
+  duration?: string;
+  size?: string;
+  uploadDate?: string;
+  downloads?: number;
+  rating?: number;
+  description?: string;
+}
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+interface TabButtonProps {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}
 
-  // Animation variants
-  const containerVariants = useMemo(() => ({
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  }), []);
-
-  const itemVariants = useMemo(() => ({
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 12
-      }
-    }
-  }), []);
-
-  // Mock course materials data
-  const courseMaterials = useMemo(() => [
-    {
-      id: 2,
-      title: "SEO Best Practices Guide",
-      type: "document",
-      course: "Digital Marketing Fundamentals",
-      duration: "15 min read",
-      size: "2.5 MB",
-      uploadDate: "2024-01-16",
-      downloads: 890,
-      rating: 4.9,
-      thumbnail: "/images/materials/doc-thumb-1.jpg",
-      description: "Comprehensive guide to search engine optimization techniques"
-    },
-    {
-      id: 4,
-      title: "UI Design Principles Infographic",
-      type: "image",
-      course: "UI/UX Design Principles",
-      duration: "Quick view",
-      size: "1.2 MB",
-      uploadDate: "2024-02-10",
-      downloads: 650,
-      rating: 4.6,
-      thumbnail: "/images/materials/img-thumb-1.jpg",
-      description: "Visual guide to essential UI design principles and best practices"
-    },
-    {
-      id: 5,
-      title: "Project Management Assignment",
-      type: "assignment",
-      course: "Project Management Essentials",
-      duration: "2 weeks",
-      size: "500 KB",
-      uploadDate: "2024-03-01",
-      downloads: 320,
-      rating: 4.5,
-      thumbnail: "/images/materials/assignment-thumb-1.jpg",
-      description: "Practical assignment on project planning and execution"
-    },
-    {
-      id: 6,
-      title: "Machine Learning Algorithms Cheat Sheet",
-      type: "document",
-      course: "Data Science with Python",
-      duration: "10 min read",
-      size: "1.8 MB",
-      uploadDate: "2024-02-25",
-      downloads: 1500,
-      rating: 4.9,
-      thumbnail: "/images/materials/doc-thumb-2.jpg",
-      description: "Quick reference guide for common machine learning algorithms"
-    }
-  ], []);
-
-  // Material stats
-  const materialStats = useMemo(() => ({
-    totalMaterials: courseMaterials.length,
-    totalDownloads: courseMaterials.reduce((sum, material) => sum + material.downloads, 0),
-    averageRating: (courseMaterials.reduce((sum, material) => sum + material.rating, 0) / courseMaterials.length).toFixed(1),
-    totalSize: "1.2 GB"
-  }), [courseMaterials]);
-
-  // Filter materials based on category and search
-  const filteredMaterials = useMemo(() => {
-    let filtered = courseMaterials;
+// Updated TabButton with blog-style filter button styling
+const TabButton: React.FC<TabButtonProps> = ({ active, onClick, children }) => (
+  <motion.button
+    whileHover={{ scale: 1.02 }}
+    whileTap={{ scale: 0.98 }}
+    onClick={onClick}
+    className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 overflow-hidden group ${
+      active
+        ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-md hover:shadow-lg'
+        : 'glass-stats text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/20 dark:hover:bg-gray-700/20'
+    }`}
+  >
+    {/* Animated background for active state */}
+    {active && (
+      <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-emerald-600/20 animate-gradient-x"></div>
+    )}
     
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter(material => material.type === selectedCategory);
-    }
+    {/* Shimmer effect on hover */}
+    <div className="absolute inset-0 animate-shimmer opacity-0 group-hover:opacity-100"></div>
     
-    if (searchTerm) {
-      filtered = filtered.filter(material => 
-        material.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        material.course.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        material.description.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
-    return filtered;
-  }, [courseMaterials, selectedCategory, searchTerm]);
+    <span className="relative z-10 group-hover:scale-110 transition-transform">{children}</span>
+  </motion.button>
+);
 
-  // Get icon for material type
-  const getTypeIcon = (type: string) => {
+// Material Card Component - matching demo classes style
+const MaterialCard = ({ material, onViewDetails }: { material: CourseMaterial; onViewDetails: (material: CourseMaterial) => void }) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "Not uploaded";
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+  };
+
+  const getTypeIcon = (type?: string) => {
     switch (type) {
       case "video":
-        return <Video className="w-5 h-5" />;
+        return <Video className="w-5 h-5 text-red-600 dark:text-red-400" />;
       case "document":
-        return <FileText className="w-5 h-5" />;
+        return <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />;
       case "image":
-        return <Image className="w-5 h-5" />;
+        return <Image className="w-5 h-5 text-green-600 dark:text-green-400" />;
       case "assignment":
-        return <File className="w-5 h-5" />;
+        return <File className="w-5 h-5 text-purple-600 dark:text-purple-400" />;
       default:
-        return <FileText className="w-5 h-5" />;
+        return <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />;
     }
   };
 
-  // Get type color
-  const getTypeColor = (type: string) => {
+  const getTypeColor = (type?: string) => {
     switch (type) {
       case "video":
-        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+        return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
       case "document":
-        return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
+        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
       case "image":
-        return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+        return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
       case "assignment":
-        return "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400";
+        return 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300';
       default:
-        return "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400";
+        return 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300';
     }
   };
 
-  // Material Stats Component
-  const MaterialStats = () => (
-    <div className="bg-gradient-to-r from-primary-500 to-primary-700 dark:from-primary-800 dark:to-primary-900 rounded-2xl p-6 lg:p-8 text-white shadow-lg">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="text-center">
-          <div className="text-2xl lg:text-3xl font-bold mb-2">{materialStats.totalMaterials}</div>
-          <div className="text-primary-100 text-sm font-medium">Total Materials</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl lg:text-3xl font-bold mb-2">{materialStats.totalDownloads.toLocaleString()}</div>
-          <div className="text-primary-100 text-sm font-medium">Total Downloads</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl lg:text-3xl font-bold mb-2">{materialStats.averageRating}</div>
-          <div className="text-primary-100 text-sm font-medium">Avg. Rating</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl lg:text-3xl font-bold mb-2">{materialStats.totalSize}</div>
-          <div className="text-primary-100 text-sm font-medium">Total Size</div>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Material Card Component
-  const MaterialCard = ({ material }: { material: any }) => (
+  return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300">
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
-          <div className="flex items-center mb-2">
-            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(material.type)}`}>
-              {getTypeIcon(material.type)}
-              <span className="ml-1 capitalize">{material.type}</span>
-            </span>
-          </div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            {material.title}
+            {material?.title || "No Title Available"}
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-            {material.course}
+            {material?.course || "No course"}
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-            {material.description}
-          </p>
-        </div>
+          <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
+            <div className="flex items-center">
+              <Calendar className="w-3 h-3 mr-1" />
+              {formatDate(material?.uploadDate)}
       </div>
-
-      {/* Material Info */}
-      <div className="grid grid-cols-2 gap-4 mb-4 text-xs text-gray-500 dark:text-gray-400">
         <div className="flex items-center">
           <Clock className="w-3 h-3 mr-1" />
-          {material.duration}
+              {material?.duration || "Duration TBD"}
+            </div>
+          </div>
         </div>
-        <div className="flex items-center">
-          <Download className="w-3 h-3 mr-1" />
-          {material.downloads} downloads
+        <div className="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+          {getTypeIcon(material?.type)}
         </div>
-        <div className="flex items-center">
-          <Calendar className="w-3 h-3 mr-1" />
-          {new Date(material.uploadDate).toLocaleDateString()}
         </div>
-        <div className="flex items-center">
-          <File className="w-3 h-3 mr-1" />
+      
+      {/* Type and Size */}
+      <div className="mb-4">
+        <div className="flex flex-wrap gap-2">
+          {material?.type && (
+            <span className={`px-2 py-1 text-xs rounded-full ${getTypeColor(material.type)}`}>
+              {material.type.charAt(0).toUpperCase() + material.type.slice(1)}
+            </span>
+          )}
+          {material?.size && (
+            <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-full">
           {material.size}
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Rating */}
+      {/* Rating and Downloads */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
           <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {material.rating}
+            {material?.rating || "4.5"}
+          </span>
+        </div>
+        <div className="flex items-center text-blue-600 dark:text-blue-400">
+          <Download className="w-4 h-4 mr-1" />
+          <span className="text-sm font-medium">
+            {material?.downloads || 0} downloads
           </span>
         </div>
       </div>
 
+      {/* Description */}
+      {material?.description && (
+        <div className="mb-4">
+          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+            {material.description}
+          </p>
+        </div>
+      )}
+
       {/* Actions */}
       <div className="flex space-x-2">
-        <button className="flex-1 flex items-center justify-center px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm">
+        <button 
+          onClick={() => onViewDetails(material)}
+          className="flex-1 flex items-center justify-center px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm"
+        >
           <Eye className="w-4 h-4 mr-2" />
           Preview
         </button>
-        <button className="flex-1 flex items-center justify-center px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
+        <button
+          className="flex-1 flex items-center justify-center px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors text-sm"
+        >
           <Download className="w-4 h-4 mr-2" />
           Download
         </button>
       </div>
     </div>
   );
+};
 
-  // Material Preloader
-  const MaterialPreloader = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-      {[...Array(6)].map((_, index) => (
-        <div key={index} className="bg-white dark:bg-gray-800 rounded-2xl p-6 animate-pulse border border-gray-200 dark:border-gray-700">
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-3"></div>
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
-          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
-          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-4"></div>
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
-          </div>
-          <div className="flex space-x-2">
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded flex-1"></div>
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded flex-1"></div>
-          </div>
-        </div>
-      ))}
-    </div>
+const LessonCourseMaterialsMain: React.FC = () => {
+  const [currentTab, setCurrentTab] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [allMaterials, setAllMaterials] = useState<CourseMaterial[]>([]);
+  const [documents, setDocuments] = useState<CourseMaterial[]>([]);
+  const [videos, setVideos] = useState<CourseMaterial[]>([]);
+  const [assignments, setAssignments] = useState<CourseMaterial[]>([]);
+  const [selectedMaterial, setSelectedMaterial] = useState<CourseMaterial | null>(null);
+
+  useEffect(() => {
+    const fetchCourseMaterials = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // TODO: Replace with actual API calls
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Mock data - will be replaced with real API data
+        setAllMaterials([]);
+        setDocuments([]);
+        setVideos([]);
+        setAssignments([]);
+        
+      } catch (err) {
+        console.error("Error fetching course materials:", err);
+        setError("Failed to load course materials. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCourseMaterials();
+  }, []);
+
+  const tabs = [
+    { name: "All Materials", content: allMaterials },
+    { name: "Documents", content: documents },
+    { name: "Videos", content: videos },
+    { name: "Assignments", content: assignments },
+  ];
+
+  const handleViewDetails = (material: CourseMaterial) => {
+    setSelectedMaterial(material);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedMaterial(null);
+  };
+
+  const filteredContent = tabs[currentTab].content.filter(material => 
+    material?.title?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (!isClient) {
+  if (isLoading) {
     return (
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <MaterialPreloader />
+      <div className="min-h-screen flex items-center justify-center">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          className="flex items-center gap-3"
+        >
+          <BookOpen className="w-8 h-8 text-primary-500" />
+          <span className="text-gray-600 dark:text-gray-400 text-lg">Loading your course materials...</span>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 p-6 bg-red-50 dark:bg-red-900/20 rounded-lg max-w-md">
+          <BookOpen className="w-12 h-12 text-red-500" />
+          <h3 className="text-xl font-semibold text-red-700 dark:text-red-400">Error Loading Course Materials</h3>
+          <p className="text-red-600 dark:text-red-300 text-center">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="p-8 lg:p-12 rounded-lg max-w-7xl mx-auto"
+    >
+      <div className="flex flex-col space-y-6">
+        {/* Header */}
+        <div className="text-center pt-6 pb-4">
       <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-        className="space-y-8 lg:space-y-12 pt-8 lg:pt-12"
-      >
-        {/* Page Header */}
-        <motion.div variants={itemVariants} className="text-center pt-6 pb-4">
-          <div className="flex items-center justify-center mb-4">
-            <BookOpen className="w-8 h-8 text-primary-500 mr-3" />
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-gray-100">
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center justify-center mb-4"
+          >
+            <div className="p-2 bg-primary-100/80 dark:bg-primary-900/30 rounded-xl backdrop-blur-sm mr-3">
+              <BookOpen className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
               Lesson Course Materials
             </h1>
-          </div>
-          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed px-4">
+          </motion.div>
+          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed px-4 mb-6">
             Access and download course materials, resources, and study guides for your enrolled courses
           </p>
-        </motion.div>
 
-
-
-        {/* Search and Filter */}
-        <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            {/* Search */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          {/* Search Bar */}
+          <motion.div 
+            className="relative max-w-md mx-auto"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
               <input
                 type="text"
-                placeholder="Search materials..."
+              placeholder="Search course materials..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200"
               />
+          </motion.div>
             </div>
             
-            {/* Category Filter */}
+        {/* Tabs - in a box container */}
+        <div className="flex justify-center">
             <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-              {[
-                { key: "all", label: "All", icon: Folder },
-                { key: "documents", label: "Documents", icon: FileText },
-                { key: "images", label: "Images", icon: Image },
-                { key: "assignments", label: "Assignments", icon: File }
-              ].map(({ key, label, icon: Icon }) => (
-                <button
-                  key={key}
-                  onClick={() => setSelectedCategory(key as any)}
-                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    selectedCategory === key
-                      ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-                  }`}
+            {tabs.map((tab, idx) => {
+              return (
+                <TabButton
+                  key={idx}
+                  active={currentTab === idx}
+                  onClick={() => setCurrentTab(idx)}
                 >
-                  <Icon className="w-4 h-4 mr-2" />
-                  {label}
-                </button>
-              ))}
-            </div>
+                  <span className="relative z-10 font-medium">{tab.name}</span>
+                </TabButton>
+              );
+            })}
           </div>
-        </motion.div>
+        </div>
 
-        {/* Materials Grid */}
-        <motion.div variants={itemVariants} className="px-4 sm:px-6 lg:px-8">
-          {filteredMaterials.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-              {filteredMaterials.map((material) => (
-                <MaterialCard key={material.id} material={material} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                No materials found
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Try adjusting your search or filter criteria
-              </p>
-              <button
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedCategory("all");
-                }}
-                className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+        {/* Content */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
+          >
+            {filteredContent.length > 0 ? (
+              filteredContent.map((material, index) => (
+                <motion.div
+                  key={material.id || index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <MaterialCard
+                    material={material}
+                    onViewDetails={handleViewDetails}
+                  />
+        </motion.div>
+              ))
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="col-span-full flex flex-col items-center justify-center text-center py-12"
               >
-                Clear Filters
-              </button>
+                <BookOpen className="w-16 h-16 text-gray-400 mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  {searchTerm ? "No course materials found" : "No course materials available"}
+              </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  {searchTerm 
+                    ? "Try adjusting your search term to find what you're looking for."
+                    : "Course materials will appear here when available."}
+                </p>
+              </motion.div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Details Modal */}
+        <AnimatePresence>
+          {selectedMaterial && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center p-4 z-50"
+              onClick={handleCloseModal}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl max-w-md w-full relative"
+              >
+                <motion.button
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handleCloseModal}
+                  className="absolute top-4 right-4 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </motion.button>
+
+                <div className="mb-6">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    Material Details
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {selectedMaterial?.title}
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <BookOpen className="w-5 h-5 text-primary-500" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">Course</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{selectedMaterial?.course}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <Calendar className="w-5 h-5 text-primary-500" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">Upload Date</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {selectedMaterial?.uploadDate ? new Date(selectedMaterial.uploadDate).toLocaleDateString() : "Not uploaded"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5 text-primary-500" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">Duration</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {selectedMaterial?.duration || "Duration TBD"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {selectedMaterial?.description && (
+                    <div className="flex items-start gap-3">
+                      <FileText className="w-5 h-5 text-primary-500 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">Description</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedMaterial.description}</p>
+                      </div>
             </div>
           )}
+
+                  {(!selectedMaterial?.description) && (
+                    <p className="text-center text-gray-500 dark:text-gray-400 py-4">
+                      No additional details available for this material.
+                    </p>
+                  )}
+                </div>
         </motion.div>
       </motion.div>
+          )}
+        </AnimatePresence>
     </div>
+    </motion.div>
   );
 };
 

@@ -2,6 +2,7 @@
 
 import React from "react";
 import DashboardLayout from "./StudentDashboardLayout";
+import CompletedCoursesMain from "@/components/layout/main/dashboards/CompletedCoursesMain";
 
 /**
  * CompletedCoursesDashboard - Component that displays the student's completed courses page
@@ -20,7 +21,9 @@ const CompletedCoursesDashboard: React.FC = () => {
         language: "en",
         notifications: true
       }}
-    />
+    >
+      <CompletedCoursesMain />
+    </DashboardLayout>
   );
 };
 
