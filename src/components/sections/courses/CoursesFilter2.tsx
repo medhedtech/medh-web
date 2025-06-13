@@ -2082,7 +2082,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                     {blendedLearningOptions.map((option, index) => (
                       <label
                         key={option}
-                        className={`flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 transform hover:scale-[1.02] ${isBlendedLearningDropdownOpen ? 'animate-slideIn' : ''}`}
+                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-200 ${isBlendedLearningDropdownOpen ? 'animate-slideIn' : ''}`}
                         style={{ animationDelay: `${index * 50}ms` }}
                       >
                         <div className="flex items-center space-x-3">
@@ -3174,7 +3174,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                               {blendedLearningOptions.map((option, index) => (
                                 <label
                                   key={option}
-                                  className={`flex items-center justify-between p-4 rounded-xl hover:bg-gray-50/50 dark:hover:bg-gray-700/30 cursor-pointer transition-all duration-200 transform hover:scale-[1.02] border border-transparent hover:border-blue-200/20 dark:hover:border-blue-800/20 ${isBlendedLearningDropdownOpen ? 'animate-slideIn' : ''}`}
+                                  className={`flex items-center justify-between p-4 rounded-xl cursor-pointer transition-all duration-200 border border-transparent ${isBlendedLearningDropdownOpen ? 'animate-slideIn' : ''}`}
                                   style={{ animationDelay: `${index * 50}ms` }}
                                 >
                                   <div className="flex items-center space-x-4">

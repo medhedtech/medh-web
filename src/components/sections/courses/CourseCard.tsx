@@ -230,6 +230,7 @@ const CourseCard = ({
 
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [showTooltip, setShowTooltip] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const tooltipTimeout = useRef(null);
 
   // Create a new state for mobile touch-activated "hover"
@@ -336,7 +337,80 @@ const CourseCard = ({
     }, 600); // Match the flip animation duration
   };
 
-  // Mouse and touch interaction handlers
+  // Cleanup effect for tooltip timeout
+  useEffect(() => {
+    return () => {
+      if (tooltipTimeout.current) {
+        clearTimeout(tooltipTimeout.current);
+      }
+    };
+  }, []);
+
+  // Determine the effective class type based on preserveClassType flag
+  const getEffectiveClassType = () => {
+    // If preserveClassType is true, use the course's own class_type
+    // Otherwise, override with the classType prop if provided
+    
+    // First check if we have an explicit classType prop or class_type property
+    let effectiveType = preserveClassType ? (course.class_type || "") : (classType || course.class_type || "");
+    
+    // Handle specific classType prop values first
+    if (classType === 'blended_courses' || effectiveType === 'blended_courses') {
+      return 'blended';
+    }
+    if (classType === 'live_courses' || effectiveType === 'live_courses') {
+      return 'live';
+    }
+    
+    // Handle the "all" category case - we need to determine the type from course properties
+    if (effectiveType === "all" || effectiveType === "") {
+      // Check for live courses indicators
+      if (course?.is_live_course === true || 
+          (course?.course_title && course.course_title.toLowerCase().includes('live')) ||
+          (course?.class_type && course.class_type.toLowerCase().includes('live')) ||
+          (course?.course_description && course.course_description.toLowerCase().includes('live interactive'))) {
+        return 'live';
+      }
+      
+      // Check for blended courses indicators
+      if (course?.is_blended_course === true || 
+          (course?.class_type && (course.class_type.toLowerCase().includes('blend') || course.class_type.toLowerCase().includes('hybrid'))) ||
+          (course?.course_title && (course.course_title.toLowerCase().includes('blend') || course.course_title.toLowerCase().includes('hybrid'))) ||
+          (course?.course_description && course.course_description.toLowerCase().includes('blended learning'))) {
+        return 'blended';
+      }
+      
+      // If we have no_of_Sessions but no indication of live/blended, likely self-paced
+      if (course?.no_of_Sessions || course?.video_count) {
+        return 'self-paced';
+      }
+      
+      // Default to self-paced if we can't determine
+      return 'self-paced';
+    }
+    
+    // Normalize the type to ensure consistent handling
+    effectiveType = effectiveType.toLowerCase();
+    
+    // Check for specific keywords that might identify the type
+    if (effectiveType.includes('live')) {
+      return 'live';
+    } else if (effectiveType.includes('blend') || effectiveType.includes('hybrid')) {
+      return 'blended';
+    } else if (effectiveType === 'self-paced' || effectiveType === 'self paced') {
+      return 'self-paced';
+    }
+    
+    // Default to self-paced if we can't determine
+    return effectiveType || 'self-paced';
+  };
+
+  // Updated to use the effective class type
+  const effectiveClassType = getEffectiveClassType();
+  const isLiveCourse = effectiveClassType === 'live';
+  const isBlendedCourse = effectiveClassType === 'blended';
+  const isSelfPacedCourse = effectiveClassType === 'self-paced' || (!isLiveCourse && !isBlendedCourse);
+
   const resetTilt = useCallback(() => {
     setTiltStyle({
       transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg)',
@@ -345,7 +419,7 @@ const CourseCard = ({
   }, []);
 
   const handleMouseMove = useCallback((e) => {
-    if (!cardRef.current || !isHovered) return;
+    if (!cardRef.current || !isHovered || isBlendedCourse) return; // Disable for blended courses
     
     const card = cardRef.current;
     const rect = card.getBoundingClientRect();
@@ -364,27 +438,21 @@ const CourseCard = ({
       x: rect.right,
       y: rect.top
     });
-  }, [isHovered]);
+  }, [isHovered, isBlendedCourse]);
 
-  const handleMouseEnter = useCallback(() => {
-    if (!isMobile) {
+  const handleMouseEnter = (e) => {
+    if (!isMobile && !isBlendedCourse) { // Disable hover for blended courses
       setIsHovered(true);
-      tooltipTimeout.current = setTimeout(() => {
-        setShowTooltip(true);
-      }, 500);
+      setMousePosition({ x: e.clientX, y: e.clientY });
     }
-  }, [isMobile]);
+  };
 
-  const handleMouseLeave = useCallback(() => {
-    if (!isMobile) {
+  const handleMouseLeave = () => {
+    if (!isMobile && !isBlendedCourse) { // Disable hover for blended courses
       setIsHovered(false);
-      setShowTooltip(false);
-      resetTilt();
-      if (tooltipTimeout.current) {
-        clearTimeout(tooltipTimeout.current);
-      }
+      setMousePosition({ x: 0, y: 0 });
     }
-  }, [isMobile, resetTilt]);
+  };
 
   const openMobileHover = useCallback((e) => {
     e.preventDefault();
@@ -398,15 +466,6 @@ const CourseCard = ({
       e.stopPropagation();
     }
     setMobileHoverActive(false);
-  }, []);
-
-  // Cleanup effect for tooltip timeout
-  useEffect(() => {
-    return () => {
-      if (tooltipTimeout.current) {
-        clearTimeout(tooltipTimeout.current);
-      }
-    };
   }, []);
 
   // Update the formatPrice function to better handle batch pricing
@@ -774,81 +833,6 @@ const CourseCard = ({
   const adaptedTitle = useResponsiveText(course?.course_title, {xs: 40, sm: 60, md: 80, lg: 100});
   // Format and adapt course description for display
   const adaptedDescription = useResponsiveText(course?.course_description, {xs: 80, sm: 120, md: 160, lg: 200});
-
-  // Determine the effective class type based on preserveClassType flag
-  const getEffectiveClassType = () => {
-    // If preserveClassType is true, use the course's own class_type
-    // Otherwise, override with the classType prop if provided
-    
-    // First check if we have an explicit classType prop or class_type property
-    let effectiveType = preserveClassType ? (course.class_type || "") : (classType || course.class_type || "");
-    
-    // Handle specific classType prop values first
-    if (classType === 'blended_courses' || effectiveType === 'blended_courses') {
-      return 'blended';
-    }
-    if (classType === 'live_courses' || effectiveType === 'live_courses') {
-      return 'live';
-    }
-    
-    // Handle the "all" category case - we need to determine the type from course properties
-    if (effectiveType === "all" || effectiveType === "") {
-      // Check for live courses indicators
-      if (course?.is_live_course === true || 
-          (course?.course_title && course.course_title.toLowerCase().includes('live')) ||
-          (course?.class_type && course.class_type.toLowerCase().includes('live')) ||
-          (course?.course_description && course.course_description.toLowerCase().includes('live interactive'))) {
-        return 'live';
-      }
-      
-      // Check for blended courses indicators
-      if (course?.is_blended_course === true || 
-          (course?.class_type && (course.class_type.toLowerCase().includes('blend') || course.class_type.toLowerCase().includes('hybrid'))) ||
-          (course?.course_title && (course.course_title.toLowerCase().includes('blend') || course.course_title.toLowerCase().includes('hybrid'))) ||
-          (course?.course_description && course.course_description.toLowerCase().includes('blended learning'))) {
-        return 'blended';
-      }
-      
-      // If we have no_of_Sessions but no indication of live/blended, likely self-paced
-      if (course?.no_of_Sessions || course?.video_count) {
-        return 'self-paced';
-      }
-      
-      // Default to self-paced if we can't determine
-      return 'self-paced';
-    }
-    
-    // Normalize the type to ensure consistent handling
-    effectiveType = effectiveType.toLowerCase();
-    
-    // Check for specific keywords that might identify the type
-    if (effectiveType.includes('live')) {
-      return 'live';
-    } else if (effectiveType.includes('blend') || effectiveType.includes('hybrid')) {
-      return 'blended';
-    } else if (effectiveType === 'self-paced' || effectiveType === 'self paced') {
-      return 'self-paced';
-    }
-    
-    // Default to self-paced if we can't determine
-    return effectiveType || 'self-paced';
-  };
-
-  // Updated to use the effective class type
-  const effectiveClassType = getEffectiveClassType();
-  const isLiveCourse = effectiveClassType === 'live';
-  const isBlendedCourse = effectiveClassType === 'blended';
-  const isSelfPacedCourse = effectiveClassType === 'self-paced' || (!isLiveCourse && !isBlendedCourse);
-
-  // Debug log to help understand the course type detection
-  console.log('CourseCard Debug:', {
-    courseTitle: course?.course_title,
-    classType: classType,
-    courseClassType: course?.class_type,
-    effectiveClassType: effectiveClassType,
-    isBlendedCourse: isBlendedCourse,
-    courseDuration: course?.course_duration
-  });
 
   // Get course type specific styles
   const getCourseTypeStyles = () => {
@@ -1241,7 +1225,7 @@ const CourseCard = ({
                   )}
 
                   {/* Course title - optimized spacing */}
-                  <h3 className={`${mobileTitleStyles} text-base font-bold text-gray-900 dark:text-white line-clamp-2 text-center mx-auto max-w-[95%] ${course?.course_category ? 'mt-1.5' : 'mt-0'}`}>
+                  <h3 className={`${mobileTitleStyles} text-base font-bold text-gray-900 dark:text-white line-clamp-1 text-center mx-auto max-w-[95%] ${course?.course_category ? 'mt-1.5' : 'mt-0'}`}>
                     {course?.course_title || "Course Title"}
                   </h3>
                   
@@ -1339,16 +1323,16 @@ const CourseCard = ({
           className={`course-card ${mobileCardStyles} group relative flex flex-col h-full rounded-xl overflow-hidden 
             border border-gray-200/20 dark:border-gray-800/40 
             bg-white/90 dark:bg-gray-900/90 backdrop-filter backdrop-blur-sm 
-            transition-all duration-300 
-            ${isHovered || mobileHoverActive ? 'scale-[1.02] z-10 shadow-xl' : 'scale-100 z-0 shadow-md'}
-            ${styles.borderHover} ${styles.shadowHover} ${isLiveCourse ? styles.borderLeft : ''}
+            ${isBlendedCourse ? '' : 'transition-all duration-300'} 
+            ${(isHovered || mobileHoverActive) && !isBlendedCourse ? 'scale-[1.02] z-10 shadow-xl' : 'scale-100 z-0 shadow-md'}
+            ${!isBlendedCourse ? styles.borderHover : ''} ${!isBlendedCourse ? styles.shadowHover : ''} ${isLiveCourse ? styles.borderLeft : ''}
             ${isMobile ? 'pb-20 last:mb-0' : ''}
             ${viewMode === 'grid' ? 'sm:mx-2 md:mx-3' : ''}
-            hover:shadow-2xl`}
+            ${!isBlendedCourse ? 'hover:shadow-2xl' : ''}`}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onMouseMove={handleMouseMove}
-          style={tiltStyle}
+          style={isBlendedCourse ? {} : tiltStyle}
         >
           {/* View More button for mobile */}
           {isMobile && !mobileHoverActive && (
@@ -1408,7 +1392,7 @@ const CourseCard = ({
                 )}
 
                 {/* Course title - optimized spacing */}
-                <h3 className={`${mobileTitleStyles} text-base font-bold text-gray-900 dark:text-white line-clamp-2 text-center mx-auto max-w-[95%] ${course?.course_category ? 'mt-1.5' : 'mt-0'}`}>
+                <h3 className={`${mobileTitleStyles} text-base font-bold text-gray-900 dark:text-white line-clamp-1 text-center mx-auto max-w-[95%] ${course?.course_category ? 'mt-1.5' : 'mt-0'}`}>
                   {course?.course_title || "Course Title"}
                 </h3>
                 
@@ -1509,6 +1493,20 @@ const CourseCard = ({
                   </div>
                 </div>
               )}
+
+              {/* Explore Course button for blended courses in pre-hover state */}
+              {isBlendedCourse && (
+                <div className="mt-3 w-full">
+                  <button
+                    onClick={navigateToCourse}
+                    className="w-full px-4 py-2.5 rounded-lg font-medium transition-all text-white flex items-center justify-center gap-2
+                      bg-[#379392] hover:bg-[#2a7170] shadow-md shadow-[#379392]/20"
+                  >
+                    Explore Course
+                    <ArrowUpRight size={16} className="transition-transform" />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1524,7 +1522,7 @@ const CourseCard = ({
                 isLiveCourse 
                   ? 'bg-[#379392]/10 text-[#379392]' 
                   : 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400'
-              } max-w-[95%] leading-tight`}>
+              } max-w-[95%] leading-tight line-clamp-1`}>
                 {course?.course_title}
               </h3>
             </div>
@@ -1658,6 +1656,20 @@ const CourseCard = ({
               </div>
             )}
             
+            {/* Explore Course button for blended courses in pre-hover state */}
+            {isBlendedCourse && (
+              <div className="mt-3 w-full">
+                <button
+                  onClick={navigateToCourse}
+                  className="w-full px-4 py-2.5 rounded-lg font-medium transition-all text-white flex items-center justify-center gap-2
+                    bg-[#379392] hover:bg-[#2a7170] shadow-md shadow-[#379392]/20"
+                >
+                  Explore Course
+                  <ArrowUpRight size={16} className="transition-transform" />
+                </button>
+              </div>
+            )}
+            
             {/* Action buttons - consistent across both types with style variations */}
             <div className={`mt-auto ${isMobile ? 'pt-1' : 'pt-0.5'} flex flex-col items-center w-full`}>
               <div className={`${isLiveCourse ? '' : 'grid grid-cols-2 gap-2'} mb-2 w-full`}>
@@ -1672,17 +1684,30 @@ const CourseCard = ({
                     Brochure
                   </button>
                 )}
-                <button
-                  onClick={navigateToCourse}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all text-white flex items-center justify-center gap-1.5
+                
+                {/* Different button styles based on course type */}
+                {isBlendedCourse ? (
+                  <button
+                    onClick={navigateToCourse}
+                    className="px-4 py-2 rounded-lg font-medium transition-all text-white flex items-center justify-center gap-1.5
+                      bg-[#379392] hover:bg-[#2a7170] shadow-md shadow-[#379392]/20"
+                  >
+                    Explore Course
+                    <ArrowUpRight size={16} className="group-hover:rotate-12 transition-transform" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={navigateToCourse}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all text-white flex items-center justify-center gap-1.5
                      ${isLiveCourse 
-                    ? 'bg-[#379392] hover:bg-[#2a7170] shadow-md shadow-[#379392]/20 w-full' 
-                    : 'bg-indigo-500 hover:bg-indigo-600 shadow-md shadow-indigo-500/20'
-                  }`}
-                >
-                  {isLiveCourse ? 'Explore Course' : 'Details'}
-                  <ArrowUpRight size={16} className="group-hover:rotate-12 transition-transform" />
-                </button>
+                      ? 'bg-[#379392] hover:bg-[#2a7170] shadow-md shadow-[#379392]/20 w-full' 
+                      : 'bg-indigo-500 hover:bg-indigo-600 shadow-md shadow-indigo-500/20'
+                    }`}
+                  >
+                    {isLiveCourse ? 'Explore Course' : 'Details'}
+                    <ArrowUpRight size={16} className="group-hover:rotate-12 transition-transform" />
+                  </button>
+                )}
               </div>
             </div>
           </div>
