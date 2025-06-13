@@ -56,7 +56,7 @@ const WhyMedh: React.FC = () => {
     {
       id: 3,
       title: "Expert Mentorship",
-      desc: "Learn from qualified instructors through practical projects and guided assignments.",
+      desc: "Learn from qualified instructors through practical projects and guided assignment.",
       icon: "mentorship",
     },
     {
