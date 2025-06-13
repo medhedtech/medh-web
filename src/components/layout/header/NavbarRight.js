@@ -278,17 +278,7 @@ const NavbarRight = ({ isScrolled }) => {
                     <span>Dashboard</span>
                   </Link>
                   
-                  <Link
-                    href="/profile/settings"
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left rounded-lg
-                      text-gray-700 hover:bg-gray-50 hover:text-primary-700 
-                      dark:text-gray-300 dark:hover:bg-gray-700/50 dark:hover:text-white
-                      transition-colors duration-150"
-                    onClick={() => setIsDropdownOpen(false)}
-                  >
-                    <Settings size={16} className="text-gray-400 dark:text-gray-500" />
-                    <span>Settings</span>
-                  </Link>
+
                 </div>
                 
                 {/* Logout Section */}
