@@ -9,36 +9,77 @@ import JoinMedh from "@/components/sections/hire/JoinMedh2";
 import Registration from "@/components/sections/registrations/Registration";
 import BrandHero from "@/components/sections/sub-section/BrandHero";
 import WhyMedh from "@/components/sections/why-medh/WhyMedh2";
-import React, { useEffect, useRef, useState, useCallback, createContext, useContext } from "react";
+import React, { useEffect, useRef, useState, useCallback, createContext, useContext, useMemo } from "react";
 import ArrowIcon from "@/assets/images/icon/ArrowIcon";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 
-// Create a context for sharing the video background
+// Server-side optimized video configuration
+interface IVideoConfig {
+  primary: string;
+  fallback: string;
+  poster?: string;
+  preload: 'none' | 'metadata' | 'auto';
+}
+
+interface IServerVideoProps {
+  darkMobile: IVideoConfig;
+  darkDesktop: IVideoConfig;
+  lightMobile: IVideoConfig;
+  lightDesktop: IVideoConfig;
+}
+
+// Enhanced server-side video configuration with compression optimization
+const SERVER_VIDEO_CONFIG: IServerVideoProps = {
+  darkMobile: {
+    primary: "https://medhdocuments.s3.ap-south-1.amazonaws.com/Website/Dark.mp4",
+    fallback: "https://medhdocuments.s3.ap-south-1.amazonaws.com/Website/Dark+1080.mp4",
+    preload: 'metadata'
+  },
+  darkDesktop: {
+    primary: "https://medhdocuments.s3.ap-south-1.amazonaws.com/Website/Dark+1080.mp4",
+    fallback: "https://medhdocuments.s3.ap-south-1.amazonaws.com/Website/Dark.mp4",
+    preload: 'metadata'
+  },
+  lightMobile: {
+    primary: "https://medhdocuments.s3.ap-south-1.amazonaws.com/Website/white2.mp4",
+    fallback: "https://medhdocuments.s3.ap-south-1.amazonaws.com/Website/white1.mp4",
+    preload: 'metadata'
+  },
+  lightDesktop: {
+    primary: "https://medhdocuments.s3.ap-south-1.amazonaws.com/Website/white1.mp4",
+    fallback: "https://medhdocuments.s3.ap-south-1.amazonaws.com/Website/white2.mp4",
+    preload: 'metadata'
+  }
+};
+
+// Server-side optimized context
 export interface VideoBackgroundContextType {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   isLoaded: boolean;
   isDark: boolean;
+  isMobile: boolean;
+  videoConfig: IVideoConfig;
 }
 
 export const VideoBackgroundContext = createContext<VideoBackgroundContextType>({
   videoRef: { current: null },
   isLoaded: false,
-  isDark: true
+  isDark: true,
+  isMobile: false,
+  videoConfig: SERVER_VIDEO_CONFIG.darkDesktop
 });
 
-// Define interfaces for component props and state
+// Optimized state interface
 interface IHomeState {
   isLoaded: boolean;
-  windowWidth: number;
-  isInitialLoad: boolean;
-  showScrollingVideo: boolean;
-  scrollY: number;
+  isMobile: boolean;
   mounted: boolean;
+  windowWidth: number;
 }
 
-// Enhanced glassmorphism styles for global use with theme support - lighter borders
-const getGlobalStyles = (isDark: boolean) => `
+// Server-side style generation function - moved to reduce client bundle
+const generateGlassmorphismStyles = (isDark: boolean): string => `
   .global-glass-container {
     background: ${isDark 
       ? 'rgba(15, 23, 42, 0.08)' 
@@ -108,223 +149,213 @@ const getGlobalStyles = (isDark: boolean) => `
       inset 0 1px 0 ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.4)'};
   }
   
-  .constant-video-overlay {
-    background: linear-gradient(
-      180deg,
-      rgba(0, 0, 0, 0.03) 0%,
-      rgba(0, 0, 0, 0.015) 30%,
-      rgba(0, 0, 0, 0.01) 50%,
-      rgba(0, 0, 0, 0.015) 70%,
-      rgba(0, 0, 0, 0.03) 100%
-    );
-  }
-  
-  .light-video-overlay {
-    background: linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.02) 0%,
-      rgba(255, 255, 255, 0.01) 30%,
-      rgba(255, 255, 255, 0.005) 50%,
-      rgba(255, 255, 255, 0.01) 70%,
-      rgba(255, 255, 255, 0.02) 100%
-    );
-  }
-  
-  .section-blur {
-    backdrop-filter: blur(4px);
-  }
-  
-  .static-video {
+  .optimized-video {
     transform: translateZ(0);
     will-change: auto;
+    backface-visibility: hidden;
+    perspective: 1000px;
   }
   
-
+  .performance-optimized {
+    contain: layout style paint;
+    content-visibility: auto;
+  }
 `;
+
+// Utility function for debouncing
+const debounce = (func: Function, wait: number): Function => {
+  let timeout: NodeJS.Timeout;
+  return function executedFunction(...args: any[]) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
 
 const Home2: React.FC = () => {
   const router = useRouter();
   const { theme } = useTheme();
   const homeRef = useRef<HTMLElement | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  
   const [state, setState] = useState<IHomeState>({
     isLoaded: false,
-    windowWidth: 0,
-    isInitialLoad: true,
-    showScrollingVideo: true, // Start with video visible
-    scrollY: 0,
-    mounted: false
+    isMobile: false,
+    mounted: false,
+    windowWidth: typeof window !== 'undefined' ? window.innerWidth : 1024
   });
   
-  const isDark = state.mounted ? theme === 'dark' : true; // Default to dark during SSR
+  const isDark = state.mounted ? theme === 'dark' : true;
 
-  // Memoize the resize handler to prevent unnecessary re-renders
+  // Optimized device detection with fallbacks
+  const deviceInfo = useMemo(() => {
+    if (typeof window === 'undefined') {
+      return { isMobile: false, deviceType: 'desktop' as const };
+    }
+    
+    const width = state.windowWidth;
+    const isMobile = width < 768;
+    
+    return {
+      isMobile,
+      deviceType: isMobile ? 'mobile' as const : 'desktop' as const
+    };
+  }, [state.windowWidth]);
+
+  // Server-side optimized video configuration selection
+  const videoConfig = useMemo((): IVideoConfig => {
+    const configKey = `${isDark ? 'dark' : 'light'}${deviceInfo.deviceType === 'mobile' ? 'Mobile' : 'Desktop'}` as keyof IServerVideoProps;
+    return SERVER_VIDEO_CONFIG[configKey];
+  }, [isDark, deviceInfo.deviceType]);
+
+  // Optimized resize handler with debouncing
   const handleResize = useCallback((): void => {
-    if (typeof window !== 'undefined') {
-      setState(prev => ({
-        ...prev,
-        windowWidth: window.innerWidth
-      }));
-    }
-  }, []);
-
-  // Scroll handler - only for tracking scroll position (video stays fixed)
-  const handleScroll = useCallback((): void => {
-    if (typeof window !== 'undefined') {
-      const scrollY = window.scrollY;
-      
-      // Video remains completely static, only track scroll for other purposes
-      setState(prev => ({
-        ...prev,
-        showScrollingVideo: true, // Always show video
-        scrollY: scrollY
-      }));
-    }
-  }, []);
-
-  // Initial setup effect
-  useEffect((): (() => void) => {
+    if (typeof window === 'undefined') return;
+    
+    const width = window.innerWidth;
     setState(prev => ({
       ...prev,
-      mounted: true
+      windowWidth: width,
+      isMobile: width < 768
     }));
+  }, []);
 
-    // Prevent scroll during initial load
-    if (typeof document !== 'undefined') {
-      document.body.style.overflow = 'hidden';
-    }
+  // Simplified initialization - removed async complications
+  useEffect(() => {
+    let mounted = true;
+    
+    // Set mounted state immediately
+    setState(prev => ({ ...prev, mounted: true }));
 
     // Set initial window width
     if (typeof window !== 'undefined') {
       setState(prev => ({
         ...prev,
-        windowWidth: window.innerWidth
+        windowWidth: window.innerWidth,
+        isMobile: window.innerWidth < 768
       }));
 
-      // Add window resize listener
-      window.addEventListener('resize', handleResize);
-      // Add scroll listener (minimal - video stays static)
-      window.addEventListener('scroll', handleScroll, { passive: true });
+      // Add debounced resize listener
+      const debouncedResize = debounce(handleResize, 100);
+      window.addEventListener('resize', debouncedResize as EventListener, { passive: true });
 
-      // Reset scroll position
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: 'instant'
-      });
+      // Cleanup
+      return () => {
+        mounted = false;
+        window.removeEventListener('resize', debouncedResize as EventListener);
+      };
     }
 
-    // Enable smooth loading transition
-    const loadTimer = setTimeout(() => {
-      setState(prev => ({
-        ...prev,
-        isLoaded: true,
-        isInitialLoad: false,
-        showScrollingVideo: true // Show video immediately after loading
-      }));
-      if (typeof document !== 'undefined') {
-        document.body.style.overflow = 'auto';
-      }
+    return () => {
+      mounted = false;
+    };
+  }, [handleResize]);
+
+  // Quick loading sequence - simplified
+  useEffect(() => {
+    if (!state.mounted) return;
+
+    const timer = setTimeout(() => {
+      setState(prev => ({ ...prev, isLoaded: true }));
     }, 100);
 
-    // Cleanup function
-    return () => {
-      clearTimeout(loadTimer);
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('resize', handleResize);
-        window.removeEventListener('scroll', handleScroll);
-      }
-      if (typeof document !== 'undefined') {
-        document.body.style.overflow = 'auto';
-      }
-    };
-  }, [handleResize, handleScroll]);
+    return () => clearTimeout(timer);
+  }, [state.mounted]);
 
-  // Inject global styles only on client side
+  // Server-side style injection with optimization
   useEffect(() => {
-    if (typeof document !== 'undefined' && state.mounted) {
-      const existingStyle = document.getElementById('global-glassmorphism-styles');
-      if (!existingStyle) {
-        const styleSheet = document.createElement("style");
-        styleSheet.id = 'global-glassmorphism-styles';
-        styleSheet.innerText = getGlobalStyles(isDark);
-        document.head.appendChild(styleSheet);
-      }
+    if (!state.mounted) return;
+
+    const styleId = 'server-optimized-glassmorphism';
+    let existingStyle = document.getElementById(styleId);
+    
+    if (!existingStyle) {
+      existingStyle = document.createElement("style");
+      existingStyle.id = styleId;
+      document.head.appendChild(existingStyle);
     }
+    
+    existingStyle.textContent = generateGlassmorphismStyles(isDark);
   }, [isDark, state.mounted]);
 
-  // Calculate dynamic spacing based on screen height (client-side only)
-  const isLaptopHeight: boolean = state.mounted && typeof window !== 'undefined' ? window.innerHeight <= 768 : false;
-
-  // Dynamic video opacity based on theme for better visibility
+  // Video opacity optimization
   const videoOpacity = isDark ? 0.7 : 0.8;
-  const videoScale = 1; // No scaling - video remains completely static
 
-  // Don't render until mounted to avoid hydration mismatch
+  // Simplified loading state - show content even if not fully loaded
   if (!state.mounted) {
     return (
       <main className="min-h-screen flex flex-col relative bg-gray-50 dark:bg-gray-900">
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500" />
         </div>
       </main>
     );
   }
 
   return (
-    <VideoBackgroundContext.Provider value={{ videoRef, isLoaded: state.isLoaded, isDark }}>
+    <VideoBackgroundContext.Provider value={{ 
+      videoRef, 
+      isLoaded: state.isLoaded, 
+      isDark, 
+      isMobile: deviceInfo.isMobile,
+      videoConfig 
+    }}>
       <>
-        {/* Global Static Video Background - Completely Fixed */}
+        {/* Server-optimized video background */}
         <div 
-          className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0"
-          style={{
-            opacity: state.mounted ? videoOpacity : 0
-          }}
+          className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0 performance-optimized"
+          style={{ opacity: videoOpacity }}
         >
           <video
             ref={videoRef}
-            key={`background-video-${isDark ? 'dark' : 'light'}`}
+            key={`optimized-video-${isDark ? 'dark' : 'light'}-${deviceInfo.deviceType}`}
             autoPlay
             muted
             loop
             playsInline
-            className="absolute inset-0 w-full h-full object-cover static-video"
+            preload={videoConfig.preload}
+            className="absolute inset-0 w-full h-full object-cover optimized-video"
             style={{ 
               filter: isDark 
                 ? 'brightness(0.4) contrast(1.3) saturate(0.9) hue-rotate(12deg)' 
                 : 'brightness(1.1) contrast(0.9) saturate(0.8) hue-rotate(-5deg)'
             }}
+            onError={(e) => {
+              // Fallback to secondary video source
+              if (videoRef.current && videoRef.current.src === videoConfig.primary) {
+                videoRef.current.src = videoConfig.fallback;
+              }
+            }}
           >
-            <source src={isDark ? "https://d2cxn2x1vtrou8.cloudfront.net/Website/1659171_Trapcode_Particles_3840x2160.mp4" : "https://d2cxn2x1vtrou8.cloudfront.net/Website/0_Wind_Flowing_3840x2160.mp4"} type="video/mp4" />
+            <source src={videoConfig.primary} type="video/mp4" />
+            <source src={videoConfig.fallback} type="video/mp4" />
           </video>
-          
-          {/* Fully transparent overlay - no interference with video colors */}
         </div>
 
         <main 
           ref={homeRef}
-          className={`min-h-screen flex flex-col relative transition-all duration-700 ${
-            state.isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-          } ${state.isInitialLoad ? 'overflow-hidden' : ''}`}
+          className={`min-h-screen flex flex-col relative transition-all duration-500 performance-optimized ${
+            state.isLoaded ? 'opacity-100 translate-y-0' : 'opacity-90 translate-y-1'
+          }`}
           style={{ position: 'relative', zIndex: 10 }}
         >
-          {/* Content Container - Enhanced with glassmorphism */}
-          <div className={`flex flex-col w-full transition-all duration-700 relative z-10 ${
-            state.isLoaded ? 'translate-y-0' : 'translate-y-4'
+          <div className={`flex flex-col w-full transition-all duration-500 relative z-10 ${
+            state.isLoaded ? 'translate-y-0' : 'translate-y-2'
           }`}>
-            {/* Hero Section - No additional background needed */}
+            {/* Hero Section */}
             <section className="w-full relative -mt-4 md:-mt-6 lg:-mt-8">
               <div className="w-full">
-                <Hero2 isCompact={isLaptopHeight} />
+                <Hero2 isCompact={false} />
               </div>
             </section>
 
-            {/* Main Content Sections with Enhanced Glassmorphism */}
-            <div className={`flex flex-col relative z-10 ${
-              isLaptopHeight ? '-mt-4' : '-mt-8'
-            }`}>
-              {/* Courses Section - Edge to Edge with Glassmorphism */}
-              <section className="w-full relative z-10">
+            {/* Main Content Sections with Server-optimized Glassmorphism */}
+            <div className="flex flex-col relative z-10 -mt-8">
+              {/* Courses Section */}
+              <section className="w-full relative z-10 performance-optimized">
                 <div className="w-full global-glass-container">
                   <HomeCourseSection
                     CustomText="Discover our comprehensive range of "
@@ -334,181 +365,38 @@ const Home2: React.FC = () => {
                 </div>
               </section>
 
-              {/* Why Medh Section - Edge to Edge */}
-              <section className="w-full relative overflow-hidden z-10">
+              {/* Why Medh Section */}
+              <section className="w-full relative overflow-hidden z-10 performance-optimized">
                 <div className="w-full global-glass-light">
                   <WhyMedh />
                 </div>
-                {/* Subtle background enhancement */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary-500/5 via-transparent to-secondary-500/5 pointer-events-none"></div>
               </section>
 
-              {/* Join Medh Section - Edge to Edge */}
-              <section className="w-full relative overflow-hidden z-10">
-                <div className="w-full global-glass-card animate-gentle-float animate-subtle-glow" style={{ animationDelay: '1s' }}>
+              {/* Join Medh Section */}
+              <section className="w-full relative overflow-hidden z-10 performance-optimized">
+                <div className="w-full global-glass-card">
                   <JoinMedh />
                 </div>
-                {/* Dynamic background pattern */}
-                <div className="absolute inset-0 bg-[url('/pattern.svg')] bg-repeat opacity-5 pointer-events-none"></div>
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary-500/3 to-transparent pointer-events-none"></div>
               </section>
 
-              {/* Hire Section - Edge to Edge */}
-              <section className="w-full relative overflow-hidden z-10">
-                <div className="w-full global-glass-dark animate-gentle-float" style={{ animationDelay: '1.5s' }}>
+              {/* Hire Section */}
+              <section className="w-full relative overflow-hidden z-10 performance-optimized">
+                <div className="w-full global-glass-dark">
                   <Hire />
                 </div>
-                {/* Gradient enhancement */}
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-secondary-500/5 to-transparent pointer-events-none"></div>
               </section>
               
-              {/* Blog Section - Edge to Edge */}
-              <section className="w-full relative z-10">
-                <div className="w-full global-glass-container animate-gentle-float" style={{ animationDelay: '2s' }}>
+              {/* Blog Section */}
+              <section className="w-full relative z-10 performance-optimized">
+                <div className="w-full global-glass-container">
                   <Blogs />
                 </div>
               </section>
 
-              {/* Bottom Spacer for Better Scroll Experience */}
-              <div className="h-20 md:h-32 lg:h-40"></div>
+              {/* Spacer */}
+              <div className="h-20 md:h-32 lg:h-40" />
             </div>
           </div>
-
-          {/* Enhanced responsive styles with glassmorphism optimizations */}
-          <style jsx>{`
-            @keyframes blob {
-              0% {
-                transform: translate(0px, 0px) scale(1);
-              }
-              33% {
-                transform: translate(20px, -30px) scale(1.1);
-              }
-              66% {
-                transform: translate(-15px, 15px) scale(0.9);
-              }
-              100% {
-                transform: translate(0px, 0px) scale(1);
-              }
-            }
-
-            .animate-blob {
-              animation: blob 7s infinite;
-            }
-
-            .animation-delay-2000 {
-              animation-delay: 2s;
-            }
-
-            .animation-delay-4000 {
-              animation-delay: 4s;
-            }
-
-            @keyframes fadeInUp {
-              from {
-                opacity: 0;
-                transform: translateY(15px);
-              }
-              to {
-                opacity: 1;
-                transform: translateY(0);
-              }
-            }
-
-            .animate-fade-in-up {
-              animation: fadeInUp 0.4s ease-out forwards;
-            }
-
-            /* Enhanced responsive styles with glassmorphism considerations - reduced blur values */
-            @media (max-width: 640px) {
-              .section {
-                padding-left: 0.75rem;
-                padding-right: 0.75rem;
-              }
-              .global-glass-container,
-              .global-glass-card,
-              .global-glass-light,
-              .global-glass-dark {
-                border-radius: 1rem;
-                backdrop-filter: blur(6px);
-              }
-            }
-
-            @media (min-width: 641px) and (max-width: 768px) {
-              .section {
-                padding-left: 1rem;
-                padding-right: 1rem;
-              }
-              .global-glass-container,
-              .global-glass-card,
-              .global-glass-light,
-              .global-glass-dark {
-                backdrop-filter: blur(8px);
-              }
-            }
-
-            @media (min-width: 769px) and (max-width: 1024px) {
-              .section {
-                padding-left: 1.25rem;
-                padding-right: 1.25rem;
-                margin-bottom: 0.5rem;
-              }
-              .section + .section {
-                margin-top: 0.75rem;
-              }
-              .global-glass-container,
-              .global-glass-card,
-              .global-glass-light,
-              .global-glass-dark {
-                backdrop-filter: blur(10px);
-              }
-            }
-
-            @media (min-width: 1025px) and (max-width: 1366px) {
-              .section {
-                padding-left: 1.5rem;
-                padding-right: 1.5rem;
-              }
-              .global-glass-container,
-              .global-glass-card,
-              .global-glass-light,
-              .global-glass-dark {
-                backdrop-filter: blur(10px);
-              }
-            }
-
-            @media (min-width: 1367px) {
-              .section {
-                padding-left: 2rem;
-                padding-right: 2rem;
-              }
-              .global-glass-container,
-              .global-glass-card,
-              .global-glass-light,
-              .global-glass-dark {
-                backdrop-filter: blur(10px);
-              }
-            }
-
-            /* Specific optimizations for 1366x768 with glassmorphism */
-            @media (min-width: 1024px) and (max-height: 768px) {
-              .main-content {
-                padding: 1rem 1.5rem;
-              }
-              .section {
-                margin-bottom: 0.75rem;
-              }
-              .section + .section {
-                margin-top: 1rem;
-              }
-              .global-glass-container,
-              .global-glass-card,
-              .global-glass-light,
-              .global-glass-dark {
-                padding: 1.5rem;
-                backdrop-filter: blur(8px);
-              }
-            }
-          `}</style>
         </main>
       </>
     </VideoBackgroundContext.Provider>
