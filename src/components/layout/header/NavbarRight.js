@@ -83,33 +83,48 @@ const NavbarRight = ({ isScrolled }) => {
           }
         }
         
-        // Optional: Fetch from API for most up-to-date info
-        getQuery({
-          url: `${apiUrls?.user?.getDetailsbyId}/${userId}`,
-          requireAuth: true, // Add this flag to ensure token is sent properly
-          onSuccess: (response) => {
-            if (response?.data) {
-              const userData = response.data;
-              // Update with latest data from API
-              const newName = userData.fullName || userData.name || userData.email?.split('@')[0] || "";
-              const newRole = String(userData.role || "");
-              
-              if (newName && newName !== userName) {
-                setUserName(newName);
-                localStorage.setItem("fullName", newName);
+        // Optional: Fetch from API for most up-to-date info (only if we have both name and role cached)
+        // Skip API call if we don't have cached user data to avoid unnecessary auth errors
+        if (storedFullName && storedRole) {
+          getQuery({
+            url: `${apiUrls?.user?.getDetailsbyId}/${userId}`,
+            requireAuth: true,
+            showToast: false, // Don't show error toast for this optional call
+            onSuccess: (response) => {
+              if (response?.data) {
+                const userData = response.data;
+                // Update with latest data from API
+                const newName = userData.fullName || userData.name || userData.email?.split('@')[0] || "";
+                const newRole = String(userData.role || "");
+                
+                if (newName && newName !== userName) {
+                  setUserName(newName);
+                  localStorage.setItem("fullName", newName);
+                }
+                
+                if (newRole && newRole !== userRole) {
+                  setUserRole(newRole);
+                  localStorage.setItem("role", newRole);
+                }
               }
-              
-              if (newRole && newRole !== userRole) {
-                setUserRole(newRole);
-                localStorage.setItem("role", newRole);
+            },
+            onFail: (error) => {
+              // If 401/403, clear invalid auth data
+              if (error.response?.status === 401 || error.response?.status === 403) {
+                console.warn("Auth token appears to be invalid, clearing auth data");
+                localStorage.removeItem("token");
+                localStorage.removeItem("userId");
+                localStorage.removeItem("fullName");
+                localStorage.removeItem("role");
+                setIsLoggedIn(false);
+                setUserName("");
+                setUserRole("");
+              } else {
+                console.error("Failed to fetch user details:", error);
               }
-            }
-          },
-          onFail: (error) => {
-            console.error("Failed to fetch user details:", error);
-            // We already tried localStorage and token, so no need for additional fallback
-          },
-        });
+            },
+          });
+        }
       } catch (error) {
         console.error("Error accessing localStorage:", error);
       }

@@ -7,7 +7,7 @@ import Certified from "@/components/sections/why-medh/Certified";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import React from "react";
 import HireSectionPlacement from "@/components/sections/placement-guaranteed/HireSection";
-import HiringProcessPlacement from "@/components/sections/placement-guaranteed/workProcessPlacement";
+import WorkProcessPlacement from "@/components/sections/placement-guaranteed/workProcessPlacement";
 import PlacementBenefits from "@/components/sections/placement-guaranteed/placementBenefits";
 import PlacementFaq from "@/components/sections/placement-guaranteed/PlacementFaq";
 import PlacementCourseBanner from "@/components/sections/placement-guaranteed/PlacementCourseBanner";
@@ -17,7 +17,7 @@ function PlacementGauranty() {
     <PageWrapper>
       <PlacementGauranteedBanner />
       <HireSectionPlacement/>
-      <HiringProcessPlacement/>
+      <WorkProcessPlacement/>
       <PlacementBenefits/>
       <PlacementFaq />
       <div>

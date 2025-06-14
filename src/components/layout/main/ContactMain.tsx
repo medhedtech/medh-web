@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { Mail, Phone, MapPin, Send, ArrowRight, MessageCircle } from "lucide-react";
 import { useTheme } from "next-themes";
+import Link from "next/link";
+import CustomReCaptcha from '../../shared/ReCaptcha';
 
 // TypeScript interfaces
 interface IContactMethod {
@@ -18,6 +20,7 @@ interface IFormData {
   email: string;
   subject: string;
   message: string;
+  accept: boolean;
 }
 
 // Contact methods data
@@ -52,10 +55,13 @@ const ContactMain: React.FC = () => {
     name: "",
     email: "",
     subject: "",
-    message: ""
+    message: "",
+    accept: false
   });
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const [recaptchaValue, setRecaptchaValue] = useState<string | null>(null);
+  const [recaptchaError, setRecaptchaError] = useState<boolean>(false);
 
   const isDark: boolean = mounted ? theme === 'dark' : false;
 
@@ -64,15 +70,34 @@ const ContactMain: React.FC = () => {
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
+    
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
+  };
+
+  const handleRecaptchaChange = (value: string | null): void => {
+    setRecaptchaValue(value);
+    setRecaptchaError(false);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
+    
+    // Check if terms are accepted
+    if (!formData.accept) {
+      return;
+    }
+
+    // Check if reCAPTCHA is completed
+    if (!recaptchaValue) {
+      setRecaptchaError(true);
+      return;
+    }
+    
     setIsSubmitting(true);
     
     // Simulate form submission
@@ -84,7 +109,9 @@ const ContactMain: React.FC = () => {
     // Reset form after 3 seconds
     setTimeout(() => {
       setIsSubmitted(false);
-      setFormData({ name: "", email: "", subject: "", message: "" });
+      setFormData({ name: "", email: "", subject: "", message: "", accept: false });
+      setRecaptchaValue(null);
+      setRecaptchaError(false);
     }, 3000);
   };
 
@@ -252,9 +279,47 @@ const ContactMain: React.FC = () => {
                       />
                     </div>
 
+                    <div className="flex justify-center mt-8">
+                      <CustomReCaptcha
+                        onChange={handleRecaptchaChange}
+                        error={recaptchaError}
+                      />
+                    </div>
+
+                    <div className="flex items-start mt-6">
+                      <div className="flex items-center h-5">
+                        <input
+                          type="checkbox"
+                          name="accept"
+                          id="accept"
+                          checked={formData.accept}
+                          onChange={handleInputChange}
+                          required
+                          className="h-5 w-5 text-emerald-600 bg-gray-50 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors cursor-pointer hover:border-emerald-400 dark:hover:border-emerald-500"
+                        />
+                      </div>
+                      <label
+                        htmlFor="accept"
+                        className="ml-3 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none"
+                      >
+                        By submitting this form, I accept{' '}
+                        <Link href="/terms-and-services">
+                          <span className="text-emerald-600 dark:text-emerald-400 hover:underline font-medium">
+                            Terms of Service
+                          </span>
+                        </Link>{" "}
+                        &{" "}
+                        <Link href="/privacy-policy">
+                          <span className="text-emerald-600 dark:text-emerald-400 hover:underline font-medium">
+                            Privacy Policy
+                          </span>
+                        </Link>
+                      </label>
+                    </div>
+
                     <button
                       type="submit"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !formData.accept || !recaptchaValue}
                       className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-400 text-white font-semibold py-4 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group"
                     >
                       {isSubmitting ? (
@@ -401,16 +466,6 @@ const ContactMain: React.FC = () => {
             >
               Explore Courses
               <ArrowRight className="w-5 h-5" />
-            </a>
-            <a
-              href="/about"
-              className={`inline-flex items-center justify-center gap-2 font-semibold py-3 px-6 rounded-lg border transition-colors ${
-                isDark
-                  ? 'border-gray-600 text-gray-300 hover:bg-gray-800'
-                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              Learn More
             </a>
           </div>
         </div>
