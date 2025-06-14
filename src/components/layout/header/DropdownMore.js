@@ -39,10 +39,6 @@ const DropdownMore = ({ isMenuOpen, onMenuToggle }) => {
           path: "/careers",
         },
         {
-          name: "Contact Us",
-          path: "/contact-us",
-        },
-        {
           name: "Join Us as a School / Institute",
           path: "/join-us-as-school-institute",
         },
