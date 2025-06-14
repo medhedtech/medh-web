@@ -9,6 +9,7 @@ import '@/components/sidebar/sidebar-styles.css';
 import 'react-quill/dist/quill.snow.css';
 import ThemeController from '@/components/shared/others/ThemeController';
 import GoogleAnalytics from '@/components/shared/analytics/GoogleAnalytics';
+import CookieConsent from '@/components/shared/gdpr/CookieConsent';
 import { Suspense } from 'react';
 import localFont from 'next/font/local';
 
@@ -159,6 +160,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
             <Toaster position="top-center" />
             <Analytics />
             <SpeedInsights />
+            <CookieConsent />
           </Providers>
         </Suspense>
       </body>
