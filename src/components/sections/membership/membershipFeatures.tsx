@@ -1,19 +1,29 @@
 "use client";
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   BookOpen,
   MonitorPlay,
   GraduationCap,
   MessagesSquare,
   Award,
-  Users2
+  Users2,
+  LucideIcon
 } from "lucide-react";
 
-const MembershipFeatures = () => {
-  const [hoveredIndex, setHoveredIndex] = useState(null);
+// TypeScript interfaces
+interface IFeature {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  color: string;
+  gradient: string;
+}
 
-  const features = [
+const MembershipFeatures: React.FC = () => {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  const features: IFeature[] = [
     {
       title: "Program Selection and Design",
       description:
@@ -64,12 +74,12 @@ const MembershipFeatures = () => {
     },
   ];
 
-  const getGradientClass = (gradient) => {
+  const getGradientClass = (gradient: string): string => {
     return `bg-gradient-to-r ${gradient} bg-clip-text text-transparent hover:saturate-150 transition-all duration-300`;
   };
 
-  const getIconBgClass = (color) => {
-    const backgrounds = {
+  const getIconBgClass = (color: string): string => {
+    const backgrounds: Record<string, string> = {
       blue: "bg-gradient-to-br from-blue-600/10 via-indigo-500/10 to-violet-600/10 hover:from-blue-600/20 hover:via-indigo-500/20 hover:to-violet-600/20",
       teal: "bg-gradient-to-br from-teal-400/10 via-emerald-500/10 to-cyan-600/10 hover:from-teal-400/20 hover:via-emerald-500/20 hover:to-cyan-600/20",
       fuchsia: "bg-gradient-to-br from-fuchsia-500/10 via-purple-600/10 to-pink-600/10 hover:from-fuchsia-500/20 hover:via-purple-600/20 hover:to-pink-600/20",
@@ -80,8 +90,8 @@ const MembershipFeatures = () => {
     return `${backgrounds[color]} transition-all duration-500`;
   };
 
-  const getIconClass = (color) => {
-    const colors = {
+  const getIconClass = (color: string): string => {
+    const colors: Record<string, string> = {
       blue: "text-blue-600 dark:text-blue-400",
       teal: "text-teal-600 dark:text-teal-400",
       fuchsia: "text-fuchsia-600 dark:text-fuchsia-400",
@@ -114,7 +124,7 @@ const MembershipFeatures = () => {
   };
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-16">
+    <section id="membership-features" className="relative overflow-hidden bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-16">
       {/* Background Decorative Elements */}
       <div className="absolute inset-0">
         <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-blue-600/20 via-violet-600/20 to-fuchsia-600/20 rounded-full blur-3xl opacity-60 -translate-x-1/4 -translate-y-1/4 animate-pulse"></div>
@@ -124,7 +134,7 @@ const MembershipFeatures = () => {
       <div className="container mx-auto px-4 relative z-10">
         {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
+          {features.map((feature: IFeature, index: number) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
