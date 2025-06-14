@@ -219,7 +219,13 @@ const MembershipBanner: React.FC = () => {
   }, []);
 
   const handleExplore = (): void => {
-    window.location.href = "/membership";
+    const element = document.getElementById('choose-membership');
+    if (element) {
+      element.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
   };
 
   return (
