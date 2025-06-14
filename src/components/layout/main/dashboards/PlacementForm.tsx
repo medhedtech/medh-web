@@ -187,6 +187,9 @@ interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
   icon: React.ElementType;
   error?: string;
+  required?: boolean;
+  fieldName?: string;
+  validationErrors?: Set<string>;
 }
 
 // File size validator
@@ -297,36 +300,48 @@ const schema = yup.object().shape({
   additional_info: yup.string(),
 });
 
-const FormInput: React.FC<FormInputProps> = ({ label, icon: Icon, error, ...props }) => (
-  <div className="relative">
-    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
-      {label}
-    </label>
-    <div className="relative group">
-      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-        <Icon className="h-5 w-5 text-gray-400 group-focus-within:text-primary-500 transition-colors" />
+const FormInput: React.FC<FormInputProps> = ({ label, icon: Icon, error, required, fieldName, validationErrors, ...props }) => {
+  const hasValidationError = fieldName && validationErrors?.has(fieldName);
+  
+  return (
+    <div className="relative">
+      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </label>
+      <div className="relative group">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <Icon className={`h-5 w-5 transition-colors ${
+            error || hasValidationError 
+              ? 'text-red-500' 
+              : 'text-gray-400 group-focus-within:text-primary-500'
+          }`} />
+        </div>
+        <input
+          className={`w-full pl-10 pr-4 py-3 rounded-xl border transition-all duration-200 ${
+            error || hasValidationError
+              ? 'border-red-500 focus:border-red-500 bg-red-50 dark:bg-red-900/20 ring-2 ring-red-200 dark:ring-red-800' 
+              : 'border-gray-300 dark:border-gray-600 focus:border-primary-500 bg-white dark:bg-gray-800'
+          } text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20`}
+          {...props}
+        />
       </div>
-      <input
-        className={`w-full pl-10 pr-4 py-3 rounded-xl border ${
-          error ? 'border-red-500 focus:border-red-500' : 'border-gray-300 dark:border-gray-600 focus:border-primary-500'
-        } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200`}
-        {...props}
-      />
+      <AnimatePresence mode="wait">
+        {(error || (hasValidationError && required)) && (
+          <motion.p
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="text-red-500 text-xs mt-1 flex items-center"
+          >
+            <span className="mr-1">⚠️</span>
+            {error || 'This field is required'}
+          </motion.p>
+        )}
+      </AnimatePresence>
     </div>
-    <AnimatePresence mode="wait">
-      {error && (
-        <motion.p
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className="text-red-500 text-xs mt-1"
-        >
-          {error}
-        </motion.p>
-      )}
-    </AnimatePresence>
-  </div>
-);
+  );
+};
 
 interface FormTextAreaProps {
   label: string;
@@ -418,11 +433,15 @@ interface FormFileUploadProps {
   label: string;
   accept?: string;
   error?: string;
+  required?: boolean;
+  fieldName?: string;
+  validationErrors?: Set<string>;
   [key: string]: any;
 }
 
-const FormFileUpload: React.FC<FormFileUploadProps> = ({ label, accept, error, ...props }) => {
+const FormFileUpload: React.FC<FormFileUploadProps> = ({ label, accept, error, required, fieldName, validationErrors, ...props }) => {
   const [fileName, setFileName] = useState<string>("");
+  const hasValidationError = fieldName && validationErrors?.has(fieldName);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -441,6 +460,7 @@ const FormFileUpload: React.FC<FormFileUploadProps> = ({ label, accept, error, .
     <div className="relative">
       <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
         {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       <div className="relative group">
         <input
@@ -453,12 +473,20 @@ const FormFileUpload: React.FC<FormFileUploadProps> = ({ label, accept, error, .
         />
         <label
           htmlFor={`file-${label.replace(/\s+/g, '-').toLowerCase()}`}
-          className={`flex items-center w-full border ${
-            error ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-          } rounded-xl bg-white dark:bg-gray-800 cursor-pointer`}
+          className={`flex items-center w-full border rounded-xl cursor-pointer transition-all duration-200 ${
+            error || hasValidationError
+              ? 'border-red-500 bg-red-50 dark:bg-red-900/20 ring-2 ring-red-200 dark:ring-red-800' 
+              : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'
+          }`}
         >
-          <div className="flex items-center justify-center h-12 w-12 bg-primary-50 dark:bg-primary-900/20 rounded-l-xl">
-            <Upload className="h-5 w-5 text-primary-500" />
+          <div className={`flex items-center justify-center h-12 w-12 rounded-l-xl transition-colors ${
+            error || hasValidationError
+              ? 'bg-red-100 dark:bg-red-900/30'
+              : 'bg-primary-50 dark:bg-primary-900/20'
+          }`}>
+            <Upload className={`h-5 w-5 ${
+              error || hasValidationError ? 'text-red-500' : 'text-primary-500'
+            }`} />
           </div>
           <div className="px-4 py-3 truncate">
             {fileName ? (
@@ -470,14 +498,15 @@ const FormFileUpload: React.FC<FormFileUploadProps> = ({ label, accept, error, .
         </label>
       </div>
       <AnimatePresence mode="wait">
-        {error && (
+        {(error || (hasValidationError && required)) && (
           <motion.p
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="text-red-500 text-xs mt-1"
+            className="text-red-500 text-xs mt-1 flex items-center"
           >
-            {error}
+            <span className="mr-1">⚠️</span>
+            {error || 'This field is required'}
           </motion.p>
         )}
       </AnimatePresence>
@@ -814,11 +843,13 @@ const AchievementsTab: React.FC<AchievementsTabProps> = ({
 interface AdditionalDetailsTabProps {
   register: any;
   errors: any;
+  validationErrors: Set<string>;
 }
 
 const AdditionalDetailsTab: React.FC<AdditionalDetailsTabProps> = ({
   register,
-  errors
+  errors,
+  validationErrors
 }) => {
   return (
     <div className="space-y-8">
@@ -830,10 +861,35 @@ const AdditionalDetailsTab: React.FC<AdditionalDetailsTabProps> = ({
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormInput
+            label="Preferred Location"
+            icon={MapPin}
+            placeholder="e.g. New York, Remote, Anywhere"
+            error={errors.preferred_location?.message}
+            required={true}
+            fieldName="preferred_location"
+            validationErrors={validationErrors}
+            {...register("preferred_location")}
+          />
+          
+          <FormInput
+            label="Preferred Job Type"
+            icon={Briefcase}
+            placeholder="e.g. Full-time, Part-time, Contract"
+            error={errors.preferred_job_type?.message}
+            required={true}
+            fieldName="preferred_job_type"
+            validationErrors={validationErrors}
+            {...register("preferred_job_type")}
+          />
+          
+          <FormInput
             label="Expected Salary/Rate"
             icon={Briefcase}
             placeholder="e.g. $80,000 per year or $50 per hour"
             error={errors.expected_salary?.message}
+            required={true}
+            fieldName="expected_salary"
+            validationErrors={validationErrors}
             {...register("expected_salary")}
           />
           
@@ -842,6 +898,7 @@ const AdditionalDetailsTab: React.FC<AdditionalDetailsTabProps> = ({
             icon={Clock}
             placeholder="e.g. 2 weeks, 1 month"
             error={errors.notice_period?.message}
+            validationErrors={validationErrors}
             {...register("notice_period")}
           />
           
@@ -850,6 +907,9 @@ const AdditionalDetailsTab: React.FC<AdditionalDetailsTabProps> = ({
             icon={Calendar}
             type="date"
             error={errors.availability_date?.message}
+            required={true}
+            fieldName="availability_date"
+            validationErrors={validationErrors}
             {...register("availability_date")}
           />
           
@@ -1167,7 +1227,7 @@ const WorkExperienceTab: React.FC<WorkExperienceTabProps> = ({
 };
 
 // Define EducationTab component
-const EducationTab = ({ register, errors }: { register: UseFormRegister<FormValues>, errors: FieldErrors<FormValues> }) => {
+const EducationTab = ({ register, errors, validationErrors }: { register: UseFormRegister<FormValues>, errors: FieldErrors<FormValues>, validationErrors: Set<string> }) => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1177,6 +1237,9 @@ const EducationTab = ({ register, errors }: { register: UseFormRegister<FormValu
           type="text"
           placeholder="e.g. Bachelor's, Master's, PhD"
           error={errors.highest_education?.message}
+          required={true}
+          fieldName="highest_education"
+          validationErrors={validationErrors}
           {...register("highest_education")}
         />
         
@@ -1186,6 +1249,9 @@ const EducationTab = ({ register, errors }: { register: UseFormRegister<FormValu
           type="text"
           placeholder="e.g. Stanford University"
           error={errors.university?.message}
+          required={true}
+          fieldName="university"
+          validationErrors={validationErrors}
           {...register("university")}
         />
         
@@ -1195,6 +1261,9 @@ const EducationTab = ({ register, errors }: { register: UseFormRegister<FormValu
           type="text"
           placeholder="e.g. Bachelor of Science"
           error={errors.degree?.message}
+          required={true}
+          fieldName="degree"
+          validationErrors={validationErrors}
           {...register("degree")}
         />
         
@@ -1204,6 +1273,7 @@ const EducationTab = ({ register, errors }: { register: UseFormRegister<FormValu
           type="text"
           placeholder="e.g. Computer Science"
           error={errors.field_of_study?.message}
+          validationErrors={validationErrors}
           {...register("field_of_study")}
         />
         
@@ -1213,6 +1283,9 @@ const EducationTab = ({ register, errors }: { register: UseFormRegister<FormValu
           type="text"
           placeholder="e.g. 2023"
           error={errors.graduation_year?.message}
+          required={true}
+          fieldName="graduation_year"
+          validationErrors={validationErrors}
           {...register("graduation_year")}
         />
         
@@ -1222,6 +1295,7 @@ const EducationTab = ({ register, errors }: { register: UseFormRegister<FormValu
           type="text"
           placeholder="e.g. 3.8/4.0 or First Class"
           error={errors.gpa?.message}
+          validationErrors={validationErrors}
           {...register("gpa")}
         />
 
@@ -1349,6 +1423,9 @@ const PlacementForm: React.FC<PlacementFormProps> = ({ isOpen, onClose }) => {
 
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
+  const [validatedTabs, setValidatedTabs] = useState<Set<number>>(new Set());
+  const [validationErrors, setValidationErrors] = useState<Set<string>>(new Set());
+  const [showValidationShake, setShowValidationShake] = useState(false);
   const { postQuery } = usePostQuery();
   const { getQuery } = useGetQuery();
 
@@ -1377,9 +1454,82 @@ const PlacementForm: React.FC<PlacementFormProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const nextTab = () => {
+  // Validate specific tab fields
+  const validateTabFields = async (tabIndex: number): Promise<boolean> => {
+    const currentValues = getValues();
+    const tabValidationFields: { [key: number]: string[] } = {
+      0: ['firstname', 'lastname', 'email', 'phone_number', 'resumeFile'], // Personal Info
+      1: ['highest_education', 'university', 'degree', 'graduation_year'], // Education
+      2: [], // Experience (optional)
+      3: [], // Projects (optional)
+      4: [], // Achievements (optional)
+      5: ['preferred_location', 'preferred_job_type', 'expected_salary', 'availability_date'] // Additional Details
+    };
+
+    const fieldsToValidate = tabValidationFields[tabIndex] || [];
+    const tabErrors: string[] = [];
+
+    // Validate required fields for the current tab
+    for (const field of fieldsToValidate) {
+      const value = currentValues[field as keyof FormValues];
+      
+      if (field === 'resumeFile') {
+        // Special handling for file upload
+        if (!value || (value as FileList).length === 0) {
+          tabErrors.push('Resume/CV is required');
+        }
+      } else if (!value || (typeof value === 'string' && value.trim() === '')) {
+        // Get field label for better error message
+        const fieldLabels: { [key: string]: string } = {
+          firstname: 'First Name',
+          lastname: 'Last Name',
+          email: 'Email',
+          phone_number: 'Phone Number',
+          highest_education: 'Highest Education',
+          university: 'University/Institution',
+          degree: 'Degree',
+          graduation_year: 'Graduation Year',
+          preferred_location: 'Preferred Location',
+          preferred_job_type: 'Preferred Job Type',
+          expected_salary: 'Expected Salary',
+          availability_date: 'Availability Date'
+        };
+        tabErrors.push(`${fieldLabels[field] || field} is required`);
+      }
+    }
+
+    // Update validation errors state for visual feedback
+    const errorFields = new Set<string>();
+    for (const field of fieldsToValidate) {
+      const value = currentValues[field as keyof FormValues];
+      
+      if (field === 'resumeFile') {
+        if (!value || (value as FileList).length === 0) {
+          errorFields.add(field);
+        }
+      } else if (!value || (typeof value === 'string' && value.trim() === '')) {
+        errorFields.add(field);
+      }
+    }
+    
+    setValidationErrors(errorFields);
+    
+    // Trigger shake animation if validation fails
+    if (errorFields.size > 0) {
+      setShowValidationShake(true);
+      setTimeout(() => setShowValidationShake(false), 600);
+    }
+    
+    return errorFields.size === 0;
+  };
+
+  const nextTab = async () => {
     if (activeTab < tabs.length - 1) {
-      setActiveTab(activeTab + 1);
+      const isValid = await validateTabFields(activeTab);
+      if (isValid) {
+        setValidatedTabs(prev => new Set([...prev, activeTab]));
+        setActiveTab(activeTab + 1);
+      }
     }
   };
 
@@ -1389,103 +1539,43 @@ const PlacementForm: React.FC<PlacementFormProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  // Load existing data if available
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const res = await getQuery({
-          url: USER_PROFILE_ENDPOINT,
-          requireAuth: true
-        });
-        
-        if (res) {
-          reset({
-            firstname: res.firstname || "",
-            lastname: res.lastname || "",
-            email: res.email || "",
-            phone_number: res.phone_number || "",
-            resumeFile: undefined as unknown as FileList,
-            linkedin_profile: res.linkedin_profile || "",
-            github_profile: res.github_profile || "",
-            portfolio_url: res.portfolio_url || "",
-            website: res.website || "",
-            highest_education: res.highest_education || "",
-            university: res.university || "",
-            degree: res.degree || "",
-            field_of_study: res.field_of_study || "",
-            graduation_year: res.graduation_year?.toString() || "",
-            gpa: res.gpa || "",
-            work_experience: res.work_experience || [{ 
-              title: '', 
-              company: '', 
-              startDate: '', 
-              endDate: '', 
-              current: false, 
-              description: '', 
-              location: '', 
-              technologies: '', 
-              achievements: '' 
-            }],
-            internships: res.internships || [],
-            projects: res.projects || [{ 
-              title: '', 
-              description: '', 
-              technologies: '', 
-              githubUrl: '', 
-              demoUrl: '', 
-              startDate: '', 
-              endDate: '', 
-              current: false, 
-              role: '', 
-              highlights: '' 
-            }],
-            skills: res.skills || [],
-            achievements: res.achievements || [{ 
-              title: '', 
-              issuer: '', 
-              date: '', 
-              description: '', 
-              url: '' 
-            }],
-            certifications: res.certifications || [],
-            preferred_location: res.preferred_location || "",
-            preferred_job_type: res.preferred_job_type || "",
-            preferred_work_type: res.preferred_work_type || "onsite",
-            expected_salary: res.expected_salary || "",
-            notice_period: res.notice_period || "",
-            willing_to_relocate: res.willing_to_relocate || false,
-            references: res.references || [{ 
-              name: '', 
-              position: '', 
-              company: '', 
-              email: '', 
-              phone: '', 
-              relationship: '' 
-            }],
-            additional_info: res.additional_info || "",
-            message: res.message || "",
-            availability_date: res.availability_date || "",
-            languages_known: res.languages_known || ""
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
+  // Allow direct tab navigation only to completed or previous tabs
+  const handleTabClick = async (tabIndex: number) => {
+    if (tabIndex === activeTab) return; // Already on this tab
+    
+    if (tabIndex < activeTab) {
+      // Allow going back to previous tabs
+      setActiveTab(tabIndex);
+    } else if (tabIndex === activeTab + 1) {
+      // Allow going to next tab only if current tab is validated
+      const isValid = await validateTabFields(activeTab);
+      if (isValid) {
+        setValidatedTabs(prev => new Set([...prev, activeTab]));
+        setActiveTab(tabIndex);
       }
-    };
-
-    if (isOpen) {
-      fetchUserData();
+    } else {
+      // Don't allow skipping tabs - no action taken
+      return;
     }
-  }, [isOpen, reset, getQuery]);
+  };
+
+  // User data pre-filling disabled to avoid authentication issues
+  // Form works perfectly with empty defaults
+  useEffect(() => {
+    console.log("Placement form opened - using empty form defaults");
+    // Form will start with the defaultValues defined in useForm
+    // No API calls needed - form is fully functional without pre-filled data
+  }, [isOpen]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md overflow-y-auto">
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
+        exit={{ opacity: 0, scale: 0.98 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
-        className="w-full max-w-5xl m-4 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-gray-100 dark:border-gray-700"
+        className="w-full h-full bg-white dark:bg-gray-800 overflow-hidden flex flex-col pt-16 lg:pt-20"
+        style={{ minHeight: '100vh' }}
       >
         {/* Form Header with gradient background */}
         <div className="bg-gradient-to-r from-primary-600/90 to-primary-500/90 p-6 border-b border-white/10 flex justify-between items-center">
@@ -1517,28 +1607,35 @@ const PlacementForm: React.FC<PlacementFormProps> = ({ isOpen, onClose }) => {
         
         {/* Tab Navigation */}
         <div className="w-full bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 overflow-x-auto sticky top-0 z-10 shadow-sm">
-          <div className="flex items-center min-w-max p-2">
+          <div className={`flex items-center min-w-max p-2 transition-transform duration-200 ${
+            showValidationShake ? 'animate-pulse' : ''
+          }`}>
             {tabs.map((tab, index) => (
               <button
                 key={index}
                 type="button"
-                onClick={() => setActiveTab(index)}
+                onClick={() => handleTabClick(index)}
+                disabled={index > activeTab + 1 && !validatedTabs.has(index - 1)}
                 className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium mr-2 transition-all duration-200 relative ${
                   activeTab === index
                     ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400 shadow-sm'
-                    : index < activeTab 
-                      ? 'text-primary-600 hover:bg-primary-50/50 dark:text-primary-400 dark:hover:bg-primary-900/10'
-                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700/30'
+                    : validatedTabs.has(index) || index <= activeTab
+                      ? 'text-primary-600 hover:bg-primary-50/50 dark:text-primary-400 dark:hover:bg-primary-900/10 cursor-pointer'
+                      : index === activeTab + 1
+                        ? 'text-gray-600 hover:text-gray-700 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700/30 cursor-pointer'
+                        : 'text-gray-400 cursor-not-allowed opacity-60 dark:text-gray-600'
                 }`}
               >
                 <div className={`flex items-center justify-center w-6 h-6 rounded-full mr-2 
                   ${activeTab === index 
                     ? 'bg-primary-500 text-white' 
-                    : index < activeTab
-                      ? 'bg-primary-100 text-primary-600 dark:bg-primary-900/50 dark:text-primary-400'
-                      : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                    : validatedTabs.has(index)
+                      ? 'bg-green-500 text-white'
+                      : index < activeTab
+                        ? 'bg-primary-100 text-primary-600 dark:bg-primary-900/50 dark:text-primary-400'
+                        : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
                   }`}>
-                  {index < activeTab ? (
+                  {validatedTabs.has(index) ? (
                     <Check className="w-3.5 h-3.5" />
                   ) : (
                     <span className="text-xs">{index + 1}</span>
@@ -1587,6 +1684,9 @@ const PlacementForm: React.FC<PlacementFormProps> = ({ isOpen, onClose }) => {
                         type="text"
                         placeholder="Enter your first name"
                         error={errors.firstname?.message}
+                        required={true}
+                        fieldName="firstname"
+                        validationErrors={validationErrors}
                         {...register("firstname")}
                       />
                       <FormInput
@@ -1595,6 +1695,9 @@ const PlacementForm: React.FC<PlacementFormProps> = ({ isOpen, onClose }) => {
                         type="text"
                         placeholder="Enter your last name"
                         error={errors.lastname?.message}
+                        required={true}
+                        fieldName="lastname"
+                        validationErrors={validationErrors}
                         {...register("lastname")}
                       />
                       <FormInput
@@ -1603,6 +1706,9 @@ const PlacementForm: React.FC<PlacementFormProps> = ({ isOpen, onClose }) => {
                         type="email"
                         placeholder="your.email@example.com"
                         error={errors.email?.message}
+                        required={true}
+                        fieldName="email"
+                        validationErrors={validationErrors}
                         {...register("email")}
                       />
                       <FormInput
@@ -1611,12 +1717,18 @@ const PlacementForm: React.FC<PlacementFormProps> = ({ isOpen, onClose }) => {
                         type="tel"
                         placeholder="10-digit phone number"
                         error={errors.phone_number?.message}
+                        required={true}
+                        fieldName="phone_number"
+                        validationErrors={validationErrors}
                         {...register("phone_number")}
                       />
                       <FormFileUpload
                         label="Resume/CV"
                         accept=".pdf,.doc,.docx"
                         error={errors.resumeFile?.message}
+                        required={true}
+                        fieldName="resumeFile"
+                        validationErrors={validationErrors}
                         {...register("resumeFile")}
                       />
                       <div className="col-span-1 md:col-span-2">
@@ -1628,6 +1740,7 @@ const PlacementForm: React.FC<PlacementFormProps> = ({ isOpen, onClose }) => {
                             type="url"
                             placeholder="https://linkedin.com/in/yourprofile"
                             error={errors.linkedin_profile?.message}
+                            validationErrors={validationErrors}
                             {...register("linkedin_profile")}
                           />
                           <FormInput
@@ -1636,6 +1749,7 @@ const PlacementForm: React.FC<PlacementFormProps> = ({ isOpen, onClose }) => {
                             type="url"
                             placeholder="https://github.com/yourusername"
                             error={errors.github_profile?.message}
+                            validationErrors={validationErrors}
                             {...register("github_profile")}
                           />
                           <FormInput
@@ -1644,6 +1758,7 @@ const PlacementForm: React.FC<PlacementFormProps> = ({ isOpen, onClose }) => {
                             type="url"
                             placeholder="https://yourportfolio.com"
                             error={errors.portfolio_url?.message}
+                            validationErrors={validationErrors}
                             {...register("portfolio_url")}
                           />
                         </div>
@@ -1656,7 +1771,7 @@ const PlacementForm: React.FC<PlacementFormProps> = ({ isOpen, onClose }) => {
             
             {/* Tab 2: Education & Skills */}
             {activeTab === 1 && (
-              <EducationTab register={register} errors={errors} />
+              <EducationTab register={register} errors={errors} validationErrors={validationErrors} />
             )}
             
             {/* Tab 3: Experience */}
@@ -1701,6 +1816,7 @@ const PlacementForm: React.FC<PlacementFormProps> = ({ isOpen, onClose }) => {
               <AdditionalDetailsTab
                 register={register}
                 errors={errors}
+                validationErrors={validationErrors}
               />
             )}
           </motion.div>
@@ -1744,10 +1860,14 @@ const PlacementForm: React.FC<PlacementFormProps> = ({ isOpen, onClose }) => {
                 onClick={nextTab}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex items-center gap-2 px-8 py-3 rounded-xl font-medium bg-primary-500 hover:bg-primary-600 text-white shadow-lg shadow-primary-500/20 transition-all duration-200"
+                className="flex items-center gap-2 px-8 py-3 rounded-xl font-medium bg-primary-500 hover:bg-primary-600 text-white shadow-lg shadow-primary-500/20 transition-all duration-200 relative group"
               >
                 Next
                 <ChevronRight className="w-4 h-4 ml-1" />
+                {/* Validation hint tooltip */}
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+                  Complete required fields to continue
+                </div>
               </motion.button>
             ) : (
               <motion.button

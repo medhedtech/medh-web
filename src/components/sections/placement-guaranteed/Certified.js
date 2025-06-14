@@ -7,7 +7,6 @@ import { Trophy } from "lucide-react";
 
 // Import your certification images
 import iso27001 from "@/assets/images/iso/iso27001.png";
-// ... rest of your imports
 
 const Certified = () => {
   const [isHovered, setIsHovered] = useState(null);
@@ -16,7 +15,10 @@ const Certified = () => {
 
   const certifications = [
     { image: iso27001, alt: "ISO 27001", title: "ISO 27001" },
-    // ... rest of your certifications
+    { image: iso27001, alt: "STEM Certified", title: "STEM Certified" },
+    { image: iso27001, alt: "Quality Assured", title: "Quality Assured" },
+    { image: iso27001, alt: "Industry Recognized", title: "Industry Recognized" },
+    { image: iso27001, alt: "Professional Standards", title: "Professional Standards" },
   ];
 
   const settings = {

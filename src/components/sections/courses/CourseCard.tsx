@@ -726,9 +726,9 @@ const CourseCard = ({
   };
 
   const navigateToCourse = () => {
-    // For live interactive courses, we use the custom URL
-    if (course?.custom_url) {
-      window.location.href = course.custom_url;
+    // For courses with URL, navigate to that URL
+    if (course?.url) {
+      window.location.href = course.url;
     } 
     // For other courses, we navigate to the course details page
     else if (course?._id) {
@@ -1063,16 +1063,16 @@ const CourseCard = ({
             {/* Pass the original card content as children */}
             <div 
               ref={cardRef}
-              className={`course-card ${mobileCardStyles} group relative flex flex-col h-full rounded-xl overflow-hidden 
-                border border-gray-200/20 dark:border-gray-800/40 
-                bg-white/90 dark:bg-gray-900/90 backdrop-filter backdrop-blur-sm 
-                transition-all duration-300 
-                ${isHovered || mobileHoverActive ? 'scale-[1.02] z-10 shadow-xl' : 'scale-100 z-0 shadow-md'}
-                ${styles.borderHover} ${styles.shadowHover} ${isLiveCourse ? styles.borderLeft : ''}
-                ${isMobile ? 'pb-20 last:mb-0' : ''}
-                ${viewMode === 'grid' ? 'sm:mx-2 md:mx-3' : ''}
-                hover:shadow-2xl
-                ${isFlipping ? 'pointer-events-none' : ''}`}
+                          className={`course-card ${mobileCardStyles} group relative flex flex-col h-full rounded-2xl overflow-hidden 
+            border border-gray-200/30 dark:border-gray-800/40 
+            bg-white/95 dark:bg-gray-900/95 backdrop-filter backdrop-blur-sm 
+            transition-all duration-300 
+            ${isHovered || mobileHoverActive ? 'scale-[1.02] z-10 shadow-2xl' : 'scale-100 z-0 shadow-lg'}
+            ${styles.borderHover} ${styles.shadowHover} ${isLiveCourse ? styles.borderLeft : ''}
+            ${isMobile ? 'pb-20 last:mb-0' : ''}
+            ${viewMode === 'grid' ? 'sm:mx-2 md:mx-3' : ''}
+            hover:shadow-2xl
+            ${isFlipping ? 'pointer-events-none' : ''}`}
             >
               {/* Course type indicator tag - for desktop or when mobile hover is not active */}
               {(isLiveCourse || isBlendedCourse) && (!isMobile || !mobileHoverActive) && (
@@ -1209,8 +1209,8 @@ const CourseCard = ({
               />
 
               {/* Course info */}
-              <div className={`${mobileContentStyles} flex flex-col p-4 flex-grow justify-between`}>
-                <div className="flex flex-col items-center justify-center flex-grow py-2 min-h-[100px]">
+              <div className={`${mobileContentStyles} flex flex-col px-5 pt-3 pb-5 flex-grow justify-between`}>
+                <div className="flex flex-col items-center justify-between flex-grow py-2 min-h-[140px]">
                   {/* Course category badge */}
                   {course?.course_grade && (
                     <div className={`inline-flex mb-2 items-center text-xs font-semibold rounded-full px-3 py-1 ${
@@ -1225,13 +1225,13 @@ const CourseCard = ({
                   )}
 
                   {/* Course title - optimized spacing */}
-                  <h3 className={`${mobileTitleStyles} text-base font-bold text-gray-900 dark:text-white line-clamp-1 text-center mx-auto max-w-[95%] ${course?.course_category ? 'mt-1.5' : 'mt-0'}`}>
+                  <h3 className={`${mobileTitleStyles} text-base font-bold text-gray-900 dark:text-white line-clamp-2 text-center mx-auto max-w-[95%] leading-tight min-h-[3rem] flex items-center justify-center ${course?.course_category ? 'mt-1' : 'mt-0'}`}>
                     {course?.course_title || "Course Title"}
                   </h3>
                   
                   {/* Course description - optimized spacing */}
                   {!isCompact && !hideDescription && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 text-center mx-auto max-w-[95%]">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 text-center mx-auto max-w-[95%] h-10 flex items-center justify-center">
                       {course?.course_description}
                     </p>
                   )}
@@ -1320,11 +1320,11 @@ const CourseCard = ({
       ) : (
         <div 
           ref={cardRef}
-          className={`course-card ${mobileCardStyles} group relative flex flex-col h-full rounded-xl overflow-hidden 
-            border border-gray-200/20 dark:border-gray-800/40 
-            bg-white/90 dark:bg-gray-900/90 backdrop-filter backdrop-blur-sm 
+          className={`course-card ${mobileCardStyles} group relative flex flex-col h-full rounded-2xl overflow-hidden 
+            border border-gray-200/30 dark:border-gray-800/40 
+            bg-white/95 dark:bg-gray-900/95 backdrop-filter backdrop-blur-sm 
             ${isBlendedCourse ? '' : 'transition-all duration-300'} 
-            ${(isHovered || mobileHoverActive) && !isBlendedCourse ? 'scale-[1.02] z-10 shadow-xl' : 'scale-100 z-0 shadow-md'}
+            ${(isHovered || mobileHoverActive) && !isBlendedCourse ? 'scale-[1.02] z-10 shadow-2xl' : 'scale-100 z-0 shadow-lg'}
             ${!isBlendedCourse ? styles.borderHover : ''} ${!isBlendedCourse ? styles.shadowHover : ''} ${isLiveCourse ? styles.borderLeft : ''}
             ${isMobile ? 'pb-20 last:mb-0' : ''}
             ${viewMode === 'grid' ? 'sm:mx-2 md:mx-3' : ''}
@@ -1376,8 +1376,8 @@ const CourseCard = ({
             />
 
             {/* Course info - consistent style for both Live and Blended */}
-            <div className={`${mobileContentStyles} flex flex-col p-4 flex-grow justify-between`}>
-              <div className="flex flex-col items-center justify-center flex-grow py-2 min-h-[100px]">
+            <div className={`${mobileContentStyles} flex flex-col px-5 pt-3 pb-5 flex-grow justify-between`}>
+              <div className="flex flex-col items-center justify-between flex-grow py-2 min-h-[140px]">
                 {/* Course category badge */}
                 {course?.course_grade && (
                   <div className={`inline-flex mb-2 items-center text-xs font-semibold rounded-full px-3 py-1 ${
@@ -1392,13 +1392,13 @@ const CourseCard = ({
                 )}
 
                 {/* Course title - optimized spacing */}
-                <h3 className={`${mobileTitleStyles} text-base font-bold text-gray-900 dark:text-white line-clamp-1 text-center mx-auto max-w-[95%] ${course?.course_category ? 'mt-1.5' : 'mt-0'}`}>
+                <h3 className={`${mobileTitleStyles} text-base font-bold text-gray-900 dark:text-white line-clamp-2 text-center mx-auto max-w-[95%] leading-tight min-h-[3rem] flex items-center justify-center ${course?.course_category ? 'mt-1' : 'mt-0'}`}>
                   {course?.course_title || "Course Title"}
                 </h3>
                 
                 {/* Course description - optimized spacing */}
                 {!isCompact && !hideDescription && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 text-center mx-auto max-w-[95%]">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 text-center mx-auto max-w-[95%] h-10 flex items-center justify-center">
                     {course?.course_description}
                   </p>
                 )}
@@ -1511,42 +1511,24 @@ const CourseCard = ({
           </div>
 
           {/* Hover content - similar structure for both course types */}
-          <div className={`hover-content absolute inset-0 bg-white dark:bg-gray-900 ${isMobile ? 'p-5' : 'p-4'} flex flex-col transition-opacity duration-300 ${
+          <div className={`hover-content absolute inset-0 bg-white dark:bg-gray-900 ${isMobile ? 'p-6' : 'p-5'} flex flex-col transition-opacity duration-300 ${
             isMobile ? 'overflow-y-auto' : 'overflow-hidden'
           } max-h-full ${
             (isHovered && !isMobile) || (mobileHoverActive && isMobile) ? 'opacity-100 z-20' : 'opacity-0 -z-10'
           }`}>
             {/* Course details */}
             <div className={`${isMobile ? 'mb-3' : 'mb-2'} flex items-center justify-center py-2 md:py-3`}>
-              <h3 className={`${isMobile ? 'text-sm' : 'text-base'} font-semibold text-center px-2 py-1 rounded-md ${
+              <h3 className={`${isMobile ? 'text-sm' : 'text-base'} font-semibold text-center px-2 py-2 rounded-md ${
                 isLiveCourse 
                   ? 'bg-[#379392]/10 text-[#379392]' 
                   : 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400'
-              } max-w-[95%] leading-tight line-clamp-1`}>
+              } max-w-[95%] leading-tight line-clamp-2 min-h-[3rem] flex items-center justify-center`}>
                 {course?.course_title}
               </h3>
             </div>
             
             {/* Updated hover content structure for both course types with small pointers */}
             <div className={`flex flex-col ${isMobile ? 'gap-3 mb-4' : 'gap-2 mb-3'} items-stretch`}>
-              {/* Live Sessions for Live courses / Total Videos for Blended courses */}
-              {course?.no_of_Sessions && (
-                <div className={`flex items-start ${isMobile ? 'p-3' : 'p-2.5'} border border-gray-100 dark:border-gray-800 rounded-lg w-full`}>
-                  {isLiveCourse ? (
-                    <Users size={isMobile ? 18 : 16} className="mt-0.5 mr-3 text-medhgreen dark:text-medhgreen flex-shrink-0" />
-                  ) : (
-                    <Play size={isMobile ? 18 : 16} className="mt-0.5 mr-3 text-blue-500 dark:text-blue-400 flex-shrink-0" />
-                  )}
-                  <div className="flex flex-col">
-                    <p className="font-bold text-gray-900 dark:text-white text-sm">
-                      {course.no_of_Sessions}
-                    </p>
-                    <p className="text-xs text-gray-500 font-medium mt-0.5">
-                      {isLiveCourse ? 'Total Sessions' : 'Total Videos'}
-                    </p>
-                  </div>
-                </div>
-              )}
               
               {/* Required Effort - for live courses only */}
               {isLiveCourse && course?.effort_hours && (
@@ -1582,18 +1564,30 @@ const CourseCard = ({
                     ) : (
                       /* Standard features for non-blended courses */
                       <>
-                        <span className="inline-flex items-center px-2 py-1 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs font-medium">
-                          <CheckCircle size={10} className="mr-1" />
-                          Projects
-                        </span>
-                        <span className="inline-flex items-center px-2 py-1 rounded-md bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-medium">
-                          <CheckCircle size={10} className="mr-1" />
-                          Assignments
-                        </span>
+                        {/* Check if job guarantee exists to show combined badge */}
+                        {isLiveCourse && course?.course_duration && (typeof course.course_duration === 'string' && course.course_duration.toLowerCase().includes('18')) ? (
+                          /* Show single combined badge when job guarantee is present */
+                          <span className="inline-flex items-center px-2 py-1 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs font-medium">
+                            <CheckCircle size={10} className="mr-1" />
+                            Projects & Assignments
+                          </span>
+                        ) : (
+                          /* Show separate badges when no job guarantee */
+                          <>
+                            <span className="inline-flex items-center px-2 py-1 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs font-medium">
+                              <CheckCircle size={10} className="mr-1" />
+                              Projects
+                            </span>
+                            <span className="inline-flex items-center px-2 py-1 rounded-md bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-medium">
+                              <CheckCircle size={10} className="mr-1" />
+                              Assignments
+                            </span>
+                          </>
+                        )}
                         {isLiveCourse && course?.course_duration && (typeof course.course_duration === 'string' && course.course_duration.toLowerCase().includes('18')) ? (
                           <span className="inline-flex items-center px-2 py-1 rounded-md bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 text-xs font-medium">
                             <CheckCircle size={10} className="mr-1" />
-                            3 months internship
+                            Corporate Internship
                           </span>
                         ) : (
                           <span className="inline-flex items-center px-2 py-1 rounded-md bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 text-xs font-medium">
@@ -1606,10 +1600,12 @@ const CourseCard = ({
                     
                     {/* Job Guarantee badge (only for eligible live courses) */}
                     {isLiveCourse && course?.course_duration && (typeof course.course_duration === 'string' && course.course_duration.toLowerCase().includes('18')) && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-md bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-xs font-medium">
-                        <Target size={10} className="mr-1" />
-                        Job Guarantee (18 Months)
-                      </span>
+                                              <span className="inline-flex items-center px-2 py-1 rounded-md bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-xs font-medium">
+                          <span className="text-center leading-tight">
+                            Job Guarantee<br/>
+                            (18 Month Course Only)
+                          </span>
+                        </span>
                     )}
                   </div>
                 </div>

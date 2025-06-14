@@ -2,9 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { ArrowRight, ChevronDown, GraduationCap, Target, CheckCircle, Sparkles, Heart, Shield, Award } from "lucide-react";
+import { ArrowRight, ChevronDown, Users, Crown, Sparkles, Trophy, Zap, BookOpen, Shield, Award } from "lucide-react";
 import { useTheme } from "next-themes";
-import Iso from "@/assets/images/courseai/iso.png";
 import medhLogo from "@/assets/images/logo/medh.png";
 
 // TypeScript interfaces
@@ -22,7 +21,7 @@ interface IHighlightItem {
   color: string;
 }
 
-// Enhanced custom animations for the educator banner with theme-aware glassmorphism
+// Enhanced custom animations for the membership banner with theme-aware glassmorphism
 const getThemeStyles = (isDark: boolean): string => `
   @keyframes animate-bounce-slow {
     0%, 100% { transform: translateY(0px); }
@@ -138,53 +137,54 @@ const getThemeStyles = (isDark: boolean): string => `
   }
 `;
 
-// Values data for educators
-const values: IValueItem[] = [
+// Membership categories with icons
+const categories: IValueItem[] = [
   {
-    icon: <GraduationCap className="w-6 h-6" />,
-    title: "Educational Excellence",
-    description: "Committed to delivering transformative learning experiences",
+    icon: <BookOpen className="w-6 h-6" />,
+    title: "Unlimited Access",
+    description: "Access to all courses and learning materials",
     color: "from-blue-500 to-cyan-500"
   },
   {
-    icon: <Heart className="w-6 h-6" />,
-    title: "Student-Centered Approach",
-    description: "Every decision focused on student growth and success",
+    icon: <Crown className="w-6 h-6" />,
+    title: "Premium Resources",
+    description: "Exclusive content and advanced learning paths",
     color: "from-emerald-500 to-teal-500"
   },
   {
-    icon: <Sparkles className="w-6 h-6" />,
-    title: "Innovation in Teaching",
-    description: "Embracing modern pedagogical methods and technologies",
+    icon: <Users className="w-6 h-6" />,
+    title: "Expert Mentorship",
+    description: "One-on-one guidance from industry professionals",
     color: "from-purple-500 to-indigo-500"
   }
 ];
 
-// Key highlights for educators (reduced to 3 items)
+// Key highlights for membership (reduced to 3 items)
 const highlights: IHighlightItem[] = [
   {
-    icon: <CheckCircle className="w-8 h-8" />,
-    title: "Flexible Schedule",
-    description: "Teach on your own terms with flexible timing",
+    icon: <Sparkles className="w-8 h-8" />,
+    title: "Tailored Learning",
+    description: "Personalized learning paths for your success",
     color: "from-blue-500 to-cyan-500"
   },
   {
-    icon: <Target className="w-8 h-8" />,
-    title: "Competitive Rewards",
-    description: "Earn competitive compensation for your expertise",
+    icon: <Trophy className="w-8 h-8" />,
+    title: "Career Growth",
+    description: "Fast-track your professional development",
     color: "from-emerald-500 to-teal-500"
   },
   {
-    icon: <Sparkles className="w-8 h-8" />,
-    title: "Modern Tools",
-    description: "Access cutting-edge educational technologies",
+    icon: <Zap className="w-8 h-8" />,
+    title: "Instant Access",
+    description: "Immediate access to all premium features",
     color: "from-purple-500 to-indigo-500"
   }
 ];
 
-const EducatorBanner: React.FC = () => {
+const MembershipBanner: React.FC = () => {
   const { theme } = useTheme();
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const [activeCategory, setActiveCategory] = useState<number>(0);
   const [mounted, setMounted] = useState<boolean>(false);
 
   const isDark: boolean = mounted ? theme === 'dark' : true;
@@ -196,18 +196,18 @@ const EducatorBanner: React.FC = () => {
   useEffect(() => {
     if (!mounted) return;
     
-    const existingStyle = document.getElementById('educator-banner-theme-styles');
+    const existingStyle = document.getElementById('membership-banner-theme-styles');
     if (existingStyle) {
       existingStyle.remove();
     }
     
     const styleSheet = document.createElement("style");
-    styleSheet.id = 'educator-banner-theme-styles';
+    styleSheet.id = 'membership-banner-theme-styles';
     styleSheet.innerText = getThemeStyles(isDark);
     document.head.appendChild(styleSheet);
     
     return () => {
-      const styleToRemove = document.getElementById('educator-banner-theme-styles');
+      const styleToRemove = document.getElementById('membership-banner-theme-styles');
       if (styleToRemove) {
         styleToRemove.remove();
       }
@@ -218,15 +218,8 @@ const EducatorBanner: React.FC = () => {
     setIsLoaded(true);
   }, []);
 
-  const scrollToRegistration = (): void => {
-    const registrationSection = document.getElementById('registration-section');
-    if (registrationSection) {
-      registrationSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const handleLearnMore = (): void => {
-    window.location.href = "/contact-us";
+  const handleExplore = (): void => {
+    window.location.href = "/membership";
   };
 
   return (
@@ -258,8 +251,8 @@ const EducatorBanner: React.FC = () => {
               </div>
                
               <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-2 sm:mb-3 md:mb-4 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                <span className="block text-sm sm:text-base font-medium uppercase tracking-widest mb-3 opacity-80">Join Our Educator Community</span>
-                <span className="block whitespace-nowrap">Shape Learning Futures Innovatively</span>
+                <span className="block text-sm sm:text-base font-medium uppercase tracking-widest mb-3 opacity-80">Tailored Resources for Success</span>
+                <span className="block whitespace-nowrap">Unlock Your Learning Potential</span>
                 <span className="block whitespace-nowrap">
                   <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9)' }}>with</em>
                   <span className="inline-flex items-center">
@@ -280,31 +273,20 @@ const EducatorBanner: React.FC = () => {
               </h1>
                 
               <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-3 sm:mb-4 md:mb-6 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
-                Join our dynamic team of educators and shape the future of education with innovative teaching methods and cutting-edge technology.
+                Take Your Skills to New Heights! Become a MEDH Member Today and Unlock Your Full Potential for Success.
               </p>
 
               <div className="mt-4 sm:mt-6 md:mt-8 flex flex-wrap gap-4 justify-center">
                 <button 
-                  onClick={scrollToRegistration}
+                  onClick={handleExplore}
                   className={`inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-all duration-300 hover:scale-105 group text-sm sm:text-base md:text-lg relative overflow-hidden ${
                     isDark 
                       ? 'bg-gradient-to-r from-primary-500 to-blue-500 text-white hover:shadow-2xl hover:shadow-primary-500/30 glass-stats' 
                       : 'bg-white/95 backdrop-blur-lg text-gray-900 border-2 border-primary-500/40 hover:border-primary-500/70 hover:bg-white shadow-2xl hover:shadow-3xl'
                   }`}
                 >
-                  <span className="relative z-10 font-extrabold tracking-wide">Join as Educator</span>
+                  <span className="relative z-10 font-extrabold tracking-wide">Explore More</span>
                   <ArrowRight size={16} className="relative z-10 ml-3 group-hover:translate-x-1 transition-transform sm:w-4 sm:h-4 md:w-5 md:h-5" />
-                </button>
-                
-                <button 
-                  onClick={handleLearnMore}
-                  className={`inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-all duration-300 hover:scale-105 text-sm sm:text-base md:text-lg ${
-                    isDark 
-                      ? 'glass-stats text-white hover:bg-white/10' 
-                      : 'bg-gray-100/80 backdrop-blur-lg text-gray-700 border-2 border-gray-300/40 hover:border-gray-400/70 hover:bg-gray-200/80 shadow-lg hover:shadow-xl'
-                  }`}
-                >
-                  Learn More
                 </button>
               </div>
 
@@ -344,21 +326,21 @@ const EducatorBanner: React.FC = () => {
 
           <div className={`mb-4 md:mb-6 transition-all duration-1000 delay-500 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             <div className="glass-stats rounded-2xl p-6 md:p-8 max-w-5xl lg:max-w-6xl mx-auto">
-              <h3 className={`text-xl md:text-2xl font-bold mb-4 md:mb-6 text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>Our Teaching Values</h3>
+              <h3 className={`text-xl md:text-2xl font-bold mb-4 md:mb-6 text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>Membership Benefits</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-                {values.map((value, index) => (
+                {categories.map((category, index) => (
                   <div
                     key={index}
-                    className="relative overflow-hidden rounded-xl p-4 md:p-6 group transition-all duration-300 text-center glass-stats hover:scale-102"
+                    className="relative overflow-hidden rounded-xl p-4 md:p-6 cursor-pointer group transition-all duration-300 text-center glass-stats hover:scale-105"
                   >
                     <div className="relative z-10">
-                      <div className={`bg-gradient-to-br ${value.color} text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform`}>
+                      <div className={`bg-gradient-to-br ${category.color} text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform`}>
                         <div className="w-5 h-5 md:w-6 md:h-6">
-                          {value.icon}
+                          {category.icon}
                         </div>
                       </div>
-                      <h4 className={`text-base md:text-lg font-bold mb-2 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'}`}>{value.title}</h4>
-                      <p className={`text-sm md:text-base transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'}`}>{value.description}</p>
+                      <h4 className={`text-base md:text-lg font-bold mb-2 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'}`}>{category.title}</h4>
+                      <p className={`text-sm md:text-base transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'}`}>{category.description}</p>
                     </div>
                   </div>
                 ))}
@@ -367,7 +349,7 @@ const EducatorBanner: React.FC = () => {
           </div>
 
           <div className={`flex flex-col items-center mt-4 md:mt-6 transition-all duration-1000 delay-700 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <span className={`text-sm mb-2 ${isDark ? 'text-white' : 'text-gray-600'} font-medium`}>Join Our Teaching Community</span>
+            <span className={`text-sm mb-2 ${isDark ? 'text-white' : 'text-gray-600'} font-medium`}>Discover Your Membership Benefits</span>
             <ChevronDown className={`w-6 h-6 animate-bounce ${isDark ? 'text-white' : 'text-gray-500'}`} />
           </div>
         </div>
@@ -376,4 +358,8 @@ const EducatorBanner: React.FC = () => {
   );
 };
 
-export default EducatorBanner;
+export default MembershipBanner;
+
+
+
+

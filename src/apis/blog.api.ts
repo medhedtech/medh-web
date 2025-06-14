@@ -273,12 +273,19 @@ export const blogAPI = {
    * Get a blog by its ID
    * GET /api/blogs/id/:id
    * @param id - Blog ID
+   * @param withContent - Whether to include full content
    * @returns Promise with blog detail
    */
-  getBlogById: async (id: string) => {
+  getBlogById: async (id: string, withContent: boolean = true) => {
     if (!id) throw new Error('Blog ID is required');
-    return apiClient.get<{ blog: IBlog }>(
-      `${apiBaseUrl}/blogs/id/${id}`
+    const queryParams = new URLSearchParams();
+    if (withContent) {
+      queryParams.append('with_content', 'true');
+      queryParams.append('full_content', 'true');
+    }
+    
+    return apiClient.get<{ success: boolean; data: IBlog }>(
+      `/blogs/id/${id}${queryParams.toString() ? '?' + queryParams.toString() : ''}`
     );
   },
 
@@ -286,16 +293,19 @@ export const blogAPI = {
    * Get a blog by its slug
    * GET /api/blogs/:slug
    * @param slug - Blog slug
-   * @param incrementViews - Whether to increment view count
+   * @param withContent - Whether to include full content
    * @returns Promise with blog detail
    */
-  getBlogBySlug: async (slug: string, incrementViews: boolean = true) => {
+  getBlogBySlug: async (slug: string, withContent: boolean = true) => {
     if (!slug) throw new Error('Blog slug is required');
     const queryParams = new URLSearchParams();
-    if (!incrementViews) queryParams.append('increment_views', 'false');
+    if (withContent) {
+      queryParams.append('with_content', 'true');
+      queryParams.append('full_content', 'true');
+    }
     
-    return apiClient.get<{ blog: IBlog }>(
-      `${apiBaseUrl}/blogs/${slug}${queryParams.toString() ? '?' + queryParams.toString() : ''}`
+    return apiClient.get<{ success: boolean; data: IBlog }>(
+      `/blogs/${slug}${queryParams.toString() ? '?' + queryParams.toString() : ''}`
     );
   },
 
