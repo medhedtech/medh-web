@@ -130,7 +130,7 @@ const PrimeMembership: React.FC = () => {
             transition={{ duration: 0.6 }}
             className="text-center max-w-4xl mx-auto mb-16"
           >
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-6">
+            <h1 id="choose-membership" className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-6">
               Choose Your <span className="text-primary-500 dark:text-primary-400">MEDH</span> Membership
             </h1>
           </motion.div>
@@ -259,6 +259,32 @@ const PrimeMembership: React.FC = () => {
                 for these memberships.
               </p>
             </div>
+          </motion.div>
+
+          {/* Explore More Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="text-center mt-8"
+          >
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                const element = document.getElementById('membership-features');
+                if (element) {
+                  element.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                  });
+                }
+              }}
+              className="inline-flex items-center px-8 py-4 bg-primary-500 hover:bg-primary-600 text-white rounded-xl transition-all font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            >
+              Explore More Features
+              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+            </motion.button>
           </motion.div>
         </div>
 

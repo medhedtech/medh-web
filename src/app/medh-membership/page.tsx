@@ -1,4 +1,5 @@
 import React, { Suspense } from "react";
+import { NextPage } from "next";
 import dynamic from "next/dynamic";
 
 // Dynamic imports with loading priority
@@ -40,20 +41,26 @@ const Certified = dynamic(() => import("@/components/sections/why-medh/Certified
 // Components that don't need to be dynamically imported
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
+// TypeScript interfaces
+interface ISectionLoaderProps {
+  text: string;
+}
 
 // Enhanced loading component with skeleton animation
-const SectionLoader = ({ text }) => (
+const SectionLoader: React.FC<ISectionLoaderProps> = ({ text }) => (
   <div className="w-full min-h-[300px] flex flex-col items-center justify-center space-y-4 bg-gray-50 dark:bg-gray-800 rounded-lg animate-pulse">
     <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
     <p className="text-sm text-gray-500 dark:text-gray-400">{text}</p>
   </div>
 );
 
-export default function MembershipPage() {
+const MembershipPage: NextPage = () => {
   return (
     <PageWrapper>
        <PrimeMembership />
        <MembershipFeatures />
     </PageWrapper>
   );
-}
+};
+
+export default MembershipPage;
