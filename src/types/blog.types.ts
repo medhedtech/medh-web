@@ -21,6 +21,7 @@ export interface IBlog {
   id: string;
   title: string;
   slug: string;
+  content?: string;
   description: string;
   blog_link: string | null;
   upload_image: string;

@@ -251,14 +251,6 @@ const WhyMedh: React.FC = () => {
                 <span>Get Started Today</span>
                 <ArrowUpRight size={18} className="ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
               </button>
-              
-              <button
-                onClick={handleLearnMore}
-                className="group inline-flex items-center justify-center px-8 py-4 text-base font-medium text-gray-700 dark:text-gray-200 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:bg-white/80 dark:hover:bg-gray-800/80 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg"
-              >
-                <span>Learn More</span>
-                <CheckCircle size={18} className="ml-2 group-hover:scale-110 transition-transform" />
-              </button>
             </div>
             
             <p className="mt-8 text-sm text-gray-500 dark:text-gray-400">
