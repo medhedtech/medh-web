@@ -85,7 +85,7 @@ const PlacementGauranteedBanner: React.FC = () => {
 
   return (
     <>
-      <section className="relative min-h-screen overflow-hidden">
+      <section className="relative min-h-[80vh] overflow-hidden">
         {/* Enhanced Background */}
         <div className="absolute inset-0 overflow-hidden">
           <div className={`absolute top-0 right-0 w-3/4 h-3/4 ${isDark ? 'bg-gradient-to-br from-primary-500/10 via-blue-500/10 to-purple-500/10' : 'bg-gradient-to-br from-primary-300/20 via-blue-300/15 to-purple-300/20'} rounded-full blur-3xl transform translate-x-1/4 -translate-y-1/4 animate-pulse`}></div>
@@ -97,11 +97,11 @@ const PlacementGauranteedBanner: React.FC = () => {
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
-          <div className="flex flex-col items-center justify-center min-h-screen text-center py-4 pt-4 md:pt-8 lg:pt-12">
+          <div className="flex flex-col items-center justify-start text-center pt-4 md:pt-6 lg:pt-8">
             
                         {/* Hero Text Section */}
             <div className={`mb-2 md:mb-3 transition-all duration-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-              <div className="glass-container rounded-3xl p-8 md:p-12 mb-1" style={{ transform: 'scale(0.9)' }}>
+              <div className="glass-container rounded-3xl p-4 sm:p-6" style={{ transform: 'scale(0.9)' }}>
                 
                 {/* Certification Badges */}
                 <div className="flex flex-wrap justify-center gap-3 mb-3 sm:mb-4">

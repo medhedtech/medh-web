@@ -537,6 +537,9 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
               <p className={`${currentTheme.bodyText} text-sm`}>
                 Copyright © {currentYear} MEDH. All Rights Reserved.
               </p>
+              <p className={`${currentTheme.bodyText} text-xs mt-2`}>
+                All trademarks and logos appearing on this website are the property of their respective owners.
+              </p>
               <p className="text-primary-400 text-sm font-medium mt-2">
                 LEARN. UPSKILL. ELEVATE.
               </p>

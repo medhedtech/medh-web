@@ -1,92 +1,265 @@
 "use client";
+import React from "react";
+import { motion } from "framer-motion";
+import { useTheme } from "next-themes";
 
-import { motion } from 'framer-motion';
-import { Loader2, FileText, Sparkles } from 'lucide-react';
-import { useTheme } from 'next-themes';
-import { useState, useEffect } from 'react';
-
-const BlogsLoading: React.FC = () => {
+const BlogsLoadingSkeleton: React.FC = () => {
   const { theme } = useTheme();
-  const [mounted, setMounted] = useState<boolean>(false);
-  
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-  
-  const isDark = mounted ? theme === 'dark' : true;
-  
+  const isDark = theme === 'dark';
+
+  const shimmer = {
+    hidden: { opacity: 0.3 },
+    visible: { 
+      opacity: 1,
+      transition: {
+        duration: 1.5,
+        repeat: Infinity,
+        repeatType: "reverse" as const
+      }
+    }
+  };
+
   return (
-    <div className={`min-h-screen flex items-center justify-center transition-all duration-500 ${
+    <div className={`min-h-screen p-6 transition-all duration-500 ${
       isDark 
         ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' 
         : 'bg-gradient-to-br from-gray-50 via-white to-gray-100'
     }`}>
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className={`text-center p-8 backdrop-blur-xl rounded-2xl border shadow-2xl max-w-md ${
-          isDark 
-            ? 'bg-white/5 border-white/10 text-white' 
-            : 'bg-white/80 border-gray-200/50 text-gray-900'
-        }`}
-      >
-        {/* Animated Icons */}
-        <div className="relative mb-6">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className={`w-16 h-16 mx-auto rounded-2xl flex items-center justify-center ${
-              isDark ? 'bg-primary-500/20' : 'bg-primary-500/10'
-            }`}
-          >
-            <FileText className={`w-8 h-8 ${
-              isDark ? 'text-primary-400' : 'text-primary-600'
-            }`} />
-          </motion.div>
-          
-          {/* Sparkles animation */}
-          <motion.div
-            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="absolute -top-2 -right-2"
-          >
-            <Sparkles className={`w-4 h-4 ${
-              isDark ? 'text-yellow-400' : 'text-yellow-500'
-            }`} />
-          </motion.div>
-        </div>
-
-        {/* Loading spinner */}
-        <Loader2 className={`w-8 h-8 mx-auto mb-4 animate-spin ${
-          isDark ? 'text-primary-400' : 'text-primary-600'
-        }`} />
-        
-        {/* Loading text */}
-        <h2 className="text-xl font-bold mb-2">Preparing Blog Editor</h2>
-        <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-          Setting up your creative workspace...
-        </p>
-        
-        {/* Progress dots */}
-        <div className="flex justify-center space-x-2 mt-6">
-          {[0, 1, 2].map((i) => (
-            <motion.div
-              key={i}
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ 
-                duration: 0.8, 
-                repeat: Infinity, 
-                delay: i * 0.2 
-              }}
-              className={`w-2 h-2 rounded-full ${
-                isDark ? 'bg-primary-400' : 'bg-primary-600'
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header Skeleton */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <motion.div 
+              variants={shimmer}
+              initial="hidden"
+              animate="visible"
+              className={`h-8 w-64 rounded-lg ${
+                isDark ? 'bg-gray-700' : 'bg-gray-200'
               }`}
             />
+            <motion.div 
+              variants={shimmer}
+              initial="hidden"
+              animate="visible"
+              className={`h-4 w-96 mt-2 rounded ${
+                isDark ? 'bg-gray-700' : 'bg-gray-200'
+              }`}
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <motion.div 
+              variants={shimmer}
+              initial="hidden"
+              animate="visible"
+              className={`h-10 w-24 rounded-lg ${
+                isDark ? 'bg-gray-700' : 'bg-gray-200'
+              }`}
+            />
+            <motion.div 
+              variants={shimmer}
+              initial="hidden"
+              animate="visible"
+              className={`h-10 w-32 rounded-lg ${
+                isDark ? 'bg-gray-700' : 'bg-gray-200'
+              }`}
+            />
+          </div>
+        </div>
+
+        {/* Analytics Cards Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <motion.div
+              key={index}
+              variants={shimmer}
+              initial="hidden"
+              animate="visible"
+              className={`p-6 rounded-xl border ${
+                isDark 
+                  ? 'bg-white/5 border-white/10' 
+                  : 'bg-white/80 border-gray-200'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <div className={`h-4 w-20 rounded ${
+                    isDark ? 'bg-gray-700' : 'bg-gray-200'
+                  }`} />
+                  <div className={`h-8 w-16 rounded ${
+                    isDark ? 'bg-gray-700' : 'bg-gray-200'
+                  }`} />
+                </div>
+                <div className={`h-8 w-8 rounded ${
+                  isDark ? 'bg-gray-700' : 'bg-gray-200'
+                }`} />
+              </div>
+            </motion.div>
           ))}
         </div>
-      </motion.div>
+
+        {/* Main Content Skeleton */}
+        <div className={`border rounded-xl shadow-sm overflow-hidden backdrop-blur-xl ${
+          isDark 
+            ? 'bg-white/5 border-white/10' 
+            : 'bg-white/80 border-gray-200'
+        }`}>
+          {/* Toolbar Skeleton */}
+          <div className={`p-6 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div className="flex flex-1 items-center gap-4">
+                <motion.div 
+                  variants={shimmer}
+                  initial="hidden"
+                  animate="visible"
+                  className={`h-10 w-80 rounded-lg ${
+                    isDark ? 'bg-gray-700' : 'bg-gray-200'
+                  }`}
+                />
+                <motion.div 
+                  variants={shimmer}
+                  initial="hidden"
+                  animate="visible"
+                  className={`h-10 w-24 rounded-lg ${
+                    isDark ? 'bg-gray-700' : 'bg-gray-200'
+                  }`}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Table Skeleton */}
+          <div className="p-6">
+            {/* Table Header */}
+            <div className={`border-b pb-4 mb-4 ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+              <div className="grid grid-cols-9 gap-4">
+                {Array.from({ length: 9 }).map((_, index) => (
+                  <motion.div
+                    key={index}
+                    variants={shimmer}
+                    initial="hidden"
+                    animate="visible"
+                    className={`h-4 rounded ${
+                      isDark ? 'bg-gray-700' : 'bg-gray-200'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Table Rows */}
+            <div className="space-y-4">
+              {Array.from({ length: 8 }).map((_, rowIndex) => (
+                <motion.div
+                  key={rowIndex}
+                  variants={shimmer}
+                  initial="hidden"
+                  animate="visible"
+                  className="grid grid-cols-9 gap-4 items-center"
+                >
+                  {/* Checkbox */}
+                  <div className={`h-5 w-5 rounded ${
+                    isDark ? 'bg-gray-700' : 'bg-gray-200'
+                  }`} />
+                  
+                  {/* Image */}
+                  <div className={`h-12 w-12 rounded-lg ${
+                    isDark ? 'bg-gray-700' : 'bg-gray-200'
+                  }`} />
+                  
+                  {/* Title */}
+                  <div className="space-y-2">
+                    <div className={`h-4 w-32 rounded ${
+                      isDark ? 'bg-gray-700' : 'bg-gray-200'
+                    }`} />
+                    <div className={`h-3 w-24 rounded ${
+                      isDark ? 'bg-gray-700' : 'bg-gray-200'
+                    }`} />
+                  </div>
+                  
+                  {/* Author */}
+                  <div className={`h-4 w-20 rounded ${
+                    isDark ? 'bg-gray-700' : 'bg-gray-200'
+                  }`} />
+                  
+                  {/* Status */}
+                  <div className={`h-6 w-16 rounded-full ${
+                    isDark ? 'bg-gray-700' : 'bg-gray-200'
+                  }`} />
+                  
+                  {/* Featured */}
+                  <div className={`h-4 w-4 rounded ${
+                    isDark ? 'bg-gray-700' : 'bg-gray-200'
+                  }`} />
+                  
+                  {/* Views */}
+                  <div className={`h-4 w-12 rounded ${
+                    isDark ? 'bg-gray-700' : 'bg-gray-200'
+                  }`} />
+                  
+                  {/* Likes */}
+                  <div className={`h-4 w-12 rounded ${
+                    isDark ? 'bg-gray-700' : 'bg-gray-200'
+                  }`} />
+                  
+                  {/* Actions */}
+                  <div className="flex items-center gap-2">
+                    {Array.from({ length: 3 }).map((_, actionIndex) => (
+                      <div
+                        key={actionIndex}
+                        className={`h-8 w-8 rounded ${
+                          isDark ? 'bg-gray-700' : 'bg-gray-200'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Pagination Skeleton */}
+            <div className={`mt-6 pt-4 border-t ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+              <div className="flex items-center justify-between">
+                <motion.div 
+                  variants={shimmer}
+                  initial="hidden"
+                  animate="visible"
+                  className={`h-4 w-48 rounded ${
+                    isDark ? 'bg-gray-700' : 'bg-gray-200'
+                  }`}
+                />
+                <div className="flex items-center gap-2">
+                  <motion.div 
+                    variants={shimmer}
+                    initial="hidden"
+                    animate="visible"
+                    className={`h-8 w-20 rounded ${
+                      isDark ? 'bg-gray-700' : 'bg-gray-200'
+                    }`}
+                  />
+                  <motion.div 
+                    variants={shimmer}
+                    initial="hidden"
+                    animate="visible"
+                    className={`h-8 w-24 rounded ${
+                      isDark ? 'bg-gray-700' : 'bg-gray-200'
+                    }`}
+                  />
+                  <motion.div 
+                    variants={shimmer}
+                    initial="hidden"
+                    animate="visible"
+                    className={`h-8 w-16 rounded ${
+                      isDark ? 'bg-gray-700' : 'bg-gray-200'
+                    }`}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default BlogsLoading; 
+export default BlogsLoadingSkeleton; 

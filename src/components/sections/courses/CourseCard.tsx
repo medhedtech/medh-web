@@ -726,9 +726,9 @@ const CourseCard = ({
   };
 
   const navigateToCourse = () => {
-    // For live interactive courses, we use the custom URL
-    if (course?.custom_url) {
-      window.location.href = course.custom_url;
+    // For courses with URL, navigate to that URL
+    if (course?.url) {
+      window.location.href = course.url;
     } 
     // For other courses, we navigate to the course details page
     else if (course?._id) {
