@@ -296,7 +296,6 @@ const highlights: IHighlightItem[] = [
 const SchoolBanner: React.FC = () => {
   const { theme } = useTheme();
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
-  const [activeValue, setActiveValue] = useState<number>(0);
   const [mounted, setMounted] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
@@ -343,10 +342,6 @@ const SchoolBanner: React.FC = () => {
 
   useEffect(() => {
     setIsLoaded(true);
-    const interval = setInterval(() => {
-      setActiveValue((prev) => (prev + 1) % values.length);
-    }, 3000);
-    return () => clearInterval(interval);
   }, []);
 
   const scrollToRegistration = (): void => {
@@ -459,7 +454,7 @@ const SchoolBanner: React.FC = () => {
               </div>
 
               {/* Tagline - Enhanced Size */}
-              <div className={`mumkinMedh text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-2 leading-tight pt-5 ${
+              <div className={`mumkinMedh text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-2 leading-tight pt-12 ${
                 isDark 
                   ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
                   : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
@@ -502,12 +497,8 @@ const SchoolBanner: React.FC = () => {
                 {values.map((value, index) => (
                   <div
                     key={index}
-                    className={`relative overflow-hidden rounded-xl p-4 md:p-6 cursor-pointer group transition-all duration-300 text-center ${
-                      activeValue === index ? 'glass-primary scale-105' : 'glass-stats hover:scale-102'
-                    }`}
-                    onClick={() => setActiveValue(index)}
+                    className="relative overflow-hidden rounded-xl p-4 md:p-6 group transition-all duration-300 text-center glass-stats hover:scale-102"
                   >
-                    <div className="absolute inset-0 animate-shimmer opacity-0 group-hover:opacity-100"></div>
                     <div className="relative z-10">
                       <div className={`bg-gradient-to-br ${value.color} text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform`}>
                         <div className="w-5 h-5 md:w-6 md:h-6">
