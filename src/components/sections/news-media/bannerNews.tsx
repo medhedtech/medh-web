@@ -185,7 +185,6 @@ const highlights: IHighlightItem[] = [
 const BannerNews: React.FC = () => {
   const { theme } = useTheme();
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
-  const [activeCategory, setActiveCategory] = useState<number>(0);
   const [mounted, setMounted] = useState<boolean>(false);
 
   const isDark: boolean = mounted ? theme === 'dark' : true;
@@ -217,10 +216,6 @@ const BannerNews: React.FC = () => {
 
   useEffect(() => {
     setIsLoaded(true);
-    const interval = setInterval(() => {
-      setActiveCategory((prev) => (prev + 1) % categories.length);
-    }, 3000);
-    return () => clearInterval(interval);
   }, []);
 
   const handleConnect = (): void => {
@@ -258,16 +253,21 @@ const BannerNews: React.FC = () => {
               <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-2 sm:mb-3 md:mb-4 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 <span className="block text-sm sm:text-base font-medium uppercase tracking-widest mb-3 opacity-80">Stay Updated with Medh</span>
                 <span className="block whitespace-nowrap">Stay Informed Grow Dynamically</span>
-                <span className="block whitespace-nowrap"><em className="font-semibold">with</em>{' '}
+                <span className="block whitespace-nowrap">
+                  <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9)' }}>with</em>
                   <span className="inline-flex items-center">
-                    <Image 
-                      src={medhLogo} 
-                      alt="Medh Logo" 
-                      width={24} 
-                      height={24} 
-                      className="inline-block mx-2 h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto"
-                      style={{ filter: 'brightness(1.1) contrast(1.2)' }}
-                    />
+                  <Image 
+                     src={medhLogo} 
+                     alt="Medh Logo" 
+                     width={24} 
+                     height={24} 
+                     className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline"
+                     style={{ 
+                         filter: 'brightness(1.1) contrast(1.2)',
+                         transform: 'scale(0.9) translateY(5px)',
+                         verticalAlign: 'baseline'
+                       }}
+                   />
                   </span>
                 </span>
               </h1>
@@ -290,7 +290,7 @@ const BannerNews: React.FC = () => {
                 </button>
               </div>
 
-              <div className={`mumkinMedh text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold mb-2 leading-tight pt-3 ${
+              <div className={`mumkinMedh text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold mb-2 leading-tight pt-12 ${
                 isDark 
                   ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
                   : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
@@ -331,12 +331,8 @@ const BannerNews: React.FC = () => {
                 {categories.map((category, index) => (
                   <div
                     key={index}
-                    className={`relative overflow-hidden rounded-xl p-4 md:p-6 cursor-pointer group transition-all duration-300 text-center ${
-                      activeCategory === index ? 'glass-primary scale-105' : 'glass-stats hover:scale-102'
-                    }`}
-                    onClick={() => setActiveCategory(index)}
+                    className="relative overflow-hidden rounded-xl p-4 md:p-6 group transition-all duration-300 text-center glass-stats hover:scale-102"
                   >
-                    <div className="absolute inset-0 animate-shimmer opacity-0 group-hover:opacity-100"></div>
                     <div className="relative z-10">
                       <div className={`bg-gradient-to-br ${category.color} text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform`}>
                         <div className="w-5 h-5 md:w-6 md:h-6">

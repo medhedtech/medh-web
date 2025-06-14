@@ -42,21 +42,60 @@ const getGlassmorphismStyles = (isDark: boolean) => `
   
   .course-grid {
     display: grid;
-    gap: 1rem;
+    gap: 1.5rem;
   }
   
   @media (min-width: 640px) {
     .course-grid {
       grid-template-columns: repeat(2, 1fr);
-      gap: 1.25rem;
+      gap: 1.75rem;
     }
   }
   
   @media (min-width: 1024px) {
     .course-grid {
       grid-template-columns: repeat(4, 1fr);
-      gap: 1.5rem;
+      gap: 2rem;
     }
+  }
+  
+  /* Live Course Card Specific Styling */
+  .live-course-card-wrapper .course-card .flex.flex-col.items-center.justify-between {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+    min-height: 120px !important;
+  }
+  
+  .live-course-card-wrapper .course-card h3 {
+    margin-top: 0.25rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .live-course-card-wrapper .course-card .text-center.mx-auto {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+  
+  .live-course-card-wrapper .course-card .bg-indigo-50,
+  .live-course-card-wrapper .course-card .bg-\\[\\#379392\\]\\/10 {
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+  
+  /* Better spacing for live course content */
+  .live-course-card-wrapper .course-card > div > div.flex.flex-col.px-5.pt-3.pb-5 {
+    padding-top: 0.5rem !important;
+    padding-bottom: 1rem !important;
+  }
+  
+  .live-course-card-wrapper .course-card > div > div.flex.flex-col.px-5.pt-3.pb-5 > div {
+    gap: 0.5rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 `;
 
@@ -165,7 +204,7 @@ const fallbackLiveCourses: ICourse[] = [
     price_suffix: "Onwards",
     course_category: "AI and Data Science",
     classType: "live",
-    course_duration: "Up to 18 months",
+    course_duration: "4-18 months",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     status: "Published"
@@ -220,7 +259,7 @@ const fallbackLiveCourses: ICourse[] = [
     price_suffix: "Onwards",
     course_category: "Digital Marketing with Data Analytics",
     classType: "live",
-    course_duration: "Up to 18 months",
+    course_duration: "4-18 months",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     status: "Published"
@@ -239,6 +278,23 @@ const formatDurationRange = (durationRange: string | undefined): string => {
   }
   
   return durationRange;
+};
+
+// New function to show full duration range for live courses
+const getDisplayDurationRange = (durationRange: string | undefined, courseType: 'live' | 'blended' = 'live'): string => {
+  if (!durationRange) return "Flexible Duration";
+  
+  // For live courses, show the full range with "to" instead of dash
+  if (courseType === 'live') {
+    // Replace dash with "to" for better readability
+    if (durationRange.includes('-')) {
+      return durationRange.replace('-', ' to ');
+    }
+    return durationRange;
+  }
+  
+  // For blended courses, use the original formatting
+  return formatDurationRange(durationRange);
 };
 
 const getBlendedCourseSessions = (course: ICourse) => {
@@ -445,12 +501,16 @@ const HomeCourseSection2 = ({
           skipCache: true,
           requireAuth: false,
           onSuccess: (response) => {
-            console.log("Live Courses API Response received");
+            console.log("Live Courses API Response received", response);
             
             let processedCourses: ICourse[] = [];
             
             try {
-              if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
+              // Handle the new API response format with success and data fields
+              if (response && response.success && response.data && Array.isArray(response.data) && response.data.length > 0) {
+                console.log(`Found ${response.data.length} live courses from API (success response)`);
+                processedCourses = response.data;
+              } else if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
                 console.log(`Found ${response.data.length} live courses from API`);
                 processedCourses = response.data;
               } else if (response && Array.isArray(response) && response.length > 0) {
@@ -463,7 +523,7 @@ const HomeCourseSection2 = ({
                 console.log("No valid live courses found in the API response, using fallback data");
                 const processedFallbackCourses = fallbackLiveCourses.map(course => ({
                   ...course,
-                  course_duration: formatDurationRange(course.duration_range || course.course_duration as string)
+                  course_duration: getDisplayDurationRange(course.duration_range || course.course_duration as string, 'live')
                 }));
                 setLiveCourses(processedFallbackCourses);
                 resolve(true);
@@ -498,7 +558,7 @@ const HomeCourseSection2 = ({
                   course_category: course.category || course.course_category || 'Uncategorized',
                   category: course.category || course.course_category || 'Uncategorized',
                   course_image: courseImage,
-                  course_duration: formatDurationRange(course.duration_range),
+                  course_duration: getDisplayDurationRange(course.duration_range, 'live'),
                   duration_range: course.duration_range || "4-18 months",
                   class_type: 'Live Courses',
                   prices: Array.isArray(course.prices) ? course.prices : [],
@@ -524,18 +584,18 @@ const HomeCourseSection2 = ({
               console.log("USING FALLBACK DATA DUE TO ERROR");
               const processedFallbackCourses = fallbackLiveCourses.map(course => ({
                 ...course,
-                course_duration: formatDurationRange(course.duration_range || course.course_duration as string)
+                course_duration: getDisplayDurationRange(course.duration_range || course.course_duration as string, 'live')
               }));
               setLiveCourses(processedFallbackCourses);
               resolve(true);
             }
           },
-          onFail: (error) => {
+                    onFail: (error) => {
             console.error("Error fetching live courses:", error);
             console.log("USING FALLBACK DATA DUE TO API FAILURE");
             const processedFallbackCourses = fallbackLiveCourses.map(course => ({
               ...course,
-              course_duration: formatDurationRange(course.duration_range || course.course_duration as string)
+              course_duration: getDisplayDurationRange(course.duration_range || course.course_duration as string, 'live')
             }));
             setLiveCourses(processedFallbackCourses);
             resolve(true);
@@ -727,14 +787,15 @@ const HomeCourseSection2 = ({
               const displayPrice = batchPrice || (course.prices && course.prices[0] ? course.prices[0].individual : null);
               
               return (
-                <div key={course._id} className="flex flex-col h-full relative w-full min-w-0">
+                <div key={course._id} className="live-course-card-wrapper flex flex-col h-full relative w-full min-w-0">
                   <CourseCard 
                     course={{
                       _id: course._id || course.id || `live-${Math.random().toString(36).substring(2, 9)}`,
                       course_title: course.course_title || course.title || 'Untitled Course',
                       course_description: course.course_description || course.description,
                       course_image: course.course_image || course.thumbnail || '/fallback-course-image.jpg',
-                      course_duration: formatDurationRange(course.duration_range || course.course_duration as string),
+                      course_duration: getDisplayDurationRange(course.duration_range || course.course_duration as string, 'live'),
+                      duration_range: course.duration_range || course.course_duration as string || "4-18 months",
                       course_category: course.course_category || course.category || 'Uncategorized',
                       prices: course.prices || [],
                       course_fee: Number(displayPrice) || 1499,
@@ -748,11 +809,13 @@ const HomeCourseSection2 = ({
                       batchPrice: batchPrice || undefined,
                       status: course.status || "Published",
                       updatedAt: course.updatedAt || new Date().toISOString(),
-                      createdAt: course.createdAt || new Date().toISOString()
+                      createdAt: course.createdAt || new Date().toISOString(),
+                      url: course.url
                     }} 
                     classType="Live Courses"
                     preserveClassType={true}
                     showDuration={true}
+                    isCompact={true}
                   />
                 </div>
               );
