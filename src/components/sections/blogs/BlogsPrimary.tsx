@@ -10,10 +10,15 @@ import { apiUrls, IBlog } from "@/apis";
 interface BlogsPrimaryProps {
   initialBlogs?: IBlog[];
   totalBlogs?: number;
+  currentPage?: number;
+  totalPages?: number;
+  hasMore?: boolean;
   initialFilters?: {
     category?: string;
     tag?: string;
     featured?: boolean;
+    search?: string;
+    page?: number;
   };
 }
 
@@ -72,18 +77,22 @@ const getGlassMorphicStyles = (isDark: boolean) => `
 
 const BlogsPrimary: React.FC<BlogsPrimaryProps> = ({ 
   initialBlogs = [], 
-  totalBlogs = 0, 
+  totalBlogs = 0,
+  currentPage: initialCurrentPage = 1,
+  totalPages: initialTotalPages = 1,
+  hasMore: initialHasMore = false,
   initialFilters = {} 
 }) => {
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [blogs, setBlogs] = useState<IBlog[]>(initialBlogs);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(initialFilters.search || "");
   const [selectedCategory, setSelectedCategory] = useState(initialFilters.category || "all");
-  const [selectedSort, setSelectedSort] = useState("latest");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedSort, setSelectedSort] = useState(initialFilters.featured ? "featured" : "latest");
+  const [currentPage, setCurrentPage] = useState(initialCurrentPage);
   const [categories, setCategories] = useState<string[]>([]);
   const [totalCount, setTotalCount] = useState(totalBlogs);
+  const [totalPagesCount, setTotalPagesCount] = useState(initialTotalPages);
   
   const blogsPerPage = 9;
   const isDark = mounted ? theme === 'dark' : false;
