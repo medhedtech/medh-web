@@ -379,57 +379,51 @@ const StudentDashboardMain: React.FC = () => {
     }
   }, []);
 
-  // Set up the 3 MEDH carousel slides
+  // Set up the 3 welcome carousel slides
   useEffect(() => {
     if (!userName) return;
 
-    // Create the 3 official MEDH slides
-    const medhSlides = [
+    // Create the 3 welcome slides with welcome messages
+    const welcomeSlides = [
       {
-        id: 'python-fundamentals',
-        title: 'Python Programming Fundamentals',
-        progress: 65,
-        nextLesson: 'Functions and Modules',
-        instructor: 'Dr. Alex Morgan',
-        image: '/courses/python-course.jpg',
+        id: 'welcome-slide-1',
+        title: `Welcome to MEDH, ${userName}!`,
+        subtitle: 'Your Learning Journey Starts Here',
+        message: 'Discover world-class courses designed to accelerate your career growth and unlock your potential.',
         color: 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500',
-        isEnrolled: true,
-        completed: 6,
-        remaining: 4,
-        totalLessons: 10
+        image: '/backgrounds/welcome-bg-1.jpg',
+        isWelcome: true,
+        actionText: 'Explore Courses',
+        secondaryText: 'Set Learning Goals'
       },
       {
-        id: 'web-development-bootcamp',
-        title: 'Web Development Bootcamp', 
-        progress: 42,
-        nextLesson: 'CSS Flexbox Layout',
-        instructor: 'Sarah Wilson',
-        image: '/courses/web-dev.jpg',
+        id: 'welcome-slide-2',
+        title: `${greeting}, ${userName}`,
+        subtitle: 'Learn at Your Own Pace',
+        message: 'Join thousands of learners who have transformed their careers with our expert-led courses and personalized learning paths.',
         color: 'bg-gradient-to-br from-blue-500 via-cyan-500 to-teal-500',
-        isEnrolled: true,
-        completed: 4,
-        remaining: 6,
-        totalLessons: 10
+        image: '/backgrounds/welcome-bg-2.jpg',
+        isWelcome: true,
+        actionText: 'Browse Categories',
+        secondaryText: 'View Progress'
       },
       {
-        id: 'data-science-essentials',
-        title: 'Data Science Essentials',
-        progress: 78,
-        nextLesson: 'Statistical Analysis', 
-        instructor: 'Prof. Michael Chen',
-        image: '/courses/data-science.jpg',
+        id: 'welcome-slide-3',
+        title: 'Ready to Excel?',
+        subtitle: 'Build Skills That Matter',
+        message: 'Access premium content, live sessions, and industry-recognized certifications to advance your professional journey.',
         color: 'bg-gradient-to-br from-emerald-500 via-green-500 to-lime-500',
-        isEnrolled: true,
-        completed: 7,
-        remaining: 3,
-        totalLessons: 10
+        image: '/backgrounds/welcome-bg-3.jpg',
+        isWelcome: true,
+        actionText: 'Start Learning',
+        secondaryText: 'View Resources'
       }
     ];
 
-    setCourseCards(medhSlides);
+    setCourseCards(welcomeSlides);
     setIsNewUser(false);
     setCoursesLoading(false);
-  }, [userName]);
+  }, [userName, greeting]);
 
   // Helper function to get course gradient colors (MEDH official theme)
   const getCourseColor = (index: number): string => {
@@ -554,17 +548,19 @@ const StudentDashboardMain: React.FC = () => {
                     
                     <div className="relative z-10 w-full px-6 py-4 sm:py-6 sm:px-12 lg:px-16 h-full flex items-center transition-all duration-300">
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full w-full max-w-[1200px] mx-auto">
-                        {/* Left side - Course information */}
-                        <div className="lg:col-span-2 flex flex-col justify-center space-y-3">
+                        {/* Left side - Welcome information */}
+                        <div className="lg:col-span-2 flex flex-col justify-center space-y-4">
+                          {/* Welcome badge */}
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="text-xs bg-white/20 text-white px-3 py-1 rounded-full backdrop-blur-sm">
-                              {course.instructor}
+                              Welcome to MEDH
                             </span>
                             <span className="text-xs text-white/90">
-                              {greeting}, Student
+                              Learning Platform
                             </span>
                           </div>
                         
+                          {/* Main welcome title */}
                           <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white transition-all duration-300 text-center sm:text-left leading-tight" 
                             style={{ 
                               wordWrap: 'break-word', 
@@ -574,136 +570,115 @@ const StudentDashboardMain: React.FC = () => {
                             }}>
                             {course.title}
                           </h1>
-                          
-                          {/* Progress bar - always show for enrolled courses */}
-                          {course.isEnrolled && (
-                            <div className="flex flex-col items-center sm:items-start space-y-2">
-                              <div className="flex items-center w-full max-w-md">
-                                <div className="w-full bg-white/30 rounded-full h-2 backdrop-blur-sm">
-                                  <div 
-                                    className="bg-white h-2 rounded-full transition-all duration-1000 ease-out shadow-sm"
-                                    style={{ width: `${course.progress}%` }}
-                                  ></div>
-                                </div>
-                              </div>
-                              <span className="text-white/95 text-sm font-medium">
-                                {course.progress}% complete
-                              </span>
-                            </div>
+
+                          {/* Subtitle */}
+                          {course.subtitle && (
+                            <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-white/90 text-center sm:text-left"
+                              style={{ 
+                                textShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                              }}>
+                              {course.subtitle}
+                            </h2>
                           )}
                           
-                          <div className="text-white/95 text-sm leading-relaxed max-w-2xl text-center sm:text-left mx-auto sm:mx-0" 
+                          {/* Welcome message */}
+                          <div className="text-white/95 text-sm sm:text-base leading-relaxed max-w-2xl text-center sm:text-left mx-auto sm:mx-0" 
                             style={{ 
                               wordWrap: 'break-word', 
                               overflowWrap: 'anywhere', 
-                              lineHeight: '1.5',
+                              lineHeight: '1.6',
                               textShadow: '0 1px 2px rgba(0,0,0,0.2)'
                             }}>
-                            Continue your learning journey with {course.instructor}. Your next lesson covers {course.nextLesson}.
+                            {course.message}
                           </div>
                           
-                          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mt-2">
-                            {course.isWelcome ? (
-                              // Welcome slide buttons
-                              <>
-                                <Link 
-                                  href="/courses" 
-                                  className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors font-medium text-sm backdrop-blur-sm shadow-sm"
-                                >
-                                  <BookOpen className="mr-2 h-4 w-4" />
-                                  Explore Courses
-                                </Link>
-                                
-                                <Link 
-                                  href="/dashboards/student/goals" 
-                                  className="border border-white/30 hover:bg-white/10 text-white px-4 py-2 rounded-lg flex items-center transition-colors text-sm backdrop-blur-sm"
-                                >
-                                  <Target className="mr-2 h-4 w-4" />
-                                  Set Goals
-                                </Link>
-                              </>
-                            ) : course.isEnrolled ? (
-                              // Enrolled course buttons
-                              <>
-                                <Link 
-                                  href={`/course/${course.id}`} 
-                                  className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors font-medium text-sm backdrop-blur-sm shadow-sm"
-                                >
-                                  <PlayCircle className="mr-2 h-4 w-4" />
-                                  Continue Learning
-                                </Link>
-                                
-                                <Link 
-                                  href={`/course/${course.id}/materials`} 
-                                  className="border border-white/30 hover:bg-white/10 text-white px-4 py-2 rounded-lg flex items-center transition-colors text-sm backdrop-blur-sm"
-                                >
-                                  <FileText className="mr-2 h-4 w-4" />
-                                  Course Materials
-                                </Link>
-                              </>
-                            ) : (
-                              // Non-enrolled course buttons
-                              <>
-                                <Link 
-                                  href={`/course-details/${course.id}`} 
-                                  className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors font-medium text-sm backdrop-blur-sm shadow-sm"
-                                >
-                                  <BookOpen className="mr-2 h-4 w-4" />
-                                  View Course
-                                </Link>
-                                
-                                <Link 
-                                  href={`/course-details/${course.id}#enroll`} 
-                                  className="border border-white/30 hover:bg-white/10 text-white px-4 py-2 rounded-lg flex items-center transition-colors text-sm backdrop-blur-sm"
-                                >
-                                  <GraduationCap className="mr-2 h-4 w-4" />
-                                  {course.price && course.price !== 'Free' ? `Enroll - ${course.price}` : 'Enroll Now'}
-                                </Link>
-                              </>
-                            )}
+                          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mt-4">
+                            {/* Welcome slide buttons - customized for each slide */}
+                            <Link 
+                              href={course.id === 'welcome-slide-1' ? "/courses" : 
+                                    course.id === 'welcome-slide-2' ? "/courses" : 
+                                    "/courses"}
+                              className="bg-white/20 hover:bg-white/30 text-white px-5 py-2.5 rounded-lg flex items-center transition-colors font-medium text-sm backdrop-blur-sm shadow-sm"
+                            >
+                              <BookOpen className="mr-2 h-4 w-4" />
+                              {course.actionText || 'Explore Courses'}
+                            </Link>
+                            
+                            <Link 
+                              href={course.id === 'welcome-slide-1' ? "/dashboards/student/goals" : 
+                                    course.id === 'welcome-slide-2' ? "/dashboards/student" : 
+                                    "/dashboards/student/resources"}
+                              className="border border-white/30 hover:bg-white/10 text-white px-5 py-2.5 rounded-lg flex items-center transition-colors text-sm backdrop-blur-sm"
+                            >
+                              {course.id === 'welcome-slide-1' ? <Target className="mr-2 h-4 w-4" /> : 
+                               course.id === 'welcome-slide-2' ? <BarChart2 className="mr-2 h-4 w-4" /> : 
+                               <FileText className="mr-2 h-4 w-4" />}
+                              {course.secondaryText || 'Get Started'}
+                            </Link>
                           </div>
                         </div>
                         
-                        {/* Right side - Next Up Card */}
+                        {/* Right side - Welcome Features Card */}
                         <div className="lg:col-span-1 flex flex-col justify-center mt-3 lg:mt-0">
                           <div className="bg-white/15 backdrop-blur-md rounded-xl p-4 border border-white/20 transition-all duration-300 shadow-lg">
                             <h3 className="text-white text-sm font-semibold mb-3 flex items-center">
-                              <Calendar className="h-4 w-4 mr-2" /> 
-                              Next Up
+                              <Trophy className="h-4 w-4 mr-2" /> 
+                              Why Choose MEDH?
                             </h3>
                             
                             <div className="space-y-3">
-                              {/* Next Lesson Info */}
-                              <div>
-                                <h4 className="text-white font-medium text-sm mb-2 leading-relaxed" 
-                                  style={{ 
-                                    wordWrap: 'break-word', 
-                                    overflowWrap: 'anywhere', 
-                                    lineHeight: '1.4',
-                                    textShadow: '0 1px 2px rgba(0,0,0,0.2)'
-                                  }}>
-                                  {course.nextLesson}
-                                </h4>
-                                <div className="flex items-center text-white/85 text-sm">
-                                  <Clock className="h-4 w-4 mr-2 flex-shrink-0" /> 
-                                  Estimated: 25 mins
-                                </div>
-                              </div>
-                              
-                              {/* Progress Stats */}
-                              <div className="grid grid-cols-2 gap-3">
-                                <div className="bg-white/10 rounded-lg p-3 text-center backdrop-blur-sm">
-                                  <p className="text-white/80 text-xs mb-1">Completed</p>
-                                  <p className="text-white text-xl font-bold">
-                                    {course.completed || Math.floor(course.progress * 10 / 100)}/10
-                                  </p>
-                                </div>
-                                <div className="bg-white/10 rounded-lg p-3 text-center backdrop-blur-sm">
-                                  <p className="text-white/80 text-xs mb-1">Remaining</p>
-                                  <p className="text-white text-xl font-bold">
-                                    {course.remaining || (10 - Math.floor(course.progress * 10 / 100))}/10
-                                  </p>
-                                </div>
+                              {/* Feature highlights based on slide */}
+                              <div className="space-y-2">
+                                {course.id === 'welcome-slide-1' && (
+                                  <>
+                                    <div className="flex items-center text-white/90 text-sm">
+                                      <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0 text-green-400" /> 
+                                      Expert-led courses
+                                    </div>
+                                    <div className="flex items-center text-white/90 text-sm">
+                                      <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0 text-green-400" /> 
+                                      Industry certifications
+                                    </div>
+                                    <div className="flex items-center text-white/90 text-sm">
+                                      <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0 text-green-400" /> 
+                                      Career growth focus
+                                    </div>
+                                  </>
+                                )}
+                                
+                                {course.id === 'welcome-slide-2' && (
+                                  <>
+                                    <div className="flex items-center text-white/90 text-sm">
+                                      <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0 text-blue-400" /> 
+                                      Self-paced learning
+                                    </div>
+                                    <div className="flex items-center text-white/90 text-sm">
+                                      <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0 text-blue-400" /> 
+                                      24/7 access
+                                    </div>
+                                    <div className="flex items-center text-white/90 text-sm">
+                                      <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0 text-blue-400" /> 
+                                      Mobile-friendly
+                                    </div>
+                                  </>
+                                )}
+                                
+                                {course.id === 'welcome-slide-3' && (
+                                  <>
+                                    <div className="flex items-center text-white/90 text-sm">
+                                      <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0 text-emerald-400" /> 
+                                      Live sessions available
+                                    </div>
+                                    <div className="flex items-center text-white/90 text-sm">
+                                      <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0 text-emerald-400" /> 
+                                      Premium content
+                                    </div>
+                                    <div className="flex items-center text-white/90 text-sm">
+                                      <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0 text-emerald-400" /> 
+                                      Job assistance
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             </div>
                           </div>
