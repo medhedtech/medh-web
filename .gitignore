@@ -89,3 +89,4 @@ src/apis/index.js
 
 # Local Netlify folder
 .netlify
+.env.production
