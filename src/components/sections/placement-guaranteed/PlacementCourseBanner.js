@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Star, Shield, Award } from "lucide-react";
-import CourseBannerImg from "../../../assets/images/personality/coursebannerimg.png";
+import CourseBannerImg from "../../../assets/images/personality/coursebannerimg.jpg";
 
 export default function PlacementCourseBanner() {
   const router = useRouter();
@@ -86,7 +86,7 @@ export default function PlacementCourseBanner() {
               <div className="absolute inset-0 bg-gradient-to-tr from-[#7ECA9D]/20 via-[#7ECA9D]/10 to-transparent"></div>
               <Image
                 src={CourseBannerImg}
-                alt="Course Banner"
+                alt="Businessman climbing stairs to professional success in office building"
                 className="w-full h-auto rounded-2xl transform hover:scale-105 transition-transform duration-700"
                 priority
               />

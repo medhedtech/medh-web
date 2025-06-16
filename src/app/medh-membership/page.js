@@ -54,6 +54,7 @@ export default function MembershipPage() {
     <PageWrapper>
        <PrimeMembership />
        <MembershipFeatures />
+       <MembershipFaq />
     </PageWrapper>
   );
 }

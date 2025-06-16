@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import CourseBanner from "@/components/course-banner/courseBanner"; // Ensure this path is correct
-import CourseBannerImg from "../../../assets/images/personality/coursebannerimg.png";
+import CourseBannerImg from "../../../assets/images/personality/coursebannerimg.jpg";
 import Download from "@/assets/images/join-as-school/btn-logo.svg";
 
 function SchoolCourceBanner() {
