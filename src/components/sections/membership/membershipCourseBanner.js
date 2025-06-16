@@ -1,7 +1,7 @@
 "use client";
 
 import CourseBanner from "@/components/course-banner/courseBanner"; // Ensure this path is correct
-import CourseBannerImg from "../../../assets/images/personality/coursebannerimg.png";
+import CourseBannerImg from "../../../assets/images/personality/coursebannerimg.jpg";
 // import DotIcon from "@/assets/images/corporate-training/dot-icon.svg";
 import VerticalIcon from "@/assets/images/news-media/vertical-white.svg";
 

@@ -97,7 +97,7 @@ const PlacementGauranteedBanner: React.FC = () => {
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
-          <div className="flex flex-col items-center justify-center min-h-screen text-center py-4 pt-4 md:pt-8 lg:pt-12">
+          <div className="flex flex-col items-center justify-start min-h-screen text-center py-4 pt-8 md:pt-12 lg:pt-16">
             
                         {/* Hero Text Section */}
             <div className={`mb-2 md:mb-3 transition-all duration-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
