@@ -36,18 +36,19 @@ const membershipData: IMembershipData[] = [
     icon: <Star className="w-6 h-6" />,
     color: "primary",
     plans: [
-      { duration: "MONTHLY", price: "$49.00", period: "per month" },
-      { duration: "QUARTERLY", price: "$99.00", period: "per 3 months" },
-      { duration: "HALF-YEARLY", price: "$129.00", period: "per 6 months" },
-      { duration: "ANNUALLY", price: "$149.00", period: "per year" },
+      { duration: "MONTHLY", price: "INR 999.00", period: "per month" },
+      { duration: "QUARTERLY", price: "INR 2,499.00", period: "per 3 months" },
+      { duration: "HALF-YEARLY", price: "INR 3,999.00", period: "per 6 months" },
+      { duration: "ANNUALLY", price: "INR 4,999.00", period: "per annum" },
     ],
     description:
-      "You have a choice to explore and learn any or all programs within a 'single-course-category' of your preference.",
+      "Ideal for focused skill development. Explore and learn all self-paced blended courses within any 'Single-Category' of your preference.",
     features: [
-      "Access to single course category",
-      "20% discount on all courses",
+      "Access to LIVE Q&A Doubt Clearing Sessions",
+      "Special discount on all live courses",
       "Community access",
-      "Monthly newsletter"
+      "Access to free courses",
+      "Placement Assistance"
     ]
   },
   {
@@ -55,18 +56,20 @@ const membershipData: IMembershipData[] = [
     icon: <Crown className="w-6 h-6" />,
     color: "amber",
     plans: [
-      { duration: "MONTHLY", price: "$69.00", period: "per month" },
-      { duration: "QUARTERLY", price: "$119.00", period: "per 3 months" },
-      { duration: "HALF-YEARLY", price: "$149.00", period: "per 6 months" },
-      { duration: "ANNUALLY", price: "$199.00", period: "per year" },
+      { duration: "MONTHLY", price: "INR 1,999.00", period: "per month" },
+      { duration: "QUARTERLY", price: "INR 3,999.00", period: "per 3 months" },
+      { duration: "HALF-YEARLY", price: "INR 5,999.00", period: "per 6 months" },
+      { duration: "ANNUALLY", price: "INR 6,999.00", period: "per annum" },
     ],
     description:
-      "Gold membership gives access to multiple course categories for a premium experience.",
+      "Perfect for diverse skill acquisition. Explore and learn all self-paced blended courses within any '03-Categories' of your preference.",
     features: [
-      "Access to three course categories",
-      "30% discount on all courses",
-      "Priority community access",
-      "Early access to new courses"
+      "Access to LIVE Q&A Doubt Clearing Sessions",
+      "Minimum 15% discount on all live courses",
+      "Community access",
+      "Access to free courses",
+      "Career Counselling",
+      "Placement Assistance"
     ]
   },
 ];
@@ -243,6 +246,30 @@ const PrimeMembership: React.FC = () => {
               </motion.div>
             ))}
           </div>
+
+          {/* Free Trial Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="text-center mb-12"
+          >
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-8 max-w-2xl mx-auto border border-green-200 dark:border-green-800 shadow-lg">
+              <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+                START YOUR 7-DAY FREE TRIAL TODAY
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
+                No commitment • Cancel anytime
+              </p>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 px-8 rounded-lg shadow-lg transition-all duration-300"
+              >
+                Start Free Trial
+              </motion.button>
+            </div>
+          </motion.div>
 
           {/* Note Section */}
           <motion.div

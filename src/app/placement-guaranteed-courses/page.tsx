@@ -11,11 +11,13 @@ import HiringProcessPlacement from "@/components/sections/placement-guaranteed/w
 import PlacementBenefits from "@/components/sections/placement-guaranteed/placementBenefits";
 import PlacementFaq from "@/components/sections/placement-guaranteed/PlacementFaq";
 import PlacementCourseBanner from "@/components/sections/placement-guaranteed/PlacementCourseBanner";
+import PlacementCourseDetails from "@/components/sections/placement-guaranteed/placement-course-details";
 
-function PlacementGauranty() {
+const PlacementGauranty: React.FC = () => {
   return (
     <PageWrapper>
       <PlacementGauranteedBanner />
+      <PlacementCourseDetails />
       <HireSectionPlacement/>
       <HiringProcessPlacement/>
       <PlacementBenefits/>
@@ -35,6 +37,6 @@ function PlacementGauranty() {
       
     </PageWrapper>
   );
-}
+};
 
 export default PlacementGauranty;

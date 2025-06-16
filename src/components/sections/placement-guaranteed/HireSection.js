@@ -48,27 +48,8 @@ const HireSectionPlacement = () => {
 
   return (
     <section className="pb-20 relative">
-      {/* Header Section */}
-      <div className="bg-gray-900 py-10 md:py-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center text-white">
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">
-              Empower Your Career Ambitions with
-              <span className="text-[#7ECA9D] block mt-2">
-                Medh 18-Month Job Assurance Programs
-              </span>
-            </h1>
-            <p className="text-gray-300 text-lg">
-              At Medh, we empower individuals through education, offering 100% Job
-              Guaranteed Courses designed to provide in-depth skills with our comprehensive
-              18-month live interactive programs including 3 months of corporate internship.
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Professional Edge Section */}
-      <div className="bg-gray-100 dark:bg-gray-800 py-8 -mt-8">
+      <div className="bg-gray-100 dark:bg-gray-800 py-8">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-[#7ECA9D] font-bold text-2xl md:text-3xl mb-4">
