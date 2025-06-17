@@ -295,17 +295,6 @@ const EducatorBanner: React.FC = () => {
                   <span className="relative z-10 font-extrabold tracking-wide">Join as Educator</span>
                   <ArrowRight size={16} className="relative z-10 ml-3 group-hover:translate-x-1 transition-transform sm:w-4 sm:h-4 md:w-5 md:h-5" />
                 </button>
-                
-                <button 
-                  onClick={handleLearnMore}
-                  className={`inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-all duration-300 hover:scale-105 text-sm sm:text-base md:text-lg ${
-                    isDark 
-                      ? 'glass-stats text-white hover:bg-white/10' 
-                      : 'bg-gray-100/80 backdrop-blur-lg text-gray-700 border-2 border-gray-300/40 hover:border-gray-400/70 hover:bg-gray-200/80 shadow-lg hover:shadow-xl'
-                  }`}
-                >
-                  Learn More
-                </button>
               </div>
 
               <div className={`mumkinMedh text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold mb-2 leading-tight pt-12 ${

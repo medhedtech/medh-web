@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CheckCircle, Info, Star, Users, BookOpen } from "lucide-react";
 import CourseBanner from "@/components/course-banner/courseBanner";
-import CourseBannerImg from "../../../assets/images/personality/coursebannerimg.jpg";
+import CourseBannerImg from "../../../assets/images/personality/coursebannerimg.png";
 import DotIcon from "@/assets/images/corporate-training/dot-icon.svg";
 
 interface IFeature {

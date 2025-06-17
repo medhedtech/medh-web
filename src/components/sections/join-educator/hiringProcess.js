@@ -59,7 +59,7 @@ const HiringProcess = () => {
       description:
         "Review and sign your employment agreement outlining competitive compensation, benefits, and position details.",
       icon: Logo6,
-      arrow: false,
+      arrow: true,
       gradient: "gradient-amber"
     },
     {
@@ -67,7 +67,7 @@ const HiringProcess = () => {
       description:
         "Receive ongoing feedback, coaching, and professional development opportunities to maximize your success.",
       icon: Logo7,
-      arrow: true,
+      arrow: false,
       gradient: "gradient-rose"
     },
   ];

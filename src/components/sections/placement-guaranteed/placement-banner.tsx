@@ -97,14 +97,14 @@ const PlacementGauranteedBanner: React.FC = () => {
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
-          <div className="flex flex-col items-center justify-center min-h-[80vh] text-center py-6">
+          <div className="flex flex-col items-center justify-start text-center pt-4 md:pt-6 lg:pt-8">
             
-            {/* Hero Text Section */}
-            <div className={`mb-2 md:mb-3 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-              <div className="glass-container rounded-3xl p-4 md:p-6 lg:p-8 mb-1 transform scale-90 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
+                        {/* Hero Text Section */}
+            <div className={`mb-2 md:mb-3 transition-all duration-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+              <div className="glass-container rounded-3xl p-4 sm:p-6" style={{ transform: 'scale(0.9)' }}>
                 
                 {/* Certification Badges */}
-                <div className="flex flex-wrap justify-center gap-3 mb-4">
+                <div className="flex flex-wrap justify-center gap-3 mb-3 sm:mb-4">
                   <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
                     <Shield size={10} className="mr-1 sm:w-3 sm:h-3" />
                     ISO Certified
@@ -116,35 +116,31 @@ const PlacementGauranteedBanner: React.FC = () => {
                 </div>
                  
                 {/* Main Heading */}
-                <h1 className={`text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold leading-tight mb-2 sm:mb-3 md:mb-4 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  <span className="block text-sm sm:text-base font-medium uppercase tracking-widest mb-3 opacity-80">100% Job Guaranteed Programs</span>
-                  <span className="block whitespace-nowrap">Secure Your Career Journey</span>
-                  <span className="block whitespace-nowrap">
-                    <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9)' }}>with</em>
-                    <span className="inline-flex items-center">
-                      <Image 
-                        src={medhLogo} 
-                        alt="Medh Logo" 
-                        width={24} 
-                        height={24} 
-                        className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline"
-                        style={{ 
-                          filter: 'brightness(1.1) contrast(1.2)',
-                          transform: 'scale(0.9) translateY(5px)',
-                          verticalAlign: 'baseline'
-                        }}
-                      />
-                    </span>
+                <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-4 md:mb-6 tracking-tight max-w-4xl mx-auto ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  Secure Your Career Journey <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9)' }}>with</em>
+                  <span className="inline-flex items-baseline align-baseline">
+                    <Image 
+                      src={medhLogo} 
+                      alt="Medh Logo" 
+                      width={24} 
+                      height={24} 
+                      className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline"
+                      style={{ 
+                        filter: 'brightness(1.1) contrast(1.2)',
+                        transform: 'scale(0.9) translateY(2px)',
+                        verticalAlign: 'baseline'
+                      }}
+                    />
                   </span>
                 </h1>
                 
                 {/* Description */}
-                <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-3 sm:mb-4 md:mb-6 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
+                <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
                   Transform your skills into guaranteed employment opportunities with our industry-leading placement programs and expert career guidance.
                 </p>
 
                 {/* CTA Section */}
-                <div className="mt-4 sm:mt-6 md:mt-8 flex flex-wrap gap-4 justify-center">
+                <div className="mt-4 sm:mt-6 md:mt-8">
                   <button
                     onClick={openForm}
                     className={`inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-all duration-300 hover:scale-105 group text-sm sm:text-base md:text-lg relative overflow-hidden ${
@@ -159,15 +155,18 @@ const PlacementGauranteedBanner: React.FC = () => {
                 </div>
 
                 {/* Tagline */}
-                <div className={`mumkinMedh text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold mb-2 leading-tight pt-12 ${
-                  isDark 
-                    ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
-                    : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
-                }`} style={{ transform: 'scaleX(1.1)', letterSpacing: '0.05em' }}>
-                  Medh Hai Toh Mumkin Hai !
+                <div className="pt-8 mb-2">
+                  <div className={`mumkinMedh text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold leading-tight ${
+                    isDark 
+                      ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
+                      : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
+                  }`} style={{ transform: 'scaleX(1.1)', letterSpacing: '0.05em' }}>
+                    Medh Hai Toh Mumkin Hai !
+                  </div>
                 </div>
               </div>
             </div>
+
 
           </div>
         </div>
