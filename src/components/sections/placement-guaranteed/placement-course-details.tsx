@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useTheme } from "next-themes";
+import { useRouter } from "next/navigation";
 import { 
   Clock, 
   Users, 
@@ -25,6 +26,8 @@ import {
 } from "lucide-react";
 import { courseTypesAPI, TNewCourse, ILegacyCourse } from "@/apis/courses";
 import { usePlacementForm } from "@/context/PlacementFormContext";
+import { apiBaseUrl } from "@/apis";
+import "@/styles/glassmorphism.css";
 
 interface ICourseCardProps {
   course: TNewCourse | ILegacyCourse;
@@ -39,6 +42,7 @@ interface IFeatureItem {
 
 const PlacementCourseDetails: React.FC = () => {
   const { theme } = useTheme();
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [courses, setCourses] = useState<(TNewCourse | ILegacyCourse)[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,44 +53,43 @@ const PlacementCourseDetails: React.FC = () => {
 
   useEffect(() => {
     setMounted(true);
-    fetchCourses();
   }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      fetchCourses();
+    }
+  }, [mounted]);
 
   const fetchCourses = async () => {
     try {
       setIsLoading(true);
       setError(null);
-
-      const response = await courseTypesAPI.advancedSearch({
-        search: "AI Data Science Digital Marketing",
-        course_category: "Data Science,Digital Marketing",
-        status: "Published",
-        limit: 10,
-        source: "both",
-        merge_strategy: "unified"
-      });
-
-      if (response.status === 'success' && response.data?.data) {
-        const coursesData = Array.isArray(response.data.data) ? response.data.data : [];
-        const filteredCourses = coursesData.filter((course: TNewCourse | ILegacyCourse) => {
-          const title = course.course_title?.toLowerCase() || '';
-          return (
-            title.includes('ai') || 
-            title.includes('data science') || 
-            title.includes('digital marketing') ||
-            title.includes('data analytics')
-          );
-        });
-
-        setCourses(filteredCourses.slice(0, 2));
+      
+      const response = await fetch(
+        `${apiBaseUrl}/courses/search?page=1&limit=8&status=Published&course_duration=18 months%2072%20weeks`
+      );
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch courses');
       }
+
+      const data = await response.json();
+      setCourses(data.courses || []);
     } catch (err) {
       console.error('Error fetching courses:', err);
-      setError('Failed to load course details');
-      setCourses([]);
+      setError(err instanceof Error ? err.message : 'Failed to load courses');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleAIEnroll = () => {
+    router.push('/ai-and-data-science-course/');
+  };
+
+  const handleDigitalMarketingEnroll = () => {
+    router.push('/digital-marketing-with-data-analytics-course/');
   };
 
   const CourseCard: React.FC<ICourseCardProps> = ({ course, isLoading = false }) => {
@@ -205,7 +208,7 @@ const PlacementCourseDetails: React.FC = () => {
 
         {/* CTA Button */}
         <button
-          onClick={openForm}
+          onClick={isAICourse ? handleAIEnroll : handleDigitalMarketingEnroll}
           className={`w-full inline-flex items-center justify-center px-6 py-3 font-semibold rounded-xl transition-all duration-300 hover:scale-105 group/btn ${
             isDark 
               ? `bg-gradient-to-r ${courseColor} text-white hover:shadow-lg hover:shadow-${courseColor.split('-')[1]}-500/30` 
@@ -322,7 +325,7 @@ const PlacementCourseDetails: React.FC = () => {
                     ))}
                   </div>
                   <button
-                    onClick={openForm}
+                    onClick={handleAIEnroll}
                     className="w-full inline-flex items-center justify-center px-6 py-3 font-semibold rounded-xl transition-all duration-300 hover:scale-105 group/btn bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:shadow-lg hover:shadow-blue-500/30"
                   >
                     <span className="font-bold">Enroll Now - 100% Job Guaranteed</span>
@@ -379,7 +382,7 @@ const PlacementCourseDetails: React.FC = () => {
                     ))}
                   </div>
                   <button
-                    onClick={openForm}
+                    onClick={handleDigitalMarketingEnroll}
                     className="w-full inline-flex items-center justify-center px-6 py-3 font-semibold rounded-xl transition-all duration-300 hover:scale-105 group/btn bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:shadow-lg hover:shadow-green-500/30"
                   >
                     <span className="font-bold">Enroll Now - 100% Job Guaranteed</span>
