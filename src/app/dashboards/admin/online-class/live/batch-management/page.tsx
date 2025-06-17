@@ -35,7 +35,7 @@ import {
   XCircle,
   CheckCircle2
 } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { motion, AnimatePresence } from 'framer-motion';
 import UnifiedBatchModal from '@/components/shared/modals/UnifiedBatchModal';
 import BatchStudentEnrollment from '@/components/Dashboard/admin/BatchStudentEnrollment';
@@ -714,7 +714,7 @@ const BatchManagementPage: React.FC = () => {
       const response = await batchAPI.deleteBatch(batchId);
       
       if (response?.data?.success) {
-        toast.success('Batch deleted successfully');
+        showToast.success('Batch deleted successfully');
         // Refresh data to ensure consistency
         await refreshData({ source: 'delete_batch' });
       } else {
@@ -758,7 +758,7 @@ const BatchManagementPage: React.FC = () => {
     setShowInstructorAssignment(false);
     setInstructorAssignmentTarget(null);
     await refreshData({ showLoading: true, source: 'instructor_assignment' });
-    toast.success('Instructor assignment completed successfully!');
+    showToast.success('Instructor assignment completed successfully!');
   };
 
   const formatDate = (dateString: string) => {
@@ -812,7 +812,7 @@ const BatchManagementPage: React.FC = () => {
       const response = await batchAPI.updateBatchStatus(batchId, newStatus);
       
       if ((response as any)?.data) {
-        toast.success('Batch status updated successfully');
+        showToast.success('Batch status updated successfully');
         closeDropdown();
         // Refresh data to ensure consistency
         await refreshData({ source: 'status_update' });
@@ -928,7 +928,7 @@ const BatchManagementPage: React.FC = () => {
           successMessage = 'Individual batch created and student enrolled successfully!';
         }
         
-        toast.success(successMessage);
+        showToast.success(successMessage);
         setShowUnifiedBatchModal(false);
         fetchBatches(); // Refresh the batch list
         
@@ -1551,7 +1551,7 @@ const BatchManagementPage: React.FC = () => {
       setLastRefresh(new Date());
       
       if (source !== 'auto') {
-        toast.success('Data refreshed successfully');
+        showToast.success('Data refreshed successfully');
       }
       
       console.log(`✅ Data refresh completed from source: ${source}`);

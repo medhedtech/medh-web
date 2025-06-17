@@ -26,7 +26,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { 
   batchAPI,
   type IBatchAnalyticsDashboard,
@@ -172,7 +172,7 @@ const BatchAnalytics: React.FC<BatchAnalyticsProps> = ({
       const response = await batchAPI.updateBatchStatus(batchId, newStatus);
       
       if ((response as any)?.data) {
-        toast.success(`Batch status updated to ${newStatus} successfully`);
+        showToast.success(`Batch status updated to ${newStatus} successfully`);
         
         // Update the batch in local state
         setRecentBatches(prev => prev.map(batch => 

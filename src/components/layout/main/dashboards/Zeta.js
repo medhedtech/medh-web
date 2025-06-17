@@ -150,7 +150,7 @@ const UsersTable = () => {
     deleteQuery({
       url: `${apiUrls?.user?.delete}/${id}`,
       onSuccess: (res) => {
-        toast.success(res?.message);
+        showToast.success(res?.message);
         setDeletedCourse(id);
       },
       onFail: (res) => {

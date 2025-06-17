@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import useAuth from '@/hooks/useAuth';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 
 interface AuthTokenSetterProps {
   token?: string;
@@ -69,7 +69,7 @@ const AuthTokenSetter: React.FC<AuthTokenSetterProps> = ({ token, children }) =>
         );
         if (manualToken) {
           setToken(manualToken);
-          toast.success("Token set manually");
+          showToast.success("Token set manually");
         }
       };
 

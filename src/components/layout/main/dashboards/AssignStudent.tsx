@@ -5,7 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import axios from 'axios';
 import { apiBaseUrl } from '@/apis';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import Button from '@/components/shared/buttons/Button';
 import LoadingIndicator from '@/components/shared/loaders/LoadingIndicator';
 import { ChevronDown, User, BookOpen, CalendarDays, Users, Search, X, ClipboardList, PenLine } from 'lucide-react';

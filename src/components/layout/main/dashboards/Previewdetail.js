@@ -56,7 +56,7 @@ export default function CoursePreview() {
         postData: courseData,
         onSuccess: () => {
           localStorage.removeItem("courseData");
-          toast.success("Course added successfully!");
+          showToast.success("Course added successfully!");
           router.push("/dashboards/admin-listofcourse");
         },
         onFail: (error) => {

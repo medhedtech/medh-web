@@ -124,7 +124,7 @@ const NotificationSettings: React.FC = () => {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      toast.success('Notification settings saved successfully!');
+      showToast.success('Notification settings saved successfully!');
       setHasChanges(false);
     } catch (err) {
       console.error('Error saving settings:', err);

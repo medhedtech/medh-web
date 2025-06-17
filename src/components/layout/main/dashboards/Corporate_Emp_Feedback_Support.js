@@ -66,7 +66,7 @@ const CoorporateEmpFeedbackAndSupport = () => {
         feedback_title: data?.feedbackTitle,
       },
       onSuccess: () => {
-        toast.success("Feedback submitted successfully");
+        showToast.success("Feedback submitted successfully");
         resetFeedback();
       },
       onFail: (error) => {
@@ -83,7 +83,7 @@ const CoorporateEmpFeedbackAndSupport = () => {
         description: data?.complaintText,
       },
       onSuccess: () => {
-        toast.success("Complaint submitted successfully");
+        showToast.success("Complaint submitted successfully");
         resetComplaint();
       },
       onFail: (error) => {

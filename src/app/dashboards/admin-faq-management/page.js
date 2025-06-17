@@ -95,7 +95,7 @@ const AdminFaqManagement = () => {
       );
 
       await Promise.all(promises);
-      toast.success("FAQs added successfully");
+      showToast.success("FAQs added successfully");
       
       // Reset form
       setBulkFaqs([{ question: "", answer: "" }]);
@@ -225,11 +225,11 @@ const AdminFaqManagement = () => {
       if (editingId) {
         // Update existing FAQ
         await axios.put(`${apiBaseUrl}${apiUrls.faqs.updateFaq}/${editingId}`, formData);
-        toast.success("FAQ updated successfully");
+        showToast.success("FAQ updated successfully");
       } else {
         // Create new FAQ
         await axios.post(`${apiBaseUrl}${apiUrls.faqs.createFaq}`, formData);
-        toast.success("FAQ created successfully");
+        showToast.success("FAQ created successfully");
       }
       
       // Refresh FAQs list
@@ -270,7 +270,7 @@ const AdminFaqManagement = () => {
     
     try {
       await axios.delete(`${apiBaseUrl}${apiUrls.faqs.deleteFaq}/${id}`);
-      toast.success("FAQ deleted successfully");
+      showToast.success("FAQ deleted successfully");
       // Refresh FAQs list
       fetchFaqs();
     } catch (err) {

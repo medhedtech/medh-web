@@ -1346,7 +1346,7 @@ const ExportModal: React.FC<IExportModalProps> = ({
         link.click();
       }
 
-      toast.success(`Successfully exported ${dataToExport.length} courses`);
+      showToast.success(`Successfully exported ${dataToExport.length} courses`);
       onClose();
     } catch (error) {
       console.error('Export error:', error);

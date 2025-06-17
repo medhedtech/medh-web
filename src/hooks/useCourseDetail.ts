@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getCoursesWithFields } from '@/apis/course/course';
 import { apiUrls } from '@/apis';
 import useGetQuery from './getQuery.hook';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import axios from 'axios';
 
 // Types

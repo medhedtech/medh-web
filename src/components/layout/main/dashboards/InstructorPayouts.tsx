@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useGetQuery } from '@/hooks';
 import { apiUrls } from '@/apis';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 
 interface Instructor {
   _id: string;

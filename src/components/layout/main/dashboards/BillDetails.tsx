@@ -114,7 +114,7 @@ const BillDetails: React.FC = () => {
         description: `Payment for ${courseInfo?.course_title || "Course"}`,
         image: "/images/logo.png",
         handler: async function (response: any) {
-          toast.success("Payment Successful!");
+          showToast.success("Payment Successful!");
           // Call subscription API after successful payment
           await subscribeCourse(studentId, courseId, courseFee);
         },

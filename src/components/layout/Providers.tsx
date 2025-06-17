@@ -78,15 +78,26 @@ export default function Providers({ children }: ProvidersProps) {
       <AuthProvider>
         <ToastContainer
           position="top-right"
-          autoClose={5000}
+          autoClose={4000}
           hideProgressBar={false}
-          newestOnTop
-          closeOnClick
+          newestOnTop={true}
+          closeOnClick={true}
           rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
+          pauseOnFocusLoss={true}
+          draggable={true}
+          pauseOnHover={true}
           theme="light"
+          limit={3}
+          enableMultiContainer={false}
+          containerId="main-toast-container"
+          style={{
+            zIndex: 9999
+          }}
+          toastStyle={{
+            fontSize: '14px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          }}
         />
         {children}
       </AuthProvider>
