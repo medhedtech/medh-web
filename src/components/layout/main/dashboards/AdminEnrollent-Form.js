@@ -118,7 +118,7 @@ export default function EnrollmentFormsAdmin() {
       await deleteQuery({
         url: `${apiUrls?.enrollWebsiteform?.deleteEnrollWebsiteForm}/${id}`,
         onSuccess: (res) => {
-          toast.success(res?.message || "Enrollment deleted successfully");
+          showToast.success(res?.message || "Enrollment deleted successfully");
           fetchEnrollments();
         },
         onFail: (error) => {

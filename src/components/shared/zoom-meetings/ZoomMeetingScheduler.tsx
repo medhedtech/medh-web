@@ -122,7 +122,7 @@ export const ZoomMeetingScheduler: React.FC<ZoomMeetingSchedulerProps> = ({
         }
       );
 
-      toast.success("Meeting scheduled successfully!");
+      showToast.success("Meeting scheduled successfully!");
 
       // 6. Call the onScheduled callback with meeting details
       if (onScheduled) {

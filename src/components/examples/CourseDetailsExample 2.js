@@ -26,7 +26,7 @@ export default function CourseDetailsExample() {
     e.preventDefault();
     if (inputValue.trim()) {
       setCourseId(inputValue);
-      toast.success('Course ID updated!');
+      showToast.success('Course ID updated!');
     } else {
       toast.error('Please enter a valid course ID');
     }
@@ -35,7 +35,7 @@ export default function CourseDetailsExample() {
   const handleSelectCourse = (id) => {
     setInputValue(id);
     setCourseId(id);
-    toast.success('Selected new course!');
+    showToast.success('Selected new course!');
   };
 
   return (

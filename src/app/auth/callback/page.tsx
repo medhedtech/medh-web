@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, CheckCircle, AlertCircle, ArrowRight } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { authUtils } from '@/apis/auth.api';
 
 interface IOAuthCallbackData {
@@ -146,7 +146,7 @@ const AuthCallbackPage: React.FC = () => {
           localStorage.setItem('userName', mockOAuthData.user.full_name);
           localStorage.setItem('role', mockOAuthData.user.role[0] || 'student');
 
-          toast.success(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login successful!`);
+          showToast.success(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login successful!`);
           
           // Redirect to dashboard
           setTimeout(() => {

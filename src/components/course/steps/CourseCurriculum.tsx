@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { UseFormRegister, UseFormSetValue, FormState } from 'react-hook-form';
 import { PlusCircle, MinusCircle, GripVertical, Clock, BookOpen, Video, FileText, HelpCircle, Link, File, Download, Calendar, Users, Upload } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import axios from 'axios';
 import { apiBaseUrl, apiUrls } from '@/apis';
 import { 
@@ -135,7 +135,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: IVideoUploadProgress }>({});
   const { uploadFile, uploadMultipleFiles, isUploading } = useUpload({
     onSuccess: (response) => {
-      toast.success('File uploaded successfully');
+      showToast.success('File uploaded successfully');
     },
     onError: (error) => {
       toast.error(error.message);
@@ -1216,7 +1216,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
         [lessonId]: { progress: 100, status: 'complete' }
       }));
 
-      toast.success('Video uploaded successfully');
+      showToast.success('Video uploaded successfully');
     } catch (error: any) {
       console.error('Error uploading video:', error);
       console.error('Error details:', {
@@ -1548,7 +1548,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
         [lessonId]: { progress: 100, status: 'complete' }
       }));
 
-      toast.success('Video uploaded successfully');
+      showToast.success('Video uploaded successfully');
     } catch (error: any) {
       console.error('Error uploading video:', error);
       

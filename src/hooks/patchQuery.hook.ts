@@ -120,7 +120,7 @@ export const usePatchQuery = <T = any>(): UsePatchQueryResult<T> => {
 
       // Show success toast if configured
       if (showToast) {
-        toast.success(successMessage);
+        showToast.success(successMessage);
       }
 
       // Debug logging

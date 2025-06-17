@@ -5,7 +5,7 @@ import * as yup from 'yup';
 import { ICourseFormData } from '@/types/course.types';
 import StepProgress from '../shared/StepProgress';
 import CourseOverview from './steps/CourseOverview';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 
 const formSteps = [
   {
@@ -166,7 +166,7 @@ const AddCourse: React.FC = () => {
     try {
       console.log('Form data:', data);
       // Implement your form submission logic here
-      toast.success('Course created successfully!');
+      showToast.success('Course created successfully!');
     } catch (error) {
       toast.error('Failed to create course');
     }

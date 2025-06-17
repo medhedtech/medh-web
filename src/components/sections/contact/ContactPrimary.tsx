@@ -23,7 +23,7 @@ const ContactPrimary: React.FC = () => {
   const handleCopyEmail = useCallback(() => {
     navigator.clipboard.writeText('care@medh.co');
     setCopied(true);
-    toast.success('Email copied to clipboard!');
+    showToast.success('Email copied to clipboard!');
     setTimeout(() => setCopied(false), 2000);
   }, []);
 

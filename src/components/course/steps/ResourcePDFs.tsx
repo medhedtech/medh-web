@@ -2,7 +2,7 @@ import React from 'react';
 import { UseFormRegister, UseFormSetValue, FormState } from 'react-hook-form';
 import { ICourseFormData } from '@/types/course.types';
 import { PlusCircle, MinusCircle, Upload, FileText, AlertCircle } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { apiUrls, apiBaseUrl } from "@/apis";
 import { useUpload, UploadError } from "@/hooks/useUpload";
 import axios from 'axios';
@@ -240,7 +240,7 @@ const ResourcePDFs: React.FC<ResourcePDFsProps> = ({
         const validation = validatePdfResource(updatedPdfs[index]);
         if (validation.isValid) {
           setPdfs(updatedPdfs);
-          toast.success('PDF uploaded successfully');
+          showToast.success('PDF uploaded successfully');
         } else {
           throw new UploadError(validation.errors.join(', '), 'VALIDATION_ERROR');
         }

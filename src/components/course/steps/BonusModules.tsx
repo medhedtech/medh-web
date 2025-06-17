@@ -2,7 +2,7 @@ import React from 'react';
 import { UseFormRegister, UseFormSetValue, FormState } from 'react-hook-form';
 import { ICourseFormData } from '@/types/course.types';
 import { PlusCircle, MinusCircle, Upload } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { apiUrls } from "@/apis";
 import usePostQuery from "@/hooks/postQuery.hook";
 

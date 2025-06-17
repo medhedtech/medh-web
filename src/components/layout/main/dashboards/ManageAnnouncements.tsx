@@ -69,11 +69,11 @@ const ManageAnnouncements: React.FC = () => {
     try {
       if (action === 'delete') {
         await Promise.all(selectedIds.map(id => deleteAnnouncement(id)));
-        toast.success(`${selectedIds.length} announcements deleted`);
+        showToast.success(`${selectedIds.length} announcements deleted`);
       } else {
         const status = action === 'archive' ? 'archived' : 'published';
         await bulkUpdateAnnouncementStatus(selectedIds, status);
-        toast.success(`${selectedIds.length} announcements ${action}d`);
+        showToast.success(`${selectedIds.length} announcements ${action}d`);
       }
       
       setSelectedIds([]);
@@ -89,7 +89,7 @@ const ManageAnnouncements: React.FC = () => {
     
     try {
       await deleteAnnouncement(id);
-      toast.success('Announcement deleted');
+      showToast.success('Announcement deleted');
       fetchAnnouncements();
     } catch (err) {
       toast.error('Failed to delete announcement');
