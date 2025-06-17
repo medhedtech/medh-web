@@ -70,6 +70,26 @@ interface LoginResponse {
   data: LoginResponseData;
 }
 
+// Interface for the actual API response structure you're using
+interface IActualLoginResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: string;
+    email: string;
+    full_name: string;
+    role: string[];
+    permissions: string[];
+    access_token: string;
+    refresh_token: string;
+    login_stats?: {
+      login_count: number;
+      last_login: string;
+      session_id: string;
+    };
+  };
+}
+
 // Update the interfaces for auth data
 interface AuthData {
   token: string;
@@ -381,6 +401,13 @@ const LoginForm = () => {
 
   // Complete login process after verification
   const completeLoginProcess = (loginData: LoginResponseData): void => {
+    // Add safety checks for loginData
+    if (!loginData || !loginData.id || !loginData.email) {
+      console.error('Invalid login data:', loginData);
+      toast.error("Invalid login data received. Please try again.");
+      return;
+    }
+
     // Prepare auth data with the exact structure and proper validation
     const token = loginData.access_token || loginData.token || '';
     const refreshToken = loginData.refresh_token || loginData.session_id || '';
@@ -393,9 +420,9 @@ const LoginForm = () => {
     const authData: AuthData = {
       token: token,
       refresh_token: refreshToken,
-      id: loginData.id,
-      full_name: loginData.full_name,
-      email: loginData.email
+      id: loginData.id || '',
+      full_name: loginData.full_name || '',
+      email: loginData.email || ''
     };
 
     const authSuccess = storeAuthData(
@@ -636,52 +663,73 @@ const LoginForm = () => {
       await postQuery({
         url: authAPI.local.login,
         postData: loginData,
-        onSuccess: (res: ILoginResponse) => {
+        onSuccess: (res: any) => { // Use any to handle both response structures
           console.log('Login response:', res);
-          console.log('User data:', res.data);
-          console.log('User role:', res.data?.role);
-          console.log('Email verified:', res.data?.email_verified);
+          
+          // Add safety checks for response structure
+          if (!res || !res.data) {
+            console.error('Invalid response structure:', res);
+            toast.error("Invalid response from server. Please try again.");
+            return;
+          }
+          
+          // Handle both response structures - nested user object or flat structure
+          const isNestedStructure = res.data && 'user' in res.data && res.data.user;
+          const userData = isNestedStructure ? res.data.user : res.data;
+          const token = isNestedStructure ? res.data.token : res.data.access_token;
+          const refreshToken = isNestedStructure ? res.data.session_id : res.data.refresh_token;
+          
+          console.log('User data:', userData);
+          console.log('User role:', userData?.role);
+          console.log('Email verified:', userData?.email_verified);
+
+          // Additional safety check for userData
+          if (!userData || !userData.id || !userData.email) {
+            console.error('Missing required user data:', userData);
+            toast.error("Incomplete user data received. Please try again.");
+            return;
+          }
 
           // Check if email verification is required
           // Configuration: Set this to true to skip email verification entirely
           const SKIP_EMAIL_VERIFICATION_FOR_ALL = false;
           
           // Skip email verification for admin users or if it's a special case
-          const userRole = getUserRoleFromToken(res.data.access_token) || '';
+          const userRole = getUserRoleFromToken(token) || '';
           const isAdmin = ['admin', 'super-admin', 'administrator'].includes(userRole.toLowerCase());
           const shouldSkipVerification = SKIP_EMAIL_VERIFICATION_FOR_ALL || 
                                        isAdmin || 
-                                       res.data?.email_verified !== false;
+                                       userData?.email_verified !== false;
           
           console.log('Email verification check:', {
-            email_verified: res.data?.email_verified,
+            email_verified: userData?.email_verified,
             userRole,
             isAdmin,
             shouldSkipVerification
           });
           
-          if (res.data?.email_verified === false && !shouldSkipVerification) {
+          if (userData?.email_verified === false && !shouldSkipVerification) {
             // User needs to verify email first
             const mockLoginData = {
-              id: res.data.id || '',
-              email: res.data.email || data.email,
-              full_name: res.data.full_name || '',
-              role: res.data.role || [userRole], // Use role from response or detected role
-              permissions: res.data.permissions || [],
-              access_token: res.data.access_token || '',
-              refresh_token: res.data.refresh_token || '',
+              id: userData.id || '',
+              email: userData.email || data.email,
+              full_name: userData.full_name || '',
+              role: userData.role || [userRole], // Use role from response or detected role
+              permissions: userData.permissions || [],
+              access_token: token || '',
+              refresh_token: refreshToken || '',
               emailVerified: false
             };
             
             setPendingLoginData(mockLoginData);
-            setVerificationEmail(res.data.email || data.email);
+            setVerificationEmail(userData.email || data.email);
             setCurrentStep(2);
             setShowOTPVerification(true);
             
             // Send verification email
             postQuery({
               url: authAPI.local.resendVerification,
-              postData: { email: res.data.email || data.email },
+              postData: { email: userData.email || data.email },
               requireAuth: false,
               onSuccess: () => {
                 toast.info("Please verify your email. A verification code has been sent to your inbox.");
@@ -697,14 +745,14 @@ const LoginForm = () => {
 
           // Email is verified, proceed with normal login
           const loginResponseData: LoginResponseData = {
-            id: res.data.id,
-            email: res.data.email,
-            full_name: res.data.full_name,
-            role: res.data.role || [], // Extract role from API response
-            permissions: res.data.permissions || [],
-            access_token: res.data.access_token,
-            refresh_token: res.data.refresh_token,
-            emailVerified: res.data.email_verified
+            id: userData.id || '',
+            email: userData.email || '',
+            full_name: userData.full_name || '',
+            role: userData.role || [], // Extract role from API response
+            permissions: userData.permissions || [],
+            access_token: token || '',
+            refresh_token: refreshToken || '',
+            emailVerified: userData.email_verified
           };
 
           completeLoginProcess(loginResponseData);
