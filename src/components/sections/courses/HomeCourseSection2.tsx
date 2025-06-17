@@ -336,10 +336,10 @@ const getBlendedCourseSessions = (course: ICourse) => {
 // Simplified components
 const ViewAllButton = ({ href, text, isDark }: { href: string; text: string; isDark: boolean }) => (
   <Link href={href} 
-    className={`inline-flex items-center justify-center px-4 py-2 text-sm font-medium glass-stats glass-transition rounded-lg md:px-5 md:py-2.5 bg-gradient-to-r ${
+    className={`inline-flex items-center justify-center px-4 py-2 text-sm font-medium glass-transition rounded-lg md:px-5 md:py-2.5 border transition-all duration-300 ${
       isDark 
-        ? 'text-white from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600' 
-        : 'text-white from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600'
+        ? 'text-white bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 border-primary-500/30 shadow-lg hover:shadow-xl' 
+        : 'text-white bg-gradient-to-r from-[#379392] to-[#2563eb] hover:from-[#2d7a79] hover:to-[#1d4ed8] border-[#379392]/40 shadow-lg hover:shadow-xl hover:scale-105'
     }`}>
     <span>{text}</span>
     <ChevronRight size={16} className="ml-1" />
@@ -916,7 +916,11 @@ const HomeCourseSection2 = ({
       <div className="md:hidden mt-6 sm:mt-8 mb-8 sm:mb-12 flex justify-center px-3 sm:px-4 md:px-8 relative z-10">
         <Link
           href="/courses"
-          className="glass-stats glass-transition w-full max-w-md px-6 py-4 flex items-center justify-center text-white font-medium rounded-lg bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600"
+          className={`w-full max-w-md px-6 py-4 flex items-center justify-center text-white font-medium rounded-lg border transition-all duration-300 ${
+            isDark 
+              ? 'bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 border-primary-500/30 shadow-lg hover:shadow-xl' 
+              : 'bg-gradient-to-r from-[#379392] to-[#2563eb] hover:from-[#2d7a79] hover:to-[#1d4ed8] border-[#379392]/40 shadow-lg hover:shadow-xl hover:scale-105'
+          }`}
           onClick={scrollToTop}
         >
           <span>View All Courses</span>

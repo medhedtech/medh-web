@@ -726,8 +726,58 @@ const CourseCard = ({
   };
 
   const navigateToCourse = () => {
+    // For live courses, redirect to enrollment page
+    if (isLiveCourse) {
+      // Create enrollment URL slug from course title
+      let enrollmentSlug = '';
+      
+      console.log('Course data for enrollment:', { 
+        url: course?.url, 
+        title: course?.course_title,
+        course: course 
+      });
+      
+      if (course?.course_title) {
+        const title = course.course_title.toLowerCase();
+        
+        // Specific course mappings for exact URLs
+        if (title.includes('ai') && title.includes('data science')) {
+          enrollmentSlug = 'ai-and-data-science';
+        } else if (title.includes('digital marketing')) {
+          enrollmentSlug = 'digital-marketing';
+        } else if (title.includes('personality development')) {
+          enrollmentSlug = 'personality-development';
+        } else if (title.includes('vedic mathematics')) {
+          enrollmentSlug = 'vedic-mathematics';
+        } else {
+          // Generic slug generation for other courses
+          enrollmentSlug = course.course_title
+            .toLowerCase()
+            .replace(/[^a-z0-9\s&-]/g, '') // Keep & character
+            .replace(/&/g, 'and') // Replace & with "and"
+            .replace(/\s+/g, '-') // Replace spaces with hyphens
+            .replace(/-+/g, '-') // Remove multiple consecutive hyphens
+            .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+        }
+        
+        console.log('Generated slug:', enrollmentSlug);
+      }
+      
+      // Ensure we have a valid slug before redirecting
+      if (enrollmentSlug && enrollmentSlug.length > 0) {
+        const enrollmentUrl = `/enrollment/${enrollmentSlug}/`;
+        console.log('Redirecting to:', enrollmentUrl);
+        window.location.href = enrollmentUrl;
+      } else {
+        console.log('No valid slug generated, falling back to course details');
+        // Fallback to course details if no slug can be created
+        if (course?._id) {
+          window.open(`/course-details/${course._id}`, '_blank');
+        }
+      }
+    }
     // For courses with URL, navigate to that URL
-    if (course?.url) {
+    else if (course?.url) {
       window.location.href = course.url;
     } 
     // For other courses, we navigate to the course details page
@@ -1582,17 +1632,12 @@ const CourseCard = ({
                               <CheckCircle size={10} className="mr-1" />
                               Assignments
                             </span>
-                          </>
+                                                    </>
                         )}
-                        {isLiveCourse && course?.course_duration && (typeof course.course_duration === 'string' && course.course_duration.toLowerCase().includes('18')) ? (
+                        {isLiveCourse && course?.course_duration && (typeof course.course_duration === 'string' && course.course_duration.toLowerCase().includes('18')) && (
                           <span className="inline-flex items-center px-2 py-1 rounded-md bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 text-xs font-medium">
                             <CheckCircle size={10} className="mr-1" />
                             Corporate Internship
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2 py-1 rounded-md bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 text-xs font-medium">
-                            <CheckCircle size={10} className="mr-1" />
-                            Job Assistance
                           </span>
                         )}
                       </>

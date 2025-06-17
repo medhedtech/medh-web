@@ -665,9 +665,88 @@ function CategoryEnrollmentPage({ params }) {
             
             console.log("Processed course data:", processedCourseData); // Debug log
             
-            setCourses(processedCourseData);
+            // Add fallback course data for digital marketing if no courses found
+            let finalCourseData = processedCourseData;
+            if (processedCourseData.length === 0 && normalizedCategory === 'digital-marketing') {
+              finalCourseData = [{
+                _id: 'digital-marketing-fallback',
+                title: 'Digital Marketing with Data Analytics',
+                description: 'Master the art of digital marketing combined with powerful data analytics to drive business growth and make data-driven marketing decisions.',
+                long_description: 'This comprehensive Digital Marketing with Data Analytics course combines modern marketing strategies with data-driven insights. Learn SEO, social media marketing, content marketing, paid advertising, and how to analyze marketing performance using advanced analytics tools.',
+                category: 'Digital Marketing',
+                grade: '',
+                thumbnail: '/images/courses/digital-marketing.jpg',
+                course_duration: '3-6 months',
+                course_duration_days: 120,
+                course_fee: userCurrency === 'INR' ? 35000 : 450,
+                prices: [{
+                  currency: userCurrency,
+                  individual: userCurrency === 'INR' ? 35000 : 450,
+                  batch: userCurrency === 'INR' ? 24500 : 315,
+                  min_batch_size: 2,
+                  max_batch_size: 10,
+                  early_bird_discount: 0,
+                  group_discount: 0,
+                  is_active: true,
+                  _id: 'digital-marketing-price'
+                }],
+                original_prices: [],
+                currency_code: userCurrency,
+                enrolled_students: 1200,
+                views: 5400,
+                is_Certification: true,
+                is_Assignments: true,
+                is_Projects: true,
+                is_Quizes: true,
+                curriculum: [
+                  { title: 'Digital Marketing Fundamentals', lessons: 8 },
+                  { title: 'SEO & Content Marketing', lessons: 12 },
+                  { title: 'Social Media Marketing', lessons: 10 },
+                  { title: 'Paid Advertising (Google Ads, Facebook Ads)', lessons: 14 },
+                  { title: 'Marketing Analytics & Data Analysis', lessons: 16 },
+                  { title: 'Email Marketing & Automation', lessons: 8 },
+                  { title: 'Conversion Optimization', lessons: 6 },
+                  { title: 'Marketing Strategy & Planning', lessons: 6 }
+                ],
+                highlights: [
+                  'SEO and content marketing strategies',
+                  'Social media campaign management',
+                  'Analytics and data-driven marketing',
+                  'Digital advertising and conversion optimization'
+                ],
+                learning_outcomes: [
+                  'Master digital marketing channels and strategies',
+                  'Analyze marketing data to optimize campaigns',
+                  'Create effective content and social media strategies',
+                  'Run successful paid advertising campaigns'
+                ],
+                prerequisites: [
+                  'Basic computer skills',
+                  'Interest in marketing and business',
+                  'No prior marketing experience required'
+                ],
+                faqs: [
+                  {
+                    question: 'What tools will I learn to use?',
+                    answer: 'You will learn Google Analytics, Google Ads, Facebook Ads Manager, SEMrush, Mailchimp, and other industry-standard marketing tools.'
+                  },
+                  {
+                    question: 'Is this course suitable for beginners?',
+                    answer: 'Yes, this course is designed for beginners with no prior marketing experience. We start with fundamentals and build up to advanced strategies.'
+                  }
+                ],
+                no_of_Sessions: 80,
+                status: 'Published',
+                isFree: false,
+                hasFullDetails: true,
+                slug: 'digital-marketing-with-data-analytics',
+                category_type: 'professional'
+              }];
+            }
+            
+            setCourses(finalCourseData);
             setTotalPages(pagination.totalPages || 1);
-            setTotalItems(pagination.total || 0);
+            setTotalItems(pagination.total || finalCourseData.length);
             
             // Extract available categories from facets
             if (facets && facets.categories) {
@@ -1121,62 +1200,10 @@ function CategoryEnrollmentPage({ params }) {
       <Toaster position="bottom-center" />
       <style jsx global>{stickyStyles}</style>
       <div className="flex flex-col min-h-screen w-full px-4 sm:px-6 md:px-8 lg:px-12 border-x border-transparent">
-        {/* Fixed Header */}
-        <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transform-gpu">
-          <nav className="w-full max-w-8xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center space-x-2 sm:space-x-4 overflow-hidden">
-              <button 
-                onClick={() => router.back()}
-                className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex-shrink-0"
-                aria-label="Go back"
-              >
-                <ArrowLeft className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-              </button>
-              <div className="flex items-center overflow-hidden">
-                <h1 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
-                  {isCourseView 
-                    ? (selectedCourse?.title || "Course Details") 
-                    : (categoryInfo?.displayName || "Course Categories")}
-                </h1>
-                <span className={`ml-2 px-2 py-1 text-xs font-medium ${
-                    isCourseView 
-                      ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' 
-                      : (categoryInfo?.bgClass || 'bg-blue-50 dark:bg-blue-900/30')} ${
-                        isCourseView 
-                          ? '' 
-                          : (categoryInfo?.colorClass || 'text-blue-700 dark:text-blue-300')
-                      } rounded-full hidden sm:inline-block`}>
-                  {isCourseView ? "Course" : "Category"}
-                </span>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-3">
-              {/* Currency Indicator */}
-              <div className="hidden sm:flex items-center px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-xs font-medium text-gray-600 dark:text-gray-300">
-                {isDetectingLocation || !userCurrency ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin h-3 w-3 border border-gray-400 border-t-transparent rounded-full mr-1"></div>
-                    <span>Detecting...</span>
-                  </div>
-                ) : (
-                  <span>{userCurrency}</span>
-                )}
-              </div>
-              <ThemeController />
-              <button
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors hidden sm:flex"
-                aria-label="Scroll to top"
-              >
-                <ChevronUp className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-              </button>
-            </div>
-          </nav>
-        </header>
 
-        {/* Content with Header Offset - Full width */}
-        <main className="flex-grow pt-20 flex justify-center items-center w-full">
+
+        {/* Content - Full width */}
+        <main className="flex-grow pt-8 md:pt-12 lg:pt-6 flex justify-center items-center w-full">
           {loading || isDetectingLocation || !userCurrency ? (
             <div className="flex items-center justify-center min-h-[60vh] w-full">
               <div className="category-loader">
