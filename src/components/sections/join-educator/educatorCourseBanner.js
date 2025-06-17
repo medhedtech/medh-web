@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from "framer-motion";
 import CourseBanner from "@/components/course-banner/courseBanner";
-import CourseBannerImg from "@/assets/images/personality/coursebannerimg.png";
+import CourseBannerImg from "@/assets/images/personality/coursebannerimg.jpg";
 import DotIcon from "@/assets/images/corporate-training/dot-icon.svg";
 
 function EducatorCourseBanner() {

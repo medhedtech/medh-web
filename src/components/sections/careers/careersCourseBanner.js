@@ -3,7 +3,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import CourseBanner from "@/components/course-banner/courseBanner";
-import CourseBannerImg from "@/assets/images/personality/coursebannerimg.png";
+import CourseBannerImg from "@/assets/images/personality/coursebannerimg.jpg";
 import VerticalIcon from "@/assets/images/news-media/vertical-white.svg";
 
 const courses = [
