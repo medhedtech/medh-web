@@ -122,7 +122,7 @@ const AddCoorporate_Admin = () => {
         },
         onSuccess: () => {
           setShowCoorporateListing(true);
-          toast.success("Corporate user added successfully!");
+          showToast.success("Corporate user added successfully!");
           reset();
         },
         onError: () => {

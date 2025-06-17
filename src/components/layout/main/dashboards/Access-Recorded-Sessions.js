@@ -213,7 +213,7 @@ const StudentRecordedSessions = () => {
               
               setRecordedSessions(processedData);
               
-              toast.success("Recorded sessions refreshed successfully");
+              showToast.success("Recorded sessions refreshed successfully");
             } else {
               toast.warning("No recorded sessions found");
             }

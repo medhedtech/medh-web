@@ -8,7 +8,7 @@ import {
   Facebook, Instagram, Linkedin, Twitter, Youtube, Github
 } from 'lucide-react';
 import { getComprehensiveUserProfile, updateCurrentUserComprehensiveProfile } from '@/apis/profile.api';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 
 // Interfaces
 interface ComprehensiveProfile {
@@ -318,8 +318,8 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       const response = await updateCurrentUserComprehensiveProfile(updateData);
       
       if (response.data) {
-        toast.dismiss(); // Dismiss any existing toasts
-        toast.success('Profile updated successfully!');
+        showToast.dismiss(); // Dismiss any existing toasts
+        showshowToast.success('Profile updated successfully!', { groupKey: 'profile-update' });
         
         // Auto-refresh the profile data using the centralized fetchProfile function
         await fetchProfile();
@@ -346,15 +346,15 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
         
         // If validation errors, show them
         if (errorObj?.response?.data?.errors && Array.isArray(errorObj.response.data.errors)) {
-          toast.dismiss(); // Dismiss any existing toasts
+          showToast.dismiss(); // Dismiss any existing toasts
           errorObj.response.data.errors.forEach((err: any) => {
-            toast.error(`${err.field}: ${err.message}`);
+            showToast.error(`${err.field}: ${err.message}`, { groupKey: 'profile-validation' });
           });
         }
       }
       
-      toast.dismiss(); // Dismiss any existing toasts
-      toast.error(errorMessage);
+      showToast.dismiss(); // Dismiss any existing toasts
+      showToast.error(errorMessage, { groupKey: 'profile-update' });
     } finally {
       setSaving(false);
     }
@@ -547,8 +547,8 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
           
           // Show success message only if it's a manual refresh (not initial load)
           if (profile) {
-            toast.dismiss(); // Dismiss any existing toasts
-            toast.success('Profile data refreshed successfully!');
+            showToast.dismiss(); // Dismiss any existing toasts
+            showshowToast.success('Profile data refreshed successfully!', { groupKey: 'profile-refresh' });
           }
         } else {
           const errorMessage = serverResponse?.message || 'Failed to load profile data';
@@ -557,8 +557,8 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       } catch (error) {
         console.error('Error fetching profile:', error);
         setError('Failed to load profile data. Please try again.');
-        toast.dismiss(); // Dismiss any existing toasts
-        toast.error('Failed to refresh profile data. Please try again.');
+        showToast.dismiss(); // Dismiss any existing toasts
+        showToast.error('Failed to refresh profile data. Please try again.', { groupKey: 'profile-refresh' });
       } finally {
         setLoading(false);
         setRefreshing(false);

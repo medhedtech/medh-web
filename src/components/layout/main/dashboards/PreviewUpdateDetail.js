@@ -34,7 +34,7 @@ export default function UpdateCoursePreview() {
           try {
             localStorage.removeItem("courseData");
             router.push("/dashboards/admin-listofcourse");
-            toast.success("Course Updated successfully!");
+            showToast.success("Course Updated successfully!");
           } catch (error) {
             console.error("Error in onSuccess callback:", error);
             toast.error("Error during success callback.");

@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiUrls } from '@/apis';
 import useGetQuery from './getQuery.hook';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 
 // ----------------------
 // Type Definitions
@@ -156,7 +156,7 @@ export const useBlog = (blogId: string = '') => {
 
       if (response?.success) {
         setBlogData(prev => prev ? { ...prev, likes: prev.likes + 1 } : prev);
-        toast.success('Blog liked!');
+        showToast.success('Blog liked!');
         return true;
       }
       throw new Error("Failed to like blog");
@@ -203,7 +203,7 @@ export const useBlog = (blogId: string = '') => {
             commentCount: prev.commentCount + 1
           };
         });
-        toast.success('Comment added successfully!');
+        showToast.success('Comment added successfully!');
         return true;
       }
       throw new Error("Failed to add comment");

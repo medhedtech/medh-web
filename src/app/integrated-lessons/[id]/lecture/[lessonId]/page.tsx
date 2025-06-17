@@ -346,7 +346,7 @@ const IntegratedLessonPage = () => {
       const newBookmarks = [...prev, bookmark];
       // Save to localStorage
       localStorage.setItem(`video-bookmarks-${lessonId}`, JSON.stringify(newBookmarks));
-      toast.success(`Bookmark added at ${formatTime(bookmark.time)}`);
+      showToast.success(`Bookmark added at ${formatTime(bookmark.time)}`);
       return newBookmarks;
     });
   };
@@ -691,7 +691,7 @@ const IntegratedLessonPage = () => {
                   courseId={courseId}
                   meta={lessonData?.meta || {}}
                   onSubmit={(submission) => {
-                    toast.success("Assignment submitted successfully!");
+                    showToast.success("Assignment submitted successfully!");
                   }}
                 />
               </div>

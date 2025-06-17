@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 import { BlogData } from '@/hooks/useBlog.hook';
 import { useBlog } from '@/hooks/useBlog.hook';
 import { Heart, Share2, MessageCircle, Clock, Tag, ChevronRight, AlertCircle } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 
 interface BlogDetailsMainProps {
   blog: BlogData;

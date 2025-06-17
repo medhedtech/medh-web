@@ -224,7 +224,7 @@ export default function CourseView() {
                       <button 
                         onClick={() => {
                           // Handle enrollment action
-                          toast.success("Enrollment feature coming soon!");
+                          showToast.success("Enrollment feature coming soon!");
                         }} 
                         className="w-full py-3 px-4 rounded-lg font-medium text-white transition-all bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700"
                       >

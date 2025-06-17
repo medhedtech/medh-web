@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import Image from 'next/image';
 import { 
   Search, 
@@ -147,7 +147,7 @@ const BatchAssignment: React.FC = () => {
       const response = await batchAPI.updateBatchStatus(batchId, newStatus);
       
       if ((response as any)?.data) {
-        toast.success(`Batch status updated to ${newStatus} successfully`);
+        showToast.success(`Batch status updated to ${newStatus} successfully`);
         
         // Update the batch in local state
         setBatches(prev => prev.map(batch => 
@@ -311,7 +311,7 @@ const BatchAssignment: React.FC = () => {
           url: `${apiUrls.batches.deleteBatch}/${batch._id}`,
           postData: {},
           onSuccess: () => {
-            toast.success('Batch deleted successfully');
+            showToast.success('Batch deleted successfully');
             // Remove batch from state
             setBatches(prev => prev.filter(b => b._id !== batch._id));
           },
@@ -354,7 +354,7 @@ const BatchAssignment: React.FC = () => {
           url: `${apiUrls.batches.updateBatch}/${selectedBatch._id}`,
           postData: batchData,
           onSuccess: () => {
-            toast.success('Batch updated successfully');
+            showToast.success('Batch updated successfully');
             
             // Update batch in state
             setBatches(prev => prev.map(b => 
@@ -375,7 +375,7 @@ const BatchAssignment: React.FC = () => {
           url: apiUrls.batches.createBatch,
           postData: batchData,
           onSuccess: (response) => {
-            toast.success('Batch created successfully');
+            showToast.success('Batch created successfully');
             
             // Add new batch to state
             const newBatch = {

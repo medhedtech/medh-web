@@ -204,7 +204,7 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
 
         setBlogImage(cleanData);
         setValue("upload_image", cleanData.url);
-        toast.success("Image uploaded successfully!");
+        showToast.success("Image uploaded successfully!");
       } catch (error) {
         console.error('Error processing upload response:', error, response);
         toast.error("Error processing uploaded image. Please try again.");
@@ -526,13 +526,13 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
           
           // Show enhanced success message
           if (result && (result.wordCount || result.readingTime)) {
-            toast.success(
+            showToast.success(
               `🎉 AI Content Generated Successfully!\n` +
               `📊 ${result.wordCount || response.data.wordCount || 0} words • ${result.readingTime || response.data.readingTime || 2} min read\n` +
               `✨ Content, tags, and metadata populated automatically!`
             );
           } else {
-            toast.success("Content generated successfully! ✨");
+            showToast.success("Content generated successfully! ✨");
           }
         } else {
           // Fallback for old response format
@@ -559,7 +559,7 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
           // Trigger form validation
           await trigger();
           
-          toast.success("Content generated successfully! ✨");
+          showToast.success("Content generated successfully! ✨");
         }
       } else {
         throw new Error(response.message || 'Failed to generate content');
@@ -684,7 +684,7 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
           const wordCount = response.data.wordCount || 0;
           const readingTime = response.data.readingTime || 2;
           
-          toast.success(
+          showToast.success(
             `🔄 Content Regenerated Successfully!\n` +
             `📊 ${wordCount} words • ${readingTime} min read\n` +
             `✨ Fresh perspective with new approach!`
@@ -700,7 +700,7 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
           // Store in history
           setGeneratedContentHistory(prev => [cleanedContent, ...prev.slice(0, 4)]);
           
-          toast.success("Content regenerated with a fresh perspective! ✨");
+          showToast.success("Content regenerated with a fresh perspective! ✨");
         }
       } else {
         throw new Error(response.message || 'Failed to regenerate content');
@@ -747,14 +747,14 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
         // Show enhanced success message with metadata
         if (result) {
           const { metadata, helpers } = result;
-          toast.success(
+          showToast.success(
             `🎉 Complete Blog Generated Successfully!\n` +
             `📊 ${metadata?.wordCount || 0} words • ${helpers?.estimatedReadTime || '2 min read'}\n` +
             `🎯 SEO Score: ${helpers?.seoScore || 0}/100 • ${helpers?.publishReady ? '✅ Ready to publish!' : '⚠️ Needs review'}\n` +
             `🏷️ ${metadata?.tagCount || 0} tags • ${metadata?.seoKeywordCount || 0} SEO keywords`
           );
         } else {
-          toast.success("Blog generated successfully! ✨");
+          showToast.success("Blog generated successfully! ✨");
         }
         
         setShowPromptGenerator(false);
@@ -776,7 +776,7 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
         setGeneratedContentHistory(prev => [content, ...prev.slice(0, 4)]);
         await trigger();
         
-        toast.success("Blog generated successfully from your prompt! ✨");
+        showToast.success("Blog generated successfully from your prompt! ✨");
         setShowPromptGenerator(false);
         setAiPrompt('');
       } else {
@@ -834,7 +834,7 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
           'x-access-token': authState.token
         },
         onSuccess: () => {
-          toast.success("Blog created successfully! 🎉");
+          showToast.success("Blog created successfully! 🎉");
           resetForm();
           if (onCancel) {
             onCancel();

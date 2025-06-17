@@ -85,7 +85,7 @@ const AddCategories = ({ selectedCategory }) => {
           },
           onSuccess: () => {
             setShowCategoryListing(true);
-            toast.success("Category updated successfully!");
+            showToast.success("Category updated successfully!");
             reset();
           },
           onFail: (error) => {
@@ -111,7 +111,7 @@ const AddCategories = ({ selectedCategory }) => {
           },
           onSuccess: () => {
             setShowCategoryListing(true);
-            toast.success("Category added successfully!");
+            showToast.success("Category added successfully!");
             reset();
           },
           onFail: (error) => {

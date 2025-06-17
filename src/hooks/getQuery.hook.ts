@@ -5,7 +5,7 @@ import axios, { AxiosRequestConfig, AxiosResponse, AxiosError, CancelTokenSource
 import { apiClient } from '../apis/apiClient';
 import apiWithAuth from '../utils/apiWithAuth';
 import { getAuthToken } from '../utils/auth';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { logger } from '../utils/logger';
 
 // Response cache to avoid duplicate requests
@@ -371,7 +371,7 @@ export function useGetQuery<T = any>(
         
         // Show success toast if configured
         if (showToast && successMessage) {
-          toast.success(successMessage);
+          showToast.success(successMessage);
         }
         
         // Debug logging

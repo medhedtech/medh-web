@@ -62,7 +62,7 @@ const CoorporateTableStudent = () => {
         postData: {},
         onSuccess: (response) => {
           const { student } = response;
-          toast.success(
+          showToast.success(
             `${student?.full_name}'s status changed to ${student?.status}.`
           );
           // setUpdateStatus(id);

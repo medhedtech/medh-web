@@ -394,7 +394,7 @@ const LoginForm = () => {
       }
     } else {
       // Fallback: redirect to login
-      toast.success("Email verified successfully! Please log in again.");
+      showToast.success("Email verified successfully! Please log in again.");
       handleBackFromVerification();
     }
   };
@@ -512,7 +512,7 @@ const LoginForm = () => {
     const operations = [
       () => storageManager.login(storageData),
       () => events.login(userRole || 'user'),
-      () => toast.success(`Welcome back, ${fullName || 'User'}!`, { autoClose: 1500 }) // Shorter toast duration
+      () => showToast.success(`Welcome back, ${fullName || 'User'}!`, { autoClose: 1500 }) // Shorter toast duration
     ];
 
     // Execute operations in parallel
@@ -609,7 +609,7 @@ const LoginForm = () => {
               const operations = [
                 () => storageManager.login(storageData),
                 () => events.login(`${provider}_oauth`),
-                () => toast.success(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login successful!`, { autoClose: 1500 })
+                () => showToast.success(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login successful!`, { autoClose: 1500 })
               ];
               
               operations.forEach(op => {

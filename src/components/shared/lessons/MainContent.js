@@ -10,7 +10,7 @@ import {
   User,
   Send
 } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 
 const OverviewTab = ({ lessonData }) => {
   if (!lessonData?.description) {
@@ -163,7 +163,7 @@ const NotesTab = ({ lessonId }) => {
     saveTimeoutRef.current = setTimeout(() => {
       localStorage.setItem(`lesson-${lessonId}-notes`, newNotes);
       setIsSaving(false);
-      toast.success('Notes saved successfully');
+      showToast.success('Notes saved successfully');
     }, 1000);
   };
 
@@ -235,7 +235,7 @@ const DiscussionTab = ({ lessonId }) => {
 
     setComments(prev => [comment, ...prev]);
     setNewComment('');
-    toast.success('Comment posted successfully');
+    showToast.success('Comment posted successfully');
   };
 
   if (isLoading) {

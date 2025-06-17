@@ -263,7 +263,7 @@ const AdminBlogs: React.FC = () => {
           }
 
           setBlogs(blogData);
-          toast.success(`Successfully loaded ${blogData.length} blogs`);
+          showToast.success(`Successfully loaded ${blogData.length} blogs`);
         },
         onFail: (err: any) => {
           console.error("API error:", err);
@@ -402,7 +402,7 @@ const AdminBlogs: React.FC = () => {
       await deleteQuery({
         url: apiUrls.Blogs.deleteBlog(id),
         onSuccess: (res: { message?: string }) => {
-          toast.success(res?.message || "Blog deleted successfully");
+          showToast.success(res?.message || "Blog deleted successfully");
           fetchBlogs();
           setSelectedBlogs(prev => {
             const newSet = new Set(prev);
@@ -475,7 +475,7 @@ const AdminBlogs: React.FC = () => {
 
     // Show results
     if (successCount > 0) {
-      toast.success(`Successfully deleted ${successCount} blogs`);
+      showToast.success(`Successfully deleted ${successCount} blogs`);
     }
     
     if (failCount > 0) {
@@ -509,7 +509,7 @@ const AdminBlogs: React.FC = () => {
         url: apiUrls.Blogs.toggleFeatured(blog._id),
         putData: { featured: newFeaturedStatus },
         onSuccess: () => {
-          toast.success(`Blog ${newFeaturedStatus ? 'featured' : 'unfeatured'} successfully`);
+          showToast.success(`Blog ${newFeaturedStatus ? 'featured' : 'unfeatured'} successfully`);
           fetchBlogs();
         },
         onFail: (error: any) => {
@@ -543,7 +543,7 @@ const AdminBlogs: React.FC = () => {
         url: apiUrls.Blogs.updateBlogStatus(blog._id),
         putData: { status: newStatus },
         onSuccess: () => {
-          toast.success(`Blog status updated to ${newStatus}`);
+          showToast.success(`Blog status updated to ${newStatus}`);
           fetchBlogs();
         },
         onFail: (error: any) => {
@@ -585,7 +585,7 @@ const AdminBlogs: React.FC = () => {
           
           console.log('Full blog data loaded for editing:', fullBlogData);
           setEditingBlog(fullBlogData);
-          toast.success("Blog loaded for editing!");
+          showToast.success("Blog loaded for editing!");
         },
         onFail: (error) => {
           console.error("Failed to fetch full blog data:", error);
@@ -704,7 +704,7 @@ const AdminBlogs: React.FC = () => {
         };
         
         setAiEnhancementProgress(currentProgress);
-        toast.success(`✅ Enhanced & Saved: ${currentBlog.title}`);
+        showToast.success(`✅ Enhanced & Saved: ${currentBlog.title}`);
         
         // Add delay between requests to avoid overwhelming the API
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -731,7 +731,7 @@ const AdminBlogs: React.FC = () => {
     };
     
     setAiEnhancementProgress(currentProgress);
-    toast.success(`🎉 AI Enhancement completed! ${currentProgress.successCount} blogs enhanced & saved, ${currentProgress.failureCount} failed.`);
+    showToast.success(`🎉 AI Enhancement completed! ${currentProgress.successCount} blogs enhanced & saved, ${currentProgress.failureCount} failed.`);
   };
 
   const pauseAiEnhancement = () => {
@@ -913,7 +913,7 @@ const AdminBlogs: React.FC = () => {
               whileTap={{ scale: 0.95 }}
               onClick={() => {
                 fetchBlogs();
-                toast.success("Data refreshed!");
+                showToast.success("Data refreshed!");
               }}
               className={`px-4 py-2 rounded-lg border transition-all flex items-center gap-2 ${
                 isDark 
@@ -1722,7 +1722,7 @@ const AdminBlogs: React.FC = () => {
                                     const blogUrl = `${window.location.origin}/blogs/${blog.slug}`;
                                     if (navigator.clipboard) {
                                       navigator.clipboard.writeText(blogUrl).then(() => {
-                                        toast.success("Blog URL copied to clipboard!");
+                                        showToast.success("Blog URL copied to clipboard!");
                                       }).catch(() => {
                                         // Fallback for older browsers
                                         const textArea = document.createElement('textarea');
@@ -1731,7 +1731,7 @@ const AdminBlogs: React.FC = () => {
                                         textArea.select();
                                         document.execCommand('copy');
                                         document.body.removeChild(textArea);
-                                        toast.success("Blog URL copied to clipboard!");
+                                        showToast.success("Blog URL copied to clipboard!");
                                       });
                                     } else {
                                       // Fallback for browsers without clipboard API
@@ -1741,7 +1741,7 @@ const AdminBlogs: React.FC = () => {
                                       textArea.select();
                                       document.execCommand('copy');
                                       document.body.removeChild(textArea);
-                                      toast.success("Blog URL copied to clipboard!");
+                                      showToast.success("Blog URL copied to clipboard!");
                                     }
                                     // Close dropdown
                                     const dropdown = e.currentTarget.closest('.absolute') as HTMLElement;

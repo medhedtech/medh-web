@@ -151,7 +151,7 @@ const AssignmentCard = ({
         postData: submissionData,
         onSuccess: () => {
           closeModal();
-          toast.success("Assignment Submitted Successfully!");
+          showToast.success("Assignment Submitted Successfully!");
         },
         onError: (error) => {
           console.error("Error submitting assignment:", error);

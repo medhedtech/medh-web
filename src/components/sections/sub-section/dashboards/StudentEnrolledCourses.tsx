@@ -382,7 +382,7 @@ const StudentEnrolledCourses: React.FC = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      toast.success(`Downloading ${fileName}`);
+      showToast.success(`Downloading ${fileName}`);
     } catch (err) {
       console.error("Error downloading file:", err);
       toast.error("Failed to download file. Please try again.");

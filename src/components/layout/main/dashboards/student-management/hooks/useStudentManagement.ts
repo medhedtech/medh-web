@@ -87,7 +87,7 @@ export const useStudentManagement = () => {
           setStudents(studentEntries);
           // Avoid redundant success toast if data is empty but request succeeded
           if (studentEntries.length > 0) {
-             toast.success("Students data refreshed successfully");
+             showToast.success("Students data refreshed successfully");
           } else {
              console.log("Fetched students successfully, but no matching entries found.");
           }
@@ -125,7 +125,7 @@ export const useStudentManagement = () => {
     deleteQuery({
       url: `${apiUrls?.user?.delete}/${id}`,
       onSuccess: (res) => {
-        toast.success(res?.message || "Student deleted successfully");
+        showToast.success(res?.message || "Student deleted successfully");
         setDeletedStudents(id);
       },
       onFail: (res) => {
@@ -143,7 +143,7 @@ export const useStudentManagement = () => {
         postData: {},
         onSuccess: (response) => {
           const { student } = response.data;
-          toast.success(
+          showToast.success(
             `${student?.full_name}'s status changed to ${student?.status}.`
           );
           setUpdateStatus((prev) => (prev === id ? `${id}-updated` : id));
@@ -217,7 +217,7 @@ export const useStudentManagement = () => {
             "Content-Type": "multipart/form-data",
           },
           onSuccess: () => {
-            toast.success("Students uploaded successfully!");
+            showToast.success("Students uploaded successfully!");
             fetchStudents(); // Refresh student list
           },
           onFail: (error) => {
@@ -264,7 +264,7 @@ export const useStudentManagement = () => {
       link.click();
       document.body.removeChild(link);
       
-      toast.success("Students exported successfully!");
+      showToast.success("Students exported successfully!");
     } catch (error) {
       console.error("Export error:", error);
       toast.error("Failed to export students");

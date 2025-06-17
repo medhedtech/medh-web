@@ -126,7 +126,7 @@ const AssignmentModal = ({ open, handleClose }) => {
           setPdfBrochures([]);
           setSelectedCourseId(null);
           handleClose();
-          toast.success("Assignment added successfully");
+          showToast.success("Assignment added successfully");
         },
         onError: (error) => {
           console.error("Error submitting assignment:", error);

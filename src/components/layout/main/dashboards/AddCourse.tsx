@@ -15,7 +15,7 @@ import ResourcePDFs from '@/components/course/steps/ResourcePDFs';
 import ToolsTechnologies from '@/components/course/steps/ToolsTechnologies';
 import BonusModules from '@/components/course/steps/BonusModules';
 import RelatedCourses from '@/components/course/steps/RelatedCourses';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { apiUrls } from "@/apis";
 import usePostQuery from "@/hooks/postQuery.hook";
 import useGetQuery from "@/hooks/getQuery.hook";
@@ -728,7 +728,7 @@ const AddCourse = () => {
         setHasSavedDraft(true);
         setHasUnsavedChanges(false);
         
-        toast.success('Draft saved successfully');
+        showToast.success('Draft saved successfully');
       } else {
         toast.error('Failed to save draft. Storage might be unavailable.');
       }
@@ -885,7 +885,7 @@ const AddCourse = () => {
                 });
                 // Re-validate the current step to clear any image-related validation messages
                 await checkStepValidation(currentStep);
-                toast.success('Image uploaded successfully');
+                showToast.success('Image uploaded successfully');
               } else {
                 console.error("Unexpected image upload response format:", response);
                 toast.error('Invalid image upload response format');
@@ -1146,7 +1146,7 @@ const AddCourse = () => {
           // Mark form as successfully submitted to bypass beforeunload warning
           formSubmittedSuccessfully.current = true;
           
-          toast.success(`Course "${courseData.course_title}" created successfully!`);
+          showToast.success(`Course "${courseData.course_title}" created successfully!`);
           
           // Clear the saved draft
           storageUtil.removeItem(STORAGE_KEY);

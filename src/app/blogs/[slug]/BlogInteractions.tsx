@@ -30,13 +30,13 @@ const BlogInteractions: React.FC<BlogInteractionsProps> = ({ blogId }) => {
 
   const fallbackShare = () => {
     navigator.clipboard.writeText(window.location.href);
-    toast.success('Blog link copied to clipboard!');
+    showToast.success('Blog link copied to clipboard!');
   };
 
   const handleBookmark = () => {
     // This would typically connect to a user's bookmarks in a real implementation
     // For now, just show a toast message
-    toast.success('Blog added to your bookmarks!');
+    showToast.success('Blog added to your bookmarks!');
     
     // You could save to localStorage as a simple implementation
     const bookmarks = JSON.parse(localStorage.getItem('blog-bookmarks') || '[]');

@@ -151,7 +151,7 @@ const FeedbackMain: React.FC = () => {
         feedback_title: data?.feedbackTitle,
       },
       onSuccess: () => {
-        toast.success("Feedback submitted successfully");
+        showToast.success("Feedback submitted successfully");
         resetFeedback();
       },
       onFail: (error: any) => {
@@ -170,7 +170,7 @@ const FeedbackMain: React.FC = () => {
         description: data?.complaintText,
       },
       onSuccess: () => {
-        toast.success("Complaint submitted successfully");
+        showToast.success("Complaint submitted successfully");
         resetComplaint();
       },
       onFail: (error: any) => {

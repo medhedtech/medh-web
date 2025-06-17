@@ -70,7 +70,7 @@ const ForgotPassword = () => {
             email: data?.email,
           },
           onSuccess: () => {
-            toast.success("Temporary password sent to your email.");
+            showToast.success("Temporary password sent to your email.");
             setEmailSent(true);
             setRecaptchaError(false);
           },
@@ -89,7 +89,7 @@ const ForgotPassword = () => {
             tempPassword: data?.tempPassword,
           },
           onSuccess: () => {
-            toast.success("Password verified.");
+            showToast.success("Password verified.");
             setTempPasswordVerified(true);
           },
           onFail: () => toast.error("Invalid password."),
@@ -108,7 +108,7 @@ const ForgotPassword = () => {
             confirmPassword: data?.confirmPassword,
           },
           onSuccess: () => {
-            toast.success("Password reset successful!");
+            showToast.success("Password reset successful!");
             router.push("/login");
           },
           onFail: () =>

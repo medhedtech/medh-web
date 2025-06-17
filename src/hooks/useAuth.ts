@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { apiBaseUrl } from '@/apis';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { getAuthToken, saveAuthToken, clearAuthToken, getRefreshToken, saveRefreshToken } from '@/utils/auth';
 import { jwtDecode } from 'jwt-decode';
 import { apiClient } from '@/apis';
@@ -194,14 +194,14 @@ const useAuth = () => {
         validateToken(response.data.token, false); // Don't update user from token since we have user data from login response
         setIsAuthenticated(true);
         setUser(response.data.user || null);
-        toast.success('Login successful');
+        showshowToast.success('Login successful', { groupKey: 'auth' });
         return true;
       } else {
         throw new Error('Invalid response from server');
       }
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || 'Login failed';
-      toast.error(errorMessage);
+              showToast.error(errorMessage, { groupKey: 'auth' });
       return false;
     } finally {
       setIsLoading(false);
@@ -222,7 +222,7 @@ const useAuth = () => {
         fetchUserProfile();
         return true;
       } else {
-        toast.error('Invalid or expired token');
+        showToast.error('Invalid or expired token', { groupKey: 'auth' });
         return false;
       }
     }
@@ -322,7 +322,7 @@ const useAuth = () => {
     setTokenInfo(null);
     setUser(null);
     hasAttemptedProfileFetch.current = false; // Reset profile fetch flag
-    toast.info('Logged out successfully');
+          showToast.info('Logged out successfully', { groupKey: 'auth' });
   }, []);
 
   /**

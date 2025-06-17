@@ -139,7 +139,7 @@ const CreateAnnouncement: React.FC = () => {
       const response = await createAnnouncement(submitData);
       
       if (response.status === 'success') {
-        toast.success(`Announcement ${status === 'draft' ? 'saved as draft' : 'published'} successfully!`);
+        showToast.success(`Announcement ${status === 'draft' ? 'saved as draft' : 'published'} successfully!`);
         
         // Reset form or redirect
         if (status === 'published') {

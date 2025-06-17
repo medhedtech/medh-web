@@ -77,7 +77,7 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
     onSuccess: (response: any) => {
       const imageUrl = typeof response.data === 'string' ? response.data : response.data?.url;
       setValue("upload_image", imageUrl);
-      toast.success("Image updated successfully!");
+      showToast.success("Image updated successfully!");
     },
     onError: (error) => toast.error("Image upload failed"),
     showToast: false
@@ -309,7 +309,7 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
           const wordCount = response.data.wordCount || Math.floor(cleanedContent.length / 5);
           const readingTime = Math.ceil(wordCount / 200);
           
-          toast.success(
+          showToast.success(
             `🎉 Content Enhanced Successfully!\n` +
             `📊 ${wordCount} words • ${readingTime} min read\n` +
             `✨ ${type === 'custom' ? 'Custom enhancement' : `${type.charAt(0).toUpperCase() + type.slice(1)} enhancement`} applied!`
@@ -396,7 +396,7 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
           const wordCount = response.data.wordCount || Math.floor(cleanedContent.length / 5);
           const readingTime = Math.ceil(wordCount / 200);
           
-          toast.success(
+          showToast.success(
             `🔄 Fresh Content Generated Successfully!\n` +
             `📊 ${wordCount} words • ${readingTime} min read\n` +
             `✨ Brand new content with latest information!`
@@ -504,7 +504,7 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
         putData: safeData,
         onSuccess: (response) => {
           console.log('Blog update response:', response);
-          toast.success("Blog updated successfully! 🎉");
+          showToast.success("Blog updated successfully! 🎉");
           // Convert categories back to the expected format for onSave
           const updatedBlog: IBlogData = {
             ...blog,
@@ -572,7 +572,7 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
                   console.log('Manually reloading content...');
                   setContent(blog.content || '');
                   setEditorKey(prev => prev + 1); // Force editor refresh
-                  toast.success('Content reloaded!');
+                  showToast.success('Content reloaded!');
                 }}
                 className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all ${
                   isDark ? 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/30' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
@@ -1115,7 +1115,7 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
                           console.log('Setting test content:', testContent.length, 'chars');
                           setContent(testContent);
                           setEditorKey(prev => prev + 1);
-                          toast.success('Test content added!');
+                          showToast.success('Test content added!');
                         }}
                         className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
                       >

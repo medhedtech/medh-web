@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import useAuth from '@/hooks/useAuth';
 import { useGetQuery } from '@/hooks/getQuery.hook';
 import { apiUrls } from '@/apis';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import PublishContent from "../../../shared/dashboards/PublishContent";
 import PendingContent from "../../../shared/dashboards/PendingContent";
 import DraftContent from "../../../shared/dashboards/DraftContent";

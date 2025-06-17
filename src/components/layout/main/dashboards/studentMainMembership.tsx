@@ -108,7 +108,7 @@ const StudentMainMembership: React.FC<StudentMainMembershipProps> = ({
             image: "/images/logo.png",
             handler: async function (response: any) {
               console.log("Payment Successful!");
-              toast.success("Payment Successful!");
+              showToast.success("Payment Successful!");
               renew(data.data.membership_id);
             },
             prefill: {

@@ -88,7 +88,7 @@ const AddCoorporateStudentForm = () => {
         },
         onSuccess: () => {
           setShowCoorporateStudentListing(true);
-          toast.success("Student added successfully!");
+          showToast.success("Student added successfully!");
           reset();
         },
         onFail: (error) => {

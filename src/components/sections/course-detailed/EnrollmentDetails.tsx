@@ -927,7 +927,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         description: paymentDescription,
         image: "/images/logo.png", // Use local image path instead of external URL
         handler: async function (response: any) {
-          toast.success("Payment Successful!");
+          showToast.success("Payment Successful!");
           
           // Add EMI info to payment response if applicable
           if (selectedInstallmentPlan && emiId) {
@@ -1057,7 +1057,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       );
       
       if (response.status === 201 || response.status === 200) {
-        toast.success("Successfully enrolled in the course!");
+        showToast.success("Successfully enrolled in the course!");
         // Update enrollment tracking
         await trackEnrollmentProgress(studentId, courseId);
         setIsSuccessModalOpen(true);
