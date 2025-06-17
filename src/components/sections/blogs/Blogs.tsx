@@ -20,12 +20,12 @@ interface IBlog {
   description?: string;
   upload_image?: string;
   featured_image?: string;
-  blog_link?: string | null;
+  blog_link?: string;
   slug?: string;
-  author?: {
-    _id: string;
-    email?: string;
+  author: {
+    _id?: string;
     name?: string;
+    email?: string;
   };
   createdAt?: string;
   reading_time?: number;
@@ -135,7 +135,11 @@ const Blogs: React.FC<IBlogsProps> = ({
               excerpt: blog.description 
                 ? (blog.description.length > 120 ? blog.description.substring(0, 120) + '...' : blog.description)
                 : `Discover insights about ${blog.title || 'this topic'}`,
-              author: blog.author?.name || blog.author?.email || "Medh Team",
+              author: {
+                _id: blog.author?._id || '',
+                name: blog.author?.name || blog.author?.email || "Medh Team",
+                email: blog.author?.email || ''
+              },
               createdAt: blog.createdAt,
               readTime: blog.reading_time ? `${blog.reading_time} min read` : "3 min read",
               category: blog.categories?.[0]?.category_name || blog.category || "Education",

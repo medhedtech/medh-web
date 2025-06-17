@@ -373,7 +373,7 @@ export const apiUrls = {
     },
     deleteCourse: (id: string): string => {
       if (!id) throw new Error('Course ID cannot be empty');
-      return `${apiBaseUrl}/courses/delete/${id}`;
+      return `${apiBaseUrl}/courses/${id}`;
     },
     searchSuggestions: (query: string): string => `${apiBaseUrl}/courses/search-suggestions?q=${encodeURIComponent(query)}`,
     getNewCourses: (options: {

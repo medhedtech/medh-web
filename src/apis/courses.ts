@@ -748,7 +748,7 @@ export const courseAPI = {
   deleteCourse: async (courseId: string) => {
     if (!courseId) throw new Error('Course ID cannot be empty');
     return apiClient.delete(
-      `${apiBaseUrl}/courses/delete/${courseId}`
+      `${apiBaseUrl}/courses/${courseId}`
     );
   },
 

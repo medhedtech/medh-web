@@ -34,7 +34,7 @@ import {
 import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiUrls } from "@/apis";
-import { useGetQuery, usePostQuery } from "@/hooks";
+import { useGetQuery, usePostQuery, useDeleteQuery } from "@/hooks";
 import { courseTypesAPI } from "@/apis/courses";
 import type { 
   ICollaborativeResponse, 
@@ -228,6 +228,7 @@ const ManageCoursesPage: React.FC = () => {
 
   const { getQuery } = useGetQuery();
   const { postQuery } = usePostQuery();
+  const { deleteQuery } = useDeleteQuery();
 
   // Fetch courses using the efficient /courses/get endpoint
   const fetchCourses = useCallback(async () => {
@@ -613,9 +614,8 @@ const ManageCoursesPage: React.FC = () => {
     setLoadingStates(prev => ({ ...prev, deleting: courseId }));
     
     try {
-      await postQuery({
-        url: `${apiUrls.courses.deleteCourse}/${courseId}`,
-        postData: {},
+      await deleteQuery({
+        url: apiUrls.courses.deleteCourse(courseId),
         requireAuth: true,
         onSuccess: () => {
           toast.success(`Course "${courseTitle}" deleted successfully!`);
@@ -659,9 +659,8 @@ const ManageCoursesPage: React.FC = () => {
       // Implement bulk operations based on your API
       for (const courseId of courseIds) {
         if (action === 'delete') {
-          await postQuery({
-            url: `${apiUrls.courses.deleteCourse}/${courseId}`,
-            postData: {},
+          await deleteQuery({
+            url: apiUrls.courses.deleteCourse(courseId),
             requireAuth: true,
             onSuccess: () => {},
             onFail: (error) => {
