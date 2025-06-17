@@ -2,10 +2,7 @@
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import ProfileImg from "@/assets/images/dashbord/profileImg.png";
-import useGetQuery from "@/hooks/getQuery.hook";
-import { apiUrls } from "@/apis";
 import { Loader, Mail, Phone, Calendar, UserCheck, Building, Hash, Briefcase, Edit2, ExternalLink } from "lucide-react";
-import { toast } from "react-toastify";
 
 const formatDate = (dateString) => {
   if (!dateString) return "N/A";
@@ -58,37 +55,98 @@ const SocialLink = ({ href, icon: Icon, label, color }) => (
 );
 
 const ProfileDetails = ({ onEditClick }) => {
-  const [studentId, setStudentId] = useState(null);
   const [profileData, setProfileData] = useState(null);
+  const [statsData, setStatsData] = useState(null);
   const [isImageLoading, setIsImageLoading] = useState(true);
-  const { getQuery, loading } = useGetQuery();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedUserId = localStorage.getItem("userId");
-      setStudentId(storedUserId);
-    }
+    const fetchProfileData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        if (!token) {
+          setError("Please log in to view your profile");
+          setLoading(false);
+          return;
+        }
+
+        // Fetch both profile and stats data
+        const [profileResponse, statsResponse] = await Promise.all([
+          fetch('/api/v1/profile/me', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+              'x-access-token': token
+            }
+          }),
+          fetch('/api/v1/profile/me/stats', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+              'x-access-token': token
+            }
+          })
+        ]);
+
+        // Handle profile response
+        if (profileResponse.ok) {
+          const profileResult = await profileResponse.json();
+          if (profileResult.success && profileResult.data?.user) {
+            setProfileData(profileResult.data.user);
+            console.log('✅ Profile data loaded successfully');
+          }
+        } else {
+          console.error('❌ Profile API error:', profileResponse.status);
+        }
+
+        // Handle stats response
+        if (statsResponse.ok) {
+          const statsResult = await statsResponse.json();
+          if (statsResult.success && statsResult.data?.statistics) {
+            setStatsData(statsResult.data.statistics);
+            console.log('✅ Stats data loaded successfully');
+          }
+        } else {
+          console.error('❌ Stats API error:', statsResponse.status);
+        }
+
+      } catch (error) {
+        console.error('❌ Error fetching profile data:', error);
+        setError('Failed to load profile data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfileData();
   }, []);
-
-  useEffect(() => {
-    if (studentId) {
-      getQuery({
-        url: `${apiUrls?.user?.getDetailsbyId}/${studentId}`,
-        onSuccess: (data) => {
-          setProfileData(data?.data);
-        },
-        onFail: (error) => {
-          console.error("Failed to fetch user details:", error);
-          toast.error("Failed to load profile data");
-        },
-      });
-    }
-  }, [studentId]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader className="w-8 h-8 animate-spin text-emerald-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400 mb-2">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
@@ -119,7 +177,7 @@ const ProfileDetails = ({ onEditClick }) => {
             <div className="absolute inset-0 bg-emerald-600 rounded-full animate-pulse" 
                  style={{ opacity: isImageLoading ? 1 : 0 }} />
             <Image
-              src={profileData?.user_image || ProfileImg}
+              src={profileData?.user_image?.url || ProfileImg}
               alt="Profile"
               width={128}
               height={128}
@@ -146,12 +204,12 @@ const ProfileDetails = ({ onEditClick }) => {
             <ProfileField 
               icon={Phone} 
               label="Phone Number" 
-              value={profileData?.phone_number} 
+              value={profileData?.phone_numbers?.[0]?.number || "N/A"} 
             />
             <ProfileField 
               icon={Calendar} 
               label="Date of Birth" 
-              value={profileData?.age ? formatDate(profileData.age) : "N/A"} 
+              value={profileData?.meta?.date_of_birth ? formatDate(profileData.meta.date_of_birth) : "N/A"} 
             />
             <ProfileField 
               icon={UserCheck} 

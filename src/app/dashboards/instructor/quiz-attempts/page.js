@@ -1,6 +1,6 @@
 import ProtectedPage from "@/app/protectedRoutes";
 import InstructorQuizAttemptsMain from "@/components/layout/main/dashboards/InstructorQuizAttemptsMain";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 
 import DashboardWrapper from "@/components/shared/wrappers/DashboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
@@ -14,9 +14,9 @@ const Instructor_Quiz_Attempts = () => {
       <PageWrapper>
         <main>
           <DashboardWrapper>
-            <DashboardContainer>
+            
               <InstructorQuizAttemptsMain />
-            </DashboardContainer>
+            
           </DashboardWrapper>
           
         </main>

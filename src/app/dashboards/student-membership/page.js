@@ -1,4 +1,4 @@
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 
 import StudentMembership from "@/components/layout/main/dashboards/studentMembership";
 import ProtectedPage from "@/app/protectedRoutes";
@@ -14,12 +14,12 @@ const Student_Membership = () => {
     <PageWrapper>
     <ProtectedPage>
       <main>
-        <DashboardContainer>
+        
           <div className="py-12">
           <ComingSoonPage />
           {/* <StudentMembership /> */}
           </div>
-        </DashboardContainer>
+        
         
       </main>
     </ProtectedPage>

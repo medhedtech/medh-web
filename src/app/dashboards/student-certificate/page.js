@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import CertificateCoursesEnroll from "@/components/layout/main/dashboards/CertificateCoursesEnroll";
 import ViewCertificate from "@/components/layout/main/dashboards/ViewCertificate";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 
 import ProtectedPage from "@/app/protectedRoutes";
@@ -21,7 +21,7 @@ const StudentCertificate = () => {
     <ProtectedPage >
       <PageWrapper>
       <main>
-        <DashboardContainer> 
+         
         <div className="py-24">
           {showCertificate ? (
             <div className="px-6 pb-4">
@@ -34,7 +34,7 @@ const StudentCertificate = () => {
             />
           )}
           </div>
-        </DashboardContainer>
+        
       </main>
 
       </PageWrapper>

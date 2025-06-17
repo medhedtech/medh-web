@@ -1044,6 +1044,32 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       ]
     },
     {
+      name: "Communication",
+      icon: <MessageCircle className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Announcements",
+          path: formatRoute("admin", "announcements"),
+          icon: <Bell className="w-4 h-4" />
+        },
+        {
+          name: "Manage Announcements",
+          path: formatRoute("admin", "announcements-manage"),
+          icon: <Megaphone className="w-4 h-4" />
+        },
+        {
+          name: "Create Announcement",
+          path: formatRoute("admin", "announcements-create"),
+          icon: <Plus className="w-4 h-4" />
+        },
+        {
+          name: "Notification Settings",
+          path: formatRoute("admin", "notification-settings"),
+          icon: <Settings className="w-4 h-4" />
+        }
+      ]
+    },
+    {
       name: "Forms & Queries",
       icon: <ClipboardList className="w-5 h-5" />,
       subItems: [

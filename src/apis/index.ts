@@ -2,6 +2,12 @@
 
 // Import apiBaseUrl from config to avoid circular dependencies
 import { apiBaseUrl } from './config';
+
+// Import authentication interfaces and functions
+export * from './auth.api';
+
+// Import profile management interfaces and functions
+export * from './profile.api';
 export { apiBaseUrl };
 
 import { IUpdateCourseData } from '@/types/course.types';
@@ -434,6 +440,223 @@ export const apiUrls = {
     resetPassword: "/auth/reset-password",
     verifyEmail: '/auth/verify-email',
     resendOTP: '/auth/resend-verification',
+  },
+  
+  // 🔐 COMPREHENSIVE AUTHENTICATION API
+  auth: {
+    // Base authentication endpoints
+    base: `${apiBaseUrl}/auth`,
+    
+    // 1. Local Authentication (JWT)
+    local: {
+      register: `${apiBaseUrl}/auth/register`,
+      verifyEmail: `${apiBaseUrl}/auth/verify-email`,
+      resendVerification: `${apiBaseUrl}/auth/resend-verification`,
+      login: `${apiBaseUrl}/auth/login`,
+      refreshToken: `${apiBaseUrl}/auth/refresh-token`,
+      logout: `${apiBaseUrl}/auth/logout`,
+      forgotPassword: `${apiBaseUrl}/auth/forgot-password`,
+      resetPassword: `${apiBaseUrl}/auth/reset-password`,
+      changePassword: `${apiBaseUrl}/auth/change-password`,
+      verifyToken: `${apiBaseUrl}/auth/verify-token`,
+    },
+    
+    // 2. OAuth Social Login
+    oauth: {
+      base: `${apiBaseUrl}/auth/oauth`,
+      providers: `${apiBaseUrl}/auth/oauth/providers`,
+      
+      // OAuth flow endpoints
+      google: `${apiBaseUrl}/auth/oauth/google`,
+      googleCallback: `${apiBaseUrl}/auth/oauth/google/callback`,
+      
+      facebook: `${apiBaseUrl}/auth/oauth/facebook`,
+      facebookCallback: `${apiBaseUrl}/auth/oauth/facebook/callback`,
+      
+      github: `${apiBaseUrl}/auth/oauth/github`,
+      githubCallback: `${apiBaseUrl}/auth/oauth/github/callback`,
+      
+      linkedin: `${apiBaseUrl}/auth/oauth/linkedin`,
+      linkedinCallback: `${apiBaseUrl}/auth/oauth/linkedin/callback`,
+      
+      microsoft: `${apiBaseUrl}/auth/oauth/microsoft`,
+      microsoftCallback: `${apiBaseUrl}/auth/oauth/microsoft/callback`,
+      
+      apple: `${apiBaseUrl}/auth/oauth/apple`,
+      appleCallback: `${apiBaseUrl}/auth/oauth/apple/callback`,
+      
+      // OAuth management
+      success: `${apiBaseUrl}/auth/oauth/success`,
+      failure: `${apiBaseUrl}/auth/oauth/failure`,
+      connected: `${apiBaseUrl}/auth/oauth/connected`,
+      
+      disconnect: (provider: string): string => {
+        if (!provider) throw new Error('Provider is required');
+        return `${apiBaseUrl}/auth/oauth/disconnect/${provider}`;
+      },
+      
+      link: (provider: string): string => {
+        if (!provider) throw new Error('Provider is required');
+        return `${apiBaseUrl}/auth/oauth/link/${provider}`;
+      },
+      
+      // OAuth statistics (Admin only)
+      stats: `${apiBaseUrl}/auth/oauth/stats`,
+    },
+    
+    // 3. User Profile Management
+    profile: {
+      get: `${apiBaseUrl}/auth/profile`,
+      update: `${apiBaseUrl}/auth/profile/update`,
+      uploadImage: `${apiBaseUrl}/auth/profile/upload-image`,
+      deleteAccount: `${apiBaseUrl}/auth/profile/delete-account`,
+      
+      // Get user by ID (Admin/Public)
+      getById: (userId: string): string => {
+        if (!userId) throw new Error('User ID is required');
+        return `${apiBaseUrl}/auth/user/${userId}`;
+      },
+      
+      // Get user by email (Admin only)
+      getByEmail: (email: string): string => {
+        if (!email) throw new Error('Email is required');
+        return `${apiBaseUrl}/auth/user/email/${encodeURIComponent(email)}`;
+      },
+    },
+    
+    // 4. User Management (Admin)
+    admin: {
+      getAllUsers: (options: {
+        page?: number;
+        limit?: number;
+        role?: string;
+        status?: string;
+        search?: string;
+        sort_by?: string;
+        sort_order?: 'asc' | 'desc';
+      } = {}): string => {
+        const { page = 1, limit = 10, role = '', status = '', search = '', sort_by = 'created_at', sort_order = 'desc' } = options;
+        const queryParams = new URLSearchParams();
+        queryParams.append('page', String(page));
+        queryParams.append('limit', String(limit));
+        if (role) queryParams.append('role', role);
+        if (status) queryParams.append('status', status);
+        if (search) queryParams.append('search', search);
+        queryParams.append('sort_by', sort_by);
+        queryParams.append('sort_order', sort_order);
+        return `${apiBaseUrl}/auth/admin/users?${queryParams.toString()}`;
+      },
+      
+      createUser: `${apiBaseUrl}/auth/admin/users/create`,
+      
+      updateUser: (userId: string): string => {
+        if (!userId) throw new Error('User ID is required');
+        return `${apiBaseUrl}/auth/admin/users/${userId}/update`;
+      },
+      
+      deleteUser: (userId: string): string => {
+        if (!userId) throw new Error('User ID is required');
+        return `${apiBaseUrl}/auth/admin/users/${userId}/delete`;
+      },
+      
+      toggleUserStatus: (userId: string): string => {
+        if (!userId) throw new Error('User ID is required');
+        return `${apiBaseUrl}/auth/admin/users/${userId}/toggle-status`;
+      },
+      
+      resetUserPassword: (userId: string): string => {
+        if (!userId) throw new Error('User ID is required');
+        return `${apiBaseUrl}/auth/admin/users/${userId}/reset-password`;
+      },
+      
+      impersonateUser: (userId: string): string => {
+        if (!userId) throw new Error('User ID is required');
+        return `${apiBaseUrl}/auth/admin/users/${userId}/impersonate`;
+      },
+      
+      getUserSessions: (userId: string): string => {
+        if (!userId) throw new Error('User ID is required');
+        return `${apiBaseUrl}/auth/admin/users/${userId}/sessions`;
+      },
+      
+      revokeUserSessions: (userId: string): string => {
+        if (!userId) throw new Error('User ID is required');
+        return `${apiBaseUrl}/auth/admin/users/${userId}/revoke-sessions`;
+      },
+      
+      // Bulk operations
+      bulkUpdateUsers: `${apiBaseUrl}/auth/admin/users/bulk-update`,
+      bulkDeleteUsers: `${apiBaseUrl}/auth/admin/users/bulk-delete`,
+      exportUsers: `${apiBaseUrl}/auth/admin/users/export`,
+      importUsers: `${apiBaseUrl}/auth/admin/users/import`,
+      
+      // User analytics
+      getUserStats: `${apiBaseUrl}/auth/admin/users/stats`,
+      getUserActivity: (userId: string, options: {
+        start_date?: string;
+        end_date?: string;
+        limit?: number;
+      } = {}): string => {
+        if (!userId) throw new Error('User ID is required');
+        const queryParams = new URLSearchParams();
+        if (options.start_date) queryParams.append('start_date', options.start_date);
+        if (options.end_date) queryParams.append('end_date', options.end_date);
+        if (options.limit) queryParams.append('limit', String(options.limit));
+        return `${apiBaseUrl}/auth/admin/users/${userId}/activity?${queryParams.toString()}`;
+      },
+    },
+    
+    // 5. Session Management
+    sessions: {
+      getCurrentSession: `${apiBaseUrl}/auth/sessions/current`,
+      getAllSessions: `${apiBaseUrl}/auth/sessions/all`,
+      revokeSession: (sessionId: string): string => {
+        if (!sessionId) throw new Error('Session ID is required');
+        return `${apiBaseUrl}/auth/sessions/${sessionId}/revoke`;
+      },
+      revokeAllSessions: `${apiBaseUrl}/auth/sessions/revoke-all`,
+      revokeOtherSessions: `${apiBaseUrl}/auth/sessions/revoke-others`,
+    },
+    
+    // 6. Security & Audit
+    security: {
+      enable2FA: `${apiBaseUrl}/auth/security/2fa/enable`,
+      disable2FA: `${apiBaseUrl}/auth/security/2fa/disable`,
+      verify2FA: `${apiBaseUrl}/auth/security/2fa/verify`,
+      generate2FABackupCodes: `${apiBaseUrl}/auth/security/2fa/backup-codes`,
+      
+      getSecurityLog: (options: {
+        page?: number;
+        limit?: number;
+        event_type?: string;
+        start_date?: string;
+        end_date?: string;
+      } = {}): string => {
+        const { page = 1, limit = 20, event_type = '', start_date = '', end_date = '' } = options;
+        const queryParams = new URLSearchParams();
+        queryParams.append('page', String(page));
+        queryParams.append('limit', String(limit));
+        if (event_type) queryParams.append('event_type', event_type);
+        if (start_date) queryParams.append('start_date', start_date);
+        if (end_date) queryParams.append('end_date', end_date);
+        return `${apiBaseUrl}/auth/security/audit-log?${queryParams.toString()}`;
+      },
+      
+      reportSuspiciousActivity: `${apiBaseUrl}/auth/security/report-suspicious`,
+      lockAccount: `${apiBaseUrl}/auth/security/lock-account`,
+      unlockAccount: `${apiBaseUrl}/auth/security/unlock-account`,
+    },
+    
+    // 7. Email & Notifications
+    notifications: {
+      getPreferences: `${apiBaseUrl}/auth/notifications/preferences`,
+      updatePreferences: `${apiBaseUrl}/auth/notifications/preferences/update`,
+      testEmail: `${apiBaseUrl}/auth/notifications/test-email`,
+      unsubscribe: (token: string): string => {
+        if (!token) throw new Error('Unsubscribe token is required');
+        return `${apiBaseUrl}/auth/notifications/unsubscribe/${token}`;
+      },
+    },
   },
   adminDashboard: {
     getDashboardCount: `${apiBaseUrl}/dashboard/counts`,
@@ -1367,12 +1590,26 @@ export const apiUrls = {
     createInstructorUser: `${apiBaseUrl}/zoom/users/instructor`,
     createStudentUser: `${apiBaseUrl}/zoom/users/student`,
   },
-  auth: {
-    refreshToken: `${apiBaseUrl}/auth/refresh-token`,
-    login: "/auth/login",
-    register: "/auth/register",
-    logout: "/auth/logout",
-    verifyToken: "/auth/verify-token"
+  ai: {
+    // Blog AI endpoints
+    generateBlogFromPrompt: `${apiBaseUrl}/ai/blog/generate-from-prompt`,
+    generateBlogContent: `${apiBaseUrl}/ai/blog/generate-content`,
+    generateBlogSuggestions: `${apiBaseUrl}/ai/blog/suggestions`,
+    enhanceExistingBlog: `${apiBaseUrl}/ai/blog/enhance`,
+    generateMetaDescription: `${apiBaseUrl}/ai/blog/meta-description`,
+    generateTags: `${apiBaseUrl}/ai/blog/tags`,
+    getBlogGenerationStats: `${apiBaseUrl}/ai/blog/stats`,
+    getAIHealthStatus: `${apiBaseUrl}/ai/blog/health`,
+    
+    // System endpoints
+    getSystemHealth: `${apiBaseUrl}/ai/health`,
+    getCapabilities: `${apiBaseUrl}/ai/capabilities`,
+    getUserUsage: `${apiBaseUrl}/ai/usage`,
+    
+    // Legacy content endpoints (for backward compatibility)
+    enhanceContent: `${apiBaseUrl}/ai/content/enhance`,
+    generateContentSuggestions: `${apiBaseUrl}/ai/content/suggestions`,
+    generateMetaDescriptionLegacy: `${apiBaseUrl}/ai/content/meta-description`
   },
   goals: {
     getAllGoals: (studentId: string): string => {
@@ -2706,3 +2943,469 @@ export default apiUrls;
 // Export video streaming API
 export * from './video-streaming';
 export { default as videoStreamingAPI } from './video-streaming';
+
+// AI Blog Generation Interfaces
+export interface IAIBlogGenerateFromPromptInput {
+  prompt: string;
+  approach?: 'comprehensive' | 'creative' | 'professional' | 'technical';
+  categories?: string[];
+  status?: 'draft' | 'published' | 'archived';
+  featured?: boolean;
+  saveToDatabase?: boolean;
+}
+
+export interface IAIBlogGenerateContentInput {
+  title: string;
+  description?: string;
+  categories?: string[];
+  tags?: string[];
+  approach?: 'comprehensive' | 'creative' | 'professional' | 'technical';
+  blog_link?: string;
+  status?: 'draft' | 'published' | 'archived';
+  featured?: boolean;
+  regenerate?: boolean;
+  saveToDatabase?: boolean;
+}
+
+export interface IAIBlogSuggestionsInput {
+  topic: string;
+  categories?: string[];
+  tags?: string[];
+  count?: number;
+  approach?: 'comprehensive' | 'creative' | 'professional' | 'technical';
+}
+
+export interface IAIBlogEnhanceInput {
+  blogId?: string;
+  content?: string;
+  enhancementType?: 'improve' | 'rewrite' | 'expand' | 'summarize' | 'custom';
+  customPrompt?: string;
+  targetWordCount?: number;
+  updateInDatabase?: boolean;
+}
+
+export interface IAIMetaDescriptionInput {
+  title: string;
+  content?: string;
+  targetLength?: number;
+}
+
+export interface IAITagsInput {
+  title: string;
+  content?: string;
+  maxTags?: number;
+}
+
+export interface IAIBlogData {
+  title: string;
+  description: string;
+  content: string;
+  tags: string[];
+  metaTitle: string;
+  metaDescription: string;
+  slug: string;
+  categories?: string[];
+  status?: string;
+  featured?: boolean;
+  approach?: string;
+  generatedAt?: string;
+  saved?: boolean;
+}
+
+export interface IAIBlogSuggestion {
+  title: string;
+  description: string;
+  outline: string[];
+  targetAudience: string;
+  estimatedWordCount: number;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  contentType: 'how-to' | 'listicle' | 'guide' | 'opinion' | 'case-study' | 'news';
+}
+
+export interface IAIBlogGenerationStats {
+  totalAIBlogs: number;
+  totalGenerations: number;
+  totalEnhancements: number;
+  totalSuggestions: number;
+  currentMonth: {
+    blogs: number;
+    generations: number;
+    enhancements: number;
+  };
+  popularApproaches: {
+    professional: number;
+    creative: number;
+    technical: number;
+    comprehensive: number;
+  };
+  averageWordCount: number;
+  lastGenerated: string | null;
+}
+
+export interface IAIHealthStatus {
+  status: 'healthy' | 'unhealthy';
+  openai: {
+    connected: boolean;
+    model: string;
+    responseTime: number;
+  };
+  features: {
+    blogGeneration: boolean;
+    contentEnhancement: boolean;
+    suggestions: boolean;
+    metaGeneration: boolean;
+    tagGeneration: boolean;
+  };
+  timestamp: string;
+}
+
+export interface IAICapabilities {
+  blog: {
+    available: boolean;
+    features: string[];
+    approaches: string[];
+    enhancementTypes: string[];
+  };
+  models: {
+    primary: string;
+    fallback: string;
+  };
+  limits: {
+    maxWordCount: number;
+    maxTags: number;
+    maxSuggestions: number;
+  };
+}
+
+// AI Response Interfaces
+export interface IAIBlogGenerateResponse {
+  success: boolean;
+  data: {
+    blog: IAIBlogData;
+  };
+  message: string;
+  wordCount: number;
+}
+
+export interface IAIBlogContentResponse {
+  success: boolean;
+  data: {
+    content: string;
+    title: string;
+    description: string;
+    categories: string[];
+    tags: string[];
+    blog_link: string;
+    status: string;
+    featured: boolean;
+    approach: string;
+    wordCount: number;
+    generatedAt: string;
+    saved?: boolean;
+  };
+  message: string;
+}
+
+export interface IAIBlogSuggestionsResponse {
+  success: boolean;
+  data: {
+    suggestions: IAIBlogSuggestion[];
+    topic: string;
+    categories: string[];
+    tags: string[];
+    count: number;
+    approach: string;
+    generatedAt: string;
+  };
+  message: string;
+}
+
+export interface IAIBlogEnhanceResponse {
+  success: boolean;
+  data: {
+    originalContent: string;
+    enhancedContent: string;
+    enhancementType: string;
+    originalLength: number;
+    enhancedLength: number;
+    improvementRatio: string;
+    wordCount: number;
+    targetWordCount: number;
+    enhancedAt: string;
+    updated?: boolean;
+  };
+  message: string;
+}
+
+export interface IAIMetaDescriptionResponse {
+  success: boolean;
+  data: {
+    metaDescription: string;
+    length: number;
+    targetLength: number;
+    isOptimal: boolean;
+    title: string;
+    generatedAt: string;
+  };
+  message: string;
+}
+
+export interface IAITagsResponse {
+  success: boolean;
+  data: {
+    tags: string[];
+    title: string;
+    maxTags: number;
+    generatedAt: string;
+  };
+  message: string;
+}
+
+export interface IAIStatsResponse {
+  success: boolean;
+  data: IAIBlogGenerationStats;
+  message: string;
+}
+
+export interface IAIHealthResponse {
+  success: boolean;
+  data: IAIHealthStatus;
+  message: string;
+}
+
+export interface IAICapabilitiesResponse {
+  success: boolean;
+  data: IAICapabilities;
+  message: string;
+}
+
+// Export announcements API
+export * from './announcements';
+
+// AI Utility Functions for Frontend
+export const aiUtils = {
+  /**
+   * Generate a complete blog from a simple prompt
+   */
+  generateBlogFromPrompt: async (input: IAIBlogGenerateFromPromptInput): Promise<IAIBlogGenerateResponse> => {
+    const response = await fetch(apiUrls.ai.generateBlogFromPrompt, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify(input)
+    });
+    return response.json();
+  },
+
+  /**
+   * Generate blog content from title and description
+   */
+  generateBlogContent: async (input: IAIBlogGenerateContentInput): Promise<IAIBlogContentResponse> => {
+    const response = await fetch(apiUrls.ai.generateBlogContent, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify(input)
+    });
+    return response.json();
+  },
+
+  /**
+   * Generate blog post suggestions
+   */
+  generateBlogSuggestions: async (input: IAIBlogSuggestionsInput): Promise<IAIBlogSuggestionsResponse> => {
+    const response = await fetch(apiUrls.ai.generateBlogSuggestions, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify(input)
+    });
+    return response.json();
+  },
+
+  /**
+   * Enhance existing blog content
+   */
+  enhanceExistingBlog: async (input: IAIBlogEnhanceInput): Promise<IAIBlogEnhanceResponse> => {
+    const response = await fetch(apiUrls.ai.enhanceExistingBlog, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify(input)
+    });
+    return response.json();
+  },
+
+  /**
+   * Generate SEO-optimized meta description
+   */
+  generateMetaDescription: async (input: IAIMetaDescriptionInput): Promise<IAIMetaDescriptionResponse> => {
+    const response = await fetch(apiUrls.ai.generateMetaDescription, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify(input)
+    });
+    return response.json();
+  },
+
+  /**
+   * Generate relevant tags for content
+   */
+  generateTags: async (input: IAITagsInput): Promise<IAITagsResponse> => {
+    const response = await fetch(apiUrls.ai.generateTags, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify(input)
+    });
+    return response.json();
+  },
+
+  /**
+   * Get user's blog generation statistics
+   */
+  getBlogGenerationStats: async (): Promise<IAIStatsResponse> => {
+    const response = await fetch(apiUrls.ai.getBlogGenerationStats, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return response.json();
+  },
+
+  /**
+   * Check AI blog service health
+   */
+  getAIHealthStatus: async (): Promise<IAIHealthResponse> => {
+    const response = await fetch(apiUrls.ai.getAIHealthStatus, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return response.json();
+  },
+
+  /**
+   * Get AI system capabilities
+   */
+  getCapabilities: async (): Promise<IAICapabilitiesResponse> => {
+    const response = await fetch(apiUrls.ai.getCapabilities, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return response.json();
+  },
+
+  /**
+   * Validate blog content before submission
+   */
+  validateBlogContent: (content: string): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+    
+    if (!content || content.trim().length === 0) {
+      errors.push('Content cannot be empty');
+    }
+    
+    if (content.length < 100) {
+      errors.push('Content should be at least 100 characters long');
+    }
+    
+    if (content.length > 50000) {
+      errors.push('Content should not exceed 50,000 characters');
+    }
+    
+    // Check for basic HTML structure
+    if (!content.includes('<p>') && !content.includes('<h2>') && !content.includes('<h3>')) {
+      errors.push('Content should include proper HTML formatting with paragraphs and headings');
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  },
+
+  /**
+   * Extract text content from HTML for word counting
+   */
+  extractTextFromHTML: (html: string): string => {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    return tempDiv.textContent || tempDiv.innerText || '';
+  },
+
+  /**
+   * Count words in content
+   */
+  countWords: (content: string): number => {
+    const text = aiUtils.extractTextFromHTML(content);
+    return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+  },
+
+  /**
+   * Generate slug from title
+   */
+  generateSlug: (title: string): string => {
+    return title
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '') // Remove special characters
+      .replace(/[\s_-]+/g, '-') // Replace spaces and underscores with hyphens
+      .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+  },
+
+  /**
+   * Format AI response for display
+   */
+  formatAIResponse: (response: any): string => {
+    if (typeof response === 'string') {
+      return response;
+    }
+    
+    if (response?.data?.content) {
+      return response.data.content;
+    }
+    
+    if (response?.data?.enhancedContent) {
+      return response.data.enhancedContent;
+    }
+    
+    return JSON.stringify(response, null, 2);
+  },
+
+  /**
+   * Handle AI API errors gracefully
+   */
+  handleAIError: (error: any): string => {
+    if (error?.message) {
+      return error.message;
+    }
+    
+    if (typeof error === 'string') {
+      return error;
+    }
+    
+    if (error?.error) {
+      return error.error;
+    }
+    
+    return 'An unexpected error occurred while processing your request';
+  }
+};

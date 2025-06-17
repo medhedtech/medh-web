@@ -1,6 +1,6 @@
 import ProtectedPage from "@/app/protectedRoutes";
 import StudentReviewsMain from "@/components/layout/main/dashboards/StudentReviewsMain";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 
 import DashboardWrapper from "@/components/shared/wrappers/DashboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
@@ -14,9 +14,9 @@ const Student_Reviews = () => {
       <PageWrapper>
         <main>
           <DashboardWrapper>
-            <DashboardContainer>
+            
               <StudentReviewsMain />
-            </DashboardContainer>
+            
           </DashboardWrapper>
           
         </main>

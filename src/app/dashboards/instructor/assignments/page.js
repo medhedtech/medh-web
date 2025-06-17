@@ -1,6 +1,6 @@
 import ProtectedPage from "@/app/protectedRoutes";
 import InstructorAssignmentsMain from "@/components/layout/main/dashboards/InstructorAssignmentsMain";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 
 import DashboardWrapper from "@/components/shared/wrappers/DashboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
@@ -14,9 +14,9 @@ const Instructor_Assignments = () => {
       <PageWrapper>
         <main>
           <DashboardWrapper>
-            <DashboardContainer>
+            
               <InstructorAssignmentsMain />
-            </DashboardContainer>
+            
           </DashboardWrapper>
           
         </main>
