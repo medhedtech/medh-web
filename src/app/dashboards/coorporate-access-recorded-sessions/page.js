@@ -1,4 +1,4 @@
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import ProtectedPage from "@/app/protectedRoutes";
@@ -13,10 +13,10 @@ const Coorporate_Access_Recorded_Sessions = () => {
   return (
     <ProtectedPage>
       <main>
-        <DashboardContainer>
+        
           <HeadingDashboard />
           <CoorporateRecordedSessions_Access />
-        </DashboardContainer>
+        
         
       </main>
     </ProtectedPage>

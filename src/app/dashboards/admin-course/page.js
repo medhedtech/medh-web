@@ -1,6 +1,6 @@
 import ProtectedPage from "@/app/protectedRoutes";
 import AdminCourseMain from "@/components/layout/main/dashboards/AdminCourseMain";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 
 
 import DashboardWrapper from "@/components/shared/wrappers/DashboardWrapper";
@@ -15,9 +15,9 @@ const Admin_Course = () => {
       <PageWrapper>
         <main>
           <DashboardWrapper>
-            <DashboardContainer>
+            
               <AdminCourseMain />
-            </DashboardContainer>
+            
           </DashboardWrapper>
           
         </main>

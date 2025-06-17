@@ -1,4 +1,4 @@
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 
 import PreviewUpdateDetail from "@/components/layout/main/dashboards/PreviewUpdateDetail";
@@ -11,10 +11,10 @@ const Update_data = () => {
   return (
     <ProtectedPage>
       <main>
-        <DashboardContainer>
+        
           <HeadingDashboard />
           <PreviewUpdateDetail />
-        </DashboardContainer>
+        
         
       </main>
     </ProtectedPage>

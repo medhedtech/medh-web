@@ -1,6 +1,6 @@
 import ProtectedPage from "@/app/protectedRoutes";
 import InstructorOrderHistoryMain from "@/components/layout/main/dashboards/InstructorOrderHistoryMain";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 
 import DashboardWrapper from "@/components/shared/wrappers/DashboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
@@ -14,9 +14,9 @@ const Instructor_Order_History = () => {
       <PageWrapper>
         <main>
           <DashboardWrapper>
-            <DashboardContainer>
+            
               <InstructorOrderHistoryMain />
-            </DashboardContainer>
+            
           </DashboardWrapper>
           
         </main>

@@ -1,6 +1,6 @@
 import ProtectedPage from "@/app/protectedRoutes";
 import StudentWishlistMain from "@/components/layout/main/dashboards/StudentWishlistMain";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 
 import DashboardWrapper from "@/components/shared/wrappers/DashboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
@@ -14,9 +14,9 @@ const Student_Wishlist = () => {
       <PageWrapper>
         <main>
           <DashboardWrapper>
-            <DashboardContainer>
+            
               <StudentWishlistMain />
-            </DashboardContainer>
+            
           </DashboardWrapper>
           
         </main>

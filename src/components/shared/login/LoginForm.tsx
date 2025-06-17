@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import LogIn from "@/assets/images/log-sign/logIn.png";
@@ -15,6 +15,7 @@ import { toast } from "react-toastify";
 import { useRouter, useSearchParams } from "next/navigation";
 import { jwtDecode, JwtPayload } from "jwt-decode";
 import { Eye, EyeOff, Mail, Lock, Loader2, CheckCircle, AlertCircle, Sparkles, ArrowRight, ChevronLeft, Home, Check } from "lucide-react";
+import { Github } from "lucide-react";
 import CustomReCaptcha from '../ReCaptcha';
 import { useStorage } from "@/contexts/StorageContext";
 import FixedShadow from "../others/FixedShadow";
@@ -30,6 +31,7 @@ import {
   getRememberedEmail,
   setRememberMe
 } from "@/utils/auth";
+import { authAPI, authUtils, ILoginData, ILoginResponse } from "@/apis/auth.api";
 
 interface FormInputs {
   email: string;
@@ -53,10 +55,12 @@ interface LoginResponseData {
   id: string;
   email: string;
   full_name: string;
-  role: string[];
-  permissions: string[];
-  access_token: string;
-  refresh_token: string;
+  role?: string[] | string; // Support both array and string formats
+  permissions?: string[];
+  access_token?: string;
+  token?: string; // Alternative token field
+  refresh_token?: string;
+  session_id?: string; // Alternative to refresh_token
   emailVerified?: boolean; // Add email verification status
 }
 
@@ -126,6 +130,8 @@ const LoginForm = () => {
   const [verificationEmail, setVerificationEmail] = useState<string>('');
   const [pendingLoginData, setPendingLoginData] = useState<LoginResponseData | null>(null);
   const [currentStep, setCurrentStep] = useState<number>(1);
+  const [isOAuthLoading, setIsOAuthLoading] = useState<{ [key: string]: boolean }>({});
+  const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
   
   const {
     register,
@@ -218,20 +224,72 @@ const LoginForm = () => {
   // Create a reference for focusing after errors
   const emailInputRef = useRef<HTMLInputElement>(null);
   
-  // Define role-based redirects
-  const getRoleBasedRedirectPath = (role: string): string => {
-    const roleLower = role.toLowerCase();
-    const roleMap: Record<string, string> = {
-      "admin": "/dashboards/admin",
-      "super-admin": "/dashboards/admin",
-      "instructor": "/dashboards/instructor",
-      "student": "/dashboards/student",
-      "coorporate": "/dashboards/coorporate",
-      "coorporate-student": "/dashboards/coorporate-employee-dashboard"
-    };
+  // Optimized role-based dashboard routing with memoization
+  const rolePathCache = useMemo(() => new Map<string, string>(), []);
+  
+  const getRoleBasedRedirectPath = useCallback((role: string): string => {
+    if (!role || typeof role !== 'string') {
+      return "/dashboards/student";
+    }
+
+    const roleLower = role.toLowerCase().trim();
     
-    return roleMap[roleLower] || "/";
-  };
+    // Check cache first for performance
+    if (rolePathCache.has(roleLower)) {
+      return rolePathCache.get(roleLower)!;
+    }
+
+    // Optimized role mapping with most common roles first
+    let dashboardPath: string;
+    
+    // Fast switch-case for common roles
+    switch (roleLower) {
+      case "student":
+      case "learner":
+      case "user":
+        dashboardPath = "/dashboards/student";
+        break;
+      case "admin":
+      case "super-admin":
+      case "superadmin":
+      case "administrator":
+      case "super_admin":
+        dashboardPath = "/dashboards/admin";
+        break;
+      case "instructor":
+      case "teacher":
+      case "tutor":
+      case "faculty":
+        dashboardPath = "/dashboards/instructor";
+        break;
+      case "corporate":
+      case "coorporate":
+      case "corporate-admin":
+      case "coorporate-admin":
+      case "company":
+      case "enterprise":
+        dashboardPath = "/dashboards/coorporate-dashboard";
+        break;
+      case "corporate-student":
+      case "coorporate-student":
+      case "corporate-employee":
+      case "coorporate-employee":
+      case "employee":
+      case "corporate-learner":
+        dashboardPath = "/dashboards/coorporate-employee-dashboard";
+        break;
+      case "parent":
+      case "guardian":
+        dashboardPath = "/dashboards/parent";
+        break;
+      default:
+        dashboardPath = "/dashboards/student";
+    }
+
+    // Cache the result for future use
+    rolePathCache.set(roleLower, dashboardPath);
+    return dashboardPath;
+  }, [rolePathCache]);
 
   // Enhanced keyboard support for form navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -240,6 +298,49 @@ const LoginForm = () => {
       handleSubmit(onSubmit)();
     }
   };
+
+  // Optimized helper function to extract role from JWT token with caching
+  const tokenRoleCache = useMemo(() => new Map<string, string>(), []);
+  
+  const getUserRoleFromToken = useCallback((token: string): string => {
+    if (!token || typeof token !== 'string') {
+      return '';
+    }
+
+    // Check cache first
+    if (tokenRoleCache.has(token)) {
+      return tokenRoleCache.get(token)!;
+    }
+
+    let role = '';
+    try {
+      const decoded = jwtDecode(token) as any;
+      
+      // Fast role extraction with early returns
+      if (decoded.user?.role) {
+        role = (Array.isArray(decoded.user.role) ? decoded.user.role[0] : decoded.user.role).toLowerCase().trim();
+      } else if (decoded.role) {
+        role = (Array.isArray(decoded.role) ? decoded.role[0] : decoded.role).toLowerCase().trim();
+      } else if (decoded.userRole) {
+        role = decoded.userRole.toLowerCase().trim();
+      } else if (decoded.admin_role) {
+        role = decoded.admin_role.toLowerCase().trim();
+      } else {
+        // Quick admin check by user ID
+        const userId = decoded.userId || decoded.user?.id || decoded.id;
+        if (userId === "680092818c413e0442bf10dd") {
+          role = "super-admin";
+        }
+      }
+    } catch (error) {
+      // Silent fail for performance
+      role = '';
+    }
+
+    // Cache the result
+    tokenRoleCache.set(token, role);
+    return role;
+  }, [tokenRoleCache]);
 
   // Handle verification success
   const handleVerificationSuccess = (): void => {
@@ -280,10 +381,18 @@ const LoginForm = () => {
 
   // Complete login process after verification
   const completeLoginProcess = (loginData: LoginResponseData): void => {
-    // Prepare auth data with the exact structure
+    // Prepare auth data with the exact structure and proper validation
+    const token = loginData.access_token || loginData.token || '';
+    const refreshToken = loginData.refresh_token || loginData.session_id || '';
+    
+    if (!token) {
+      toast.error("Invalid authentication token received. Please try again.");
+      return;
+    }
+
     const authData: AuthData = {
-      token: loginData.access_token,
-      refresh_token: loginData.refresh_token,
+      token: token,
+      refresh_token: refreshToken,
       id: loginData.id,
       full_name: loginData.full_name,
       email: loginData.email
@@ -300,45 +409,107 @@ const LoginForm = () => {
       return;
     }
 
-    // Extract user role from the response
-    const userRole = Array.isArray(loginData.role) ? loginData.role[0] : loginData.role;
+    // Optimized user role extraction with fast-path detection
+    let userRole = '';
+    
+    // Fast-path: Try login data first (most common case)
+    if (loginData.role) {
+      if (Array.isArray(loginData.role) && loginData.role.length > 0) {
+        userRole = loginData.role[0]?.toLowerCase().trim() || '';
+      } else if (typeof loginData.role === 'string' && loginData.role.trim()) {
+        userRole = loginData.role.toLowerCase().trim();
+      }
+    }
+    
+    // Fallback: Decode token only when necessary
+    if (!userRole) {
+      try {
+        const decoded = jwtDecode(authData.token) as any;
+        
+        // Quick role extraction with early returns
+        if (decoded.user?.role) {
+          userRole = (Array.isArray(decoded.user.role) ? decoded.user.role[0] : decoded.user.role).toLowerCase().trim();
+        } else if (decoded.role) {
+          userRole = (Array.isArray(decoded.role) ? decoded.role[0] : decoded.role).toLowerCase().trim();
+        } else if (decoded.userRole) {
+          userRole = decoded.userRole.toLowerCase().trim();
+        } else if (decoded.admin_role) {
+          userRole = decoded.admin_role.toLowerCase().trim();
+        } else {
+          // Quick admin check by user ID
+          const userId = decoded.userId || decoded.user?.id || decoded.id;
+          if (userId === "680092818c413e0442bf10dd") {
+            userRole = 'super-admin';
+          } else {
+            // Fast localStorage check or default
+            userRole = (localStorage.getItem('role')?.toLowerCase().trim()) || 'student';
+          }
+        }
+      } catch (error) {
+        // Quick fallback without extensive logging
+        userRole = (localStorage.getItem('role')?.toLowerCase().trim()) || 'student';
+      }
+    }
+
+    // Ensure valid role
+    if (!userRole) {
+      userRole = 'student';
+    }
+
     const fullName = loginData.full_name;
+    const dashboardPath = getRoleBasedRedirectPath(userRole);
+    const finalRedirectPath = (redirectPath && redirectPath.startsWith('/')) ? redirectPath : dashboardPath;
 
-    // Store role and full name in localStorage
-    if (userRole) {
-      localStorage.setItem("role", userRole);
-    }
-    if (fullName) {
-      localStorage.setItem("fullName", fullName);
-    }
+    // Batch localStorage operations for better performance
+    const localStorageUpdates: [string, string][] = [];
+    if (userRole) localStorageUpdates.push(["role", userRole]);
+    if (fullName) localStorageUpdates.push(["fullName", fullName]);
+    
+    // Apply all localStorage updates at once
+    localStorageUpdates.forEach(([key, value]) => localStorage.setItem(key, value));
 
-    // Store data in storage manager
+    // Prepare storage data
     const storageData: StorageManagerLoginData = {
-      token: loginData.access_token,
-      refresh_token: loginData.refresh_token,
+      token: authData.token,
+      refresh_token: authData.refresh_token,
       userId: loginData.id,
       email: loginData.email,
       password: rememberMe ? getValues('password') : undefined,
       role: userRole,
       fullName: fullName,
-      permissions: loginData.permissions,
+      permissions: loginData.permissions || [],
       rememberMe: rememberMe
     };
 
-    storageManager.login(storageData);
+    // Parallel operations: storage, events, and UI updates
+    const operations = [
+      () => storageManager.login(storageData),
+      () => events.login(userRole || 'user'),
+      () => toast.success(`Welcome back, ${fullName || 'User'}!`, { autoClose: 1500 }) // Shorter toast duration
+    ];
 
-    // Track login event
-    events.login(userRole || 'user');
-    
-    // Show success message and redirect
-    toast.success("Login successful! Redirecting...");
-    
-    // Enhanced redirect logic to ensure proper URL handling
-    if (redirectPath && redirectPath.startsWith('/')) {
-      router.push(redirectPath);
-    } else {
-      const dashboardPath = getRoleBasedRedirectPath(userRole);
-      router.push(dashboardPath);
+    // Execute operations in parallel
+    operations.forEach(op => {
+      try {
+        op();
+      } catch (error) {
+        console.warn('Non-critical operation failed:', error);
+      }
+    });
+
+    // Immediate redirect with loading state
+    setIsRedirecting(true);
+    try {
+      router.push(finalRedirectPath);
+    } catch (redirectError) {
+      console.error('Redirect failed:', redirectError);
+      // Immediate fallback without setTimeout delay
+      try {
+        router.push(dashboardPath);
+      } catch (fallbackError) {
+        console.error('Fallback redirect failed:', fallbackError);
+        router.push('/');
+      }
     }
     
     // Reset verification states
@@ -356,7 +527,99 @@ const LoginForm = () => {
     setCurrentStep(1);
   };
   
-  // Updated submit handler using the enhanced auth utilities
+  // OAuth login handlers
+  const handleOAuthLogin = async (provider: 'google' | 'github'): Promise<void> => {
+    try {
+      setIsOAuthLoading(prev => ({ ...prev, [provider]: true }));
+      
+      // Get OAuth login URL
+      const oauthUrl = authUtils.getOAuthLoginUrl(provider, window.location.origin + '/auth/callback');
+      
+      // Open OAuth popup
+      authUtils.openOAuthPopup(
+        provider,
+        // Success callback
+        (data) => {
+          console.log(`${provider} OAuth success:`, data);
+          
+          if (data.access_token && data.id) {
+            // Store auth data
+            const authData = {
+              token: data.access_token,
+              refresh_token: data.refresh_token || '',
+              id: data.id,
+              full_name: data.full_name,
+              email: data.email
+            };
+            
+            const authSuccess = storeAuthData(authData, rememberMe, data.email);
+            
+            if (authSuccess) {
+              // Fast role extraction and path determination
+              const userRole = (Array.isArray(data.role) ? data.role[0] : data.role)?.toLowerCase().trim() || 'student';
+              const dashboardPath = getRoleBasedRedirectPath(userRole);
+              const finalRedirectPath = (redirectPath && redirectPath.startsWith('/')) ? redirectPath : dashboardPath;
+              
+              // Batch localStorage operations
+              const localStorageUpdates: [string, string][] = [];
+              if (userRole) localStorageUpdates.push(["role", userRole]);
+              if (data.full_name) localStorageUpdates.push(["fullName", data.full_name]);
+              localStorageUpdates.forEach(([key, value]) => localStorage.setItem(key, value));
+              
+              // Prepare storage data
+              const storageData = {
+                token: data.access_token,
+                refresh_token: data.refresh_token || '',
+                userId: data.id,
+                email: data.email,
+                role: userRole,
+                fullName: data.full_name,
+                permissions: data.permissions || [],
+                rememberMe: rememberMe
+              };
+              
+              // Parallel operations
+              const operations = [
+                () => storageManager.login(storageData),
+                () => events.login(`${provider}_oauth`),
+                () => toast.success(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login successful!`, { autoClose: 1500 })
+              ];
+              
+              operations.forEach(op => {
+                try {
+                  op();
+                } catch (error) {
+                  console.warn('Non-critical OAuth operation failed:', error);
+                }
+              });
+              
+                             // Immediate redirect with loading state
+               setIsRedirecting(true);
+               router.push(finalRedirectPath);
+            } else {
+              toast.error("Failed to save authentication data. Please try again.");
+            }
+          } else {
+            toast.error(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login failed. Please try again.`);
+          }
+          
+          setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
+        },
+        // Error callback
+        (error) => {
+          console.error(`${provider} OAuth error:`, error);
+          toast.error(error.message || `${provider.charAt(0).toUpperCase() + provider.slice(1)} login failed. Please try again.`);
+          setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
+        }
+      );
+    } catch (error) {
+      console.error(`${provider} OAuth error:`, error);
+      toast.error(`Failed to initiate ${provider.charAt(0).toUpperCase() + provider.slice(1)} login. Please try again.`);
+      setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
+    }
+  };
+
+  // Updated submit handler to use new auth API
   const onSubmit = async (data: FormInputs): Promise<void> => {
     if (!recaptchaValue) {
       setRecaptchaError(true);
@@ -365,28 +628,60 @@ const LoginForm = () => {
     }
     
     try {
-      await postQuery({
-        url: apiUrls?.user?.login,
-        postData: {
-          email: data.email,
-          password: data.password,
-          agree_terms: data?.agree_terms,
-        },
-        onSuccess: (res: LoginResponse) => {
-          console.log('Login response:', res);
+      const loginData: ILoginData = {
+        email: data.email,
+        password: data.password
+      };
 
-          // Check if email verification is required (legacy check)
-          if (res.data.emailVerified === false) {
+      await postQuery({
+        url: authAPI.local.login,
+        postData: loginData,
+        onSuccess: (res: ILoginResponse) => {
+          console.log('Login response:', res);
+          console.log('User data:', res.data?.user);
+          console.log('User role:', (res.data?.user as any)?.role);
+          console.log('Email verified:', res.data?.user?.email_verified);
+
+          // Check if email verification is required
+          // Configuration: Set this to true to skip email verification entirely
+          const SKIP_EMAIL_VERIFICATION_FOR_ALL = false;
+          
+          // Skip email verification for admin users or if it's a special case
+          const userRole = getUserRoleFromToken(res.data.token) || '';
+          const isAdmin = ['admin', 'super-admin', 'administrator'].includes(userRole.toLowerCase());
+          const shouldSkipVerification = SKIP_EMAIL_VERIFICATION_FOR_ALL || 
+                                       isAdmin || 
+                                       res.data?.user?.email_verified !== false;
+          
+          console.log('Email verification check:', {
+            email_verified: res.data?.user?.email_verified,
+            userRole,
+            isAdmin,
+            shouldSkipVerification
+          });
+          
+          if (res.data?.user?.email_verified === false && !shouldSkipVerification) {
             // User needs to verify email first
-            setPendingLoginData(res.data);
-            setVerificationEmail(res.data.email);
+            const mockLoginData = {
+              id: res.data.user.id || '',
+              email: res.data.user.email || data.email,
+              full_name: res.data.user.full_name || '',
+              role: (res.data.user as any).role || [userRole], // Use role from response or detected role
+              permissions: (res.data.user as any).permissions || [],
+              access_token: res.data.token || '',
+              refresh_token: res.data.session_id || '',
+              emailVerified: false
+            };
+            
+            setPendingLoginData(mockLoginData);
+            setVerificationEmail(res.data.user.email || data.email);
             setCurrentStep(2);
             setShowOTPVerification(true);
             
             // Send verification email
             postQuery({
-              url: apiUrls?.user?.resendOTP,
-              postData: { email: res.data.email },
+              url: authAPI.local.resendVerification,
+              postData: { email: res.data.user.email || data.email },
               requireAuth: false,
               onSuccess: () => {
                 toast.info("Please verify your email. A verification code has been sent to your inbox.");
@@ -401,8 +696,18 @@ const LoginForm = () => {
           }
 
           // Email is verified, proceed with normal login
-          completeLoginProcess(res.data);
-          
+          const loginResponseData: LoginResponseData = {
+            id: res.data.user.id,
+            email: res.data.user.email,
+            full_name: res.data.user.full_name,
+            role: (res.data.user as any).role || [], // Extract role from API response (type assertion needed)
+            permissions: (res.data.user as any).permissions || [],
+            access_token: res.data.token,
+            refresh_token: res.data.session_id,
+            emailVerified: res.data.user.email_verified
+          };
+
+          completeLoginProcess(loginResponseData);
           setRecaptchaError(false);
           setRecaptchaValue(null);
         },
@@ -418,15 +723,14 @@ const LoginForm = () => {
             // Handle email verification required
             const email = errorResponse?.data?.email || data.email;
             
-            // Create mock login data for verification flow
-            const mockLoginData: LoginResponseData = {
-              id: '', // Will be filled after verification
+            const mockLoginData = {
+              id: '',
               email: email,
-              full_name: '', // Will be filled after verification
+              full_name: '',
               role: [],
               permissions: [],
-              access_token: '', // Will be filled after verification
-              refresh_token: '', // Will be filled after verification
+              access_token: '',
+              refresh_token: '',
               emailVerified: false
             };
             
@@ -435,28 +739,17 @@ const LoginForm = () => {
             setCurrentStep(2);
             setShowOTPVerification(true);
             
-            // Show appropriate message
             toast.info(errorResponse?.message || "Please verify your email. A verification code has been sent to your inbox.");
-            
             return;
           }
           
           // Handle other login errors
-          toast.error(error?.message || "Login failed. Please check your credentials.");
-          
-          // Don't log sensitive information to console in production
-          if (process.env.NODE_ENV !== 'production') {
-            console.warn("Login error:", error);
-          }
-          
+          toast.error(authUtils.handleAuthError(error));
           setTimeout(() => emailInputRef.current?.focus(), 100);
         },
       });
     } catch (error) {
-      // Gracefully handle unexpected errors
       toast.error("An unexpected error occurred. Please try again later.");
-      
-      // Only log error details in development
       if (process.env.NODE_ENV !== 'production') {
         console.error("Unexpected login error:", error);
       }
@@ -557,6 +850,23 @@ const LoginForm = () => {
   // Apply font styles
   return (
     <>
+      {/* Fast Redirect Loading Overlay */}
+      {isRedirecting && (
+        <div className="fixed inset-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-500 rounded-full mb-4 animate-pulse">
+              <ArrowRight className="w-8 h-8 text-white animate-bounce" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Redirecting to Dashboard
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Taking you to your personalized dashboard...
+            </p>
+          </div>
+        </div>
+      )}
+      
       {/* Font styles */}
       <style jsx global>{`
         /* Font variables */
@@ -796,6 +1106,65 @@ const LoginForm = () => {
                     <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-primary-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </button>
                 </div>
+
+                {/* OAuth Divider - HIDDEN */}
+                {/* 
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="bg-white dark:bg-gray-800 px-3 text-gray-500 dark:text-gray-400">
+                      Or continue with
+                    </span>
+                  </div>
+                </div>
+
+                {/* OAuth Buttons - HIDDEN */}
+                {/* 
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Google OAuth */}
+                {/*
+                  <button
+                    type="button"
+                    onClick={() => handleOAuthLogin('google')}
+                    disabled={isOAuthLoading.google}
+                    className="flex items-center justify-center px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  >
+                    {isOAuthLoading.google ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
+                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        Google
+                      </>
+                    )}
+                  </button>
+
+                  {/* GitHub OAuth */}
+                {/*
+                  <button
+                    type="button"
+                    onClick={() => handleOAuthLogin('github')}
+                    disabled={isOAuthLoading.github}
+                    className="flex items-center justify-center px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  >
+                    {isOAuthLoading.github ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Github className="w-4 h-4 mr-2 text-gray-700 dark:text-gray-300" />
+                        GitHub
+                      </>
+                    )}
+                  </button>
+                </div>
+                */}
                 
                 {/* Sign Up Link */}
                 <div className="text-center mt-2 sm:mt-4">

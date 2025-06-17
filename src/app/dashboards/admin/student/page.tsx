@@ -3,7 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import ProtectedPage from "@/app/protectedRoutes";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import { UserCheck, UserPlus, Users, ArrowLeft, UsersRound } from "lucide-react";
 import Link from "next/link";
@@ -40,7 +40,7 @@ const AdminStudentPage = () => {
 
   return (
     <ProtectedPage>
-      <DashboardContainer>
+      
         <HeadingDashboard />
         <div className="p-6">
           {/* Back button */}
@@ -97,7 +97,7 @@ const AdminStudentPage = () => {
             ))}
           </div>
         </div>
-      </DashboardContainer>
+      
     </ProtectedPage>
   );
 };

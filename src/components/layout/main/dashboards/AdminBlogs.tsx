@@ -57,7 +57,7 @@ import {
   Share2,
   ExternalLink
 } from "lucide-react";
-import { apiUrls } from "@/apis";
+import { apiUrls, aiUtils, IAIBlogEnhanceInput } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import useDeleteQuery from "@/hooks/deleteQuery.hook";
 import usePutQuery from "@/hooks/putQuery.hook";
@@ -605,68 +605,32 @@ const AdminBlogs: React.FC = () => {
   const enhanceBlogWithAI = async (blog: IBlogData): Promise<IBlogData> => {
     try {
       // Step 1: Get AI enhanced content
-      const aiResponse = await fetch('/api/improve-content', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: blog.title,
-          content: blog.content || blog.description,
-          description: blog.description,
-          meta_title: blog.meta_title,
-          meta_description: blog.meta_description
-        })
-      });
-
-      if (!aiResponse.ok) {
-        throw new Error(`AI enhancement failed: ${aiResponse.statusText}`);
-      }
-
-      const enhancedData = await aiResponse.json();
-      
-      // Step 2: Prepare updated blog data
-      const updatedBlogData = {
-        title: enhancedData.title || blog.title,
-        description: enhancedData.description || blog.description,
-        content: enhancedData.content || blog.content,
-        meta_title: enhancedData.meta_title || blog.meta_title,
-        meta_description: enhancedData.meta_description || blog.meta_description,
-        // Keep all other existing fields
-        status: blog.status,
-        featured: blog.featured,
-        categories: blog.categories,
-        tags: blog.tags,
-        upload_image: blog.upload_image,
-        blog_link: blog.blog_link
+      const input: IAIBlogEnhanceInput = {
+        blogId: blog._id,
+        content: blog.content || blog.description,
+        enhancementType: 'improve',
+        updateInDatabase: true
       };
 
-      // Step 3: Update the blog in the database
-      const updateResponse = await fetch(apiUrls?.Blogs?.updateBlog(blog._id), {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedBlogData)
-      });
+      const response = await aiUtils.enhanceExistingBlog(input);
 
-      if (!updateResponse.ok) {
-        throw new Error(`Failed to save enhanced blog: ${updateResponse.statusText}`);
+      if (!response.success) {
+        throw new Error(response.message || 'AI enhancement failed');
       }
 
-      const savedBlogResponse = await updateResponse.json();
+      const enhancedData = response.data;
       
-      // Step 4: Return the updated blog with all fields
+      // Step 2: Return the updated blog with enhanced content
       const finalUpdatedBlog: IBlogData = {
         ...blog,
-        ...updatedBlogData,
+        content: enhancedData.enhancedContent || blog.content,
         updatedAt: new Date().toISOString() // Update the timestamp
       };
 
       return finalUpdatedBlog;
     } catch (error) {
       console.error("AI Enhancement Error:", error);
-      throw error;
+      throw new Error(aiUtils.handleAIError(error));
     }
   };
 

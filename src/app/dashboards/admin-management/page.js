@@ -1,6 +1,6 @@
 import ProtectedPage from "@/app/protectedRoutes";
 import CoorporateAdminTable from "@/components/layout/main/dashboards/CoorporateAdmin_Table";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 
 export const metadata = {
@@ -11,12 +11,12 @@ const Admin_Coorporate_Management = () => {
   return (
     <ProtectedPage>
       <main>
-        <DashboardContainer>
+        
           <div>
             <HeadingDashboard />
           </div>
           <CoorporateAdminTable />
-        </DashboardContainer>
+        
         
       </main>
     </ProtectedPage>

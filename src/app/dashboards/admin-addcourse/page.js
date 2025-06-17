@@ -1,6 +1,6 @@
 import ProtectedPage from "@/app/protectedRoutes";
 import AddCourse from "@/components/layout/main/dashboards/AddCourse";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 
 export const metadata = {
@@ -12,13 +12,13 @@ const Admin_Reviews = () => {
     <ProtectedPage>
       <main>
         {/* <DashboardWrapper> */}
-        <DashboardContainer>
+        
           <div>
             <HeadingDashboard />
           </div>
 
           <AddCourse />
-        </DashboardContainer>
+        
         {/* </DashboardWrapper> */}
         
       </main>

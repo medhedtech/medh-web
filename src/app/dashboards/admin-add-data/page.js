@@ -1,5 +1,5 @@
 import AddCourse from "@/components/layout/main/dashboards/AddCourse";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 
 import DashboardWrapper from "@/components/shared/wrappers/DashboardWrapper";
@@ -15,11 +15,11 @@ const Add_data = () => {
     <ProtectedPage>
       <main>
         {/* <DashboardWrapper> */}
-        <DashboardContainer>
+        
           <HeadingDashboard />
 
           <Previewdetail />
-        </DashboardContainer>
+        
         {/* </DashboardWrapper> */}
         
       </main>

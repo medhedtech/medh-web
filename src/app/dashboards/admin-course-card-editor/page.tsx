@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { NextPage } from "next";
 import ProtectedPage from "@/app/protectedRoutes";
 import CourseCardEditorMain from "@/components/layout/main/dashboards/CourseCardEditorMain";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 import DashboardWrapper from "@/components/shared/wrappers/DashboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
@@ -17,9 +17,9 @@ const AdminCourseCardEditor: NextPage = () => {
       <PageWrapper>
         <main>
           <DashboardWrapper>
-            <DashboardContainer>
+            
               <CourseCardEditorMain />
-            </DashboardContainer>
+            
           </DashboardWrapper>
         </main>
       </PageWrapper>

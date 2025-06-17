@@ -534,7 +534,7 @@ export async function globalSearchAction(
     // Search courses
     if (type === 'all' || type === 'courses') {
       searchPromises.push(
-        fetch(`${apiBaseUrl}${apiUrls.course.getAllCourses}?search=${encodeURIComponent(query)}&limit=${limit}`, {
+        fetch(`${apiBaseUrl}${apiUrls.courses.getAllCourses}?search=${encodeURIComponent(query)}&limit=${limit}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
           cache: 'no-store' // Search should be fresh

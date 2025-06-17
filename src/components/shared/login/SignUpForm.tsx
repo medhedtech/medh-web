@@ -13,6 +13,7 @@ import logo2 from "@/assets/images/logo/logo_2.png";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, User, Mail, Phone, Lock, AlertCircle, Loader2, Moon, Sun, UserCircle, ArrowRight, CheckCircle, RefreshCw, ChevronRight, Check, Shield } from "lucide-react";
+import { Github } from "lucide-react";
 import CustomReCaptcha from '../ReCaptcha';
 import FixedShadow from "../others/FixedShadow";
 import Link from "next/link";
@@ -20,6 +21,7 @@ import { parsePhoneNumber, isValidPhoneNumber, formatNumber } from 'libphonenumb
 import { useTheme } from "next-themes";
 import OTPVerification from './OTPVerification';
 import PhoneNumberInput, { phoneNumberSchema } from './PhoneNumberInput';
+import { authAPI, authUtils } from "@/apis/auth.api";
 
 declare global {
   interface Window {
@@ -92,7 +94,7 @@ type FormFields = {
   role: "student";
   full_name: string;
   meta: {
-    gender: "Male" | "Female" | "Others";
+    gender: "male" | "female" | "other";
     age_group?: AgeGroup;
   };
   status: string;
@@ -141,7 +143,7 @@ const schema = yup
       .default("Active"),
     meta: yup.object({
       gender: yup.string()
-        .oneOf(["Male", "Female", "Others"])
+        .oneOf(["male", "female", "other"])
         .required("Gender is required"),
       age_group: yup.string()
         .oneOf(["Under 18", "18-24", "25-34", "35-44", "45-54", "55-64", "65+"])
@@ -271,6 +273,7 @@ const SignUpForm: React.FC = () => {
   const [verificationEmail, setVerificationEmail] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isRegistered, setIsRegistered] = useState<boolean>(false);
+  const [isOAuthLoading, setIsOAuthLoading] = useState<{ [key: string]: boolean }>({});
   
   // Add new state for stepper
   const [currentStep, setCurrentStep] = useState<number>(1);
@@ -356,7 +359,76 @@ const SignUpForm: React.FC = () => {
     }
   };
 
-  // Function to register and proceed to verification
+  // OAuth signup handlers
+  const handleOAuthSignup = async (provider: 'google' | 'github'): Promise<void> => {
+    try {
+      setIsOAuthLoading(prev => ({ ...prev, [provider]: true }));
+      
+      // Get OAuth signup URL (same as login URL for OAuth)
+      const oauthUrl = authUtils.getOAuthLoginUrl(provider, window.location.origin + '/auth/callback');
+      
+      // Open OAuth popup
+      authUtils.openOAuthPopup(
+        provider,
+        // Success callback
+        (data) => {
+          console.log(`${provider} OAuth signup success:`, data);
+          
+          if (data.token && data.user) {
+            // For OAuth signup, user is automatically verified
+            setIsEmailVerified(true);
+            setIsRegistered(true);
+            setCurrentStep(2);
+            
+            toast.success(`${provider.charAt(0).toUpperCase() + provider.slice(1)} signup successful! Welcome to Medh!`);
+            
+            // Redirect to login or dashboard
+            setTimeout(() => {
+              router.push("/login");
+            }, 2000);
+          } else {
+            toast.error(`${provider.charAt(0).toUpperCase() + provider.slice(1)} signup failed. Please try again.`);
+          }
+          
+          setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
+        },
+        // Error callback
+        (error) => {
+          console.error(`${provider} OAuth signup error:`, error);
+          
+          // Check if user already exists
+          if (error.message && error.message.includes('already exists')) {
+            toast.error(
+              <div>
+                <p>This {provider} account is already registered. You can login instead.</p>
+                <button 
+                  onClick={() => router.push('/login')}
+                  className="mt-2 bg-white text-primary-600 px-3 py-1 rounded-md text-sm font-medium hover:bg-primary-50 transition-colors dark:bg-gray-700 dark:hover:bg-gray-600"
+                >
+                  Go to Login
+                </button>
+              </div>,
+              {
+                autoClose: 10000,
+                closeOnClick: false,
+                toastId: 'oauth-user-exists-error'
+              }
+            );
+          } else {
+            toast.error(error.message || `${provider.charAt(0).toUpperCase() + provider.slice(1)} signup failed. Please try again.`);
+          }
+          
+          setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
+        }
+      );
+    } catch (error) {
+      console.error(`${provider} OAuth signup error:`, error);
+      toast.error(`Failed to initiate ${provider.charAt(0).toUpperCase() + provider.slice(1)} signup. Please try again.`);
+      setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
+    }
+  };
+
+  // Updated registration function to use new auth API
   const proceedToVerification = async (): Promise<void> => {
     // Validate required fields
     const isValid = await trigger(['email', 'full_name', 'password', 'confirm_password', 'agree_terms', 'phone_numbers']);
@@ -370,10 +442,9 @@ const SignUpForm: React.FC = () => {
     }
     
     setIsSubmitting(true);
-    setApiError(null); // Clear any previous errors
+    setApiError(null);
     
     try {
-      // Add extra debugging
       console.log('Starting registration process...');
       
       const phoneNumbers = getValues('phone_numbers');
@@ -400,7 +471,6 @@ const SignUpForm: React.FC = () => {
             number: phoneNumbers && phoneNumbers[0] ? 
               (phoneNumbers[0].number.startsWith('+') ? 
                 phoneNumbers[0].number : 
-                // Use 91 (India) as default country code if not available
                 `+${phoneNumbers[0].country === 'in' ? '91' : 
                    phoneNumbers[0].country === 'us' ? '1' : 
                    phoneNumbers[0].country === 'gb' ? '44' : 
@@ -412,34 +482,27 @@ const SignUpForm: React.FC = () => {
         agree_terms: watch('agree_terms'),
         role: ["student"],
         meta: {
-          gender: watch('meta.gender') || "Male",
+          gender: watch('meta.gender') || "male",
           age_group: watch('age_group'),
-          upload_resume: []
         }
       };
 
-      // Add a top-level handler to ensure errors are always caught
       const response = await postQuery({
-        url: apiUrls?.user?.register,
+        url: authAPI.local.register,
         postData: requestData,
         requireAuth: false,
-        showToast: false, // Don't show automatic toast, we'll handle it
-        onSuccess: (response: any) => {
-          // Log the complete response to debug
+        showToast: false,
+        onSuccess: (response: IAuthResponse) => {
           console.log('Registration API response:', response);
           
-          // Check if response is actually a success before showing success message
           if (response?.success === false) {
-            // This is actually an error despite being in onSuccess
             const errorMessage = response?.message || "Registration failed";
             console.error('Registration error in onSuccess handler:', errorMessage);
             toast.error(errorMessage);
             setApiError(errorMessage);
-            // Don't proceed to verification
             return;
           }
           
-          // Only proceed if it's a genuine success
           console.log('Registration successful, proceeding to verification');
           setIsRegistered(true);
           setCurrentStep(2);
@@ -449,25 +512,19 @@ const SignUpForm: React.FC = () => {
         onFail: (error: any) => {
           console.error('Registration onFail triggered with error:', error);
           
-          // Extract error response details
           const errorResponse = error?.response?.data;
           const statusCode = error?.response?.status;
-          const originalError = error?.original || error;
           
-          // Log the complete error information
           console.error('Detailed registration error:', { 
             statusCode,
             errorResponse,
             message: error?.message,
-            originalError
           });
           
-          // Check for exact "User already exists" response format
           const isExactUserExistsFormat = 
             errorResponse?.success === false && 
             errorResponse?.message === "User already exists";
           
-          // Also check for variations of the "already exists" message
           const errorMessage = errorResponse?.message || errorResponse?.error || 'Unknown error occurred';
           const isUserExists = 
             isExactUserExistsFormat || 
@@ -483,16 +540,13 @@ const SignUpForm: React.FC = () => {
             errorMessage
           });
 
-          // Set form error state and prevent form progress
           setIsRegistered(false);
           setCurrentStep(1);
           setShowOTPVerification(false);
           
           if (isUserExists) {
-            // Handle "User already exists" specifically
             setApiError("This email is already registered");
             
-            // Create a custom toast with a login button
             toast.error(
               <div>
                 <p>This email is already registered. You can login instead.</p>
@@ -504,126 +558,37 @@ const SignUpForm: React.FC = () => {
                 </button>
               </div>,
               {
-                autoClose: 10000, // Give more time for user to click the login button
+                autoClose: 10000,
                 closeOnClick: false,
                 toastId: 'user-exists-error'
               }
             );
             
-            // Add error styling to email field
             const emailField = document.getElementById('email-field');
             if (emailField) {
               emailField.classList.add('border-red-500', 'ring-red-400');
               emailField.focus();
             }
             
-            return; // Prevent further execution
+            return;
           } 
           
-          // Handle all other error types
-          if (statusCode === 400) {
-            // Bad request handling
-            if (typeof errorMessage === 'object') {
-              // Handle validation errors
-              const validationErrors = Object.values(errorMessage).flat().join('. ');
-              toast.error(`Validation error: ${validationErrors || "Please check your input"}`, {
-                toastId: 'validation-error'
-              });
-              setApiError(`Validation error: ${validationErrors}`);
-            } else {
-              toast.error(`Registration failed: ${errorMessage}`, {
-                toastId: 'bad-request-error'
-              });
-              setApiError(errorMessage);
-            }
-          } else if (statusCode === 401 || statusCode === 403) {
-            // Auth errors
-            toast.error(`Authentication error: ${errorMessage}`, {
-              toastId: 'auth-error'
-            });
-            setApiError(`Authentication error: ${errorMessage}`);
-          } else if (statusCode >= 500) {
-            // Server errors
-            toast.error("Server error occurred. Please try again later.", {
-              toastId: 'server-error'
-            });
-            setApiError("Server error occurred. Please try again later.");
-          } else {
-            // Generic or network errors
-            if (typeof errorMessage === 'string') {
-              toast.error(`Error: ${errorMessage}`, {
-                toastId: 'generic-error'
-              });
-              setApiError(errorMessage);
-            } else if (error?.message) {
-              toast.error(`Network error: ${error.message}`, {
-                toastId: 'network-error'
-              });
-              setApiError(`Network error: ${error.message}`);
-            } else {
-              toast.error("An unexpected error occurred. Please try again later.", {
-                toastId: 'unexpected-error'
-              });
-              setApiError("An unexpected error occurred");
-            }
-          }
+          // Handle other error types using auth utils
+          const errorMsg = authUtils.handleAuthError(error);
+          toast.error(errorMsg, { toastId: 'registration-error' });
+          setApiError(errorMsg);
         },
       });
     } catch (error) {
-      // Handle client-side errors (like network issues, axios errors, etc.)
       console.error("Client-side registration error:", error);
       
-      // Reset form progress states
       setIsRegistered(false);
       setCurrentStep(1);
       setShowOTPVerification(false);
       
-      if (axios.isAxiosError(error)) {
-        // Handle Axios specific errors (network issues, timeouts)
-        const axiosError = error as AxiosError;
-        const statusCode = axiosError.response?.status;
-        const responseData = axiosError.response?.data as any;
-        const errorMessage = responseData?.message || 
-                            responseData?.error || 
-                            axiosError.message;
-        
-        if (statusCode === 400) {
-          toast.error(`Bad request: ${errorMessage}`, {
-            toastId: 'axios-400-error'
-          });
-        } else if (statusCode === 401 || statusCode === 403) {
-          toast.error(`Authentication error: ${errorMessage}`, {
-            toastId: 'axios-auth-error'
-          });
-        } else if (statusCode && statusCode >= 500) {
-          toast.error("Server error. Please try again later.", {
-            toastId: 'axios-server-error'
-          });
-        } else if (axiosError.code === 'ECONNABORTED') {
-          toast.error("Request timeout. Please check your connection and try again.", {
-            toastId: 'axios-timeout-error'
-          });
-        } else if (!axiosError.response) {
-          toast.error("Network error. Please check your connection and try again.", {
-            toastId: 'axios-network-error'
-          });
-        } else {
-          toast.error(`Error: ${errorMessage || "Unknown error"}`, {
-            toastId: 'axios-unknown-error'
-          });
-        }
-        setError(typeof errorMessage === 'string' ? errorMessage : "Request failed");
-      } else if (error instanceof Error) {
-        setError(error.message);
-        toast.error(`Error: ${error.message}`, {
-          toastId: 'js-error'
-        });
-      } else {
-        setError('An unexpected error occurred');
-        toast.error('An unexpected error occurred. Please try again.', {
-          toastId: 'unknown-error'
-        });
-      }
+      const errorMsg = authUtils.handleAuthError(error);
+      toast.error(errorMsg, { toastId: 'client-error' });
+      setError(errorMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -1237,6 +1202,34 @@ const SignUpForm: React.FC = () => {
                       )}
                     />
 
+                    {/* Gender Dropdown */}
+                    <div className="form-group">
+                      <label className="block mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Gender <span className="text-red-500">*</span></label>
+                      <div className="relative">
+                        <select
+                          {...register("meta.gender")}
+                          aria-required="true"
+                          className="w-full h-10 px-2 py-0 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-8 appearance-none text-sm"
+                        >
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                          <option value="other">Other</option>
+                        </select>
+                        <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                          <UserCircle className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                        </div>
+                        <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+                          <ChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                        </div>
+                      </div>
+                      {errors.meta?.gender && (
+                        <p className="error-message text-red-500 flex items-start">
+                          <AlertCircle className="h-3 w-3 mt-0.5 mr-1 flex-shrink-0" />
+                          <span>{errors.meta.gender?.message}</span>
+                        </p>
+                      )}
+                    </div>
+
                     {/* Age Group Dropdown */}
                     <div className="form-group">
                       <label className="block mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Age Group <span className="text-red-500">*</span></label>
@@ -1455,6 +1448,65 @@ const SignUpForm: React.FC = () => {
                     <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-primary-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
                   </button>
                 </div>
+
+                {/* OAuth Divider - HIDDEN */}
+                {/* 
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="bg-white dark:bg-gray-800 px-3 text-gray-500 dark:text-gray-400">
+                      Or sign up with
+                    </span>
+                  </div>
+                </div>
+
+                {/* OAuth Buttons - HIDDEN */}
+                {/* 
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Google OAuth */}
+                {/*
+                  <button
+                    type="button"
+                    onClick={() => handleOAuthSignup('google')}
+                    disabled={isOAuthLoading.google}
+                    className="flex items-center justify-center px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  >
+                    {isOAuthLoading.google ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
+                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        Google
+                      </>
+                    )}
+                  </button>
+
+                  {/* GitHub OAuth */}
+                {/*
+                  <button
+                    type="button"
+                    onClick={() => handleOAuthSignup('github')}
+                    disabled={isOAuthLoading.github}
+                    className="flex items-center justify-center px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  >
+                    {isOAuthLoading.github ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Github className="w-4 h-4 mr-2 text-gray-700 dark:text-gray-300" />
+                        GitHub
+                      </>
+                    )}
+                  </button>
+                </div>
+                */}
 
                 {/* Sign In Link */}
                 <div className="text-center mt-3">

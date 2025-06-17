@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import ProtectedPage from "@/app/protectedRoutes";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import { useParams } from "next/navigation";
 import { IStudent } from "@/types/student.types";
@@ -54,7 +54,7 @@ const AdminStudentDetailPage = () => {
   if (loading) {
     return (
       <ProtectedPage>
-        <DashboardContainer>
+        
           <HeadingDashboard />
           <div className="p-8 flex justify-center items-center min-h-[400px]">
             <div className="flex flex-col items-center">
@@ -62,7 +62,7 @@ const AdminStudentDetailPage = () => {
               <p className="text-gray-500 dark:text-gray-400">Loading student information...</p>
             </div>
           </div>
-        </DashboardContainer>
+        
       </ProtectedPage>
     );
   }
@@ -70,7 +70,7 @@ const AdminStudentDetailPage = () => {
   if (error || !student) {
     return (
       <ProtectedPage>
-        <DashboardContainer>
+        
           <HeadingDashboard />
           <div className="p-8 flex justify-center items-center min-h-[400px]">
             <div className="text-center">
@@ -90,14 +90,14 @@ const AdminStudentDetailPage = () => {
               </Link>
             </div>
           </div>
-        </DashboardContainer>
+        
       </ProtectedPage>
     );
   }
 
   return (
     <ProtectedPage>
-      <DashboardContainer>
+      
         <HeadingDashboard />
         <div className="p-6">
           {/* Back button */}
@@ -319,7 +319,7 @@ const AdminStudentDetailPage = () => {
             </div>
           </div>
         </div>
-      </DashboardContainer>
+      
     </ProtectedPage>
   );
 };

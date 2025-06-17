@@ -1,6 +1,6 @@
 import ProtectedPage from "@/app/protectedRoutes";
 import AdminMessageMain from "@/components/layout/main/dashboards/AdminMessageMain";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 
 
 import DashboardWrapper from "@/components/shared/wrappers/DashboardWrapper";
@@ -15,9 +15,9 @@ const Admin_Message = () => {
       <PageWrapper>
         <main>
           <DashboardWrapper>
-            <DashboardContainer>
+            
               <AdminMessageMain />
-            </DashboardContainer>
+            
           </DashboardWrapper>
           
         </main>

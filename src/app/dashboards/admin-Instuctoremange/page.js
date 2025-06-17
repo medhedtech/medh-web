@@ -1,6 +1,6 @@
 import ProtectedPage from "@/app/protectedRoutes";
 import InstructoreManage from "@/components/layout/main/dashboards/InstructorManage";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 
 export const metadata = {
@@ -11,12 +11,12 @@ const Admin_Reviews = () => {
   return (
     <ProtectedPage>
       <main>
-        <DashboardContainer>
+        
           <div>
             <HeadingDashboard />
           </div>
           <InstructoreManage />
-        </DashboardContainer>
+        
         
       </main>
     </ProtectedPage>

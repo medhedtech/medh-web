@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import ProtectedPage from "@/app/protectedRoutes";
 import ListOfCourse from "@/components/layout/main/dashboards/ListOfCourse";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 
 import Link from "next/link";
@@ -37,7 +37,7 @@ const AdminCourseList = () => {
   return (
     <ProtectedPage>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-        <DashboardContainer>
+        
           <div className="space-y-6 p-4 md:p-6">
             {/* Header Section */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 
@@ -58,7 +58,7 @@ const AdminCourseList = () => {
               </div>
             </div>
           </div>
-        </DashboardContainer>
+        
 
         {/* Theme Controller */}
         <div className="fixed bottom-6 right-6 z-50">

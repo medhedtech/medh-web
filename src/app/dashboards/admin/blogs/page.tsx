@@ -1,6 +1,6 @@
 import ProtectedPage from "@/app/protectedRoutes";
 import AdminBlogs from "@/components/layout/main/dashboards/AdminBlogs";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import { Metadata } from 'next';
 
