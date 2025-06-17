@@ -54,8 +54,9 @@ import {
   ThumbsUp
 } from 'lucide-react';
 import Image from 'next/image';
-import DashboardNavbar from '../../Dashboard/DashboardNavbar';
-import SidebarDashboard from '../sub-section/dashboards/SidebarDashboard';
+// Layout components are now handled by parent StudentProfilePage
+// import DashboardNavbar from '../../Dashboard/DashboardNavbar';
+// import SidebarDashboard from '../sub-section/dashboards/SidebarDashboard';
 import { 
   getCurrentUserProfile, 
   updateCurrentUserProfile, 
@@ -84,8 +85,9 @@ const StudentProfileDashboard: React.FC = () => {
     editForm: {}
   });
   
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  // Sidebar state management is now handled by parent component
+  // const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [userRole, setUserRole] = useState('student');
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
@@ -146,10 +148,7 @@ const StudentProfileDashboard: React.FC = () => {
     fetchProfileData();
   }, []);
 
-  // Handle menu click
-  const handleMenuClick = (menuName: string, items: any[]) => {
-    console.log('Menu clicked:', menuName);
-  };
+  // Menu click handling is now done by parent component
 
   // Handle profile edit
   const handleEditProfile = () => {
@@ -291,36 +290,9 @@ const StudentProfileDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Dashboard Navbar */}
-      <DashboardNavbar 
-        onMobileMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-        isScrolled={false}
-      />
-
-      <div className="flex">
-        {/* Sidebar */}
-        <SidebarDashboard
-          userRole={userRole}
-          fullName={userName}
-          userEmail={userEmail}
-          userImage="/avatars/default-avatar.png"
-          userNotifications={0}
-          userSettings={{
-            theme: 'light',
-            language: 'en',
-            notifications: true
-          }}
-          onMenuClick={handleMenuClick}
-          isOpen={isSidebarOpen}
-          onOpenChange={setIsSidebarOpen}
-          isExpanded={isSidebarExpanded}
-          onExpandedChange={setIsSidebarExpanded}
-        />
-
-        {/* Main Content */}
-        <div className="flex-1 ml-0 lg:ml-64">
-          <div className="p-4 lg:p-8 max-w-7xl">
+    <div className="min-h-full">
+      {/* Main Content - Layout is now handled by parent component */}
+      <div className="p-4 lg:p-8 max-w-7xl mx-auto">
             
             {/* Error Message */}
             {state.error && (
@@ -631,9 +603,7 @@ const StudentProfileDashboard: React.FC = () => {
                 )}
               </div>
             </motion.div>
-          </div>
         </div>
-      </div>
 
       {/* Edit Profile Modal */}
       <AnimatePresence>
