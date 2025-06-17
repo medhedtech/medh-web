@@ -463,37 +463,17 @@ const HireFromMedhBanner: React.FC<HireFromMedhBannerProps> = ({ onLearnMoreClic
               <div className="mt-4 sm:mt-6 md:mt-8 flex flex-wrap gap-4 justify-center">
                 <button 
                   onClick={onLearnMoreClick || handleScrollToRegistration}
-                  className={`inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-all duration-300 hover:scale-105 group text-sm sm:text-base md:text-lg relative overflow-hidden ${
+                  className={`inline-flex items-center justify-center py-2.5 px-5 font-semibold rounded-xl transition-all duration-300 hover:scale-105 group text-sm relative overflow-hidden ${
                     isDark 
-                      ? 'bg-gradient-to-r from-primary-500 to-blue-500 text-white hover:shadow-2xl hover:shadow-primary-500/30 glass-stats' 
-                      : 'bg-white/95 backdrop-blur-lg text-gray-900 border-2 border-primary-500/40 hover:border-primary-500/70 hover:bg-white shadow-2xl hover:shadow-3xl'
-                  }`}
-                  style={isDark ? { textShadow: '1px 1px 4px rgba(0, 0, 0, 0.5)' } : {}}
-                >
-                  {!isDark && (
-                    <>
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary-50/60 to-blue-50/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary-100/20 to-blue-100/20 animate-pulse"></div>
-                    </>
-                  )}
-                  <span className="relative z-10 font-extrabold tracking-wide">Let's Connect</span>
-                  <ArrowRight size={16} className="relative z-10 ml-3 group-hover:translate-x-1 transition-transform sm:w-4 sm:h-4 md:w-5 md:h-5" />
-                  
-                  {/* Shine effect for light mode */}
-                  {!isDark && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                  )}
-                </button>
-                
-                <button 
-                  onClick={() => window.location.href = "/contact-us"}
-                  className={`inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-all duration-300 hover:scale-105 text-sm sm:text-base md:text-lg ${
-                    isDark 
-                      ? 'glass-stats text-white hover:bg-white/10' 
-                      : 'bg-gray-100/80 backdrop-blur-lg text-gray-700 border-2 border-gray-300/40 hover:border-gray-400/70 hover:bg-gray-200/80 shadow-lg hover:shadow-xl'
+                      ? 'bg-gradient-to-r from-primary-500 to-blue-500 text-white hover:shadow-lg hover:shadow-primary-500/25 glass-stats' 
+                      : 'bg-white/90 backdrop-blur-md text-gray-900 border-2 border-primary-500/30 hover:border-primary-500/60 hover:bg-white/95 shadow-lg hover:shadow-xl'
                   }`}
                 >
-                  Contact Us
+                  {!isDark && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary-50/50 to-blue-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
+                  )}
+                  <span className="relative z-10 font-bold">Let's Connect</span>
+                  <ArrowRight size={14} className="relative z-10 ml-2 group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
 

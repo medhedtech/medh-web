@@ -316,29 +316,6 @@ const DigiMarketingOverview = () => {
     return (
       <>
         {activeContent.content}
-        
-        {/* Enhanced Call to action at the bottom of each tab */}
-        {activeTab === 3 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="mt-8 p-6 bg-white rounded-xl border border-gray-100 shadow-lg dark:border-blue-500/20 dark:bg-gray-800/50 hover:shadow-xl transition-all duration-300"
-          >
-            <h3 className="text-lg md:text-xl font-semibold text-blue-500 dark:text-blue-400 mb-3">Start Your Digital Marketing Career Today</h3>
-            <p className="text-gray-700 dark:text-gray-300 text-sm md:text-base mb-4">
-              Don't miss this opportunity to transform your career and become a sought-after digital marketing professional with data analytics expertise.
-            </p>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-all transform hover:-translate-y-0.5 shadow-lg shadow-blue-500/25"
-            >
-              <span>Enroll Now</span>
-              <ChevronRight className="ml-2 h-5 w-5" />
-            </motion.button>
-          </motion.div>
-        )}
       </>
     );
   };
@@ -444,35 +421,6 @@ const DigiMarketingOverview = () => {
             {renderTabContent()}
           </motion.section>
         </AnimatePresence>
-
-        {/* Enhanced Call to action with better visuals */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="mt-12 p-6 md:p-8 bg-white dark:from-blue-900/30 dark:to-purple-900/30 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700 max-w-4xl mx-auto text-center"
-        >
-          <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-4">Ready to Master Digital Marketing?</h3>
-          <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto text-sm md:text-base">
-            Join thousands of students who have transformed their careers through our comprehensive Digital Marketing with Data Science course.
-          </p>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="inline-flex items-center px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-all transform hover:-translate-y-0.5 shadow-lg shadow-blue-500/25"
-          >
-            Enroll Today
-            <ChevronRight className="ml-2 h-5 w-5" />
-          </motion.button>
-        </motion.div>
-
-        {/* Slogan */}
-        <div className="text-center mt-10">
-          <p className="mumkinMedh text-2xl text-blue-500 font-medium italic">
-            Medh Hai Toh Mumkin Hai!
-          </p>
-        </div>
 
         {/* Enhanced Scroll to Top Button with better animations */}
         <AnimatePresence/>

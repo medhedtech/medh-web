@@ -36,19 +36,18 @@ const membershipData: IMembershipData[] = [
     icon: <Star className="w-6 h-6" />,
     color: "primary",
     plans: [
-      { duration: "MONTHLY", price: "INR 999.00", period: "per month" },
-      { duration: "QUARTERLY", price: "INR 2,499.00", period: "per 3 months" },
-      { duration: "HALF-YEARLY", price: "INR 3,999.00", period: "per 6 months" },
-      { duration: "ANNUALLY", price: "INR 4,999.00", period: "per annum" },
+      { duration: "MONTHLY", price: "$49.00", period: "per month" },
+      { duration: "QUARTERLY", price: "$99.00", period: "per 3 months" },
+      { duration: "HALF-YEARLY", price: "$129.00", period: "per 6 months" },
+      { duration: "ANNUALLY", price: "$149.00", period: "per year" },
     ],
     description:
-      "Ideal for focused skill development. Explore and learn all self-paced blended courses within any 'Single-Category' of your preference.",
+      "You have a choice to explore and learn any or all programs within a 'single-course-category' of your preference.",
     features: [
-      "Access to LIVE Q&A Doubt Clearing Sessions",
-      "Special discount on all live courses",
+      "Access to single course category",
+      "20% discount on all courses",
       "Community access",
-      "Access to free courses",
-      "Placement Assistance"
+      "Monthly newsletter"
     ]
   },
   {
@@ -56,20 +55,18 @@ const membershipData: IMembershipData[] = [
     icon: <Crown className="w-6 h-6" />,
     color: "amber",
     plans: [
-      { duration: "MONTHLY", price: "INR 1,999.00", period: "per month" },
-      { duration: "QUARTERLY", price: "INR 3,999.00", period: "per 3 months" },
-      { duration: "HALF-YEARLY", price: "INR 5,999.00", period: "per 6 months" },
-      { duration: "ANNUALLY", price: "INR 6,999.00", period: "per annum" },
+      { duration: "MONTHLY", price: "$69.00", period: "per month" },
+      { duration: "QUARTERLY", price: "$119.00", period: "per 3 months" },
+      { duration: "HALF-YEARLY", price: "$149.00", period: "per 6 months" },
+      { duration: "ANNUALLY", price: "$199.00", period: "per year" },
     ],
     description:
-      "Perfect for diverse skill acquisition. Explore and learn all self-paced blended courses within any '03-Categories' of your preference.",
+      "Gold membership gives access to multiple course categories for a premium experience.",
     features: [
-      "Access to LIVE Q&A Doubt Clearing Sessions",
-      "Minimum 15% discount on all live courses",
-      "Community access",
-      "Access to free courses",
-      "Career Counselling",
-      "Placement Assistance"
+      "Access to three course categories",
+      "30% discount on all courses",
+      "Priority community access",
+      "Early access to new courses"
     ]
   },
 ];
@@ -133,7 +130,7 @@ const PrimeMembership: React.FC = () => {
             transition={{ duration: 0.6 }}
             className="text-center max-w-4xl mx-auto mb-16"
           >
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-6">
+            <h1 id="choose-membership" className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-6">
               Choose Your <span className="text-primary-500 dark:text-primary-400">MEDH</span> Membership
             </h1>
           </motion.div>
@@ -247,30 +244,6 @@ const PrimeMembership: React.FC = () => {
             ))}
           </div>
 
-          {/* Free Trial Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="text-center mb-12"
-          >
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-8 max-w-2xl mx-auto border border-green-200 dark:border-green-800 shadow-lg">
-              <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
-                START YOUR 7-DAY FREE TRIAL TODAY
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-6">
-                No commitment • Cancel anytime
-              </p>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 px-8 rounded-lg shadow-lg transition-all duration-300"
-              >
-                Start Free Trial
-              </motion.button>
-            </div>
-          </motion.div>
-
           {/* Note Section */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -286,6 +259,32 @@ const PrimeMembership: React.FC = () => {
                 for these memberships.
               </p>
             </div>
+          </motion.div>
+
+          {/* Explore More Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="text-center mt-8"
+          >
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                const element = document.getElementById('membership-features');
+                if (element) {
+                  element.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                  });
+                }
+              }}
+              className="inline-flex items-center px-8 py-4 bg-primary-500 hover:bg-primary-600 text-white rounded-xl transition-all font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            >
+              Explore More Features
+              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+            </motion.button>
           </motion.div>
         </div>
 
