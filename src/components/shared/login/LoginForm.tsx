@@ -638,50 +638,50 @@ const LoginForm = () => {
         postData: loginData,
         onSuccess: (res: ILoginResponse) => {
           console.log('Login response:', res);
-          console.log('User data:', res.data?.user);
-          console.log('User role:', (res.data?.user as any)?.role);
-          console.log('Email verified:', res.data?.user?.email_verified);
+          console.log('User data:', res.data);
+          console.log('User role:', res.data?.role);
+          console.log('Email verified:', res.data?.email_verified);
 
           // Check if email verification is required
           // Configuration: Set this to true to skip email verification entirely
           const SKIP_EMAIL_VERIFICATION_FOR_ALL = false;
           
           // Skip email verification for admin users or if it's a special case
-          const userRole = getUserRoleFromToken(res.data.token) || '';
+          const userRole = getUserRoleFromToken(res.data.access_token) || '';
           const isAdmin = ['admin', 'super-admin', 'administrator'].includes(userRole.toLowerCase());
           const shouldSkipVerification = SKIP_EMAIL_VERIFICATION_FOR_ALL || 
                                        isAdmin || 
-                                       res.data?.user?.email_verified !== false;
+                                       res.data?.email_verified !== false;
           
           console.log('Email verification check:', {
-            email_verified: res.data?.user?.email_verified,
+            email_verified: res.data?.email_verified,
             userRole,
             isAdmin,
             shouldSkipVerification
           });
           
-          if (res.data?.user?.email_verified === false && !shouldSkipVerification) {
+          if (res.data?.email_verified === false && !shouldSkipVerification) {
             // User needs to verify email first
             const mockLoginData = {
-              id: res.data.user.id || '',
-              email: res.data.user.email || data.email,
-              full_name: res.data.user.full_name || '',
-              role: (res.data.user as any).role || [userRole], // Use role from response or detected role
-              permissions: (res.data.user as any).permissions || [],
-              access_token: res.data.token || '',
-              refresh_token: res.data.session_id || '',
+              id: res.data.id || '',
+              email: res.data.email || data.email,
+              full_name: res.data.full_name || '',
+              role: res.data.role || [userRole], // Use role from response or detected role
+              permissions: res.data.permissions || [],
+              access_token: res.data.access_token || '',
+              refresh_token: res.data.refresh_token || '',
               emailVerified: false
             };
             
             setPendingLoginData(mockLoginData);
-            setVerificationEmail(res.data.user.email || data.email);
+            setVerificationEmail(res.data.email || data.email);
             setCurrentStep(2);
             setShowOTPVerification(true);
             
             // Send verification email
             postQuery({
               url: authAPI.local.resendVerification,
-              postData: { email: res.data.user.email || data.email },
+              postData: { email: res.data.email || data.email },
               requireAuth: false,
               onSuccess: () => {
                 toast.info("Please verify your email. A verification code has been sent to your inbox.");
@@ -697,14 +697,14 @@ const LoginForm = () => {
 
           // Email is verified, proceed with normal login
           const loginResponseData: LoginResponseData = {
-            id: res.data.user.id,
-            email: res.data.user.email,
-            full_name: res.data.user.full_name,
-            role: (res.data.user as any).role || [], // Extract role from API response (type assertion needed)
-            permissions: (res.data.user as any).permissions || [],
-            access_token: res.data.token,
-            refresh_token: res.data.session_id,
-            emailVerified: res.data.user.email_verified
+            id: res.data.id,
+            email: res.data.email,
+            full_name: res.data.full_name,
+            role: res.data.role || [], // Extract role from API response
+            permissions: res.data.permissions || [],
+            access_token: res.data.access_token,
+            refresh_token: res.data.refresh_token,
+            emailVerified: res.data.email_verified
           };
 
           completeLoginProcess(loginResponseData);
