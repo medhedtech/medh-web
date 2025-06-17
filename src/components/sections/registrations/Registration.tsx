@@ -6,7 +6,7 @@ import { apiUrls } from "@/apis";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { FileText, CheckCircle, X, ArrowRight, Info, Loader2, Phone, Mail, User, Upload, Globe, MessageSquare, Building, Briefcase, ExternalLink } from "lucide-react";
+import { FileText, CheckCircle, X, ArrowRight, Info, Loader2, Phone, Mail, User, Upload, Globe, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { toast } from "react-toastify";
 import CustomReCaptcha from '../../shared/ReCaptcha';
@@ -27,9 +27,6 @@ interface IFormValues {
   email: string;
   country: string;
   phone_number: string;
-  school_institute_name: string;
-  designation: string;
-  website: string;
   message: string;
   accept: boolean;
   resume_image?: string;
@@ -107,22 +104,6 @@ const schema = yup.object({
 
       return phoneRegex.test(phoneWithCountryCode);
     }),
-  school_institute_name: yup
-    .string()
-    .trim()
-    .required("School/Institute name is required"),
-  designation: yup
-    .string()
-    .trim()
-    .required("Designation is required"),
-  website: yup
-    .string()
-    .trim()
-    .matches(
-      /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/,
-      "Please enter a valid website URL"
-    )
-    .required("Website is required"),
   message: yup
     .string()
     .trim()
@@ -650,9 +631,6 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
       ...data,
       full_name: DOMPurify.sanitize(data.full_name),
       email: DOMPurify.sanitize(data.email),
-      school_institute_name: DOMPurify.sanitize(data.school_institute_name),
-      designation: DOMPurify.sanitize(data.designation),
-      website: DOMPurify.sanitize(data.website),
       message: DOMPurify.sanitize(data.message),
     };
   };
@@ -676,9 +654,6 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
         country: sanitizedData.country,
         email: sanitizedData.email,
         phone_number: selectedCountry.dial_code + sanitizedData.phone_number,
-        school_institute_name: sanitizedData.school_institute_name,
-        designation: sanitizedData.designation,
-        website: sanitizedData.website,
         message: sanitizedData.message,
         accept: sanitizedData.accept,
         page_title: pageTitle,
@@ -795,33 +770,6 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
                       onChange={handlePhoneInput}
                       error={errors.phone_number}
                       countryCode={selectedCountryDialCode}
-                    />
-
-                  <FormInput 
-                    id="school_institute_name"
-                    type="text"
-                    placeholder="School/Institute Name"
-                    register={register("school_institute_name")}
-                    error={errors.school_institute_name}
-                    icon={<Building />}
-                  />
-
-                  <FormInput 
-                    id="designation"
-                    type="text"
-                    placeholder="Designation"
-                    register={register("designation")}
-                    error={errors.designation}
-                    icon={<Briefcase />}
-                  />
-
-                  <FormInput 
-                    id="website"
-                    type="url"
-                    placeholder="Website"
-                    register={register("website")}
-                    error={errors.website}
-                    icon={<ExternalLink />}
                     />
 
                   <FormTextarea 

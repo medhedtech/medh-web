@@ -219,7 +219,13 @@ const MembershipBanner: React.FC = () => {
   }, []);
 
   const handleExplore = (): void => {
-    window.location.href = "/membership";
+    const element = document.getElementById('choose-membership');
+    if (element) {
+      element.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
   };
 
   return (
@@ -250,9 +256,9 @@ const MembershipBanner: React.FC = () => {
                 </div>
               </div>
                
-              <h1 className={`text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold leading-tight mb-2 sm:mb-3 md:mb-4 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-2 sm:mb-3 md:mb-4 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 <span className="block text-sm sm:text-base font-medium uppercase tracking-widest mb-3 opacity-80">Tailored Resources for Success</span>
-                <span className="block whitespace-nowrap">Unlimited Learning, Continuous Growth</span>
+                <span className="block whitespace-nowrap">Unlock Your Learning Potential</span>
                 <span className="block whitespace-nowrap">
                   <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9)' }}>with</em>
                   <span className="inline-flex items-center">
@@ -273,7 +279,7 @@ const MembershipBanner: React.FC = () => {
               </h1>
                 
               <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-3 sm:mb-4 md:mb-6 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
-                Access hundreds of courses at an Unbeatable Value with Medh Membership.
+                Take Your Skills to New Heights! Become a MEDH Member Today and Unlock Your Full Potential for Success.
               </p>
 
               <div className="mt-4 sm:mt-6 md:mt-8 flex flex-wrap gap-4 justify-center">

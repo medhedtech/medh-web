@@ -501,12 +501,16 @@ const HomeCourseSection2 = ({
           skipCache: true,
           requireAuth: false,
           onSuccess: (response) => {
-            console.log("Live Courses API Response received");
+            console.log("Live Courses API Response received", response);
             
             let processedCourses: ICourse[] = [];
             
             try {
-              if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
+              // Handle the new API response format with success and data fields
+              if (response && response.success && response.data && Array.isArray(response.data) && response.data.length > 0) {
+                console.log(`Found ${response.data.length} live courses from API (success response)`);
+                processedCourses = response.data;
+              } else if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
                 console.log(`Found ${response.data.length} live courses from API`);
                 processedCourses = response.data;
               } else if (response && Array.isArray(response) && response.length > 0) {
@@ -577,24 +581,24 @@ const HomeCourseSection2 = ({
               resolve(true);
             } catch (parseError) {
               console.error("Error processing live courses data:", parseError);
-                          console.log("USING FALLBACK DATA DUE TO ERROR");
+              console.log("USING FALLBACK DATA DUE TO ERROR");
+              const processedFallbackCourses = fallbackLiveCourses.map(course => ({
+                ...course,
+                course_duration: getDisplayDurationRange(course.duration_range || course.course_duration as string, 'live')
+              }));
+              setLiveCourses(processedFallbackCourses);
+              resolve(true);
+            }
+          },
+                    onFail: (error) => {
+            console.error("Error fetching live courses:", error);
+            console.log("USING FALLBACK DATA DUE TO API FAILURE");
             const processedFallbackCourses = fallbackLiveCourses.map(course => ({
               ...course,
               course_duration: getDisplayDurationRange(course.duration_range || course.course_duration as string, 'live')
             }));
             setLiveCourses(processedFallbackCourses);
             resolve(true);
-            }
-          },
-          onFail: (error) => {
-            console.error("Error fetching live courses:", error);
-                      console.log("USING FALLBACK DATA DUE TO API FAILURE");
-          const processedFallbackCourses = fallbackLiveCourses.map(course => ({
-            ...course,
-            course_duration: getDisplayDurationRange(course.duration_range || course.course_duration as string, 'live')
-          }));
-          setLiveCourses(processedFallbackCourses);
-          resolve(true);
           }
         });
       });
@@ -805,7 +809,8 @@ const HomeCourseSection2 = ({
                       batchPrice: batchPrice || undefined,
                       status: course.status || "Published",
                       updatedAt: course.updatedAt || new Date().toISOString(),
-                      createdAt: course.createdAt || new Date().toISOString()
+                      createdAt: course.createdAt || new Date().toISOString(),
+                      url: course.url
                     }} 
                     classType="Live Courses"
                     preserveClassType={true}

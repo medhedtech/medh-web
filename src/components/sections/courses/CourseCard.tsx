@@ -726,9 +726,9 @@ const CourseCard = ({
   };
 
   const navigateToCourse = () => {
-    // For live interactive courses, we use the custom URL
-    if (course?.custom_url) {
-      window.location.href = course.custom_url;
+    // For courses with URL, navigate to that URL
+    if (course?.url) {
+      window.location.href = course.url;
     } 
     // For other courses, we navigate to the course details page
     else if (course?._id) {
@@ -1590,15 +1590,10 @@ const CourseCard = ({
                             Corporate Internship
                           </span>
                         ) : (
-                          // Only show Job Assistance if not Vedic Mathematics or Personality Development
-                          !(course?.course_category === "Vedic Mathematics" || course?.course_category === "Personality Development" || 
-                            course?.course_title?.toLowerCase().includes("vedic mathematics") || 
-                            course?.course_title?.toLowerCase().includes("personality development")) && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-md bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 text-xs font-medium">
-                              <CheckCircle size={10} className="mr-1" />
-                              Job Assistance
-                            </span>
-                          )
+                          <span className="inline-flex items-center px-2 py-1 rounded-md bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 text-xs font-medium">
+                            <CheckCircle size={10} className="mr-1" />
+                            Job Assistance
+                          </span>
                         )}
                       </>
                     )}

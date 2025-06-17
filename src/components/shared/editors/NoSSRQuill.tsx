@@ -30,6 +30,7 @@ const SimpleRichTextEditor = forwardRef<HTMLTextAreaElement, ISimpleEditorProps>
     const [isMounted, setIsMounted] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [isDark, setIsDark] = useState(true);
+    const [internalValue, setInternalValue] = useState(value || '');
 
     useEffect(() => {
       setIsMounted(true);
@@ -39,10 +40,29 @@ const SimpleRichTextEditor = forwardRef<HTMLTextAreaElement, ISimpleEditorProps>
       setIsDark(theme);
     }, []);
 
+    // Update internal value when prop changes (important for AI content updates)
+    useEffect(() => {
+      if (value !== internalValue) {
+        console.log('NoSSRQuill: Value prop changed from', internalValue.length, 'to', value.length, 'chars');
+        setInternalValue(value || '');
+        
+        // Force textarea to update if it exists
+        if (textareaRef.current) {
+          textareaRef.current.value = value || '';
+        }
+      }
+    }, [value, internalValue]);
+
     // Don't render anything on the server or before mounting
     if (!isMounted) {
       return <EditorLoading />;
     }
+
+    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const newValue = e.target.value;
+      setInternalValue(newValue);
+      onChange(newValue);
+    };
 
     const insertText = (before: string, after: string = '') => {
       const textarea = textareaRef.current;
@@ -50,9 +70,10 @@ const SimpleRichTextEditor = forwardRef<HTMLTextAreaElement, ISimpleEditorProps>
 
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
-      const selectedText = value.substring(start, end);
-      const newText = value.substring(0, start) + before + selectedText + after + value.substring(end);
+      const selectedText = internalValue.substring(start, end);
+      const newText = internalValue.substring(0, start) + before + selectedText + after + internalValue.substring(end);
       
+      setInternalValue(newText);
       onChange(newText);
       
       // Restore cursor position
@@ -113,8 +134,8 @@ const SimpleRichTextEditor = forwardRef<HTMLTextAreaElement, ISimpleEditorProps>
               textareaRef.current = node;
             }
           }}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+          value={internalValue}
+          onChange={handleChange}
           onFocus={onFocus}
           placeholder={placeholder || "Start writing your content here..."}
           className={`w-full min-h-[300px] p-4 border-0 rounded-b-xl resize-none focus:outline-none ${
@@ -134,7 +155,7 @@ const SimpleRichTextEditor = forwardRef<HTMLTextAreaElement, ISimpleEditorProps>
             ? 'bg-white/5 text-gray-400 border-t border-white/10' 
             : 'bg-gray-50 text-gray-500 border-t border-gray-200'
         }`}>
-          <span>Supports Markdown: **bold**, *italic*, `code`, [links](url), ![images](url)</span>
+          <span>Supports Markdown: **bold**, *italic*, `code`, [links](url), ![images](url) | Current: {internalValue.length} chars</span>
         </div>
       </div>
     );

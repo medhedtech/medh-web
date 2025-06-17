@@ -440,17 +440,6 @@ const SchoolBanner: React.FC = () => {
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                   )}
                 </button>
-                
-                <button 
-                  onClick={handleContactUs}
-                  className={`inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-all duration-300 hover:scale-105 text-sm sm:text-base md:text-lg ${
-                    isDark 
-                      ? 'glass-stats text-white hover:bg-white/10' 
-                      : 'bg-gray-100/80 backdrop-blur-lg text-gray-700 border-2 border-gray-300/40 hover:border-gray-400/70 hover:bg-gray-200/80 shadow-lg hover:shadow-xl'
-                  }`}
-                >
-                  Learn More
-                </button>
               </div>
 
               {/* Tagline - Enhanced Size */}

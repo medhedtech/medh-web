@@ -261,7 +261,8 @@ function CourseBanner({
               <Image
                 src={mainImage}
                 alt="Course Banner"
-                className="w-full h-full object-cover transform transition-transform duration-700 filter saturate-[1.1]"
+                fill
+                className="object-cover transform transition-transform duration-700 filter saturate-[1.1]"
                 priority
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 40vw"
               />
@@ -284,12 +285,12 @@ function CourseBanner({
                 "
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden ring-2 ring-primary-500 group-hover:ring-4 transition-all duration-300">
+                  <div className="relative w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden ring-2 ring-primary-500 group-hover:ring-4 transition-all duration-300">
                     <Image
                       src={studentImage}
                       alt="Student"
-                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"
-                      sizes="(max-width: 768px) 48px, 56px"
+                      fill
+                      className="object-cover transform group-hover:scale-110 transition-transform duration-300"
                     />
                   </div>
                   <div>
