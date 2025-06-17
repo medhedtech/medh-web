@@ -36,18 +36,19 @@ const membershipData: IMembershipData[] = [
     icon: <Star className="w-6 h-6" />,
     color: "primary",
     plans: [
-      { duration: "MONTHLY", price: "$49.00", period: "per month" },
-      { duration: "QUARTERLY", price: "$99.00", period: "per 3 months" },
-      { duration: "HALF-YEARLY", price: "$129.00", period: "per 6 months" },
-      { duration: "ANNUALLY", price: "$149.00", period: "per year" },
+      { duration: "MONTHLY", price: "INR 999.00", period: "per month" },
+      { duration: "QUARTERLY", price: "INR 2,499.00", period: "per 3 months" },
+      { duration: "HALF-YEARLY", price: "INR 3,999.00", period: "per 6 months" },
+      { duration: "ANNUALLY", price: "INR 4,999.00", period: "per annum" },
     ],
     description:
-      "You have a choice to explore and learn any or all programs within a 'single-course-category' of your preference.",
+      "Ideal for focused skill development. Explore and learn all self-paced blended courses within any 'Single-Category' of your preference.",
     features: [
-      "Access to single course category",
-      "20% discount on all courses",
+      "Access to LIVE Q&A Doubt Clearing Sessions",
+      "Special discount on all live courses",
       "Community access",
-      "Monthly newsletter"
+      "Access to free courses",
+      "Placement Assistance"
     ]
   },
   {
@@ -55,24 +56,29 @@ const membershipData: IMembershipData[] = [
     icon: <Crown className="w-6 h-6" />,
     color: "amber",
     plans: [
-      { duration: "MONTHLY", price: "$69.00", period: "per month" },
-      { duration: "QUARTERLY", price: "$119.00", period: "per 3 months" },
-      { duration: "HALF-YEARLY", price: "$149.00", period: "per 6 months" },
-      { duration: "ANNUALLY", price: "$199.00", period: "per year" },
+      { duration: "MONTHLY", price: "INR 1,999.00", period: "per month" },
+      { duration: "QUARTERLY", price: "INR 3,999.00", period: "per 3 months" },
+      { duration: "HALF-YEARLY", price: "INR 5,999.00", period: "per 6 months" },
+      { duration: "ANNUALLY", price: "INR 6,999.00", period: "per annum" },
     ],
     description:
-      "Gold membership gives access to multiple course categories for a premium experience.",
+      "Perfect for diverse skill acquisition. Explore and learn all self-paced blended courses within any '03-Categories' of your preference.",
     features: [
-      "Access to three course categories",
-      "30% discount on all courses",
-      "Priority community access",
-      "Early access to new courses"
+      "Access to LIVE Q&A Doubt Clearing Sessions",
+      "Minimum 15% discount on all live courses",
+      "Community access",
+      "Access to free courses",
+      "Career Counselling",
+      "Placement Assistance"
     ]
   },
 ];
 
 const PrimeMembership: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<string>("Monthly");
+  const [selectedMembershipType, setSelectedMembershipType] = useState<string>(""); // "Silver" or "Gold" or ""
+  const [selectedSilverPlan, setSelectedSilverPlan] = useState<string>("MONTHLY");
+  const [selectedGoldPlan, setSelectedGoldPlan] = useState<string>("MONTHLY");
   const [isSelectCourseModalOpen, setSelectCourseModalOpen] = useState<boolean>(false);
   const [planType, setPlanType] = useState<string>("");
   const [selectedMembership, setSelectedMembership] = useState<string>("");
@@ -106,6 +112,17 @@ const PrimeMembership: React.FC = () => {
     setSelectedMembership(membership);
     if (membership) {
       handleSelectCourseModal(membership);
+    }
+  };
+
+  const handlePlanSelection = (membershipType: string, planDuration: string): void => {
+    // Set the selected membership type (this will deselect the other one)
+    setSelectedMembershipType(membershipType);
+    
+    if (membershipType === "Silver") {
+      setSelectedSilverPlan(planDuration);
+    } else if (membershipType === "Gold") {
+      setSelectedGoldPlan(planDuration);
     }
   };
 
@@ -182,31 +199,52 @@ const PrimeMembership: React.FC = () => {
                 {/* Plans Grid */}
                 <div className="p-6">
                   <div className="grid grid-cols-2 gap-4">
-                    {membership.plans.map((plan: IPlan, idx: number) => (
-                      <motion.div
-                        key={idx}
-                        whileHover={{ scale: 1.02 }}
-                        className={`p-4 rounded-xl border-2 ${
-                          membership.color === 'amber'
-                            ? 'border-amber-200 dark:border-amber-800 hover:bg-amber-50 dark:hover:bg-amber-900/10'
-                            : 'border-primary-200 dark:border-primary-800 hover:bg-primary-50 dark:hover:bg-primary-900/10'
-                        }`}
-                      >
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                          {plan.duration}
-                        </p>
-                        <p className={`text-xl font-bold ${
-                          membership.color === 'amber'
-                            ? 'text-amber-600 dark:text-amber-400'
-                            : 'text-primary-600 dark:text-primary-400'
-                        }`}>
-                          {plan.price}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {plan.period}
-                        </p>
-                      </motion.div>
-                    ))}
+                    {membership.plans.map((plan: IPlan, idx: number) => {
+                      const isSelected = selectedMembershipType === membership.type && (
+                        membership.type === "Silver" 
+                          ? selectedSilverPlan === plan.duration 
+                          : selectedGoldPlan === plan.duration
+                      );
+                      
+                      return (
+                        <motion.button
+                          key={idx}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => handlePlanSelection(membership.type, plan.duration)}
+                          className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 text-left ${
+                            isSelected
+                              ? membership.color === 'amber'
+                                ? 'border-amber-500 bg-amber-50 dark:border-amber-400 dark:bg-amber-900/20 shadow-lg'
+                                : 'border-primary-500 bg-primary-50 dark:border-primary-400 dark:bg-primary-900/20 shadow-lg'
+                              : membership.color === 'amber'
+                                ? 'border-amber-200 dark:border-amber-800 hover:bg-amber-50 dark:hover:bg-amber-900/10'
+                                : 'border-primary-200 dark:border-primary-800 hover:bg-primary-50 dark:hover:bg-primary-900/10'
+                          }`}
+                        >
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                            {plan.duration}
+                          </p>
+                          <p className={`text-xl font-bold ${
+                            membership.color === 'amber'
+                              ? 'text-amber-600 dark:text-amber-400'
+                              : 'text-primary-600 dark:text-primary-400'
+                          }`}>
+                            {plan.price}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {plan.period}
+                          </p>
+                          {isSelected && (
+                            <CheckCircle className={`w-5 h-5 mt-2 ${
+                              membership.color === 'amber'
+                                ? 'text-amber-500 dark:text-amber-400'
+                                : 'text-primary-500 dark:text-primary-400'
+                            }`} />
+                          )}
+                        </motion.button>
+                      );
+                    })}
                   </div>
 
                   {/* Features */}
@@ -244,11 +282,28 @@ const PrimeMembership: React.FC = () => {
             ))}
           </div>
 
+          {/* Free Trial Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="text-center mb-12"
+          >
+            <div className="bg-gradient-to-r from-primary-50 to-amber-50 dark:from-primary-900/20 dark:to-amber-900/20 rounded-2xl p-8 max-w-2xl mx-auto border border-primary-200 dark:border-primary-800">
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-4">
+                START YOUR 7-DAY FREE TRIAL TODAY
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300 text-lg">
+                No commitment • Cancel anytime
+              </p>
+            </div>
+          </motion.div>
+
           {/* Note Section */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.8 }}
             className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-6 max-w-3xl mx-auto"
           >
             <div className="flex items-start">
