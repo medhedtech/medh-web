@@ -18,8 +18,8 @@ const getApiBaseUrl = (): string => {
   } else if (process.env.NODE_ENV === 'test') {
     return process.env.NEXT_PUBLIC_API_URL_TEST || 'https://api.medh.co/api/v1';
   } else {
-    // Development is the default
-    return process.env.NEXT_PUBLIC_API_URL_DEV || 'http://localhost:8000/api/v1';
+    // Development is the default - use Next.js API routes
+    return process.env.NEXT_PUBLIC_API_URL_DEV || '/api/v1';
   }
 };
 
