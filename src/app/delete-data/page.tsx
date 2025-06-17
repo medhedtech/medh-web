@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import PageWrapper from '@/components/shared/wrappers/PageWrapper';
 import { authAPI } from '@/apis/auth.api';
 
@@ -40,7 +40,7 @@ const DeleteDataContent = () => {
       await simulateDataDeletion(decodedPayload.user_id, confirmCode);
       
       setRequestProcessed(true);
-      toast.success('Data deletion request has been processed successfully.');
+      showToast.success('Data deletion request has been processed successfully.');
       
     } catch (error) {
       console.error('Error processing Meta data deletion request:', error);
@@ -76,7 +76,7 @@ const DeleteDataContent = () => {
       
       if (response.ok) {
         setRequestProcessed(true);
-        toast.success('Data deletion request submitted successfully. You will receive a confirmation email.');
+        showToast.success('Data deletion request submitted successfully. You will receive a confirmation email.');
       } else {
         throw new Error('Failed to submit deletion request');
       }

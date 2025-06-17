@@ -36,7 +36,7 @@ const AddJobPost = () => {
           description: data.description,
         },
         onSuccess: () => {
-          toast.success("Post added successfully!");
+          showToast.success("Post added successfully!");
           reset(); // Reset the form
           setShowAddPostListing(true); // Update state to navigate to listing page
         },

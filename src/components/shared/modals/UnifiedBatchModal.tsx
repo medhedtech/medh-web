@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, Calendar, Users, Clock, Plus, Trash2, UserCheck, GraduationCap, Search, ChevronDown, CheckCircle, RefreshCw, BookOpen, UserPlus } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { motion, AnimatePresence } from 'framer-motion';
 import CourseGradeSelector from '../course/CourseGradeSelector';
 import { 
@@ -451,7 +451,7 @@ const UnifiedBatchModal: React.FC<UnifiedBatchModalProps> = ({
         const response = await batchAPI.createIndividualBatch(individualBatchData);
         // Check success flag
         if (response?.data?.success) {
-          toast.success('Individual batch created successfully');
+          showToast.success('Individual batch created successfully');
         } else {
           throw new Error(response?.data?.message || 'Failed to create individual batch');
         }
@@ -473,7 +473,7 @@ const UnifiedBatchModal: React.FC<UnifiedBatchModalProps> = ({
         const response = await batchAPI.createBatch(batchData);
         
         if (response?.data?.success) {
-          toast.success('Group batch created successfully');
+          showToast.success('Group batch created successfully');
         } else {
           throw new Error(response?.data?.message || 'Failed to create group batch');
         }

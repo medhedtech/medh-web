@@ -130,7 +130,7 @@ const AdminAnnouncements: React.FC = () => {
       const response = await deleteAnnouncement(id);
       
       if (response.status === 'success') {
-        toast.success('Announcement deleted successfully');
+        showToast.success('Announcement deleted successfully');
         fetchAnnouncements(currentPage);
         fetchAnalytics();
       } else {

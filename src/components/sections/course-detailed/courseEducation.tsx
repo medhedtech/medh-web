@@ -304,7 +304,7 @@ const CourseEducation: React.FC<CourseEducationProps> = ({ courseId, courseDetai
         description: `Payment for ${courseData?.course_title || "Course"}`,
         image: "/images/logo.png",
         handler: async function (response: any) {
-          toast.success("Payment Successful!");
+          showToast.success("Payment Successful!");
           await subscribeCourse(studentId, courseId, courseFee);
         },
         prefill: {
@@ -358,7 +358,7 @@ const CourseEducation: React.FC<CourseEducationProps> = ({ courseId, courseDetai
           course_id: courseId,
         },
         onSuccess: () => {
-          toast.success("Hurray! You are enrolled successfully.");
+          showToast.success("Hurray! You are enrolled successfully.");
         },
         onFail: (err) => {
           console.error("Enrollment failed:", err);

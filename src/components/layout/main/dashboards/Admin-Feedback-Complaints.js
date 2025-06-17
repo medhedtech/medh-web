@@ -116,7 +116,7 @@ export default function AdminFeedbackComplaints() {
       await deleteQuery({
         url: `${url}/${id}`,
         onSuccess: (res) => {
-          toast.success(res?.message || "Deleted successfully");
+          showToast.success(res?.message || "Deleted successfully");
           fetchData(fetchUrl, setState);
         },
         onError: (error) => {
@@ -153,7 +153,7 @@ export default function AdminFeedbackComplaints() {
         url: apiUrls.feedbacks.updateFeedback(editComplaint._id),
         data: { status: newStatus },
         onSuccess: () => {
-          toast.success("Complaint status updated successfully");
+          showToast.success("Complaint status updated successfully");
           fetchData(apiUrls.feedbacks.getAllComplaints, setComplaints);
           setEditComplaint(null);
         },

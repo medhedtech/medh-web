@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader, Clock, BookOpen, CheckCircle, XCircle, ArrowRight, ChevronRight, RotateCcw, AlertTriangle } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import DOMPurify from 'isomorphic-dompurify';
 import { marked } from 'marked';
 
@@ -210,7 +210,7 @@ const QuizComponent = ({ quizId, lessonId, courseId, meta = {}, onComplete }) =>
         onComplete(quizResults);
       }
       
-      toast.success("Quiz submitted successfully!");
+      showToast.success("Quiz submitted successfully!");
     } catch (err) {
       console.error("Error submitting quiz:", err);
       toast.error("Failed to submit quiz. Please try again.");

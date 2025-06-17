@@ -120,7 +120,7 @@ export const usePutQuery = <T = any>(): UsePutQueryResult<T> => {
 
       // Show success toast if configured
       if (showToast && successMessage) {
-        toast.success(successMessage);
+        showToast.success(successMessage);
       }
 
       // Debug logging

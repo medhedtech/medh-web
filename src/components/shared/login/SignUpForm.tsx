@@ -380,7 +380,7 @@ const SignUpForm: React.FC = () => {
             setIsRegistered(true);
             setCurrentStep(2);
             
-            toast.success(`${provider.charAt(0).toUpperCase() + provider.slice(1)} signup successful! Welcome to Medh!`);
+            showToast.success(`${provider.charAt(0).toUpperCase() + provider.slice(1)} signup successful! Welcome to Medh!`);
             
             // Redirect to login or dashboard
             setTimeout(() => {
@@ -507,7 +507,7 @@ const SignUpForm: React.FC = () => {
           setIsRegistered(true);
           setCurrentStep(2);
           setShowOTPVerification(true);
-          toast.success("Registration successful! Please verify your email with the code sent to your inbox.");
+          showToast.success("Registration successful! Please verify your email with the code sent to your inbox.");
         },
         onFail: (error: any) => {
           console.error('Registration onFail triggered with error:', error);
@@ -601,7 +601,7 @@ const SignUpForm: React.FC = () => {
     setValue('is_email_verified', true, { shouldValidate: false });
     
     // Redirect to login page after verification
-    toast.success("Email successfully verified! You can now log in to your account.");
+    showToast.success("Email successfully verified! You can now log in to your account.");
     setTimeout(() => {
       router.push("/login");
     }, 2000);

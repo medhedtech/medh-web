@@ -111,7 +111,7 @@ const CoorporateAdminTable = () => {
       await deleteQuery({
         url: `${apiUrls.Coorporate.deleteCoorporate}/${id}`,
         onSuccess: (res) => {
-          toast.success(res?.message || "Corporate admin deleted successfully");
+          showToast.success(res?.message || "Corporate admin deleted successfully");
           setDeletedInstructors(id);
           setShowDeleteConfirm(false);
           setItemToDelete(null);
@@ -138,7 +138,7 @@ const CoorporateAdminTable = () => {
         onSuccess: (response) => {
           const updatedAdmin = response?.data;
           if (updatedAdmin) {
-            toast.success(`Status updated to ${updatedAdmin.status}`);
+            showToast.success(`Status updated to ${updatedAdmin.status}`);
             fetchInstructors();
           } else {
             throw new Error("Invalid response data");
@@ -168,7 +168,7 @@ const CoorporateAdminTable = () => {
         url: apiUrls.Coorporate.bulkDelete,
         postData: { ids: selectedRows },
         onSuccess: () => {
-          toast.success(`Successfully deleted ${selectedRows.length} items`);
+          showToast.success(`Successfully deleted ${selectedRows.length} items`);
           setSelectedRows([]);
           fetchInstructors();
           setShowBulkDeleteConfirm(false);

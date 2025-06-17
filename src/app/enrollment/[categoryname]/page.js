@@ -1347,7 +1347,7 @@ function CategoryEnrollmentPage({ params }) {
                           // Handle enrollment action
                           if (selectedCourse) {
                             // Implement your enrollment logic here
-                            toast.success("Enrollment feature coming soon!");
+                            showToast.success("Enrollment feature coming soon!");
                           } else {
                             toast.error("Please select a course first!");
                           }

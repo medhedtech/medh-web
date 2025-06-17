@@ -14,7 +14,7 @@ import {
   Zap,
   Award
 } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { v4 as uuidv4 } from 'uuid';
 import { 
   ICourseFormData, 
@@ -56,7 +56,7 @@ const SimpleCurriculum: React.FC<SimpleCurriculumProps> = ({
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: { progress: number; status: 'idle' | 'uploading' | 'processing' | 'complete' | 'error'; error?: string } }>({});
   const { uploadFile, isUploading } = useUpload({
     onSuccess: (response) => {
-      toast.success('File uploaded successfully');
+      showToast.success('File uploaded successfully');
     },
     onError: (error) => {
       toast.error(error.message);
@@ -602,7 +602,7 @@ const SimpleCurriculum: React.FC<SimpleCurriculumProps> = ({
         [lessonId]: { progress: 100, status: 'complete' }
       }));
 
-      toast.success('Video uploaded successfully');
+      showToast.success('Video uploaded successfully');
     } catch (error: any) {
       console.error('Error uploading video:', error);
       
@@ -739,7 +739,7 @@ const SimpleCurriculum: React.FC<SimpleCurriculumProps> = ({
         [lessonId]: { progress: 100, status: 'complete' }
       }));
 
-      toast.success('Video uploaded successfully');
+      showToast.success('Video uploaded successfully');
     } catch (error: any) {
       console.error('Error uploading video:', error);
       

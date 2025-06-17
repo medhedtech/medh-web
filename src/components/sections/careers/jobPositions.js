@@ -772,7 +772,7 @@ const JobPositions = ({ positions }) => {
       });
       
       if (response.ok) {
-        toast.success('Application submitted successfully!');
+        showToast.success('Application submitted successfully!');
       } else {
         const errorData = await response.json();
         throw new Error(errorData?.message || 'Failed to submit application');

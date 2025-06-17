@@ -220,7 +220,7 @@ export default function QuizPage({ closeQuiz }) {
           timestamp: new Date().toISOString()
         },
         onSuccess: () => {
-          toast.success("Quiz completed successfully!");
+          showToast.success("Quiz completed successfully!");
           setSubmitting(false);
         },
         onFail: (error) => {

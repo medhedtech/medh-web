@@ -514,7 +514,7 @@ const AddInstructor = ({ onCancel, onSuccess }) => {
               onSuccess: (data) => {
                 updatedPdfs.push(data?.data);
                 setPdfBrochures([...updatedPdfs]);
-                toast.success("Document uploaded successfully!");
+                showToast.success("Document uploaded successfully!");
               },
               onError: (error) => {
                 toast.error("Document upload failed. Please try again.");
@@ -551,7 +551,7 @@ const AddInstructor = ({ onCancel, onSuccess }) => {
           },
         },
         onSuccess: () => {
-          toast.success("Instructor added successfully!");
+          showToast.success("Instructor added successfully!");
           reset();
           // Call onSuccess callback if provided, otherwise fall back to internal state
           if (onSuccess) {

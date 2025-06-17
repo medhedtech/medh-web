@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiUrls } from '@/apis';
 import useGetQuery from './getQuery.hook';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { getCourseById } from '@/apis/course/course';
 import curriculumService, { type Curriculum, type CurriculumLesson } from '@/services/curriculum.service';
 
@@ -639,7 +639,7 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
           };
         });
         
-        toast.success('Lesson marked as complete!');
+        showToast.success('Lesson marked as complete!');
         return true;
       }
       
@@ -685,7 +685,7 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
           };
         });
         
-        toast.success('Lesson marked as complete!');
+        showToast.success('Lesson marked as complete!');
         return true;
       }
       throw new Error("Failed to mark lesson as complete");
@@ -731,7 +731,7 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
         config: { method: 'POST', headers, data: formData }
       });
       if (response?.success) {
-        toast.success("Assignment submitted successfully!");
+        showToast.success("Assignment submitted successfully!");
         return response.data;
       }
       throw new Error("Failed to submit assignment");
@@ -771,7 +771,7 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
         config: { method: 'POST', headers, data: quizData }
       });
       if (response?.success) {
-        toast.success("Quiz submitted successfully!");
+        showToast.success("Quiz submitted successfully!");
         return response.data;
       }
       throw new Error("Failed to submit quiz");

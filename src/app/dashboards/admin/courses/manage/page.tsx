@@ -31,7 +31,7 @@ import {
   User,
   X
 } from "lucide-react";
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiUrls } from "@/apis";
 import { useGetQuery, usePostQuery, useDeleteQuery } from "@/hooks";
@@ -291,7 +291,7 @@ const ManageCoursesPage: React.FC = () => {
         if (processedCourses.length === 0) {
           toast.info('No courses found. Create your first course to get started.');
         } else {
-          toast.success(`Loaded ${processedCourses.length} courses successfully`);
+          showToast.success(`Loaded ${processedCourses.length} courses successfully`);
         }
       } else {
         throw new Error("No courses data received from /courses/get endpoint");
@@ -419,7 +419,7 @@ const ManageCoursesPage: React.FC = () => {
         setCourses(filteredResults);
         
         console.log(`✅ Search completed: Found ${filteredResults.length} courses matching "${searchQuery}"`);
-        toast.success(`Found ${filteredResults.length} courses matching "${searchQuery}"`);
+        showToast.success(`Found ${filteredResults.length} courses matching "${searchQuery}"`);
       } else {
         throw new Error("No search results received from /courses/get endpoint");
       }
@@ -618,7 +618,7 @@ const ManageCoursesPage: React.FC = () => {
         url: apiUrls.courses.deleteCourse(courseId),
         requireAuth: true,
         onSuccess: () => {
-          toast.success(`Course "${courseTitle}" deleted successfully!`);
+          showToast.success(`Course "${courseTitle}" deleted successfully!`);
           setCourses(prev => prev.filter(course => course._id !== courseId));
           setSelectedCourses(prev => {
             const newSet = new Set(prev);
@@ -671,7 +671,7 @@ const ManageCoursesPage: React.FC = () => {
         // Add other bulk actions as needed
       }
       
-      toast.success(`Successfully ${actionText}ed ${courseIds.length} course(s)`);
+      showToast.success(`Successfully ${actionText}ed ${courseIds.length} course(s)`);
       setSelectedCourses(new Set());
       fetchCourses(); // Refresh the list
     } catch (error) {

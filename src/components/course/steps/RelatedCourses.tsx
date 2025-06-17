@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { UseFormRegister, UseFormSetValue, FormState } from 'react-hook-form';
 import { ICourseFormData, IRelatedCourse } from '@/types/course.types';
 import { PlusCircle, MinusCircle, Search, ChevronDown, X } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { apiUrls, apiBaseUrl } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { getAllCoursesWithLimits } from '@/apis/course/course';

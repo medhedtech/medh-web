@@ -53,7 +53,7 @@ const CoorporateFeedbackAndSupport = () => {
     await deleteQuery({
       url: `${url}/${id}`,
       onSuccess: (res) => {
-        toast.success(res?.message || "Deleted successfully.");
+        showToast.success(res?.message || "Deleted successfully.");
         fetchData(fetchUrl, setState);
       },
       onFail: (err) => {
@@ -81,7 +81,7 @@ const CoorporateFeedbackAndSupport = () => {
         url: `${apiUrls.feedbacks.updateComplaintStatus}/${editComplaint}`,
         postData: { status: newStatus },
         onSuccess: () => {
-          toast.success("Complaint status updated successfully.");
+          showToast.success("Complaint status updated successfully.");
           fetchData(apiUrls.feedbacks.getAllEmployeeComplaints, setComplaints);
           setEditComplaint(null);
         },

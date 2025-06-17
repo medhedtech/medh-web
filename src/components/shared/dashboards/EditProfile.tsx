@@ -335,7 +335,7 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
             onSuccess: (data) => {
               setProfileImage(data?.data);
               setValue("user_image", data?.data);
-              toast.success("Image uploaded successfully!");
+              showToast.success("Image uploaded successfully!");
             },
             onError: (error) => {
               toast.error("Image upload failed. Please try again.");
@@ -381,7 +381,7 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
         url: `${apiUrls?.user?.update}/${studentId}`,
         postData: submissionData,
         onSuccess: async () => {
-          toast.success("Profile updated successfully!");
+          showToast.success("Profile updated successfully!");
           
           // Refresh profile data
           try {

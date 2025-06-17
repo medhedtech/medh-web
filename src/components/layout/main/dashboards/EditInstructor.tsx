@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import Image from 'next/image';
 import { ArrowLeft, Upload, X, UserCheck, Mail, Phone, MapPin, Briefcase, Calendar, GraduationCap, Award, Star, BookOpen } from 'lucide-react';
 import useGetQuery from '@/hooks/getQuery.hook';
@@ -198,7 +198,7 @@ const EditInstructor: React.FC = () => {
             onSuccess: async (data) => {
               const imageUrl = data?.data;
               setProfileImage(imageUrl);
-              toast.success('Image uploaded successfully');
+              showToast.success('Image uploaded successfully');
             },
             onFail: (error) => {
               console.error("Image upload error:", error);
@@ -238,7 +238,7 @@ const EditInstructor: React.FC = () => {
         url: `${apiUrls.instructor.updateInstructor}/${selectedInstructor._id}`,
         postData: updatedData,
         onSuccess: () => {
-          toast.success('Instructor updated successfully');
+          showToast.success('Instructor updated successfully');
           
           // Update the instructor in the list
           setInstructors(prevInstructors => 

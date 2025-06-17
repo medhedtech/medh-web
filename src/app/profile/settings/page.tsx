@@ -44,7 +44,7 @@ export default function ProfileSettingsPage() {
                 </div>
               </div>
             </div>
-            <Button className="mt-2" onClick={() => toast.success("Profile updated!")}>Save Changes</Button>
+            <Button className="mt-2" onClick={() => showToast.success("Profile updated!")}>Save Changes</Button>
           </CardContent>
         </Card>
 
@@ -93,7 +93,7 @@ export default function ProfileSettingsPage() {
                 onClick={() => {
                   setMfaEnabled((prev) => {
                     const next = !prev;
-                    toast.success(next ? "Multi-Factor Authentication enabled" : "Multi-Factor Authentication disabled");
+                    showToast.success(next ? "Multi-Factor Authentication enabled" : "Multi-Factor Authentication disabled");
                     return next;
                   });
                 }}

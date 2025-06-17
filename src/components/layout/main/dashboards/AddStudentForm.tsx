@@ -223,7 +223,7 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onCancel, onSuccess }) 
         throw new Error(result.message || 'Failed to add student');
       }
 
-      toast.success('Student added successfully');
+      showToast.success('Student added successfully');
       reset();
       
       // Wait a moment before returning to the student management page

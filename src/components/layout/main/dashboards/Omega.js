@@ -194,7 +194,7 @@ const DefineRoleForm = () => {
           role_description: data.role_description,
         },
         onSuccess: () => {
-          toast.success("Role updated successfully!");
+          showToast.success("Role updated successfully!");
           router.push("/dashboards/admin-subpage3");
         },
         onFail: (error) => {

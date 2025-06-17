@@ -45,7 +45,7 @@ const InstructorFeedbackComponents = () => {
         feedback_title: data?.feedbackTitle,
       },
       onSuccess: () => {
-        toast.success("Feedback submitted successfully");
+        showToast.success("Feedback submitted successfully");
         resetFeedback();
       },
       onFail: (error) => {

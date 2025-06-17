@@ -95,7 +95,7 @@ const SignInModal = ({ isOpen, onClose }) => {
                 localStorage.setItem("role", role);
               }
               
-              toast.success("Success!");
+              showToast.success("Success!");
               setErrorMessage("");
               onClose();
             } else {

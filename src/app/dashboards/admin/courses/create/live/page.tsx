@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import Link from "next/link";
 import { debounce } from 'lodash';
 import { ArrowLeft, Plus, Trash2, Upload, Save, Eye, CheckCircle, AlertCircle, AlertTriangle, Clock, BookOpen, Users, Award, DollarSign, Calendar, HelpCircle, Settings, Video, FileText } from "lucide-react";
@@ -492,7 +492,7 @@ export default function CreateLiveCoursePage() {
                   shouldDirty: true,
                   shouldTouch: true
                 });
-                toast.success('Image uploaded successfully');
+                showToast.success('Image uploaded successfully');
               } else {
                 console.error("Unexpected image upload response format:", response);
                 toast.error('Invalid image upload response format');
@@ -560,7 +560,7 @@ export default function CreateLiveCoursePage() {
                   shouldDirty: true,
                   shouldTouch: true
                 });
-                toast.success('Brochure uploaded successfully');
+                showToast.success('Brochure uploaded successfully');
               } else {
                 console.error("Unexpected brochure upload response format:", response);
                 toast.error('Invalid brochure upload response format');
@@ -858,7 +858,7 @@ export default function CreateLiveCoursePage() {
             storageUtil.removeItem(STORAGE_KEY);
             
             // Show success message
-            toast.success('Live course created successfully!');
+            showToast.success('Live course created successfully!');
             
             // Redirect to course management page
             setTimeout(() => {

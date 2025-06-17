@@ -6,7 +6,7 @@ import Input from '@/components/shared/Input';
 import { apiUrls } from '@/apis';
 import useGetQuery from '@/hooks/getQuery.hook';
 import { useUpload } from '@/hooks/useUpload';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { Loader, Upload } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -104,7 +104,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
         setCourseImageData(cleanData);
         setValue('course_image', cleanData.url);
         setUploadError(null);
-        toast.success('Image uploaded successfully!');
+        showToast.success('Image uploaded successfully!');
       } catch (error) {
         console.error('Error processing upload response:', error, response);
         setUploadError('Failed to process uploaded image');

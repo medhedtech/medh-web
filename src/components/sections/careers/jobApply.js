@@ -352,7 +352,7 @@ function JobApply({ activeJob, jobDetails }) {
             url: apiUrls?.upload?.uploadDocument,
             postData,
             onSuccess: (data) => {
-              toast.success("Resume uploaded successfully!");
+              showToast.success("Resume uploaded successfully!");
               setPdfBrochure(data?.data);
             },
             onError: () => {

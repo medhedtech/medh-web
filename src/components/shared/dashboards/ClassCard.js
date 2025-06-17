@@ -95,7 +95,7 @@ export default ClassCard;
 //       course_id: courseId,
 //     },
 //     onSuccess: () => {
-//       toast.success("Hurray ! You are enrolled successfully.");
+//       showToast.success("Hurray ! You are enrolled successfully.");
 //     },
 //     onFail: () => {
 //       toast.error("Error enrolling in the course. Please try again.");

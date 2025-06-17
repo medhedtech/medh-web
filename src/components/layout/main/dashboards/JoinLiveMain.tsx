@@ -293,7 +293,7 @@ const JoinLiveMain: React.FC = () => {
     try {
       // Open meeting link in new tab
       window.open(meetLink, "_blank", "noopener,noreferrer");
-      toast.success(`Joining: ${classTitle}`);
+      showToast.success(`Joining: ${classTitle}`);
     } catch (error) {
       console.error("Error opening meeting link:", error);
       toast.error("Failed to open meeting link");

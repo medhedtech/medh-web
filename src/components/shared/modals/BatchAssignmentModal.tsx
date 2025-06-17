@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, Users, Clock, Plus, Trash2, Edit3, UserCheck, GraduationCap, Search, ChevronDown, CheckCircle, RefreshCw, BookOpen } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { motion, AnimatePresence } from 'framer-motion';
 import CourseGradeSelector from '../course/CourseGradeSelector';
 import { 
@@ -435,7 +435,7 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
       const response = await batchAPI.createBatch(batchData);
       
       if (response?.data) {
-        toast.success('Batch created successfully');
+        showToast.success('Batch created successfully');
         onSuccess();
         onClose();
       } else {
@@ -462,7 +462,7 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
       });
       
       if (response?.data) {
-        toast.success('Instructor assigned to batch successfully');
+        showToast.success('Instructor assigned to batch successfully');
         onSuccess();
         onClose();
       } else {
@@ -487,7 +487,7 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
       const response = await individualAssignmentAPI.assignInstructorToStudent(assignmentForm);
       
       if (response.data?.success) {
-        toast.success('Individual assignment created successfully');
+        showToast.success('Individual assignment created successfully');
         onSuccess();
         onClose();
       } else {
@@ -522,7 +522,7 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
       const failureCount = results.length - successCount;
 
       if (successCount > 0) {
-        toast.success(`${successCount} students enrolled successfully`);
+        showToast.success(`${successCount} students enrolled successfully`);
         if (failureCount > 0) {
           toast.warning(`${failureCount} enrollments failed`);
         }

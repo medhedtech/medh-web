@@ -430,7 +430,7 @@ export default function UpdateCourse() {
               autoClose: 3000,
             });
             setTimeout(() => {
-              toast.success("You can view the updated course in the courses list.", { position: "top-right", autoClose: 5000 });
+              showToast.success("You can view the updated course in the courses list.", { position: "top-right", autoClose: 5000 });
             }, 500);
             router.push("/dashboards/admin-listofcourse");
           },

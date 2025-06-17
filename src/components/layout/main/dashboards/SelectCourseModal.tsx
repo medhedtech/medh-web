@@ -94,7 +94,7 @@ export default function SelectCourseModal({
             description: `Payment for ${capitalize(planType)} Membership`,
             image: Education,
             handler: async function (response) {
-              toast.success("Payment successful!");
+              showToast.success("Payment successful!");
               handleSubmit();
             },
             modal: {
@@ -238,7 +238,7 @@ export default function SelectCourseModal({
         })
       );
 
-      toast.success("Successfully enrolled in all courses!");
+      showToast.success("Successfully enrolled in all courses!");
       router.push("/dashboards/student-membership");
     } catch (err) {
       console.error("Error during subscription process:", err);

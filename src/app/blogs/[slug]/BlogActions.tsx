@@ -38,7 +38,7 @@ export default function BlogActions({ blogId }: BlogActionsProps) {
   const fallbackShare = () => {
     try {
       navigator.clipboard.writeText(window.location.href);
-      toast.success('Blog link copied to clipboard!');
+      showToast.success('Blog link copied to clipboard!');
     } catch (error) {
       console.error('Clipboard error:', error);
       toast.error('Could not copy link. Please try again.');
@@ -49,7 +49,7 @@ export default function BlogActions({ blogId }: BlogActionsProps) {
   const handleBookmark = () => {
     try {
       // This would typically connect to a user's bookmarks in a real implementation
-      toast.success('Blog added to your bookmarks!');
+      showToast.success('Blog added to your bookmarks!');
       
       // Simple localStorage implementation
       if (typeof window !== 'undefined') {

@@ -73,7 +73,7 @@ export default function AdminJobApplicants() {
       await deleteQuery({
         url: `${url}/${id}`,
         onSuccess: (res) => {
-          toast.success(res?.message || "Deleted successfully");
+          showToast.success(res?.message || "Deleted successfully");
           fetchData(fetchUrl, setState);
         },
         onFail: (error) => {
