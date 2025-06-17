@@ -1,5 +1,5 @@
 import GenrateCertificate from "@/components/layout/main/dashboards/GenrateCertificate";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 
 import DashboardWrapper from "@/components/shared/wrappers/DashboardWrapper";
@@ -17,13 +17,13 @@ const Admin_Reviews = () => {
     <ProtectedPage>
       <main>
         {/* <DashboardWrapper> */}
-        <DashboardContainer>
+        
           <div>
             <HeadingDashboard />
           </div>
           {/* <Previewdetail /> */}
           <GenrateCertificate />
-        </DashboardContainer>
+        
         {/* </DashboardWrapper> */}
         
       </main>

@@ -1,4 +1,4 @@
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 
 import CorporateMembership from "@/components/layout/main/dashboards/CorporateMembership";
 import ProtectedPage from "@/app/protectedRoutes";
@@ -10,9 +10,9 @@ const Student_Membership = () => {
   return (
     <ProtectedPage>
       <main>
-        <DashboardContainer>
+        
           <CorporateMembership />
-        </DashboardContainer>
+        
         
       </main>
     </ProtectedPage>

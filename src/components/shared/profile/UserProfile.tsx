@@ -130,12 +130,16 @@ const UserProfile: React.FC<UserProfileProps> = ({
   };
 
   const formatDate = (dateString?: string) => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    if (!dateString) return 'Recently';
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch {
+      return 'Recently';
+    }
   };
 
   const getRoleDisplay = (roles: string[]) => {
@@ -145,28 +149,30 @@ const UserProfile: React.FC<UserProfileProps> = ({
   };
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-md ${className}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 ${className}`}>
       {/* Profile Header */}
-      <div className="relative h-32 bg-gradient-to-r from-primary-600 to-primary-400 rounded-t-lg">
+      <div className="relative h-32 bg-gradient-to-r from-green-500 via-blue-500 to-purple-500 rounded-t-2xl">
+        <div className="absolute inset-0 bg-black/20 rounded-t-2xl" />
         <div className="absolute -bottom-16 left-8">
           <div className="relative">
-            <div className="w-32 h-32 rounded-full border-4 border-white dark:border-gray-800 overflow-hidden bg-gray-100 dark:bg-gray-700">
+            <div className="w-32 h-32 rounded-full border-4 border-white dark:border-gray-800 overflow-hidden bg-gray-100 dark:bg-gray-700 shadow-xl">
               {userData.profile_image ? (
                 <Image
                   src={userData.profile_image}
                   alt={userData.full_name}
-                  layout="fill"
-                  objectFit="cover"
+                  width={128}
+                  height={128}
+                  className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <User size={48} className="text-gray-400" />
+                  <User size={48} className="text-gray-400 dark:text-gray-500" />
                 </div>
               )}
             </div>
             {isEditable && isEditing && (
               <button 
-                className="absolute bottom-0 right-0 p-2 bg-primary-500 rounded-full text-white hover:bg-primary-600 transition-colors"
+                className="absolute bottom-0 right-0 p-2 bg-green-500 rounded-full text-white hover:bg-green-600 transition-all duration-200 hover:scale-105 shadow-lg"
                 onClick={() => {/* Implement image upload */}}
               >
                 <Camera size={16} />
@@ -187,7 +193,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
                   type="text"
                   value={editedData.full_name}
                   onChange={(e) => handleChange('full_name', e.target.value)}
-                  className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-3 py-1"
+                  className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
                 />
               ) : (
                 userData.full_name
@@ -198,31 +204,31 @@ const UserProfile: React.FC<UserProfileProps> = ({
             </p>
           </div>
           {isEditable && (
-            <div className="flex space-x-2">
+            <div className="flex flex-wrap gap-2">
               {isEditing ? (
                 <>
                   <button
                     onClick={handleSave}
                     disabled={loading}
-                    className="flex items-center px-3 py-1 bg-primary-500 text-white rounded hover:bg-primary-600 transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all duration-200 hover:scale-105 disabled:opacity-50 shadow-lg"
                   >
-                    <Save size={16} className="mr-1" />
-                    Save
+                    <Save size={16} />
+                    {loading ? 'Saving...' : 'Save'}
                   </button>
                   <button
                     onClick={handleCancel}
-                    className="flex items-center px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
-                    <X size={16} className="mr-1" />
+                    <X size={16} />
                     Cancel
                   </button>
                 </>
               ) : (
                 <button
                   onClick={handleEdit}
-                  className="flex items-center px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
-                  <Edit size={16} className="mr-1" />
+                  <Edit size={16} />
                   Edit Profile
                 </button>
               )}
@@ -302,7 +308,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 value={editedData.meta?.bio || ''}
                 onChange={(e) => handleMetaChange('bio', e.target.value)}
                 rows={4}
-                className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded p-3"
+                className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-4 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all resize-none"
+                placeholder="Tell us about yourself..."
               />
             ) : (
               <p className="text-gray-600 dark:text-gray-400 whitespace-pre-line">
@@ -318,13 +325,13 @@ const UserProfile: React.FC<UserProfileProps> = ({
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Skills</h2>
             <div className="flex flex-wrap gap-2">
               {isEditing ? (
-                <input
-                  type="text"
-                  value={editedData.meta?.skills?.join(', ') || ''}
-                  onChange={(e) => handleMetaChange('skills', e.target.value.split(',').map(s => s.trim()))}
-                  placeholder="Enter skills separated by commas"
-                  className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-3 py-1"
-                />
+                                  <input
+                    type="text"
+                    value={editedData.meta?.skills?.join(', ') || ''}
+                    onChange={(e) => handleMetaChange('skills', e.target.value.split(',').map(s => s.trim()))}
+                    placeholder="Enter skills separated by commas"
+                    className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                  />
               ) : (
                 userData.meta?.skills?.map((skill, index) => (
                   <span

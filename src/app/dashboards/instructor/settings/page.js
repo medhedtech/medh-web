@@ -1,6 +1,6 @@
 import ProtectedPage from "@/app/protectedRoutes";
 import InstructorSettingsMain from "@/components/layout/main/dashboards/InstructorSettingsMain";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 
 import DashboardWrapper from "@/components/shared/wrappers/DashboardWrapper";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
@@ -14,9 +14,9 @@ const Instructor_Setting = () => {
       <PageWrapper>
         <main>
           <DashboardWrapper>
-            <DashboardContainer>
+            
               <InstructorSettingsMain />
-            </DashboardContainer>
+            
           </DashboardWrapper>
           
         </main>

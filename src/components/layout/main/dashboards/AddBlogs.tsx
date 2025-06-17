@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { useForm } from "react-hook-form";
-import { apiUrls } from "@/apis";
+import { apiUrls, aiUtils, IAIBlogGenerateFromPromptInput, IAIBlogGenerateContentInput } from "@/apis";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-toastify";
@@ -231,10 +231,12 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
   });
   const [editorMounted, setEditorMounted] = useState<boolean>(false);
   const [isGeneratingContent, setIsGeneratingContent] = useState<boolean>(false);
+  const [isRegeneratingContent, setIsRegeneratingContent] = useState<boolean>(false);
   const [generatedContentHistory, setGeneratedContentHistory] = useState<string[]>([]);
   const [aiPrompt, setAiPrompt] = useState<string>('');
   const [isGeneratingFromPrompt, setIsGeneratingFromPrompt] = useState<boolean>(false);
   const [showPromptGenerator, setShowPromptGenerator] = useState<boolean>(false);
+  const [wordLimit, setWordLimit] = useState<number>(500);
   
   const isDark = mounted ? theme === 'dark' : true;
 
@@ -485,111 +487,231 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
     })
   }), [isDark]);
 
-  // AI Content Generation Function
-  const generateAIContent = useCallback(async () => {
-    const title = watch('title');
-    const description = watch('description');
-    
+  // Enhanced AI Content Generation with better error handling and user feedback
+  const generateContent = useCallback(async () => {
+    const title = watch("title");
+    const description = watch("description");
+
     if (!title?.trim()) {
-      toast.error("Please enter a blog title first to generate relevant content");
+      toast.error("Please enter a title first to generate content");
       return;
     }
 
     setIsGeneratingContent(true);
     
     try {
-      const response = await fetch('/api/generate-content', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authState.token}`,
-        },
-        body: JSON.stringify({
-          title: title.trim(),
-          description: description?.trim() || '',
-          categories: selectedCategories.map(cat => cat.label),
-          tags: tags,
-          contentType: 'blog'
-        }),
-      });
+      const input: IAIBlogGenerateContentInput = {
+        title: title.trim(),
+        description: description?.trim() || '',
+        categories: selectedCategories.map(cat => cat.value),
+        tags: tags,
+        approach: 'comprehensive',
+        status: 'draft',
+        saveToDatabase: false,
+        wordLimit: wordLimit
+      };
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to generate content');
-      }
+      const response = await aiUtils.generateBlogContent(input);
 
-      const data = await response.json();
-      
-      if (data.success && data.content) {
-        // Store in history for potential regeneration
-        setGeneratedContentHistory(prev => [data.content, ...prev.slice(0, 4)]);
+      if (response.success && response.data) {
+        // Handle both direct data and blogData response formats
+        const blogData = response.data.blogData || response.data;
         
-        // Set the generated content
-        setContent(data.content);
-        
-        toast.success("AI content generated successfully! ✨");
+        if (blogData) {
+          // Use helper function to populate all fields
+          const result = populateFormFromAIResponse(response.data);
+          
+          // Trigger form validation
+          await trigger();
+          
+          // Show enhanced success message
+          if (result && (result.wordCount || result.readingTime)) {
+            toast.success(
+              `🎉 AI Content Generated Successfully!\n` +
+              `📊 ${result.wordCount || response.data.wordCount || 0} words • ${result.readingTime || response.data.readingTime || 2} min read\n` +
+              `✨ Content, tags, and metadata populated automatically!`
+            );
+          } else {
+            toast.success("Content generated successfully! ✨");
+          }
+        } else {
+          // Fallback for old response format
+          const { content, description: aiDescription, tags: aiTags } = response.data;
+          
+          // Clean content
+          const cleanedContent = cleanHtmlContent(content || '');
+          const cleanedDescription = cleanHtmlContent(aiDescription || '');
+          
+          // Update form fields
+          if (cleanedDescription && !description?.trim()) {
+            setValue("description", cleanedDescription);
+          }
+          
+          // Set content and merge tags
+          setContent(cleanedContent);
+          if (aiTags && aiTags.length > 0) {
+            setTags(prev => [...new Set([...prev, ...aiTags])]);
+          }
+          
+          // Store in history
+          setGeneratedContentHistory(prev => [cleanedContent, ...prev.slice(0, 4)]);
+          
+          // Trigger form validation
+          await trigger();
+          
+          toast.success("Content generated successfully! ✨");
+        }
       } else {
-        throw new Error(data.message || 'No content generated');
+        throw new Error(response.message || 'Failed to generate content');
       }
     } catch (error) {
       console.error('AI Content Generation Error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to generate content. Please try again.');
+      toast.error(aiUtils.handleAIError(error));
     } finally {
       setIsGeneratingContent(false);
     }
-  }, [watch, authState.token, selectedCategories, tags]);
+  }, [watch, selectedCategories, tags, setValue, trigger, wordLimit, populateFormFromAIResponse, cleanHtmlContent]);
 
-  // Regenerate content with different approach
-  const regenerateContent = useCallback(async (approach: 'creative' | 'professional' | 'technical' = 'professional') => {
-    const title = watch('title');
-    const description = watch('description');
+  // Helper function to clean HTML content
+  const cleanHtmlContent = useCallback((content: string): string => {
+    if (!content) return '';
     
+    // Remove ```html and ``` tags
+    let cleaned = content.replace(/^```html\s*\n?/i, '').replace(/\n?```\s*$/i, '');
+    
+    // Remove any remaining markdown code block indicators
+    cleaned = cleaned.replace(/^```\s*\n?/gm, '').replace(/\n?```\s*$/gm, '');
+    
+    return cleaned.trim();
+  }, []);
+
+  // Helper function to populate form fields from AI response
+  const populateFormFromAIResponse = useCallback((responseData: any) => {
+    // Handle both formData and blogData response formats
+    const data = responseData.formData || responseData.blogData;
+    
+    if (data) {
+      // Clean content if it has HTML code block markers
+      const cleanedContent = cleanHtmlContent(data.content || '');
+      const cleanedDescription = cleanHtmlContent(data.description || '');
+      
+      // Auto-fill all form fields
+      setValue("title", data.title || '');
+      setValue("description", cleanedDescription);
+      setValue("meta_title", data.meta_title || data.title || '');
+      setValue("meta_description", data.meta_description || cleanedDescription?.slice(0, 160) || '');
+      setValue("blog_link", data.blog_link || null);
+      setValue("status", data.status || 'draft');
+      setValue("featured", data.featured || false);
+      
+      // Set upload_image if provided
+      if (data.upload_image) {
+        setValue("upload_image", data.upload_image);
+        setBlogImage({
+          url: data.upload_image,
+          key: data.upload_image.split('/').pop() || ''
+        });
+      }
+      
+      // Set content and tags
+      setContent(cleanedContent);
+      if (data.tags && data.tags.length > 0) {
+        setTags(data.tags);
+      }
+      
+      // Set categories if provided
+      if (data.categories && data.categories.length > 0) {
+        const matchedCategories = categories.filter(cat => 
+          data.categories.includes(cat.value)
+        );
+        setSelectedCategories(matchedCategories);
+      }
+      
+      // Store in history
+      setGeneratedContentHistory(prev => [cleanedContent, ...prev.slice(0, 4)]);
+      
+      return {
+        metadata: responseData.metadata,
+        helpers: responseData.formHelpers,
+        wordCount: responseData.wordCount,
+        readingTime: responseData.readingTime
+      };
+    }
+    return null;
+  }, [setValue, categories, cleanHtmlContent]);
+
+  // Enhanced AI Content Regeneration
+  const regenerateContent = useCallback(async () => {
+    const title = watch("title");
+    const description = watch("description");
+
     if (!title?.trim()) {
-      toast.error("Please enter a blog title first");
+      toast.error("Please enter a title first to regenerate content");
       return;
     }
 
-    setIsGeneratingContent(true);
+    setIsRegeneratingContent(true);
     
     try {
-      const response = await fetch('/api/generate-content', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authState.token}`,
-        },
-        body: JSON.stringify({
-          title: title.trim(),
-          description: description?.trim() || '',
-          categories: selectedCategories.map(cat => cat.label),
-          tags: tags,
-          contentType: 'blog',
-          approach: approach,
-          regenerate: true
-        }),
-      });
+      const input: IAIBlogGenerateContentInput = {
+        title: title.trim(),
+        description: description?.trim() || '',
+        categories: selectedCategories.map(cat => cat.value),
+        tags: tags,
+        approach: 'creative', // Use different approach for regeneration
+        regenerate: true,
+        saveToDatabase: false,
+        wordLimit: wordLimit
+      };
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to regenerate content');
-      }
+      const response = await aiUtils.generateBlogContent(input);
 
-      const data = await response.json();
-      
-      if (data.success && data.content) {
-        setGeneratedContentHistory(prev => [data.content, ...prev.slice(0, 4)]);
-        setContent(data.content);
-        toast.success(`Content regenerated with ${approach} approach! ✨`);
+      if (response.success && response.data) {
+        // Handle both direct data and blogData response formats
+        const blogData = response.data.blogData || response.data;
+        
+        if (blogData && blogData.content) {
+          // Clean content
+          const cleanedContent = cleanHtmlContent(blogData.content || '');
+          
+          // Set new content
+          setContent(cleanedContent);
+          
+          // Store in history
+          setGeneratedContentHistory(prev => [cleanedContent, ...prev.slice(0, 4)]);
+          
+          // Show enhanced success message
+          const wordCount = response.data.wordCount || 0;
+          const readingTime = response.data.readingTime || 2;
+          
+          toast.success(
+            `🔄 Content Regenerated Successfully!\n` +
+            `📊 ${wordCount} words • ${readingTime} min read\n` +
+            `✨ Fresh perspective with new approach!`
+          );
+        } else {
+          // Fallback for old response format
+          const { content } = response.data;
+          const cleanedContent = cleanHtmlContent(content || '');
+          
+          // Set new content
+          setContent(cleanedContent);
+          
+          // Store in history
+          setGeneratedContentHistory(prev => [cleanedContent, ...prev.slice(0, 4)]);
+          
+          toast.success("Content regenerated with a fresh perspective! ✨");
+        }
       } else {
-        throw new Error(data.message || 'No content generated');
+        throw new Error(response.message || 'Failed to regenerate content');
       }
     } catch (error) {
       console.error('AI Content Regeneration Error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to regenerate content. Please try again.');
+      toast.error(aiUtils.handleAIError(error));
     } finally {
-      setIsGeneratingContent(false);
+      setIsRegeneratingContent(false);
     }
-  }, [watch, authState.token, selectedCategories, tags]);
+  }, [watch, selectedCategories, tags, wordLimit, cleanHtmlContent]);
 
   // Comprehensive AI Blog Generation from Prompt
   const generateBlogFromPrompt = useCallback(async () => {
@@ -601,57 +723,72 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
     setIsGeneratingFromPrompt(true);
     
     try {
-      const response = await fetch('/api/generate-blog-from-prompt', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authState.token}`,
-        },
-        body: JSON.stringify({
-          prompt: aiPrompt.trim(),
-          approach: 'comprehensive'
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to generate blog from prompt');
-      }
-
-      const data = await response.json();
+      // Enhance prompt with word limit
+      const enhancedPrompt = `${aiPrompt.trim()}\n\nPlease write approximately ${wordLimit} words for the main content.`;
       
-      if (data.success && data.blogData) {
-        const { title, description, content, tags, metaTitle, metaDescription } = data.blogData;
+      const input: IAIBlogGenerateFromPromptInput = {
+        prompt: enhancedPrompt,
+        approach: 'comprehensive',
+        categories: selectedCategories.map(cat => cat.value),
+        status: 'draft',
+        saveToDatabase: false,
+        wordLimit: wordLimit
+      };
+
+      const response = await aiUtils.generateBlogFromPrompt(input);
+      
+      if (response.success && response.data.formData) {
+        // Use helper function to populate all form fields
+        const result = populateFormFromAIResponse(response.data);
         
-        // Auto-fill all form fields
+        // Trigger form validation
+        await trigger();
+        
+        // Show enhanced success message with metadata
+        if (result) {
+          const { metadata, helpers } = result;
+          toast.success(
+            `🎉 Complete Blog Generated Successfully!\n` +
+            `📊 ${metadata?.wordCount || 0} words • ${helpers?.estimatedReadTime || '2 min read'}\n` +
+            `🎯 SEO Score: ${helpers?.seoScore || 0}/100 • ${helpers?.publishReady ? '✅ Ready to publish!' : '⚠️ Needs review'}\n` +
+            `🏷️ ${metadata?.tagCount || 0} tags • ${metadata?.seoKeywordCount || 0} SEO keywords`
+          );
+        } else {
+          toast.success("Blog generated successfully! ✨");
+        }
+        
+        setShowPromptGenerator(false);
+        setAiPrompt('');
+      } else if (response.success && response.data.blog) {
+        // Fallback for old response format
+        const { title, description, content, tags: aiTags, metaTitle, metaDescription } = response.data.blog;
+        
         setValue("title", title || '');
         setValue("description", description || '');
         setValue("meta_title", metaTitle || title || '');
         setValue("meta_description", metaDescription || description?.slice(0, 160) || '');
         
-        // Set content and tags
         setContent(content || '');
-        setTags(tags || []);
+        if (aiTags && aiTags.length > 0) {
+          setTags(aiTags);
+        }
         
-        // Store in history
         setGeneratedContentHistory(prev => [content, ...prev.slice(0, 4)]);
-        
-        // Trigger form validation
         await trigger();
         
         toast.success("Blog generated successfully from your prompt! ✨");
         setShowPromptGenerator(false);
         setAiPrompt('');
       } else {
-        throw new Error(data.message || 'No blog data generated');
+        throw new Error(response.message || 'No blog data generated');
       }
     } catch (error) {
       console.error('AI Blog Generation Error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to generate blog from prompt. Please try again.');
+      toast.error(aiUtils.handleAIError(error));
     } finally {
       setIsGeneratingFromPrompt(false);
     }
-  }, [aiPrompt, authState.token, setValue, trigger]);
+  }, [aiPrompt, wordLimit, selectedCategories, setValue, trigger, populateFormFromAIResponse]);
 
   // Enhanced form submission with better validation and error handling
   const onSubmit = useCallback(async (data: IBlogFormData) => {
@@ -871,32 +1008,93 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
                   exit={{ opacity: 0, height: 0 }}
                   className="space-y-4"
                 >
-                  <div>
-                    <label className={`text-sm font-medium mb-2 block ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      Describe your blog idea
-                    </label>
-                    <div className="relative">
-                      <Sparkles className={`absolute left-3 top-4 ${
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div className="lg:col-span-2">
+                      <label className={`text-sm font-medium mb-2 block ${
+                        isDark ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
+                        Describe your blog idea
+                      </label>
+                      <div className="relative">
+                        <Sparkles className={`absolute left-3 top-4 ${
+                          isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`} size={20} />
+                        <textarea
+                          value={aiPrompt}
+                          onChange={(e) => setAiPrompt(e.target.value)}
+                          rows={3}
+                          className={`w-full border rounded-xl py-3 px-12 focus:outline-none focus:ring-2 transition-all ${
+                            isDark 
+                              ? 'bg-white/5 border-white/10 focus:ring-purple-400/50 placeholder:text-gray-500 text-white'
+                              : 'bg-white border-gray-200 focus:ring-purple-400/50 placeholder:text-gray-400 text-gray-900'
+                          }`}
+                          placeholder="e.g., 'Write a comprehensive guide about sustainable living practices for beginners, including practical tips for reducing carbon footprint, eco-friendly products, and lifestyle changes...'"
+                        />
+                      </div>
+                      <div className={`mt-2 text-xs ${
                         isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`} size={20} />
-                      <textarea
-                        value={aiPrompt}
-                        onChange={(e) => setAiPrompt(e.target.value)}
-                        rows={3}
-                        className={`w-full border rounded-xl py-3 px-12 focus:outline-none focus:ring-2 transition-all ${
-                          isDark 
-                            ? 'bg-white/5 border-white/10 focus:ring-purple-400/50 placeholder:text-gray-500 text-white'
-                            : 'bg-white border-gray-200 focus:ring-purple-400/50 placeholder:text-gray-400 text-gray-900'
-                        }`}
-                        placeholder="e.g., 'Write a comprehensive guide about sustainable living practices for beginners, including practical tips for reducing carbon footprint, eco-friendly products, and lifestyle changes...'"
-                      />
+                      }`}>
+                        💡 Be specific about your topic, target audience, and key points you want to cover. The AI will generate title, description, content, tags, and SEO meta fields automatically.
+                      </div>
                     </div>
-                    <div className={`mt-2 text-xs ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>
-                      💡 Be specific about your topic, target audience, and key points you want to cover. The AI will generate title, description, content, tags, and SEO meta fields automatically.
+
+                    <div>
+                      <label className={`text-sm font-medium mb-2 block ${
+                        isDark ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
+                        Target Word Count
+                      </label>
+                      <div className="space-y-3">
+                        <div className="relative">
+                          <FileText className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
+                            isDark ? 'text-gray-400' : 'text-gray-500'
+                          }`} size={16} />
+                          <input
+                            type="number"
+                            value={wordLimit}
+                            onChange={(e) => setWordLimit(Math.max(100, Math.min(5000, parseInt(e.target.value) || 500)))}
+                            min="100"
+                            max="5000"
+                            step="50"
+                            className={`w-full border rounded-xl py-3 px-10 focus:outline-none focus:ring-2 transition-all ${
+                              isDark 
+                                ? 'bg-white/5 border-white/10 focus:ring-purple-400/50 text-white'
+                                : 'bg-white border-gray-200 focus:ring-purple-400/50 text-gray-900'
+                            }`}
+                          />
+                        </div>
+                        
+                        {/* Quick word count presets */}
+                        <div className="flex flex-wrap gap-2">
+                          {[300, 500, 800, 1200, 2000].map((preset) => (
+                            <motion.button
+                              key={preset}
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              type="button"
+                              onClick={() => setWordLimit(preset)}
+                              className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                                wordLimit === preset
+                                  ? isDark
+                                    ? 'bg-purple-500/30 text-purple-300 border border-purple-500/50'
+                                    : 'bg-purple-100 text-purple-700 border border-purple-300'
+                                  : isDark
+                                    ? 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'
+                                    : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'
+                              }`}
+                            >
+                              {preset}w
+                            </motion.button>
+                          ))}
+                        </div>
+                        
+                        <div className={`text-xs ${
+                          isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>
+                          📝 {wordLimit < 400 ? 'Short read' : wordLimit < 800 ? 'Medium read' : wordLimit < 1500 ? 'Long read' : 'In-depth article'} 
+                          • ~{Math.ceil(wordLimit / 200)} min read
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -904,7 +1102,7 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
                     <div className={`text-sm ${
                       isDark ? 'text-gray-300' : 'text-gray-600'
                     }`}>
-                      <span className="font-medium">Auto-generates:</span> Title, Description, Content, Tags, Meta Title & Description
+                      <span className="font-medium">Auto-generates:</span> Title, Description, ~{wordLimit}w Content, Tags, Meta Title & Description
                     </div>
                     <motion.button
                       whileHover={{ scale: 1.05 }}
@@ -956,7 +1154,7 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
                           </span>
                         </div>
                         <div className="mt-2 text-xs opacity-75">
-                          Generating title, description, content, tags, and SEO meta fields. This may take 30-60 seconds.
+                          Generating ~{wordLimit} word article with title, description, content, tags, and SEO meta fields. This may take 30-60 seconds.
                         </div>
                       </motion.div>
                     )}
@@ -1167,46 +1365,16 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             type="button"
-                            onClick={() => regenerateContent('creative')}
+                            onClick={() => regenerateContent()}
                             disabled={isGeneratingContent}
                             className={`px-2 py-1 rounded-lg text-xs font-medium transition-all ${
                               isDark 
                                 ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 border border-purple-500/30'
                                 : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200'
                             }`}
-                            title="Regenerate with creative approach"
+                            title="Regenerate with a fresh perspective"
                           >
-                            Creative
-                          </motion.button>
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            type="button"
-                            onClick={() => regenerateContent('professional')}
-                            disabled={isGeneratingContent}
-                            className={`px-2 py-1 rounded-lg text-xs font-medium transition-all ${
-                              isDark 
-                                ? 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 border border-blue-500/30'
-                                : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
-                            }`}
-                            title="Regenerate with professional approach"
-                          >
-                            Professional
-                          </motion.button>
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            type="button"
-                            onClick={() => regenerateContent('technical')}
-                            disabled={isGeneratingContent}
-                            className={`px-2 py-1 rounded-lg text-xs font-medium transition-all ${
-                              isDark 
-                                ? 'bg-green-500/20 text-green-300 hover:bg-green-500/30 border border-green-500/30'
-                                : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
-                            }`}
-                            title="Regenerate with technical approach"
-                          >
-                            Technical
+                            Regenerate
                           </motion.button>
                         </div>
                       )}
@@ -1215,7 +1383,7 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         type="button"
-                        onClick={generateAIContent}
+                        onClick={generateContent}
                         disabled={isGeneratingContent || !watch('title')?.trim()}
                         className={`flex items-center gap-2 px-3 py-2 rounded-xl font-medium transition-all ${
                           isGeneratingContent || !watch('title')?.trim()
@@ -1296,7 +1464,7 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
                         <div className={`text-xs ${
                           isDark ? 'text-green-400' : 'text-green-600'
                         }`}>
-                          You can regenerate with different approaches or edit the content below.
+                          You can regenerate with a fresh perspective or edit the content below.
                         </div>
                       </motion.div>
                     )}

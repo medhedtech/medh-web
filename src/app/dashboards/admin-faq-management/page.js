@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import ProtectedPage from "@/app/protectedRoutes";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 
 import axios from "axios";
 import { apiBaseUrl, apiUrls } from "@/apis";
@@ -295,7 +295,7 @@ const AdminFaqManagement = () => {
   return (
     <ProtectedPage>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <DashboardContainer>
+        
           <div className="w-full p-6">
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
@@ -592,7 +592,7 @@ const AdminFaqManagement = () => {
               )}
             </div>
           </div>
-        </DashboardContainer>
+        
         
       </div>
     </ProtectedPage>

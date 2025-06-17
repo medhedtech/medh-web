@@ -1,6 +1,6 @@
 import ProtectedPage from "@/app/protectedRoutes";
 import AdminQuizAttemptsMain from "@/components/layout/main/dashboards/AdminQuizAttemptsMain";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 
 
 import DashboardWrapper from "@/components/shared/wrappers/DashboardWrapper";
@@ -15,9 +15,9 @@ const Admin_Quiz_Attempts = () => {
       <PageWrapper>
         <main>
           <DashboardWrapper>
-            <DashboardContainer>
+            
               <AdminQuizAttemptsMain />
-            </DashboardContainer>
+            
           </DashboardWrapper>
           
         </main>

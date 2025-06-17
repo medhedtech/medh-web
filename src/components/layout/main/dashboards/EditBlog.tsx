@@ -26,7 +26,7 @@ import { useTheme } from "next-themes";
 import usePutQuery from "@/hooks/putQuery.hook";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { useUpload } from "@/hooks/useUpload";
-import { apiUrls } from "@/apis";
+import { apiUrls, aiUtils, IAIBlogEnhanceInput, IAIBlogGenerateContentInput } from "@/apis";
 import NoSSRQuill from "@/components/shared/editors/NoSSRQuill";
 import Select, { MultiValue } from 'react-select';
 
@@ -88,10 +88,14 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
   const [selectedCategories, setSelectedCategories] = useState<ICategory[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [isGeneratingContent, setIsGeneratingContent] = useState(false);
+  const [isRegeneratingContent, setIsRegeneratingContent] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [showAIHelper, setShowAIHelper] = useState(false);
   const [editorReady, setEditorReady] = useState(false);
   const [editorKey, setEditorKey] = useState(0);
+  const [targetWordCount, setTargetWordCount] = useState(1500);
+  const [generatedContentHistory, setGeneratedContentHistory] = useState<string[]>([]);
+  const [aiServiceAvailable, setAiServiceAvailable] = useState<boolean | null>(null);
 
   const isDark = mounted ? theme === 'dark' : true;
 
@@ -144,6 +148,22 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
     console.log('Content state changed to:', content.length, 'characters');
   }, [content]);
 
+  // Check AI service availability
+  const checkAIServiceHealth = useCallback(async (): Promise<boolean> => {
+    try {
+      const response = await fetch(apiUrls.ai.getSystemHealth, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      return response.ok;
+    } catch (error) {
+      console.warn('AI Service health check failed:', error);
+      return false;
+    }
+  }, []);
+
   const fetchCategories = useCallback(async () => {
     try {
       const response = await getQuery({ url: apiUrls?.categories?.getAllCategories });
@@ -158,83 +178,259 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
     }
   }, [getQuery]);
 
-  const generateAIContent = useCallback(async (options: {
-    type?: 'improve' | 'rewrite' | 'expand' | 'custom';
-    includeWebSearch?: boolean;
-    targetWordCount?: number;
-    searchContext?: string;
-  } = {}) => {
-    const { type = 'improve', includeWebSearch = true, targetWordCount, searchContext } = options;
+  // Check AI service health when AI Helper is opened
+  useEffect(() => {
+    if (showAIHelper && aiServiceAvailable === null) {
+      checkAIServiceHealth().then(setAiServiceAvailable);
+    }
+  }, [showAIHelper, aiServiceAvailable, checkAIServiceHealth]);
+
+  // Helper function to clean HTML content
+  const cleanHtmlContent = useCallback((content: string): string => {
+    if (!content) return '';
     
-    const title = watch('title');
-    if (!title?.trim()) {
-      toast.error("Please enter a title first");
+    // Remove ```html and ``` tags
+    let cleaned = content.replace(/^```html\s*\n?/i, '').replace(/\n?```\s*$/i, '');
+    
+    // Remove any remaining markdown code block indicators
+    cleaned = cleaned.replace(/^```\s*\n?/gm, '').replace(/\n?```\s*$/gm, '');
+    
+    return cleaned.trim();
+  }, []);
+
+  // Helper function to populate form fields from AI response
+  const populateFormFromAIResponse = useCallback((responseData: any) => {
+    // Handle both formData and blogData response formats
+    const data = responseData.formData || responseData.blogData;
+    
+    if (data) {
+      // Clean content if it has HTML code block markers
+      const cleanedContent = cleanHtmlContent(data.content || '');
+      const cleanedDescription = cleanHtmlContent(data.description || '');
+      
+      // Update form fields if they have new data
+      if (data.title && data.title !== watch("title")) {
+        setValue("title", data.title);
+      }
+      if (cleanedDescription && cleanedDescription !== watch("description")) {
+        setValue("description", cleanedDescription);
+      }
+      if (data.meta_title && data.meta_title !== watch("meta_title")) {
+        setValue("meta_title", data.meta_title);
+      }
+      if (data.meta_description && data.meta_description !== watch("meta_description")) {
+        setValue("meta_description", data.meta_description);
+      }
+      
+      // Set content and tags
+      setContent(cleanedContent);
+      if (data.tags && data.tags.length > 0) {
+        setTags(data.tags);
+      }
+      
+      // Set categories if provided
+      if (data.categories && data.categories.length > 0) {
+        const matchedCategories = categories.filter(cat => 
+          data.categories.includes(cat.value)
+        );
+        setSelectedCategories(matchedCategories);
+      }
+      
+      // Store in history
+      setGeneratedContentHistory(prev => [cleanedContent, ...prev.slice(0, 4)]);
+      
+      return {
+        metadata: responseData.metadata,
+        helpers: responseData.formHelpers,
+        wordCount: responseData.wordCount,
+        readingTime: responseData.readingTime
+      };
+    }
+    return null;
+  }, [cleanHtmlContent, categories, setValue, watch]);
+
+  const generateAIContent = useCallback(async (type: 'improve' | 'expand' | 'rewrite' | 'custom' = 'improve') => {
+    if (!blog._id) {
+      toast.error("Blog ID is missing. Cannot enhance content.");
       return;
     }
 
-    if (type === 'custom' && !aiPrompt.trim()) {
-      toast.error("Please enter a prompt describing what you want to create");
+    if (!content?.trim() && type !== 'custom') {
+      toast.error("Please add some content first to enhance it");
+      return;
+    }
+
+    if (type === 'custom' && !aiPrompt?.trim()) {
+      toast.error("Please enter a custom prompt for AI enhancement");
       return;
     }
 
     setIsGeneratingContent(true);
-    console.log(`🚀 Starting AI content generation with web search enabled: ${includeWebSearch}`);
     
     try {
-      const requestBody = {
-        content: content || `# ${title}\n\n${watch('description') || ''}`,
-        topic: title.trim(),
-        requireHtmlStructure: true,
-        includeFactsAndFigures: true,
-        ensureProperHierarchy: true,
-        includeCurrentData: includeWebSearch,
+      const input: IAIBlogEnhanceInput = {
+        blogId: blog._id, // Add the blog ID for enhancement
+        content: content?.trim() || '',
+        enhancementType: type,
+        customPrompt: type === 'custom' ? aiPrompt?.trim() : undefined,
         targetWordCount: targetWordCount || 1500,
-        searchContext: searchContext || aiPrompt || `${selectedCategories.map(cat => cat.label).join(', ')} ${tags.join(', ')}`.trim()
+        updateInDatabase: false
       };
 
-      console.log('📝 Sending request to enhanced AI API:', requestBody);
-
-      const response = await fetch('/api/improve-content', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
+      console.log('📝 Sending request to AI enhancement API:', {
+        ...input,
+        blogId: blog._id,
+        contentLength: input.content?.length || 0,
+        endpoint: `${apiUrls.ai.enhanceExistingBlog}`
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
-      }
+      const response = await aiUtils.enhanceExistingBlog(input);
       
-      const data = await response.json();
-      console.log('✅ AI API Response:', data);
-      
-      if (data.success && data.enhancedContent) {
-        console.log(`🎉 AI enhanced content generated successfully!`);
-        console.log(`📊 Original: ${data.originalLength} chars → Enhanced: ${data.enhancedLength} chars`);
-        console.log(`📈 Improvement ratio: ${data.improvementRatio}x`);
+      console.log('📥 AI Enhancement API Response:', response);
+
+      if (response.success && response.data) {
+        // Handle direct enhancedContent response format
+        const enhancedContent = response.data.enhancedContent;
         
-        setContent(data.enhancedContent);
-        // Force editor re-render with new content
-        setEditorKey(prev => prev + 1);
-        
-        const improvementText = data.searchEnabled ? 'with real-time data' : 'using AI';
-        toast.success(`Content enhanced successfully ${improvementText}! ✨ (${data.improvementRatio}x improvement)`);
-        
-        if (type === 'custom') {
-          setAiPrompt('');
+        if (enhancedContent) {
+          // Clean content if it has HTML code block markers
+          const cleanedContent = cleanHtmlContent(enhancedContent);
+          
+          console.log(`🎉 AI enhanced content generated successfully!`);
+          console.log(`📊 Original: ${content.length} chars → Enhanced: ${cleanedContent.length} chars`);
+          
+          setContent(cleanedContent);
+          setGeneratedContentHistory(prev => [cleanedContent, ...prev.slice(0, 4)]);
+          
+          // Force editor re-render with new content
+          setEditorKey(prev => prev + 1);
+          
+          // Show enhanced success message
+          const wordCount = response.data.wordCount || Math.floor(cleanedContent.length / 5);
+          const readingTime = Math.ceil(wordCount / 200);
+          
+          toast.success(
+            `🎉 Content Enhanced Successfully!\n` +
+            `📊 ${wordCount} words • ${readingTime} min read\n` +
+            `✨ ${type === 'custom' ? 'Custom enhancement' : `${type.charAt(0).toUpperCase() + type.slice(1)} enhancement`} applied!`
+          );
+          
+          if (type === 'custom') {
+            setAiPrompt('');
+          }
+        } else {
+          console.error('❌ No enhanced content received:', response);
+          toast.error(response.message || 'No enhanced content received from AI');
         }
       } else {
-        console.error('❌ No enhanced content received:', data);
-        toast.error(data.message || 'No enhanced content received from AI');
+        console.error('❌ Enhancement failed:', response);
+        toast.error(response.message || 'Failed to enhance content');
       }
     } catch (error) {
       console.error('❌ AI content generation error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      toast.error(`Failed to enhance content: ${errorMessage}`);
+      
+      // Check if it's a network error (Failed to fetch)
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        toast.error(
+          "🔌 AI Service Unavailable\n" +
+          "The AI enhancement service is currently not available. This could be because:\n" +
+          "• Backend server is not running\n" +
+          "• AI endpoints are not implemented\n" +
+          "• Network connectivity issues\n\n" +
+          "Please check your backend server or try again later."
+        );
+      } else {
+        toast.error(aiUtils.handleAIError(error));
+      }
     } finally {
       setIsGeneratingContent(false);
     }
-  }, [watch, content, selectedCategories, tags, aiPrompt]);
+  }, [blog._id, content, aiPrompt, targetWordCount, cleanHtmlContent]);
+
+  // Generate fresh content using the new AI content generation endpoint
+  const generateFreshContent = useCallback(async () => {
+    const title = watch("title");
+    const description = watch("description");
+
+    if (!title?.trim()) {
+      toast.error("Please enter a title first to generate fresh content");
+      return;
+    }
+
+    setIsRegeneratingContent(true);
+    
+    try {
+      // Enhance prompt with word limit
+      const enhancedPrompt = aiPrompt?.trim() 
+        ? `${aiPrompt.trim()}\n\nPlease write approximately ${targetWordCount} words for the main content.`
+        : `Generate comprehensive content for "${title}" with approximately ${targetWordCount} words.`;
+      
+      const input: IAIBlogGenerateContentInput = {
+        title: title.trim(),
+        description: description?.trim() || '',
+        categories: selectedCategories.map(cat => cat.value),
+        tags: tags,
+        approach: 'comprehensive',
+        regenerate: true,
+        saveToDatabase: false
+      };
+
+      const response = await aiUtils.generateBlogContent(input);
+
+      if (response.success && response.data) {
+        // Handle direct content response format
+        const generatedContent = response.data.content;
+        
+        if (generatedContent) {
+          // Clean content
+          const cleanedContent = cleanHtmlContent(generatedContent);
+          
+          // Set new content
+          setContent(cleanedContent);
+          setGeneratedContentHistory(prev => [cleanedContent, ...prev.slice(0, 4)]);
+          
+          // Force editor re-render
+          setEditorKey(prev => prev + 1);
+          
+          // Show enhanced success message
+          const wordCount = response.data.wordCount || Math.floor(cleanedContent.length / 5);
+          const readingTime = Math.ceil(wordCount / 200);
+          
+          toast.success(
+            `🔄 Fresh Content Generated Successfully!\n` +
+            `📊 ${wordCount} words • ${readingTime} min read\n` +
+            `✨ Brand new content with latest information!`
+          );
+          
+          if (aiPrompt) {
+            setAiPrompt('');
+          }
+        } else {
+          throw new Error('No content received from AI');
+        }
+      } else {
+        throw new Error(response.message || 'Failed to generate fresh content');
+      }
+    } catch (error) {
+      console.error('AI Fresh Content Generation Error:', error);
+      
+      // Check if it's a network error (Failed to fetch)
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        toast.error(
+          "🔌 AI Service Unavailable\n" +
+          "The AI content generation service is currently not available. This could be because:\n" +
+          "• Backend server is not running\n" +
+          "• AI endpoints are not implemented\n" +
+          "• Network connectivity issues\n\n" +
+          "Please check your backend server or try again later."
+        );
+      } else {
+        toast.error(aiUtils.handleAIError(error));
+      }
+    } finally {
+      setIsRegeneratingContent(false);
+    }
+  }, [watch, selectedCategories, tags, aiPrompt, targetWordCount, cleanHtmlContent]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -443,32 +639,89 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
                     </p>
                     
                     <div className="space-y-4">
-                      <div>
-                        <label className="text-sm font-medium mb-2 block flex items-center gap-2">
-                          <Type className="w-4 h-4" />
-                          Blog Writing Prompt
-                        </label>
-                        <textarea
-                          value={aiPrompt}
-                          onChange={(e) => setAiPrompt(e.target.value)}
-                          rows={4}
-                          className={`w-full border rounded-xl py-3 px-4 resize-none ${
-                            isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-gray-400' : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-500'
-                          }`}
-                          placeholder="Examples:
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <div className="lg:col-span-2">
+                          <label className="text-sm font-medium mb-2 block flex items-center gap-2">
+                            <Type className="w-4 h-4" />
+                            Blog Writing Prompt
+                          </label>
+                          <textarea
+                            value={aiPrompt}
+                            onChange={(e) => setAiPrompt(e.target.value)}
+                            rows={4}
+                            className={`w-full border rounded-xl py-3 px-4 resize-none ${
+                              isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-gray-400' : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-500'
+                            }`}
+                            placeholder="Examples:
 • Write a comprehensive guide about machine learning for beginners
 • Improve this content to be more engaging with real-world examples
 • Add proper HTML structure with headings, lists, and code blocks
 • Rewrite this to include latest industry statistics and trends
 • Create a step-by-step tutorial with practical examples"
-                        />
-                        <div className="flex justify-between items-center mt-2">
-                          <span className="text-xs text-gray-500">
-                            {aiPrompt.length}/500 characters
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            Be specific for better results
-                          </span>
+                          />
+                          <div className="flex justify-between items-center mt-2">
+                            <span className="text-xs text-gray-500">
+                              {aiPrompt.length}/500 characters
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              Be specific for better results
+                            </span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-medium mb-2 block flex items-center gap-2">
+                            <Wand2 className="w-4 h-4" />
+                            Target Word Count
+                          </label>
+                          <div className="space-y-3">
+                            <div className="relative">
+                              <input
+                                type="number"
+                                value={targetWordCount}
+                                onChange={(e) => setTargetWordCount(Math.max(100, Math.min(5000, parseInt(e.target.value) || 1500)))}
+                                min="100"
+                                max="5000"
+                                step="50"
+                                className={`w-full border rounded-xl py-3 px-4 focus:outline-none focus:ring-2 transition-all ${
+                                  isDark 
+                                    ? 'bg-white/5 border-white/10 focus:ring-purple-400/50 text-white'
+                                    : 'bg-white border-gray-200 focus:ring-purple-400/50 text-gray-900'
+                                }`}
+                              />
+                            </div>
+                            
+                            {/* Quick word count presets */}
+                            <div className="flex flex-wrap gap-2">
+                              {[500, 800, 1200, 1500, 2000].map((preset) => (
+                                <motion.button
+                                  key={preset}
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                  type="button"
+                                  onClick={() => setTargetWordCount(preset)}
+                                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                                    targetWordCount === preset
+                                      ? isDark
+                                        ? 'bg-purple-500/30 text-purple-300 border border-purple-500/50'
+                                        : 'bg-purple-100 text-purple-700 border border-purple-300'
+                                      : isDark
+                                        ? 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'
+                                        : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'
+                                  }`}
+                                >
+                                  {preset}w
+                                </motion.button>
+                              ))}
+                            </div>
+                            
+                            <div className={`text-xs ${
+                              isDark ? 'text-gray-400' : 'text-gray-500'
+                            }`}>
+                              📝 {targetWordCount < 600 ? 'Short' : targetWordCount < 1200 ? 'Medium' : targetWordCount < 2000 ? 'Long' : 'In-depth'} 
+                              • ~{Math.ceil(targetWordCount / 200)} min read
+                            </div>
+                          </div>
                         </div>
                       </div>
 
@@ -516,54 +769,80 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
 
                       {/* Enhanced AI Generation Buttons */}
                       <div className="space-y-3">
-                        {/* Primary Generation Button */}
-                        <div className="flex items-center gap-3">
+                        {/* Primary Generation Buttons */}
+                        <div className="space-y-3">
+                          {/* Custom Enhancement Button */}
+                          <div className="flex items-center gap-3">
+                            <motion.button
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => generateAIContent('custom')}
+                              disabled={isGeneratingContent || !aiPrompt.trim()}
+                              className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-medium transition-all ${
+                                isGeneratingContent || !aiPrompt.trim()
+                                  ? 'opacity-50 cursor-not-allowed bg-gray-500/20 text-gray-400'
+                                  : isDark
+                                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl'
+                                    : 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl'
+                              }`}
+                            >
+                              {isGeneratingContent ? (
+                                <>
+                                  <Loader2 className="w-5 h-5 animate-spin" />
+                                  <span>AI is enhancing content...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Wand2 className="w-5 h-5" />
+                                  <span>Enhance Current Content (~{targetWordCount}w)</span>
+                                </>
+                              )}
+                            </motion.button>
+
+                            {aiPrompt.trim() && (
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => setAiPrompt('')}
+                                className={`p-3 rounded-xl transition-all ${
+                                  isDark ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30' : 'bg-red-50 text-red-600 hover:bg-red-100'
+                                }`}
+                                title="Clear prompt"
+                              >
+                                <X className="w-5 h-5" />
+                              </motion.button>
+                            )}
+                          </div>
+
+                          {/* Fresh Content Generation Button */}
                           <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            onClick={() => generateAIContent({ 
-                              type: 'custom',
-                              includeWebSearch: true,
-                              targetWordCount: 2000
-                            })}
-                            disabled={isGeneratingContent || !aiPrompt.trim()}
-                            className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-medium transition-all ${
-                              isGeneratingContent || !aiPrompt.trim()
+                            onClick={generateFreshContent}
+                            disabled={isRegeneratingContent || !watch("title")?.trim()}
+                            className={`w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-medium transition-all ${
+                              isRegeneratingContent || !watch("title")?.trim()
                                 ? 'opacity-50 cursor-not-allowed bg-gray-500/20 text-gray-400'
                                 : isDark
-                                  ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl'
-                                  : 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl'
+                                  ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl'
+                                  : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl'
                             }`}
                           >
-                            {isGeneratingContent ? (
+                            {isRegeneratingContent ? (
                               <>
                                 <Loader2 className="w-5 h-5 animate-spin" />
-                                <span>AI is researching & writing...</span>
+                                <span>Generating fresh content...</span>
                               </>
                             ) : (
                               <>
-                                <Bot className="w-5 h-5" />
-                                <span>Generate with Web Search</span>
+                                <RefreshCw className="w-5 h-5" />
+                                <span>Generate Fresh Content (~{targetWordCount}w)</span>
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
                                 </svg>
                               </>
                             )}
                           </motion.button>
-
-                          {aiPrompt.trim() && (
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => setAiPrompt('')}
-                              className={`p-3 rounded-xl transition-all ${
-                                isDark ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30' : 'bg-red-50 text-red-600 hover:bg-red-100'
-                              }`}
-                              title="Clear prompt"
-                            >
-                              <X className="w-5 h-5" />
-                            </motion.button>
-                          )}
                         </div>
 
                         {/* Quick Action Buttons */}
@@ -571,11 +850,7 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
                           <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            onClick={() => generateAIContent({ 
-                              includeWebSearch: true,
-                              targetWordCount: 1500,
-                              searchContext: "latest trends and statistics"
-                            })}
+                            onClick={() => generateAIContent('improve')}
                             disabled={isGeneratingContent}
                             className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all ${
                               isGeneratingContent
@@ -592,10 +867,7 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
                           <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            onClick={() => generateAIContent({ 
-                              includeWebSearch: false,
-                              targetWordCount: 1200
-                            })}
+                            onClick={() => generateAIContent('rewrite')}
                             disabled={isGeneratingContent}
                             className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all ${
                               isGeneratingContent
@@ -612,7 +884,7 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
                       </div>
 
                       {/* AI Status */}
-                      {isGeneratingContent && (
+                      {(isGeneratingContent || isRegeneratingContent) && (
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -623,17 +895,24 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
                           <div className="flex items-center gap-3">
                             <Loader2 className="w-5 h-5 animate-spin" />
                             <div>
-                              <p className="font-medium">AI Blog Assistant is working...</p>
-                              <p className="text-sm opacity-80">🔍 Searching the web for latest data and trends</p>
-                              <p className="text-sm opacity-80">✍️ Creating well-structured HTML content with current information</p>
-                              <p className="text-xs opacity-60 mt-1">Current content: {content.length} chars → Enhanced content will replace this</p>
+                              <p className="font-medium">
+                                {isGeneratingContent ? 'AI Blog Enhancement in Progress...' : 'AI Fresh Content Generation...'}
+                              </p>
+                              <p className="text-sm opacity-80">🔍 Researching latest data and industry trends</p>
+                              <p className="text-sm opacity-80">✍️ Creating well-structured HTML content (~{targetWordCount} words)</p>
+                              <p className="text-xs opacity-60 mt-1">
+                                {isGeneratingContent 
+                                  ? `Current content: ${content.length} chars → Enhanced content will replace this`
+                                  : `Generating fresh content based on: "${watch("title")?.slice(0, 50)}..."`
+                                }
+                              </p>
                             </div>
                           </div>
                         </motion.div>
                       )}
 
                       {/* Content Update Success Indicator */}
-                      {!isGeneratingContent && content.length > 0 && (
+                      {!isGeneratingContent && !isRegeneratingContent && content.length > 0 && (
                         <motion.div
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
@@ -641,9 +920,16 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
                             isDark ? 'bg-green-900/20 border-green-500/30 text-green-300' : 'bg-green-50 border-green-200 text-green-700'
                           }`}
                         >
-                          <div className="flex items-center gap-2 text-sm">
-                            <CheckCircle2 className="w-4 h-4" />
-                            <span>Content ready: {content.length} characters</span>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-sm">
+                              <CheckCircle2 className="w-4 h-4" />
+                              <span>Content ready: {content.length} characters • ~{Math.ceil(content.length / 5)} words</span>
+                            </div>
+                            {generatedContentHistory.length > 0 && (
+                              <div className="text-xs opacity-75">
+                                {generatedContentHistory.length} AI generation{generatedContentHistory.length > 1 ? 's' : ''}
+                              </div>
+                            )}
                           </div>
                         </motion.div>
                       )}

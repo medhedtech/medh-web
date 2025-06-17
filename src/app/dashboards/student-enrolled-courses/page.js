@@ -1,5 +1,5 @@
 import StudentEnrolledCoursesMain from "@/components/layout/main/dashboards/StudentEnrolledCoursesMain";
-import DashboardContainer from "@/components/shared/containers/DashboardContainer";
+
 
 import HeadingDashboard from "@/components/shared/headings/HeadingDashboard";
 import ProtectedPage from "@/app/protectedRoutes";
@@ -14,11 +14,11 @@ const Student_Enrolled_Courses = () => {
     <PageWrapper>
     <ProtectedPage>
       <main>
-        <DashboardContainer>
+        
           <div className="py-12">
           <StudentEnrolledCoursesMain />
           </div>
-        </DashboardContainer>
+        
         
       </main>
     </ProtectedPage>
