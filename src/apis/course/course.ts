@@ -702,7 +702,7 @@ export const updateCourseThumbnailBase64 = (id: string): string => {
  */
 export const deleteCourse = (id: string): string => {
   if (!id) throw new Error('Course ID cannot be empty');
-  return `${apiBaseUrl}/courses/delete/${id}`;
+  return `${apiBaseUrl}/courses/${id}`;
 }
 
 /**
