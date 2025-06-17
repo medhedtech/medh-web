@@ -233,23 +233,7 @@ const PlacementCourseDetails: React.FC = () => {
   return (
     <div className={`min-h-screen py-16 md:py-24 ${isDark ? 'bg-gradient-to-br from-gray-900 via-blue-950 to-purple-950' : 'bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header Section */}
-        <div className="text-center mb-12 md:mb-16">
-          <div className="flex items-center justify-center mb-4">
-            <div className={`p-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white mr-3`}>
-              <Briefcase className="w-6 h-6" />
-            </div>
-            <h2 className={`text-3xl md:text-4xl lg:text-5xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Empower Your Career Ambitions with
-            </h2>
-          </div>
-          <h3 className={`text-2xl md:text-3xl lg:text-4xl font-bold mb-4 ${isDark ? 'text-transparent bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text' : 'text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text'}`}>
-            Medh 18-Month Job Assurance Programs
-          </h3>
-          <p className={`text-lg md:text-xl leading-relaxed max-w-4xl mx-auto ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-            At Medh, we empower individuals through education, offering <span className="font-semibold text-green-500">100% Job Guaranteed Courses</span> designed to provide in-depth skills with our comprehensive 18-month live interactive programs including 3 months of corporate internship.
-          </p>
-        </div>
+
 
         {/* Course Cards */}
         {error ? (

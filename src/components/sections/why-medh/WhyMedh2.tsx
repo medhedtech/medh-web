@@ -16,6 +16,15 @@ import {
 import { useTheme } from "next-themes";
 import placement from "@/assets/images/iso/pllacement-logo.png";
 
+// Import certification images
+import iso9001Emblem from "@/assets/images/certifications/ISO_9001-2015_Emblem.jpg";
+import iso10002Emblem from "@/assets/images/certifications/ISO_10002-2018_Emblem.jpg";
+import iso20000Emblem from "@/assets/images/certifications/ISO_20000-2018_Emblem.jpg";
+import iso22301Emblem from "@/assets/images/certifications/ISO_22301-2019_Emblem.jpg";
+import iso27001Emblem from "@/assets/images/certifications/ISO_27001-2022_Emblem.jpg";
+import iso27701Emblem from "@/assets/images/certifications/ISO_27701-2019_Emblem.jpg";
+import stemAccreditation from "@/assets/images/certifications/medh-stem-accreditation-logo (1).png";
+
 // Simplified interfaces
 interface IWhyMedhFeature {
   icon: React.ReactNode;
@@ -209,35 +218,159 @@ const WhyMedh: React.FC = () => {
             ))}
           </div>
 
-          {/* Achievements Section */}
+          {/* Our Quality Certifications Section */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 mb-8">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg">
                 <Trophy className="w-4 h-4 text-white" />
               </div>
               <h3 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">
-                Our Certifications! 🏆
+                Our Quality Certifications!
               </h3>
             </div>
             <p className="text-lg text-gray-600 dark:text-gray-300 mb-10">
-              Swipe to explore our achievements ✨
+              Certified Standards That Ensure Your Success
             </p>
             
-            {/* Certification highlights - simplified */}
-            <div className="grid grid-cols-2 gap-6 max-w-md mx-auto">
-              {[
-                { label: "ISO Certified", value: "9001:2015" },
-                { label: "STEM Certified", value: "Education" }
-              ].map((item, index) => (
-                <div key={index} className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                  <div className="text-2xl font-bold text-primary-600 dark:text-primary-400 mb-1">
-                    {item.value}
+            {/* Certification Categories with Images */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12">
+              {/* Learning Quality */}
+              <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-6 text-center">Learning Quality</h3>
+                <div className="flex flex-col gap-4">
+                  <div className="text-center">
+                    <div className="w-20 h-20 mx-auto mb-3 bg-white dark:bg-gray-700 rounded-lg p-2 shadow-md">
+                      <Image
+                        src={iso9001Emblem}
+                        alt="ISO 9001"
+                        width={64}
+                        height={64}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">ISO 9001</div>
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300">
-                    {item.label}
+                  <div className="text-center">
+                    <div className="w-20 h-20 mx-auto mb-3 bg-white dark:bg-gray-700 rounded-lg p-2 shadow-md">
+                      <Image
+                        src={iso10002Emblem}
+                        alt="ISO 10002"
+                        width={64}
+                        height={64}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">ISO 10002</div>
                   </div>
                 </div>
-              ))}
+              </div>
+              
+              {/* Data Protection */}
+              <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-6 text-center">Data Protection</h3>
+                <div className="flex flex-col gap-4">
+                  <div className="text-center">
+                    <div className="w-20 h-20 mx-auto mb-3 bg-white dark:bg-gray-700 rounded-lg p-2 shadow-md">
+                      <Image
+                        src={iso27001Emblem}
+                        alt="ISO 27001"
+                        width={64}
+                        height={64}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">ISO 27001</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-20 h-20 mx-auto mb-3 bg-white dark:bg-gray-700 rounded-lg p-2 shadow-md">
+                      <Image
+                        src={iso27701Emblem}
+                        alt="ISO 27701"
+                        width={64}
+                        height={64}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">ISO 27701</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Service Reliability */}
+              <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-6 text-center">Service Reliability</h3>
+                <div className="flex flex-col gap-4">
+                  <div className="text-center">
+                    <div className="w-20 h-20 mx-auto mb-3 bg-white dark:bg-gray-700 rounded-lg p-2 shadow-md">
+                      <Image
+                        src={iso20000Emblem}
+                        alt="ISO 20000-1"
+                        width={64}
+                        height={64}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">ISO 20000-1</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-20 h-20 mx-auto mb-3 bg-white dark:bg-gray-700 rounded-lg p-2 shadow-md">
+                      <Image
+                        src={iso22301Emblem}
+                        alt="ISO 22301"
+                        width={64}
+                        height={64}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">ISO 22301</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Featured Certifications - Main Display */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-8 mb-12">
+              {/* STEM Certified */}
+              <div className="text-center">
+                <div className="w-24 h-24 mx-auto mb-4 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-lg">
+                  <Image
+                    src={stemAccreditation}
+                    alt="STEM Certified"
+                    width={80}
+                    height={80}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <h4 className="font-semibold text-gray-800 dark:text-white mb-2">STEM Certified</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300 max-w-xs">
+                  Recognized excellence in Science, Technology, Engineering, and Mathematics education.
+                </p>
+              </div>
+              
+              {/* ISO Certified */}
+              <div className="text-center">
+                <div className="w-24 h-24 mx-auto mb-4 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-lg">
+                  <Image
+                    src={iso9001Emblem}
+                    alt="ISO Certified"
+                    width={80}
+                    height={80}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <h4 className="font-semibold text-gray-800 dark:text-white mb-2">ISO Certified</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300 max-w-xs">
+                  Recognized international standards of quality, security, and reliability, protecting your data.
+                </p>
+              </div>
+            </div>
+            
+            {/* Bottom Message */}
+            <div className="bg-gradient-to-r from-primary-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-6 border border-primary-100 dark:border-gray-600">
+              <p className="text-gray-700 dark:text-gray-300 text-lg mb-4">
+                These certifications ensure your learning journey is<br />
+                built on globally recognized standards of excellence.
+              </p>
             </div>
           </div>
 
