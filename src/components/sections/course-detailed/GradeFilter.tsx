@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   ChevronDown, GraduationCap, Info, RefreshCw, 
   BookOpen, Clock, CheckCircle2, Award, AlertTriangle, 
-  Filter, Search 
+  Filter 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -101,7 +101,6 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
   hideGradeSelector = false
 }) => {
   const [dropdownVisible, setDropdownVisible] = useState<boolean>(false);
-  const [searchTerm, setSearchTerm] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
   // Function to format grade value for API
@@ -139,10 +138,8 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
 
   // Memoized and filtered courses
   const displayCourses = useMemo(() => {
-    return filteredCourses.filter(course => 
-      course.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [filteredCourses, searchTerm]);
+    return filteredCourses;
+  }, [filteredCourses]);
 
   // Auto-select first course when filtered courses change
   useEffect(() => {
@@ -189,7 +186,6 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
   // Reset error state
   const resetErrorState = useCallback((): void => {
     setError(null);
-    setSearchTerm('');
     setSelectedGrade('all');
   }, [setSelectedGrade]);
 
@@ -315,19 +311,7 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
           </div>
         </div>
 
-        {/* Search Input */}
-        <div className="relative mb-3">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-          </div>
-          <input
-            type="text"
-            placeholder="Search courses..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-          />
-        </div>
+
 
         {/* Course Selection or Empty State */}
         {displayCourses.length > 0 ? (
@@ -431,27 +415,16 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
           <div className="flex flex-col items-center justify-center py-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-100 dark:border-gray-700">
             <Filter className="h-6 w-6 text-gray-300 dark:text-gray-600 mb-2" />
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              No courses match your search
+              No courses available
             </p>
             {!hideGradeSelector && selectedGrade !== 'all' && (
               <button
                 onClick={() => {
                   setSelectedGrade('all');
-                  setSearchTerm('');
                 }}
                 className="mt-3 text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 bg-primary-50 dark:bg-primary-900/20 px-3 py-1.5 rounded-full"
               >
                 Reset Filters
-              </button>
-            )}
-            {hideGradeSelector && searchTerm && (
-              <button
-                onClick={() => {
-                  setSearchTerm('');
-                }}
-                className="mt-3 text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 bg-primary-50 dark:bg-primary-900/20 px-3 py-1.5 rounded-full"
-              >
-                Clear Search
               </button>
             )}
           </div>

@@ -2016,7 +2016,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
 
   return (
     <>
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-gray-200 dark:border-gray-700 overflow-hidden enrollment-section w-full">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-gray-200 dark:border-gray-700 overflow-hidden enrollment-section w-full max-w-md mx-auto lg:max-w-none">
         {/* Header section */}
         <div className={`px-4 sm:px-6 py-3 sm:py-4 ${bgClass} border-b ${borderClass} flex items-center justify-between`}>
           <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center leading-tight">
