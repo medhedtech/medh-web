@@ -323,7 +323,7 @@ export default function OnlineClassManagementPage({
   // Copy meeting link
   const copyMeetingLink = (link: string) => {
     navigator.clipboard.writeText(link);
-    toast.success('Meeting link copied to clipboard!');
+    showToast.success('Meeting link copied to clipboard!');
   };
 
   // Get status color
@@ -361,7 +361,7 @@ export default function OnlineClassManagementPage({
       };
       const response = await batchAPI.createZoomMeetingForSession(batchId, sessionId, meetingData);
       if (response.data?.success) {
-        toast.success('Zoom meeting created successfully!');
+        showToast.success('Zoom meeting created successfully!');
         loadCategoryBatches();
       } else {
         throw new Error('Failed to create Zoom meeting');
@@ -393,7 +393,7 @@ export default function OnlineClassManagementPage({
       };
       
       await batchAPI.addScheduledSession(currentBatchIdForSession, scheduleData);
-      toast.success('Session added successfully!');
+      showToast.success('Session added successfully!');
       loadCategoryBatches();
     } catch (error: any) {
       console.error('Error adding session:', error);
@@ -434,7 +434,7 @@ export default function OnlineClassManagementPage({
         currentSessionIdForRecording,
         payload
       );
-      toast.success('Recorded lesson added!');
+      showToast.success('Recorded lesson added!');
       loadCategoryBatches();
     } catch (error: any) {
       console.error('Error adding recorded lesson:', error);
@@ -578,7 +578,7 @@ export default function OnlineClassManagementPage({
           }));
           
           setUploadProgress(90);
-          toast.success('Upload started successfully! Processing in background...');
+          showToast.success('Upload started successfully! Processing in background...');
           
           // Show background processing message
           setTimeout(() => {
@@ -588,7 +588,7 @@ export default function OnlineClassManagementPage({
               url: 'processing' // Placeholder URL
             }));
             setUploadProgress(100);
-            toast.success('Recorded lesson is being processed in background!');
+            showToast.success('Recorded lesson is being processed in background!');
           }, 2000);
           
         } else {
@@ -614,7 +614,7 @@ export default function OnlineClassManagementPage({
           }));
           
           setUploadProgress(100);
-          toast.success('Recorded lesson uploaded successfully!');
+          showToast.success('Recorded lesson uploaded successfully!');
           
           console.log('Recorded lesson upload completed:', {
             videoId,
@@ -1548,7 +1548,7 @@ export default function OnlineClassManagementPage({
                       <button
                         onClick={() => {
                           navigator.clipboard.writeText(recordingForm.url);
-                          toast.success('Streaming URL copied to clipboard!');
+                          showToast.success('Streaming URL copied to clipboard!');
                         }}
                         className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
                       >

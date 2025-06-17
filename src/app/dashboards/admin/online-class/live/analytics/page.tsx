@@ -18,7 +18,7 @@ import {
   Filter,
   RefreshCw
 } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { motion } from 'framer-motion';
 import BatchAnalytics from '@/components/Dashboard/admin/BatchAnalytics';
 
@@ -94,7 +94,7 @@ const AnalyticsPage: React.FC = () => {
 
   const handleRefreshData = () => {
     loadInitialData();
-    toast.success('Data refreshed successfully');
+    showToast.success('Data refreshed successfully');
   };
 
   return (

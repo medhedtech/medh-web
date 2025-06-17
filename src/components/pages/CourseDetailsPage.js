@@ -1880,7 +1880,7 @@ const CourseDetailsPage = ({ ...props }) => {
               
               <motion.button
                 className="flex-1 md:flex-none inline-flex justify-center items-center px-6 py-3.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 font-medium text-base rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300"
-                onClick={() => toast.success("Added to wishlist!", { icon: "❤️" })}
+                onClick={() => showToast.success("Added to wishlist!", { icon: "❤️" })}
                 variants={fadeIn}
                 transition={{ delay: 0.8 }}
                 whileTap={{ scale: 0.98 }}

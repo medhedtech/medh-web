@@ -238,7 +238,7 @@ export default function CoorporateQuizPage({ closeQuiz }) {
         responses,
       },
       onSuccess: () => {
-        toast.success("Response submitted successfully");
+        showToast.success("Response submitted successfully");
         console.log("Quiz response submitted successfully.");
         closePopup();
         router.push("/dashboards/student");

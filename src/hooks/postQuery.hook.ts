@@ -4,7 +4,7 @@ import { useState } from "react";
 import { apiClient } from "../apis/apiClient";
 import apiWithAuth from "../utils/apiWithAuth";
 import { getAuthToken } from "../utils/auth";
-import { toast } from "react-toastify";
+import { showToast } from '@/utils/toastManager';
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import { logger } from "../utils/logger";
 
@@ -140,7 +140,7 @@ export const usePostQuery = <T = any>(): UsePostQueryResult<T> => {
 
       // Show success toast if configured
       if (showToast && successMessage) {
-        toast.success(successMessage);
+        showshowToast.success(successMessage, { groupKey: params.groupKey || 'api' });
       }
 
       // Debug logging
@@ -180,7 +180,7 @@ export const usePostQuery = <T = any>(): UsePostQueryResult<T> => {
 
       // Show error toast if configured
       if (showToast) {
-        toast.error(message);
+        showToast.error(message, { groupKey: params.groupKey || 'api' });
       }
 
       // Call onFail callback

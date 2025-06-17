@@ -22,7 +22,7 @@ import { format } from 'date-fns';
 import PageWrapper from '@/components/shared/wrappers/PageWrapper';
 import Image from 'next/image';
 import Link from 'next/link';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import useGetQuery from '@/hooks/getQuery.hook';
 import { apiUrls } from '@/apis';
 import axios from 'axios';
@@ -104,7 +104,7 @@ const SavedCoursesPage = () => {
       
       // Update the UI by removing the course from the state
       setSavedCourses(savedCourses.filter(course => course._id !== courseId));
-      toast.success("Course removed from saved items");
+      showToast.success("Course removed from saved items");
     } catch (err) {
       console.error("Error removing saved course:", err);
       toast.error("Failed to remove course from saved items");
@@ -128,7 +128,7 @@ const SavedCoursesPage = () => {
       Promise.all(removePromises)
         .then(() => {
           setSavedCourses([]);
-          toast.success("All courses removed from saved items");
+          showToast.success("All courses removed from saved items");
         })
         .catch(err => {
           console.error("Error clearing saved courses:", err);

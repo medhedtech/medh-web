@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Edit, Eye, Trash2, Search, UserPlus, Mail, Phone, ChevronLeft, ChevronRight } from "lucide-react";
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { apiUrls } from "@/apis";
 import { useGetQuery } from "@/hooks/getQuery.hook";
 import { usePostQuery } from "@/hooks/postQuery.hook";
@@ -145,7 +145,7 @@ export default function ManageStudentsPage() {
         postData: {},
         requireAuth: true,
         onSuccess: () => {
-          toast.success(`Student "${studentName}" deleted successfully!`);
+          showToast.success(`Student "${studentName}" deleted successfully!`);
           // Refresh the current page
           fetchStudents(currentPage, searchTerm, statusFilter);
         },

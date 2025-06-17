@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { apiUrls } from "@/apis";
 import { usePostQuery } from "@/hooks/postQuery.hook";
 
@@ -144,7 +144,7 @@ export default function CreateInstructorPage() {
                   shouldDirty: true,
                   shouldTouch: true
                 });
-                toast.success('Image uploaded successfully');
+                showToast.success('Image uploaded successfully');
               } else {
                 console.error("Unexpected image upload response format:", response);
                 toast.error('Invalid image upload response format');
@@ -300,7 +300,7 @@ export default function CreateInstructorPage() {
         requireAuth: true,
         onSuccess: (response) => {
           formSubmittedSuccessfully.current = true;
-          toast.success(`Instructor "${instructorData.full_name}" created successfully!`);
+          showToast.success(`Instructor "${instructorData.full_name}" created successfully!`);
           reset();
           setProfileImage(null);
         },

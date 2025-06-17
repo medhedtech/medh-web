@@ -196,7 +196,7 @@ const RecentAnnouncements: React.FC<RecentAnnouncementsProps> = ({
         // Update unread count
         setUnreadCount(prev => Math.max(0, prev - 1));
         
-        toast.success('Announcement marked as read');
+        showToast.success('Announcement marked as read');
       } else {
         throw new Error(response.error || 'Failed to mark as read');
       }
@@ -228,7 +228,7 @@ const RecentAnnouncements: React.FC<RecentAnnouncementsProps> = ({
           )
         );
         setUnreadCount(prev => Math.max(0, prev - 1));
-        toast.success('Announcement marked as read');
+        showToast.success('Announcement marked as read');
       }).catch(error => {
         console.error('Error auto-marking as read:', error);
       });

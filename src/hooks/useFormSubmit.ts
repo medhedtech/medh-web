@@ -105,7 +105,7 @@ export const useFormSubmit = (): UseFormSubmitResult => {
       }
       
       if (showToast) {
-        toast.success(successMessage);
+        showToast.success(successMessage);
       }
       
       if (onSuccess) {
@@ -179,7 +179,7 @@ export const useFormSubmit = (): UseFormSubmitResult => {
         });
         
         if (showToast) {
-          toast.success(successMessage);
+          showToast.success(successMessage);
         }
         
         if (onSuccess) {
@@ -211,7 +211,7 @@ export const useFormSubmit = (): UseFormSubmitResult => {
               });
               
               if (showToast) {
-                toast.success(successMessage);
+                showToast.success(successMessage);
               }
               
               if (onSuccess) {
@@ -288,7 +288,7 @@ export const useFormSubmit = (): UseFormSubmitResult => {
       const results = await Promise.all(uploadPromises);
       
       if (params.showToast !== false) {
-        toast.success(params.successMessage || "Files uploaded successfully");
+        showToast.success(params.successMessage || "Files uploaded successfully");
       }
       
       if (params.onSuccess) {

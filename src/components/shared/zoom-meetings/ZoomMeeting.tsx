@@ -146,7 +146,7 @@ export const ZoomMeeting = ({ meeting }: ZoomMeetingProps) => {
     try {
       await zoomClient.leaveMeeting();
       setShowMeeting(false);
-      toast.success("Left meeting successfully");
+      showToast.success("Left meeting successfully");
     } catch (error) {
       console.error("Failed to leave meeting:", error);
       toast.error("Failed to leave meeting");

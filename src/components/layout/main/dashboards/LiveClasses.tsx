@@ -359,7 +359,7 @@ const LiveClasses: React.FC = () => {
     const meetLink = liveClass.meetingLink || liveClass.meet_link || liveClass.zoom_link;
     if (meetLink) {
       window.open(meetLink, "_blank", "noopener,noreferrer");
-      toast.success(`Joining: ${liveClass.title || liveClass.meet_title}`);
+      showToast.success(`Joining: ${liveClass.title || liveClass.meet_title}`);
     } else {
       toast.error("Meeting link not available");
     }
@@ -399,7 +399,7 @@ const LiveClasses: React.FC = () => {
 
   const handleDownloadMaterial = (material: IMaterial) => {
     window.open(material.url, "_blank", "noopener,noreferrer");
-    toast.success(`Downloading: ${material.title}`);
+    showToast.success(`Downloading: ${material.title}`);
   };
 
   const handleFilterChange = (filterName: keyof IFilterState, value: string) => {
@@ -437,7 +437,7 @@ const LiveClasses: React.FC = () => {
     const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${event.start}/${event.end}&details=${encodeURIComponent(event.description)}&location=${encodeURIComponent(event.location)}`;
     
     window.open(googleCalendarUrl, "_blank", "noopener,noreferrer");
-    toast.success("Opening calendar to add event");
+    showToast.success("Opening calendar to add event");
   };
 
   // Render class card

@@ -133,7 +133,7 @@ export default function GetInTouch() {
     deleteQuery({
       url,
       onSuccess: (res) => {
-        toast.success(res?.message || "Deleted successfully");
+        showToast.success(res?.message || "Deleted successfully");
         if (type === 'contact') {
           fetchContacts();
         } else {

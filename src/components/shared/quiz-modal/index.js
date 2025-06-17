@@ -97,7 +97,7 @@ const CreateQuizModal = ({ open, onClose, onUpload }) => {
           setPdfBrochures([]);
           setSelectedMeetingId("");
           onClose();
-          toast.success("Data uploaded successfully");
+          showToast.success("Data uploaded successfully");
           onUpload();
         },
         onFail: (error) => {

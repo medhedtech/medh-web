@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { Loader2, AlertCircle, ArrowRight, RefreshCw, Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import usePostQuery from '@/hooks/postQuery.hook';
 import { apiUrls, IVerifyEmailData, IResendVerificationData, IOTPVerificationResponse } from '@/apis';
@@ -144,7 +144,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
         requireAuth: false,
         showToast: true,
         onSuccess: (response: any) => {
-          toast.success(response.message || 'Email verified successfully!');
+          showToast.success(response.message || 'Email verified successfully!');
           onVerificationSuccess();
         },
         onFail: (error: any) => {
@@ -177,7 +177,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
         requireAuth: false,
         showToast: true,
         onSuccess: (response: any) => {
-          toast.success(response.message || 'Verification code resent successfully!');
+          showToast.success(response.message || 'Verification code resent successfully!');
           setResendDisabled(true);
           setCountdown(30);
           

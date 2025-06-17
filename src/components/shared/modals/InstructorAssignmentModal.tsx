@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaTimes, FaUser, FaGraduationCap, FaSearch, FaCheck, FaSpinner } from 'react-icons/fa';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import useGetQuery from '@/hooks/getQuery.hook';
 import usePostQuery from '@/hooks/postQuery.hook';
 import { apiUrls } from '@/apis';
@@ -155,7 +155,7 @@ const InstructorAssignmentModal: React.FC<InstructorAssignmentModalProps> = ({
           onSuccess: (response) => {
             console.log('Student assignment success:', response);
             toast.dismiss(loadingToast);
-            toast.success(`Instructor ${selectedInstructor.full_name} assigned to student successfully!`);
+            showToast.success(`Instructor ${selectedInstructor.full_name} assigned to student successfully!`);
             onSuccess();
             handleClose();
           },
@@ -193,7 +193,7 @@ const InstructorAssignmentModal: React.FC<InstructorAssignmentModalProps> = ({
                           onSuccess: (response) => {
                 console.log('Primary assignment success:', response);
                 toast.dismiss(loadingToast);
-                toast.success(`Instructor ${selectedInstructor.full_name} assigned to course successfully!`);
+                showToast.success(`Instructor ${selectedInstructor.full_name} assigned to course successfully!`);
                 assignmentSuccessful = true;
                 onSuccess();
                 handleClose();
@@ -215,7 +215,7 @@ const InstructorAssignmentModal: React.FC<InstructorAssignmentModalProps> = ({
                 // Check if the assignment was actually created by looking for assignment-related success indicators
                 if (error?.message?.includes('assigned') || error?.data) {
                   toast.dismiss(loadingToast);
-                  toast.success(`Instructor ${selectedInstructor.full_name} assigned to course successfully!`);
+                  showToast.success(`Instructor ${selectedInstructor.full_name} assigned to course successfully!`);
                   assignmentSuccessful = true;
                   onSuccess();
                   handleClose();
@@ -259,7 +259,7 @@ const InstructorAssignmentModal: React.FC<InstructorAssignmentModalProps> = ({
                              onSuccess: (response) => {
                  console.log('Simplified assignment success:', response);
                  toast.dismiss(loadingToast);
-                 toast.success(`Instructor ${selectedInstructor.full_name} assigned to course successfully!`);
+                 showToast.success(`Instructor ${selectedInstructor.full_name} assigned to course successfully!`);
                  assignmentSuccessful = true;
                  onSuccess();
                  handleClose();
@@ -290,7 +290,7 @@ const InstructorAssignmentModal: React.FC<InstructorAssignmentModalProps> = ({
                              if (response.ok || response.status === 201) {
                  console.log('Direct API call success');
                  toast.dismiss(loadingToast);
-                 toast.success(`Instructor ${selectedInstructor.full_name} assigned to course successfully!`);
+                 showToast.success(`Instructor ${selectedInstructor.full_name} assigned to course successfully!`);
                  assignmentSuccessful = true;
                  onSuccess();
                  handleClose();
@@ -307,7 +307,7 @@ const InstructorAssignmentModal: React.FC<InstructorAssignmentModalProps> = ({
                              // Final fallback: Show success message and refresh (assignment might have worked despite errors)
                console.log('Using final fallback - treating as successful');
                toast.dismiss(loadingToast);
-               toast.success(`Assignment request submitted for ${selectedInstructor.full_name} to course "${(targetData as ICourse).course_title}". Please verify in the assignments list.`);
+               showToast.success(`Assignment request submitted for ${selectedInstructor.full_name} to course "${(targetData as ICourse).course_title}". Please verify in the assignments list.`);
                
                // Always call success to refresh the UI - user can verify if assignment was created
                onSuccess();
