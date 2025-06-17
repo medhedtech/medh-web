@@ -10,3 +10,5 @@
 ./src/components/shared/dashboards FreeClassesCorporate
 ./src/components/shared/lessons LessonAccordion
 ./src/components/shared/wrappers TabContentWrapper
+
+ccm
