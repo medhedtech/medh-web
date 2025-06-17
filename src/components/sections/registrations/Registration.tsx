@@ -6,7 +6,7 @@ import { apiUrls } from "@/apis";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { FileText, CheckCircle, X, ArrowRight, Info, Loader2, Phone, Mail, User, Upload, Globe, MessageSquare } from "lucide-react";
+import { FileText, CheckCircle, X, ArrowRight, Info, Loader2, Phone, Mail, User, Upload, Globe, MessageSquare, Building, Briefcase } from "lucide-react";
 import Link from "next/link";
 import { toast } from "react-toastify";
 import CustomReCaptcha from '../../shared/ReCaptcha';
@@ -30,6 +30,9 @@ interface IFormValues {
   message: string;
   accept: boolean;
   resume_image?: string;
+  school_institute_name?: string;
+  designation?: string;
+  website?: string;
 }
 
 interface ICountry {
@@ -59,62 +62,86 @@ const itemVariants = {
   }
 };
 
-// Validation schema using yup
-const schema = yup.object({
-  full_name: yup
-    .string()
-    .trim()
-    .matches(
-      /^[a-zA-Z\s'-]+$/,
-      "Name can only contain alphabets, spaces, hyphens, and apostrophes."
-    )
-    .required("Full name is required"),
-  email: yup
-    .string()
-    .trim()
-    .email("Please enter a valid email address")
-    .required("Email address is required"),
-  country: yup
-    .string()
-    .required("Please select your country"),
-  phone_number: yup
-    .string()
-    .required("Phone number is required")
-    .matches(/^\d+$/, "Phone number can only contain digits")
-    .test("is-valid-phone", "Phone number must be 10 digits", function (value) {
-      const { country } = this.parent;
-      if (!value || !country) return false;
+// Create dynamic validation schema based on page type
+const createValidationSchema = (pageTitle?: string) => {
+  const baseSchema = {
+    full_name: yup
+      .string()
+      .trim()
+      .matches(
+        /^[a-zA-Z\s'-]+$/,
+        "Name can only contain alphabets, spaces, hyphens, and apostrophes."
+      )
+      .required("Full name is required"),
+    email: yup
+      .string()
+      .trim()
+      .email("Please enter a valid email address")
+      .required("Email address is required"),
+    country: yup
+      .string()
+      .required("Please select your country"),
+    phone_number: yup
+      .string()
+      .required("Phone number is required")
+      .matches(/^\d+$/, "Phone number can only contain digits")
+      .test("is-valid-phone", "Phone number must be 10 digits", function (value) {
+        const { country } = this.parent;
+        if (!value || !country) return false;
 
-      // Remove any non-digit characters
-      const cleanNumber = value.replace(/\D/g, '');
-      
-      // Ensure the phone number has exactly 10 digits
-      if (cleanNumber.length !== 10) {
-        return this.createError({
-          message: "Phone number must be exactly 10 digits"
-        });
-      }
+        // Remove any non-digit characters
+        const cleanNumber = value.replace(/\D/g, '');
+        
+        // Ensure the phone number has exactly 10 digits
+        if (cleanNumber.length !== 10) {
+          return this.createError({
+            message: "Phone number must be exactly 10 digits"
+          });
+        }
 
-      // Validate full phone number with country code
-      const selectedCountry = countriesData.find((c) => c.name === country) as ICountry;
-      if (!selectedCountry) return false;
+        // Validate full phone number with country code
+        const selectedCountry = countriesData.find((c) => c.name === country) as ICountry;
+        if (!selectedCountry) return false;
 
-      const phoneWithCountryCode = selectedCountry.dial_code + cleanNumber;
-      const phoneRegex = /^\+[1-9]\d{1,14}$/;
+        const phoneWithCountryCode = selectedCountry.dial_code + cleanNumber;
+        const phoneRegex = /^\+[1-9]\d{1,14}$/;
 
-      return phoneRegex.test(phoneWithCountryCode);
-    }),
-  message: yup
-    .string()
-    .trim()
-    .min(10, "Message must be at least 10 characters")
-    .required("Please tell us about your requirements"),
-  accept: yup
-    .boolean()
-    .oneOf([true], "You must accept the terms and privacy policy")
-    .required(),
-  resume_image: yup.string(),
-});
+        return phoneRegex.test(phoneWithCountryCode);
+      }),
+    message: yup
+      .string()
+      .trim()
+      .min(10, "Message must be at least 10 characters")
+      .required("Please tell us about your requirements"),
+    accept: yup
+      .boolean()
+      .oneOf([true], "You must accept the terms and privacy policy")
+      .required(),
+    resume_image: yup.string(),
+  };
+
+  // Add school-specific fields if it's the join_as_school page
+  if (pageTitle === "join_as_school") {
+    return yup.object({
+      ...baseSchema,
+      school_institute_name: yup
+        .string()
+        .trim()
+        .required("School/Institute name is required"),
+      designation: yup
+        .string()
+        .trim()
+        .required("Designation is required"),
+      website: yup
+        .string()
+        .trim()
+        .url("Please enter a valid website URL")
+        .required("Website is required"),
+    });
+  }
+
+  return yup.object(baseSchema);
+};
 
 // Form Input Component
 const FormInput: React.FC<{
@@ -575,7 +602,7 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
     setValue,
     trigger,
   } = useForm<IFormValues>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(createValidationSchema(pageTitle)),
     defaultValues: {
       full_name: '',
       email: '',
@@ -583,6 +610,11 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
       phone_number: '',
       message: '',
       accept: false,
+      ...(pageTitle === "join_as_school" && {
+        school_institute_name: '',
+        designation: '',
+        website: '',
+      }),
     },
     mode: 'onChange',
   });
@@ -627,12 +659,25 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
 
   // Sanitize form data
   const sanitizeData = (data: IFormValues) => {
-    return {
+    const sanitized: any = {
       ...data,
       full_name: DOMPurify.sanitize(data.full_name),
       email: DOMPurify.sanitize(data.email),
       message: DOMPurify.sanitize(data.message),
     };
+
+    // Sanitize school-specific fields if they exist
+    if (data.school_institute_name) {
+      sanitized.school_institute_name = DOMPurify.sanitize(data.school_institute_name);
+    }
+    if (data.designation) {
+      sanitized.designation = DOMPurify.sanitize(data.designation);
+    }
+    if (data.website) {
+      sanitized.website = DOMPurify.sanitize(data.website);
+    }
+
+    return sanitized;
   };
 
   // Handle form submission
@@ -658,6 +703,9 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
         accept: sanitizedData.accept,
         page_title: pageTitle,
         ...(pdfBrochure && { resume_image: pdfBrochure }),
+        ...(sanitizedData.school_institute_name && { school_institute_name: sanitizedData.school_institute_name }),
+        ...(sanitizedData.designation && { designation: sanitizedData.designation }),
+        ...(sanitizedData.website && { website: sanitizedData.website }),
       };
 
       const result = await postQuery({
@@ -754,6 +802,38 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
                     error={errors.email}
                     icon={<Mail />}
                   />
+
+                  {/* School-specific fields */}
+                  {pageTitle === "join_as_school" && (
+                    <>
+                      <FormInput 
+                        id="school_institute_name"
+                        type="text"
+                        placeholder="School/Institute Name"
+                        register={register("school_institute_name")}
+                        error={errors.school_institute_name}
+                        icon={<Building />}
+                      />
+
+                      <FormInput 
+                        id="designation"
+                        type="text"
+                        placeholder="Your Designation"
+                        register={register("designation")}
+                        error={errors.designation}
+                        icon={<Briefcase />}
+                      />
+
+                      <FormInput 
+                        id="website"
+                        type="url"
+                        placeholder="Website URL (e.g., https://www.example.com)"
+                        register={register("website")}
+                        error={errors.website}
+                        icon={<Globe />}
+                      />
+                    </>
+                  )}
 
                     <FormSelect 
                       id="country"
