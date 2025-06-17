@@ -137,6 +137,9 @@ const CopyRight = ({ qrCodeImage, isMobile }) => {
               <p className="bg-gradient-to-r from-primary-500 via-primary-400 to-primary-500 bg-clip-text text-transparent text-lg font-bold tracking-widest animate-gradient pt-3 leading-relaxed">
                 LEARN. UPSKILL. ELEVATE.
               </p>
+              <p className="text-gray-400 text-xs leading-relaxed tracking-wide font-medium pt-2" {...getHydrationSafeProps()}>
+                All trademarks and logos appearing on this website are the property of their respective owners.
+              </p>
             </div>
           </div>
         </div>
@@ -206,6 +209,9 @@ const CopyRight = ({ qrCodeImage, isMobile }) => {
               </p>
               <p className="bg-gradient-to-r from-primary-500 via-primary-400 to-primary-500 bg-clip-text text-transparent text-lg font-bold tracking-widest animate-gradient mt-2 leading-relaxed">
                 LEARN. UPSKILL. ELEVATE.
+              </p>
+              <p className="text-gray-300 text-xs leading-relaxed tracking-wide font-medium mt-2" {...getHydrationSafeProps()}>
+                All trademarks and logos appearing on this website are the property of their respective owners.
               </p>
             </div>
             
