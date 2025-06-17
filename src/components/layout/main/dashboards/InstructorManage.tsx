@@ -84,7 +84,7 @@ const InstructorTable: React.FC = () => {
     setIsRefreshing(true);
     await fetchInstructors(true); // Force reload
     setIsRefreshing(false);
-    toast.success("Table refreshed successfully!");
+    showToast.success("Table refreshed successfully!");
   }, [fetchInstructors]);
 
   // Initial load and refresh key changes
@@ -121,7 +121,7 @@ const InstructorTable: React.FC = () => {
   const handleAddInstructorSuccess = useCallback(() => {
     console.log('handleAddInstructorSuccess called');
     setShowInstructorForm(false);
-    toast.success("Instructor added successfully! Refreshing list...");
+    showToast.success("Instructor added successfully! Refreshing list...");
     
     // Multiple refresh strategies to ensure it works
     // 1. Immediate state update
@@ -152,7 +152,7 @@ const InstructorTable: React.FC = () => {
       url: `${apiUrls.Instructor.deleteInstructor}/${id}`,
       onSuccess: (res: any) => {
         console.log('Delete success, triggering refresh');
-        toast.success(res?.message || "Instructor deleted successfully");
+        showToast.success(res?.message || "Instructor deleted successfully");
         
         // Immediate state update
         setInstructors(prev => prev.filter(instructor => instructor._id !== id));
@@ -179,7 +179,7 @@ const InstructorTable: React.FC = () => {
           const updatedInstructor = response?.data;
           if (updatedInstructor) {
             console.log('Status toggle success, triggering refresh');
-            toast.success(
+            showToast.success(
               `${updatedInstructor.full_name}'s status changed to ${updatedInstructor.status}.`
             );
             
@@ -229,7 +229,7 @@ const InstructorTable: React.FC = () => {
         },
         onSuccess: () => {
           console.log('CSV upload success, triggering refresh');
-          toast.success("Instructors uploaded successfully!");
+          showToast.success("Instructors uploaded successfully!");
           
           // Clear current data and force refresh
           setInstructors([]);

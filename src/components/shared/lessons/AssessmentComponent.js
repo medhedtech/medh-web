@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader, Calendar, Clock, Link2, Upload, FileCheck, FilePlus, ExternalLink, Download, CheckCircle, AlertTriangle, FileText, RefreshCw, X } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import DOMPurify from 'isomorphic-dompurify';
 import { marked } from 'marked';
 import { formatDistanceToNow, format } from 'date-fns';
@@ -153,7 +153,7 @@ const AssessmentComponent = ({ assignmentId, lessonId, courseId, meta = {}, onSu
     };
     
     localStorage.setItem(`assignment-${assignmentId}-submission`, JSON.stringify(submission));
-    toast.success("Draft saved successfully!");
+    showToast.success("Draft saved successfully!");
   };
   
   // Handle file selection
@@ -256,7 +256,7 @@ const AssessmentComponent = ({ assignmentId, lessonId, courseId, meta = {}, onSu
         });
       }
       
-      toast.success("Assignment submitted successfully!");
+      showToast.success("Assignment submitted successfully!");
     } catch (err) {
       console.error("Error submitting assignment:", err);
       toast.error("Failed to submit assignment. Please try again.");

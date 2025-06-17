@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useRouter, useParams } from 'next/navigation';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { ICourseFormData, IUpdateCourseData } from '@/types/course.types';
 import StepProgress from '@/components/shared/StepProgress';
 import CourseOverview from '@/components/course/steps/CourseOverview';
@@ -483,7 +483,7 @@ const UpdateCourse: React.FC = () => {
           }
 
           setIsCourseLoaded(true);
-          toast.success('Course data loaded successfully');
+          showToast.success('Course data loaded successfully');
         } else {
           toast.error('Failed to load course data');
         }
@@ -581,7 +581,7 @@ const UpdateCourse: React.FC = () => {
                   shouldTouch: true
                 });
                 await checkStepValidation(currentStep);
-                toast.success('Image uploaded successfully');
+                showToast.success('Image uploaded successfully');
               },
               onError: (error) => {
                 console.error("Image upload error:", error);
@@ -849,7 +849,7 @@ const UpdateCourse: React.FC = () => {
         debug: true,
         onSuccess: (response) => {
           console.log('API Success Response:', response);
-          toast.success(`Course "${courseData.course_title}" updated successfully!`);
+          showToast.success(`Course "${courseData.course_title}" updated successfully!`);
           router.push('/dashboards/admin-courses');
         },
         onFail: (error) => {

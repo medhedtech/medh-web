@@ -79,7 +79,7 @@ const CategoriesManage = () => {
       await deleteQuery({
         url: `${apiUrls?.categories?.deleteCategories}/${id}`,
         onSuccess: (res) => {
-          toast.success(res?.message || "Category deleted successfully!");
+          showToast.success(res?.message || "Category deleted successfully!");
           setDeletedCategories(id);
           setShowDeleteConfirm(false);
           setCategoryToDelete(null);

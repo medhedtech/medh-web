@@ -69,7 +69,7 @@ const Gamma = () => {
         postData: userData,
         onSuccess: () => {
           router.push("/dashboards/admin-subpage3");
-          toast.success("User created successfully!");
+          showToast.success("User created successfully!");
         },
         onFail: (error) => {
           console.log("Registration failed:", error);

@@ -334,7 +334,7 @@ const IntegratedLesson: React.FC<IIntegratedLessonProps> = ({ params }) => {
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      toast.success("Connection restored");
+      showToast.success("Connection restored");
     };
     const handleOffline = () => {
       setIsOnline(false);

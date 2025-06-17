@@ -38,7 +38,7 @@ import {
   RefreshCw,
   X
 } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { motion, AnimatePresence } from 'framer-motion';
 import BatchAssignmentModal from '@/components/shared/modals/BatchAssignmentModal';
 import { 
@@ -664,7 +664,7 @@ const BatchStudentEnrollment: React.FC<BatchStudentEnrollmentProps> = ({
       const response = await batchAPI.removeStudent(batch._id!, studentId);
       
       if (response?.data?.success || (response as any)?.success) {
-        toast.success(`${studentName} has been unenrolled from the batch`);
+        showToast.success(`${studentName} has been unenrolled from the batch`);
         onUpdate();
         setLastRefresh(new Date());
       } else {
@@ -1641,7 +1641,7 @@ const BatchStudentEnrollment: React.FC<BatchStudentEnrollmentProps> = ({
             onUpdate();
             setRefreshing(false);
             setLastRefresh(new Date());
-            toast.success('Student enrolled successfully!');
+            showToast.success('Student enrolled successfully!');
           }}
           mode="batch_enrollment"
           batch={batch}

@@ -397,7 +397,7 @@ const OnlineMeeting: React.FC<IOnlineClassProps> = ({ categoryFilter, sessionTyp
           course_id: selectedCourseId,
         },
         onSuccess: () => {
-          toast.success("Session created! ✨");
+          showToast.success("Session created! ✨");
           reset();
           setSelectedDate(null);
           setSelectedTime(null);
@@ -451,7 +451,7 @@ const OnlineMeeting: React.FC<IOnlineClassProps> = ({ categoryFilter, sessionTyp
   const handleCopy = async (cardId: string, link: string): Promise<void> => {
     try {
       await navigator.clipboard.writeText(link);
-      toast.success("Link copied! 📋");
+      showToast.success("Link copied! 📋");
     } catch (error) {
       console.error("Failed to copy:", error);
     }
@@ -471,7 +471,7 @@ const OnlineMeeting: React.FC<IOnlineClassProps> = ({ categoryFilter, sessionTyp
     } else {
       try {
         await navigator.clipboard.writeText(meetingLink);
-        toast.success("Link copied! 📋");
+        showToast.success("Link copied! 📋");
       } catch (error) {
         console.error("Error copying link:", error);
       }

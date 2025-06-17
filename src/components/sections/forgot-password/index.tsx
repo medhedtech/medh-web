@@ -96,7 +96,7 @@ const ForgotPassword: React.FC = () => {
             email: data.email,
           },
           onSuccess: () => {
-            toast.success("Temporary password sent to your email.");
+            showToast.success("Temporary password sent to your email.");
             setEmailSent(true);
             setRecaptchaError(false);
             // Redirect to login page after successfully sending the email
@@ -115,7 +115,7 @@ const ForgotPassword: React.FC = () => {
             tempPassword: data.tempPassword,
           },
           onSuccess: () => {
-            toast.success("Password verified.");
+            showToast.success("Password verified.");
             setTempPasswordVerified(true);
           },
           onFail: (error) => {
@@ -132,7 +132,7 @@ const ForgotPassword: React.FC = () => {
             confirmPassword: data.confirmPassword,
           },
           onSuccess: () => {
-            toast.success("Password reset successful!");
+            showToast.success("Password reset successful!");
             router.push("/login");
           },
           onFail: (error) => {

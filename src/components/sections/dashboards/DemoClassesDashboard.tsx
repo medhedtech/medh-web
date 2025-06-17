@@ -224,7 +224,7 @@ const DemoFeedbackForm: React.FC = () => {
 
   const handleSubmitFeedback = () => {
     // Handle feedback submission
-    toast.success("Feedback submitted successfully!");
+    showToast.success("Feedback submitted successfully!");
   };
 
   return (

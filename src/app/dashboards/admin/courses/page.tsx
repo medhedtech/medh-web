@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { courseTypesAPI } from "@/apis/courses";
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 
 export default function AdminPage() {
   const [courseStats, setCourseStats] = useState({

@@ -98,7 +98,7 @@ export const useDeleteQuery = <T = any>(): UseDeleteQueryResult<T> => {
 
       // Show success toast if configured
       if (showToast && successMessage) {
-        toast.success(successMessage);
+        showToast.success(successMessage);
       }
 
       // Call onSuccess callback

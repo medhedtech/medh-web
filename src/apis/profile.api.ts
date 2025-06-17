@@ -292,6 +292,41 @@ export interface IProfileResponse {
   };
 }
 
+export interface IComprehensiveProfileResponse {
+  success: boolean;
+  message: string;
+  data: {
+    user: IUserProfile;
+    personal_details: IUserMeta;
+    account_status: IAccountStatus & {
+      account_type: string;
+      subscription_status: string;
+      subscription_plan: string;
+      subscription_start: string;
+      subscription_end: string;
+    };
+    learning_analytics: ILearningStatistics;
+    education: {
+      course_stats: {
+        total_enrolled: number;
+        active_courses: number;
+        completed_courses: number;
+        on_hold_courses: number;
+        average_progress: number;
+      };
+      enrollments: any[];
+      achievements: any[];
+      certifications: ICertification[];
+    };
+    engagement_metrics: IEngagementStatistics;
+    social_profile: ISocialStatistics;
+    financial_summary: IFinancialStatistics;
+    preferences: IUserPreferences;
+    profile_completion: number;
+    account_metrics: IAccountMetrics;
+  };
+}
+
 export interface IProfileUpdateResponse {
   success: boolean;
   message: string;
@@ -364,6 +399,13 @@ export const getCurrentUserProfile = async (): Promise<IApiResponse<IProfileResp
 };
 
 /**
+ * Get comprehensive user profile with all data sections
+ */
+export const getComprehensiveUserProfile = async (): Promise<IApiResponse<IComprehensiveProfileResponse['data']>> => {
+  return apiClient.get<IComprehensiveProfileResponse['data']>('/profile/me/comprehensive');
+};
+
+/**
  * Update user profile by ID
  */
 export const updateUserProfile = async (
@@ -380,6 +422,15 @@ export const updateCurrentUserProfile = async (
   data: IProfileUpdateInput
 ): Promise<IApiResponse<IProfileUpdateResponse['data']>> => {
   return apiClient.put<IProfileUpdateResponse['data']>('/profile/me', data);
+};
+
+/**
+ * Update current user's comprehensive profile (partial updates)
+ */
+export const updateCurrentUserComprehensiveProfile = async (
+  data: IProfileUpdateInput
+): Promise<IApiResponse<IProfileUpdateResponse['data']>> => {
+  return apiClient.patch<IProfileUpdateResponse['data']>('/profile/me/comprehensive', data);
 };
 
 /**
@@ -740,6 +791,7 @@ export const profileUtils = {
 export const profileAPI = {
   getUserProfile,
   getCurrentUserProfile,
+  getComprehensiveUserProfile,
   updateUserProfile,
   updateCurrentUserProfile,
   deleteUserProfile,
@@ -759,6 +811,7 @@ export const profileAPI = {
 export default {
   getUserProfile,
   getCurrentUserProfile,
+  getComprehensiveUserProfile,
   updateUserProfile,
   updateCurrentUserProfile,
   deleteUserProfile,

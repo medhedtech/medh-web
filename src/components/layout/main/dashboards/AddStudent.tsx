@@ -350,7 +350,7 @@ const AddStudent: React.FC<AddStudentProps> = ({ onCancel, onSuccess }) => {
           agree_terms: data.agree_terms,
         },
         onSuccess: () => {
-          toast.success("Student added successfully!");
+          showToast.success("Student added successfully!");
           reset();
           setPhoneNumbers([{ country: "IN", number: "" }]);
           // Call onSuccess callback if provided

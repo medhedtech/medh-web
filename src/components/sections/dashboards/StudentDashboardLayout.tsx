@@ -198,6 +198,14 @@ const AllCoursesMain = dynamic(
   }
 );
 
+const StudentProfilePage = dynamic(
+  () => import("@/components/sections/dashboards/StudentProfilePage"), 
+  { 
+    ssr: false,
+    loading: () => <SkeletonLoader type="dashboard" />
+  }
+);
+
 const CompletedCoursesMain = dynamic(
   () => import("@/components/layout/main/dashboards/CompletedCoursesMain"), 
   { 
@@ -420,6 +428,8 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
       setCurrentView("my-courses");
     } else if (pathname.includes('/dashboards/student/membership')) {
       setCurrentView("membership");
+    } else if (pathname.includes('/dashboards/student/profile')) {
+      setCurrentView("profile");
     } else if (pathname.includes('/dashboards/student/live-classes')) {
       setCurrentView("liveclasses");
     } else if (pathname.includes('/dashboards/student/upcoming-classes')) {
@@ -711,6 +721,8 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
       return <RecordedSessionsMain />;
     } else if (viewMatches(['enrolledcourses', 'enrolled-courses', 'enrolled'])) {
       return <EnrolledCoursesMain />;
+    } else if (viewMatches(['profile'])) {
+      return <StudentProfilePage />;
     } else {
       // Default to coming soon for truly unimplemented views
       return (

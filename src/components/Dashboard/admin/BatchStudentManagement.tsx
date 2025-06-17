@@ -17,7 +17,7 @@ import {
   Download,
   Upload
 } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import { motion, AnimatePresence } from 'framer-motion';
 import BatchAssignmentModal from '@/components/shared/modals/BatchAssignmentModal';
 import { 
@@ -148,7 +148,7 @@ const BatchStudentManagement: React.FC<BatchStudentManagementProps> = ({
       if (student) {
         setStudents(prev => [...prev, { ...student, enrollment_date: new Date().toISOString(), status: 'active' }]);
         setAvailableStudents(prev => prev.filter(s => s._id !== studentId));
-        toast.success(`${student.full_name} enrolled successfully`);
+        showToast.success(`${student.full_name} enrolled successfully`);
         onStudentUpdate();
       }
     } catch (error) {
@@ -171,7 +171,7 @@ const BatchStudentManagement: React.FC<BatchStudentManagementProps> = ({
       if (student) {
         setAvailableStudents(prev => [...prev, { ...student, enrollment_date: undefined, status: 'active' }]);
         setStudents(prev => prev.filter(s => s._id !== studentId));
-        toast.success(`${studentName} unenrolled successfully`);
+        showToast.success(`${studentName} unenrolled successfully`);
         onStudentUpdate();
       }
     } catch (error) {
@@ -188,7 +188,7 @@ const BatchStudentManagement: React.FC<BatchStudentManagementProps> = ({
       setStudents(prev => prev.map(s => 
         s._id === studentId ? { ...s, status: newStatus } : s
       ));
-      toast.success('Student status updated successfully');
+      showToast.success('Student status updated successfully');
     } catch (error) {
       console.error('Error updating student status:', error);
       toast.error('Failed to update student status');

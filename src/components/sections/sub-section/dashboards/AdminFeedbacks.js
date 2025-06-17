@@ -48,7 +48,7 @@ const AdminFeedbacks = () => {
     deleteQuery({
       url: `${apiUrls?.Instructor?.deleteInstructor}/${id}`,
       onSuccess: (res) => {
-        toast.success(res?.message);
+        showToast.success(res?.message);
         setDeletedInstructors(id);
       },
       onFail: (res) => console.log(res, "FAILED"),

@@ -38,7 +38,7 @@ const FooterTop = () => {
         url: apiUrls?.Newsletter?.addNewsletter,
         postData: { email: data.email },
         onSuccess: () => {
-          toast.success("Successfully subscribed to our newsletter!");
+          showToast.success("Successfully subscribed to our newsletter!");
           reset();
         },
         onFail: (err) => {

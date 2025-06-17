@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import Link from "next/link";
 import { debounce } from 'lodash';
 import { ArrowLeft, Plus, Trash2, Upload, Save, Eye, CheckCircle, AlertCircle, AlertTriangle, Clock, BookOpen, Users, Award, DollarSign, Calendar, HelpCircle, Settings } from "lucide-react";
@@ -459,7 +459,7 @@ export default function CreateBlendedCoursePage() {
                   shouldDirty: true,
                   shouldTouch: true
                 });
-                toast.success('Image uploaded successfully');
+                showToast.success('Image uploaded successfully');
               } else {
                 console.error("Unexpected image upload response format:", response);
                 toast.error('Invalid image upload response format');
@@ -527,7 +527,7 @@ export default function CreateBlendedCoursePage() {
                   shouldDirty: true,
                   shouldTouch: true
                 });
-                toast.success('Brochure uploaded successfully');
+                showToast.success('Brochure uploaded successfully');
               } else {
                 console.error("Unexpected brochure upload response format:", response);
                 toast.error('Invalid brochure upload response format');
@@ -907,7 +907,7 @@ export default function CreateBlendedCoursePage() {
                  // Check for successful response
          if (response?.data?.success) {
            formSubmittedSuccessfully.current = true;
-           toast.success(`Blended course "${blendedCourseData.course_title}" created successfully!`, {
+           showToast.success(`Blended course "${blendedCourseData.course_title}" created successfully!`, {
              autoClose: 4000,
            });
           
@@ -962,7 +962,7 @@ export default function CreateBlendedCoursePage() {
         setLastSaved(now.toLocaleString());
         setHasSavedDraft(true);
         setHasUnsavedChanges(false);
-        toast.success('Draft saved successfully');
+        showToast.success('Draft saved successfully');
       } else {
         toast.error('Failed to save draft. Storage might be unavailable.');
       }

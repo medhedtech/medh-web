@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { uploadService, UploadResponse, MAX_FILE_SIZE, ALLOWED_MIME_TYPES } from '@/services/uploadService';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 
 // Custom error class with code and additional details
 export class UploadError extends Error {
@@ -184,7 +184,7 @@ export const useUpload = (defaultOptions: UploadOptions = {}): UploadHookReturn 
     debugLog('Upload successful', response);
     
     if (mergedOptions.showToast) {
-      toast.success(mergedOptions.successMessage || response.message || 'Upload successful');
+      showToast.success(mergedOptions.successMessage || response.message || 'Upload successful');
     }
     
     setLastUploadedFile(response);

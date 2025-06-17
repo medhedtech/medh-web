@@ -89,7 +89,7 @@ const CertificatePage = () => {
           url: apiUrls?.certificate?.addCertificate,
           postData: payload,
           onSuccess: (data) => {
-            toast.success("Certificate created successfully");
+            showToast.success("Certificate created successfully");
             closeModal();
             fetchCertificates(); // Refresh the list
           },

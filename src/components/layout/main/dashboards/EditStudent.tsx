@@ -5,7 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import axios from 'axios';
 import { apiBaseUrl } from '@/apis';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastManager';
 import Button from '@/components/shared/buttons/Button';
 import { User, Mail, Phone, Calendar, Book, Globe, Search, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -239,7 +239,7 @@ const EditStudent: React.FC<{ studentId: string | null }> = ({ studentId }) => {
       });
       
       if (response.data && response.data.success) {
-        toast.success('Student updated successfully!');
+        showToast.success('Student updated successfully!');
         setSubmitSuccess(true);
       } else {
         toast.error(response.data?.message || 'Failed to update student');

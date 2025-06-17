@@ -169,7 +169,7 @@ const StudentManagement: React.FC = () => {
     setIsRefreshing(true);
     await fetchStudents(true);
     setIsRefreshing(false);
-    toast.success("Table refreshed successfully!");
+    showToast.success("Table refreshed successfully!");
   }, [fetchStudents]);
 
   // Handle page change
@@ -204,7 +204,7 @@ const StudentManagement: React.FC = () => {
       requireAuth: true,
       onSuccess: (res: any) => {
         console.log('Delete success, triggering refresh');
-        toast.success(res?.message || "Student deleted successfully");
+        showToast.success(res?.message || "Student deleted successfully");
         
         // Refresh the current page
         fetchStudents(true);
@@ -252,7 +252,7 @@ const StudentManagement: React.FC = () => {
         }
       }
       
-      toast.success(statusMessage);
+      showToast.success(statusMessage);
       
       // Refresh the current page
       fetchStudents(true);
@@ -288,7 +288,7 @@ const StudentManagement: React.FC = () => {
         },
         onSuccess: () => {
           console.log('CSV upload success, triggering refresh');
-          toast.success("Students uploaded successfully!");
+          showToast.success("Students uploaded successfully!");
           
           // Refresh the current page
           fetchStudents(true);
