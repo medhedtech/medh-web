@@ -9,6 +9,9 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+
+// Create showToast alias for consistency
+const showToast = toast;
 import { apiBaseUrl, apiUrls } from '@/apis';
 import axios from 'axios';
 import useGetQuery from "@/hooks/getQuery.hook";
