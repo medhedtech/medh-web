@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import DownloadBrochureModal from "@/components/shared/download-broucher";
+import DownloadBrochureModal from "@/components/shared/download-brochure";
 import image6 from "@/assets/images/courses/image6.png";
 import { 
   Clock, 
@@ -35,8 +35,74 @@ import {
 import { isFreePrice } from '@/utils/priceUtils';
 import { shimmer, toBase64 } from '@/utils/imageUtils';
 
+// Type definitions
+interface CoursePrice {
+  currency: string;
+  individual: number;
+  batch: number;
+  early_bird_discount?: number;
+}
+
+interface Course {
+  _id?: string;
+  course_title?: string;
+  course_description?: string;
+  course_image?: string;
+  course_grade?: string;
+  course_category?: string;
+  course_duration?: string | React.ReactElement;
+  duration_range?: string;
+  course_fee?: number;
+  batchPrice?: number;
+  original_fee?: number;
+  fee_note?: string;
+  no_of_Sessions?: number;
+  video_count?: number;
+  class_type?: string;
+  is_live_course?: boolean;
+  is_blended_course?: boolean;
+  isFree?: boolean;
+  prices?: CoursePrice[];
+  enrolled_students?: number;
+  is_new?: boolean;
+  enrollment_status?: string;
+  progress?: number;
+  schedule?: string;
+  effort_hours?: number;
+  url?: string;
+}
+
+interface CourseCardProps {
+  course?: Course;
+  onShowRelated?: () => void;
+  showRelatedButton?: boolean;
+  variant?: string;
+  classType?: string;
+  viewMode?: string;
+  isCompact?: boolean;
+  preserveClassType?: boolean;
+  showDuration?: boolean;
+  hidePrice?: boolean;
+  hideDescription?: boolean;
+}
+
+interface ImageWrapperProps {
+  src: string;
+  alt: string;
+  onLoad?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
+  onError?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
+  priority?: boolean;
+}
+
+interface ResponsiveTextOptions {
+  xs: number;
+  sm: number;
+  md: number;
+  lg: number;
+}
+
 // Text adaptation hook for responsive text
-const useResponsiveText = (text, maxLength = {xs: 60, sm: 80, md: 120, lg: 180}) => {
+const useResponsiveText = (text: string | undefined, maxLength: ResponsiveTextOptions = {xs: 60, sm: 80, md: 120, lg: 180}) => {
   const [windowWidth, setWindowWidth] = useState(0);
   
   useEffect(() => {
@@ -132,16 +198,16 @@ const animationStyles = `
 `;
 
 // Add new ImageWrapper component for consistent image handling
-const ImageWrapper = ({ src, alt, onLoad, onError, priority = false }) => {
+const ImageWrapper: React.FC<ImageWrapperProps> = ({ src, alt, onLoad, onError, priority = false }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
-  const handleLoad = (e) => {
+  const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     setIsLoading(false);
     onLoad?.(e);
   };
 
-  const handleError = (e) => {
+  const handleError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     setIsLoading(false);
     setHasError(true);
     onError?.(e);
@@ -180,7 +246,7 @@ const ImageWrapper = ({ src, alt, onLoad, onError, priority = false }) => {
   );
 };
 
-const CourseCard = ({ 
+const CourseCard: React.FC<CourseCardProps> = ({ 
   course = {}, 
   onShowRelated = () => {},
   showRelatedButton = false,
@@ -256,7 +322,7 @@ const CourseCard = ({
   }, []);
 
   // Open mobile popup
-  const openMobilePopup = (e) => {
+  const openMobilePopup = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -276,7 +342,7 @@ const CourseCard = ({
   };
 
   // Close mobile popup
-  const closeMobilePopup = (e) => {
+  const closeMobilePopup = (e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -306,7 +372,7 @@ const CourseCard = ({
   const closeModal = () => setIsModalOpen(false);
   
   // Update handleBrochureClick to handle flip animation
-  const handleBrochureClick = (e) => {
+  const handleBrochureClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsFlipping(true);
@@ -321,7 +387,7 @@ const CourseCard = ({
   };
   
   // Add handler for form submission
-  const handleBrochureSubmit = async (e) => {
+  const handleBrochureSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Here you would typically handle the form submission
     // For now, we'll just close the form
@@ -366,17 +432,17 @@ const CourseCard = ({
     if (effectiveType === "all" || effectiveType === "") {
       // Check for live courses indicators
       if (course?.is_live_course === true || 
-          (course?.course_title && course.course_title.toLowerCase().includes('live')) ||
-          (course?.class_type && course.class_type.toLowerCase().includes('live')) ||
-          (course?.course_description && course.course_description.toLowerCase().includes('live interactive'))) {
+          (course?.course_title && typeof course.course_title === 'string' && course.course_title.toLowerCase().includes('live')) ||
+          (course?.class_type && typeof course.class_type === 'string' && course.class_type.toLowerCase().includes('live')) ||
+          (course?.course_description && typeof course.course_description === 'string' && course.course_description.toLowerCase().includes('live interactive'))) {
         return 'live';
       }
       
       // Check for blended courses indicators
       if (course?.is_blended_course === true || 
-          (course?.class_type && (course.class_type.toLowerCase().includes('blend') || course.class_type.toLowerCase().includes('hybrid'))) ||
-          (course?.course_title && (course.course_title.toLowerCase().includes('blend') || course.course_title.toLowerCase().includes('hybrid'))) ||
-          (course?.course_description && course.course_description.toLowerCase().includes('blended learning'))) {
+          (course?.class_type && typeof course.class_type === 'string' && (course.class_type.toLowerCase().includes('blend') || course.class_type.toLowerCase().includes('hybrid'))) ||
+          (course?.course_title && typeof course.course_title === 'string' && (course.course_title.toLowerCase().includes('blend') || course.course_title.toLowerCase().includes('hybrid'))) ||
+          (course?.course_description && typeof course.course_description === 'string' && course.course_description.toLowerCase().includes('blended learning'))) {
         return 'blended';
       }
       
@@ -418,10 +484,10 @@ const CourseCard = ({
     });
   }, []);
 
-  const handleMouseMove = useCallback((e) => {
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!cardRef.current || !isHovered || isBlendedCourse) return; // Disable for blended courses
     
-    const card = cardRef.current;
+    const card = cardRef.current as HTMLElement;
     const rect = card.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
@@ -440,7 +506,7 @@ const CourseCard = ({
     });
   }, [isHovered, isBlendedCourse]);
 
-  const handleMouseEnter = (e) => {
+  const handleMouseEnter = (e: React.MouseEvent) => {
     if (!isMobile && !isBlendedCourse) { // Disable hover for blended courses
       setIsHovered(true);
       setMousePosition({ x: e.clientX, y: e.clientY });
@@ -454,13 +520,13 @@ const CourseCard = ({
     }
   };
 
-  const openMobileHover = useCallback((e) => {
+  const openMobileHover = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setMobileHoverActive(true);
   }, []);
 
-  const closeMobileHover = useCallback((e) => {
+  const closeMobileHover = useCallback((e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -469,7 +535,7 @@ const CourseCard = ({
   }, []);
 
   // Update the formatPrice function to better handle batch pricing
-  const formatPrice = (priceInput, batchPriceInput) => {
+  const formatPrice = (priceInput: any, batchPriceInput: any) => {
     // Check if the course is explicitly marked as free
     if (course?.isFree === true) return "Free";
 
@@ -570,13 +636,13 @@ const CourseCard = ({
   };
 
   // Calculate discount percentage for batch pricing
-  const calculateBatchDiscount = (individualPrice, batchPrice) => {
+  const calculateBatchDiscount = (individualPrice: any, batchPrice: any) => {
     if (!individualPrice || !batchPrice || individualPrice <= 0 || batchPrice <= 0) return 0;
     return Math.round(((individualPrice - batchPrice) / individualPrice) * 100);
   };
 
   // Format duration for display
-  const formatDuration = (duration) => {
+  const formatDuration = (duration: any) => {
     if (!duration) return "Self-paced";
     
     // Handle special case for combined formats like "0 months 3 weeks"
@@ -718,11 +784,21 @@ const CourseCard = ({
     return duration;
   };
 
-  const formatCourseGrade = (grade) => {
+  const formatCourseGrade = (grade: any) => {
     if (grade === "UG - Graduate - Professionals") {
       return "UG/Grad/Pro";
     }
     return grade;
+  };
+
+  // Helper function for currency formatting
+  const formatCurrencyPrice = (price: number) => {
+    return price.toLocaleString();
+  };
+
+  // Helper function for price conversion
+  const convertPrice = (price: number) => {
+    return price;
   };
 
   const navigateToCourse = () => {
@@ -788,7 +864,7 @@ const CourseCard = ({
 
   // Determine enrollment status label
   const getEnrollmentStatus = () => {
-    if (course?.enrolled_students > 100) return "High demand";
+    if (course?.enrolled_students && course.enrolled_students > 100) return "High demand";
     if (course?.is_new) return "New course";
     return course?.enrollment_status || null;
   };
@@ -840,7 +916,7 @@ const CourseCard = ({
   }, [isHovered]);
 
   // Handle course like/unlike
-  const handleLikeClick = (e) => {
+  const handleLikeClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click
     setIsLiked(!isLiked);
     setLikeAnimation(true);
@@ -849,7 +925,7 @@ const CourseCard = ({
   };
 
   // Handle save/bookmark course
-  const handleSaveClick = (e) => {
+  const handleSaveClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click
     setIsSaved(!isSaved);
     
@@ -1251,7 +1327,7 @@ const CourseCard = ({
 
               {/* Image section */}
               <ImageWrapper
-                src={course?.course_image || image6}
+                src={course?.course_image || (image6 as any)}
                 alt={course?.course_title || "Course Image"}
                 onLoad={handleImageLoad}
                 onError={handleImageError}
@@ -1384,8 +1460,8 @@ const CourseCard = ({
           onMouseMove={handleMouseMove}
           style={isBlendedCourse ? {} : tiltStyle}
         >
-          {/* View More button for mobile */}
-          {isMobile && !mobileHoverActive && (
+          {/* View More button - Completely removed from both mobile and desktop */}
+          {false && (
             <button 
               onClick={openMobileHover}
               className={`${mobileButtonStyles} ${
@@ -1418,7 +1494,7 @@ const CourseCard = ({
           <div className={`flex flex-col h-full transition-opacity duration-300 ${(isHovered && !isMobile) || (mobileHoverActive && isMobile) ? 'opacity-0' : 'opacity-100'}`}>
             {/* Updated Image section */}
             <ImageWrapper
-              src={course?.course_image || image6}
+              src={course?.course_image || (image6 as any)}
               alt={course?.course_title || "Course Image"}
               onLoad={handleImageLoad}
               onError={handleImageError}
@@ -1523,7 +1599,7 @@ const CourseCard = ({
                         </span>
                       )}
                     </div>
-                    {(course?.isFree === true || (course?.prices && course.prices.length > 0 && course.prices[0].early_bird_discount > 0)) && (
+                    {(course?.isFree === true || (course?.prices && course.prices.length > 0 && course.prices[0]?.early_bird_discount !== undefined && course.prices[0].early_bird_discount > 0)) && (
                       <div className="ml-2">
                         {course?.isFree === true ? (
                           <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400 text-xs font-medium">
@@ -1531,7 +1607,7 @@ const CourseCard = ({
                             Free
                           </span>
                         ) : (
-                          course?.prices && course.prices.length > 0 && course.prices[0].early_bird_discount > 0 && (
+                          course?.prices && course.prices.length > 0 && course.prices[0]?.early_bird_discount !== undefined && course.prices[0].early_bird_discount > 0 && (
                             <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-medium">
                               <Tag size={10} className="mr-1" />
                               {course.prices[0].early_bird_discount}% off
@@ -1632,7 +1708,7 @@ const CourseCard = ({
                               <CheckCircle size={10} className="mr-1" />
                               Assignments
                             </span>
-                                                    </>
+                          </>
                         )}
                         {isLiveCourse && course?.course_duration && (typeof course.course_duration === 'string' && course.course_duration.toLowerCase().includes('18')) && (
                           <span className="inline-flex items-center px-2 py-1 rounded-md bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 text-xs font-medium">
@@ -1676,7 +1752,7 @@ const CourseCard = ({
                       </span>
                     )}
                   </div>
-                  {(course?.isFree === true || (course?.prices && course.prices.length > 0 && course.prices[0].early_bird_discount > 0)) && (
+                  {(course?.isFree === true || (course?.prices && course.prices.length > 0 && course.prices[0]?.early_bird_discount !== undefined && course.prices[0].early_bird_discount > 0)) && (
                     <div className="ml-2">
                       {course?.isFree === true ? (
                         <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400 text-xs font-medium">
@@ -1684,7 +1760,7 @@ const CourseCard = ({
                           Free
                         </span>
                       ) : (
-                        course?.prices && course.prices.length > 0 && course.prices[0].early_bird_discount > 0 && (
+                        course?.prices && course.prices.length > 0 && course.prices[0]?.early_bird_discount !== undefined && course.prices[0].early_bird_discount > 0 && (
                           <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-medium">
                             <Tag size={10} className="mr-1" />
                             {course.prices[0].early_bird_discount}% off
@@ -1799,7 +1875,7 @@ if (typeof document !== 'undefined') {
 }
 
 // Add a safe rating display function
-const safeRatingDisplay = (rating) => {
+const safeRatingDisplay = (rating: any) => {
   // Check if rating exists and is a number
   if (rating === undefined || rating === null) {
     return '0.0';
