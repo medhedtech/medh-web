@@ -93,12 +93,12 @@ const AddCoorporateStudentForm = () => {
         },
         onFail: (error) => {
           console.error("Error adding student:", error);
-          toast.error("An unexpected error occurred.");
+          showToast.error("An unexpected error occurred.");
         },
       });
     } catch (error) {
       console.error("Error adding student:", error);
-      toast.error("An unexpected error occurred.");
+      showToast.error("An unexpected error occurred.");
     }
   };
 

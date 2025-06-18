@@ -249,17 +249,17 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
         setInstructors(transformedInstructors);
         
         if (transformedInstructors.length === 0) {
-          toast.warning('No instructors found. You may need to assign instructor roles first.');
+          showToast.warning('No instructors found. You may need to assign instructor roles first.');
         }
       } else {
         setInstructors([]);
-        toast.warning('No instructor data received from server');
+        showToast.warning('No instructor data received from server');
       }
     } catch (error) {
       if (error instanceof Error) {
-        toast.error(`Failed to load instructors: ${error.message}`);
+        showToast.error(`Failed to load instructors: ${error.message}`);
       } else {
-        toast.error('Failed to load instructors. Please check your connection and try again.');
+        showToast.error('Failed to load instructors. Please check your connection and try again.');
       }
       
       setInstructors([]);
@@ -301,16 +301,16 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
         setStudents(transformedStudents);
         
         if (transformedStudents.length === 0) {
-          toast.info('No students found');
+          showToast.info('No students found');
         }
       } else {
         setStudents([]);
       }
     } catch (error) {
       if (error instanceof Error) {
-        toast.error(`Failed to load students: ${error.message}`);
+        showToast.error(`Failed to load students: ${error.message}`);
       } else {
-        toast.error('Failed to load students. Please check your connection and try again.');
+        showToast.error('Failed to load students. Please check your connection and try again.');
       }
       
       setStudents([]);
@@ -335,7 +335,7 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
       }
     } catch (error) {
       console.error('Error fetching batches:', error);
-      toast.error('Failed to load batches');
+      showToast.error('Failed to load batches');
     } finally {
       setLoading(false);
     }
@@ -370,17 +370,17 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
         setLiveCourses(transformedCourses);
         
         if (transformedCourses.length === 0) {
-          toast.info('No live courses found');
+          showToast.info('No live courses found');
         }
       } else {
         setLiveCourses([]);
-        toast.warning('No live courses available');
+        showToast.warning('No live courses available');
       }
     } catch (error) {
       if (error instanceof Error) {
-        toast.error(`Failed to load live courses: ${error.message}`);
+        showToast.error(`Failed to load live courses: ${error.message}`);
       } else {
-        toast.error('Failed to load live courses. Please check your connection and try again.');
+        showToast.error('Failed to load live courses. Please check your connection and try again.');
       }
       
       setLiveCourses([]);
@@ -395,24 +395,24 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
     const courseId = course?._id || selectedCourse;
     
     if (!courseId) {
-      toast.error('Course selection is required');
+      showToast.error('Course selection is required');
       return;
     }
 
     if (!batchForm.batch_name || !batchForm.start_date || !batchForm.end_date) {
-      toast.error('Please fill in all required fields');
+      showToast.error('Please fill in all required fields');
       return;
     }
 
     if (!batchForm.assigned_instructor || batchForm.assigned_instructor === '') {
-      toast.error('Please assign an instructor to the batch');
+      showToast.error('Please assign an instructor to the batch');
       return;
     }
 
     // Validate schedule
     const validation = batchUtils.validateBatchSchedule(scheduleEntries);
     if (!validation.isValid) {
-      toast.error(validation.errors[0]);
+      showToast.error(validation.errors[0]);
       return;
     }
 
@@ -443,7 +443,7 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
       }
     } catch (error) {
       console.error('Error creating batch:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create batch');
+      showToast.error(error instanceof Error ? error.message : 'Failed to create batch');
     } finally {
       setLoading(false);
     }
@@ -451,7 +451,7 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
 
   const handleAssignToBatch = async () => {
     if (!batch?._id || !selectedInstructor) {
-      toast.error('Batch and instructor selection required');
+      showToast.error('Batch and instructor selection required');
       return;
     }
 
@@ -470,7 +470,7 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
       }
     } catch (error) {
       console.error('Error assigning instructor to batch:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to assign instructor');
+      showToast.error(error instanceof Error ? error.message : 'Failed to assign instructor');
     } finally {
       setLoading(false);
     }
@@ -478,7 +478,7 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
 
   const handleIndividualAssignment = async () => {
     if (!assignmentForm.instructor_id || !assignmentForm.student_id) {
-      toast.error('Both instructor and student selection required');
+      showToast.error('Both instructor and student selection required');
       return;
     }
 
@@ -495,7 +495,7 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
       }
     } catch (error) {
       console.error('Error creating individual assignment:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create assignment');
+      showToast.error(error instanceof Error ? error.message : 'Failed to create assignment');
     } finally {
       setLoading(false);
     }
@@ -503,7 +503,7 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
 
   const handleBatchEnrollment = async () => {
     if (!selectedBatch || selectedStudents.length === 0) {
-      toast.error('Batch and student selection required');
+      showToast.error('Batch and student selection required');
       return;
     }
 
@@ -524,7 +524,7 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
       if (successCount > 0) {
         showToast.success(`${successCount} students enrolled successfully`);
         if (failureCount > 0) {
-          toast.warning(`${failureCount} enrollments failed`);
+          showToast.warning(`${failureCount} enrollments failed`);
         }
         onSuccess();
         onClose();
@@ -533,7 +533,7 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
       }
     } catch (error) {
       console.error('Error enrolling students:', error);
-      toast.error('Failed to enroll students');
+      showToast.error('Failed to enroll students');
     } finally {
       setLoading(false);
     }

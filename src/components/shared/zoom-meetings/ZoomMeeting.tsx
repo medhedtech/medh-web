@@ -98,7 +98,7 @@ export const ZoomMeeting = ({ meeting }: ZoomMeetingProps) => {
         setMeetingStatus(status || "not_started");
       } catch (error) {
         console.error("Failed to fetch meeting status:", error);
-        toast.error("Failed to get meeting status");
+        showToast.error("Failed to get meeting status");
       }
     };
 
@@ -110,7 +110,7 @@ export const ZoomMeeting = ({ meeting }: ZoomMeetingProps) => {
 
   const handleJoinMeeting = async () => {
     if (!zoomMeetingId) {
-      toast.error("Meeting ID not available");
+      showToast.error("Meeting ID not available");
       return;
     }
 
@@ -136,7 +136,7 @@ export const ZoomMeeting = ({ meeting }: ZoomMeetingProps) => {
       setShowMeeting(true);
     } catch (error) {
       console.error("Failed to join meeting:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to join meeting");
+      showToast.error(error instanceof Error ? error.message : "Failed to join meeting");
     } finally {
       setIsJoining(false);
     }
@@ -149,7 +149,7 @@ export const ZoomMeeting = ({ meeting }: ZoomMeetingProps) => {
       showToast.success("Left meeting successfully");
     } catch (error) {
       console.error("Failed to leave meeting:", error);
-      toast.error("Failed to leave meeting");
+      showToast.error("Failed to leave meeting");
     }
   };
 

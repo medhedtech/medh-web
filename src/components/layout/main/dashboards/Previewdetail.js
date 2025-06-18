@@ -40,13 +40,13 @@ export default function CoursePreview() {
       setCourseData(parsedData);
     } catch (error) {
       console.error("Error loading course data:", error);
-      toast.error("Error loading course data");
+      showToast.error("Error loading course data");
     }
   }, []);
 
   const handleSubmit = async () => {
     if (!courseData) {
-      toast.error("No course data available to submit");
+      showToast.error("No course data available to submit");
       return;
     }
 
@@ -61,12 +61,12 @@ export default function CoursePreview() {
         },
         onFail: (error) => {
           console.error("Failed to add course:", error);
-          toast.error("Failed to add course. Please try again.");
+          showToast.error("Failed to add course. Please try again.");
         },
       });
     } catch (error) {
       console.error("Error submitting course:", error);
-      toast.error("An unexpected error occurred. Please try again.");
+      showToast.error("An unexpected error occurred. Please try again.");
     }
   };
 

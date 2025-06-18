@@ -264,7 +264,7 @@ export default function OnlineClassManagementPage({
       },
       onFail: (error: any) => {
         console.error('Failed to load batches by category:', error);
-        toast.error('Failed to load classes');
+        showToast.error('Failed to load classes');
       }
     });
   };
@@ -368,7 +368,7 @@ export default function OnlineClassManagementPage({
       }
     } catch (error: any) {
       console.error('Error creating Zoom meeting:', error);
-      toast.error(error.message || 'Failed to create Zoom meeting');
+      showToast.error(error.message || 'Failed to create Zoom meeting');
     } finally {
       setCreatingZoomMeeting(null);
     }
@@ -397,7 +397,7 @@ export default function OnlineClassManagementPage({
       loadCategoryBatches();
     } catch (error: any) {
       console.error('Error adding session:', error);
-      toast.error(error.message || 'Failed to add session');
+      showToast.error(error.message || 'Failed to add session');
     } finally {
       setShowAddSessionModal(false);
     }
@@ -438,7 +438,7 @@ export default function OnlineClassManagementPage({
       loadCategoryBatches();
     } catch (error: any) {
       console.error('Error adding recorded lesson:', error);
-      toast.error(error.message || 'Failed to add recorded lesson');
+      showToast.error(error.message || 'Failed to add recorded lesson');
     } finally {
       setShowAddRecordingModal(false);
     }
@@ -678,7 +678,7 @@ export default function OnlineClassManagementPage({
       }));
       
       setUploadProgress(0);
-      toast.error(errorMessage);
+      showToast.error(errorMessage);
     }
   };
 

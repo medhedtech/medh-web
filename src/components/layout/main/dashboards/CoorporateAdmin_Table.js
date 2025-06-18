@@ -88,13 +88,13 @@ const CoorporateAdminTable = () => {
             setTimeout(() => fetchInstructors(retryCount + 1), 1000 * (retryCount + 1));
           } else {
             setPageError(error?.message || "Failed to fetch corporate admins");
-            toast.error("Failed to load corporate admins. Please try again.");
+            showToast.error("Failed to load corporate admins. Please try again.");
           }
         },
       });
     } catch (error) {
       setPageError("An unexpected error occurred");
-      toast.error("Error loading data. Please refresh the page.");
+      showToast.error("Error loading data. Please refresh the page.");
     } finally {
       setIsLoading(false);
     }
@@ -118,11 +118,11 @@ const CoorporateAdminTable = () => {
           fetchInstructors();
         },
         onFail: (error) => {
-          toast.error(error?.message || "Failed to delete corporate admin. Please try again.");
+          showToast.error(error?.message || "Failed to delete corporate admin. Please try again.");
         },
       });
     } catch (error) {
-      toast.error("An unexpected error occurred. Please try again.");
+      showToast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -145,11 +145,11 @@ const CoorporateAdminTable = () => {
           }
         },
         onFail: (error) => {
-          toast.error(error?.message || "Failed to update status");
+          showToast.error(error?.message || "Failed to update status");
         },
       });
     } catch (error) {
-      toast.error("Failed to update status");
+      showToast.error("Failed to update status");
     } finally {
       setIsLoading(false);
     }
@@ -158,7 +158,7 @@ const CoorporateAdminTable = () => {
   // Enhanced bulk delete handler
   const handleBulkDelete = async () => {
     if (selectedRows.length === 0) {
-      toast.warning("Please select items to delete");
+      showToast.warning("Please select items to delete");
       return;
     }
 
@@ -174,11 +174,11 @@ const CoorporateAdminTable = () => {
           setShowBulkDeleteConfirm(false);
         },
         onFail: (error) => {
-          toast.error(error?.message || "Bulk delete failed. Please try again.");
+          showToast.error(error?.message || "Bulk delete failed. Please try again.");
         },
       });
     } catch (error) {
-      toast.error("An unexpected error occurred. Please try again.");
+      showToast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }

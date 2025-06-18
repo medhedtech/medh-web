@@ -50,7 +50,7 @@ const ToolsTechnologies: React.FC<ToolsTechnologiesProps> = ({
   const handleLogoUpload = async (file: File, index: number) => {
     try {
       if (!file.type.includes('image')) {
-        toast.error('Please upload an image file');
+        showToast.error('Please upload an image file');
         return;
       }
 
@@ -73,13 +73,13 @@ const ToolsTechnologies: React.FC<ToolsTechnologiesProps> = ({
               showToast.success('Logo uploaded successfully');
             },
             onError: (error) => {
-              toast.error('Failed to upload logo. Please try again.');
+              showToast.error('Failed to upload logo. Please try again.');
             },
           });
         }
       };
     } catch (error) {
-      toast.error('Failed to upload logo');
+      showToast.error('Failed to upload logo');
     }
   };
 

@@ -300,7 +300,7 @@ const RecordedSessions: React.FC = () => {
     } catch (error: any) {
       console.error("Error fetching recorded sessions:", error);
       setError("Failed to load recorded sessions. Please try again later.");
-      toast.error("Failed to load recorded sessions. Please try again later.");
+      showToast.error("Failed to load recorded sessions. Please try again later.");
       setIsLoading(false);
       setIsRefreshing(false);
     }

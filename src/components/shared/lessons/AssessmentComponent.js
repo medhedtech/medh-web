@@ -129,7 +129,7 @@ const AssessmentComponent = ({ assignmentId, lessonId, courseId, meta = {}, onSu
       } catch (err) {
         console.error("Error loading assignment:", err);
         setError(err.message || "Failed to load assignment details");
-        toast.error("Could not load assignment. Please try again later.");
+        showToast.error("Could not load assignment. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -168,7 +168,7 @@ const AssessmentComponent = ({ assignmentId, lessonId, courseId, meta = {}, onSu
     });
     
     if (invalidFiles.length > 0) {
-      toast.error(`Invalid file type(s): ${invalidFiles.map(f => f.name).join(', ')}`);
+      showToast.error(`Invalid file type(s): ${invalidFiles.map(f => f.name).join(', ')}`);
       return;
     }
     
@@ -179,7 +179,7 @@ const AssessmentComponent = ({ assignmentId, lessonId, courseId, meta = {}, onSu
     });
     
     if (oversizedFiles.length > 0) {
-      toast.error(`File(s) exceed ${assignment.max_file_size_mb}MB limit: ${oversizedFiles.map(f => f.name).join(', ')}`);
+      showToast.error(`File(s) exceed ${assignment.max_file_size_mb}MB limit: ${oversizedFiles.map(f => f.name).join(', ')}`);
       return;
     }
     
@@ -198,17 +198,17 @@ const AssessmentComponent = ({ assignmentId, lessonId, courseId, meta = {}, onSu
     
     // Validate submission based on type
     if (assignment.submission_type === "text" && !textSubmission.trim()) {
-      toast.error("Please enter your submission text");
+      showToast.error("Please enter your submission text");
       return;
     }
     
     if (assignment.submission_type === "link" && !linkSubmission.trim()) {
-      toast.error("Please enter a valid submission link");
+      showToast.error("Please enter a valid submission link");
       return;
     }
     
     if ((assignment.submission_type === "file" || assignment.submission_type === "multiple") && files.length === 0) {
-      toast.error("Please upload at least one file");
+      showToast.error("Please upload at least one file");
       return;
     }
     
@@ -259,7 +259,7 @@ const AssessmentComponent = ({ assignmentId, lessonId, courseId, meta = {}, onSu
       showToast.success("Assignment submitted successfully!");
     } catch (err) {
       console.error("Error submitting assignment:", err);
-      toast.error("Failed to submit assignment. Please try again.");
+      showToast.error("Failed to submit assignment. Please try again.");
     } finally {
       setSubmitting(false);
     }

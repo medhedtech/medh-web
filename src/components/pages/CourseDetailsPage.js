@@ -317,7 +317,7 @@ const CourseDetailsPage = ({ ...props }) => {
       // Ensure we have a valid ID before making the API call
       if (!id) {
         console.error("No course ID provided to fetchCourseDetails");
-        toast.error("Cannot load course: Missing course identifier");
+        showToast.error("Cannot load course: Missing course identifier");
         setLoading(false);
         return;
       }
@@ -332,7 +332,7 @@ const CourseDetailsPage = ({ ...props }) => {
           
           if (!courseData || !courseData._id) {
             console.error("Invalid course data structure received:", data);
-            toast.error("Received invalid course data format");
+            showToast.error("Received invalid course data format");
             setLoading(false);
             return;
           }
@@ -385,18 +385,18 @@ const CourseDetailsPage = ({ ...props }) => {
           if (err.response) {
             // Server responded with error status
             if (err.response.status === 404) {
-              toast.error(`Course with ID ${id} not found`);
+              showToast.error(`Course with ID ${id} not found`);
             } else if (err.response.status === 403) {
-              toast.error("You don't have permission to access this course");
+              showToast.error("You don't have permission to access this course");
             } else {
-              toast.error(`Error loading course: ${err.response.status} ${err.response.statusText}`);
+              showToast.error(`Error loading course: ${err.response.status} ${err.response.statusText}`);
             }
           } else if (err.request) {
             // Request made but no response received (network issue)
-            toast.error("Network error: Could not connect to course service");
+            showToast.error("Network error: Could not connect to course service");
           } else {
             // Something else happened
-            toast.error("Could not load course details. Please try again.");
+            showToast.error("Could not load course details. Please try again.");
           }
           
           setLoading(false);
@@ -404,7 +404,7 @@ const CourseDetailsPage = ({ ...props }) => {
       });
     } catch (error) {
       console.error("Exception in fetchCourseDetails:", error);
-      toast.error("An unexpected error occurred. Please refresh the page.");
+      showToast.error("An unexpected error occurred. Please refresh the page.");
       setLoading(false);
     }
   };

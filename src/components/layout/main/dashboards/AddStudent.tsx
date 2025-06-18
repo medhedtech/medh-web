@@ -359,7 +359,7 @@ const AddStudent: React.FC<AddStudentProps> = ({ onCancel, onSuccess }) => {
           }
         },
         onFail: (error) => {
-          toast.error(error?.message || "Student already exists with same email or mobile.");
+          showToast.error(error?.message || "Student already exists with same email or mobile.");
         },
       });
     } catch (error) {

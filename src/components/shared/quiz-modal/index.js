@@ -61,7 +61,7 @@ const CreateQuizModal = ({ open, onClose, onUpload }) => {
           setCategories(res?.meetings || []);
         },
         onFail: () => {
-          // toast.error("Failed to fetch categories.");
+          // showToast.error("Failed to fetch categories.");
           setCategories([]);
         },
       });
@@ -75,7 +75,7 @@ const CreateQuizModal = ({ open, onClose, onUpload }) => {
     }
 
     if (!selectedFile) {
-      toast.error("Please upload a file.");
+      showToast.error("Please upload a file.");
       return;
     }
 
@@ -101,7 +101,7 @@ const CreateQuizModal = ({ open, onClose, onUpload }) => {
           onUpload();
         },
         onFail: (error) => {
-          toast.error("Error creating assignment.");
+          showToast.error("Error creating assignment.");
           console.error(error);
         },
         headers: {

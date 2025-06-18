@@ -74,10 +74,10 @@ const ForgotPassword = () => {
             setEmailSent(true);
             setRecaptchaError(false);
           },
-          onFail: () => toast.error("Failed to send temporary password."),
+          onFail: () => showToast.error("Failed to send temporary password."),
         });
       } catch {
-        toast.error("An error occurred while sending email.");
+        showToast.error("An error occurred while sending email.");
       }
     } else if (!tempPasswordVerified) {
       // Step 2: Verify temporary password
@@ -92,10 +92,10 @@ const ForgotPassword = () => {
             showToast.success("Password verified.");
             setTempPasswordVerified(true);
           },
-          onFail: () => toast.error("Invalid password."),
+          onFail: () => showToast.error("Invalid password."),
         });
       } catch {
-        toast.error("An error occurred during verification.");
+        showToast.error("An error occurred during verification.");
       }
     } else {
       // Step 3: Update to new password
@@ -112,12 +112,12 @@ const ForgotPassword = () => {
             router.push("/login");
           },
           onFail: () =>
-            toast.error(
+            showToast.error(
               "New password and confirm password do not match. Please try again."
             ),
         });
       } catch {
-        toast.error(
+        showToast.error(
           "Unable to reset password at the moment. Please try again later."
         );
       }

@@ -104,14 +104,14 @@ const InstructorAssignmentModal: React.FC<InstructorAssignmentModalProps> = ({
         },
         onFail: (error) => {
           console.error('Failed to fetch instructors:', error);
-          toast.error('Failed to load instructors');
+          showToast.error('Failed to load instructors');
           setInstructors([]);
           setFilteredInstructors([]);
         }
       });
     } catch (error) {
       console.error('Error fetching instructors:', error);
-      toast.error('Error loading instructors');
+      showToast.error('Error loading instructors');
     } finally {
       setFetchingInstructors(false);
     }
@@ -119,7 +119,7 @@ const InstructorAssignmentModal: React.FC<InstructorAssignmentModalProps> = ({
 
   const handleAssignment = async () => {
     if (!selectedInstructor || !targetData) {
-      toast.error('Please select an instructor');
+      showToast.error('Please select an instructor');
       return;
     }
 
@@ -163,7 +163,7 @@ const InstructorAssignmentModal: React.FC<InstructorAssignmentModalProps> = ({
             console.error('Student assignment failed:', error);
             toast.dismiss(loadingToast);
             const errorMessage = error?.message || error?.error?.message || 'Failed to assign instructor to student';
-            toast.error(errorMessage);
+            showToast.error(errorMessage);
           }
         });
       } else if (type === 'course') {
@@ -223,7 +223,7 @@ const InstructorAssignmentModal: React.FC<InstructorAssignmentModalProps> = ({
                 } else {
                   // Show warning but still treat as success since validation errors are unrelated to assignment
                   toast.dismiss(loadingToast);
-                  toast.warning('Assignment completed with course data warnings. Please verify the assignment was created.');
+                  showToast.warning('Assignment completed with course data warnings. Please verify the assignment was created.');
                   assignmentSuccessful = true;
                   onSuccess();
                   handleClose();
@@ -319,7 +319,7 @@ const InstructorAssignmentModal: React.FC<InstructorAssignmentModalProps> = ({
     } catch (error) {
       console.error('Assignment error:', error);
       toast.dismiss(loadingToast);
-      toast.error('An error occurred during assignment');
+      showToast.error('An error occurred during assignment');
     } finally {
       setLoading(false);
     }

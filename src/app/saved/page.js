@@ -61,7 +61,7 @@ const SavedCoursesPage = () => {
       }
     } catch (err) {
       console.error("Error fetching saved courses:", err);
-      toast.error("Failed to load your saved courses");
+      showToast.error("Failed to load your saved courses");
       setSavedCourses([]);
       setFilteredCourses([]);
     }
@@ -107,7 +107,7 @@ const SavedCoursesPage = () => {
       showToast.success("Course removed from saved items");
     } catch (err) {
       console.error("Error removing saved course:", err);
-      toast.error("Failed to remove course from saved items");
+      showToast.error("Failed to remove course from saved items");
     }
   };
 
@@ -132,7 +132,7 @@ const SavedCoursesPage = () => {
         })
         .catch(err => {
           console.error("Error clearing saved courses:", err);
-          toast.error("Failed to remove all saved courses");
+          showToast.error("Failed to remove all saved courses");
         });
     }
   };

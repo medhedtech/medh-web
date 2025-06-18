@@ -86,11 +86,11 @@ const CategoriesManage = () => {
         },
         onFail: (error) => {
           console.error("Delete failed:", error);
-          toast.error(error?.message || "Failed to delete category. Please try again.");
+          showToast.error(error?.message || "Failed to delete category. Please try again.");
         },
       });
     } catch (error) {
-      toast.error("An unexpected error occurred. Please try again.");
+      showToast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
