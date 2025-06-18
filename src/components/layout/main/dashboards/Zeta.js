@@ -6,7 +6,6 @@ import React, { useEffect, useState } from "react";
 import MyTable from "@/components/shared/common-table/page";
 import { FaPlus, FaChevronDown } from "react-icons/fa";
 import useDeleteQuery from "@/hooks/deleteQuery.hook";
-import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 
 const UsersTable = () => {

@@ -5,7 +5,6 @@ import { Briefcase, ChevronRight, MapPin, Globe, Clock, Award } from "lucide-rea
 import JobApply from "./jobApply";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
-import { toast } from "react-toastify";
 import Preloader from "@/components/shared/others/Preloader";
 import { FaBriefcase, FaMapMarkerAlt, FaClock, FaDollarSign, FaChevronRight as FaChevronRightIcon, FaSearch, FaFilter, FaTimes } from 'react-icons/fa';
 import Link from 'next/link';

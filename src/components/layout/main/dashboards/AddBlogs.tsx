@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import { apiUrls, aiUtils, IAIBlogGenerateFromPromptInput, IAIBlogGenerateContentInput } from "@/apis";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { toast } from "react-toastify";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { useUpload } from "@/hooks/useUpload";
 import Preloader from "@/components/shared/others/Preloader";

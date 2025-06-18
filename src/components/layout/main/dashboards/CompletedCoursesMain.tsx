@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Search, Award, Calendar, Clock, Star, Eye, Download, CheckCircle, BookOpen, Target } from "lucide-react";
-import { toast } from "react-toastify";
 import Link from 'next/link';
 
 interface CompletedCourse {

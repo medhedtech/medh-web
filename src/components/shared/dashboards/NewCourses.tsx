@@ -7,8 +7,6 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook"; 
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, Search, ChevronRight, Loader2, AlertCircle, Filter } from "lucide-react";
-import { toast } from "react-toastify";
-
 interface Course {
   _id: string;
   course_title: string;

@@ -7,8 +7,6 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook"; 
 import { motion, AnimatePresence } from "framer-motion";
 import { Compass, Search, ChevronRight, Loader2, AlertCircle, Filter, BookOpen } from "lucide-react";
-import { toast } from "react-toastify";
-
 const RecommendedCourses = () => {
   const router = useRouter();
   const [courses, setCourses] = useState([]);

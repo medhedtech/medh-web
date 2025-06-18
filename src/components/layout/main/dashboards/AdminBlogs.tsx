@@ -63,7 +63,6 @@ import useDeleteQuery from "@/hooks/deleteQuery.hook";
 import usePutQuery from "@/hooks/putQuery.hook";
 import AddBlog from "./AddBlogs";
 import EditBlog from "./EditBlog";
-import { toast } from "react-toastify";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useTheme } from "next-themes";

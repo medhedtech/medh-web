@@ -23,6 +23,7 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
   const [viewportWidth, setViewportWidth] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [hasScrolled, setHasScrolled] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   
   // Refs for tracking previous values
   const previousWidth = useRef(0);
@@ -33,9 +34,14 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
   const isHome2 = useIsTrue("/home-2");
   const isHome2Dark = useIsTrue("/home-2-dark");
 
+  // Client-side mounting effect
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   // Debounced resize handler with improved performance
   const handleResize = useCallback(() => {
-    if (typeof window === 'undefined') return;
+    if (!isClient || typeof window === 'undefined') return;
     
     const currentWidth = window.innerWidth;
     if (Math.abs(currentWidth - previousWidth.current) > 10) {
@@ -46,11 +52,11 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
         setIsMobileMenuOpen(false);
       }
     }
-  }, []);
+  }, [isClient]);
   
   // Enhanced scroll handler with smooth progress tracking
   const handleScroll = useCallback(() => {
-    if (typeof window === 'undefined') return;
+    if (!isClient || typeof window === 'undefined') return;
     
     const currentScrollY = window.scrollY;
     const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
@@ -65,41 +71,41 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
     
     // Update reference
     lastScrollY.current = currentScrollY;
-  }, []);
+  }, [isClient]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setViewportWidth(window.innerWidth);
-      previousWidth.current = window.innerWidth;
-      lastScrollY.current = window.scrollY;
-      
-      // Apply initial scroll state
-      handleScroll();
-      
-      // Initialize AOS with enhanced config
-      Aos.init({
-        offset: 80,
-        duration: 800,
-        once: true,
-        easing: "ease-in-out",
-        disable: window.innerWidth < 768,
-        mirror: false,
-        anchorPlacement: 'top-bottom'
-      });
-      
-      // Optimized event listeners with improved throttling
-      const debouncedResize = debounce(handleResize, 150);
-      const throttledScroll = throttle(handleScroll, 80); // More frequent updates for smoother progress bar
-      
-      window.addEventListener('resize', debouncedResize, { passive: true });
-      window.addEventListener('scroll', throttledScroll, { passive: true });
-      
-      return () => {
-        window.removeEventListener('resize', debouncedResize);
-        window.removeEventListener('scroll', throttledScroll);
-      };
-    }
-  }, [handleResize, handleScroll]);
+    if (!isClient || typeof window === 'undefined') return;
+    
+    setViewportWidth(window.innerWidth);
+    previousWidth.current = window.innerWidth;
+    lastScrollY.current = window.scrollY;
+    
+    // Apply initial scroll state
+    handleScroll();
+    
+    // Initialize AOS with enhanced config
+    Aos.init({
+      offset: 80,
+      duration: 800,
+      once: true,
+      easing: "ease-in-out",
+      disable: window.innerWidth < 768,
+      mirror: false,
+      anchorPlacement: 'top-bottom'
+    });
+    
+    // Optimized event listeners with improved throttling
+    const debouncedResize = debounce(handleResize, 150);
+    const throttledScroll = throttle(handleScroll, 80); // More frequent updates for smoother progress bar
+    
+    window.addEventListener('resize', debouncedResize, { passive: true });
+    window.addEventListener('scroll', throttledScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener('resize', debouncedResize);
+      window.removeEventListener('scroll', throttledScroll);
+    };
+  }, [isClient, handleResize, handleScroll]);
   
   // Close mobile menu on navigation
   useEffect(() => {
@@ -108,11 +114,12 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
   
   // Handle body scroll lock when mobile menu is open
   useEffect(() => {
+    if (!isClient) return;
     document.body.style.overflow = isMobileMenuOpen ? 'hidden' : '';
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isMobileMenuOpen]);
+  }, [isMobileMenuOpen, isClient]);
 
   // Header animation variants with spring physics for natural motion
   const headerVariants = {
@@ -141,6 +148,34 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
       transition: { type: "tween", duration: 0.15, ease: "easeOut" }
     }
   };
+
+  // Don't render mobile menu or progress bar until client-side
+  if (!isClient) {
+    return (
+      <motion.header
+        className="fixed top-0 left-0 right-0 z-40 w-full"
+        initial="initial"
+        animate="visible"
+        variants={headerVariants}
+        aria-label="Site header"
+      >
+        {/* Skip to content link for accessibility */}
+        <a 
+          href="#main-content" 
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary-600 text-white px-4 py-2 rounded-md z-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+        >
+          Skip to content
+        </a>
+        
+        {/* Navbar component */}
+        <Navbar 
+          onMobileMenuOpen={() => setIsMobileMenuOpen(true)} 
+          viewportWidth={0}
+          scrollProgress={0}
+        />
+      </motion.header>
+    );
+  }
   
   return (
     <>

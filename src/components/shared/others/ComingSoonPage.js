@@ -65,8 +65,8 @@ const ComingSoonPage = ({
             repeatType: "reverse" 
           }}
           style={{ 
-            top: `${Math.random() * 80 + 10}%`,
-            left: `${Math.random() * 80 + 10}%`,
+            top: `${(index * 13 + 15) % 80 + 10}%`,
+            left: `${(index * 17 + 20) % 80 + 10}%`,
           }}
         >
           {element.icon}

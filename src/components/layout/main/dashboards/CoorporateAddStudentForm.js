@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import { apiUrls } from "@/apis";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { toast } from "react-toastify";
 import Preloader from "@/components/shared/others/Preloader";
 import CoorporateTableStudent from "./CoorporateStudentManagement";
 import { FaEye, FaEyeSlash } from "react-icons/fa";

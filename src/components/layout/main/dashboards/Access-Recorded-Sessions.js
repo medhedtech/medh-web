@@ -8,7 +8,6 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import Preloader from "@/components/shared/others/Preloader";
 import RecordedCard from "@/components/shared/dashboards/RecordedCourses";
 import { motion } from "framer-motion";
-import { toast } from "react-toastify";
 import { 
   Video, Search, AlertCircle, Filter, Calendar, Clock, ChevronDown, 
   Layers, BookOpen, SortAsc, SortDesc, RefreshCw, Check, X

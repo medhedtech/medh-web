@@ -11,7 +11,6 @@ import * as yup from "yup";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls } from "@/apis";
 import Preloader from "../others/Preloader";
-import { toast } from "react-toastify";
 import { useRouter, useSearchParams } from "next/navigation";
 import { jwtDecode, JwtPayload } from "jwt-decode";
 import { Eye, EyeOff, Mail, Lock, Loader2, CheckCircle, AlertCircle, Sparkles, ArrowRight, ChevronLeft, Home, Check } from "lucide-react";
@@ -32,6 +31,7 @@ import {
   setRememberMe
 } from "@/utils/auth";
 import { authAPI, authUtils, ILoginData, ILoginResponse } from "@/apis/auth.api";
+import { useCurrentYear } from "@/utils/hydration";
 
 interface FormInputs {
   email: string;
@@ -132,6 +132,7 @@ const LoginForm = () => {
   const { postQuery, loading } = usePostQuery();
   const storageManager = useStorage();
   const { theme, setTheme } = useTheme();
+  const currentYear = useCurrentYear();
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [recaptchaValue, setRecaptchaValue] = useState<string | null>(null);
   const [recaptchaError, setRecaptchaError] = useState<boolean>(false);
@@ -877,7 +878,7 @@ const LoginForm = () => {
           
           {/* Copyright notice */}
           <div className="text-center mt-2 text-xs text-gray-400 dark:text-gray-500">
-            <p>© {new Date().getFullYear()} Medh. All rights reserved.</p>
+            <p>© {currentYear} Medh. All rights reserved.</p>
           </div>
         </div>
       </div>
@@ -1237,7 +1238,7 @@ const LoginForm = () => {
           
           {/* Copyright notice */}
           <div className="text-center mt-2 text-xs text-gray-400 dark:text-gray-500">
-            <p>© {new Date().getFullYear()} Medh. All rights reserved.</p>
+                            <p>© {currentYear} Medh. All rights reserved.</p>
           </div>
         </div>
       </div>

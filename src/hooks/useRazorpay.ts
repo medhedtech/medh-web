@@ -325,7 +325,7 @@ export const useRazorpay = (): UseRazorpayReturn => {
     }
 
     try {
-      const response = await axios.get(`${apiBaseUrl}/api/v1/payments/key`, {
+      const response = await axios.get(`${apiBaseUrl}/payments/key`, {
         headers: {
           ...(localStorage.getItem('token') && {
             Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -444,7 +444,7 @@ export const useRazorpay = (): UseRazorpayReturn => {
         version: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0'
       };
       
-      const response = await axios.post(`${apiBaseUrl}/api/v1/payments/create-order`, enhancedPayload, {
+      const response = await axios.post(`${apiBaseUrl}/payments/create-order`, enhancedPayload, {
         headers: {
           'Content-Type': 'application/json',
           ...(token && { Authorization: `Bearer ${token}` })
@@ -477,7 +477,7 @@ export const useRazorpay = (): UseRazorpayReturn => {
     try {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       
-      const response = await axios.post(`${apiBaseUrl}/api/v1/payments/verify-payment`, payload, {
+      const response = await axios.post(`${apiBaseUrl}/payments/verify-payment`, payload, {
         headers: {
           'Content-Type': 'application/json',
           ...(token && { Authorization: `Bearer ${token}` })

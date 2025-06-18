@@ -10,7 +10,6 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { toast } from "react-toastify";
 import Preloader from "@/components/shared/others/Preloader";
 import { apiUrls } from "@/apis";
 import moment, { Moment } from "moment";

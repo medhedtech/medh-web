@@ -4,7 +4,6 @@ import { useRouter, useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { toast } from "react-toastify";
 import Image from "next/image";
 import { Upload, HelpCircle, DollarSign } from "lucide-react";
 
@@ -417,7 +416,7 @@ export default function UpdateCourse() {
         payloadData.course_category = formData.course_category || selectedCategory;
       }
 
-      const loadingToastId = toast.loading("Updating course...");
+      const loadingToastId = showToast.loading("Updating course...");
       try {
         await postQuery({
           url: `${apiUrls?.courses?.updateCourse}/${courseId}`,
@@ -732,7 +731,7 @@ export default function UpdateCourse() {
 
   // Handle direct API submission
   const submitCourseData = async (formData) => {
-    const loadingToastId = toast.loading("Updating course...");
+    const loadingToastId = showToast.loading("Updating course...");
     
     // Prepare the direct payload manually
     const directPayload = {

@@ -8,7 +8,6 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import moment from "moment";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
 import { FiFileText } from "react-icons/fi";
 import Preloader from "@/components/shared/others/Preloader";
 import CoorporateQuizQuestion from "./CoorporateQuizQuestions";

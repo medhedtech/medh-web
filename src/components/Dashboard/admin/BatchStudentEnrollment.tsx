@@ -249,16 +249,24 @@ const BatchStudentEnrollment: React.FC<BatchStudentEnrollmentProps> = ({
       const mockStudents: IEnhancedStudent[] = [];
       
       for (let i = 0; i < (batch.enrolled_students || 0); i++) {
+        // Use deterministic values instead of Math.random() to prevent hydration mismatches
+        const studentIndex = i + 1;
+        const phoneNumber = `+91${9000000000 + studentIndex}`;
+        const enrollmentDate = new Date(Date.now() - (studentIndex * 24 * 60 * 60 * 1000)).toISOString();
+        const enrollmentStatus = studentIndex % 5 === 0 ? 'completed' : 'active';
+        const progress = Math.min(studentIndex * 10, 100);
+        const paymentPlan = studentIndex % 3 === 0 ? 'installment' : 'full';
+        
         mockStudents.push({
-          _id: `mock_student_${i + 1}`,
-          full_name: `Student ${i + 1}`,
-          email: `student${i + 1}@example.com`,
-          phone_numbers: [{ country: 'IN', number: `+91${Math.floor(Math.random() * 10000000000)}` }],
+          _id: `mock_student_${studentIndex}`,
+          full_name: `Student ${studentIndex}`,
+          email: `student${studentIndex}@example.com`,
+          phone_numbers: [{ country: 'IN', number: phoneNumber }],
           status: 'Active',
-          enrollment_date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-          enrollment_status: Math.random() > 0.8 ? 'completed' : 'active',
-          progress: Math.floor(Math.random() * 100),
-          payment_plan: Math.random() > 0.7 ? 'installment' : 'full'
+          enrollment_date: enrollmentDate,
+          enrollment_status: enrollmentStatus,
+          progress: progress,
+          payment_plan: paymentPlan
         });
       }
 

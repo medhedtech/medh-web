@@ -30,6 +30,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useIsClient } from "@/utils/hydration";
 
 // Learning Resources component
 const LearningResources: React.FC = () => {
@@ -345,6 +347,10 @@ const itemVariants = {
   }
 };
 
+/**
+ * StudentDashboardMain - The main dashboard component for students
+ * Features: Course cards carousel, greeting, stats, announcements
+ */
 const StudentDashboardMain: React.FC = () => {
   const [greeting, setGreeting] = useState<string>("Good day");
   const [userName, setUserName] = useState<string>("");
@@ -359,25 +365,26 @@ const StudentDashboardMain: React.FC = () => {
   // Use a ref instead of state for pausing to avoid re-renders
   const isPausedRef = useRef(false);
   const sliderRef = useRef<HTMLDivElement>(null);
+  const isClient = useIsClient();
 
   // Set greeting based on time of day and get user data
   useEffect(() => {
+    if (!isClient) return;
+    
     const hour = new Date().getHours();
     if (hour < 12) setGreeting("Good morning");
     else if (hour < 18) setGreeting("Good afternoon");
     else setGreeting("Good evening");
 
     // Get user name and ID from localStorage
-    if (typeof window !== "undefined") {
-      const storedName = localStorage.getItem("userName") || "";
-      setUserName(storedName.split(" ")[0] || "Student"); // Use first name or default to "Student"
-      
-      const storedUserId = localStorage.getItem("userId");
-      if (storedUserId) {
-        setStudentId(storedUserId);
-      }
+    const storedName = localStorage.getItem("userName") || "";
+    setUserName(storedName.split(" ")[0] || "Student"); // Use first name or default to "Student"
+    
+    const storedUserId = localStorage.getItem("userId");
+    if (storedUserId) {
+      setStudentId(storedUserId);
     }
-  }, []);
+  }, [isClient]);
 
   // Set up the 3 welcome carousel slides
   useEffect(() => {

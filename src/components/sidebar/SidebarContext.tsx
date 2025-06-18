@@ -98,9 +98,14 @@ export const SidebarProvider: React.FC<SidebarProviderProps> = ({
   
   // Check if device is mobile
   useEffect(() => {
+    // Client-side guard
+    if (typeof window === 'undefined') return;
+    
     // Check if device is mobile
     const checkMobile = () => {
-      setIsMobileDevice(window.innerWidth < 768);
+      if (typeof window !== 'undefined') {
+        setIsMobileDevice(window.innerWidth < 768);
+      }
     };
     
     checkMobile();

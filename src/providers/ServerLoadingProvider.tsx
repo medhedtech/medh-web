@@ -60,7 +60,9 @@ export const ServerLoadingProvider: React.FC<IServerLoadingProviderProps> = ({
 
   // Generate unique IDs for loading states
   const generateId = useCallback(() => {
-    return `loading_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Use a counter-based approach instead of Math.random() to prevent hydration mismatches
+    const counter = Date.now();
+    return `loading_${counter}_${counter.toString(36)}`;
   }, []);
 
   // Start a new loading state
