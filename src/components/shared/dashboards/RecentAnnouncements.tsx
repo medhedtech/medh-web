@@ -119,7 +119,7 @@ const RecentAnnouncements: React.FC<RecentAnnouncementsProps> = ({
           
           // Show toast for debugging/admin awareness (optional - can be removed in production)
           if (userRole === 'admin' && !showUnreadOnly) {
-            toast.info('No announcements found in the system', {
+            showToast.info('No announcements found in the system', {
               description: 'The announcements API is working but returned no data.',
               duration: 3000
             });
@@ -202,7 +202,7 @@ const RecentAnnouncements: React.FC<RecentAnnouncementsProps> = ({
       }
     } catch (error) {
       console.error('Error marking announcement as read:', error);
-      toast.error('Failed to mark announcement as read');
+      showToast.error('Failed to mark announcement as read');
     }
   };
 
@@ -244,7 +244,7 @@ const RecentAnnouncements: React.FC<RecentAnnouncementsProps> = ({
       }
     } else {
       // If no action button, show announcement details in a toast or modal
-      toast.info(announcement.title, {
+      showToast.info(announcement.title, {
         description: announcement.content.length > 100 
           ? announcement.content.substring(0, 100) + '...' 
           : announcement.content,

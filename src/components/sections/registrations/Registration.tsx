@@ -686,7 +686,7 @@ const RegistrationForm: React.FC<{
       if (!file) return;
       
       if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast.error("File size should be less than 5MB");
+        showToast.error("File size should be less than 5MB");
         setFileName("No file chosen");
         return;
       }
@@ -713,7 +713,7 @@ const RegistrationForm: React.FC<{
           }
         };
       } catch (error) {
-        toast.error("Error processing file");
+        showToast.error("Error processing file");
         setFileName("No file chosen");
       }
     }, 500),
@@ -869,7 +869,7 @@ const RegistrationForm: React.FC<{
         reset();
       }
     } catch (error) {
-      toast.error("An unexpected error occurred");
+      showToast.error("An unexpected error occurred");
     } finally {
       setIsSubmitting(false);
     }

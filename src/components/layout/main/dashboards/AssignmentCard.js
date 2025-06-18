@@ -118,7 +118,7 @@ const AssignmentCard = ({
                 setPdfBrochures(uploadedPdfs);
               },
               onError: (error) => {
-                toast.error("PDF upload failed. Please try again.");
+                showToast.error("PDF upload failed. Please try again.");
                 console.error("Upload error:", error);
               },
             });
@@ -155,7 +155,7 @@ const AssignmentCard = ({
         },
         onError: (error) => {
           console.error("Error submitting assignment:", error);
-          toast.error("Error submitting assignment.");
+          showToast.error("Error submitting assignment.");
         },
       });
     } catch (error) {

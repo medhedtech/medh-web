@@ -433,7 +433,7 @@ export const UniversalForm: React.FC<IUniversalFormProps> = ({
       }
     } catch (error) {
       console.error("Form submission error:", error);
-      toast.error("Failed to submit form. Please try again later.");
+      showToast.error("Failed to submit form. Please try again later.");
       
       if (onError) {
         onError(error);

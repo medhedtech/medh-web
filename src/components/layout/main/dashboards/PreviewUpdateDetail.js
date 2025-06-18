@@ -37,12 +37,12 @@ export default function UpdateCoursePreview() {
             showToast.success("Course Updated successfully!");
           } catch (error) {
             console.error("Error in onSuccess callback:", error);
-            toast.error("Error during success callback.");
+            showToast.error("Error during success callback.");
           }
         },
         onFail: (error) => {
           try {
-            toast.error("Updating course failed. Please try again.");
+            showToast.error("Updating course failed. Please try again.");
             console.log("Updating course failed:", error);
           } catch (error) {
             console.error("Error in onFail callback:", error);
@@ -51,7 +51,7 @@ export default function UpdateCoursePreview() {
       });
     } catch (error) {
       console.error("An unexpected error occurred:", error);
-      toast.error("An unexpected error occurred. Please try again.");
+      showToast.error("An unexpected error occurred. Please try again.");
     }
   };
 

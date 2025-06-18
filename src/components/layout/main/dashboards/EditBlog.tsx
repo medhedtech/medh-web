@@ -79,7 +79,7 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
       setValue("upload_image", imageUrl);
       showToast.success("Image updated successfully!");
     },
-    onError: (error) => toast.error("Image upload failed"),
+    onError: (error) => showToast.error("Image upload failed"),
     showToast: false
   });
 
@@ -251,17 +251,17 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
 
   const generateAIContent = useCallback(async (type: 'improve' | 'expand' | 'rewrite' | 'custom' = 'improve') => {
     if (!blog._id) {
-      toast.error("Blog ID is missing. Cannot enhance content.");
+      showToast.error("Blog ID is missing. Cannot enhance content.");
       return;
     }
 
     if (!content?.trim() && type !== 'custom') {
-      toast.error("Please add some content first to enhance it");
+      showToast.error("Please add some content first to enhance it");
       return;
     }
 
     if (type === 'custom' && !aiPrompt?.trim()) {
-      toast.error("Please enter a custom prompt for AI enhancement");
+      showToast.error("Please enter a custom prompt for AI enhancement");
       return;
     }
 
@@ -320,18 +320,18 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
           }
         } else {
           console.error('❌ No enhanced content received:', response);
-          toast.error(response.message || 'No enhanced content received from AI');
+          showToast.error(response.message || 'No enhanced content received from AI');
         }
       } else {
         console.error('❌ Enhancement failed:', response);
-        toast.error(response.message || 'Failed to enhance content');
+        showToast.error(response.message || 'Failed to enhance content');
       }
     } catch (error) {
       console.error('❌ AI content generation error:', error);
       
       // Check if it's a network error (Failed to fetch)
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        toast.error(
+        showToast.error(
           "🔌 AI Service Unavailable\n" +
           "The AI enhancement service is currently not available. This could be because:\n" +
           "• Backend server is not running\n" +
@@ -340,7 +340,7 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
           "Please check your backend server or try again later."
         );
       } else {
-        toast.error(aiUtils.handleAIError(error));
+        showToast.error(aiUtils.handleAIError(error));
       }
     } finally {
       setIsGeneratingContent(false);
@@ -353,7 +353,7 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
     const description = watch("description");
 
     if (!title?.trim()) {
-      toast.error("Please enter a title first to generate fresh content");
+      showToast.error("Please enter a title first to generate fresh content");
       return;
     }
 
@@ -416,7 +416,7 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
       
       // Check if it's a network error (Failed to fetch)
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        toast.error(
+        showToast.error(
           "🔌 AI Service Unavailable\n" +
           "The AI content generation service is currently not available. This could be because:\n" +
           "• Backend server is not running\n" +
@@ -425,7 +425,7 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
           "Please check your backend server or try again later."
         );
       } else {
-        toast.error(aiUtils.handleAIError(error));
+        showToast.error(aiUtils.handleAIError(error));
       }
     } finally {
       setIsRegeneratingContent(false);
@@ -443,36 +443,36 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
         };
         reader.readAsDataURL(file);
       } catch (error) {
-        toast.error("Error uploading image");
+        showToast.error("Error uploading image");
       }
     }
   };
 
   const onSubmit = useCallback(async (data: any) => {
     if (content.length < 100) {
-      toast.error("Content is too short (minimum 100 characters)");
+      showToast.error("Content is too short (minimum 100 characters)");
       return;
     }
 
     if (!blog._id) {
-      toast.error("Blog ID is missing");
+      showToast.error("Blog ID is missing");
       return;
     }
 
     try {
       // Validate required fields first
       if (!data.title || !data.title.trim()) {
-        toast.error("Title is required");
+        showToast.error("Title is required");
         return;
       }
 
       if (!data.description || !data.description.trim()) {
-        toast.error("Description is required");
+        showToast.error("Description is required");
         return;
       }
 
       if (!data.upload_image || !data.upload_image.trim()) {
-        toast.error("Blog image is required");
+        showToast.error("Blog image is required");
         return;
       }
 
@@ -524,12 +524,12 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
         },
         onFail: (error) => {
           console.error('Blog update error:', error);
-          toast.error(`Failed to update blog: ${error?.message || 'Unknown error'}`);
+          showToast.error(`Failed to update blog: ${error?.message || 'Unknown error'}`);
         }
       });
     } catch (error) {
       console.error('Blog update exception:', error);
-      toast.error("An error occurred while updating the blog");
+      showToast.error("An error occurred while updating the blog");
     }
   }, [content, selectedCategories, tags, blog, putQuery, onSave]);
 
@@ -590,7 +590,7 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
                 onClick={() => {
                   console.log('Force refreshing editor...');
                   setEditorKey(prev => prev + 1);
-                  toast.info('Editor refreshed!');
+                  showToast.info('Editor refreshed!');
                 }}
                 className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all ${
                   isDark ? 'bg-green-500/20 text-green-300 hover:bg-green-500/30' : 'bg-green-50 text-green-700 hover:bg-green-100'
@@ -1102,7 +1102,7 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
                         onClick={() => {
                           console.log('Force updating editor content...');
                           setEditorKey(prev => prev + 1);
-                          toast.info('Editor refreshed!');
+                          showToast.info('Editor refreshed!');
                         }}
                         className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
                       >

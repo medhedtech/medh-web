@@ -617,11 +617,11 @@ const AddCourse = () => {
           setHasSavedDraft(true);
           setLastSaved(new Date().toLocaleString());
           
-          toast.info('Loaded your saved draft');
+          showToast.info('Loaded your saved draft');
         }
       } catch (error) {
         console.error('Error loading saved draft:', error);
-        toast.error('Failed to load saved draft');
+        showToast.error('Failed to load saved draft');
       }
     };
     
@@ -730,11 +730,11 @@ const AddCourse = () => {
         
         showToast.success('Draft saved successfully');
       } else {
-        toast.error('Failed to save draft. Storage might be unavailable.');
+        showToast.error('Failed to save draft. Storage might be unavailable.');
       }
     } catch (error) {
       console.error('Error saving draft:', error);
-      toast.error('Failed to save draft');
+      showToast.error('Failed to save draft');
     } finally {
       setIsDraftSaving(false);
     }
@@ -747,7 +747,7 @@ const AddCourse = () => {
       setHasSavedDraft(false);
       setLastSaved(null);
       setHasUnsavedChanges(false);
-      toast.info('Draft cleared');
+      showToast.info('Draft cleared');
       
       // Reset form to initial state
       reset();
@@ -764,7 +764,7 @@ const AddCourse = () => {
           onSuccess: () => {},
           onFail: () => {
             console.error("Error fetching categories");
-            toast.error('Failed to load categories. Please try again.');
+            showToast.error('Failed to load categories. Please try again.');
           }
         });
         
@@ -796,15 +796,15 @@ const AddCourse = () => {
           setCategories(formattedCategories);
           
           if (formattedCategories.length === 0) {
-            toast.warning('No valid categories found. Please add categories first.');
+            showToast.warning('No valid categories found. Please add categories first.');
           }
         } else {
           console.error("No data received from categories API");
-          toast.error('No categories found. Please check the API.');
+          showToast.error('No categories found. Please check the API.');
         }
       } catch (error) {
         console.error("Error in fetchCategories:", error);
-        toast.error('Failed to load categories. Please check your connection.');
+        showToast.error('Failed to load categories. Please check your connection.');
       } finally {
         setIsLoading(false);
       }
@@ -859,7 +859,7 @@ const AddCourse = () => {
   const handleImageUpload = async (file: File) => {
     try {
       if (!file) {
-        toast.error('Please select a valid image file');
+        showToast.error('Please select a valid image file');
         return;
       }
       
@@ -888,12 +888,12 @@ const AddCourse = () => {
                 showToast.success('Image uploaded successfully');
               } else {
                 console.error("Unexpected image upload response format:", response);
-                toast.error('Invalid image upload response format');
+                showToast.error('Invalid image upload response format');
               }
             },
             onFail: (error) => {
               console.error("Image upload error:", error);
-              toast.error('Image upload failed. Please try again.');
+              showToast.error('Image upload failed. Please try again.');
             },
           });
           setIsLoading(false);
@@ -901,12 +901,12 @@ const AddCourse = () => {
       };
       
       reader.onerror = () => {
-        toast.error('Failed to read image file');
+        showToast.error('Failed to read image file');
         setIsLoading(false);
       };
     } catch (error) {
       console.error("Error in handleImageUpload:", error);
-      toast.error('Failed to upload image');
+      showToast.error('Failed to upload image');
       setIsLoading(false);
     }
   };
@@ -950,7 +950,7 @@ const AddCourse = () => {
             const errorMessage = `Please check the following fields: ${errorFields.join(', ')}`;
             console.log('Validation errors:', errors);
             setValidationMessage(errorMessage);
-            toast.error('Please fill in all required fields');
+            showToast.error('Please fill in all required fields');
             return;
           }
         }
@@ -962,7 +962,7 @@ const AddCourse = () => {
       }
     } catch (error) {
       console.error('Error in handleStepSubmit:', error);
-      toast.error('An error occurred while submitting the form');
+      showToast.error('An error occurred while submitting the form');
     }
   };
 
@@ -1065,7 +1065,7 @@ const AddCourse = () => {
           errorMessage += 'Please fill in all required fields or remove incomplete lessons.';
           
           // Show as a toast to make it more visible
-          toast.error(errorMessage);
+          showToast.error(errorMessage);
           
           // Also set as validation message
           setValidationMessage(errorMessage);
@@ -1160,7 +1160,7 @@ const AddCourse = () => {
         },
         onFail: (error) => {
           const errorMessage = error?.response?.data?.message || 'Failed to create course';
-          toast.error(errorMessage);
+          showToast.error(errorMessage);
           setValidationMessage(errorMessage);
           throw new Error(errorMessage);
         },
@@ -1172,7 +1172,7 @@ const AddCourse = () => {
     } catch (error) {
       console.error("Form submission error:", error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to create course';
-      toast.error(errorMessage);
+      showToast.error(errorMessage);
       setValidationMessage(errorMessage);
       throw error;
     } finally {
@@ -1493,7 +1493,7 @@ const AddCourse = () => {
     // Save current step data before navigation (only for validation)
     const isCurrentStepValid = await checkStepValidation(currentStep);
     if (!isCurrentStepValid) {
-      toast.warning('Please complete the current step before navigating');
+      showToast.warning('Please complete the current step before navigating');
       return;
     }
     

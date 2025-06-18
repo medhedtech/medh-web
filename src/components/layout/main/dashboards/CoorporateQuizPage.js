@@ -137,7 +137,7 @@ export default function CoorporateQuizPage({ closeQuiz }) {
           }
         } catch (error) {
           console.error("Error fetching upcoming classes:", error);
-          toast.error("Failed to fetch upcoming classes.");
+          showToast.error("Failed to fetch upcoming classes.");
         }
       };
 

@@ -117,7 +117,7 @@ export const useFormSubmit = (): UseFormSubmitResult => {
       const message = error?.response?.data?.message || errorMessage;
       
       if (showToast) {
-        toast.error(message);
+        showToast.error(message);
       }
       
       if (onError) {
@@ -221,7 +221,7 @@ export const useFormSubmit = (): UseFormSubmitResult => {
               resolve(response.data);
             } catch (error) {
               if (showToast) {
-                toast.error(errorMessage);
+                showToast.error(errorMessage);
               }
               
               if (onError) {
@@ -236,7 +236,7 @@ export const useFormSubmit = (): UseFormSubmitResult => {
             const error = new Error("File reading failed");
             
             if (showToast) {
-              toast.error(errorMessage);
+              showToast.error(errorMessage);
             }
             
             if (onError) {
@@ -253,7 +253,7 @@ export const useFormSubmit = (): UseFormSubmitResult => {
       const message = error?.response?.data?.message || errorMessage;
       
       if (showToast) {
-        toast.error(message);
+        showToast.error(message);
       }
       
       if (onError) {
@@ -299,7 +299,7 @@ export const useFormSubmit = (): UseFormSubmitResult => {
     } catch (error: any) {
       if (params.showToast !== false) {
         const message = error?.response?.data?.message || params.errorMessage || "Files upload failed";
-        toast.error(message);
+        showToast.error(message);
       }
       
       if (params.onError) {

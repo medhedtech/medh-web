@@ -207,12 +207,12 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
         showToast.success("Image uploaded successfully!");
       } catch (error) {
         console.error('Error processing upload response:', error, response);
-        toast.error("Error processing uploaded image. Please try again.");
+        showToast.error("Error processing uploaded image. Please try again.");
       }
     },
     onError: (error) => {
       console.error("Upload error details:", error);
-      toast.error(error?.message || "Image upload failed. Please try again.");
+      showToast.error(error?.message || "Image upload failed. Please try again.");
     },
     showToast: false
   });
@@ -277,7 +277,7 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
       });
       
       if (!token) {
-        toast.error("Please log in to create blogs");
+        showToast.error("Please log in to create blogs");
       }
     }
   }, []);
@@ -348,11 +348,11 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
         setCategories(formattedCategories);
       } else {
         console.warn("Invalid categories data format:", categoryResponse);
-        toast.error("Failed to load categories - invalid format");
+        showToast.error("Failed to load categories - invalid format");
       }
     } catch (error) {
       console.error("Failed to fetch categories:", error);
-      toast.error("Failed to load categories");
+      showToast.error("Failed to load categories");
     }
   }, [getQuery, authState.isAuthenticated]);
 
@@ -403,7 +403,7 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
 
       } catch (error) {
         console.error("Error uploading image:", error);
-        toast.error(error instanceof Error ? error.message : "An unexpected error occurred while uploading the image.");
+        showToast.error(error instanceof Error ? error.message : "An unexpected error occurred while uploading the image.");
       }
     }
   };
@@ -493,7 +493,7 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
     const description = watch("description");
 
     if (!title?.trim()) {
-      toast.error("Please enter a title first to generate content");
+      showToast.error("Please enter a title first to generate content");
       return;
     }
 
@@ -566,7 +566,7 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
       }
     } catch (error) {
       console.error('AI Content Generation Error:', error);
-      toast.error(aiUtils.handleAIError(error));
+      showToast.error(aiUtils.handleAIError(error));
     } finally {
       setIsGeneratingContent(false);
     }
@@ -646,7 +646,7 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
     const description = watch("description");
 
     if (!title?.trim()) {
-      toast.error("Please enter a title first to regenerate content");
+      showToast.error("Please enter a title first to regenerate content");
       return;
     }
 
@@ -707,7 +707,7 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
       }
     } catch (error) {
       console.error('AI Content Regeneration Error:', error);
-      toast.error(aiUtils.handleAIError(error));
+      showToast.error(aiUtils.handleAIError(error));
     } finally {
       setIsRegeneratingContent(false);
     }
@@ -716,7 +716,7 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
   // Comprehensive AI Blog Generation from Prompt
   const generateBlogFromPrompt = useCallback(async () => {
     if (!aiPrompt?.trim()) {
-      toast.error("Please enter a prompt to generate your blog");
+      showToast.error("Please enter a prompt to generate your blog");
       return;
     }
 
@@ -784,7 +784,7 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
       }
     } catch (error) {
       console.error('AI Blog Generation Error:', error);
-      toast.error(aiUtils.handleAIError(error));
+      showToast.error(aiUtils.handleAIError(error));
     } finally {
       setIsGeneratingFromPrompt(false);
     }
@@ -794,17 +794,17 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
   const onSubmit = useCallback(async (data: IBlogFormData) => {
     // Enhanced validation
     if (content.length < 100) {
-      toast.error(VALIDATION_MESSAGES.content.minLength);
+      showToast.error(VALIDATION_MESSAGES.content.minLength);
       return;
     }
 
     if (selectedCategories.length === 0) {
-      toast.error(VALIDATION_MESSAGES.categories.required);
+      showToast.error(VALIDATION_MESSAGES.categories.required);
       return;
     }
 
     if (!authState.token || !authState.userId) {
-      toast.error("Please login to create a blog");
+      showToast.error("Please login to create a blog");
       checkAuthState();
       return;
     }
@@ -845,16 +845,16 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
         onFail: (error) => {
           console.error("Blog creation error:", error);
           if (error?.response?.status === 401) {
-            toast.error("Authentication failed. Please login again.");
+            showToast.error("Authentication failed. Please login again.");
             checkAuthState();
           } else {
-            toast.error(error?.response?.data?.message || "Error creating blog.");
+            showToast.error(error?.response?.data?.message || "Error creating blog.");
           }
         },
       });
     } catch (error) {
       console.error("An unexpected error occurred:", error);
-      toast.error("An unexpected error occurred. Please try again.");
+      showToast.error("An unexpected error occurred. Please try again.");
     }
   }, [content, selectedCategories, authState, blogImage, tags, checkAuthState, postQuery]);
 

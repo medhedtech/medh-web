@@ -90,7 +90,7 @@ const UpcomigClassesCorporate = () => {
 
     // Check if the class is scheduled to start within the next 30 minutes
     if (minutesDifference > 30) {
-      toast.info(
+      showToast.info(
         "Meeting link will be enabled 30 minutes before the class starts."
       );
     }
@@ -102,7 +102,7 @@ const UpcomigClassesCorporate = () => {
       if (currentTime.isBefore(classEndTime)) {
         window.open(classItem.meet_link, "_blank");
       } else {
-        toast.warning("This class has already ended. You cannot join.");
+        showToast.warning("This class has already ended. You cannot join.");
       }
     }
   };

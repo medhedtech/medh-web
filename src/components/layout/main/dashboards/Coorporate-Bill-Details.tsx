@@ -99,7 +99,7 @@ const CoorporateBillDetails: React.FC = () => {
     
     try {
       if (!courseInfo) {
-        toast.error("Course information is missing");
+        showToast.error("Course information is missing");
         return;
       }
       
@@ -132,7 +132,7 @@ const CoorporateBillDetails: React.FC = () => {
       await openRazorpayCheckout(options);
     } catch (err) {
       console.error("Payment error:", err);
-      toast.error("Failed to process payment. Please try again.");
+      showToast.error("Failed to process payment. Please try again.");
     }
   };
 
@@ -154,12 +154,12 @@ const CoorporateBillDetails: React.FC = () => {
         },
         onFail: (err) => {
           console.error("Subscription failed:", err);
-          toast.error("Error in subscription. Please try again.");
+          showToast.error("Error in subscription. Please try again.");
         },
       });
     } catch (error) {
       console.error("Error in subscribing course:", error);
-      toast.error("Something went wrong! Please try again later.");
+      showToast.error("Something went wrong! Please try again later.");
     }
   };
 
@@ -177,12 +177,12 @@ const CoorporateBillDetails: React.FC = () => {
         },
         onFail: (err) => {
           console.error("Enrollment failed:", err);
-          toast.error("Error enrolling in the course. Please try again!");
+          showToast.error("Error enrolling in the course. Please try again!");
         },
       });
     } catch (error) {
       console.error("Error enrolling course:", error);
-      toast.error("Something went wrong! Please try again later.");
+      showToast.error("Something went wrong! Please try again later.");
     }
   };
 

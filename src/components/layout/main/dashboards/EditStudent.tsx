@@ -172,7 +172,7 @@ const EditStudent: React.FC<{ studentId: string | null }> = ({ studentId }) => {
       const token = localStorage.getItem("token");
       
       if (!token) {
-        toast.error("Authentication token not found. Please login again.");
+        showToast.error("Authentication token not found. Please login again.");
         setIsLoadingStudents(false);
         return;
       }
@@ -187,11 +187,11 @@ const EditStudent: React.FC<{ studentId: string | null }> = ({ studentId }) => {
         setAllStudents(response.data.data.students);
         setFilteredStudents(response.data.data.students);
       } else {
-        toast.error("Failed to fetch students");
+        showToast.error("Failed to fetch students");
       }
     } catch (error: any) {
       console.error('Error fetching students:', error);
-      toast.error(error.response?.data?.message || "Failed to fetch students");
+      showToast.error(error.response?.data?.message || "Failed to fetch students");
     } finally {
       setIsLoadingStudents(false);
     }
@@ -199,7 +199,7 @@ const EditStudent: React.FC<{ studentId: string | null }> = ({ studentId }) => {
 
   const onSubmit = async (data: StudentFormData) => {
     if (!student || !student._id) {
-      toast.error("Student ID is missing");
+      showToast.error("Student ID is missing");
       return;
     }
     
@@ -210,7 +210,7 @@ const EditStudent: React.FC<{ studentId: string | null }> = ({ studentId }) => {
       const token = localStorage.getItem("token");
       
       if (!token) {
-        toast.error("Authentication token not found. Please login again.");
+        showToast.error("Authentication token not found. Please login again.");
         setIsSubmitting(false);
         return;
       }
@@ -242,11 +242,11 @@ const EditStudent: React.FC<{ studentId: string | null }> = ({ studentId }) => {
         showToast.success('Student updated successfully!');
         setSubmitSuccess(true);
       } else {
-        toast.error(response.data?.message || 'Failed to update student');
+        showToast.error(response.data?.message || 'Failed to update student');
       }
     } catch (error: any) {
       console.error('Error updating student:', error);
-      toast.error(error.response?.data?.message || 'Failed to update student. Please try again.');
+      showToast.error(error.response?.data?.message || 'Failed to update student. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

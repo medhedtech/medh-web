@@ -28,7 +28,7 @@ export default function CourseDetailsExample() {
       setCourseId(inputValue);
       showToast.success('Course ID updated!');
     } else {
-      toast.error('Please enter a valid course ID');
+      showToast.error('Please enter a valid course ID');
     }
   };
 
