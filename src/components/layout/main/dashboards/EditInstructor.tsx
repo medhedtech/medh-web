@@ -108,7 +108,7 @@ const EditInstructor: React.FC = () => {
           url: apiUrls.instructor.getAllInstructors,
           onSuccess: () => {},
           onFail: () => {
-            toast.error('Failed to fetch instructors');
+            showToast.error('Failed to fetch instructors');
           }
         });
 
@@ -117,7 +117,7 @@ const EditInstructor: React.FC = () => {
         }
       } catch (error) {
         console.error('Error fetching instructors:', error);
-        toast.error('Failed to load instructors. Please try again.');
+        showToast.error('Failed to load instructors. Please try again.');
       } finally {
         setIsLoading(false);
       }
@@ -202,7 +202,7 @@ const EditInstructor: React.FC = () => {
             },
             onFail: (error) => {
               console.error("Image upload error:", error);
-              toast.error('Image upload failed. Please try again.');
+              showToast.error('Image upload failed. Please try again.');
             },
           });
         }
@@ -210,12 +210,12 @@ const EditInstructor: React.FC = () => {
       };
       
       reader.onerror = () => {
-        toast.error('Failed to read image file');
+        showToast.error('Failed to read image file');
         setIsLoading(false);
       };
     } catch (error) {
       console.error("Error in handleImageUpload:", error);
-      toast.error('Failed to upload image');
+      showToast.error('Failed to upload image');
       setIsLoading(false);
     }
   };
@@ -254,12 +254,12 @@ const EditInstructor: React.FC = () => {
         },
         onFail: (error) => {
           console.error("Update error:", error);
-          toast.error(error?.response?.data?.message || 'Failed to update instructor');
+          showToast.error(error?.response?.data?.message || 'Failed to update instructor');
         },
       });
     } catch (error) {
       console.error('Error updating instructor:', error);
-      toast.error('An error occurred while updating the instructor');
+      showToast.error('An error occurred while updating the instructor');
     } finally {
       setIsSubmitting(false);
     }

@@ -383,15 +383,15 @@ const UpdateCourse: React.FC = () => {
           setCategories(formattedCategories);
           
           if (formattedCategories.length === 0) {
-            toast.warning('No valid categories found. Please add categories first.');
+            showToast.warning('No valid categories found. Please add categories first.');
           }
         } else {
           console.error("No data received from categories API");
-          toast.error('No categories found. Please check the API.');
+          showToast.error('No categories found. Please check the API.');
         }
       } catch (error) {
         console.error("Error in fetchCategories:", error);
-        toast.error('Failed to load categories. Please check your connection.');
+        showToast.error('Failed to load categories. Please check your connection.');
       } finally {
         setIsLoading(false);
       }
@@ -426,7 +426,7 @@ const UpdateCourse: React.FC = () => {
         }
       } catch (error) {
         console.error('Failed to fetch instructors:', error);
-        toast.error('Failed to load instructors');
+        showToast.error('Failed to load instructors');
       } finally {
         setIsLoading(false);
       }
@@ -439,7 +439,7 @@ const UpdateCourse: React.FC = () => {
   useEffect(() => {
     const fetchCourseData = async () => {
       if (!courseId) {
-        toast.error('Course ID is missing');
+        showToast.error('Course ID is missing');
         router.push('/dashboards/admin-courses');
         return;
       }
@@ -455,7 +455,7 @@ const UpdateCourse: React.FC = () => {
           },
           onFail: (error) => {
             console.error("Error fetching course data:", error);
-            toast.error('Failed to load course data. Please try again.');
+            showToast.error('Failed to load course data. Please try again.');
             setError('Failed to load course data');
           }
         });
@@ -485,11 +485,11 @@ const UpdateCourse: React.FC = () => {
           setIsCourseLoaded(true);
           showToast.success('Course data loaded successfully');
         } else {
-          toast.error('Failed to load course data');
+          showToast.error('Failed to load course data');
         }
       } catch (error) {
         console.error("Error in fetchCourseData:", error);
-        toast.error('Failed to load course data. Please check your connection.');
+        showToast.error('Failed to load course data. Please check your connection.');
       } finally {
         setIsLoading(false);
       }
@@ -540,21 +540,21 @@ const UpdateCourse: React.FC = () => {
   const handleImageUpload = async (file: File) => {
     try {
       if (!file) {
-        toast.error('Please select a valid image file');
+        showToast.error('Please select a valid image file');
         return;
       }
 
       // Validate file type
       const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
       if (!validTypes.includes(file.type)) {
-        toast.error('Please upload a valid image file (JPEG, PNG, or WebP)');
+        showToast.error('Please upload a valid image file (JPEG, PNG, or WebP)');
         return;
       }
 
       // Validate file size (5MB limit)
       const maxSize = 10000 * 1024 * 1024; // 5MB in bytes
       if (file.size > maxSize) {
-        toast.error('Image size should be less than 5MB');
+        showToast.error('Image size should be less than 5MB');
         return;
       }
 
@@ -586,11 +586,11 @@ const UpdateCourse: React.FC = () => {
               onError: (error) => {
                 console.error("Image upload error:", error);
                 if (error?.response?.status === 413) {
-                  toast.error('Image size is too large. Please try a smaller image or compress it further.');
+                  showToast.error('Image size is too large. Please try a smaller image or compress it further.');
                 } else if (error?.message === 'Network Error') {
-                  toast.error('Network error. Please check your connection and try again.');
+                  showToast.error('Network error. Please check your connection and try again.');
                 } else {
-                  toast.error(error?.response?.data?.message || 'Image upload failed. Please try again.');
+                  showToast.error(error?.response?.data?.message || 'Image upload failed. Please try again.');
                 }
                 throw error;
               },
@@ -604,12 +604,12 @@ const UpdateCourse: React.FC = () => {
       };
       
       reader.onerror = () => {
-        toast.error('Failed to read image file');
+        showToast.error('Failed to read image file');
         setIsLoading(false);
       };
     } catch (error) {
       console.error("Error in handleImageUpload:", error);
-      toast.error('Failed to upload image');
+      showToast.error('Failed to upload image');
       setIsLoading(false);
     }
   };
@@ -768,7 +768,7 @@ const UpdateCourse: React.FC = () => {
       }
     } catch (error) {
       console.error('Error in handleStepSubmit:', error);
-      toast.error('An error occurred while submitting the form');
+      showToast.error('An error occurred while submitting the form');
     }
   };
 
@@ -855,7 +855,7 @@ const UpdateCourse: React.FC = () => {
         onFail: (error) => {
           console.error('API Error:', error);
           const errorMessage = error?.response?.data?.message || 'Failed to update course';
-          toast.error(errorMessage);
+          showToast.error(errorMessage);
           setValidationMessage(errorMessage);
           throw error;
         },
@@ -869,7 +869,7 @@ const UpdateCourse: React.FC = () => {
     } catch (error) {
       console.error("Form submission error:", error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to update course';
-      toast.error(errorMessage);
+      showToast.error(errorMessage);
       setValidationMessage(errorMessage);
       throw error;
     } finally {
@@ -1155,7 +1155,7 @@ const UpdateCourse: React.FC = () => {
     
     const isCurrentStepValid = await checkStepValidation(currentStep);
     if (!isCurrentStepValid) {
-      toast.warning('Please complete the current step before navigating');
+      showToast.warning('Please complete the current step before navigating');
       return;
     }
 

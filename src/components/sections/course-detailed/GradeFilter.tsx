@@ -150,7 +150,7 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
     } catch (err) {
       console.error('Error in course selection:', err);
       setError('Failed to select course');
-      toast.error('Unable to select course automatically');
+      showToast.error('Unable to select course automatically');
     }
   }, [displayCourses, selectedCourse, handleCourseSelection]);
 
@@ -179,7 +179,7 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
       setDropdownVisible(prev => !prev);
     } catch (err) {
       console.error('Dropdown toggle error:', err);
-      toast.error('Unable to toggle dropdown');
+      showToast.error('Unable to toggle dropdown');
     }
   }, []);
 
@@ -236,7 +236,7 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
                   handleGradeChange(formattedGrade);
                 } catch (err) {
                   console.error('Grade change error:', err);
-                  toast.error('Unable to change grade');
+                  showToast.error('Unable to change grade');
                 }
               }}
               className="appearance-none block w-full px-4 py-3 text-base transition-all duration-200 ease-in-out
@@ -379,7 +379,7 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
                           setDropdownVisible(false);
                         } catch (err) {
                           console.error('Course selection error:', err);
-                          toast.error('Unable to select course');
+                          showToast.error('Unable to select course');
                         }
                       }}
                     >

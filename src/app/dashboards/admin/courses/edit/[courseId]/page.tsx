@@ -325,11 +325,11 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
       try {
         const fallbackCourses = await loadCoursesWithFallback();
         setAllCourses(fallbackCourses);
-        toast.warning(`Loaded ${fallbackCourses.length} courses using fallback method`);
+        showToast.warning(`Loaded ${fallbackCourses.length} courses using fallback method`);
         return fallbackCourses;
       } catch (fallbackError) {
         console.error("❌ Fallback loading also failed:", fallbackError);
-        toast.error('Failed to load courses. Please check your connection.');
+        showToast.error('Failed to load courses. Please check your connection.');
         return [];
       }
     } finally {
@@ -437,7 +437,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
     } catch (error) {
       console.error("❌ Error in fetchCourse:", error);
       setError(`Failed to load course. Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      toast.error('Failed to load course');
+      showToast.error('Failed to load course');
     } finally {
       setLoadingStates(prev => ({ ...prev, course: false }));
     }
@@ -621,7 +621,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
       
     } catch (error) {
       console.error("Error fetching curriculum:", error);
-      toast.error('Failed to load curriculum');
+      showToast.error('Failed to load curriculum');
     } finally {
       setLoadingStates(prev => ({ ...prev, curriculum: false }));
     }
@@ -630,7 +630,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
   // Add new week
   const handleAddWeek = async () => {
     if (!courseType || !newWeekForm.title.trim()) {
-      toast.error('Please fill in all required fields');
+      showToast.error('Please fill in all required fields');
       return;
     }
 
@@ -638,7 +638,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
     const actualCourseId = course?._id || courseId;
     
     if (!actualCourseId) {
-      toast.error('Course ID not available. Please refresh the page.');
+      showToast.error('Course ID not available. Please refresh the page.');
       return;
     }
 
@@ -689,7 +689,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
       }
     } catch (error) {
       console.error("Error adding week:", error);
-      toast.error('Failed to add week. You can still manage existing content.');
+      showToast.error('Failed to add week. You can still manage existing content.');
     } finally {
       setLoadingStates(prev => ({ ...prev, adding: null }));
     }
@@ -743,7 +743,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
       showToast.success('Week updated successfully');
     } catch (error) {
       console.error("Error updating week:", error);
-      toast.error('Failed to update week');
+      showToast.error('Failed to update week');
     } finally {
       setLoadingStates(prev => ({ ...prev, saving: false }));
     }
@@ -776,7 +776,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
       showToast.success('Week deleted successfully');
     } catch (error) {
       console.error("Error deleting week:", error);
-      toast.error('Failed to delete week');
+      showToast.error('Failed to delete week');
     } finally {
       setLoadingStates(prev => ({ ...prev, deleting: null }));
     }
@@ -837,7 +837,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
       showToast.success('Lesson updated successfully');
     } catch (error) {
       console.error("Error updating lesson:", error);
-      toast.error('Failed to update lesson');
+      showToast.error('Failed to update lesson');
     } finally {
       setLoadingStates(prev => ({ ...prev, saving: false }));
     }
@@ -874,7 +874,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
       showToast.success('Lesson deleted successfully');
     } catch (error) {
       console.error("Error deleting lesson:", error);
-      toast.error('Failed to delete lesson');
+      showToast.error('Failed to delete lesson');
     } finally {
       setLoadingStates(prev => ({ ...prev, deleting: null }));
     }
@@ -883,13 +883,13 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
   // Add lesson to week
   const handleAddLesson = async (weekId: string) => {
     if (!courseType || !newLessonForm.title.trim()) {
-      toast.error('Please fill in all required fields');
+      showToast.error('Please fill in all required fields');
       return;
     }
 
     const actualCourseId = course?._id || courseId;
     if (!actualCourseId) {
-      toast.error('Course ID not available. Please refresh the page.');
+      showToast.error('Course ID not available. Please refresh the page.');
       return;
     }
 
@@ -909,7 +909,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
         searchingFor: weekId,
         availableWeeks: curriculum.map(w => ({ id: w._id, title: w.title }))
       });
-      toast.error(`Week not found in curriculum. Available weeks: ${curriculum.length}`);
+      showToast.error(`Week not found in curriculum. Available weeks: ${curriculum.length}`);
       return;
     }
 
@@ -921,7 +921,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
     console.log('🔍 Verifying week exists in backend before adding lesson...');
     const weekExists = await verifyAndSyncWeek(weekId);
     if (!weekExists) {
-      toast.error('Unable to verify week in backend. Please refresh and try again.');
+      showToast.error('Unable to verify week in backend. Please refresh and try again.');
       setLoadingStates(prev => ({ ...prev, adding: null }));
       return;
     }
@@ -1023,7 +1023,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
           console.log('🔍 Week not found error detected. Investigating...');
           
           // Show user the exact error and current state
-          toast.error(`Backend Error: ${errorMessage}. Please check the week exists and try again.`);
+          showToast.error(`Backend Error: ${errorMessage}. Please check the week exists and try again.`);
           
           // Try to refresh curriculum to sync data
           console.log('🔄 Refreshing curriculum to sync with backend...');
@@ -1033,7 +1033,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
         
         if (responseStatus === 401 || errorMessage.includes('token') || errorMessage.includes('auth')) {
           console.log('🔐 Authentication error detected');
-          toast.error('Authentication error. Please log in again.');
+          showToast.error('Authentication error. Please log in again.');
           return;
         }
         
@@ -1048,7 +1048,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
             ? { ...week, lessons: [...(week.lessons || []), newLesson] }
             : week
         ));
-        toast.warning('Lesson added locally (API failed). Changes may not persist.');
+        showToast.warning('Lesson added locally (API failed). Changes may not persist.');
       }
 
       setNewLessonForm({
@@ -1062,7 +1062,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
       });
     } catch (error) {
       console.error('💥 Unexpected error in handleAddLesson:', error);
-      toast.error('Failed to add lesson');
+      showToast.error('Failed to add lesson');
     } finally {
       setLoadingStates(prev => ({ ...prev, adding: null }));
     }
@@ -1119,7 +1119,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
       showToast.success('Section updated successfully');
     } catch (error) {
       console.error("Error updating section:", error);
-      toast.error('Failed to update section');
+      showToast.error('Failed to update section');
     } finally {
       setLoadingStates(prev => ({ ...prev, saving: false }));
     }
@@ -1156,7 +1156,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
       showToast.success('Section deleted successfully');
     } catch (error) {
       console.error("Error deleting section:", error);
-      toast.error('Failed to delete section');
+      showToast.error('Failed to delete section');
     } finally {
       setLoadingStates(prev => ({ ...prev, deleting: null }));
     }
@@ -1165,13 +1165,13 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
   // Add section to week
   const handleAddSection = async (weekId: string) => {
     if (!courseType || !newSectionForm.title.trim()) {
-      toast.error('Please fill in all required fields');
+      showToast.error('Please fill in all required fields');
       return;
     }
 
     const actualCourseId = course?._id || courseId;
     if (!actualCourseId) {
-      toast.error('Course ID not available. Please refresh the page.');
+      showToast.error('Course ID not available. Please refresh the page.');
       return;
     }
 
@@ -1191,7 +1191,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
         searchingFor: weekId,
         availableWeeks: curriculum.map(w => ({ id: w._id, title: w.title }))
       });
-      toast.error(`Week not found in curriculum. Available weeks: ${curriculum.length}`);
+      showToast.error(`Week not found in curriculum. Available weeks: ${curriculum.length}`);
       return;
     }
 
@@ -1203,7 +1203,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
     console.log('🔍 Verifying week exists in backend...');
     const weekExists = await verifyAndSyncWeek(weekId);
     if (!weekExists) {
-      toast.error('Unable to verify week in backend. Please refresh and try again.');
+      showToast.error('Unable to verify week in backend. Please refresh and try again.');
       setLoadingStates(prev => ({ ...prev, adding: null }));
       return;
     }
@@ -1248,7 +1248,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
           
           // Try to refresh curriculum and then retry
           await fetchCurriculum();
-          toast.error('Week not found in backend. Curriculum refreshed - please try again.');
+          showToast.error('Week not found in backend. Curriculum refreshed - please try again.');
           return;
         }
         
@@ -1263,13 +1263,13 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
             ? { ...week, sections: [...(week.sections || []), newSection] }
             : week
         ));
-        toast.warning('Section added locally (API failed). Changes may not persist.');
+        showToast.warning('Section added locally (API failed). Changes may not persist.');
       }
 
       setNewSectionForm({ title: '', description: '', order: 0 });
     } catch (error) {
       console.error('💥 Unexpected error in handleAddSection:', error);
-      toast.error('Failed to add section');
+      showToast.error('Failed to add section');
     } finally {
       setLoadingStates(prev => ({ ...prev, adding: null }));
     }
@@ -1328,7 +1328,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
       showToast.success('Live class updated successfully');
     } catch (error) {
       console.error("Error updating live class:", error);
-      toast.error('Failed to update live class');
+      showToast.error('Failed to update live class');
     } finally {
       setLoadingStates(prev => ({ ...prev, saving: false }));
     }
@@ -1365,7 +1365,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
       showToast.success('Live class deleted successfully');
     } catch (error) {
       console.error("Error deleting live class:", error);
-      toast.error('Failed to delete live class');
+      showToast.error('Failed to delete live class');
     } finally {
       setLoadingStates(prev => ({ ...prev, deleting: null }));
     }
@@ -1374,7 +1374,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
   // Add live class to week
   const handleAddLiveClass = async (weekId: string) => {
     if (!courseType || !newLiveClassForm.title.trim()) {
-      toast.error('Please fill in all required fields');
+      showToast.error('Please fill in all required fields');
       return;
     }
 
@@ -1421,7 +1421,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
       showToast.success('Live class added successfully');
     } catch (error) {
       console.error("Error adding live class:", error);
-      toast.error('Failed to add live class');
+      showToast.error('Failed to add live class');
     } finally {
       setLoadingStates(prev => ({ ...prev, adding: null }));
     }
@@ -1482,21 +1482,21 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
       // Validate file type
       if (!file.type.startsWith('image/')) {
         console.error('Invalid file type:', file.type);
-        toast.error('Please select a valid image file');
+        showToast.error('Please select a valid image file');
         return;
       }
       
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         console.error('File too large:', file.size);
-        toast.error('Image size should be less than 5MB');
+        showToast.error('Image size should be less than 5MB');
         return;
       }
       
       // Validate file is not empty
       if (file.size === 0) {
         console.error('Empty file selected');
-        toast.error('Selected file is empty');
+        showToast.error('Selected file is empty');
         return;
       }
       
@@ -1512,7 +1512,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
       };
       reader.onerror = (e) => {
         console.error('FileReader error:', e);
-        toast.error('Failed to read image file');
+        showToast.error('Failed to read image file');
       };
       reader.readAsDataURL(file);
     } else {
@@ -1536,7 +1536,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
   // Handle image upload using the new TypeScript function
   const handleImageUpload = async () => {
     if (!selectedImage || !course?._id) {
-      toast.error('Please select an image first');
+      showToast.error('Please select an image first');
       return;
     }
 
@@ -1554,7 +1554,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
     console.log('🔐 Auth token available:', !!token);
     
     if (!token) {
-      toast.error('Authentication required. Please log in again.');
+      showToast.error('Authentication required. Please log in again.');
       return;
     }
 
@@ -1596,7 +1596,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
         errorMessage = error.message;
       }
       
-      toast.error(errorMessage);
+      showToast.error(errorMessage);
     } finally {
       setLoadingStates(prev => ({ ...prev, imageUploading: false }));
     }
@@ -1611,27 +1611,27 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
   // Video upload function
   const handleVideoUpload = async (file: File, lessonFormType: 'new' | 'edit', weekId?: string) => {
     if (!file || !courseType) {
-      toast.error('Please select a video file');
+      showToast.error('Please select a video file');
       return;
     }
 
     // Validate file type
     if (!file.type.startsWith('video/')) {
-      toast.error('Please select a valid video file');
+      showToast.error('Please select a valid video file');
       return;
     }
 
     // Validate file size (max 500MB)
     const maxSize = 500 * 1024 * 1024; // 500MB in bytes
     if (file.size > maxSize) {
-      toast.error('Video file size should be less than 500MB');
+      showToast.error('Video file size should be less than 500MB');
       return;
     }
 
     // Get authentication token
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (!token) {
-      toast.error('Authentication required. Please log in again.');
+      showToast.error('Authentication required. Please log in again.');
       return;
     }
 
@@ -1765,7 +1765,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
         }
       }));
 
-      toast.error(errorMessage);
+      showToast.error(errorMessage);
       throw error;
     }
   };
@@ -1799,7 +1799,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
     const fileKey = 'new-lesson-video';
     const file = selectedVideoFile[fileKey];
     if (!file) {
-      toast.error('Please select a video file first');
+      showToast.error('Please select a video file first');
       return;
     }
 
@@ -1822,7 +1822,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
     const fileKey = `edit-lesson-${editForms.lesson._id}`;
     const file = selectedVideoFile[fileKey];
     if (!file) {
-      toast.error('Please select a video file first');
+      showToast.error('Please select a video file first');
       return;
     }
 
@@ -1892,7 +1892,7 @@ const CourseEditPage: React.FC<CourseEditPageProps> = () => {
       console.log('✅ Curriculum synchronization complete');
     } catch (error) {
       console.error('💥 Error during curriculum sync:', error);
-      toast.error('Failed to synchronize curriculum with backend');
+      showToast.error('Failed to synchronize curriculum with backend');
     }
   };
 

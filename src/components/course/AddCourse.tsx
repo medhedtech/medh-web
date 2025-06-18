@@ -158,7 +158,7 @@ const AddCourse: React.FC = () => {
       setCourseImage(previewUrl);
       setValue('course_image', previewUrl);
     } catch (error) {
-      toast.error('Failed to upload image');
+      showToast.error('Failed to upload image');
     }
   };
 
@@ -168,7 +168,7 @@ const AddCourse: React.FC = () => {
       // Implement your form submission logic here
       showToast.success('Course created successfully!');
     } catch (error) {
-      toast.error('Failed to create course');
+      showToast.error('Failed to create course');
     }
   };
 

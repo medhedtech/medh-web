@@ -74,7 +74,7 @@ const InstructorCourseMain = () => {
           showToast: false,
           onFail: (error) => {
             console.error('Failed to fetch instructor courses:', error);
-            toast.error('Failed to load your courses. Please try again.');
+            showToast.error('Failed to load your courses. Please try again.');
           }
         });
 
@@ -83,7 +83,7 @@ const InstructorCourseMain = () => {
         }
       } catch (error) {
         console.error('Error fetching instructor courses:', error);
-        toast.error('Failed to load courses');
+        showToast.error('Failed to load courses');
       } finally {
         setLoadingCourses(false);
       }

@@ -40,7 +40,7 @@ export default function AdminFeedbackComplaints() {
   const fetchData = async (url, setState) => {
     if (!url) {
       console.error("URL is undefined");
-      toast.error("Invalid API endpoint");
+      showToast.error("Invalid API endpoint");
       return;
     }
 
@@ -62,18 +62,18 @@ export default function AdminFeedbackComplaints() {
             setState(sortedData);
           } else {
             setState([]);
-            toast.error("Invalid data format received");
+            showToast.error("Invalid data format received");
           }
         },
         onError: (error) => {
           console.error("Error fetching data:", error);
           setState([]);
-          toast.error(error?.message || "Failed to fetch data");
+          showToast.error(error?.message || "Failed to fetch data");
         }
       });
     } catch (error) {
       console.error("Error fetching data:", error);
-      toast.error("Something went wrong!");
+      showToast.error("Something went wrong!");
       setState([]);
     }
   };
@@ -82,7 +82,7 @@ export default function AdminFeedbackComplaints() {
     // Check if API endpoints are defined
     if (!apiUrls?.feedbacks?.getAllFeedbacks) {
       console.error("Feedback API endpoints are not defined");
-      toast.error("API configuration error");
+      showToast.error("API configuration error");
       return;
     }
 
@@ -96,7 +96,7 @@ export default function AdminFeedbackComplaints() {
         ]);
       } catch (error) {
         console.error("Error fetching initial data:", error);
-        toast.error("Failed to load some data");
+        showToast.error("Failed to load some data");
       }
     };
 
@@ -106,7 +106,7 @@ export default function AdminFeedbackComplaints() {
   // Handle delete action
   const handleDelete = async (url, id, fetchUrl, setState) => {
     if (!url || !id) {
-      toast.error("Invalid delete request");
+      showToast.error("Invalid delete request");
       return;
     }
 
@@ -120,12 +120,12 @@ export default function AdminFeedbackComplaints() {
           fetchData(fetchUrl, setState);
         },
         onError: (error) => {
-          toast.error(error?.message || "Failed to delete");
+          showToast.error(error?.message || "Failed to delete");
           console.error("Delete failed:", error);
         }
       });
     } catch (error) {
-      toast.error("Something went wrong!");
+      showToast.error("Something went wrong!");
       console.error("Error:", error);
     }
   };
@@ -139,12 +139,12 @@ export default function AdminFeedbackComplaints() {
   // Handle form submission for status update
   const handleUpdateStatus = async () => {
     if (!editComplaint?._id) {
-      toast.error("Invalid complaint selected");
+      showToast.error("Invalid complaint selected");
       return;
     }
 
     if (!newStatus) {
-      toast.error("Please select a valid status");
+      showToast.error("Please select a valid status");
       return;
     }
 
@@ -158,12 +158,12 @@ export default function AdminFeedbackComplaints() {
           setEditComplaint(null);
         },
         onError: (error) => {
-          toast.error(error?.message || "Failed to update complaint status");
+          showToast.error(error?.message || "Failed to update complaint status");
         }
       });
     } catch (error) {
       console.error("Error updating status:", error);
-      toast.error("Unexpected error occurred");
+      showToast.error("Unexpected error occurred");
     }
   };
 

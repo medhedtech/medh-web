@@ -71,7 +71,7 @@ export default function SelectCourseModal({
 
   const handleProceedToPay = async () => {
     if (!selectedCategories.length) {
-      toast.error("Please select at least one category");
+      showToast.error("Please select at least one category");
       return;
     }
 
@@ -81,7 +81,7 @@ export default function SelectCourseModal({
       const studentId = localStorage.getItem("userId");
 
       if (!token || !studentId) {
-        toast.error("Please log in first.");
+        showToast.error("Please log in first.");
         return;
       }
 
@@ -105,13 +105,13 @@ export default function SelectCourseModal({
           });
         } catch (error) {
           console.error("Payment error:", error);
-          toast.error("Payment initialization failed. Please try again.");
+          showToast.error("Payment initialization failed. Please try again.");
           setIsProcessing(false);
         }
       }
     } catch (error) {
       console.error("Payment initialization error:", error);
-      toast.error("Failed to initialize payment. Please try again.");
+      showToast.error("Failed to initialize payment. Please try again.");
       setIsProcessing(false);
     }
   };
@@ -242,7 +242,7 @@ export default function SelectCourseModal({
       router.push("/dashboards/student-membership");
     } catch (err) {
       console.error("Error during subscription process:", err);
-      toast.error(err instanceof Error ? err.message : "An unexpected error occurred. Please try again.");
+      showToast.error(err instanceof Error ? err.message : "An unexpected error occurred. Please try again.");
     }
   };
 

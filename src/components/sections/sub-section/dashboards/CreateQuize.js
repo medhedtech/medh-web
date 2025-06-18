@@ -72,7 +72,7 @@ const CreateQuize = () => {
       url: apiUrls?.quzies?.getQuizes,
       onSuccess: (res) => setData(res),
       onFail: () => {
-        toast.error("Something went wrong");
+        showToast.error("Something went wrong");
       },
     });
   };

@@ -138,7 +138,7 @@ const AdminAnnouncements: React.FC = () => {
       }
     } catch (err) {
       console.error('Error deleting announcement:', err);
-      toast.error('Failed to delete announcement');
+      showToast.error('Failed to delete announcement');
     }
   };
 

@@ -49,12 +49,12 @@ const CertificatePage = () => {
         onFail: (error) => {
           setUsers([]);
           console.error("Failed to fetch enrolled courses:", error);
-          toast.error("Failed to fetch certificates");
+          showToast.error("Failed to fetch certificates");
         },
       });
     } catch (error) {
       console.error("Error fetching certificates:", error);
-      toast.error("Something went wrong!");
+      showToast.error("Something went wrong!");
     } finally {
       setLoading(false);
     }
@@ -94,12 +94,12 @@ const CertificatePage = () => {
             fetchCertificates(); // Refresh the list
           },
           onFail: (error) => {
-            toast.error("Failed to create certificate");
+            showToast.error("Failed to create certificate");
             console.error("Failed to create certificate:", error);
           },
         });
       } catch (error) {
-        toast.error("Error generating certificate");
+        showToast.error("Error generating certificate");
         console.error("Error generating certificate:", error);
       }
     }

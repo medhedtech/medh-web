@@ -870,12 +870,12 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   // Handle enrollment through Razorpay with Installment support
   const handleRazorpayPayment = async (): Promise<void> => {
     if (!courseDetails?._id) {
-      toast.error("Course information is missing");
+      showToast.error("Course information is missing");
       return;
     }
 
     if (!activePricing) {
-      toast.error("Pricing information is missing");
+      showToast.error("Pricing information is missing");
       return;
     }
 
@@ -982,7 +982,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     } catch (err: any) {
       console.error("Enrollment error:", err);
       setError(err.message || "Failed to process enrollment");
-      toast.error("Enrollment failed. Please try again.");
+      showToast.error("Enrollment failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -1067,7 +1067,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       }
     } catch (error: any) {
       console.error("Enrollment error:", error);
-      toast.error(error.response?.data?.message || "Failed to enroll in the course.");
+      showToast.error(error.response?.data?.message || "Failed to enroll in the course.");
       return false;
     }
   };
@@ -1153,12 +1153,12 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   // Handle enrollment click with additional checks
   const handleEnrollClick = useCallback(async () => {
     if (!courseDetails?._id) {
-      toast.error("Course information is missing");
+      showToast.error("Course information is missing");
       return;
     }
 
     if (!activePricing && !courseDetails.isFree) {
-      toast.error("Pricing information is missing");
+      showToast.error("Pricing information is missing");
       return;
     }
     
@@ -1176,12 +1176,12 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       if (userId) {
         const isEnrolled = await checkEnrollmentStatus(userId, courseDetails._id);
         if (isEnrolled) {
-          toast.error("You are already enrolled in this course!");
+          showToast.error("You are already enrolled in this course!");
           router.push('/dashboards/my-courses');
           return;
         }
       } else {
-        toast.error("User identification is missing. Please log in again.");
+        showToast.error("User identification is missing. Please log in again.");
         router.push('/login');
         return;
       }
@@ -1220,7 +1220,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     } catch (err: any) {
       console.error("Enrollment error:", err);
       setError(err.message || "Failed to process enrollment");
-      toast.error("Enrollment failed. Please try again.");
+      showToast.error("Enrollment failed. Please try again.");
     } finally {
       setLoading(false);
     }

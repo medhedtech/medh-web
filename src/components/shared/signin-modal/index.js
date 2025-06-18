@@ -112,7 +112,7 @@ const SignInModal = ({ isOpen, onClose }) => {
       onFail: (error) => {
         console.error("Login failed:", error);
         setErrorMessage("Invalid credentials! Please try again.");
-        toast.error("Invalid credentials! Please try again.");
+        showToast.error("Invalid credentials! Please try again.");
       },
     });
   };

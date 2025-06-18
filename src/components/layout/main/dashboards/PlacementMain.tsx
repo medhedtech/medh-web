@@ -358,11 +358,11 @@ const PlacementMain: React.FC = () => {
         reset();
         setActiveTab(0);
       } else {
-        toast.error("Failed to submit the application. Please try again.");
+        showToast.error("Failed to submit the application. Please try again.");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      toast.error("An error occurred. Please try again.");
+      showToast.error("An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }

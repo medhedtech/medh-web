@@ -108,7 +108,7 @@ class ToastManager {
 
     switch (type) {
       case 'success':
-        toastResult = showToast.success(message, toastOptions);
+        toastResult = toast.success(message, toastOptions);
         break;
       case 'error':
         toastResult = toast.error(message, toastOptions);

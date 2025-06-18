@@ -19,7 +19,7 @@ const QuizQuestionsDetails = () => {
       url: `${apiUrls?.quzies?.getQuizesById}/${id}`,
       onSuccess: (res) => setQuizData(res),
       onFail: (err) => {
-        toast.error("Something went wrong");
+        showToast.error("Something went wrong");
       },
     });
   };

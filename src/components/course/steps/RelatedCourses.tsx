@@ -76,7 +76,7 @@ const RelatedCourses: React.FC<RelatedCoursesProps> = ({
           url: url,
           onSuccess: () => {},
           onError: () => {
-            toast.error('Failed to fetch courses');
+            showToast.error('Failed to fetch courses');
             setAllCourses([]);
             setSearchResults([]);
           }
@@ -90,7 +90,7 @@ const RelatedCourses: React.FC<RelatedCoursesProps> = ({
           setSearchResults([]);
         }
       } catch (error) {
-        toast.error('Failed to fetch courses');
+        showToast.error('Failed to fetch courses');
         setAllCourses([]);
         setSearchResults([]);
       } finally {
@@ -123,7 +123,7 @@ const RelatedCourses: React.FC<RelatedCoursesProps> = ({
         url: url,
         onSuccess: () => {},
         onError: () => {
-          toast.error('Failed to fetch search results');
+          showToast.error('Failed to fetch search results');
           setSearchResults([]);
         }
       });
@@ -134,7 +134,7 @@ const RelatedCourses: React.FC<RelatedCoursesProps> = ({
         setSearchResults([]);
       }
     } catch (error) {
-      toast.error('Failed to fetch courses');
+      showToast.error('Failed to fetch courses');
       setSearchResults([]);
     } finally {
       setIsSearching(false);
@@ -180,7 +180,7 @@ const RelatedCourses: React.FC<RelatedCoursesProps> = ({
 
   const addCourse = (course: Course) => {
     if (selectedCourses.some((c) => c.course_id === course._id)) {
-      toast.warning('This course is already added');
+      showToast.warning('This course is already added');
       return;
     }
 

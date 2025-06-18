@@ -45,7 +45,7 @@ const ManageAnnouncements: React.FC = () => {
       }
     } catch (err) {
       console.error('Error fetching announcements:', err);
-      toast.error('Failed to load announcements');
+      showToast.error('Failed to load announcements');
     } finally {
       setIsLoading(false);
     }
@@ -58,7 +58,7 @@ const ManageAnnouncements: React.FC = () => {
   // Handle bulk actions
   const handleBulkAction = async (action: 'archive' | 'delete' | 'publish') => {
     if (selectedIds.length === 0) {
-      toast.error('Please select announcements first');
+      showToast.error('Please select announcements first');
       return;
     }
 
@@ -79,7 +79,7 @@ const ManageAnnouncements: React.FC = () => {
       setSelectedIds([]);
       fetchAnnouncements();
     } catch (err) {
-      toast.error(`Failed to ${action} announcements`);
+      showToast.error(`Failed to ${action} announcements`);
     }
   };
 
@@ -92,7 +92,7 @@ const ManageAnnouncements: React.FC = () => {
       showToast.success('Announcement deleted');
       fetchAnnouncements();
     } catch (err) {
-      toast.error('Failed to delete announcement');
+      showToast.error('Failed to delete announcement');
     }
   };
 

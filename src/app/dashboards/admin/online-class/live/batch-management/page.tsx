@@ -631,7 +631,7 @@ const BatchManagementPage: React.FC = () => {
     } catch (error) {
       console.error('Error fetching batches:', error);
       
-      toast.error('Failed to load batches. Using fallback data for development.');
+      showToast.error('Failed to load batches. Using fallback data for development.');
       
       // Fallback to mock data for development
       if (selectedCourse === '67c194158a56e7688ddcf320') {
@@ -724,7 +724,7 @@ const BatchManagementPage: React.FC = () => {
       console.error('Error deleting batch:', error);
       // Rollback optimistic update
       setBatches(originalBatches);
-      toast.error('Failed to delete batch');
+      showToast.error('Failed to delete batch');
     }
   };
 
@@ -823,7 +823,7 @@ const BatchManagementPage: React.FC = () => {
       console.error('Error updating batch status:', error);
       // Rollback optimistic update
       setBatches(originalBatches);
-      toast.error('Failed to update batch status');
+      showToast.error('Failed to update batch status');
     } finally {
       setStatusUpdateLoading(null);
     }
@@ -900,7 +900,7 @@ const BatchManagementPage: React.FC = () => {
       
       // Validate individual batch requirements
       if (formData.capacity && formData.capacity !== 1) {
-        toast.error('Individual batch type can only have capacity of 1');
+        showToast.error('Individual batch type can only have capacity of 1');
         return;
       }
       
@@ -949,15 +949,15 @@ const BatchManagementPage: React.FC = () => {
       
       // Handle specific error messages from the API
       if (error.message.includes('capacity')) {
-        toast.error('Individual batch type can only have capacity of 1');
+        showToast.error('Individual batch type can only have capacity of 1');
       } else if (error.message.includes('batch_type')) {
-        toast.error('Invalid batch_type. Must be "individual" for individual batches');
+        showToast.error('Invalid batch_type. Must be "individual" for individual batches');
       } else if (error.message.includes('Course ID')) {
-        toast.error('Course selection is required for individual batch creation');
+        showToast.error('Course selection is required for individual batch creation');
       } else if (error.message.includes('student_id') || error.message.includes('student')) {
-        toast.error('Student selection is required for individual batch with auto-enrollment');
+        showToast.error('Student selection is required for individual batch with auto-enrollment');
       } else {
-        toast.error(error.message || 'Failed to create individual batch');
+        showToast.error(error.message || 'Failed to create individual batch');
       }
     } finally {
       setLoading(false);
@@ -1036,15 +1036,15 @@ const BatchManagementPage: React.FC = () => {
           setModalInstructors(transformedInstructors);
           
           if (transformedInstructors.length === 0) {
-            toast.warning('No instructors available. Please assign instructor roles first.');
+            showToast.warning('No instructors available. Please assign instructor roles first.');
           }
         } else {
           setModalInstructors([]);
-          toast.error('Failed to load instructors from server');
+          showToast.error('Failed to load instructors from server');
         }
       } catch (error) {
         console.error('Error fetching instructors:', error);
-        toast.error(`Failed to load instructors: ${error instanceof Error ? error.message : 'Please try again'}`);
+        showToast.error(`Failed to load instructors: ${error instanceof Error ? error.message : 'Please try again'}`);
         setModalInstructors([]);
       } finally {
         setModalLoading(false);
@@ -1088,7 +1088,7 @@ const BatchManagementPage: React.FC = () => {
       } catch (error) {
         console.error('Error fetching modal courses:', error);
         setModalCourses([]);
-        toast.error('Failed to load courses');
+        showToast.error('Failed to load courses');
       } finally {
         setModalLoading(false);
       }
@@ -1123,15 +1123,15 @@ const BatchManagementPage: React.FC = () => {
           setModalStudents(transformedStudents);
           
           if (transformedStudents.length === 0) {
-            toast.warning('No students available');
+            showToast.warning('No students available');
           }
         } else {
           setModalStudents([]);
-          toast.error('Failed to load students from server');
+          showToast.error('Failed to load students from server');
         }
       } catch (error) {
         console.error('Error fetching students:', error);
-        toast.error(`Failed to load students: ${error instanceof Error ? error.message : 'Please try again'}`);
+        showToast.error(`Failed to load students: ${error instanceof Error ? error.message : 'Please try again'}`);
         setModalStudents([]);
       } finally {
         setModalLoading(false);
@@ -1184,7 +1184,7 @@ const BatchManagementPage: React.FC = () => {
       e.preventDefault();
       
       if (!formData.course || !formData.instructor || !formData.batch_name) {
-        toast.error('Please fill in all required fields');
+        showToast.error('Please fill in all required fields');
         return;
       }
 
@@ -1559,7 +1559,7 @@ const BatchManagementPage: React.FC = () => {
     } catch (error) {
       console.error('Error refreshing data:', error);
       if (source !== 'auto') {
-        toast.error('Failed to refresh data');
+        showToast.error('Failed to refresh data');
       }
     } finally {
       if (showLoading) {

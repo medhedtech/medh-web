@@ -597,7 +597,7 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
   // Mark the current lesson as complete
   const markLessonComplete = useCallback(async (completionData: CompletionData): Promise<boolean> => {
     if (!lessonId) {
-      toast.error('No lesson selected to mark as complete');
+      showToast.error('No lesson selected to mark as complete');
       return false;
     }
     
@@ -691,7 +691,7 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
       throw new Error("Failed to mark lesson as complete");
     } catch (err: any) {
       const processedError = handleApiError(err);
-      toast.error(processedError.message);
+      showToast.error(processedError.message);
       throw processedError;
     } finally {
       setPostLoading(false);
@@ -701,7 +701,7 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
   // Submit assignment data
   const submitAssignment = useCallback(async (assignmentData: AssignmentData) => {
     if (!lessonId) {
-      toast.error('No lesson selected to submit assignment');
+      showToast.error('No lesson selected to submit assignment');
       return false;
     }
     
@@ -712,7 +712,7 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
       // If no token, show demo message
       if (!token) {
         console.warn('No authentication token - assignment submission not available in demo mode');
-        toast.info('Assignment submission is not available in demo mode. Please log in to submit assignments.');
+        showToast.info('Assignment submission is not available in demo mode. Please log in to submit assignments.');
         return false;
       }
       
@@ -737,7 +737,7 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
       throw new Error("Failed to submit assignment");
     } catch (err: any) {
       const processedError = handleApiError(err);
-      toast.error(processedError.message);
+      showToast.error(processedError.message);
       throw processedError;
     } finally {
       setPostLoading(false);
@@ -747,7 +747,7 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
   // Submit quiz data
   const submitQuiz = useCallback(async (quizData: QuizData) => {
     if (!lessonId) {
-      toast.error('No lesson selected to submit quiz');
+      showToast.error('No lesson selected to submit quiz');
       return false;
     }
     
@@ -758,7 +758,7 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
       // If no token, show demo message
       if (!token) {
         console.warn('No authentication token - quiz submission not available in demo mode');
-        toast.info('Quiz submission is not available in demo mode. Please log in to submit quizzes.');
+        showToast.info('Quiz submission is not available in demo mode. Please log in to submit quizzes.');
         return false;
       }
       
@@ -777,7 +777,7 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
       throw new Error("Failed to submit quiz");
     } catch (err: any) {
       const processedError = handleApiError(err);
-      toast.error(processedError.message);
+      showToast.error(processedError.message);
       throw processedError;
     } finally {
       setPostLoading(false);
@@ -916,7 +916,7 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
               console.log('Lesson not found, but curriculum has content - showing first available lesson');
               // If curriculum has content but specific lesson not found, show a helpful message
               if (curriculumService.hasContent(curriculum)) {
-                toast.info('Redirecting to the first available lesson in this course.');
+                showToast.info('Redirecting to the first available lesson in this course.');
                 // You might want to redirect to the first lesson here
               } else {
                 throw new Error(`Lesson with ID ${lessonId} not found in this course.`);
@@ -934,9 +934,9 @@ export const useCourseLesson = (courseId: string, lessonId: string = '') => {
         
         // Provide more specific error messages for curriculum issues
         if (err.message?.includes('curriculum') || err.message?.includes('No curriculum available')) {
-          toast.error('Course content is being set up. Please try again later or contact support.');
+          showToast.error('Course content is being set up. Please try again later or contact support.');
         } else {
-          toast.error(processedError.message);
+          showToast.error(processedError.message);
         }
       } finally {
         setLoading(false);

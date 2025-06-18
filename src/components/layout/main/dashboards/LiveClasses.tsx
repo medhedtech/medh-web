@@ -211,11 +211,11 @@ const LiveClasses: React.FC = () => {
           setLoading(false);
           
           if (err?.response?.status === 404) {
-            toast.info("No live classes found for your account");
+            showToast.info("No live classes found for your account");
             setClasses([]);
             setFilteredClasses([]);
           } else {
-            toast.error(errorMessage);
+            showToast.error(errorMessage);
           }
         },
       });
@@ -223,7 +223,7 @@ const LiveClasses: React.FC = () => {
       console.error("Unexpected error:", error);
       setError("An unexpected error occurred while fetching live classes");
       setLoading(false);
-      toast.error("Failed to load live classes");
+      showToast.error("Failed to load live classes");
     }
   };
 
@@ -361,7 +361,7 @@ const LiveClasses: React.FC = () => {
       window.open(meetLink, "_blank", "noopener,noreferrer");
       showToast.success(`Joining: ${liveClass.title || liveClass.meet_title}`);
     } else {
-      toast.error("Meeting link not available");
+      showToast.error("Meeting link not available");
     }
   };
 
@@ -419,7 +419,7 @@ const LiveClasses: React.FC = () => {
     const startTime = liveClass.startTime || liveClass.time || liveClass.start_time || "";
     
     if (!startDate || !startTime) {
-      toast.error("Date/time information not available");
+      showToast.error("Date/time information not available");
       return;
     }
     

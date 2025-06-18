@@ -86,7 +86,7 @@ export const useCurrencyCourses = (initialOptions?: CurrencyCoursesOptions): Use
       const errorMessage = error.message || 'Failed to fetch courses';
       console.error('Error fetching courses:', error);
       setCoursesError(new Error(errorMessage));
-      toast.error(errorMessage);
+      showToast.error(errorMessage);
       return null;
     } finally {
       setCoursesLoading(false);
