@@ -4,6 +4,9 @@ import React from 'react';
 import { Share2, Bookmark } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
+// Create showToast alias for consistency
+const showToast = toast;
+
 interface BlogActionsProps {
   blogId: string;
 }

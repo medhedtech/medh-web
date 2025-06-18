@@ -7,6 +7,7 @@ import "@/styles/glassmorphism.css";
 
 // Lazy loading - simplified without extra wrapper
 const HomeCourseSection = React.lazy(() => import("@/components/sections/courses/HomeCourseSection2"));
+const JobGuaranteedSection = React.lazy(() => import("@/components/sections/job-guaranteed/JobGuaranteedSection"));
 const WhyMedh = React.lazy(() => import("@/components/sections/why-medh/WhyMedh2"));
 const JoinMedh = React.lazy(() => import("@/components/sections/hire/JoinMedh2"));
 const Hire = React.lazy(() => import("@/components/sections/hire/Hire2"));
@@ -184,6 +185,13 @@ const Home2: React.FC = () => {
                   CustomDescription="Skill Development Courses"
                   hideGradeFilter
                 />
+              </React.Suspense>
+            </section>
+
+            {/* Job Guaranteed Section */}
+            <section className="w-full relative z-10">
+              <React.Suspense fallback={<div className="h-96 flex items-center justify-center"><div className="animate-spin rounded-full h-6 w-6 border-t-2 border-primary-500" /></div>}>
+                <JobGuaranteedSection showStats={false} />
               </React.Suspense>
             </section>
 

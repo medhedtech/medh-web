@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import placement from "@/assets/images/iso/pllacement-logo.png";
+import medhLogo from "@/assets/images/logo/medh 2.png";
 
 // Import certification images
 import iso9001Emblem from "@/assets/images/certifications/ISO_9001-2015_Emblem.jpg";
@@ -119,50 +120,7 @@ const WhyMedh: React.FC = () => {
   return (
     <div className={`w-full transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} py-8 bg-gradient-to-br from-gray-50/50 to-white dark:from-gray-900/50 dark:to-gray-800/50`}>
       
-      {/* Job Guarantee Section */}
-      <section className="w-full py-8 md:py-12 relative">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="relative flex flex-col items-center gap-8 md:gap-12">
-            
-            {/* Content */}
-            <div className="w-full max-w-2xl text-center relative">
-              <div className="inline-flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg">
-                  <Shield className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-sm font-medium text-green-600 dark:text-green-400 uppercase tracking-wider">
-                  100% Job-guaranteed
-                </span>
-              </div>
-              
-              <Image
-                src={placement}
-                width={260}
-                height={140}
-                alt="100% Job-guaranteed"
-                className="mx-auto mb-6 w-auto h-auto max-w-[200px] sm:max-w-[260px]"
-                priority
-              />
-              
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-gray-900 dark:text-white leading-tight">
-                100% Job-guaranteed Courses from <span className="text-green-600 dark:text-green-400">Medh</span>.
-              </h2>
-              
-              <p className="text-gray-600 dark:text-gray-300 mb-8 text-lg leading-relaxed">
-                Transform your career with our industry-aligned programs and guaranteed placement support.
-              </p>
-              
-              <button
-                onClick={handleGetStarted}
-                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl group"
-              >
-                <span>Explore Job-guaranteed Courses</span>
-                <ArrowUpRight size={18} className="ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
+
 
       {/* Why Choose MEDH Section */}
       <section className="w-full py-8 md:py-12">
@@ -179,7 +137,20 @@ const WhyMedh: React.FC = () => {
               </span>
             </div>
             <h2 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900 dark:text-white">
-              Why Choose <span className="text-green-600 dark:text-green-400">MEDH</span>?
+              Why Choose{" "}
+              <span className="inline-flex items-baseline align-baseline">
+                <Image 
+                  src={medhLogo} 
+                  alt="Medh Logo" 
+                  width={32} 
+                  height={32} 
+                  className="inline-block h-6 sm:h-7 md:h-8 w-auto align-baseline mx-1"
+                  style={{ 
+                    filter: 'brightness(1.1) contrast(1.2)',
+                    verticalAlign: 'baseline'
+                  }}
+                />
+              </span>?
             </h2>
             <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
               Empowering learners with the freedom to explore, we go beyond fundamentals, fostering critical thinking and creativity.
@@ -222,7 +193,7 @@ const WhyMedh: React.FC = () => {
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 mb-8">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg">
-                <Trophy className="w-4 h-4 text-white" />
+                <Trophy className={`w-4 h-4 ${isDark ? 'text-white' : 'text-black'}`} />
               </div>
               <h3 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">
                 Our Quality Certifications!
@@ -231,6 +202,43 @@ const WhyMedh: React.FC = () => {
             <p className="text-lg text-gray-600 dark:text-gray-300 mb-10">
               Certified Standards That Ensure Your Success
             </p>
+            
+            {/* Featured Certifications - Main Display */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-8 mb-12">
+              {/* STEM Certified */}
+              <div className="text-center">
+                <div className="w-24 h-24 mx-auto mb-4 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-lg">
+                  <Image
+                    src={stemAccreditation}
+                    alt="STEM Certified"
+                    width={80}
+                    height={80}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <h4 className="font-semibold text-gray-800 dark:text-white mb-2">STEM Certified</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300 max-w-xs">
+                  Recognized excellence in Science, Technology, Engineering, and Mathematics education.
+                </p>
+              </div>
+              
+              {/* ISO Certified */}
+              <div className="text-center">
+                <div className="w-24 h-24 mx-auto mb-4 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-lg">
+                  <Image
+                    src={iso9001Emblem}
+                    alt="ISO Certified"
+                    width={80}
+                    height={80}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <h4 className="font-semibold text-gray-800 dark:text-white mb-2">ISO Certified</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300 max-w-xs">
+                  Recognized international standards of quality, security, and reliability, protecting your data.
+                </p>
+              </div>
+            </div>
             
             {/* Certification Categories with Images */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12">
@@ -325,43 +333,6 @@ const WhyMedh: React.FC = () => {
                     <div className="text-sm font-medium text-gray-700 dark:text-gray-300">ISO 22301</div>
                   </div>
                 </div>
-              </div>
-            </div>
-            
-            {/* Featured Certifications - Main Display */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-8 mb-12">
-              {/* STEM Certified */}
-              <div className="text-center">
-                <div className="w-24 h-24 mx-auto mb-4 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-lg">
-                  <Image
-                    src={stemAccreditation}
-                    alt="STEM Certified"
-                    width={80}
-                    height={80}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <h4 className="font-semibold text-gray-800 dark:text-white mb-2">STEM Certified</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-300 max-w-xs">
-                  Recognized excellence in Science, Technology, Engineering, and Mathematics education.
-                </p>
-              </div>
-              
-              {/* ISO Certified */}
-              <div className="text-center">
-                <div className="w-24 h-24 mx-auto mb-4 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-lg">
-                  <Image
-                    src={iso9001Emblem}
-                    alt="ISO Certified"
-                    width={80}
-                    height={80}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <h4 className="font-semibold text-gray-800 dark:text-white mb-2">ISO Certified</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-300 max-w-xs">
-                  Recognized international standards of quality, security, and reliability, protecting your data.
-                </p>
               </div>
             </div>
             
