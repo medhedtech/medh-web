@@ -121,7 +121,7 @@ export default function CreateInstructorPage() {
   const handleImageUpload = async (file: File) => {
     try {
       if (!file) {
-        toast.error('Please select a valid image file');
+        showToast.error('Please select a valid image file');
         return;
       }
       
@@ -147,12 +147,12 @@ export default function CreateInstructorPage() {
                 showToast.success('Image uploaded successfully');
               } else {
                 console.error("Unexpected image upload response format:", response);
-                toast.error('Invalid image upload response format');
+                showToast.error('Invalid image upload response format');
               }
             },
             onFail: (error) => {
               console.error("Image upload error:", error);
-              toast.error('Image upload failed. Please try again.');
+              showToast.error('Image upload failed. Please try again.');
             },
           });
           setIsLoading(false);
@@ -160,12 +160,12 @@ export default function CreateInstructorPage() {
       };
       
       reader.onerror = () => {
-        toast.error('Failed to read image file');
+        showToast.error('Failed to read image file');
         setIsLoading(false);
       };
     } catch (error) {
       console.error("Error in handleImageUpload:", error);
-      toast.error('Failed to upload image');
+      showToast.error('Failed to upload image');
       setIsLoading(false);
     }
   };
@@ -306,7 +306,7 @@ export default function CreateInstructorPage() {
         },
         onFail: (error) => {
           const errorMessage = error?.response?.data?.message || 'Failed to create instructor';
-          toast.error(errorMessage);
+          showToast.error(errorMessage);
           throw new Error(errorMessage);
         },
       });
@@ -317,7 +317,7 @@ export default function CreateInstructorPage() {
     } catch (error) {
       console.error("Form submission error:", error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to create instructor';
-      toast.error(errorMessage);
+      showToast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

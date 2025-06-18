@@ -157,7 +157,7 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onCancel, onSuccess }) 
       })
       .catch(err => {
         console.error('Failed to copy password: ', err);
-        toast.error("Failed to copy password");
+        showToast.error("Failed to copy password");
       });
   }, [useManualPassword, currentPassword, generatedPassword]);
 
@@ -167,7 +167,7 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onCancel, onSuccess }) 
       const password = data.use_manual_password ? data.password : generatedPassword;
       
       if (!password) {
-        toast.error('Password is required');
+        showToast.error('Password is required');
         return;
       }
 
@@ -175,7 +175,7 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onCancel, onSuccess }) 
       if (data.use_manual_password) {
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
         if (!passwordRegex.test(password)) {
-          toast.error('Password must contain at least one uppercase letter, one lowercase letter, one number and one special character (@$!%*?&)');
+          showToast.error('Password must contain at least one uppercase letter, one lowercase letter, one number and one special character (@$!%*?&)');
           return;
         }
       }
@@ -216,7 +216,7 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onCancel, onSuccess }) 
 
       if (!response.ok) {
         if (response.status === 401) {
-          toast.error('Session expired. Please login again.');
+          showToast.error('Session expired. Please login again.');
           // Handle session expiry - redirect to login or refresh token
           return;
         }
@@ -235,7 +235,7 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onCancel, onSuccess }) 
       }, 2000);
     } catch (error) {
       console.error('Error adding student:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to add student');
+      showToast.error(error instanceof Error ? error.message : 'Failed to add student');
     }
   }, [reset, onCancel, generatedPassword, onSuccess]);
 

@@ -48,7 +48,7 @@ const AssignStudent: React.FC = () => {
   });
 
   const onSubmit = async (data: StudentFormData) => {
-    toast.info("Feature coming soon");
+    showToast.info("Feature coming soon");
     console.log(data);
   };
 

@@ -61,12 +61,12 @@ const StudentMembershipCard = () => {
           },
           onFail: (err) => {
             console.error("Error fetching courses:", err);
-            toast.error("Failed to fetch courses. Please try again.");
+            showToast.error("Failed to fetch courses. Please try again.");
           },
         });
       } catch (err) {
         console.error(err);
-        toast.error("An error occurred while fetching courses.");
+        showToast.error("An error occurred while fetching courses.");
       }
     };
 
@@ -106,7 +106,7 @@ const StudentMembershipCard = () => {
         },
         onFail: (err) => {
           console.error("Error fetching memberships:", err);
-          toast.error("Failed to fetch memberships. Please try again.");
+          showToast.error("Failed to fetch memberships. Please try again.");
         },
       });
     };

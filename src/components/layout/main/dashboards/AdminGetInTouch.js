@@ -60,7 +60,7 @@ export default function GetInTouch() {
       onFail: () => {
         setContacts([]);
         setFilteredContacts([]);
-        toast.error("Failed to fetch contacts");
+        showToast.error("Failed to fetch contacts");
       },
     });
   };
@@ -77,7 +77,7 @@ export default function GetInTouch() {
       },
       onFail: () => {
         setCorporates([]);
-        toast.error("Failed to fetch corporates");
+        showToast.error("Failed to fetch corporates");
       },
     });
   };
@@ -141,7 +141,7 @@ export default function GetInTouch() {
         }
       },
       onFail: (error) => {
-        toast.error("Failed to delete");
+        showToast.error("Failed to delete");
         console.error("Delete failed:", error);
       },
     });

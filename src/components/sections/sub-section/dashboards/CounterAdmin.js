@@ -145,26 +145,26 @@ const CounterAdmin = ({ title = "Dashboard Overview", subtitle = "Monitor key me
               console.warn("Unexpected API response format:", response);
               setCounts(INITIAL_COUNTS);
               setError("Invalid data format received from server");
-              toast.error("Invalid data format received");
+              showToast.error("Invalid data format received");
             }
           } else {
             // If response is null or undefined
             console.warn("Empty API response received");
             setCounts(INITIAL_COUNTS);
             setError("Empty response received from server");
-            toast.error("Empty response received");
+            showToast.error("Empty response received");
           }
         },
         onFail: (error) => {
           console.error("Failed to fetch counts:", error);
           setError("Failed to fetch dashboard data");
-          toast.error("Failed to fetch dashboard data");
+          showToast.error("Failed to fetch dashboard data");
         },
       });
     } catch (error) {
       console.error("Error fetching counts:", error);
       setError("Something went wrong while fetching data");
-      toast.error("Something went wrong!");
+      showToast.error("Something went wrong!");
     } finally {
       setIsRefreshing(false);
     }

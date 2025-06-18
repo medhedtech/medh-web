@@ -132,12 +132,12 @@ export const useBlog = (blogId: string = '') => {
   // Like blog - Protected action
   const likeBlog = useCallback(async (): Promise<boolean> => {
     if (!blogId) {
-      toast.error('No blog selected to like');
+      showToast.error('No blog selected to like');
       return false;
     }
     
     if (!isAuthenticated) {
-      toast.info('Please log in to like this blog');
+      showToast.info('Please log in to like this blog');
       return false;
     }
     
@@ -162,7 +162,7 @@ export const useBlog = (blogId: string = '') => {
       throw new Error("Failed to like blog");
     } catch (err: any) {
       const processedError = handleApiError(err);
-      toast.error(processedError.message);
+      showToast.error(processedError.message);
       return false;
     } finally {
       setPostLoading(false);
@@ -172,12 +172,12 @@ export const useBlog = (blogId: string = '') => {
   // Add comment - Protected action
   const addComment = useCallback(async (comment: CommentInput): Promise<boolean> => {
     if (!blogId) {
-      toast.error('No blog selected to comment on');
+      showToast.error('No blog selected to comment on');
       return false;
     }
     
     if (!isAuthenticated) {
-      toast.info('Please log in to comment on this blog');
+      showToast.info('Please log in to comment on this blog');
       return false;
     }
     
@@ -209,7 +209,7 @@ export const useBlog = (blogId: string = '') => {
       throw new Error("Failed to add comment");
     } catch (err: any) {
       const processedError = handleApiError(err);
-      toast.error(processedError.message);
+      showToast.error(processedError.message);
       return false;
     } finally {
       setPostLoading(false);
@@ -306,7 +306,7 @@ export const useBlog = (blogId: string = '') => {
         const processedError = handleApiError(err);
         setError(processedError);
         if (processedError.message !== 'Authentication Required') {
-          toast.error(processedError.message);
+          showToast.error(processedError.message);
         }
       } finally {
         setLoading(false);

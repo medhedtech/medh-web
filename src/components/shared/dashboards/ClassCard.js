@@ -85,7 +85,7 @@ export default ClassCard;
 // try {
 //   const studentId = localStorage.getItem("userId");
 //   if (!studentId) {
-//     toast.error("Please log in to join classes.");
+//     showToast.error("Please log in to join classes.");
 //     return;
 //   }
 //   await postQuery({
@@ -98,10 +98,10 @@ export default ClassCard;
 //       showToast.success("Hurray ! You are enrolled successfully.");
 //     },
 //     onFail: () => {
-//       toast.error("Error enrolling in the course. Please try again.");
+//       showToast.error("Error enrolling in the course. Please try again.");
 //     },
 //   });
 // } catch (error) {
 //   console.error("An error occurred:", error);
-//   toast.error("An unexpected error occurred. Please try again.");
+//   showToast.error("An unexpected error occurred. Please try again.");
 // }

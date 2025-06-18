@@ -631,7 +631,7 @@ const AssignInstructorModal: React.FC<IAssignInstructorModalProps> = ({
   // Enhanced assignment handling
   const handleAssign = useCallback(async () => {
     if (!selectedInstructorId) {
-      toast.error("Please select an instructor");
+      showToast.error("Please select an instructor");
       return;
     }
 
@@ -1090,7 +1090,7 @@ const BulkEditModal: React.FC<IBulkEditModalProps> = ({
 
   const handleUpdate = async () => {
     if (Object.keys(updateData).length === 0) {
-      toast.error("Please select at least one field to update");
+      showToast.error("Please select at least one field to update");
       return;
     }
 
@@ -1350,7 +1350,7 @@ const ExportModal: React.FC<IExportModalProps> = ({
       onClose();
     } catch (error) {
       console.error('Export error:', error);
-      toast.error('Failed to export courses');
+      showToast.error('Failed to export courses');
     } finally {
       setIsExporting(false);
     }
@@ -1566,12 +1566,12 @@ const ListOfCourse: React.FC = () => {
         },
         onFail: (err: any) => {
           console.error("Failed to fetch courses:", err);
-          toast.error("Could not fetch courses");
+          showToast.error("Could not fetch courses");
         },
       });
     } catch (err) {
       console.error("Error fetching courses:", err);
-      toast.error("Could not fetch courses");
+      showToast.error("Could not fetch courses");
     }
   }, [getQuery, instructorNames]);
 
@@ -1949,12 +1949,12 @@ const ListOfCourse: React.FC = () => {
   // Batch actions
   const handleBatchAction = useCallback(() => {
     if (!batchAction) {
-      toast.info("Please select an action");
+      showToast.info("Please select an action");
       return;
     }
     
     if (selectedCourses.length === 0) {
-      toast.info("Please select courses to perform this action");
+      showToast.info("Please select courses to perform this action");
       return;
     }
 
@@ -2023,12 +2023,12 @@ const ListOfCourse: React.FC = () => {
           .map(course => course._id);
 
         if (schedulableCourses.length === 0) {
-          toast.error("No selected courses are eligible for scheduling. Only Draft or Inactive courses can be scheduled.");
+          showToast.error("No selected courses are eligible for scheduling. Only Draft or Inactive courses can be scheduled.");
           return;
         }
 
         if (schedulableCourses.length < selectedCourses.length) {
-          toast.warning(
+          showToast.warning(
             `Only ${schedulableCourses.length} out of ${selectedCourses.length} selected courses are eligible for scheduling.`,
             { autoClose: 5000 }
           );

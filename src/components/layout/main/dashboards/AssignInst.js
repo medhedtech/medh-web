@@ -327,7 +327,7 @@ const AssignInstructor = () => {
       });
     } catch (error) {
       console.error("Unexpected error fetching courses:", error);
-      toast.error("Error loading courses. Please refresh the page.");
+      showToast.error("Error loading courses. Please refresh the page.");
     } finally {
       setPageLoading(false);
     }
@@ -387,7 +387,7 @@ const AssignInstructor = () => {
       });
     } catch (error) {
       console.error("Unexpected error fetching assigned instructors:", error);
-      toast.error("Error loading assignments. Please refresh the page.");
+      showToast.error("Error loading assignments. Please refresh the page.");
     } finally {
       setPageLoading(false);
     }
@@ -455,7 +455,7 @@ const AssignInstructor = () => {
       });
     } catch (error) {
       console.error("Form submission error:", error);
-      toast.error("An unexpected error occurred. Please try again.");
+      showToast.error("An unexpected error occurred. Please try again.");
     } finally {
       setPageLoading(false);
     }
@@ -498,7 +498,7 @@ const AssignInstructor = () => {
       });
     } catch (error) {
       console.error("Update submission error:", error);
-      toast.error("An unexpected error occurred during update. Please try again.");
+      showToast.error("An unexpected error occurred during update. Please try again.");
     } finally {
       setPageLoading(false);
     }
@@ -507,7 +507,7 @@ const AssignInstructor = () => {
   // Add function to directly assign instructor to a course with id (from ListOfCourse.js)
   const assignInstructorDirectly = async (assignmentId, instructorId) => {
     if (!instructorId) {
-      toast.error("Please select an instructor");
+      showToast.error("Please select an instructor");
       return;
     }
     
@@ -730,7 +730,7 @@ const AssignInstructor = () => {
       });
     } catch (error) {
       console.error("Error fetching instructor details:", error);
-      toast.error("Failed to load assignment details");
+      showToast.error("Failed to load assignment details");
     }
   };
 

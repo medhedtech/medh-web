@@ -46,17 +46,17 @@ export default function AdminJobApplicants() {
             setState(sortedData);
           } else {
             setState([]);
-            toast.error("Invalid data format received");
+            showToast.error("Invalid data format received");
           }
         },
         onFail: () => {
           setState([]);
-          toast.error("Failed to fetch data");
+          showToast.error("Failed to fetch data");
         },
       });
     } catch (error) {
       console.error("Error fetching data:", error);
-      toast.error("Something went wrong!");
+      showToast.error("Something went wrong!");
     }
   };
 
@@ -77,12 +77,12 @@ export default function AdminJobApplicants() {
           fetchData(fetchUrl, setState);
         },
         onFail: (error) => {
-          toast.error("Failed to delete");
+          showToast.error("Failed to delete");
           console.error("Delete failed:", error);
         },
       });
     } catch (error) {
-      toast.error("Something went wrong!");
+      showToast.error("Something went wrong!");
       console.error("Error:", error);
     }
   };

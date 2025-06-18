@@ -108,12 +108,12 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
       } catch (error) {
         console.error('Error processing upload response:', error, response);
         setUploadError('Failed to process uploaded image');
-        toast.error('Error processing uploaded image. Please try again.');
+        showToast.error('Error processing uploaded image. Please try again.');
       }
     },
     onError: (error) => {
       setUploadError(error.message || 'Failed to upload image');
-      toast.error('Failed to upload image: ' + error.message);
+      showToast.error('Failed to upload image: ' + error.message);
     },
     showToast: false // We'll handle toasts manually
   });
@@ -128,7 +128,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
           onSuccess: () => {},
           onFail: (error) => {
             console.error("Error fetching instructors:", error);
-            toast.error('Failed to load instructors. Please try again.');
+            showToast.error('Failed to load instructors. Please try again.');
           }
         });
         
@@ -164,7 +164,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
         
       } catch (error) {
         console.error("Error in fetchInstructors:", error);
-        toast.error('Failed to load instructors. Please check your connection.');
+        showToast.error('Failed to load instructors. Please check your connection.');
       } finally {
         setIsLoadingInstructors(false);
       }
@@ -214,7 +214,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
         const base64String = compressedFile.split(',')[1];
         
         setUploadError(null);
-        toast.info('Uploading image...', { autoClose: false, toastId: 'uploading-image' });
+        showToast.info('Uploading image...', { autoClose: false, toastId: 'uploading-image' });
         
         await uploadBase64(base64String, "image");
         toast.dismiss('uploading-image');
@@ -225,7 +225,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
       } catch (error) {
         toast.dismiss('uploading-image');
         console.error('Error uploading image:', error);
-        toast.error(error instanceof Error ? error.message : 'Failed to upload image. Please try again.');
+        showToast.error(error instanceof Error ? error.message : 'Failed to upload image. Please try again.');
         setUploadError(error instanceof Error ? error.message : 'Failed to upload image');
       }
     }

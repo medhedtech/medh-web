@@ -188,17 +188,17 @@ const JoinLiveMain: React.FC = () => {
           
           // Only show error toast, don't fall back to mock data
           if (err?.response?.status === 404) {
-            toast.info("No live classes found for your account");
+            showToast.info("No live classes found for your account");
             setLiveClasses([]);
           } else {
-            toast.error(errorMessage);
+            showToast.error(errorMessage);
           }
         },
       });
     } catch (error) {
       console.error("Unexpected error:", error);
       setError("An unexpected error occurred while fetching live classes");
-      toast.error("Failed to load live classes");
+      showToast.error("Failed to load live classes");
     }
   };
 
@@ -264,7 +264,7 @@ const JoinLiveMain: React.FC = () => {
     const classTitle = liveClass.meet_title || liveClass.title || liveClass.course_title || liveClass.course_name;
     
     if (!meetLink) {
-      toast.error("Meeting link not available for this class");
+      showToast.error("Meeting link not available for this class");
       return;
     }
 
@@ -273,7 +273,7 @@ const JoinLiveMain: React.FC = () => {
     const classTime = liveClass.time || liveClass.start_time;
     
     if (!classTime) {
-      toast.error("Class time information is not available");
+      showToast.error("Class time information is not available");
       return;
     }
     
@@ -283,10 +283,10 @@ const JoinLiveMain: React.FC = () => {
     const minutesDifference = Math.floor((classDateTime.getTime() - currentTime.getTime()) / (1000 * 60));
 
     if (minutesDifference > 10) {
-      toast.info(`This class will start in ${minutesDifference} minutes. You can join 10 minutes before the start time.`);
+      showToast.info(`This class will start in ${minutesDifference} minutes. You can join 10 minutes before the start time.`);
       return;
     } else if (minutesDifference < -60) {
-      toast.warning("This class has ended.");
+      showToast.warning("This class has ended.");
       return;
     }
 
@@ -296,7 +296,7 @@ const JoinLiveMain: React.FC = () => {
       showToast.success(`Joining: ${classTitle}`);
     } catch (error) {
       console.error("Error opening meeting link:", error);
-      toast.error("Failed to open meeting link");
+      showToast.error("Failed to open meeting link");
     }
   };
 

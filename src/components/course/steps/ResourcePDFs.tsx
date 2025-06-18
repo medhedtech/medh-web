@@ -141,14 +141,14 @@ const ResourcePDFs: React.FC<ResourcePDFsProps> = ({
     try {
       // Check authentication first
       if (!isAuthenticated()) {
-        toast.error('Your session has expired. Please login again.');
+        showToast.error('Your session has expired. Please login again.');
         return;
       }
 
       // Get auth token
       const token = getAuthToken();
       if (!token) {
-        toast.error('Authentication token not found. Please login again.');
+        showToast.error('Authentication token not found. Please login again.');
         return;
       }
 
@@ -283,7 +283,7 @@ const ResourcePDFs: React.FC<ResourcePDFsProps> = ({
           errorMessage = axiosError.message || errorMessage;
         }
 
-        toast.error(errorMessage);
+        showToast.error(errorMessage);
 
         // If authentication error, you might want to trigger a logout or redirect
         if (axiosError.response?.status === 401 || errorMessage.includes('session has expired')) {
@@ -297,9 +297,9 @@ const ResourcePDFs: React.FC<ResourcePDFsProps> = ({
       console.error('PDF upload error:', error);
       
       if (error instanceof UploadError) {
-        toast.error(error.message);
+        showToast.error(error.message);
       } else {
-        toast.error('Failed to upload PDF. Please try again.');
+        showToast.error('Failed to upload PDF. Please try again.');
       }
     } finally {
       setUploadingIndex(null);

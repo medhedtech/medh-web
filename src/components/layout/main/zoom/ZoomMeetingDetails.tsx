@@ -108,7 +108,7 @@ export const ZoomMeetingDetails: React.FC<ZoomMeetingDetailsProps> = ({
         meetingId: meeting.id,
         meetingNumber: meeting.meetingNumber
       });
-      toast.error(errorMessage);
+      showToast.error(errorMessage);
     }
   };
 

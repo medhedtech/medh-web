@@ -164,7 +164,7 @@ const InstructorTable: React.FC = () => {
       },
       onFail: (res: any) => {
         console.error("Failed to delete instructor:", res);
-        toast.error("Failed to delete instructor");
+        showToast.error("Failed to delete instructor");
       },
     });
   }, [deleteQuery, forceRefresh]);
@@ -198,16 +198,16 @@ const InstructorTable: React.FC = () => {
             }, 100);
           } else {
             console.error("Instructor data not found in response!", response);
-            toast.error("Failed to update instructor status");
+            showToast.error("Failed to update instructor status");
           }
         },
         onFail: (res: any) => {
-          toast.error("Instructor status cannot be changed!");
+          showToast.error("Instructor status cannot be changed!");
           console.error("Failed to toggle status:", res);
         },
       });
     } catch (error) {
-      toast.error("Something went wrong!");
+      showToast.error("Something went wrong!");
       console.error("Error in toggleStatus:", error);
     }
   }, [postQuery, forceRefresh]);
@@ -238,12 +238,12 @@ const InstructorTable: React.FC = () => {
           }, 100);
         },
         onFail: (error: any) => {
-          toast.error(error.message || "CSV upload failed");
+          showToast.error(error.message || "CSV upload failed");
         }
       });
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("Error processing CSV file");
+      showToast.error("Error processing CSV file");
     }
   };
 
@@ -681,7 +681,7 @@ const InstructorTable: React.FC = () => {
                     <motion.button
                       onClick={() => {
                         // Export functionality can be added here
-                        toast.info("Export functionality coming soon!");
+                        showToast.info("Export functionality coming soon!");
                       }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}

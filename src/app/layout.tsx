@@ -1,6 +1,5 @@
 import { Metadata, Viewport } from 'next';
 import Providers from './Providers';
-import { Toaster } from 'react-hot-toast';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
@@ -157,7 +156,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
             {/* Google Analytics - now inside Providers to access CookieConsentProvider */}
             {GA_MEASUREMENT_ID && <GoogleAnalytics GA_MEASUREMENT_ID={GA_MEASUREMENT_ID} />}
             {children}
-            <Toaster position="top-center" />
             <Analytics />
             <SpeedInsights />
             <CookieConsent />

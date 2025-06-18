@@ -75,13 +75,13 @@ const AdminFaqManagement = () => {
     e.preventDefault();
     
     if (!formData.category) {
-      toast.error("Please select a category");
+      showToast.error("Please select a category");
       return;
     }
 
     const hasEmptyFields = bulkFaqs.some(faq => !faq.question || !faq.answer);
     if (hasEmptyFields) {
-      toast.error("Please fill all questions and answers");
+      showToast.error("Please fill all questions and answers");
       return;
     }
 
@@ -107,7 +107,7 @@ const AdminFaqManagement = () => {
       fetchFaqs();
     } catch (err) {
       console.error("Error adding bulk FAQs:", err);
-      toast.error("Failed to add FAQs");
+      showToast.error("Failed to add FAQs");
     }
   };
 
@@ -144,7 +144,7 @@ const AdminFaqManagement = () => {
     } catch (err) {
       console.error("Error fetching FAQs:", err);
       setError(err.message || "Failed to load FAQs. Please try again later.");
-      toast.error(err.message || "Failed to load FAQs");
+      showToast.error(err.message || "Failed to load FAQs");
     } finally {
       setLoading(false);
     }
@@ -211,13 +211,13 @@ const AdminFaqManagement = () => {
     e.preventDefault();
     
     if (!formData.question || !formData.answer || !formData.category) {
-      toast.error("Please fill all required fields");
+      showToast.error("Please fill all required fields");
       return;
     }
 
     // Check if the FAQ endpoints are defined
     if (!apiUrls?.faqs?.createFaq || !apiUrls?.faqs?.updateFaq) {
-      toast.error("FAQ API endpoints are not configured");
+      showToast.error("FAQ API endpoints are not configured");
       return;
     }
     
@@ -237,7 +237,7 @@ const AdminFaqManagement = () => {
       resetForm();
     } catch (err) {
       console.error("Error saving FAQ:", err);
-      toast.error(err.message || (editingId ? "Failed to update FAQ" : "Failed to create FAQ"));
+      showToast.error(err.message || (editingId ? "Failed to update FAQ" : "Failed to create FAQ"));
     }
   };
 
@@ -264,7 +264,7 @@ const AdminFaqManagement = () => {
 
     // Check if the FAQ endpoints are defined
     if (!apiUrls?.faqs?.deleteFaq) {
-      toast.error("FAQ API endpoints are not configured");
+      showToast.error("FAQ API endpoints are not configured");
       return;
     }
     
@@ -275,7 +275,7 @@ const AdminFaqManagement = () => {
       fetchFaqs();
     } catch (err) {
       console.error("Error deleting FAQ:", err);
-      toast.error(err.message || "Failed to delete FAQ");
+      showToast.error(err.message || "Failed to delete FAQ");
     }
   };
 

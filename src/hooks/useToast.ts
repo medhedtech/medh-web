@@ -11,15 +11,15 @@ export const useToast = () => {
   }, []);
 
   const error = useCallback((message: string, options?: ToastManagerOptions) => {
-    return showToast.error(message, options);
+    return showshowToast.error(message, options);
   }, []);
 
   const warning = useCallback((message: string, options?: ToastManagerOptions) => {
-    return showToast.warning(message, options);
+    return showshowToast.warning(message, options);
   }, []);
 
   const info = useCallback((message: string, options?: ToastManagerOptions) => {
-    return showToast.info(message, options);
+    return showshowToast.info(message, options);
   }, []);
 
   const dismiss = useCallback(() => {

@@ -51,7 +51,7 @@ export default function AdminPage() {
         }
       } catch (error) {
         console.error('Error fetching course stats:', error);
-        toast.error('Failed to load course statistics');
+        showToast.error('Failed to load course statistics');
       } finally {
         setIsLoading(false);
       }

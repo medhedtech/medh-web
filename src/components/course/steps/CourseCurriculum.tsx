@@ -138,7 +138,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
       showToast.success('File uploaded successfully');
     },
     onError: (error) => {
-      toast.error(error.message);
+      showToast.error(error.message);
     }
   });
 
@@ -178,7 +178,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
           ...prev, 
           quizzes: errorMessage
         }));
-        toast.error(errorMessage);
+        showToast.error(errorMessage);
       } finally {
         setIsLoading(prev => ({ ...prev, quizzes: false }));
       }
@@ -213,7 +213,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
           ...prev, 
           assignments: errorMessage
         }));
-        toast.error(errorMessage);
+        showToast.error(errorMessage);
       } finally {
         setIsLoading(prev => ({ ...prev, assignments: false }));
       }
@@ -814,7 +814,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
     
     // Add validation for title field
     if (field === 'title' && typeof value === 'string' && !value.trim()) {
-      toast.warning('Lesson title is required');
+      showToast.warning('Lesson title is required');
     }
     
     // Handle type-specific fields
@@ -824,7 +824,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
         if (field === 'video_url' || field === 'duration') {
           // Add validation for video URL
           if (field === 'video_url' && typeof value === 'string' && !value.trim()) {
-            toast.warning('Video URL is required for video lessons');
+            showToast.warning('Video URL is required for video lessons');
           }
           (videoLesson as any)[field] = value;
         }
@@ -1118,25 +1118,25 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
 
     // Check authentication first
     if (!isAuthenticated()) {
-      toast.error('Your session has expired. Please login again.');
+      showToast.error('Your session has expired. Please login again.');
       return;
     }
 
     // Get auth token
     const token = getAuthToken();
     if (!token) {
-      toast.error('Authentication token not found. Please login again.');
+      showToast.error('Authentication token not found. Please login again.');
       return;
     }
 
     // Validate file type and size
     if (!file.type.startsWith('video/')) {
-      toast.error('Please upload a valid video file');
+      showToast.error('Please upload a valid video file');
       return;
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      toast.error(`File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
+      showToast.error(`File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
       return;
     }
 
@@ -1262,7 +1262,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
           error: errorMessage
         }
       }));
-      toast.error(errorMessage);
+      showToast.error(errorMessage);
 
       // If authentication error, you might want to trigger a logout or redirect
       if (error.response?.status === 401 || error.message.includes('Authentication failed')) {
@@ -1460,25 +1460,25 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
 
     // Check authentication first
     if (!isAuthenticated()) {
-      toast.error('Your session has expired. Please login again.');
+      showToast.error('Your session has expired. Please login again.');
       return;
     }
 
     // Get auth token
     const token = getAuthToken();
     if (!token) {
-      toast.error('Authentication token not found. Please login again.');
+      showToast.error('Authentication token not found. Please login again.');
       return;
     }
 
     // Validate file type and size
     if (!file.type.startsWith('video/')) {
-      toast.error('Please upload a valid video file');
+      showToast.error('Please upload a valid video file');
       return;
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      toast.error(`File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
+      showToast.error(`File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
       return;
     }
 
@@ -1589,7 +1589,7 @@ const CourseCurriculum: React.FC<CourseCurriculumProps> = ({
           error: errorMessage
         }
       }));
-      toast.error(errorMessage);
+      showToast.error(errorMessage);
     }
   };
 

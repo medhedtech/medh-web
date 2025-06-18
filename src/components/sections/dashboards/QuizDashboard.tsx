@@ -338,7 +338,7 @@ const StudentQuizzes: React.FC = () => {
       console.log('Fetching quizzes...');
     } catch (error) {
       console.error('Error fetching quizzes:', error);
-      toast.error('Failed to load quizzes');
+      showToast.error('Failed to load quizzes');
     }
   };
 

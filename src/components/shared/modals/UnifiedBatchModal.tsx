@@ -202,15 +202,15 @@ const UnifiedBatchModal: React.FC<UnifiedBatchModalProps> = ({
         setInstructors(transformedInstructors);
         
         if (transformedInstructors.length === 0) {
-          toast.warning('No instructors available. Please assign instructor roles first.');
+          showToast.warning('No instructors available. Please assign instructor roles first.');
         }
       } else {
         setInstructors([]);
-        toast.error('Failed to load instructors from server');
+        showToast.error('Failed to load instructors from server');
       }
     } catch (error) {
       console.error('Error fetching instructors:', error);
-      toast.error(`Failed to load instructors: ${error instanceof Error ? error.message : 'Please try again'}`);
+      showToast.error(`Failed to load instructors: ${error instanceof Error ? error.message : 'Please try again'}`);
       setInstructors([]);
     } finally {
       setLoading(false);
@@ -245,15 +245,15 @@ const UnifiedBatchModal: React.FC<UnifiedBatchModalProps> = ({
         setStudents(transformedStudents);
         
         if (transformedStudents.length === 0) {
-          toast.warning('No students available');
+          showToast.warning('No students available');
         }
       } else {
         setStudents([]);
-        toast.error('Failed to load students from server');
+        showToast.error('Failed to load students from server');
       }
     } catch (error) {
       console.error('Error fetching students:', error);
-      toast.error(`Failed to load students: ${error instanceof Error ? error.message : 'Please try again'}`);
+      showToast.error(`Failed to load students: ${error instanceof Error ? error.message : 'Please try again'}`);
       setStudents([]);
     } finally {
       setLoading(false);
@@ -289,17 +289,17 @@ const UnifiedBatchModal: React.FC<UnifiedBatchModalProps> = ({
         setLiveCourses(transformedCourses);
         
         if (transformedCourses.length === 0) {
-          toast.info('No live courses found');
+          showToast.info('No live courses found');
         }
       } else {
         setLiveCourses([]);
-        toast.warning('No live courses available');
+        showToast.warning('No live courses available');
       }
     } catch (error) {
       if (error instanceof Error) {
-        toast.error(`Failed to load live courses: ${error.message}`);
+        showToast.error(`Failed to load live courses: ${error.message}`);
       } else {
-        toast.error('Failed to load live courses. Please check your connection and try again.');
+        showToast.error('Failed to load live courses. Please check your connection and try again.');
       }
       
       setLiveCourses([]);
@@ -405,17 +405,17 @@ const UnifiedBatchModal: React.FC<UnifiedBatchModalProps> = ({
     const courseId = course?._id || formData.course;
     
     if (!courseId) {
-      toast.error('Course selection is required');
+      showToast.error('Course selection is required');
       return;
     }
 
     if (!formData.batch_name || !formData.start_date || !formData.end_date) {
-      toast.error('Please fill in all required fields');
+      showToast.error('Please fill in all required fields');
       return;
     }
 
     if (!formData.assigned_instructor) {
-      toast.error('Please assign an instructor to the batch');
+      showToast.error('Please assign an instructor to the batch');
       return;
     }
 
@@ -423,7 +423,7 @@ const UnifiedBatchModal: React.FC<UnifiedBatchModalProps> = ({
     const validation = batchUtils.validateEnhancedBatchSchedule(formData.schedule);
     
     if (!validation.isValid) {
-      toast.error(validation.errors[0]);
+      showToast.error(validation.errors[0]);
       return;
     }
 
@@ -483,7 +483,7 @@ const UnifiedBatchModal: React.FC<UnifiedBatchModalProps> = ({
       onClose();
     } catch (error) {
       console.error('Error creating batch:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create batch');
+      showToast.error(error instanceof Error ? error.message : 'Failed to create batch');
     } finally {
       setLoading(false);
     }

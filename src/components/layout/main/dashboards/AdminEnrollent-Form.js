@@ -55,18 +55,18 @@ export default function EnrollmentFormsAdmin() {
           } else {
             setEnrollments([]);
             setFilteredEnrollments([]);
-            toast.error("Invalid data format received");
+            showToast.error("Invalid data format received");
           }
         },
         onFail: () => {
           setEnrollments([]);
           setFilteredEnrollments([]);
-          toast.error("Failed to fetch enrollments");
+          showToast.error("Failed to fetch enrollments");
         },
       });
     } catch (error) {
       console.error("Error fetching enrollments:", error);
-      toast.error("Something went wrong!");
+      showToast.error("Something went wrong!");
     }
   };
 
@@ -122,12 +122,12 @@ export default function EnrollmentFormsAdmin() {
           fetchEnrollments();
         },
         onFail: (error) => {
-          toast.error("Failed to delete enrollment");
+          showToast.error("Failed to delete enrollment");
           console.error("Delete failed:", error);
         },
       });
     } catch (error) {
-      toast.error("Something went wrong!");
+      showToast.error("Something went wrong!");
       console.error("Error:", error);
     }
   };

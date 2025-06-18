@@ -461,7 +461,7 @@ export function useGetQuery<T = any>(
         
         // Show error toast if configured
         if (showToast) {
-          toast.error(errorMsg);
+          showToast.error(errorMsg);
         }
         
         // Call onFail callback if provided

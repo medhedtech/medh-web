@@ -123,7 +123,7 @@ export const useDeleteQuery = <T = any>(): UseDeleteQueryResult<T> => {
 
       // Show error toast if configured
       if (showToast) {
-        toast.error(message);
+        showToast.error(message);
       }
 
       // Call onFail callback

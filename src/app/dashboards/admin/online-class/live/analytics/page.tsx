@@ -78,7 +78,7 @@ const AnalyticsPage: React.FC = () => {
       setInstructors(mockInstructors);
     } catch (error) {
       console.error('Error loading initial data:', error);
-      toast.error('Failed to load data');
+      showToast.error('Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -89,7 +89,7 @@ const AnalyticsPage: React.FC = () => {
   };
 
   const handleExportData = () => {
-    toast.info('Export functionality would be implemented here');
+    showToast.info('Export functionality would be implemented here');
   };
 
   const handleRefreshData = () => {

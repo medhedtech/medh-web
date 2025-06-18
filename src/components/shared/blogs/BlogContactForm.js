@@ -77,7 +77,7 @@ const BlogContactForm = () => {
       }
     } catch (error) {
       console.error("Contact form error:", error);
-      toast.error("Failed to send message. Please try again later.");
+      showToast.error("Failed to send message. Please try again later.");
     } finally {
       setIsSubmitting(false);
     }

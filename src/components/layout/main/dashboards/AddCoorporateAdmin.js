@@ -85,7 +85,7 @@ const AddCoorporate_Admin = () => {
                 setErrorPdf(false);
               },
               onError: (error) => {
-                toast.error("PDF upload failed. Please try again.");
+                showToast.error("PDF upload failed. Please try again.");
                 console.error("Upload error:", error);
               },
             });
@@ -126,13 +126,13 @@ const AddCoorporate_Admin = () => {
           reset();
         },
         onError: () => {
-          toast.error(
+          showToast.error(
             "Corporate user already exists with the same email or phone."
           );
         },
       });
     } catch (error) {
-      toast.error("An unexpected error occurred. Please try again.");
+      showToast.error("An unexpected error occurred. Please try again.");
     }
   };
 

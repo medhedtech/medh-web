@@ -103,7 +103,7 @@ const ForgotPassword: React.FC = () => {
             router.push("/login");
           },
           onFail: (error) => {
-            toast.error(error?.message || "Failed to send temporary password.");
+            showToast.error(error?.message || "Failed to send temporary password.");
           },
         });
       } else if (!tempPasswordVerified) {
@@ -119,7 +119,7 @@ const ForgotPassword: React.FC = () => {
             setTempPasswordVerified(true);
           },
           onFail: (error) => {
-            toast.error(error?.message || "Invalid password.");
+            showToast.error(error?.message || "Invalid password.");
           },
         });
       } else {
@@ -136,14 +136,14 @@ const ForgotPassword: React.FC = () => {
             router.push("/login");
           },
           onFail: (error) => {
-            toast.error(
+            showToast.error(
               error?.message || "New password and confirm password do not match. Please try again."
             );
           },
         });
       }
     } catch (error) {
-      toast.error(
+      showToast.error(
         "An error occurred. Please try again later."
       );
     } finally {

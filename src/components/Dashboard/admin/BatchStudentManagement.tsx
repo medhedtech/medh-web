@@ -128,7 +128,7 @@ const BatchStudentManagement: React.FC<BatchStudentManagementProps> = ({
       setAvailableStudents(mockAvailableStudents);
     } catch (error) {
       console.error('Error loading students:', error);
-      toast.error('Failed to load students');
+      showToast.error('Failed to load students');
     } finally {
       setLoading(false);
     }
@@ -153,7 +153,7 @@ const BatchStudentManagement: React.FC<BatchStudentManagementProps> = ({
       }
     } catch (error) {
       console.error('Error enrolling student:', error);
-      toast.error('Failed to enroll student');
+      showToast.error('Failed to enroll student');
     }
   };
 
@@ -176,7 +176,7 @@ const BatchStudentManagement: React.FC<BatchStudentManagementProps> = ({
       }
     } catch (error) {
       console.error('Error unenrolling student:', error);
-      toast.error('Failed to unenroll student');
+      showToast.error('Failed to unenroll student');
     }
   };
 
@@ -191,7 +191,7 @@ const BatchStudentManagement: React.FC<BatchStudentManagementProps> = ({
       showToast.success('Student status updated successfully');
     } catch (error) {
       console.error('Error updating student status:', error);
-      toast.error('Failed to update student status');
+      showToast.error('Failed to update student status');
     }
   };
 

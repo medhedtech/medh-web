@@ -57,7 +57,7 @@ export const ZoomMeetingScheduler: React.FC<ZoomMeetingSchedulerProps> = ({
 
   const scheduleMeeting = async () => {
     if (!title || !date || !startTime || !duration) {
-      toast.error("Please fill all required fields");
+      showToast.error("Please fill all required fields");
       return;
     }
 
@@ -142,7 +142,7 @@ export const ZoomMeetingScheduler: React.FC<ZoomMeetingSchedulerProps> = ({
       resetForm();
     } catch (error) {
       console.error("Error scheduling meeting:", error);
-      toast.error("Failed to schedule meeting");
+      showToast.error("Failed to schedule meeting");
     } finally {
       setIsScheduling(false);
     }

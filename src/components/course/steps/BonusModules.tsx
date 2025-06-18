@@ -70,13 +70,13 @@ const BonusModules: React.FC<BonusModulesProps> = ({
               setModules(updatedModules);
             },
             onError: (error) => {
-              toast.error('File upload failed. Please try again.');
+              showToast.error('File upload failed. Please try again.');
             },
           });
         }
       };
     } catch (error) {
-      toast.error('Failed to upload file');
+      showToast.error('Failed to upload file');
     }
   };
 

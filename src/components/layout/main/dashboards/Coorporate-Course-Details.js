@@ -45,7 +45,7 @@ const CoorporateCourseDetails = () => {
         console.log("Playing video:", videoUrl);
       }
     } else {
-      toast.error("Enroll to access course curriculum.");
+      showToast.error("Enroll to access course curriculum.");
     }
   };
 

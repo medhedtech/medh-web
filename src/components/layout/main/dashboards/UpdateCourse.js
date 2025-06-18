@@ -181,13 +181,13 @@ export default function UpdateCourse() {
           setCategories(res?.data || []);
         },
         onFail: (err) => {
-          toast.error("Failed to fetch categories");
+          showToast.error("Failed to fetch categories");
           console.error("Fetch categories error:", err);
         },
       });
     } catch (err) {
       console.error("Error fetching categories:", err);
-      toast.error("Could not fetch categories");
+      showToast.error("Could not fetch categories");
     }
   };
 
@@ -232,12 +232,12 @@ export default function UpdateCourse() {
         },
         onFail: (err) => {
           console.error("Error Fetching Course details:", err);
-          toast.error("Could not load course details");
+          showToast.error("Could not load course details");
         },
       });
     } catch (err) {
       console.error("Error fetching course details:", err);
-      toast.error("Could not load course details");
+      showToast.error("Could not load course details");
     }
   };
 
@@ -490,7 +490,7 @@ export default function UpdateCourse() {
         }
       }
       
-      toast.error(errorMessage, { position: "top-right", autoClose: 5000 });
+      showToast.error(errorMessage, { position: "top-right", autoClose: 5000 });
     }
   };
 
@@ -514,7 +514,7 @@ export default function UpdateCourse() {
                 setCourseVideos([...updatedVideos]);
               },
               onError: (error) => {
-                toast.error("Video upload failed. Please try again.");
+                showToast.error("Video upload failed. Please try again.");
               },
             });
           };
@@ -544,7 +544,7 @@ export default function UpdateCourse() {
                 setPdfBrochures([...updatedPdfs]);
               },
               onError: (error) => {
-                toast.error("PDF upload failed. Please try again.");
+                showToast.error("PDF upload failed. Please try again.");
               },
             });
           };
@@ -573,7 +573,7 @@ export default function UpdateCourse() {
               setValue("upload_image", data?.data);
             },
             onError: (error) => {
-              toast.error("Image upload failed. Please try again.");
+              showToast.error("Image upload failed. Please try again.");
             },
           });
         };

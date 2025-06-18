@@ -83,7 +83,7 @@ const StudentUpcomingClasses: React.FC = () => {
           },
           onFail: (err) => {
             console.error("Error fetching upcoming classes:", err);
-            toast.error("Failed to fetch upcoming classes");
+            showToast.error("Failed to fetch upcoming classes");
           },
         });
       };
@@ -125,7 +125,7 @@ const StudentUpcomingClasses: React.FC = () => {
 
     // Check if the class is scheduled to start within the next 30 minutes
     if (minutesDifference > 30) {
-      toast.info(
+      showToast.info(
         "Meeting link will be enabled 30 minutes before the class starts."
       );
     }
@@ -137,7 +137,7 @@ const StudentUpcomingClasses: React.FC = () => {
       if (currentTime.isBefore(classEndTime)) {
         window.open(classItem.meet_link, "_blank");
       } else {
-        toast.warning("This class has already ended. You cannot join.");
+        showToast.warning("This class has already ended. You cannot join.");
       }
     }
   };

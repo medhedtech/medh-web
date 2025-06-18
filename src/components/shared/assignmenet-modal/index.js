@@ -91,7 +91,7 @@ const AssignmentModal = ({ open, handleClose }) => {
                 setPdfBrochures(uploadedPdfs);
               },
               onError: (error) => {
-                toast.error("PDF upload failed. Please try again.");
+                showToast.error("PDF upload failed. Please try again.");
                 console.error("Upload error:", error);
               },
             });
@@ -106,7 +106,7 @@ const AssignmentModal = ({ open, handleClose }) => {
   const onSubmit = async (data) => {
     console.log("data before submission", data);
     if (!selectedCourseId) {
-      // toast.error("Please select a category (course).");
+      // showToast.error("Please select a category (course).");
       return;
     }
     try {

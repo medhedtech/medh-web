@@ -41,7 +41,7 @@ const AddJobPost = () => {
           setShowAddPostListing(true); // Update state to navigate to listing page
         },
         onFail: () => {
-          toast.error("Error adding post.");
+          showToast.error("Error adding post.");
         },
       });
     } catch (error) {

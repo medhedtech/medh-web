@@ -180,7 +180,7 @@ export const usePostQuery = <T = any>(): UsePostQueryResult<T> => {
 
       // Show error toast if configured
       if (showToast) {
-        showToast.error(message, { groupKey: params.groupKey || 'api' });
+        showshowToast.error(message, { groupKey: params.groupKey || 'api' });
       }
 
       // Call onFail callback

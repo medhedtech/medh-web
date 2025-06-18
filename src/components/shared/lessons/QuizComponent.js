@@ -111,7 +111,7 @@ const QuizComponent = ({ quizId, lessonId, courseId, meta = {}, onComplete }) =>
       } catch (err) {
         console.error("Error loading quiz:", err);
         setError(err.message || "Failed to load quiz data");
-        toast.error("Could not load quiz. Please try again later.");
+        showToast.error("Could not load quiz. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -149,7 +149,7 @@ const QuizComponent = ({ quizId, lessonId, courseId, meta = {}, onComplete }) =>
   // Start the quiz
   const handleStartQuiz = () => {
     setQuizStarted(true);
-    toast.info(`Quiz started! You have ${formatTime(timeRemaining)} to complete.`);
+    showToast.info(`Quiz started! You have ${formatTime(timeRemaining)} to complete.`);
   };
   
   // Handle answer selection for multiple choice questions
@@ -213,7 +213,7 @@ const QuizComponent = ({ quizId, lessonId, courseId, meta = {}, onComplete }) =>
       showToast.success("Quiz submitted successfully!");
     } catch (err) {
       console.error("Error submitting quiz:", err);
-      toast.error("Failed to submit quiz. Please try again.");
+      showToast.error("Failed to submit quiz. Please try again.");
     } finally {
       setSubmitting(false);
     }
