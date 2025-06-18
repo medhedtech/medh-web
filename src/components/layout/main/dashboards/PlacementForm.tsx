@@ -1444,11 +1444,11 @@ const PlacementForm: React.FC<PlacementFormProps> = ({ isOpen, onClose }) => {
         onClose();
         reset();
       } else {
-        toast.error("Failed to submit the form. Please try again.");
+        showToast.error("Failed to submit the form. Please try again.");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      toast.error("An error occurred. Please try again.");
+      showToast.error("An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }

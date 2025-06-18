@@ -91,7 +91,7 @@ export default function ManageStudentsPage() {
         onSuccess: () => {},
         onFail: (error) => {
           console.error("Error fetching students:", error);
-          toast.error('Failed to load students. Please try again.');
+          showToast.error('Failed to load students. Please try again.');
         }
       });
       
@@ -106,15 +106,15 @@ export default function ManageStudentsPage() {
           setTotalStudents(studentsData.total);
         } else {
           console.error("Invalid response structure:", studentsData);
-          toast.error('Invalid response from server.');
+          showToast.error('Invalid response from server.');
         }
       } else {
         console.error("No data received from students API");
-        toast.error('No students found.');
+        showToast.error('No students found.');
       }
     } catch (error) {
       console.error("Error in fetchStudents:", error);
-      toast.error('Failed to load students. Please check your connection.');
+      showToast.error('Failed to load students. Please check your connection.');
     } finally {
       setIsLoading(false);
     }
@@ -151,12 +151,12 @@ export default function ManageStudentsPage() {
         },
         onFail: (error) => {
           const errorMessage = error?.response?.data?.message || 'Failed to delete student';
-          toast.error(errorMessage);
+          showToast.error(errorMessage);
         },
       });
     } catch (error) {
       console.error("Delete student error:", error);
-      toast.error('Failed to delete student');
+      showToast.error('Failed to delete student');
     }
   };
 

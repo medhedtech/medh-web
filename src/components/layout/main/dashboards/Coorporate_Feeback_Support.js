@@ -36,10 +36,10 @@ const CoorporateFeedbackAndSupport = () => {
         if (Array.isArray(response)) {
           setState(response);
         } else {
-          toast.error("Failed to fetch data.");
+          showToast.error("Failed to fetch data.");
         }
       },
-      onFail: () => toast.error("Failed to fetch data."),
+      onFail: () => showToast.error("Failed to fetch data."),
     });
   };
 
@@ -58,7 +58,7 @@ const CoorporateFeedbackAndSupport = () => {
       },
       onFail: (err) => {
         console.error("Delete failed", err);
-        toast.error("Failed to delete.");
+        showToast.error("Failed to delete.");
       },
     });
   };
@@ -72,7 +72,7 @@ const CoorporateFeedbackAndSupport = () => {
   // Handle form submission for status update
   const handleUpdateStatus = async () => {
     if (!newStatus) {
-      toast.error("Please select a valid status.");
+      showToast.error("Please select a valid status.");
       return;
     }
 
@@ -86,12 +86,12 @@ const CoorporateFeedbackAndSupport = () => {
           setEditComplaint(null);
         },
         onFail: () => {
-          toast.error("Failed to update complaint status.");
+          showToast.error("Failed to update complaint status.");
         },
       });
     } catch (error) {
       console.error("Error updating status:", error);
-      toast.error("Unexpected error occurred.");
+      showToast.error("Unexpected error occurred.");
     }
   };
 

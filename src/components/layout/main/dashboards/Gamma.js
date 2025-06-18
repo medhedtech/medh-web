@@ -73,7 +73,7 @@ const Gamma = () => {
         },
         onFail: (error) => {
           console.log("Registration failed:", error);
-          toast.error("User already registered with same email!");
+          showToast.error("User already registered with same email!");
           setApiError(error.message);
         },
       });

@@ -83,7 +83,7 @@ const StudentManagement: React.FC = () => {
       
       if (!authenticated || !token) {
         console.error('User not authenticated');
-        toast.error('Please log in to access student data');
+        showToast.error('Please log in to access student data');
         setAllStudents([]);
         setStudents([]);
         return;
@@ -147,9 +147,9 @@ const StudentManagement: React.FC = () => {
           console.error("Failed to fetch students:", error);
           // Check if it's an authentication error
           if (error?.response?.status === 401 || error?.response?.status === 403) {
-            toast.error('Authentication failed. Please log in again.');
+            showToast.error('Authentication failed. Please log in again.');
           } else {
-            toast.error('Failed to fetch students. Please try again.');
+            showToast.error('Failed to fetch students. Please try again.');
           }
           setAllStudents([]);
           setStudents([]);
@@ -211,7 +211,7 @@ const StudentManagement: React.FC = () => {
       },
       onFail: (res: any) => {
         console.error("Failed to delete student:", res);
-        toast.error("Failed to delete student");
+        showToast.error("Failed to delete student");
       },
     });
   }, [deleteQuery, fetchStudents, currentPage, searchQuery, filterOptions.status]);
@@ -222,7 +222,7 @@ const StudentManagement: React.FC = () => {
       // Check authentication before making the request
       const token = getAuthToken();
       if (!token) {
-        toast.error('Please log in to perform this action');
+        showToast.error('Please log in to perform this action');
         return;
       }
 
@@ -266,7 +266,7 @@ const StudentManagement: React.FC = () => {
                           error?.message || 
                           "Student status cannot be changed!";
       
-      toast.error(errorMessage);
+      showToast.error(errorMessage);
     }
   }, [fetchStudents, currentPage, searchQuery, filterOptions.status, students]);
 
@@ -294,12 +294,12 @@ const StudentManagement: React.FC = () => {
           fetchStudents(true);
         },
         onFail: (error: any) => {
-          toast.error(error.message || "CSV upload failed");
+          showToast.error(error.message || "CSV upload failed");
         }
       });
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("Error processing CSV file");
+      showToast.error("Error processing CSV file");
     }
   };
 
@@ -901,7 +901,7 @@ const StudentManagement: React.FC = () => {
                 <motion.button
                   onClick={() => {
                     // Export functionality can be added here
-                    toast.info("Export functionality coming soon!");
+                    showToast.info("Export functionality coming soon!");
                   }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}

@@ -111,7 +111,7 @@ const BlogDetailsMain: FC<BlogDetailsMainProps> = ({ blog, relatedBlogs }) => {
         url: window.location.href,
       });
     } catch (error) {
-      toast.info('Share URL copied to clipboard!');
+      showToast.info('Share URL copied to clipboard!');
       navigator.clipboard.writeText(window.location.href);
     }
   };
@@ -119,7 +119,7 @@ const BlogDetailsMain: FC<BlogDetailsMainProps> = ({ blog, relatedBlogs }) => {
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentText.trim()) {
-      toast.error('Please enter a comment');
+      showToast.error('Please enter a comment');
       return;
     }
     

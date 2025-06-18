@@ -379,7 +379,7 @@ const IntegratedLessonPage = () => {
   // Notify user of errors
   useEffect(() => {
     if (error) {
-      toast.error(error.message || "An error occurred");
+      showToast.error(error.message || "An error occurred");
     }
   }, [error]);
 
@@ -594,7 +594,7 @@ const IntegratedLessonPage = () => {
                       }}
                       onError={() => {
                         console.error("Video failed to load. URL:", formatVideoUrl(lessonData?.videoUrl || lessonData?.video_url));
-                        toast.error("Failed to load video. Please try again or contact support.");
+                        showToast.error("Failed to load video. Please try again or contact support.");
                       }}
                     />
                         
@@ -630,7 +630,7 @@ const IntegratedLessonPage = () => {
                             if (window.confirm("Load a sample quantum computing video for this lesson?")) {
                               // This would ideally update the lessonData state, but since it's coming from the hook,
                               // we'll show a message for now
-                              toast.info("Sample video loaded! Refresh the page to see it.");
+                              showToast.info("Sample video loaded! Refresh the page to see it.");
                               
                               // Temporary: Open video in new tab
                               window.open(sampleVideoUrl, '_blank');

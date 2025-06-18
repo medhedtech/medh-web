@@ -1349,7 +1349,7 @@ function CategoryEnrollmentPage({ params }) {
                             // Implement your enrollment logic here
                             showToast.success("Enrollment feature coming soon!");
                           } else {
-                            toast.error("Please select a course first!");
+                            showToast.error("Please select a course first!");
                           }
                         }} 
                         className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-all ${

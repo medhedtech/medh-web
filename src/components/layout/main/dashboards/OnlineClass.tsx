@@ -406,12 +406,12 @@ const OnlineMeeting: React.FC<IOnlineClassProps> = ({ categoryFilter, sessionTyp
           setFetchAgain(true);
         },
         onFail: () => {
-          toast.error("Oops! Something went wrong 😅");
+          showToast.error("Oops! Something went wrong 😅");
         },
       });
     } catch (error) {
       console.error("An error occurred:", error);
-      toast.error("An unexpected error occurred. Please try again.");
+      showToast.error("An unexpected error occurred. Please try again.");
     }
   };
 

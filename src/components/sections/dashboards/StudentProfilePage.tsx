@@ -348,13 +348,13 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
         if (errorObj?.response?.data?.errors && Array.isArray(errorObj.response.data.errors)) {
           showToast.dismiss(); // Dismiss any existing toasts
           errorObj.response.data.errors.forEach((err: any) => {
-            showToast.error(`${err.field}: ${err.message}`, { groupKey: 'profile-validation' });
+            showshowToast.error(`${err.field}: ${err.message}`, { groupKey: 'profile-validation' });
           });
         }
       }
       
       showToast.dismiss(); // Dismiss any existing toasts
-      showToast.error(errorMessage, { groupKey: 'profile-update' });
+      showshowToast.error(errorMessage, { groupKey: 'profile-update' });
     } finally {
       setSaving(false);
     }
@@ -558,7 +558,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
         console.error('Error fetching profile:', error);
         setError('Failed to load profile data. Please try again.');
         showToast.dismiss(); // Dismiss any existing toasts
-        showToast.error('Failed to refresh profile data. Please try again.', { groupKey: 'profile-refresh' });
+        showshowToast.error('Failed to refresh profile data. Please try again.', { groupKey: 'profile-refresh' });
       } finally {
         setLoading(false);
         setRefreshing(false);

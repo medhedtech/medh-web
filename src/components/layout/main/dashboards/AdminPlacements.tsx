@@ -53,18 +53,18 @@ export default function AdminPlacements(): JSX.Element {
             setPlacements(sortedData);
           } else {
             setPlacements([]);
-            toast.error("Invalid data format received");
+            showToast.error("Invalid data format received");
           }
         },
         onFail: (error) => {
           console.error("Failed to fetch placements:", error);
           setPlacements([]);
-          toast.error("Failed to fetch placements");
+          showToast.error("Failed to fetch placements");
         },
       });
     } catch (error) {
       console.error("Error fetching placements:", error);
-      toast.error("Something went wrong!");
+      showToast.error("Something went wrong!");
       setPlacements([]);
     }
   };

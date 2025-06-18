@@ -150,12 +150,12 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
         onFail: (error: any) => {
           const errorMessage = error?.response?.data?.message || 'Invalid verification code';
           setError(errorMessage);
-          toast.error(errorMessage);
+          showToast.error(errorMessage);
         }
       });
     } catch (error) {
       setError('An error occurred. Please try again.');
-      toast.error('An error occurred. Please try again.');
+      showToast.error('An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -192,12 +192,12 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
         onFail: (error: any) => {
           const errorMessage = error?.response?.data?.message || 'Failed to resend verification code';
           setError(errorMessage);
-          toast.error(errorMessage);
+          showToast.error(errorMessage);
         }
       });
     } catch (error) {
       setError('Failed to resend verification code. Please try again.');
-      toast.error('Failed to resend verification code. Please try again.');
+      showToast.error('Failed to resend verification code. Please try again.');
     } finally {
       setLoading(false);
     }

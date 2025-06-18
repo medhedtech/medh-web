@@ -133,7 +133,7 @@ const FeedbackAndSupport: React.FC = () => {
         resetFeedback();
       },
       onFail: (error: any) => {
-        toast.error("Failed to submit feedback. Please try again.");
+        showToast.error("Failed to submit feedback. Please try again.");
         console.error("Error submitting feedback:", error);
       },
     });
@@ -152,7 +152,7 @@ const FeedbackAndSupport: React.FC = () => {
         resetComplaint();
       },
       onFail: (error: any) => {
-        toast.error("Failed to submit complaint. Please try again.");
+        showToast.error("Failed to submit complaint. Please try again.");
         console.error("Error submitting complaint:", error);
       },
     });

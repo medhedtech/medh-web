@@ -160,7 +160,7 @@ const BatchAssignment: React.FC = () => {
       }
     } catch (error) {
       console.error('Error updating batch status:', error);
-      toast.error('Failed to update batch status');
+      showToast.error('Failed to update batch status');
     } finally {
       setStatusUpdateLoading(null);
     }
@@ -176,7 +176,7 @@ const BatchAssignment: React.FC = () => {
           url: apiUrls.instructor.getAllInstructors,
           onSuccess: () => {},
           onFail: () => {
-            toast.error('Failed to fetch instructors');
+            showToast.error('Failed to fetch instructors');
           }
         });
 
@@ -192,7 +192,7 @@ const BatchAssignment: React.FC = () => {
           url: apiUrls.courses.getAllCourses,
           onSuccess: () => {},
           onFail: () => {
-            toast.error('Failed to fetch courses');
+            showToast.error('Failed to fetch courses');
           }
         });
 
@@ -208,7 +208,7 @@ const BatchAssignment: React.FC = () => {
           url: apiUrls.batches.getAllBatches,
           onSuccess: () => {},
           onFail: () => {
-            toast.error('Failed to fetch batches');
+            showToast.error('Failed to fetch batches');
           }
         });
 
@@ -220,7 +220,7 @@ const BatchAssignment: React.FC = () => {
         }
       } catch (error) {
         console.error('Error fetching data:', error);
-        toast.error('Failed to load required data. Please try again.');
+        showToast.error('Failed to load required data. Please try again.');
       } finally {
         setIsLoading(false);
       }
@@ -317,12 +317,12 @@ const BatchAssignment: React.FC = () => {
           },
           onFail: (error) => {
             console.error("Delete error:", error);
-            toast.error(error?.response?.data?.message || 'Failed to delete batch');
+            showToast.error(error?.response?.data?.message || 'Failed to delete batch');
           },
         });
       } catch (error) {
         console.error('Error deleting batch:', error);
-        toast.error('An error occurred while deleting the batch');
+        showToast.error('An error occurred while deleting the batch');
       }
     }
   };
@@ -337,7 +337,7 @@ const BatchAssignment: React.FC = () => {
       const instructor = instructors.find(i => i._id === data.instructor_id);
       
       if (!course || !instructor) {
-        toast.error('Invalid course or instructor selection');
+        showToast.error('Invalid course or instructor selection');
         return;
       }
       
@@ -366,7 +366,7 @@ const BatchAssignment: React.FC = () => {
           },
           onFail: (error) => {
             console.error("Update error:", error);
-            toast.error(error?.response?.data?.message || 'Failed to update batch');
+            showToast.error(error?.response?.data?.message || 'Failed to update batch');
           },
         });
       } else {
@@ -391,13 +391,13 @@ const BatchAssignment: React.FC = () => {
           },
           onFail: (error) => {
             console.error("Create error:", error);
-            toast.error(error?.response?.data?.message || 'Failed to create batch');
+            showToast.error(error?.response?.data?.message || 'Failed to create batch');
           },
         });
       }
     } catch (error) {
       console.error('Error submitting batch:', error);
-      toast.error('An error occurred while saving the batch');
+      showToast.error('An error occurred while saving the batch');
     } finally {
       setIsSubmitting(false);
     }

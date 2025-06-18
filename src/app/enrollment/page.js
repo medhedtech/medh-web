@@ -150,14 +150,14 @@ function EnrollmentPage() {
   // Handle enrollment
   const handleEnroll = () => {
     if (!selectedCourse) {
-      toast.error('Please select a course first');
+      showToast.error('Please select a course first');
       return;
     }
     
     const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
     
     if (!user) {
-      toast.error('Please login to enroll in this course');
+      showToast.error('Please login to enroll in this course');
       router.push('/login');
       return;
     }

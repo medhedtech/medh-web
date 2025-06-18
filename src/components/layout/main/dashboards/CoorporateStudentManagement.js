@@ -69,11 +69,11 @@ const CoorporateTableStudent = () => {
           setUpdateStatus((prev) => (prev === id ? `${id}-updated` : id));
         },
         onFail: () => {
-          toast.error("Student status cannot be changed!");
+          showToast.error("Student status cannot be changed!");
         },
       });
     } catch (error) {
-      toast.error("Something went wrong!");
+      showToast.error("Something went wrong!");
     }
   };
 

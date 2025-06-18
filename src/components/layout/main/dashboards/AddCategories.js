@@ -59,7 +59,7 @@ const AddCategories = ({ selectedCategory }) => {
               console.log("Image uploaded successfully:", data?.data);
             },
             onError: (error) => {
-              toast.error("Image upload failed. Please try again.");
+              showToast.error("Image upload failed. Please try again.");
               console.error("Upload error:", error);
             },
           });
@@ -90,12 +90,12 @@ const AddCategories = ({ selectedCategory }) => {
           },
           onFail: (error) => {
             console.error("Update error:", error);
-            toast.error(error?.message || "Category update error.");
+            showToast.error(error?.message || "Category update error.");
           },
         });
       } catch (error) {
         console.error("An unexpected error occurred:", error);
-        toast.error("An unexpected error occurred. Please try again.");
+        showToast.error("An unexpected error occurred. Please try again.");
       }
     } else {
       console.log("Submitting:", data);
@@ -116,12 +116,12 @@ const AddCategories = ({ selectedCategory }) => {
           },
           onFail: (error) => {
             console.error("Post error:", error);
-            toast.error(error?.message || "Category already exists.");
+            showToast.error(error?.message || "Category already exists.");
           },
         });
       } catch (error) {
         console.error("An unexpected error occurred:", error);
-        toast.error("An unexpected error occurred. Please try again.");
+        showToast.error("An unexpected error occurred. Please try again.");
       }
     }
   };

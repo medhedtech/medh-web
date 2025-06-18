@@ -44,7 +44,7 @@ const DeleteDataContent = () => {
       
     } catch (error) {
       console.error('Error processing Meta data deletion request:', error);
-      toast.error('Failed to process data deletion request. Please try again.');
+      showToast.error('Failed to process data deletion request. Please try again.');
     } finally {
       setIsProcessing(false);
     }
@@ -52,7 +52,7 @@ const DeleteDataContent = () => {
 
   const handleManualDataDeletion = async (email: string) => {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      toast.error('Please enter a valid email address');
+      showToast.error('Please enter a valid email address');
       return;
     }
 
@@ -83,7 +83,7 @@ const DeleteDataContent = () => {
       
     } catch (error) {
       console.error('Error submitting manual data deletion request:', error);
-      toast.error('Failed to submit data deletion request. Please contact support.');
+      showToast.error('Failed to submit data deletion request. Please contact support.');
     } finally {
       setIsProcessing(false);
     }

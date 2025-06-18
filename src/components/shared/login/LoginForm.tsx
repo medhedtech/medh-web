@@ -383,7 +383,7 @@ const LoginForm = () => {
           },
           onFail: (error) => {
             console.error('Login failed after verification:', error);
-            toast.error("Login failed after verification. Please try logging in again.");
+            showToast.error("Login failed after verification. Please try logging in again.");
             // Reset to login form
             handleBackFromVerification();
           }
@@ -404,7 +404,7 @@ const LoginForm = () => {
     // Add safety checks for loginData
     if (!loginData || !loginData.id || !loginData.email) {
       console.error('Invalid login data:', loginData);
-      toast.error("Invalid login data received. Please try again.");
+      showToast.error("Invalid login data received. Please try again.");
       return;
     }
 
@@ -413,7 +413,7 @@ const LoginForm = () => {
     const refreshToken = loginData.refresh_token || loginData.session_id || '';
     
     if (!token) {
-      toast.error("Invalid authentication token received. Please try again.");
+      showToast.error("Invalid authentication token received. Please try again.");
       return;
     }
 
@@ -432,7 +432,7 @@ const LoginForm = () => {
     );
 
     if (!authSuccess) {
-      toast.error("Failed to save authentication data. Please try again.");
+      showToast.error("Failed to save authentication data. Please try again.");
       return;
     }
 
@@ -624,10 +624,10 @@ const LoginForm = () => {
                setIsRedirecting(true);
                router.push(finalRedirectPath);
             } else {
-              toast.error("Failed to save authentication data. Please try again.");
+              showToast.error("Failed to save authentication data. Please try again.");
             }
           } else {
-            toast.error(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login failed. Please try again.`);
+            showToast.error(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login failed. Please try again.`);
           }
           
           setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
@@ -635,13 +635,13 @@ const LoginForm = () => {
         // Error callback
         (error) => {
           console.error(`${provider} OAuth error:`, error);
-          toast.error(error.message || `${provider.charAt(0).toUpperCase() + provider.slice(1)} login failed. Please try again.`);
+          showToast.error(error.message || `${provider.charAt(0).toUpperCase() + provider.slice(1)} login failed. Please try again.`);
           setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
         }
       );
     } catch (error) {
       console.error(`${provider} OAuth error:`, error);
-      toast.error(`Failed to initiate ${provider.charAt(0).toUpperCase() + provider.slice(1)} login. Please try again.`);
+      showToast.error(`Failed to initiate ${provider.charAt(0).toUpperCase() + provider.slice(1)} login. Please try again.`);
       setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
     }
   };
@@ -669,7 +669,7 @@ const LoginForm = () => {
           // Add safety checks for response structure
           if (!res || !res.data) {
             console.error('Invalid response structure:', res);
-            toast.error("Invalid response from server. Please try again.");
+            showToast.error("Invalid response from server. Please try again.");
             return;
           }
           
@@ -686,7 +686,7 @@ const LoginForm = () => {
           // Additional safety check for userData
           if (!userData || !userData.id || !userData.email) {
             console.error('Missing required user data:', userData);
-            toast.error("Incomplete user data received. Please try again.");
+            showToast.error("Incomplete user data received. Please try again.");
             return;
           }
 
@@ -732,11 +732,11 @@ const LoginForm = () => {
               postData: { email: userData.email || data.email },
               requireAuth: false,
               onSuccess: () => {
-                toast.info("Please verify your email. A verification code has been sent to your inbox.");
+                showToast.info("Please verify your email. A verification code has been sent to your inbox.");
               },
               onFail: (error) => {
                 console.error("Failed to send verification email:", error);
-                toast.warning("Login successful, but we couldn't send a verification email. Please contact support.");
+                showToast.warning("Login successful, but we couldn't send a verification email. Please contact support.");
               }
             });
             
@@ -787,17 +787,17 @@ const LoginForm = () => {
             setCurrentStep(2);
             setShowOTPVerification(true);
             
-            toast.info(errorResponse?.message || "Please verify your email. A verification code has been sent to your inbox.");
+            showToast.info(errorResponse?.message || "Please verify your email. A verification code has been sent to your inbox.");
             return;
           }
           
           // Handle other login errors
-          toast.error(authUtils.handleAuthError(error));
+          showToast.error(authUtils.handleAuthError(error));
           setTimeout(() => emailInputRef.current?.focus(), 100);
         },
       });
     } catch (error) {
-      toast.error("An unexpected error occurred. Please try again later.");
+      showToast.error("An unexpected error occurred. Please try again later.");
       if (process.env.NODE_ENV !== 'production') {
         console.error("Unexpected login error:", error);
       }

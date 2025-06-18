@@ -59,7 +59,7 @@ const SimpleCurriculum: React.FC<SimpleCurriculumProps> = ({
       showToast.success('File uploaded successfully');
     },
     onError: (error) => {
-      toast.error(error.message);
+      showToast.error(error.message);
     }
   });
 
@@ -207,7 +207,7 @@ const SimpleCurriculum: React.FC<SimpleCurriculumProps> = ({
   // Handler to remove a week
   const handleRemoveWeek = (weekIndex: number) => {
     if (weeks.length <= 1) {
-      toast.warning("You need at least one week in your curriculum");
+      showToast.warning("You need at least one week in your curriculum");
       return;
     }
     
@@ -513,25 +513,25 @@ const SimpleCurriculum: React.FC<SimpleCurriculumProps> = ({
 
     // Check authentication first
     if (!isAuthenticated()) {
-      toast.error('Your session has expired. Please login again.');
+      showToast.error('Your session has expired. Please login again.');
       return;
     }
 
     // Get auth token
     const token = getAuthToken();
     if (!token) {
-      toast.error('Authentication token not found. Please login again.');
+      showToast.error('Authentication token not found. Please login again.');
       return;
     }
 
     // Validate file type and size
     if (!file.type.startsWith('video/')) {
-      toast.error('Please upload a valid video file');
+      showToast.error('Please upload a valid video file');
       return;
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      toast.error(`File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
+      showToast.error(`File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
       return;
     }
 
@@ -643,7 +643,7 @@ const SimpleCurriculum: React.FC<SimpleCurriculumProps> = ({
           error: errorMessage
         }
       }));
-      toast.error(errorMessage);
+      showToast.error(errorMessage);
     }
   };
 
@@ -654,25 +654,25 @@ const SimpleCurriculum: React.FC<SimpleCurriculumProps> = ({
 
     // Check authentication first
     if (!isAuthenticated()) {
-      toast.error('Your session has expired. Please login again.');
+      showToast.error('Your session has expired. Please login again.');
       return;
     }
 
     // Get auth token
     const token = getAuthToken();
     if (!token) {
-      toast.error('Authentication token not found. Please login again.');
+      showToast.error('Authentication token not found. Please login again.');
       return;
     }
 
     // Validate file type and size
     if (!file.type.startsWith('video/')) {
-      toast.error('Please upload a valid video file');
+      showToast.error('Please upload a valid video file');
       return;
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      toast.error(`File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
+      showToast.error(`File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
       return;
     }
 
@@ -780,7 +780,7 @@ const SimpleCurriculum: React.FC<SimpleCurriculumProps> = ({
           error: errorMessage
         }
       }));
-      toast.error(errorMessage);
+      showToast.error(errorMessage);
     }
   };
 

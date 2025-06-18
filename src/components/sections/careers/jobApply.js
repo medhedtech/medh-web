@@ -336,7 +336,7 @@ function JobApply({ activeJob, jobDetails }) {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast.error("File size should not exceed 5MB");
+        showToast.error("File size should not exceed 5MB");
         return;
       }
       setFileName(file.name);
@@ -356,12 +356,12 @@ function JobApply({ activeJob, jobDetails }) {
               setPdfBrochure(data?.data);
             },
             onError: () => {
-              toast.error("Resume upload failed. Please try again.");
+              showToast.error("Resume upload failed. Please try again.");
             },
           });
         };
       } catch (error) {
-        toast.error("Error uploading resume. Please try again.");
+        showToast.error("Error uploading resume. Please try again.");
       } finally {
         setIsUploading(false);
       }
@@ -376,7 +376,7 @@ function JobApply({ activeJob, jobDetails }) {
       return;
     }
     if (!pdfBrochure) {
-      toast.error("Please upload your resume");
+      showToast.error("Please upload your resume");
       return;
     }
     try {
@@ -404,11 +404,11 @@ function JobApply({ activeJob, jobDetails }) {
           reset();
         },
         onFail: () => {
-          toast.error("Error submitting application. Please try again.");
+          showToast.error("Error submitting application. Please try again.");
         },
       });
     } catch (error) {
-      toast.error("An unexpected error occurred. Please try again.");
+      showToast.error("An unexpected error occurred. Please try again.");
     }
   };
 

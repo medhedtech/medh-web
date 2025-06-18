@@ -301,7 +301,7 @@ const useJobData = () => {
       
       console.error('Job fetch error:', error);
       const errorMessage = error?.message || "Failed to fetch job positions";
-      !silent && toast.error(errorMessage);
+      !silent && showToast.error(errorMessage);
       
       // Use mock data in case of error in development
       const mockJobs = [
@@ -779,7 +779,7 @@ const JobPositions = ({ positions }) => {
       }
     } catch (error) {
       console.error('Application error:', error);
-      toast.error(error.message || 'Error submitting application. Please try again.');
+      showToast.error(error.message || 'Error submitting application. Please try again.');
     }
   };
 

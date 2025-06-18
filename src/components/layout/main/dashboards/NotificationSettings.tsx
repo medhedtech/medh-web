@@ -128,7 +128,7 @@ const NotificationSettings: React.FC = () => {
       setHasChanges(false);
     } catch (err) {
       console.error('Error saving settings:', err);
-      toast.error('Failed to save settings');
+      showToast.error('Failed to save settings');
     } finally {
       setIsLoading(false);
     }
@@ -172,7 +172,7 @@ const NotificationSettings: React.FC = () => {
         }
       });
       setHasChanges(true);
-      toast.info('Settings reset to defaults');
+      showToast.info('Settings reset to defaults');
     }
   };
 

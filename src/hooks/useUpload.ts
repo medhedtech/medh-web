@@ -213,7 +213,7 @@ export const useUpload = (defaultOptions: UploadOptions = {}): UploadHookReturn 
     });
     
     if (mergedOptions.showToast) {
-      toast.error(mergedOptions.errorMessage || uploadError.message || 'Upload failed');
+      showToast.error(mergedOptions.errorMessage || uploadError.message || 'Upload failed');
     }
     
     setError(uploadError);

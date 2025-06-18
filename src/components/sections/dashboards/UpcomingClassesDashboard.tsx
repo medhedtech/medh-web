@@ -264,7 +264,7 @@ const StudentUpcomingClasses: React.FC = () => {
       console.log('Fetching upcoming classes...');
     } catch (error) {
       console.error('Error fetching upcoming classes:', error);
-      toast.error('Failed to load upcoming classes');
+      showToast.error('Failed to load upcoming classes');
     }
   };
 

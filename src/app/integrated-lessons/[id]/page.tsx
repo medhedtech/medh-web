@@ -309,7 +309,7 @@ const IntegratedLesson: React.FC<IIntegratedLessonProps> = ({ params }) => {
   // Handle start learning
   const handleStartLearning = () => {
     if (!hasLessons) {
-      toast.info("Course curriculum is still being developed. Check back soon!");
+      showToast.info("Course curriculum is still being developed. Check back soon!");
       return;
     }
     
@@ -317,7 +317,7 @@ const IntegratedLesson: React.FC<IIntegratedLessonProps> = ({ params }) => {
     if (firstLesson) {
       router.push(`/integrated-lessons/${id}/lecture/${firstLesson}`);
       } else {
-      toast.error("No lessons available yet.");
+      showToast.error("No lessons available yet.");
     }
   };
 
@@ -338,7 +338,7 @@ const IntegratedLesson: React.FC<IIntegratedLessonProps> = ({ params }) => {
     };
     const handleOffline = () => {
       setIsOnline(false);
-      toast.error("No internet connection");
+      showToast.error("No internet connection");
     };
 
     window.addEventListener("online", handleOnline);
@@ -354,7 +354,7 @@ const IntegratedLesson: React.FC<IIntegratedLessonProps> = ({ params }) => {
   // Error handling
   useEffect(() => {
     if (error) {
-      toast.error(error.message || "An error occurred");
+      showToast.error(error.message || "An error occurred");
     }
   }, [error]);
 

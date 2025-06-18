@@ -113,13 +113,13 @@ const StudentRecordedSessions = () => {
               
               if (error?.response?.status === 401) {
                 setError("Your session has expired. Please log in again.");
-                toast.error("Your session has expired. Please log in again.");
+                showToast.error("Your session has expired. Please log in again.");
               } else if (error?.response?.status === 404) {
                 setRecordedSessions([]);
                 setFilteredSessions([]);
               } else {
                 setError("Failed to load recorded sessions. Please try again later.");
-                toast.error("Failed to load recorded sessions. Please try again later.");
+                showToast.error("Failed to load recorded sessions. Please try again later.");
               }
               
               setIsLoading(false);
@@ -128,7 +128,7 @@ const StudentRecordedSessions = () => {
         } catch (error) {
           console.error("Error in fetchRecordedSessions:", error);
           setError("An unexpected error occurred. Please try again later.");
-          toast.error("An unexpected error occurred. Please try again later.");
+          showToast.error("An unexpected error occurred. Please try again later.");
           setIsLoading(false);
         }
       }
@@ -191,7 +191,7 @@ const StudentRecordedSessions = () => {
       const token = getAuthToken();
       
       if (!storedUserId || !token) {
-        toast.error("Authentication required. Please log in again.");
+        showToast.error("Authentication required. Please log in again.");
         setIsRefreshing(false);
         return;
       }
@@ -215,15 +215,15 @@ const StudentRecordedSessions = () => {
               
               showToast.success("Recorded sessions refreshed successfully");
             } else {
-              toast.warning("No recorded sessions found");
+              showToast.warning("No recorded sessions found");
             }
           },
           onFail: (error) => {
-            toast.error("Failed to refresh sessions. Please try again.");
+            showToast.error("Failed to refresh sessions. Please try again.");
           }
         });
       } catch (error) {
-        toast.error("An error occurred. Please try again.");
+        showToast.error("An error occurred. Please try again.");
       } finally {
         setIsRefreshing(false);
       }

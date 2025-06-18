@@ -634,7 +634,7 @@ const BatchStudentEnrollment: React.FC<BatchStudentEnrollmentProps> = ({
     try {
       // Placeholder for messaging functionality
       // This could integrate with a messaging system, WhatsApp API, or email
-      toast.info(`Opening message interface for ${studentName}`);
+      showToast.info(`Opening message interface for ${studentName}`);
       
       // For now, we'll just show a placeholder
       // In a real implementation, this could:
@@ -645,7 +645,7 @@ const BatchStudentEnrollment: React.FC<BatchStudentEnrollmentProps> = ({
       
     } catch (error) {
       console.error('Error sending message:', error);
-      toast.error('Failed to open messaging interface');
+      showToast.error('Failed to open messaging interface');
     }
   };
 
@@ -674,7 +674,7 @@ const BatchStudentEnrollment: React.FC<BatchStudentEnrollmentProps> = ({
       console.error('Error unenrolling student:', error);
       // Rollback optimistic update
       setEnrolledStudents(originalStudents);
-      toast.error('Failed to unenroll student');
+      showToast.error('Failed to unenroll student');
     } finally {
       setLoading(false);
     }

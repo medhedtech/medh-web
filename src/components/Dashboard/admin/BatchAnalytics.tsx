@@ -114,13 +114,13 @@ const BatchAnalytics: React.FC<BatchAnalyticsProps> = ({
       } else {
         console.warn('Dashboard analytics failed:', 'No data received');
         setError('Failed to load analytics data. Please try again later.');
-        toast.error('Failed to load analytics data');
+        showToast.error('Failed to load analytics data');
       }
 
     } catch (error) {
       console.error('Error loading analytics:', error);
       setError('An unexpected error occurred while loading analytics.');
-      toast.error('Failed to load analytics data');
+      showToast.error('Failed to load analytics data');
     } finally {
       setLoading(false);
     }
@@ -161,7 +161,7 @@ const BatchAnalytics: React.FC<BatchAnalyticsProps> = ({
       }
     } catch (error) {
       console.error('Error loading recent batches:', error);
-      toast.error('Failed to load recent batches');
+      showToast.error('Failed to load recent batches');
     }
   };
 
@@ -188,7 +188,7 @@ const BatchAnalytics: React.FC<BatchAnalyticsProps> = ({
       }
     } catch (error) {
       console.error('Error updating batch status:', error);
-      toast.error('Failed to update batch status');
+      showToast.error('Failed to update batch status');
     } finally {
       setStatusUpdateLoading(null);
     }

@@ -105,12 +105,12 @@ const FooterRecentPosts = () => {
         },
         onFail: (err) => {
           console.error("Subscription failed:", err);
-          toast.error("Error subscribing to the newsletter. Please try again!");
+          showToast.error("Error subscribing to the newsletter. Please try again!");
         },
       });
     } catch (error) {
       console.error("Error subscribing:", error);
-      toast.error("Something went wrong! Please try again later.");
+      showToast.error("Something went wrong! Please try again later.");
     } finally {
       setLoading(false);
     }

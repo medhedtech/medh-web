@@ -88,12 +88,12 @@ const HeadingDashboard = () => {
             },
             onFail: (error) => {
               console.error("Failed to fetch user details:", error);
-              toast.error("Failed to load user profile");
+              showToast.error("Failed to load user profile");
             },
           });
         } catch (error) {
           console.error("Error fetching user data:", error);
-          toast.error("An error occurred while loading user data");
+          showToast.error("An error occurred while loading user data");
         }
       }
     };

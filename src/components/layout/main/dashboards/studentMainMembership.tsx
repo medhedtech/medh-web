@@ -82,7 +82,7 @@ const StudentMainMembership: React.FC<StudentMainMembershipProps> = ({
     const studentId = localStorage.getItem("userId");
     
     if (!studentId) {
-      toast.error("Please log in first.");
+      showToast.error("Please log in first.");
       return;
     }
     
@@ -93,7 +93,7 @@ const StudentMainMembership: React.FC<StudentMainMembershipProps> = ({
         const token = localStorage.getItem("token");
         
         if (!token || !studentId) {
-          toast.error("Please log in first.");
+          showToast.error("Please log in first.");
           return;
         }
         
@@ -125,12 +125,12 @@ const StudentMainMembership: React.FC<StudentMainMembershipProps> = ({
           await openRazorpayCheckout(options);
         } catch (err) {
           console.error("Payment error:", err);
-          toast.error("Failed to process payment. Please try again.");
+          showToast.error("Failed to process payment. Please try again.");
         }
       },
       onFail: (err) => {
         console.error("Error fetching renew amount:", err);
-        toast.error("Error fetching membership details. Please try again.");
+        showToast.error("Error fetching membership details. Please try again.");
       },
     });
   };

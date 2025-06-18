@@ -61,7 +61,7 @@ export const useStudentManagement = () => {
       //   apiClient.setAuthToken(token); 
       // } else {
       //   console.error("Authentication token not found. Cannot fetch students.");
-      //   toast.error("Authentication error. Please log in again.");
+      //   showToast.error("Authentication error. Please log in again.");
       //   setLoading(false);
       //   setStudents([]); 
       //   return; 
@@ -96,17 +96,17 @@ export const useStudentManagement = () => {
           console.error("Failed to fetch students:", error);
           // Check for specific 401 error
           if (error?.message?.includes('401')) {
-             toast.error("Unauthorized: Please check your login session.");
+             showToast.error("Unauthorized: Please check your login session.");
              // Optionally redirect to login here
           } else {
-             toast.error("Failed to fetch students data");
+             showToast.error("Failed to fetch students data");
           }
           setStudents([]);
         },
       });
     } catch (error) {
       console.error("Failed to fetch students:", error);
-      toast.error("An error occurred while fetching students");
+      showToast.error("An error occurred while fetching students");
       setStudents([]); // Clear students on catch
     } finally {
       setLoading(false);
@@ -130,7 +130,7 @@ export const useStudentManagement = () => {
       },
       onFail: (res) => {
         console.error("Failed to delete student:", res);
-        toast.error("Failed to delete student");
+        showToast.error("Failed to delete student");
       },
     });
   };
@@ -149,11 +149,11 @@ export const useStudentManagement = () => {
           setUpdateStatus((prev) => (prev === id ? `${id}-updated` : id));
         },
         onFail: () => {
-          toast.error("Student status cannot be changed!");
+          showToast.error("Student status cannot be changed!");
         },
       });
     } catch (error) {
-      toast.error("Something went wrong!");
+      showToast.error("Something went wrong!");
     }
   };
 
@@ -221,12 +221,12 @@ export const useStudentManagement = () => {
             fetchStudents(); // Refresh student list
           },
           onFail: (error) => {
-            toast.error(error?.message || "CSV upload failed");
+            showToast.error(error?.message || "CSV upload failed");
           }
         });
       } catch (error) {
         console.error("Upload error:", error);
-        toast.error("Error processing CSV file");
+        showToast.error("Error processing CSV file");
       }
     }
   };
@@ -234,7 +234,7 @@ export const useStudentManagement = () => {
   // Export students to CSV
   const exportToCSV = (): void => {
     if (students.length === 0) {
-      toast.error("No students to export");
+      showToast.error("No students to export");
       return;
     }
 
@@ -267,7 +267,7 @@ export const useStudentManagement = () => {
       showToast.success("Students exported successfully!");
     } catch (error) {
       console.error("Export error:", error);
-      toast.error("Failed to export students");
+      showToast.error("Failed to export students");
     }
   };
 
