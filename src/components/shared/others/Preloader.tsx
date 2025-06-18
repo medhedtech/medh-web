@@ -24,14 +24,15 @@ const Preloader: React.FC<PreloaderProps> = ({
   const [progress, setProgress] = useState<number>(0);
 
   useEffect(() => {
-    // Simulate loading progress
+    // Simulate loading progress with deterministic increments to avoid hydration issues
     const progressInterval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) {
           clearInterval(progressInterval);
           return 100;
         }
-        return prev + Math.random() * progressSpeed;
+        // Use deterministic progress increment instead of Math.random()
+        return prev + (progressSpeed * 0.7); // Use 70% of progressSpeed for consistent increments
       });
     }, 200);
 

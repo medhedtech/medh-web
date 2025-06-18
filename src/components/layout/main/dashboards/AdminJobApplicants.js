@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import MyTable from "@/components/shared/common-table/page";
 import useGetQuery from "@/hooks/getQuery.hook";
 import useDeleteQuery from "@/hooks/deleteQuery.hook";
-import { toast } from "react-toastify";
 import { FaEye, FaPlus, FaTimes, FaSearch, FaCalendarAlt } from "react-icons/fa";
 import { Loader } from "lucide-react";
 import DatePicker from "react-datepicker";

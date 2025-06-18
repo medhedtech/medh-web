@@ -1,5 +1,6 @@
 'use client';
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useIsClient } from '@/utils/hydration';
 
 export type ThemeMode = 'light' | 'dark';
 
@@ -9,6 +10,7 @@ interface ThemeContextType {
   resolvedTheme: 'light' | 'dark';
   isDark: boolean;
   toggleTheme: () => void;
+  isClient: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -30,12 +32,14 @@ export const CustomThemeProvider: React.FC<CustomThemeProviderProps> = ({
   children,
   defaultTheme = 'light'
 }) => {
+  const isClient = useIsClient();
   const [theme, setThemeState] = useState<ThemeMode>(defaultTheme);
+  const [mounted, setMounted] = useState(false);
   
   // Function to set theme and save it to localStorage
   const setTheme = (newTheme: ThemeMode) => {
     setThemeState(newTheme);
-    if (typeof window !== 'undefined') {
+    if (isClient) {
       localStorage.setItem('theme', newTheme);
     }
   };
@@ -48,32 +52,43 @@ export const CustomThemeProvider: React.FC<CustomThemeProviderProps> = ({
   
   // Initialize theme from localStorage and set up listeners
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (!isClient) return;
+
+    // Mark as mounted to prevent hydration mismatches
+    setMounted(true);
 
     // Get saved theme from localStorage or use default
     const savedTheme = localStorage.getItem('theme') as ThemeMode | null;
     if (savedTheme === 'light' || savedTheme === 'dark') {
       setThemeState(savedTheme);
     }
-    
-    // Update document with current theme
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-  }, []);
+  }, [isClient]);
   
-  // Update theme when it changes
+  // Update document theme when it changes
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (!isClient || !mounted) return;
+    
+    console.log('Initial theme check:', {
+      storedTheme: localStorage.getItem('theme'),
+      hasDarkClass: document.documentElement.classList.contains('dark'),
+      isDarkMode: theme === 'dark'
+    });
+    
     document.documentElement.classList.toggle('dark', theme === 'dark');
-  }, [theme]);
+  }, [theme, isClient, mounted]);
+
+  // Prevent hydration mismatch by returning consistent initial state
+  const resolvedTheme = mounted ? theme : defaultTheme;
 
   return (
     <ThemeContext.Provider
       value={{
-        theme,
+        theme: resolvedTheme,
         setTheme,
-        resolvedTheme: theme,
-        isDark: theme === 'dark',
-        toggleTheme
+        resolvedTheme,
+        isDark: resolvedTheme === 'dark',
+        toggleTheme,
+        isClient
       }}
     >
       {children}

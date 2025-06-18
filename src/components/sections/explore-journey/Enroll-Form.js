@@ -11,7 +11,6 @@ import { apiUrls } from "@/apis";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { toast } from "react-toastify";
 import Preloader from "@/components/shared/others/Preloader";
 import ReCAPTCHA from "react-google-recaptcha";
 import countriesData from "@/utils/countrycode.json";

@@ -66,7 +66,6 @@ import FooterHeading from "@/components/shared/headings/FooterHeading";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { toast } from "react-toastify";
 import { Mail, X, CheckCircle, Loader2 } from "lucide-react";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls } from "@/apis";

@@ -693,8 +693,8 @@ const HomeCourseSection = ({
               }
               
               // Process each course with proper type checking
-              const formattedCourses = processedCourses.map(course => {
-                const courseId = course._id || course.id || `live-${Math.random().toString(36).substring(2, 9)}`;
+              const formattedCourses = processedCourses.map((course, index) => {
+                const courseId = course._id || course.id || `live-course-${index}`;
                 const courseTitle = course.course_title || course.title || 'Untitled Course';
                 console.log("Processing live course:", courseId, courseTitle);
                 

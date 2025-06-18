@@ -68,24 +68,34 @@ const Home2: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   
   // Simple derived values
   const isDark = mounted ? theme === 'dark' : true;
   const videoSrc = getVideoSrc(isDark, isMobile);
 
+  // Client-side mounting effect
+  useEffect(() => {
+    setIsClient(true);
+    setMounted(true);
+  }, []);
+
   // Optimized resize handler
   const handleResize = useCallback(() => {
+    if (!isClient || typeof window === 'undefined') return;
+    
     debouncedResize(() => {
       const newIsMobile = window.innerWidth < 768;
       if (newIsMobile !== isMobile) {
         setIsMobile(newIsMobile);
       }
     });
-  }, [isMobile]);
+  }, [isMobile, isClient]);
 
   // Single initialization effect
   useEffect(() => {
-    setMounted(true);
+    if (!isClient || typeof window === 'undefined') return;
+    
     setIsMobile(window.innerWidth < 768);
     
     // Quick load
@@ -99,17 +109,17 @@ const Home2: React.FC = () => {
       clearTimeout(resizeTimeout);
       window.removeEventListener('resize', handleResize);
     };
-  }, [handleResize]);
+  }, [isClient, handleResize]);
 
   // Theme effect
   useEffect(() => {
-    if (mounted) {
+    if (mounted && isClient) {
       document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
     }
-  }, [isDark, mounted]);
+  }, [isDark, mounted, isClient]);
 
   // Fast loading state
-  if (!mounted) {
+  if (!isClient || !mounted) {
     return (
       <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="flex items-center justify-center min-h-screen">

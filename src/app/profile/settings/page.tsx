@@ -5,7 +5,6 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "react-toastify";
 import { Lock, ShieldCheck, Mail, Bell, User, Camera } from "lucide-react";
 
 export default function ProfileSettingsPage() {

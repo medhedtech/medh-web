@@ -6,7 +6,6 @@ import ProtectedPage from "@/app/protectedRoutes";
 
 import axios from "axios";
 import { apiBaseUrl, apiUrls } from "@/apis";
-import { toast } from "react-toastify";
 import { PlusCircle, Edit, Trash2, HelpCircle, Save, X, Search, ChevronDown, ChevronRight, Plus } from "lucide-react";
 import useGetQuery from "@/hooks/getQuery.hook";
 

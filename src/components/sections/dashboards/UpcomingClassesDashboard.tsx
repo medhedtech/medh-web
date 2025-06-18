@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Search, Calendar, Clock, Star, Eye, Play, Users, User, FileText, Video, MapPin, Globe } from "lucide-react";
-import { toast } from "react-toastify";
 import StudentDashboardLayout from "./StudentDashboardLayout";
 
 interface UpcomingClass {

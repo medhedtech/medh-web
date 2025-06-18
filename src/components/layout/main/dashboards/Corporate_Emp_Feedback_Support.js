@@ -6,8 +6,6 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls } from "@/apis";
-import { toast } from "react-toastify";
-
 const feedbackSchema = yup.object().shape({
   feedbackType: yup.string().required("Feedback type is required"),
   feedbackText: yup

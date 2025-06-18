@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Users, Filter, Download, RefreshCw } from "lucide-react";
+import { useIsClient } from "@/utils/hydration";
 
 // Define type for batch data
 interface BatchDataItem {
@@ -38,16 +39,21 @@ const BatchAnalyticsPage = () => {
   const [viewType, setViewType] = useState<"bar" | "pie">("bar");
   const [timeRange, setTimeRange] = useState<string>("last-30-days");
   const [changeValues, setChangeValues] = useState<number[]>([]);
+  const isClient = useIsClient();
 
   // Generate random change values on mount and when batchData changes length
   useEffect(() => {
+    if (!isClient) return;
+    
     setChangeValues(
       batchData.map(() => Math.abs(Math.floor(Math.random() * 8) + 1))
     );
-  }, [batchData.length]);
+  }, [batchData.length, isClient]);
 
   // Simulate data refresh
   const refreshData = () => {
+    if (!isClient) return;
+    
     setIsLoading(true);
     setTimeout(() => {
       // Randomize data slightly for effect

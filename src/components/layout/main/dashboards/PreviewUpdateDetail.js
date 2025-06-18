@@ -4,8 +4,6 @@ import Preloader from "@/components/shared/others/Preloader";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { toast } from "react-toastify";
-
 export default function UpdateCoursePreview() {
   const router = useRouter();
   const courseId = useParams().courseId;

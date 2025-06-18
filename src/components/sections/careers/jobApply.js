@@ -5,7 +5,6 @@ import { apiUrls } from "@/apis";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { toast } from "react-toastify";
 import { FaCamera, FaTimes, FaCheckCircle, FaUpload, FaBriefcase, FaMapMarkerAlt, FaClock, FaDollarSign, FaChevronRight } from "react-icons/fa";
 import ReCAPTCHA from "react-google-recaptcha";
 import countriesData from "@/utils/countrycode.json";

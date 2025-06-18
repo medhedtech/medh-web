@@ -18,8 +18,6 @@ import {
 } from "lucide-react";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
-import { toast } from "react-toastify";
-
 // Default course image
 import defaultCourseImage from "@/assets/images/courses/Ai&Ml.jpeg";
 

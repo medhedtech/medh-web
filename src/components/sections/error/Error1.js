@@ -24,27 +24,34 @@ const Error1 = () => {
     setMounted(true);
     
     const handleMouseMove = (e) => {
-      if (!mounted) return;
+      if (!mounted || typeof window === 'undefined') return;
       const { clientX, clientY } = e;
       const moveX = (clientX - window.innerWidth / 2) * 0.02;
       const moveY = (clientY - window.innerHeight / 2) * 0.02;
       setMousePosition({ x: moveX, y: moveY });
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('mousemove', handleMouseMove);
+    }
+    
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('mousemove', handleMouseMove);
+      }
+    };
   }, [mounted]);
 
   // Generate decorative particles
   useEffect(() => {
     const generateParticles = () => {
-      const newParticles = Array.from({ length: 20 }, () => ({
-        id: Math.random(),
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        size: Math.random() * 8 + 2,
-        duration: Math.random() * 20 + 10,
-        delay: Math.random() * 5
+      const newParticles = Array.from({ length: 20 }, (_, index) => ({
+        id: `particle_${index}`,
+        x: (index * 17 + 13) % 100,
+        y: (index * 23 + 19) % 100,
+        size: (index % 6) + 2,
+        duration: (index % 10) + 10,
+        delay: (index % 5)
       }));
       setParticles(newParticles);
     };
@@ -123,7 +130,7 @@ const Error1 = () => {
             duration: particle.duration,
             delay: particle.delay,
             repeat: Infinity,
-            repeatDelay: Math.random() * 8
+            repeatDelay: (particle.delay || 0) * 1.6
           }}
         />
       ))}

@@ -7,8 +7,6 @@ import { FaTimes, FaSearch, FaCalendarAlt } from "react-icons/fa";
 import { Loader } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { toast } from "react-toastify";
-
 const formatDate = (date) => {
   if (!date) return "";
   const options = { day: "2-digit", month: "2-digit", year: "numeric" };

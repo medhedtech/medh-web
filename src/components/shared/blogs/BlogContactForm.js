@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { toast } from "react-toastify";
 import { Mail, User, MessageSquare, Send, Loader2, CheckCircle } from "lucide-react";
 import { submitContactForm } from "@/apis/form.api";
 
@@ -66,7 +65,7 @@ const BlogContactForm = () => {
       if (response.status === "success") {
         setIsSubmitted(true);
         reset();
-        toast.success("Thank you for your message! We'll get back to you soon.");
+        showToast.success("Thank you for your message! We'll get back to you soon.");
         
         // Reset success state after 5 seconds
         setTimeout(() => {

@@ -62,7 +62,6 @@ import {
 } from 'lucide-react';
 import useCourseLesson from '@/hooks/useCourseLesson.hook';
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
-import { toast } from "react-toastify";
 import ErrorDisplay from "@/components/shared/ErrorDisplay";
 import VideoPlayer from '@/components/shared/lessons/VideoPlayer';
 import { motion, AnimatePresence } from 'framer-motion';

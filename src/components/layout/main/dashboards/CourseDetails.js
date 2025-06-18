@@ -11,7 +11,6 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import ReactPlayer from "react-player";
-import { toast } from "react-toastify";
 import usePostQuery from "@/hooks/postQuery.hook";
 
 const CourseDetails = () => {

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, Mail, Edit3, Phone, MessageSquare, Send, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import ButtonPrimary from "@/components/shared/buttons/ButtonPrimary";
@@ -90,7 +89,7 @@ const ContactFrom = () => {
       if (response.status === "success") {
         setIsSubmitted(true);
         reset();
-        toast.success("Thank you for your message! We'll get back to you within 24 hours.");
+        showToast.success("Thank you for your message! We'll get back to you within 24 hours.");
         
         // Reset success state after 8 seconds
         setTimeout(() => {
@@ -101,7 +100,7 @@ const ContactFrom = () => {
       }
     } catch (error) {
       console.error("Contact form error:", error);
-      toast.error("Failed to send message. Please try again later.");
+      showToast.error("Failed to send message. Please try again later.");
     } finally {
       setIsSubmitting(false);
     }

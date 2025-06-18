@@ -179,7 +179,7 @@ const EnhancedVideoPlayer: React.FC<IEnhancedVideoPlayerProps> = ({
     if (enableAnalytics && videoId) {
       analyticsRef.current = {
         videoId,
-        sessionId: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        sessionId: `session_${Date.now()}_${videoId || 'default'}`,
         events: []
       };
     }

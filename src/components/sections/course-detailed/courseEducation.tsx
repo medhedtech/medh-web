@@ -21,7 +21,6 @@ import { notFound } from "next/navigation";
 import Preloader from "@/components/shared/others/Preloader";
 import SignInModal from "@/components/shared/signin-modal";
 import usePostQuery from "@/hooks/postQuery.hook";
-import { toast } from "react-toastify";
 import { HelpCircle, DollarSign, Award, BookOpen, Check, Star, Zap, Calendar, Users, Clock, ArrowRight, Bookmark, Gift, Sparkles, Lightbulb } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calculator, GraduationCap, Info } from "lucide-react";

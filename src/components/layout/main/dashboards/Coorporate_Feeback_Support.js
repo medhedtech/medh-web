@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import MyTable from "@/components/shared/common-table/page";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Preloader from "@/components/shared/others/Preloader";
-import { toast } from "react-toastify";
 import useDeleteQuery from "@/hooks/deleteQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { FaTimes } from "react-icons/fa";

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { showToast } from '@/utils/toastManager';
+import { showToast, toast } from '@/utils/toastManager';
 import Link from "next/link";
 import { debounce } from 'lodash';
 import { ArrowLeft, Plus, Trash2, Upload, Save, Eye, CheckCircle, AlertCircle, AlertTriangle, Clock, BookOpen, Users, Award, DollarSign, Calendar, HelpCircle, Settings } from "lucide-react";
@@ -253,7 +253,7 @@ export default function CreateBlendedCoursePage() {
         is_active: true
       }],
       curriculum: [{
-        id: crypto.randomUUID(),
+        id: 'section_1',
         title: 'Section 1',
         weekTitle: 'Week 1',
         description: '',
@@ -319,8 +319,7 @@ export default function CreateBlendedCoursePage() {
         const saveSuccess = storageUtil.setItem(STORAGE_KEY, JSON.stringify(data));
         
         if (saveSuccess) {
-          const now = new Date();
-          setLastSaved(now.toLocaleString());
+          setLastSaved(new Date().toLocaleString());
           setHasSavedDraft(true);
           setHasUnsavedChanges(false);
         }
@@ -854,7 +853,7 @@ export default function CreateBlendedCoursePage() {
 
       // Transform curriculum to include weekTitle for API (backend requires it)
       const transformedCurriculum = cleanedData.curriculum.map(section => ({
-        id: section.id || crypto.randomUUID(),
+        id: section.id || `section_${sectionIndex + 1}`,
         title: section.title,
         weekTitle: section.weekTitle, // Include weekTitle as required by backend
         description: section.description,
@@ -893,7 +892,7 @@ export default function CreateBlendedCoursePage() {
       console.log('Sending course data to API:', blendedCourseData);
 
       // Show loading toast
-      const loadingToast = toast.loading('Creating blended course...');
+      const loadingToast = showToast.loading('Creating blended course...');
 
       try {
         // Create the course using the new API
@@ -2012,7 +2011,7 @@ export default function CreateBlendedCoursePage() {
             <button
               type="button"
               onClick={() => appendCurriculum({
-                id: crypto.randomUUID(),
+                id: `section_${curriculumFields.length + 1}`,
                 title: `Section ${curriculumFields.length + 1}`,
                 weekTitle: `Week ${curriculumFields.length + 1}`,
                 description: '',
@@ -2303,7 +2302,26 @@ export default function CreateBlendedCoursePage() {
                   </h3>
                   <div className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
                     <pre className="whitespace-pre-wrap text-xs">
-                      {JSON.stringify(errors, null, 2)}
+                      {(() => {
+                        try {
+                          return JSON.stringify(
+                            Object.fromEntries(
+                              Object.entries(errors).map(([key, error]) => [
+                                key,
+                                {
+                                  type: error?.type,
+                                  message: error?.message,
+                                  ref: error?.ref?.name || '[DOM Element]'
+                                }
+                              ])
+                            ),
+                            null,
+                            2
+                          );
+                        } catch (err) {
+                          return `Error serializing form errors: ${err instanceof Error ? err.message : 'Unknown error'}`;
+                        }
+                      })()}
                     </pre>
                   </div>
                 </div>

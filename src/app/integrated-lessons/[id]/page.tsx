@@ -4,7 +4,6 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { toast } from "react-toastify";
 import { useMediaQuery } from "@/hooks";
 import { useLocalStorage } from "@/hooks";
 import { formatDuration, formatDate, formatDistanceToNow } from "@/utils/format";

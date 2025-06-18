@@ -20,8 +20,6 @@ import {
   Filter,
   Eye
 } from "lucide-react";
-import { toast } from "react-toastify";
-
 interface RecordedLesson {
   _id: string;
   title: string;

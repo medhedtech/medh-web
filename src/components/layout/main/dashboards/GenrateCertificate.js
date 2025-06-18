@@ -9,7 +9,6 @@ import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { FiUsers } from "react-icons/fi";
-import { toast } from "react-toastify";
 import { Loader } from "lucide-react";
 
 const CertificatePage = () => {

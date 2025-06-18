@@ -8,7 +8,6 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { FileText, CheckCircle, X, ArrowRight, Info, Loader2, Phone, Mail, User, Upload, Globe, MessageSquare, Building, Briefcase, Send, ExternalLink } from "lucide-react";
 import Link from "next/link";
-import { toast } from "react-toastify";
 import CustomReCaptcha from '../../shared/ReCaptcha';
 import countriesData from "@/utils/countrycode.json";
 import { useTheme } from "next-themes";

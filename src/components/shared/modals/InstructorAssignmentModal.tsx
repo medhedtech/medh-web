@@ -126,7 +126,7 @@ const InstructorAssignmentModal: React.FC<InstructorAssignmentModalProps> = ({
     setLoading(true);
     
     // Show initial loading message
-    const loadingToast = toast.loading('Creating instructor assignment...');
+    const loadingToast = showToast.loading('Creating instructor assignment...');
     
     // Log the assignment attempt for debugging
     console.log('Assignment attempt:', {

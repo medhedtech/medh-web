@@ -4,8 +4,6 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import { toast } from "react-toastify";
-
 const AssignmentCard = ({
   title,
   courseTitle,

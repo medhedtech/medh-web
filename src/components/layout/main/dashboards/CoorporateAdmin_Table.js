@@ -5,7 +5,6 @@ import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import MyTable from "@/components/shared/common-table/page";
 import useDeleteQuery from "@/hooks/deleteQuery.hook";
-import { toast } from "react-toastify";
 import usePostQuery from "@/hooks/postQuery.hook";
 import AddCoorporate_Admin from "./AddCoorporateAdmin";
 import Preloader from "@/components/shared/others/Preloader";

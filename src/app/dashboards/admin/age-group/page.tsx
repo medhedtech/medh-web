@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { User, Filter, Download, RefreshCw } from "lucide-react";
+import { useIsClient } from "@/utils/hydration";
 
 // Define type for age data
 interface AgeDataItem {
@@ -39,16 +40,21 @@ const AgeGroupPage = () => {
   const [viewType, setViewType] = useState<"bar" | "pie">("bar");
   const [timeRange, setTimeRange] = useState<string>("last-30-days");
   const [changeValues, setChangeValues] = useState<number[]>([]);
+  const isClient = useIsClient();
   
   // Generate random change values on mount and when ageData changes length
   useEffect(() => {
+    if (!isClient) return;
+    
     setChangeValues(
       ageData.map(() => Math.abs(Math.floor(Math.random() * 8) + 1))
     );
-  }, [ageData.length]);
+  }, [ageData.length, isClient]);
   
   // Simulate data refresh
   const refreshData = () => {
+    if (!isClient) return;
+    
     setIsLoading(true);
     setTimeout(() => {
       // Randomize data slightly for effect

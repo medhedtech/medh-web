@@ -277,7 +277,7 @@ export const enrollmentAPI = {
   enrollStudent: async (studentId: string, enrollmentData: IEnrollmentInput) => {
     if (!studentId) throw new Error('Student ID cannot be empty');
     return apiClient.post<IApiResponse<IEnrollmentWithDetails>>(
-      `${apiBaseUrl}/enrollments/students/${studentId}/enroll`,
+      `${apiBaseUrl}/enrolled/student/${studentId}/enroll`,
       enrollmentData
     );
   },
@@ -290,7 +290,7 @@ export const enrollmentAPI = {
   getEnrollmentById: async (enrollmentId: string) => {
     if (!enrollmentId) throw new Error('Enrollment ID cannot be empty');
     return apiClient.get<IApiResponse<IEnrollmentWithDetails>>(
-      `${apiBaseUrl}/enrollments/${enrollmentId}`
+      `${apiBaseUrl}/enrolled/${enrollmentId}`
     );
   },
 
@@ -307,7 +307,7 @@ export const enrollmentAPI = {
   }) => {
     if (!enrollmentId) throw new Error('Enrollment ID cannot be empty');
     return apiClient.put<IApiResponse<IEnrollmentWithDetails>>(
-      `${apiBaseUrl}/enrollments/${enrollmentId}`,
+      `${apiBaseUrl}/enrolled/${enrollmentId}`,
       updateData
     );
   },
@@ -320,7 +320,7 @@ export const enrollmentAPI = {
   cancelEnrollment: async (enrollmentId: string) => {
     if (!enrollmentId) throw new Error('Enrollment ID cannot be empty');
     return apiClient.delete<IApiResponse<{ message: string }>>(
-      `${apiBaseUrl}/enrollments/${enrollmentId}`
+      `${apiBaseUrl}/enrolled/${enrollmentId}`
     );
   },
 
@@ -339,7 +339,7 @@ export const enrollmentAPI = {
     if (!studentId) throw new Error('Student ID cannot be empty');
     const queryString = apiUtils.buildQueryString(params);
     return apiClient.get<IApiResponse<IEnrollmentWithDetails[]>>(
-      `${apiBaseUrl}/enrollments/students/${studentId}${queryString}`
+      `${apiBaseUrl}/enrolled/student/${studentId}${queryString}`
     );
   },
 
@@ -353,7 +353,7 @@ export const enrollmentAPI = {
     if (!enrollmentId) throw new Error('Enrollment ID cannot be empty');
     if (!newBatchId) throw new Error('New batch ID cannot be empty');
     return apiClient.put<IApiResponse<IEnrollmentWithDetails>>(
-      `${apiBaseUrl}/enrollments/${enrollmentId}/transfer-batch`,
+      `${apiBaseUrl}/enrolled/${enrollmentId}/transfer-batch`,
       { new_batch_id: newBatchId }
     );
   }

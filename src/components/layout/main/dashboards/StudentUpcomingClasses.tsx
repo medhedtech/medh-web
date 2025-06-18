@@ -15,7 +15,6 @@ import {
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import moment from "moment";
-import { toast } from "react-toastify";
 import Image from "next/image";
 import AiMl from "@/assets/images/courses/Ai&Ml.jpeg";
 

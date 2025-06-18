@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   GraduationCap, 
@@ -36,7 +36,10 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
+import { showToast } from '@/utils/toastManager';
 import Link from 'next/link';
+import { useTheme } from "next-themes";
+import { useIsClient } from "@/utils/hydration";
 
 // Course detailed sections
 import CourseNavigation from '@/components/sections/course-detailed/CourseNavigation';
@@ -308,6 +311,8 @@ const CourseDetailsPage = ({ ...props }) => {
     }
   };
 
+  const isClient = useIsClient();
+
   // Fetch course details from API
   const fetchCourseDetails = async (id) => {
     setLoading(true);
@@ -437,14 +442,14 @@ const CourseDetailsPage = ({ ...props }) => {
 
   // Check login status
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
-      const userId = localStorage.getItem('userId');
-      const user = localStorage.getItem('user') || localStorage.getItem('userData');
-      
-      setIsLoggedIn(!!token && (!!userId || !!user));
-    }
-  }, []);
+    if (!isClient) return;
+    
+    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem('userId');
+    const user = localStorage.getItem('user') || localStorage.getItem('userData');
+    
+    setIsLoggedIn(!!token && (!!userId || !!user));
+  }, [isClient]);
 
   // Add debug logging for modal state changes
   useEffect(() => {

@@ -6,10 +6,13 @@ import RecentAnnouncements from "@/components/shared/dashboards/RecentAnnounceme
 import { Bell, Calendar, BookOpen, Sparkles, ArrowRight, Loader2 } from "lucide-react";
 import Image from "next/image";
 import FreeClasses from "@/components/shared/dashboards/FreeClasses";
+import { useIsClient } from "@/utils/hydration";
 
 const ParentDashboardMain: React.FC = () => {
   const [greeting, setGreeting] = useState<string>("Good day");
   const [userName, setUserName] = useState<string>("");
+  const [currentDate, setCurrentDate] = useState<string>("");
+  const isClient = useIsClient();
 
   // Animation variants
   const containerVariants = {
@@ -34,17 +37,20 @@ const ParentDashboardMain: React.FC = () => {
 
   // Set greeting based on time of day
   useEffect(() => {
+    if (!isClient) return;
+    
     const hour = new Date().getHours();
     if (hour < 12) setGreeting("Good morning");
     else if (hour < 18) setGreeting("Good afternoon");
     else setGreeting("Good evening");
 
+    // Set current date
+    setCurrentDate(new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
+
     // Get user name from localStorage
-    if (typeof window !== "undefined") {
-      const storedName = localStorage.getItem("userName") || "";
-      setUserName(storedName.split(" ")[0] || "Parent"); // Use first name or default to "Parent"
-    }
-  }, []);
+    const storedName = localStorage.getItem("userName") || "";
+    setUserName(storedName.split(" ")[0] || "Parent"); // Use first name or default to "Parent"
+  }, [isClient]);
 
   return (
     <motion.div
@@ -77,7 +83,7 @@ const ParentDashboardMain: React.FC = () => {
                 <Calendar className="w-5 h-5 text-primary-200" />
                 <div>
                   <p className="text-xs sm:text-sm font-medium text-primary-100">Today's Date</p>
-                  <p className="text-sm sm:text-base font-semibold">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                  <p className="text-sm sm:text-base font-semibold">{currentDate || "Loading..."}</p>
                 </div>
               </div>
             </div>

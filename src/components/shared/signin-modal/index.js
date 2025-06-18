@@ -4,7 +4,6 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls } from "@/apis";
-import { toast } from "react-toastify";
 import { useState, useEffect } from "react";
 import { storeAuthData, sanitizeAuthData } from "@/utils/auth";
 import { jwtDecode } from "jwt-decode";

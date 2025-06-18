@@ -346,6 +346,16 @@ const CourseCard = ({
     };
   }, []);
 
+  // Helper function to get description text safely
+  const getDescriptionText = (description) => {
+    if (!description) return '';
+    if (typeof description === 'string') return description;
+    if (typeof description === 'object') {
+      return description.program_overview || description.benefits || '';
+    }
+    return '';
+  };
+
   // Determine the effective class type based on preserveClassType flag
   const getEffectiveClassType = () => {
     // If preserveClassType is true, use the course's own class_type
@@ -364,11 +374,13 @@ const CourseCard = ({
     
     // Handle the "all" category case - we need to determine the type from course properties
     if (effectiveType === "all" || effectiveType === "") {
+      const descriptionText = getDescriptionText(course?.course_description);
+
       // Check for live courses indicators
       if (course?.is_live_course === true || 
           (course?.course_title && course.course_title.toLowerCase().includes('live')) ||
           (course?.class_type && course.class_type.toLowerCase().includes('live')) ||
-          (course?.course_description && course.course_description.toLowerCase().includes('live interactive'))) {
+          (descriptionText && descriptionText.toLowerCase().includes('live interactive'))) {
         return 'live';
       }
       
@@ -376,7 +388,7 @@ const CourseCard = ({
       if (course?.is_blended_course === true || 
           (course?.class_type && (course.class_type.toLowerCase().includes('blend') || course.class_type.toLowerCase().includes('hybrid'))) ||
           (course?.course_title && (course.course_title.toLowerCase().includes('blend') || course.course_title.toLowerCase().includes('hybrid'))) ||
-          (course?.course_description && course.course_description.toLowerCase().includes('blended learning'))) {
+          (descriptionText && descriptionText.toLowerCase().includes('blended learning'))) {
         return 'blended';
       }
       
@@ -882,7 +894,8 @@ const CourseCard = ({
   // Format and adapt course title for display
   const adaptedTitle = useResponsiveText(course?.course_title, {xs: 40, sm: 60, md: 80, lg: 100});
   // Format and adapt course description for display
-  const adaptedDescription = useResponsiveText(course?.course_description, {xs: 80, sm: 120, md: 160, lg: 200});
+  const courseDescriptionText = getDescriptionText(course?.course_description);
+  const adaptedDescription = useResponsiveText(courseDescriptionText, {xs: 80, sm: 120, md: 160, lg: 200});
 
   // Get course type specific styles
   const getCourseTypeStyles = () => {
@@ -1279,12 +1292,12 @@ const CourseCard = ({
                     {course?.course_title || "Course Title"}
                   </h3>
                   
-                  {/* Course description - optimized spacing */}
-                  {!isCompact && !hideDescription && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 text-center mx-auto max-w-[95%] h-10 flex items-center justify-center">
-                      {course?.course_description}
-                    </p>
-                  )}
+                                  {/* Course description - optimized spacing */}
+                {!isCompact && !hideDescription && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 text-center mx-auto max-w-[95%] h-10 flex items-center justify-center">
+                    {courseDescriptionText}
+                  </p>
+                )}
 
                   {/* Session Count Indicator - displayed in normal card view */}
                   {course?.no_of_Sessions && (
@@ -1449,7 +1462,7 @@ const CourseCard = ({
                 {/* Course description - optimized spacing */}
                 {!isCompact && !hideDescription && (
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 text-center mx-auto max-w-[95%] h-10 flex items-center justify-center">
-                    {course?.course_description}
+                    {courseDescriptionText}
                   </p>
                 )}
 

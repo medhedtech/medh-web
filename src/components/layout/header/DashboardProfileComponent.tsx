@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
+import { useIsClient } from "@/utils/hydration";
 
 // Icons
 import {
@@ -43,6 +44,7 @@ interface DashboardProfileProps {
 const DashboardProfileComponent: React.FC<DashboardProfileProps> = ({ isScrolled = false }) => {
   const router = useRouter();
   const { getQuery } = useGetQuery();
+  const isClient = useIsClient();
   
   // State management
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -77,6 +79,8 @@ const DashboardProfileComponent: React.FC<DashboardProfileProps> = ({ isScrolled
   };
 
   useEffect(() => {
+    if (!isClient) return;
+    
     // Check if user is logged in by looking for token and userId
     const token = localStorage.getItem("token");
     const userId = localStorage.getItem("userId");
@@ -176,7 +180,7 @@ const DashboardProfileComponent: React.FC<DashboardProfileProps> = ({ isScrolled
         clearTimeout(dropdownTimeoutRef.current);
       }
     };
-  }, []);
+  }, [isClient]);
 
   // Get dashboard URL based on role
   const getDashboardUrl = () => {

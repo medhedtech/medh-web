@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import CreateQuizModal from "@/components/shared/quiz-modal";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
-import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import Preloader from "@/components/shared/others/Preloader";
 

@@ -8,7 +8,6 @@ import { apiUrls } from "@/apis";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { toast } from "react-toastify";
 import { Loader, Info, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
 
 // Permission Configuration with categories

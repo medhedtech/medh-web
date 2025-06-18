@@ -8,13 +8,22 @@ import { ServerLoadingProvider } from "@/providers/ServerLoadingProvider";
 import { LoadingProvider } from "@/contexts/LoadingContext";
 import { ThemeProvider } from "next-themes";
 import { ToastContainer } from "react-toastify";
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
+import { showToast } from "@/utils/toastManager";
 
 interface ProvidersProps {
   children: ReactNode;
 }
 
 export default function Providers({ children }: ProvidersProps) {
+  // Initialize global showToast
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).showToast = showToast;
+      (globalThis as any).showToast = showToast;
+    }
+  }, []);
+
   return (
     <ThemeProvider
       attribute="class"

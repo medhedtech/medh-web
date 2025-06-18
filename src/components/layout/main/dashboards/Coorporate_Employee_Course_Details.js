@@ -9,7 +9,6 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import ReactPlayer from "react-player";
-import { toast } from "react-toastify";
 import CoorporateCourseHeader from "./CoorporateCourse_Header";
 
 const CoorporateEmployeeCourseDetails = () => {

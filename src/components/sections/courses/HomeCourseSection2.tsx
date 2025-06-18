@@ -9,6 +9,7 @@ import axios from 'axios';
 import { apiUrls } from '@/apis/index';
 import { VideoBackgroundContext } from '@/components/layout/main/Home2';
 import { useTheme } from "next-themes";
+import { useIsClient } from "@/utils/hydration";
 
 // Simplified glassmorphism styles - reduced complexity for better performance
 const getGlassmorphismStyles = (isDark: boolean) => `
@@ -327,7 +328,8 @@ const getBlendedCourseSessions = (course: ICourse) => {
     };
   }
   
-  const videoCount = course.lectures_count || Math.round(Math.random() * 8) + 4;
+  // Use a deterministic fallback instead of Math.random()
+  const videoCount = course.lectures_count || 6; // Default to 6 instead of random
   const qnaSessions = 0;
   
   return { videoCount, qnaSessions };
@@ -530,11 +532,13 @@ const HomeCourseSection2 = ({
                 return;
               }
               
-              const formattedCourses = processedCourses.map(course => {
-                const courseId = course._id || course.id || `live-${Math.random().toString(36).substring(2, 9)}`;
+              // Process each course
+              const formattedCourses = processedCourses.map((course, index) => {
+                const courseId = course._id || course.id || `live-course-${index}`;
                 const courseTitle = course.title || course.course_title || 'Untitled Course';
                 console.log("Processing live course:", courseId, courseTitle);
                 
+                // Set specific images for known courses
                 let courseImage = course.course_image || course.thumbnail || '/fallback-course-image.jpg';
                 if (courseId === 'ai_data_science' || courseTitle.toLowerCase().includes('ai') || courseTitle.toLowerCase().includes('data science')) {
                   courseImage = '/images/courses/ai-data-science.png';
@@ -790,7 +794,7 @@ const HomeCourseSection2 = ({
                 <div key={course._id} className="live-course-card-wrapper flex flex-col h-full relative w-full min-w-0">
                   <CourseCard 
                     course={{
-                      _id: course._id || course.id || `live-${Math.random().toString(36).substring(2, 9)}`,
+                      _id: course._id || course.id || `live-course-${index}`,
                       course_title: course.course_title || course.title || 'Untitled Course',
                       course_description: course.course_description || course.description,
                       course_image: course.course_image || course.thumbnail || '/fallback-course-image.jpg',

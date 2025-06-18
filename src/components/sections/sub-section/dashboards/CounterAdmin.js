@@ -9,7 +9,6 @@ import counter6 from "@/assets/images/counter/card-5.png";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
 import { Loader } from "lucide-react";
-import { toast } from "react-toastify";
 import Image from "next/image";
 import { RefreshCw, AlertCircle } from "lucide-react";
 

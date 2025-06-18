@@ -10,7 +10,6 @@ import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls, IRegisterData, IAuthResponse, IVerifyEmailData, IResendVerificationData } from "@/apis";
 import logo1 from "@/assets/images/logo/medh_logo-1.png";
 import logo2 from "@/assets/images/logo/logo_2.png";
-import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, User, Mail, Phone, Lock, AlertCircle, Loader2, Moon, Sun, UserCircle, ArrowRight, CheckCircle, RefreshCw, ChevronRight, Check, Shield } from "lucide-react";
 import { Github } from "lucide-react";
@@ -22,6 +21,7 @@ import { useTheme } from "next-themes";
 import OTPVerification from './OTPVerification';
 import PhoneNumberInput, { phoneNumberSchema } from './PhoneNumberInput';
 import { authAPI, authUtils } from "@/apis/auth.api";
+import { useCurrentYear } from "@/utils/hydration";
 
 declare global {
   interface Window {
@@ -248,6 +248,7 @@ const formatPhoneNumber = (phoneNumber: string, countryCode?: string): string | 
 const SignUpForm: React.FC = () => {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+  const currentYear = useCurrentYear();
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const { postQuery, loading } = usePostQuery();
@@ -776,7 +777,7 @@ const SignUpForm: React.FC = () => {
           {/* Footer */}
           <div className="text-center mt-2">
             <p className="text-xs text-gray-400 dark:text-gray-500">
-              © {new Date().getFullYear()} Medh
+              © {currentYear} Medh
             </p>
           </div>
         </div>
@@ -1527,7 +1528,7 @@ const SignUpForm: React.FC = () => {
           {/* Footer */}
           <div className="text-center mt-2">
             <p className="text-xs text-gray-400 dark:text-gray-500">
-              © {new Date().getFullYear()} Medh
+              © {currentYear} Medh
             </p>
           </div>
         </div>

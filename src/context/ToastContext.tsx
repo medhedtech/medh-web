@@ -17,9 +17,11 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<IToast[]>([]);
+  const [toastCounter, setToastCounter] = useState(0);
 
   const showToast = (message: string, type: IToast['type']) => {
-    const id = Math.random().toString(36).substring(2, 9);
+    const id = `toast_${Date.now()}_${toastCounter}`;
+    setToastCounter(prev => prev + 1);
     setToasts((prev) => [...prev, { id, message, type }]);
 
     // Auto-remove toast after 5 seconds

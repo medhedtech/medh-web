@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useCa
 import axios from 'axios';
 import { z } from 'zod';
 import { ICurrency, ICurrencyResponse, ICurrenciesResponse } from '@/apis';
+import { useIsClient } from '@/utils/hydration';
 
 // Define currency codes as string literals for better type safety
 type CurrencyCode = 'USD' | 'EUR' | 'AED' | 'GBP' | 'INR' | 'AUD' | 'CAD' | 'SGD' | 'NZD' | 'JPY' | 'CNY' | 'KRW' | 'BRL' | 'MXN' | 'ZAR' | 'HKD';
@@ -94,6 +95,7 @@ const IPAPISchema = z.object({
 const CurrencyContext = createContext<CurrencyContextState | undefined>(undefined);
 
 export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) => {
+  const isClient = useIsClient();
   const [currency, setCurrency] = useState<CurrencyInfo>({ code: 'USD', symbol: '$' });
   const [currencies, setCurrencies] = useState<Record<string, Currency>>(CURRENCIES);
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({});
@@ -119,6 +121,8 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
 
     // Then check if we have cached currencies in localStorage
     try {
+      if (!isClient) return fallbackCurrencies;
+      
       const cachedCurrencies = localStorage.getItem('cachedCurrencies');
       if (cachedCurrencies) {
         const parsed = JSON.parse(cachedCurrencies);
@@ -153,10 +157,12 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
       setExternalCurrencies(fallbackCurrencies);
       
       // Still cache the fallback currencies for future use
-      localStorage.setItem('cachedCurrencies', JSON.stringify({ 
-        currencies: fallbackCurrencies,
-        timestamp: Date.now()
-      }));
+      if (isClient) {
+        localStorage.setItem('cachedCurrencies', JSON.stringify({ 
+          currencies: fallbackCurrencies,
+          timestamp: Date.now()
+        }));
+      }
       
       return fallbackCurrencies;
     }
@@ -347,10 +353,12 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
         setLastRatesUpdate(now);
         
         // Store rates in localStorage with timestamp
-        localStorage.setItem('exchangeRates', JSON.stringify({
-          rates,
-          timestamp: now
-        }));
+        if (isClient) {
+          localStorage.setItem('exchangeRates', JSON.stringify({
+            rates,
+            timestamp: now
+          }));
+        }
       }
     } catch (error) {
       console.error('Error refreshing exchange rates:', error instanceof Error ? error.message : String(error));
@@ -360,6 +368,12 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
   const setInitialCurrency = async (): Promise<void> => {
     try {
       setLoading(true);
+      
+      // Only proceed with localStorage operations if on client
+      if (!isClient) {
+        setLoading(false);
+        return;
+      }
       
       // First, load any cached exchange rates
       const cachedRatesData = localStorage.getItem('exchangeRates');
@@ -401,7 +415,9 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
         const newCurrency = getCurrencyForCountry(countryCode);
         
         // Store the currency preference
-        localStorage.setItem('preferredCurrency', JSON.stringify(newCurrency));
+        if (isClient) {
+          localStorage.setItem('preferredCurrency', JSON.stringify(newCurrency));
+        }
         setCurrency(newCurrency);
       }
     } catch (error) {
@@ -422,7 +438,9 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
           symbol: CURRENCIES[newCurrencyCode].symbol 
         };
         
-        localStorage.setItem('preferredCurrency', JSON.stringify(newCurrency));
+        if (isClient) {
+          localStorage.setItem('preferredCurrency', JSON.stringify(newCurrency));
+        }
         setCurrency(newCurrency);
       } else {
         throw new Error(`Invalid currency code: ${newCurrencyCode}`);
@@ -431,19 +449,23 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
       console.error('Error changing currency:', error instanceof Error ? error.message : String(error));
       // If error, keep current currency
     }
-  }, []);
+  }, [isClient]);
 
   // Update the currencies object with new values
   const updateCurrencies = useCallback((currenciesObject: Record<string, Currency>) => {
     setCurrencies(currenciesObject);
-    localStorage.setItem('appCurrencies', JSON.stringify(currenciesObject));
-  }, []);
+    if (isClient) {
+      localStorage.setItem('appCurrencies', JSON.stringify(currenciesObject));
+    }
+  }, [isClient]);
 
   // Set auto detect preference
   const setAutoDetectPreference = useCallback((value: boolean) => {
     setAutoDetect(value);
-    localStorage.setItem('autoDetectCurrency', JSON.stringify(value));
-  }, []);
+    if (isClient) {
+      localStorage.setItem('autoDetectCurrency', JSON.stringify(value));
+    }
+  }, [isClient]);
 
   // Setup initial currency and exchange rates
   useEffect(() => {
@@ -460,6 +482,8 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
 
   // Initial setup
   useEffect(() => {
+    if (!isClient) return;
+    
     const storedAutoDetect = localStorage.getItem('autoDetectCurrency');
     if (storedAutoDetect !== null) {
       setAutoDetect(JSON.parse(storedAutoDetect));
@@ -469,7 +493,7 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
     if (storedCurrencies) {
       setCurrencies(JSON.parse(storedCurrencies));
     }
-  }, []);
+  }, [isClient]);
 
   // Convert price from USD to selected currency using real-time rates
   const convertPrice = useCallback((priceInUSD: number | undefined | null, toCurrencyCode?: CurrencyCode): number => {

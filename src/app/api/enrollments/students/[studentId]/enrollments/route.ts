@@ -241,34 +241,36 @@ const getMockEnrollments = (studentId: string): IEnrollment[] => {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { studentId: string } }
+  { params }: { params: Promise<{ studentId: string }> }
 ) {
-  // Verify authentication token
-  const headersList = headers();
-  const token = headersList.get('Authorization')?.split(' ')[1];
-  
-  if (!token) {
-    return NextResponse.json(
-      { message: 'Authentication required' },
-      { status: 401 }
-    );
-  }
-  
-  // In a real implementation, verify the token with your auth service
-  // const isValidToken = await verifyToken(token);
-  // if (!isValidToken) {
-  //   return NextResponse.json(
-  //     { message: 'Invalid or expired token' },
-  //     { status: 401 }
-  //   );
-  // }
-  
   try {
+    const { studentId } = await params;
+    
+    // Verify authentication token
+    const headersList = await headers();
+    const token = headersList.get('Authorization')?.split(' ')[1];
+    
+    if (!token) {
+      return NextResponse.json(
+        { message: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+    
+    // In a real implementation, verify the token with your auth service
+    // const isValidToken = await verifyToken(token);
+    // if (!isValidToken) {
+    //   return NextResponse.json(
+    //     { message: 'Invalid or expired token' },
+    //     { status: 401 }
+    //   );
+    // }
+    
     // In a real implementation, fetch enrollments from your database
-    // const enrollments = await Enrollment.find({ student: params.studentId }).populate('batch');
+    // const enrollments = await Enrollment.find({ student: studentId }).populate('batch');
     
     // Using mock data for demonstration
-    const enrollments = getMockEnrollments(params.studentId);
+    const enrollments = getMockEnrollments(studentId);
     
     return NextResponse.json(enrollments);
   } catch (error) {

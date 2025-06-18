@@ -42,8 +42,6 @@ import { format } from "date-fns";
 import defaultCourseImage from "@/assets/images/courses/Ai&Ml.jpeg";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
-import { toast } from "react-toastify";
-
 // TypeScript interfaces for proper type safety
 interface IInstructor {
   _id: string;

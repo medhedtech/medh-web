@@ -5,8 +5,6 @@ import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import MyTable from "@/components/shared/common-table/page";
 import useDeleteQuery from "@/hooks/deleteQuery.hook";
-import { toast } from "react-toastify";
-
 const AdminFeedbacks = () => {
   const { deleteQuery } = useDeleteQuery();
   const [instructors, setInstructors] = useState([]);

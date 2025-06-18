@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User,
@@ -418,7 +417,7 @@ export const UniversalForm: React.FC<IUniversalFormProps> = ({
       if (response.status === "success") {
         setIsSubmitted(true);
         reset();
-        toast.success(config.successMessage || "Form submitted successfully!");
+        showToast.success(config.successMessage || "Form submitted successfully!");
         
         if (onSuccess) {
           onSuccess(response.data);

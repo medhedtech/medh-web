@@ -9,8 +9,6 @@ import usePostQuery from "@/hooks/postQuery.hook";
 import { capitalize } from "@mui/material";
 import useRazorpay from "@/hooks/useRazorpay";
 import RAZORPAY_CONFIG from "@/config/razorpay";
-import { toast } from "react-toastify";
-
 interface StudentMainMembershipProps {
   courseImage?: string;
   title: string;

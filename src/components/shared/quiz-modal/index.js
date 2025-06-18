@@ -11,7 +11,6 @@ import usePostQuery from "@/hooks/postQuery.hook";
 import Image from "next/image";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Icon2 from "@/assets/images/dashbord/icon2.svg";
-import { toast } from "react-toastify";
 import Preloader from "../others/Preloader";
 
 const schema = yup.object({

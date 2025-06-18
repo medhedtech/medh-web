@@ -55,7 +55,6 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
-import { toast } from "react-toastify";
 import clsx from "clsx";
 
 // Define item types & statuses

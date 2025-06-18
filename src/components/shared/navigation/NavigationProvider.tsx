@@ -126,9 +126,14 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
   
   // Initialize component on mount
   useEffect(() => {
+    // Client-side guard
+    if (typeof window === 'undefined') return;
+    
     // Check if device is mobile
     const checkMobile = () => {
-      setIsMobileDevice(window.innerWidth < 1024);
+      if (typeof window !== 'undefined') {
+        setIsMobileDevice(window.innerWidth < 1024);
+      }
     };
     
     checkMobile();
