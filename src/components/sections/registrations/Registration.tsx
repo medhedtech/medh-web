@@ -6,7 +6,7 @@ import { apiUrls } from "@/apis";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { FileText, CheckCircle, X, ArrowRight, Info, Loader2, Phone, Mail, User, Upload, Globe, MessageSquare, Building, Briefcase } from "lucide-react";
+import { FileText, CheckCircle, X, ArrowRight, Info, Loader2, Phone, Mail, User, Upload, Globe, MessageSquare, Building, Briefcase, Send, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { toast } from "react-toastify";
 import CustomReCaptcha from '../../shared/ReCaptcha';
@@ -92,10 +92,26 @@ const createValidationSchema = (pageTitle?: string) => {
         // Remove any non-digit characters
         const cleanNumber = value.replace(/\D/g, '');
         
-        // Ensure the phone number has exactly 10 digits
+        // For India, enforce exactly 10 digits
+        if (country === 'India') {
         if (cleanNumber.length !== 10) {
           return this.createError({
-            message: "Phone number must be exactly 10 digits"
+              message: "Phone number must be exactly 10 digits for India"
+            });
+          }
+          // Additional validation for Indian mobile numbers (should start with 6, 7, 8, or 9)
+          if (!/^[6-9]/.test(cleanNumber)) {
+            return this.createError({
+              message: "Indian mobile numbers must start with 6, 7, 8, or 9"
+            });
+          }
+          return true;
+        }
+        
+        // For other countries, ensure minimum 10 digits
+        if (cleanNumber.length < 10) {
+          return this.createError({
+            message: "Phone number must be at least 10 digits"
           });
         }
 
@@ -176,7 +192,7 @@ const FormInput: React.FC<{
         placeholder=""
         onChange={onChange}
         value={value}
-        className={`w-full h-[52px] pl-10 sm:pl-12 pr-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 border-2 ${
+        className={`w-full h-[44px] pl-10 sm:pl-12 pr-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700/50 border-2 ${
           error 
             ? 'border-red-500 focus:ring-red-500 dark:border-red-500' 
             : 'border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500 focus:ring-primary-500 focus:border-primary-500'
@@ -224,7 +240,7 @@ const FormSelect: React.FC<{
         id={id}
         onChange={onChange}
         value={value}
-        className={`w-full h-[52px] pl-10 sm:pl-12 pr-10 py-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 border-2 ${
+        className={`w-full h-[44px] pl-10 sm:pl-12 pr-10 py-2 rounded-lg bg-gray-50 dark:bg-gray-700/50 border-2 ${
           error 
             ? 'border-red-500 focus:ring-red-500 dark:border-red-500' 
             : 'border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500 focus:ring-primary-500 focus:border-primary-500'
@@ -260,7 +276,8 @@ const PhoneInput: React.FC<{
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   error?: any;
   countryCode: string;
-}> = ({ id, value, onChange, error, countryCode }) => (
+  country?: string;
+}> = ({ id, value, onChange, error, countryCode, country }) => (
   <div>
     <div className="relative group">
       <label 
@@ -271,7 +288,7 @@ const PhoneInput: React.FC<{
       </label>
       <div className="flex w-full">
         <div className="flex-shrink-0 min-w-[70px] sm:min-w-[80px]">
-          <div className="h-[52px] flex items-center justify-center px-2 sm:px-3 md:px-4 bg-primary-50 dark:bg-primary-900/30 border-2 border-r-0 border-gray-200 dark:border-gray-700 rounded-l-xl group-hover:border-primary-400 dark:group-hover:border-primary-500 group-hover:bg-primary-100 dark:group-hover:bg-primary-800/30 transition-all">
+          <div className="h-[44px] flex items-center justify-center px-2 sm:px-3 md:px-4 bg-primary-50 dark:bg-primary-900/30 border-2 border-r-0 border-gray-200 dark:border-gray-700 rounded-l-lg group-hover:border-primary-400 dark:group-hover:border-primary-500 group-hover:bg-primary-100 dark:group-hover:bg-primary-800/30 transition-all">
             <span className="text-primary-700 dark:text-primary-300 font-medium whitespace-nowrap text-sm sm:text-base">
               {countryCode}
             </span>
@@ -287,8 +304,8 @@ const PhoneInput: React.FC<{
             inputMode="numeric"
             onChange={onChange}
             value={value}
-            placeholder="10-digit number"
-            className={`w-full h-[52px] pl-10 pr-4 py-3 rounded-r-xl bg-gray-50 dark:bg-gray-700/50 border-2 border-l-0 ${
+            placeholder={country === 'India' ? '10-digit number' : 'Phone number'}
+            className={`w-full h-[44px] pl-10 pr-4 py-2 rounded-r-lg bg-gray-50 dark:bg-gray-700/50 border-2 border-l-0 ${
               error 
                 ? 'border-red-500 focus:ring-red-500 dark:border-red-500' 
                 : 'border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500 focus:ring-primary-500 focus:border-primary-500'
@@ -296,9 +313,15 @@ const PhoneInput: React.FC<{
           />
           {value && value.length > 0 && (
             <div className="absolute top-1/2 right-3 -translate-y-1/2">
+              {country === 'India' ? (
               <span className={`text-xs px-2 py-1 rounded-full ${value.length === 10 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'}`}>
                 {value.length}/10
               </span>
+              ) : (
+                <span className={`text-xs px-2 py-1 rounded-full ${value.length >= 10 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'}`}>
+                  {value.length} digits
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -334,11 +357,11 @@ const FormTextarea: React.FC<{
         {...register}
         id={id}
         placeholder={placeholder}
-        className={`w-full pl-10 sm:pl-12 pr-4 py-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border-2 ${
+        className={`w-full pl-10 sm:pl-12 pr-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border-2 ${
           error 
             ? 'border-red-500 focus:ring-red-500 dark:border-red-500' 
             : 'border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500 focus:ring-primary-500 focus:border-primary-500'
-        } text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-opacity-50 focus:border-transparent transition-all duration-200 shadow-sm h-32 resize-none hover:bg-white dark:hover:bg-gray-700/70 text-sm sm:text-base`}
+        } text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-opacity-50 focus:border-transparent transition-all duration-200 shadow-sm h-24 resize-none hover:bg-white dark:hover:bg-gray-700/70 text-sm sm:text-base`}
       />
       
       {/* Character Counter */}
@@ -529,14 +552,129 @@ const LoadingSkeleton: React.FC = () => (
   </section>
 );
 
-const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, pageTitle }) => {
+// Registration CTA Component
+const RegistrationCTA: React.FC<IRegistrationProps> = ({ showUploadField = false, pageTitle }) => {
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <LoadingSkeleton />;
+  }
+
+  return (
+    <>
+      <motion.section 
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 flex items-center justify-center"
+      >
+        <div className="container mx-auto px-4 sm:px-6 py-12 relative">
+          {/* Floating background elements */}
+          <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+            <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary-400/10 dark:bg-primary-600/10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-1/3 right-1/5 w-96 h-96 bg-secondary-400/10 dark:bg-secondary-600/10 rounded-full blur-3xl"></div>
+          </div>
+
+          <motion.div 
+            className="max-w-4xl mx-auto text-center relative z-10"
+            variants={itemVariants}
+          >
+            <span className="inline-block px-4 py-1.5 mb-6 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-sm font-medium rounded-full">
+              {pageTitle === "join_as_school" ? "School Partnership" : "Join Our Community"}
+            </span>
+            
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
+              CONNECT EXPLORE GROW with <span className="text-primary-600 dark:text-primary-400">MEDH</span>
+            </h1>
+            
+            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+              {pageTitle === "join_as_school" 
+                ? "Partner with us to provide world-class education to your students. Transform learning experiences with our comprehensive programs."
+                : "Join thousands of learners who have transformed their careers with our industry-leading courses and expert mentorship."
+              }
+            </p>
+
+            <div className="grid md:grid-cols-3 gap-6 mb-12">
+              {[
+                { icon: <CheckCircle className="w-6 h-6" />, title: "Industry-recognized certifications", desc: "Get certified by leading industry experts" },
+                { icon: <User className="w-6 h-6" />, title: "Expert instructors", desc: "Learn from professionals with real-world experience" },
+                { icon: <Globe className="w-6 h-6" />, title: "Flexible learning", desc: "Study at your own pace, anywhere, anytime" }
+              ].map((feature, index) => (
+                <motion.div 
+                  key={index}
+                  variants={itemVariants}
+                  className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700"
+                >
+                  <div className="text-primary-600 dark:text-primary-400 mb-3">{feature.icon}</div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{feature.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">{feature.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+            
+            <motion.div 
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+              variants={itemVariants}
+            >
+              <motion.button
+                onClick={() => setIsFormOpen(true)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center px-8 py-4 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-xl shadow-lg shadow-primary-500/20 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl"
+              >
+                <Send className="w-5 h-5 mr-2" />
+                {pageTitle === "join_as_school" ? "Apply for Partnership" : "Start Your Journey"}
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </motion.button>
+              
+              <Link href="/courses">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center px-6 py-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Explore Courses
+                </motion.button>
+              </Link>
+            </motion.div>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* Full Screen Registration Form Modal */}
+      <AnimatePresence>
+        {isFormOpen && (
+          <RegistrationForm 
+            isOpen={isFormOpen}
+            onClose={() => setIsFormOpen(false)}
+            showUploadField={showUploadField}
+            pageTitle={pageTitle}
+          />
+        )}
+      </AnimatePresence>
+    </>
+  );
+};
+
+// Full Screen Registration Form Component
+const RegistrationForm: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  showUploadField?: boolean;
+  pageTitle?: string;
+}> = ({ isOpen, onClose, showUploadField = false, pageTitle }) => {
   const { postQuery, loading } = usePostQuery();
   const [fileName, setFileName] = useState("No file chosen");
   const [pdfBrochure, setPdfBrochure] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [recaptchaValue, setRecaptchaValue] = useState<string | null>(null);
   const [recaptchaError, setRecaptchaError] = useState(false);
-  const [formVisible, setFormVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -584,11 +722,9 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
 
   useEffect(() => {
     setMounted(true);
-    const timer = setTimeout(() => setFormVisible(true), 300);
     
     // Cleanup function
     return () => {
-      clearTimeout(timer);
       debouncedUpload.cancel();
     };
   }, [debouncedUpload]);
@@ -637,8 +773,16 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
     let value = e.target.value;
     // Remove any non-digit characters
     value = value.replace(/\D/g, '');
-    // Limit to 10 digits
+    
+    // For India, limit to exactly 10 digits
+    const selectedCountry = watchedFields.country;
+    if (selectedCountry === 'India') {
     value = value.slice(0, 10);
+    } else {
+      // For other countries, allow up to 15 digits (international standard)
+      value = value.slice(0, 15);
+    }
+    
     setValue('phone_number', value, { shouldValidate: true });
   };
 
@@ -742,49 +886,66 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
     : '';
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.section 
-        key="registration-section"
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-        className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950"
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md overflow-y-auto">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.98 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className="w-full h-full bg-white dark:bg-gray-800 overflow-hidden flex flex-col"
+        style={{ minHeight: '100vh' }}
       >
-        <div className="container mx-auto px-4 sm:px-6 py-12 relative">
-          {/* Floating background elements */}
-          <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-            <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary-400/10 dark:bg-primary-600/10 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-1/3 right-1/5 w-96 h-96 bg-secondary-400/10 dark:bg-secondary-600/10 rounded-full blur-3xl"></div>
+        {/* Form Header */}
+        <div className="bg-gradient-to-r from-primary-600/90 to-primary-500/90 p-6 border-b border-white/10 flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-white">
+              {pageTitle === "join_as_school" ? "School Partnership Application" : "Registration Form"}
+            </h2>
+            <p className="text-white/80 text-sm mt-1">Complete the form to get started with your journey</p>
           </div>
-
-          <motion.div 
-            className="max-w-7xl mx-auto bg-white dark:bg-gray-800 shadow-xl rounded-2xl overflow-hidden backdrop-blur-sm transition-all relative z-10"
-            variants={itemVariants}
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10 transition-all duration-200"
+            aria-label="Close form"
           >
-            <div className="grid md:grid-cols-2 h-full">
-              {/* Left side - Feature Section */}
-              <FeaturesSection />
-              
-              {/* Right side - Form Section */}
-              <motion.div 
-                variants={itemVariants}
-                className="bg-white dark:bg-gray-800 p-5 sm:p-8 lg:p-10 xl:p-12 transition-all duration-700"
-              >
-                <div className="mb-8 lg:mb-10">
-                  <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
-                    Get in Touch
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-base sm:text-lg">
-                    Fill out the form below and our team will get back to you shortly.
-                  </p>
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50/30 to-white dark:from-gray-900/30 dark:to-gray-950">
+          <div className="max-w-4xl mx-auto px-6 md:px-8 py-8 h-full">
+            {/* Clean Header */}
+            <div className="text-center mb-12">
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                {pageTitle === "join_as_school" ? "School Partnership Application" : "Join Our Learning Community"}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 text-lg">
+                {pageTitle === "join_as_school" 
+                  ? "Partner with us to provide world-class education to your students"
+                  : "Start your journey to transform your career with expert guidance"
+                }
+              </p>
+            </div>
+
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="space-y-8"
+              aria-label="Registration form"
+              noValidate
+            >
+              {/* Personal Information Section */}
+              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8 shadow-lg hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center mb-8">
+                  <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mr-4 shadow-lg">
+                    <User className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Personal Information</h3>
+                  </div>
                 </div>
                 
-                <form
-                  onSubmit={handleSubmit(onSubmit)}
-                  className="space-y-6 sm:space-y-7"
-                  aria-label="Contact form"
-                  noValidate
-                >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormInput 
                     id="full_name"
                     type="text"
@@ -803,27 +964,58 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
                     icon={<Mail />}
                   />
 
-                  {/* School-specific fields */}
-                  {pageTitle === "join_as_school" && (
-                    <>
-                      <FormInput 
-                        id="school_institute_name"
-                        type="text"
-                        placeholder="School/Institute Name"
-                        register={register("school_institute_name")}
-                        error={errors.school_institute_name}
-                        icon={<Building />}
-                      />
+                  <FormSelect 
+                    id="country"
+                    value={watchedFields.country}
+                    onChange={handleCountryChange}
+                    options={countriesData as ICountry[]}
+                    error={errors.country}
+                    icon={<Globe />}
+                  />
 
-                      <FormInput 
-                        id="designation"
-                        type="text"
-                        placeholder="Your Designation"
-                        register={register("designation")}
-                        error={errors.designation}
-                        icon={<Briefcase />}
-                      />
+                  <PhoneInput 
+                    id="phone_number"
+                    value={watchedFields.phone_number}
+                    onChange={handlePhoneInput}
+                    error={errors.phone_number}
+                    countryCode={selectedCountryDialCode}
+                    country={watchedFields.country}
+                  />
+                </div>
+              </div>
 
+              {/* School-specific fields */}
+              {pageTitle === "join_as_school" && (
+                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <div className="flex items-center mb-8">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-4 shadow-lg">
+                      <Building className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Institution Details</h3>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormInput 
+                      id="school_institute_name"
+                      type="text"
+                      placeholder="School/Institute Name"
+                      register={register("school_institute_name")}
+                      error={errors.school_institute_name}
+                      icon={<Building />}
+                    />
+
+                    <FormInput 
+                      id="designation"
+                      type="text"
+                      placeholder="Your Designation"
+                      register={register("designation")}
+                      error={errors.designation}
+                      icon={<Briefcase />}
+                    />
+
+                    <div className="md:col-span-2">
                       <FormInput 
                         id="website"
                         type="url"
@@ -832,29 +1024,26 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
                         error={errors.website}
                         icon={<Globe />}
                       />
-                    </>
-                  )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
-                    <FormSelect 
-                      id="country"
-                      value={watchedFields.country}
-                      onChange={handleCountryChange}
-                      options={countriesData as ICountry[]}
-                      error={errors.country}
-                      icon={<Globe />}
-                    />
-
-                    <PhoneInput 
-                      id="phone_number"
-                      value={watchedFields.phone_number}
-                      onChange={handlePhoneInput}
-                      error={errors.phone_number}
-                      countryCode={selectedCountryDialCode}
-                    />
-
+              {/* Requirements Section */}
+              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8 shadow-lg hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center mb-8">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mr-4 shadow-lg">
+                    <MessageSquare className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Your Requirements</h3>
+                  </div>
+                </div>
+                
+                <div className="space-y-6">
                   <FormTextarea 
                     id="message"
-                    placeholder="How can we help you? Tell us about your learning goals or questions..."
+                    placeholder="How can we help you? Tell us about your learning goals, preferred timeline, and any specific requirements..."
                     register={register("message")}
                     error={errors.message}
                     icon={<MessageSquare />}
@@ -862,100 +1051,148 @@ const Registration: React.FC<IRegistrationProps> = ({ showUploadField = false, p
                   />
 
                   {showUploadField && (
-                    <FileUpload 
-                      register={register("resume_image")}
-                      fileName={fileName}
-                      handlePdfUpload={handlePdfUpload}
-                    />
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                        <Upload className="w-5 h-5 mr-2 text-gray-500" />
+                        Upload Document (Optional)
+                      </h4>
+                      <FileUpload 
+                        register={register("resume_image")}
+                        fileName={fileName}
+                        handlePdfUpload={handlePdfUpload}
+                      />
+                    </div>
                   )}
+                </div>
+              </div>
 
-                  <div className="flex justify-center mt-8">
+              {/* Benefits Section */}
+              <div className="bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-2xl border border-primary-200 dark:border-primary-700/50 p-8 shadow-lg">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+                  <CheckCircle className="w-6 h-6 text-primary-600 dark:text-primary-400 mr-3" />
+                  What You'll Get
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    "Industry-recognized certification",
+                    "Expert instructor guidance", 
+                    "Flexible learning schedule",
+                    "Job placement assistance",
+                    "24/7 technical support",
+                    "Hands-on project experience"
+                  ].map((benefit, index) => (
+                    <div key={index} className="flex items-start text-base text-gray-700 dark:text-gray-300">
+                      <CheckCircle className="w-5 h-5 text-primary-500 mr-3 mt-0.5 flex-shrink-0" />
+                      {benefit}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Verification Section */}
+              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8 shadow-lg">
+                <div className="space-y-6">
+                  <div className="flex justify-center">
                     <CustomReCaptcha
                       onChange={handleRecaptchaChange}
                       error={recaptchaError}
                     />
                   </div>
-                  
-                  <div className="flex items-start mt-6">
-                    <div className="flex items-center h-5">
-                      <input
-                        {...register("accept")}
-                        type="checkbox"
-                        id="accept"
-                        className="h-5 w-5 text-primary-600 bg-gray-50 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors cursor-pointer hover:border-primary-400 dark:hover:border-primary-500"
-                      />
-                    </div>
-                    <label
-                      htmlFor="accept"
-                      className="ml-3 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none"
-                    >
-                      I agree to the 
-                      <Link href="/terms-and-services">
-                        <span className="text-primary-600 dark:text-primary-400 hover:underline ml-1 font-medium">
-                          Terms of Service
-                        </span>
-                      </Link>{" "}
-                      and{" "}
-                      <Link href="/privacy-policy">
-                        <span className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
-                          Privacy Policy
-                        </span>
-                      </Link>
-                    </label>
-                  </div>
-                  {errors.accept && (
-                    <div className="ml-8">
-                      <span className="text-red-500 text-sm flex items-center">
-                        <Info size={14} className="mr-1.5 flex-shrink-0" />
-                        {errors.accept.message}
-                      </span>
-                    </div>
+                  {recaptchaError && (
+                    <p className="text-red-500 text-sm text-center">
+                      Please complete the reCAPTCHA
+                    </p>
                   )}
-
-                  <motion.div 
-                    className="pt-4"
-                    variants={itemVariants}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <button
-                      type="submit"
-                      className={`w-full flex items-center justify-center px-8 py-4 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-xl shadow-lg shadow-primary-500/20 transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-lg ${
-                        (!isDirty || !isValid) ? 'opacity-50 cursor-not-allowed' : ''
-                      }`}
-                      disabled={loading || isSubmitting || (!isDirty || !isValid)}
-                    >
-                      {(loading || isSubmitting) ? (
-                        <motion.div
-                          className="flex items-center"
-                          animate={{ opacity: [1, 0.5, 1] }}
-                          transition={{ duration: 1.5, repeat: Infinity }}
-                        >
-                          <Loader2 size={20} className="mr-2 animate-spin" />
-                          Processing...
-                        </motion.div>
-                      ) : (
-                        <motion.span
-                          whileHover={{ scale: 1.05 }}
-                          className="flex items-center"
-                        >
-                          Submit Request
-                          <ArrowRight className="ml-2 w-5 h-5" />
-                        </motion.span>
-                      )}
-                    </button>
-                  </motion.div>
-                </form>
-              </motion.div>
-            </div>
-          </motion.div>
+                  
+                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-6">
+                    <div className="flex items-start">
+                      <div className="flex items-center h-5">
+                        <input
+                          {...register("accept")}
+                          type="checkbox"
+                          id="accept"
+                          className="h-5 w-5 text-primary-600 bg-gray-50 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors cursor-pointer hover:border-primary-400 dark:hover:border-primary-500"
+                        />
+                      </div>
+                      <label
+                        htmlFor="accept"
+                        className="ml-4 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none leading-relaxed"
+                      >
+                        I agree to the 
+                        <Link href="/terms-and-services">
+                          <span className="text-primary-600 dark:text-primary-400 hover:underline ml-1 font-medium">
+                            Terms of Service
+                          </span>
+                        </Link>{" "}
+                        and{" "}
+                        <Link href="/privacy-policy">
+                          <span className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
+                            Privacy Policy
+                          </span>
+                        </Link>
+                      </label>
+                    </div>
+                    {errors.accept && (
+                      <div className="ml-9 mt-3">
+                        <span className="text-red-500 text-sm flex items-center">
+                          <Info size={16} className="mr-2 flex-shrink-0" />
+                          {errors.accept.message}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
         </div>
-      </motion.section>
+
+        {/* Form Footer */}
+        <div className="flex justify-center items-center p-8 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky bottom-0 z-10 shadow-lg">
+          <div className="flex gap-6">
+            <motion.button
+              type="button"
+              onClick={onClose}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex items-center gap-2 px-8 py-4 rounded-xl font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200"
+            >
+              <X className="w-5 h-5" />
+              Cancel
+            </motion.button>
+            
+            <motion.button
+              type="submit"
+              onClick={handleSubmit(onSubmit)}
+              disabled={loading || isSubmitting || (!isDirty || !isValid)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className={`flex items-center gap-3 px-12 py-4 rounded-xl font-semibold text-lg transition-all duration-200 ${
+                loading || isSubmitting || (!isDirty || !isValid)
+                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400' 
+                  : 'bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/30'
+              }`}
+            >
+              {(loading || isSubmitting) ? (
+                <>
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Send className="w-6 h-6" />
+                  Submit Application
+                </>
+              )}
+            </motion.button>
+          </div>
+        </div>
+      </motion.div>
       
       {/* Success Modal */}
-      <SuccessModal key="success-modal" showModal={showModal} setShowModal={setShowModal} />
-    </AnimatePresence>
+      <SuccessModal showModal={showModal} setShowModal={setShowModal} />
+    </div>
   );
 };
 
-export default Registration;
+export default RegistrationCTA;

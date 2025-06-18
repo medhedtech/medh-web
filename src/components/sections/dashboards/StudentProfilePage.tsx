@@ -319,7 +319,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       
       if (response.data) {
         showToast.dismiss(); // Dismiss any existing toasts
-        showshowToast.success('Profile updated successfully!', { groupKey: 'profile-update' });
+        showToast.success('Profile updated successfully!', { groupKey: 'profile-update' });
         
         // Auto-refresh the profile data using the centralized fetchProfile function
         await fetchProfile();
@@ -548,7 +548,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
           // Show success message only if it's a manual refresh (not initial load)
           if (profile) {
             showToast.dismiss(); // Dismiss any existing toasts
-            showshowToast.success('Profile data refreshed successfully!', { groupKey: 'profile-refresh' });
+            showToast.success('Profile data refreshed successfully!', { groupKey: 'profile-refresh' });
           }
         } else {
           const errorMessage = serverResponse?.message || 'Failed to load profile data';
