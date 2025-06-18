@@ -572,8 +572,8 @@ const HomeCourseSection2 = ({
                   url: course.url,
                   effort_hours: course.effort_hours,
                   no_of_Sessions: typeof course.no_of_Sessions === 'string' 
-                    ? course.no_of_Sessions 
-                    : (typeof course.no_of_Sessions === 'number' ? String(course.no_of_Sessions) : "24-120"),
+                    ? parseInt(course.no_of_Sessions, 10) || 120
+                    : (typeof course.no_of_Sessions === 'number' ? course.no_of_Sessions : 120),
                   session_display: course.no_of_Sessions ? `${course.no_of_Sessions} Live Sessions` : "24-120 Live Sessions",
                   instructor: course.instructor,
                   price_suffix: course.price_suffix
@@ -804,17 +804,17 @@ const HomeCourseSection2 = ({
                       prices: course.prices || [],
                       course_fee: Number(displayPrice) || 1499,
                       no_of_Sessions: typeof course.no_of_Sessions === 'string' 
-                        ? course.no_of_Sessions 
-                        : (typeof course.no_of_Sessions === 'number' ? String(course.no_of_Sessions) : "24-120"),
-                      session_display: course.no_of_Sessions ? `${course.no_of_Sessions} Live Sessions` : "24-120 Live Sessions",
-                      effort_hours: course.effort_hours || course.efforts_per_Week || "6-8",
+                        ? parseInt(course.no_of_Sessions, 10) || 120
+                        : (typeof course.no_of_Sessions === 'number' ? course.no_of_Sessions : 120),
+                      effort_hours: typeof course.effort_hours === 'string' 
+                        ? parseInt(course.effort_hours, 10) || 8
+                        : (course.effort_hours || course.efforts_per_Week ? 
+                          (typeof course.efforts_per_Week === 'string' ? parseInt(course.efforts_per_Week, 10) || 8 : course.efforts_per_Week || 8) 
+                          : 8),
                       class_type: 'Live Courses',
                       isFree: Boolean(course.isFree) || false,
-                      batchPrice: batchPrice || undefined,
-                      status: course.status || "Published",
-                      updatedAt: course.updatedAt || new Date().toISOString(),
-                      createdAt: course.createdAt || new Date().toISOString(),
-                      url: course.url
+                                              batchPrice: batchPrice || undefined,
+                        url: course.url
                     }} 
                     classType="Live Courses"
                     preserveClassType={true}
@@ -889,19 +889,18 @@ const HomeCourseSection2 = ({
                         course_description: course.course_description || course.description,
                         course_image: course.course_image || course.thumbnail || '/fallback-course-image.jpg',
                         course_duration: "Self Paced",
-                        display_duration: true,
                         prices: course.prices || [],
                         course_fee: course.prices && course.prices[0] ? course.prices[0].individual : 1499,
-                        no_of_Sessions: String(videoCount + qnaSessions),
-                        session_display: "Up to 120 Sessions",
-                        effort_hours: course.effort_hours || course.efforts_per_Week || "3-5",
+                        no_of_Sessions: videoCount + qnaSessions,
+                        effort_hours: typeof course.effort_hours === 'string' 
+                          ? parseInt(course.effort_hours, 10) || 5
+                          : (course.effort_hours || course.efforts_per_Week ? 
+                            (typeof course.efforts_per_Week === 'string' ? parseInt(course.efforts_per_Week, 10) || 5 : course.efforts_per_Week || 5) 
+                            : 5),
                         class_type: 'Blended Courses',
                         isFree: course.isFree || false,
                         batchPrice: course.prices && course.prices[0] ? course.prices[0].batch : undefined,
-                        course_category: course.course_category || course.category || 'Uncategorized',
-                        status: course.status || "Published",
-                        updatedAt: course.updatedAt || new Date().toISOString(),
-                        createdAt: course.createdAt || new Date().toISOString()
+                        course_category: course.course_category || course.category || 'Uncategorized'
                       }} 
                       classType="blended"
                       showDuration={true}

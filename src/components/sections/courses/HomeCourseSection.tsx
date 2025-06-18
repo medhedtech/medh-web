@@ -1193,19 +1193,18 @@ const HomeCourseSection = ({
                     duration_range: formatDurationRange(course.duration_range) || "Flexible Duration",
                     prices: course.prices || [],
                     course_fee: displayPrice || 1499,
-                    price_suffix: "Onwards",
                     custom_url: `${course.url}`,
                     href: `/course-details/${course._id || course.id}`,
-                    no_of_Sessions: typeof course.no_of_Sessions === 'string' ? course.no_of_Sessions : videoCount,
+                                         no_of_Sessions: typeof course.no_of_Sessions === 'string' ? parseInt(course.no_of_Sessions, 10) || videoCount : videoCount,
                     session_display: "Up to 120 Sessions", // Hard-coded display text
-                    effort_hours: course.effort_hours || course.efforts_per_Week || "6-8",
+                                         effort_hours: typeof course.effort_hours === 'string' ? parseInt(course.effort_hours, 10) || 8 : (course.effort_hours || 8),
                     learning_points: course.learning_points || [],
                     prerequisites: course.prerequisites || [],
                     instructor: course.instructor || null,
                     classType: 'live',
                     highlights: course.highlights || course.course_highlights,
                     isFree: course.isFree || false,
-                    batchPrice: batchPrice,
+                                         batchPrice: batchPrice || undefined,
                     minBatchSize: minBatchSize
                   }} 
                   classType={cardConfig.classType || 'live'}
