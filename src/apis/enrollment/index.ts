@@ -64,7 +64,7 @@ const EnrollmentAPI = {
   // Get student enrollments
   getStudentEnrollments: async (studentId: string): Promise<IEnrollment[]> => {
     const response = await apiClient.get<IEnrollment[]>(
-      `${apiBaseUrl}/enrollments/students/${studentId}/enrollments`
+      `${apiBaseUrl}/enrolled/student/${studentId}`
     );
     return response.data || [];
   },
@@ -72,7 +72,7 @@ const EnrollmentAPI = {
   // Get enrollment details
   getEnrollmentDetails: async (enrollmentId: string): Promise<IEnrollment> => {
     const response = await apiClient.get<IEnrollment>(
-      `${apiBaseUrl}/enrollments/enrollments/${enrollmentId}`
+      `${apiBaseUrl}/enrolled/enrollments/${enrollmentId}`
     );
     return response.data!;
   },
@@ -88,7 +88,7 @@ const EnrollmentAPI = {
     }
   ): Promise<any> => {
     const response = await apiClient.put(
-      `${apiBaseUrl}/enrollments/enrollments/${enrollmentId}/progress/${lessonId}`,
+      `${apiBaseUrl}/enrolled/enrollments/${enrollmentId}/progress/${lessonId}`,
       progress
     );
     return response.data;
@@ -106,7 +106,7 @@ const EnrollmentAPI = {
     }
   ): Promise<any> => {
     const response = await apiClient.post(
-      `${apiBaseUrl}/enrollments/enrollments/${enrollmentId}/assessments/${assessmentId}/scores`,
+      `${apiBaseUrl}/enrolled/enrollments/${enrollmentId}/assessments/${assessmentId}/scores`,
       scoreData
     );
     return response.data;
@@ -129,7 +129,7 @@ const EnrollmentAPI = {
     }
   ): Promise<IEnrollment> => {
     const response = await apiClient.post<IEnrollment>(
-      `${apiBaseUrl}/enrollments/students/${studentId}/enroll`,
+      `${apiBaseUrl}/enrolled/student/${studentId}/enroll`,
       enrollmentData
     );
     return response.data!;

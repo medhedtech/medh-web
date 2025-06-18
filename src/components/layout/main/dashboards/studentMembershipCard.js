@@ -11,8 +11,6 @@ import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { motion, AnimatePresence } from "framer-motion";
 import { Crown, Search, Loader2, AlertCircle } from "lucide-react";
-import { toast } from "react-toastify";
-
 const StudentMembershipCard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [studentId, setStudentId] = useState(null);

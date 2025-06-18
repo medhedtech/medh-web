@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Crown, Gift, Clock, CreditCard, Star, Shield, Zap } from "lucide-react";
-import { toast } from "react-toastify";
 import Link from "next/link";
 import StudentDashboardLayout from "./StudentDashboardLayout";
 

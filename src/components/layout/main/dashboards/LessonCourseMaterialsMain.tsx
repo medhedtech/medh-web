@@ -3,8 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, Search, FileText, Video, Image, File, Download, Eye, Calendar, Clock, Star, X } from "lucide-react";
-import { toast } from "react-toastify";
-
 interface CourseMaterial {
   id: string;
   title: string;

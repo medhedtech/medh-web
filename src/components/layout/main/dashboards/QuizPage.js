@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
 import { FiFileText, FiInfo } from "react-icons/fi";
 import { FileQuestion, BookOpen, ArrowRight, Calendar, Clock, Tag } from "lucide-react";
 import Preloader from "@/components/shared/others/Preloader";

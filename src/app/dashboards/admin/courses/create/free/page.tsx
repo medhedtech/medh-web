@@ -835,7 +835,7 @@ export default function CreateFreeCoursePage() {
       console.log('Sending course data to API:', freeCourseData);
 
       // Show loading toast
-      const loadingToast = toast.loading('Creating free course...');
+      const loadingToast = showToast.loading('Creating free course...');
 
       try {
         // Create the course using the new API

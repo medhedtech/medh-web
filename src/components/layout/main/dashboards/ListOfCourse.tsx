@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
 import { 
   Plus, 
   Trash2, 
@@ -549,7 +548,7 @@ const AssignInstructorModal: React.FC<IAssignInstructorModalProps> = ({
   // Enhanced instructor loading with better error handling
   const loadInstructors = useCallback(async () => {
     setLoadingInstructors(true);
-    const loadingToastId = toast.loading("Loading instructors...");
+    const loadingToastId = showToast.loading("Loading instructors...");
 
     try {
       await getQuery({
@@ -636,7 +635,7 @@ const AssignInstructorModal: React.FC<IAssignInstructorModalProps> = ({
     }
 
     setIsAssigning(true);
-    const loadingToastId = toast.loading("Assigning instructor...");
+    const loadingToastId = showToast.loading("Assigning instructor...");
     
     try {
       const instructor = modalInstructors.find(i => i._id === selectedInstructorId);
@@ -871,7 +870,7 @@ const SchedulePublishModal: React.FC<ISchedulePublishModalProps> = ({
     const scheduledDateTime = new Date(`${scheduledDate}T${scheduledTime}`);
 
     setIsLoading(true);
-    const loadingToastId = toast.loading(
+    const loadingToastId = showToast.loading(
       isBatchSchedule 
         ? `Scheduling ${Array.isArray(courseId) ? courseId.length : 1} courses for publish...` 
         : "Scheduling course publish..."
@@ -1697,7 +1696,7 @@ const ListOfCourse: React.FC = () => {
 
   // Toggle course status
   const toggleStatus = useCallback(async (id: string) => {
-    const loadingToastId = toast.loading("Updating course status...");
+    const loadingToastId = showToast.loading("Updating course status...");
     
     try {
       await postQuery({
@@ -1752,7 +1751,7 @@ const ListOfCourse: React.FC = () => {
 
   // Handle status change
   const handleStatusChange = useCallback(async (courseId: string, newStatus: string) => {
-    const loadingToastId = toast.loading("Updating course status...");
+    const loadingToastId = showToast.loading("Updating course status...");
     
     try {
       await postQuery({
@@ -1798,7 +1797,7 @@ const ListOfCourse: React.FC = () => {
     const confirmDelete = window.confirm("Are you sure you want to delete this course?");
     if (!confirmDelete) return;
     
-    const loadingToastId = toast.loading("Deleting course...");
+    const loadingToastId = showToast.loading("Deleting course...");
     deleteQuery({
       url: `/courses/${id}`,
       onSuccess: () => {
@@ -1848,7 +1847,7 @@ const ListOfCourse: React.FC = () => {
 
   // Bulk operations
   const handleBulkUpdate = useCallback(async (courseIds: string[], updateData: Partial<ICourseUpdateInput>) => {
-    const loadingToastId = toast.loading(`Updating ${courseIds.length} courses...`);
+    const loadingToastId = showToast.loading(`Updating ${courseIds.length} courses...`);
     
     try {
       const updatePromises = courseIds.map(courseId => 
@@ -1964,7 +1963,7 @@ const ListOfCourse: React.FC = () => {
         const confirmDelete = window.confirm(`Are you sure you want to delete ${selectedCourses.length} selected courses?`);
         if (!confirmDelete) return;
         
-        const loadingToastId = toast.loading(`Deleting ${selectedCourses.length} courses...`);
+        const loadingToastId = showToast.loading(`Deleting ${selectedCourses.length} courses...`);
         
         let successCount = 0;
         let failCount = 0;

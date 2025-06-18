@@ -6,9 +6,9 @@ import teacherImage1 from "@/assets/images/teacher/teacher__1.png";
 import Link from "next/link";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
-import { toast } from "react-toastify";
 import { FaSpinner, FaUserCircle, FaSignOutAlt, FaCog } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
+import { useIsClient } from "@/utils/hydration";
 
 const HeadingDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,6 +23,7 @@ const HeadingDashboard = () => {
   const dropdownRef = useRef(null);
   const notificationRef = useRef(null);
   const searchRef = useRef(null);
+  const isClient = useIsClient();
 
   // Animation variants
   const dropdownVariants = {
@@ -63,11 +64,11 @@ const HeadingDashboard = () => {
   }, []);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedUserId = localStorage.getItem("userId");
-      setUserId(storedUserId);
-    }
-  }, []);
+    if (!isClient) return;
+    
+    const storedUserId = localStorage.getItem("userId");
+    setUserId(storedUserId);
+  }, [isClient]);
 
   useEffect(() => {
     const fetchUserData = async () => {

@@ -7,8 +7,6 @@ import { FaTimes, FaSearch, FaCalendarAlt } from "react-icons/fa";
 import { Loader } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { toast } from "react-toastify";
-
 interface Placement {
   _id: string;
   full_name: string;

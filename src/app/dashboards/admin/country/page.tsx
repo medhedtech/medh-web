@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Globe, Filter, Download, RefreshCw } from "lucide-react";
+import { useIsClient } from "@/utils/hydration";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { Tooltip as ReactTooltip } from "react-tooltip";
 
@@ -52,16 +53,21 @@ const CountryAnalyticsPage = () => {
   const [timeRange, setTimeRange] = useState<string>("last-30-days");
   const [changeValues, setChangeValues] = useState<number[]>([]);
   const [tooltipContent, setTooltipContent] = useState<string>("");
+  const isClient = useIsClient();
 
   // Generate random change values on mount and when countryData changes length
   useEffect(() => {
+    if (!isClient) return;
+    
     setChangeValues(
       countryData.map(() => Math.abs(Math.floor(Math.random() * 8) + 1))
     );
-  }, [countryData.length]);
+  }, [countryData.length, isClient]);
 
   // Simulate data refresh
   const refreshData = () => {
+    if (!isClient) return;
+    
     setIsLoading(true);
     setTimeout(() => {
       // Randomize data slightly for effect

@@ -4,7 +4,6 @@ import Preloader from "@/components/shared/others/Preloader";
 import usePostQuery from "@/hooks/postQuery.hook";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { toast } from "react-toastify";
 import { Calendar, BookOpen, Users, Clock, DollarSign } from "lucide-react";
 
 export default function CoursePreview() {

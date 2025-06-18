@@ -5,7 +5,6 @@ import AddCoorporateStudentForm from "./CoorporateAddStudentForm";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import MyTable from "@/components/shared/common-table/page";
-import { toast } from "react-toastify";
 import usePostQuery from "@/hooks/postQuery.hook";
 import Preloader from "@/components/shared/others/Preloader";
 

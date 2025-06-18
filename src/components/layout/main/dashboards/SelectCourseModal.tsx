@@ -7,7 +7,6 @@ import { apiUrls } from "@/apis";
 import SelectCategoryCard from "./SelectCategoryCard";
 import usePostQuery from "@/hooks/postQuery.hook";
 import Education from "@/assets/images/course-detailed/education.svg";
-import { toast } from "react-toastify";
 import Preloader from "@/components/shared/others/Preloader";
 import { useRouter } from "next/navigation";
 import useRazorpay from "@/hooks/useRazorpay";

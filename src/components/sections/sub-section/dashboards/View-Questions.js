@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
-import { toast } from "react-toastify";
 import Preloader from "@/components/shared/others/Preloader";
 
 const QuizQuestionsDetails = () => {

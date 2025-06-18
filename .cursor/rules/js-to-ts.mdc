@@ -1,7 +1,7 @@
 ---
 description: 
-globs: 
-alwaysApply: true
+globs: *.js
+alwaysApply: false
 ---
 I have a Next.js project written in JavaScript, and I need to convert it to TypeScript. Please follow my naming convention rules and ensure that the overall code structure remains unchanged. The guidelines to follow are:
 

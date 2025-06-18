@@ -8,7 +8,6 @@ import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook";
 import Preloader from "@/components/shared/others/Preloader";
-import { toast } from "react-toastify";
 import Education from "@/assets/images/course-detailed/education.svg";
 import { getCourseById } from "@/apis/course/course";
 import useRazorpay from "@/hooks/useRazorpay";

@@ -2,7 +2,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { toast } from "react-toastify";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import apiWithAuth from "@/utils/apiWithAuth";
@@ -19,22 +18,42 @@ const generatePassword = (length = 10): string => {
   const numbers = "0123456789";
   const special = "@$!%*?&"; // Updated to match backend validation requirements
   
+  // Use crypto.getRandomValues for better randomness and avoid hydration issues
+  const getRandomChar = (chars: string): string => {
+    if (typeof window !== 'undefined' && window.crypto) {
+      const array = new Uint32Array(1);
+      window.crypto.getRandomValues(array);
+      return chars.charAt(array[0] % chars.length);
+    }
+    // Fallback for server-side or unsupported browsers
+    return chars.charAt(Math.floor(Math.random() * chars.length));
+  };
+  
   // Ensure at least one of each required character type
   let password = "";
-  password += lowercase.charAt(Math.floor(Math.random() * lowercase.length));
-  password += uppercase.charAt(Math.floor(Math.random() * uppercase.length));
-  password += numbers.charAt(Math.floor(Math.random() * numbers.length));
-  password += special.charAt(Math.floor(Math.random() * special.length));
+  password += getRandomChar(lowercase);
+  password += getRandomChar(uppercase);
+  password += getRandomChar(numbers);
+  password += getRandomChar(special);
   
   // Fill the rest randomly
   const allChars = lowercase + uppercase + numbers + special;
   for (let i = password.length; i < length; i++) {
-    const randomIndex = Math.floor(Math.random() * allChars.length);
-    password += allChars[randomIndex];
+    password += getRandomChar(allChars);
   }
   
-  // Shuffle the password
-  return password.split('').sort(() => 0.5 - Math.random()).join('');
+  // Simple shuffle without Math.random to avoid hydration issues
+  const chars = password.split('');
+  for (let i = chars.length - 1; i > 0; i--) {
+    if (typeof window !== 'undefined' && window.crypto) {
+      const array = new Uint32Array(1);
+      window.crypto.getRandomValues(array);
+      const j = array[0] % (i + 1);
+      [chars[i], chars[j]] = [chars[j], chars[i]];
+    }
+  }
+  
+  return chars.join('');
 };
 
 // Calculate password strength
