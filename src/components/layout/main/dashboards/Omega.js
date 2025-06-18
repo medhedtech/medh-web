@@ -145,21 +145,21 @@ const DefineRoleForm = () => {
             const emailList = response.data.map(user => user.email);
             setEmails(emailList);
           } else {
-            toast.error("No users found for the selected role");
+            showToast.error("No users found for the selected role");
             setEmails([]);
             setAllData([]);
           }
         },
         onFail: (error) => {
           console.error("Failed to fetch emails:", error);
-          toast.error("Error fetching user list");
+          showToast.error("Error fetching user list");
           setEmails([]);
           setAllData([]);
         },
       });
     } catch (error) {
       console.error("Error in fetchEmails:", error);
-      toast.error("Failed to fetch users");
+      showToast.error("Failed to fetch users");
       setEmails([]);
       setAllData([]);
     }
@@ -175,7 +175,7 @@ const DefineRoleForm = () => {
       const selectedUser = allData.find(user => user.email === watchEmail);
       if (selectedUser?.permissions) {
         setValue("permissions", selectedUser.permissions);
-        toast.info("Loaded existing permissions for selected user");
+        showToast.info("Loaded existing permissions for selected user");
       } else {
         setValue("permissions", []);
       }
@@ -199,12 +199,12 @@ const DefineRoleForm = () => {
         },
         onFail: (error) => {
           console.error("Update failed:", error);
-          toast.error("Failed to update role. Please try again.");
+          showToast.error("Failed to update role. Please try again.");
         },
       });
     } catch (error) {
       console.error("Submission error:", error);
-      toast.error("An unexpected error occurred");
+      showToast.error("An unexpected error occurred");
     }
   };
 
@@ -215,7 +215,7 @@ const DefineRoleForm = () => {
     }
     reset();
     setFormTouched(false);
-    toast.info("Form has been reset");
+    showToast.info("Form has been reset");
   };
 
   // Loading state

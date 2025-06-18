@@ -333,7 +333,7 @@ const StudentEnrolledCourses: React.FC = () => {
             
           } catch (parseError) {
             console.error("Error parsing enrolled courses data:", parseError);
-            toast.error("Error processing course data");
+            showToast.error("Error processing course data");
           }
         },
         onFail: (error) => {
@@ -346,14 +346,14 @@ const StudentEnrolledCourses: React.FC = () => {
           } else {
             setError("Failed to load enrolled courses. Please try again later.");
           }
-          toast.error("Failed to fetch enrolled courses. Please try again.");
+          showToast.error("Failed to fetch enrolled courses. Please try again.");
         },
       });
       
       return response;
     } catch (err) {
       console.error("Error in fetchEnrolledCourses:", err);
-      toast.error("An unexpected error occurred while fetching courses");
+      showToast.error("An unexpected error occurred while fetching courses");
       return null;
     }
   };
@@ -385,7 +385,7 @@ const StudentEnrolledCourses: React.FC = () => {
       showToast.success(`Downloading ${fileName}`);
     } catch (err) {
       console.error("Error downloading file:", err);
-      toast.error("Failed to download file. Please try again.");
+      showToast.error("Failed to download file. Please try again.");
     }
   };
 

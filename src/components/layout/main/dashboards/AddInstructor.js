@@ -517,7 +517,7 @@ const AddInstructor = ({ onCancel, onSuccess }) => {
                 showToast.success("Document uploaded successfully!");
               },
               onError: (error) => {
-                toast.error("Document upload failed. Please try again.");
+                showToast.error("Document upload failed. Please try again.");
                 console.error("Upload error:", error);
               },
             });
@@ -561,7 +561,7 @@ const AddInstructor = ({ onCancel, onSuccess }) => {
           }
         },
         onFail: () => {
-          toast.error("Instructor already exists with same email or mobile.");
+          showToast.error("Instructor already exists with same email or mobile.");
         },
       });
     } catch (error) {

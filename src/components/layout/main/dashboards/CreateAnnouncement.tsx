@@ -128,7 +128,7 @@ const CreateAnnouncement: React.FC = () => {
   // Handle form submission
   const handleSubmit = async (status: TAnnouncementStatus = 'draft') => {
     if (!validateForm()) {
-      toast.error('Please fix the form errors before submitting');
+      showToast.error('Please fix the form errors before submitting');
       return;
     }
 
@@ -167,7 +167,7 @@ const CreateAnnouncement: React.FC = () => {
       }
     } catch (err) {
       console.error('Error creating announcement:', err);
-      toast.error(err instanceof Error ? err.message : 'Failed to create announcement');
+      showToast.error(err instanceof Error ? err.message : 'Failed to create announcement');
     } finally {
       setIsSubmitting(false);
     }

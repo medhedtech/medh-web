@@ -387,7 +387,7 @@ const SignUpForm: React.FC = () => {
               router.push("/login");
             }, 2000);
           } else {
-            toast.error(`${provider.charAt(0).toUpperCase() + provider.slice(1)} signup failed. Please try again.`);
+            showToast.error(`${provider.charAt(0).toUpperCase() + provider.slice(1)} signup failed. Please try again.`);
           }
           
           setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
@@ -398,7 +398,7 @@ const SignUpForm: React.FC = () => {
           
           // Check if user already exists
           if (error.message && error.message.includes('already exists')) {
-            toast.error(
+            showToast.error(
               <div>
                 <p>This {provider} account is already registered. You can login instead.</p>
                 <button 
@@ -415,7 +415,7 @@ const SignUpForm: React.FC = () => {
               }
             );
           } else {
-            toast.error(error.message || `${provider.charAt(0).toUpperCase() + provider.slice(1)} signup failed. Please try again.`);
+            showToast.error(error.message || `${provider.charAt(0).toUpperCase() + provider.slice(1)} signup failed. Please try again.`);
           }
           
           setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
@@ -423,7 +423,7 @@ const SignUpForm: React.FC = () => {
       );
     } catch (error) {
       console.error(`${provider} OAuth signup error:`, error);
-      toast.error(`Failed to initiate ${provider.charAt(0).toUpperCase() + provider.slice(1)} signup. Please try again.`);
+      showToast.error(`Failed to initiate ${provider.charAt(0).toUpperCase() + provider.slice(1)} signup. Please try again.`);
       setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
     }
   };
@@ -437,7 +437,7 @@ const SignUpForm: React.FC = () => {
     console.log('Current phone_numbers value:', getValues('phone_numbers'));
     
     if (!isValid) {
-      toast.error('Please fill in all required fields correctly');
+      showToast.error('Please fill in all required fields correctly');
       return;
     }
     
@@ -456,7 +456,7 @@ const SignUpForm: React.FC = () => {
       console.log('Phone number validation check:', { phoneNumbers, hasValidPhoneNumber });
       
       if (!hasValidPhoneNumber) {
-        toast.error("Please enter a valid phone number");
+        showToast.error("Please enter a valid phone number");
         setIsSubmitting(false);
         return;
       }
@@ -498,7 +498,7 @@ const SignUpForm: React.FC = () => {
           if (response?.success === false) {
             const errorMessage = response?.message || "Registration failed";
             console.error('Registration error in onSuccess handler:', errorMessage);
-            toast.error(errorMessage);
+            showToast.error(errorMessage);
             setApiError(errorMessage);
             return;
           }
@@ -547,7 +547,7 @@ const SignUpForm: React.FC = () => {
           if (isUserExists) {
             setApiError("This email is already registered");
             
-            toast.error(
+            showToast.error(
               <div>
                 <p>This email is already registered. You can login instead.</p>
                 <button 
@@ -575,7 +575,7 @@ const SignUpForm: React.FC = () => {
           
           // Handle other error types using auth utils
           const errorMsg = authUtils.handleAuthError(error);
-          toast.error(errorMsg, { toastId: 'registration-error' });
+          showToast.error(errorMsg, { toastId: 'registration-error' });
           setApiError(errorMsg);
         },
       });
@@ -587,7 +587,7 @@ const SignUpForm: React.FC = () => {
       setShowOTPVerification(false);
       
       const errorMsg = authUtils.handleAuthError(error);
-      toast.error(errorMsg, { toastId: 'client-error' });
+      showToast.error(errorMsg, { toastId: 'client-error' });
       setError(errorMsg);
     } finally {
       setIsSubmitting(false);
@@ -764,7 +764,7 @@ const SignUpForm: React.FC = () => {
                   className="text-primary-600 hover:text-primary-500 font-medium"
                   onClick={() => {
                     // This would trigger resend OTP functionality
-                    toast.info("Verification code resent. Please check your email.");
+                    showToast.info("Verification code resent. Please check your email.");
                   }}
                 >
                   Resend

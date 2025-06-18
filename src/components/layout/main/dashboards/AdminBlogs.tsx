@@ -268,13 +268,13 @@ const AdminBlogs: React.FC = () => {
         onFail: (err: any) => {
           console.error("API error:", err);
           setBlogs([]);
-          toast.error("Failed to fetch blogs");
+          showToast.error("Failed to fetch blogs");
         },
       });
     } catch (error) {
       console.error("Failed to fetch blogs:", error);
       setBlogs([]);
-      toast.error("Something went wrong!");
+      showToast.error("Something went wrong!");
     }
   }, [getQuery]);
 
@@ -395,7 +395,7 @@ const AdminBlogs: React.FC = () => {
     try {
       // Check if API is available
       if (!apiUrls?.Blogs?.deleteBlog) {
-        toast.error("Delete API is not available. Please check your connection.");
+        showToast.error("Delete API is not available. Please check your connection.");
         return;
       }
 
@@ -412,7 +412,7 @@ const AdminBlogs: React.FC = () => {
         },
         onFail: (error: any) => {
           const errorMessage = error?.response?.data?.message || error?.message || "Failed to delete blog";
-          toast.error(errorMessage);
+          showToast.error(errorMessage);
           console.error("Delete failed:", error);
           
           // Fallback: Remove from local state if server delete fails
@@ -423,19 +423,19 @@ const AdminBlogs: React.FC = () => {
               newSet.delete(id);
               return newSet;
             });
-            toast.info("Removed from local view (server may still have the blog)");
+            showToast.info("Removed from local view (server may still have the blog)");
           }
         },
       });
     } catch (error) {
-      toast.error("Network error occurred. Please check your connection.");
+      showToast.error("Network error occurred. Please check your connection.");
       console.error("Error:", error);
     }
   }, [deleteQuery, fetchBlogs]);
 
   const handleBulkDelete = async () => {
     if (selectedBlogs.size === 0) {
-      toast.warning("Please select blogs to delete");
+      showToast.warning("Please select blogs to delete");
       return;
     }
     
@@ -443,7 +443,7 @@ const AdminBlogs: React.FC = () => {
 
     // Check if API is available
     if (!apiUrls?.Blogs?.deleteBlog) {
-      toast.error("Delete API is not available. Please check your connection.");
+      showToast.error("Delete API is not available. Please check your connection.");
       return;
     }
 
@@ -451,7 +451,7 @@ const AdminBlogs: React.FC = () => {
     let failCount = 0;
     const failedIds: string[] = [];
 
-    toast.info(`Deleting ${selectedBlogs.size} blogs...`);
+    showToast.info(`Deleting ${selectedBlogs.size} blogs...`);
 
     for (const id of Array.from(selectedBlogs)) {
       try {
@@ -479,12 +479,12 @@ const AdminBlogs: React.FC = () => {
     }
     
     if (failCount > 0) {
-      toast.error(`Failed to delete ${failCount} blogs`);
+      showToast.error(`Failed to delete ${failCount} blogs`);
       
       // Offer to remove failed ones from local view
       if (window.confirm(`${failCount} blogs couldn't be deleted from server. Remove them from local view anyway?`)) {
         setBlogs(prev => prev.filter(blog => !failedIds.includes(blog._id)));
-        toast.info("Removed failed deletions from local view");
+        showToast.info("Removed failed deletions from local view");
       }
     }
 
@@ -499,7 +499,7 @@ const AdminBlogs: React.FC = () => {
     try {
       // Check if API is available
       if (!apiUrls?.Blogs?.toggleFeatured) {
-        toast.error("Featured toggle API is not available. Please check your connection.");
+        showToast.error("Featured toggle API is not available. Please check your connection.");
         return;
       }
 
@@ -514,19 +514,19 @@ const AdminBlogs: React.FC = () => {
         },
         onFail: (error: any) => {
           const errorMessage = error?.response?.data?.message || error?.message || "Failed to update blog";
-          toast.error(errorMessage);
+          showToast.error(errorMessage);
           
           // Fallback: Update local state if server update fails
           if (window.confirm("Server update failed. Update local view anyway?")) {
             setBlogs(prev => prev.map(b => 
               b._id === blog._id ? { ...b, featured: newFeaturedStatus } : b
             ));
-            toast.info("Updated local view (server may not reflect changes)");
+            showToast.info("Updated local view (server may not reflect changes)");
           }
         }
       });
     } catch (error) {
-      toast.error("Network error occurred. Please check your connection.");
+      showToast.error("Network error occurred. Please check your connection.");
       console.error("Toggle featured error:", error);
     }
   };
@@ -535,7 +535,7 @@ const AdminBlogs: React.FC = () => {
     try {
       // Check if API is available
       if (!apiUrls?.Blogs?.updateBlogStatus) {
-        toast.error("Status update API is not available. Please check your connection.");
+        showToast.error("Status update API is not available. Please check your connection.");
         return;
       }
 
@@ -548,19 +548,19 @@ const AdminBlogs: React.FC = () => {
         },
         onFail: (error: any) => {
           const errorMessage = error?.response?.data?.message || error?.message || "Failed to update blog status";
-          toast.error(errorMessage);
+          showToast.error(errorMessage);
           
           // Fallback: Update local state if server update fails
           if (window.confirm("Server update failed. Update local view anyway?")) {
             setBlogs(prev => prev.map(b => 
               b._id === blog._id ? { ...b, status: newStatus as 'draft' | 'published' | 'archived' } : b
             ));
-            toast.info("Updated local view (server may not reflect changes)");
+            showToast.info("Updated local view (server may not reflect changes)");
           }
         }
       });
     } catch (error) {
-      toast.error("Network error occurred. Please check your connection.");
+      showToast.error("Network error occurred. Please check your connection.");
       console.error("Status change error:", error);
     }
   };
@@ -568,7 +568,7 @@ const AdminBlogs: React.FC = () => {
   // Handle Edit Blog - Fetch full content before editing
   const handleEditBlog = async (blog: IBlogData) => {
     try {
-      toast.info("Loading blog content for editing...");
+      showToast.info("Loading blog content for editing...");
       
       await getQuery({
         url: apiUrls?.Blogs?.getBlogById(blog._id),
@@ -589,14 +589,14 @@ const AdminBlogs: React.FC = () => {
         },
         onFail: (error) => {
           console.error("Failed to fetch full blog data:", error);
-          toast.error("Failed to load blog content. Using basic data...");
+          showToast.error("Failed to load blog content. Using basic data...");
           // Fallback to basic blog data
           setEditingBlog(blog);
         }
       });
     } catch (error) {
       console.error("Error loading blog for editing:", error);
-      toast.error("Error loading blog. Using basic data...");
+      showToast.error("Error loading blog. Using basic data...");
       setEditingBlog(blog);
     }
   };
@@ -640,7 +640,7 @@ const AdminBlogs: React.FC = () => {
       : blogs;
 
     if (blogsToProcess.length === 0) {
-      toast.warning("No blogs to enhance. Please select blogs or ensure you have blogs in your list.");
+      showToast.warning("No blogs to enhance. Please select blogs or ensure you have blogs in your list.");
       return;
     }
 
@@ -719,7 +719,7 @@ const AdminBlogs: React.FC = () => {
         };
         
         setAiEnhancementProgress(currentProgress);
-        toast.error(`❌ Failed to enhance: ${currentBlog.title} - ${errorMessage}`);
+        showToast.error(`❌ Failed to enhance: ${currentBlog.title} - ${errorMessage}`);
       }
     }
 
@@ -739,7 +739,7 @@ const AdminBlogs: React.FC = () => {
       ...prev,
       isPaused: !prev.isPaused
     }));
-    toast.info(aiEnhancementProgress.isPaused ? "AI Enhancement resumed." : "AI Enhancement paused.");
+    showToast.info(aiEnhancementProgress.isPaused ? "AI Enhancement resumed." : "AI Enhancement paused.");
   };
 
   const stopAiEnhancement = () => {
@@ -748,7 +748,7 @@ const AdminBlogs: React.FC = () => {
       isRunning: false,
       isPaused: false
     }));
-    toast.info("AI Enhancement process stopped.");
+    showToast.info("AI Enhancement process stopped.");
   };
 
   const closeAiEnhancement = () => {
@@ -974,7 +974,7 @@ const AdminBlogs: React.FC = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => {
-                toast.info("Export all blogs feature coming soon!");
+                showToast.info("Export all blogs feature coming soon!");
               }}
               className={`px-4 py-2 rounded-lg border transition-all flex items-center gap-2 ${
                 isDark 
@@ -1065,7 +1065,7 @@ const AdminBlogs: React.FC = () => {
                       onChange={(e) => {
                         if (e.target.value) {
                           // Handle bulk status update
-                          toast.info(`Bulk status update to ${e.target.value} coming soon!`);
+                          showToast.info(`Bulk status update to ${e.target.value} coming soon!`);
                           e.target.value = '';
                         }
                       }}
@@ -1086,7 +1086,7 @@ const AdminBlogs: React.FC = () => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => {
-                        toast.info("Bulk feature toggle coming soon!");
+                        showToast.info("Bulk feature toggle coming soon!");
                       }}
                       className={`px-4 py-2 rounded-lg border transition-all flex items-center gap-2 ${
                         isDark 
@@ -1104,7 +1104,7 @@ const AdminBlogs: React.FC = () => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => {
-                        toast.info("Bulk export feature coming soon!");
+                        showToast.info("Bulk export feature coming soon!");
                       }}
                       className={`px-4 py-2 rounded-lg border transition-all flex items-center gap-2 ${
                         isDark 
@@ -1697,7 +1697,7 @@ const AdminBlogs: React.FC = () => {
                                       status: 'draft' as const,
                                       featured: false
                                     };
-                                    toast.info("Blog duplication feature coming soon!");
+                                    showToast.info("Blog duplication feature coming soon!");
                                     // Close dropdown
                                     const dropdown = e.currentTarget.closest('.absolute') as HTMLElement;
                                     if (dropdown) {
@@ -1764,7 +1764,7 @@ const AdminBlogs: React.FC = () => {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    toast.info(`Analytics for "${blog.title}": ${blog.views || 0} views, ${blog.likes || 0} likes`);
+                                    showToast.info(`Analytics for "${blog.title}": ${blog.views || 0} views, ${blog.likes || 0} likes`);
                                     // Close dropdown
                                     const dropdown = e.currentTarget.closest('.absolute') as HTMLElement;
                                     if (dropdown) {
@@ -1791,7 +1791,7 @@ const AdminBlogs: React.FC = () => {
 • Description: ${blog.description?.length || 0} chars ${blog.description?.length > 160 ? '(Too long)' : '(Good)'}
 • Slug: ${blog.slug ? 'Present' : 'Missing'}
 • Featured Image: ${blog.upload_image ? 'Present' : 'Missing'}`;
-                                    toast.info(seoInfo);
+                                    showToast.info(seoInfo);
                                     // Close dropdown
                                     const dropdown = e.currentTarget.closest('.absolute') as HTMLElement;
                                     if (dropdown) {

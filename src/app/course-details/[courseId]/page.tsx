@@ -411,7 +411,7 @@ const CourseView: React.FC = () => {
     }
     
     if (!course) {
-      toast.error("Course information is missing");
+      showToast.error("Course information is missing");
       return;
     }
 
@@ -442,7 +442,7 @@ const CourseView: React.FC = () => {
       }
     } catch (error) {
       console.error("Error in enrollment:", error);
-      toast.error("Something went wrong. Please try enrolling from the course details section.");
+      showToast.error("Something went wrong. Please try enrolling from the course details section.");
     } finally {
       setLoading(false);
     }

@@ -300,11 +300,11 @@ export default function CreateFreeCoursePage() {
           
           setHasSavedDraft(true);
           setLastSaved(new Date().toLocaleString());
-          toast.info('Loaded your saved draft');
+          showToast.info('Loaded your saved draft');
         }
       } catch (error) {
         console.error('Error loading saved draft:', error);
-        toast.error('Failed to load saved draft');
+        showToast.error('Failed to load saved draft');
       }
     };
     
@@ -336,7 +336,7 @@ export default function CreateFreeCoursePage() {
           onSuccess: () => {},
           onFail: () => {
             console.error("Error fetching categories");
-            toast.error('Failed to load categories. Please try again.');
+            showToast.error('Failed to load categories. Please try again.');
           }
         });
         
@@ -361,15 +361,15 @@ export default function CreateFreeCoursePage() {
           setCategories(formattedCategories);
           
           if (formattedCategories.length === 0) {
-            toast.warning('No valid categories found. Please add categories first.');
+            showToast.warning('No valid categories found. Please add categories first.');
           }
         } else {
           console.error("No data received from categories API");
-          toast.error('No categories found. Please check the API.');
+          showToast.error('No categories found. Please check the API.');
         }
       } catch (error) {
         console.error("Error in fetchCategories:", error);
-        toast.error('Failed to load categories. Please check your connection.');
+        showToast.error('Failed to load categories. Please check your connection.');
       } finally {
         setIsLoadingCategories(false);
       }
@@ -382,7 +382,7 @@ export default function CreateFreeCoursePage() {
   const handleImageUpload = async (file: File) => {
     try {
       if (!file) {
-        toast.error('Please select a valid image file');
+        showToast.error('Please select a valid image file');
         return;
       }
       
@@ -408,12 +408,12 @@ export default function CreateFreeCoursePage() {
                 showToast.success('Image uploaded successfully');
               } else {
                 console.error("Unexpected image upload response format:", response);
-                toast.error('Invalid image upload response format');
+                showToast.error('Invalid image upload response format');
               }
             },
             onFail: (error) => {
               console.error("Image upload error:", error);
-              toast.error('Image upload failed. Please try again.');
+              showToast.error('Image upload failed. Please try again.');
             },
           });
           setImageUploading(false);
@@ -421,12 +421,12 @@ export default function CreateFreeCoursePage() {
       };
       
       reader.onerror = () => {
-        toast.error('Failed to read image file');
+        showToast.error('Failed to read image file');
         setImageUploading(false);
       };
     } catch (error) {
       console.error("Error in handleImageUpload:", error);
-      toast.error('Failed to upload image');
+      showToast.error('Failed to upload image');
       setImageUploading(false);
     }
   };
@@ -435,7 +435,7 @@ export default function CreateFreeCoursePage() {
   const handleBrochureUpload = async (file: File) => {
     try {
       if (!file) {
-        toast.error('Please select a valid PDF file');
+        showToast.error('Please select a valid PDF file');
         return;
       }
       
@@ -461,12 +461,12 @@ export default function CreateFreeCoursePage() {
                 showToast.success('Brochure uploaded successfully');
               } else {
                 console.error("Unexpected brochure upload response format:", response);
-                toast.error('Invalid brochure upload response format');
+                showToast.error('Invalid brochure upload response format');
               }
             },
             onFail: (error) => {
               console.error("Brochure upload error:", error);
-              toast.error('Brochure upload failed. Please try again.');
+              showToast.error('Brochure upload failed. Please try again.');
             },
           });
           setImageUploading(false);
@@ -474,12 +474,12 @@ export default function CreateFreeCoursePage() {
       };
       
       reader.onerror = () => {
-        toast.error('Failed to read PDF file');
+        showToast.error('Failed to read PDF file');
         setImageUploading(false);
       };
     } catch (error) {
       console.error("Error in handleBrochureUpload:", error);
-      toast.error('Failed to upload brochure');
+      showToast.error('Failed to upload brochure');
       setImageUploading(false);
     }
   };
@@ -724,17 +724,17 @@ export default function CreateFreeCoursePage() {
           
           errorMessages.forEach((message, index) => {
             setTimeout(() => {
-              toast.error(message);
+              showToast.error(message);
             }, index * 500);
           });
           
           if (formErrors.length > 3) {
             setTimeout(() => {
-              toast.warning(`${formErrors.length - 3} more validation errors found.`);
+              showToast.warning(`${formErrors.length - 3} more validation errors found.`);
             }, 1500);
           }
         } else {
-          toast.error('Please check the form for errors');
+          showToast.error('Please check the form for errors');
         }
         return;
       }
@@ -743,7 +743,7 @@ export default function CreateFreeCoursePage() {
       await handleSubmit(onSubmit)();
     } catch (error) {
       console.error('Error in form submission:', error);
-      toast.error('Failed to submit form');
+      showToast.error('Failed to submit form');
     }
   };
 
@@ -768,13 +768,13 @@ export default function CreateFreeCoursePage() {
         // Show individual toast for the first few errors
         validationErrors.slice(0, 3).forEach((error, index) => {
           setTimeout(() => {
-            toast.error(error);
+            showToast.error(error);
           }, index * 500);
         });
 
         if (validationErrors.length > 3) {
           setTimeout(() => {
-            toast.warning(`${validationErrors.length - 3} more validation errors found. Please check the form.`);
+            showToast.warning(`${validationErrors.length - 3} more validation errors found. Please check the form.`);
           }, 1500);
         }
 
@@ -884,7 +884,7 @@ export default function CreateFreeCoursePage() {
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred while creating the course';
       
       setValidationMessage(errorMessage);
-      toast.error(errorMessage, {
+      showToast.error(errorMessage, {
         autoClose: 6000,
       });
     } finally {
@@ -906,11 +906,11 @@ export default function CreateFreeCoursePage() {
         setHasUnsavedChanges(false);
         showToast.success('Draft saved successfully');
       } else {
-        toast.error('Failed to save draft. Storage might be unavailable.');
+        showToast.error('Failed to save draft. Storage might be unavailable.');
       }
     } catch (error) {
       console.error('Error saving draft:', error);
-      toast.error('Failed to save draft');
+      showToast.error('Failed to save draft');
     } finally {
       setIsDraftSaving(false);
     }
@@ -923,7 +923,7 @@ export default function CreateFreeCoursePage() {
       setHasSavedDraft(false);
       setLastSaved(null);
       setHasUnsavedChanges(false);
-      toast.info('Draft cleared');
+      showToast.info('Draft cleared');
       reset();
     }
   };

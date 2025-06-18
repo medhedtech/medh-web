@@ -35,7 +35,7 @@ export default function QuizPage({ closeQuiz }) {
       const token = localStorage.getItem("token");
       
       if (!storedUserId || !token) {
-        toast.error("Please log in to access your quizzes");
+        showToast.error("Please log in to access your quizzes");
         router.push("/auth/login");
         return;
       }
@@ -55,7 +55,7 @@ export default function QuizPage({ closeQuiz }) {
         const token = localStorage.getItem("token");
         
         if (!token) {
-          toast.error("Authentication token not found. Please log in again.");
+          showToast.error("Authentication token not found. Please log in again.");
           setLoading(false);
           return;
         }
@@ -135,13 +135,13 @@ export default function QuizPage({ closeQuiz }) {
           },
           onError: (error) => {
             console.error("Error fetching enrolled courses:", error);
-            toast.error("Failed to load enrolled courses. Please try again later.");
+            showToast.error("Failed to load enrolled courses. Please try again later.");
             setLoading(false);
           },
         });
       } catch (error) {
         console.error("Error in fetchEnrolledCourses:", error);
-        toast.error("An unexpected error occurred. Please try again.");
+        showToast.error("An unexpected error occurred. Please try again.");
         setLoading(false);
       }
     };
@@ -225,7 +225,7 @@ export default function QuizPage({ closeQuiz }) {
         },
         onFail: (error) => {
           console.error("Error submitting quiz results:", error);
-          toast.error("Quiz completed, but there was an issue saving your results.");
+          showToast.error("Quiz completed, but there was an issue saving your results.");
           setSubmitting(false);
         },
       });

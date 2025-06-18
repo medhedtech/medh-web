@@ -255,7 +255,7 @@ const StudentJoinLive: React.FC = () => {
       console.log('Fetching live classes...');
     } catch (error) {
       console.error('Error fetching live classes:', error);
-      toast.error('Failed to load live classes');
+      showToast.error('Failed to load live classes');
     }
   };
 

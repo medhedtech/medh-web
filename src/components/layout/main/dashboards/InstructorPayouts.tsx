@@ -60,7 +60,7 @@ const InstructorPayouts: React.FC = () => {
           fetchPayments()
         ]);
       } catch (error) {
-        toast.error('Failed to load data');
+        showToast.error('Failed to load data');
         console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
@@ -173,7 +173,7 @@ const InstructorPayouts: React.FC = () => {
   });
 
   const handleCreateNewPayout = () => {
-    toast.info('Create new payout functionality will be implemented here');
+    showToast.info('Create new payout functionality will be implemented here');
   };
 
   if (loading) {

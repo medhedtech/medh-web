@@ -150,7 +150,7 @@ export const usePatchQuery = <T = any>(): UsePatchQueryResult<T> => {
 
       // Show error toast if configured
       if (showToast) {
-        toast.error(message);
+        showToast.error(message);
       }
 
       // Debug logging

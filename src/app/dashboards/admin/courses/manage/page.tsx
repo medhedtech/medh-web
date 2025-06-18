@@ -289,7 +289,7 @@ const ManageCoursesPage: React.FC = () => {
         console.log(`✅ Loaded ${processedCourses.length} courses successfully using /courses/get endpoint`);
         
         if (processedCourses.length === 0) {
-          toast.info('No courses found. Create your first course to get started.');
+          showToast.info('No courses found. Create your first course to get started.');
         } else {
           showToast.success(`Loaded ${processedCourses.length} courses successfully`);
         }
@@ -343,13 +343,13 @@ const ManageCoursesPage: React.FC = () => {
           setInstructors(uniqueInstructors);
           setCourses(processedCourses);
           
-          toast.warning(`Loaded ${processedCourses.length} courses using fallback method`);
+          showToast.warning(`Loaded ${processedCourses.length} courses using fallback method`);
         } else {
           throw new Error("Fallback API also failed");
         }
       } catch (fallbackError) {
         console.error("❌ Fallback loading also failed:", fallbackError);
-        toast.error('Failed to load courses. Please check your connection.');
+        showToast.error('Failed to load courses. Please check your connection.');
       }
     } finally {
       setLoadingStates(prev => ({ ...prev, courses: false }));
@@ -474,11 +474,11 @@ const ManageCoursesPage: React.FC = () => {
           });
 
           setCourses(filteredResults);
-          toast.warning(`Found ${filteredResults.length} courses using fallback search`);
+          showToast.warning(`Found ${filteredResults.length} courses using fallback search`);
         }
       } catch (fallbackError) {
         console.error('❌ Search fallback also failed:', fallbackError);
-        toast.error('Search failed. Please try again.');
+        showToast.error('Search failed. Please try again.');
       }
     } finally {
       setIsSearching(false);
@@ -628,12 +628,12 @@ const ManageCoursesPage: React.FC = () => {
         },
         onFail: (error) => {
           const errorMessage = error?.response?.data?.message || 'Failed to delete course';
-          toast.error(errorMessage);
+          showToast.error(errorMessage);
         },
       });
     } catch (error) {
       console.error("Delete course error:", error);
-      toast.error('Failed to delete course');
+      showToast.error('Failed to delete course');
     } finally {
       setLoadingStates(prev => ({ ...prev, deleting: null }));
     }
@@ -642,7 +642,7 @@ const ManageCoursesPage: React.FC = () => {
   // Bulk operations
   const handleBulkAction = async (action: 'delete' | 'archive' | 'publish') => {
     if (selectedCourses.size === 0) {
-      toast.warning('Please select courses first');
+      showToast.warning('Please select courses first');
       return;
     }
 
@@ -676,7 +676,7 @@ const ManageCoursesPage: React.FC = () => {
       fetchCourses(); // Refresh the list
     } catch (error) {
       console.error("Bulk action error:", error);
-      toast.error(`Failed to ${actionText} courses`);
+      showToast.error(`Failed to ${actionText} courses`);
     } finally {
       setLoadingStates(prev => ({ ...prev, bulkAction: false }));
     }

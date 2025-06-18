@@ -768,7 +768,7 @@ const PaymentTable = () => {
       showToast.success('Receipt generated successfully!');
     } catch (error) {
       console.error('Error generating receipt:', error);
-      toast.error('Failed to generate receipt. Please try again.');
+      showToast.error('Failed to generate receipt. Please try again.');
     } finally {
       setLoading(false);
     }

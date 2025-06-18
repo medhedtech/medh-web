@@ -36,7 +36,7 @@ const ResourceUploadModal = ({
                 setResourceVideos([...updatedVideos]); // Update the state
               },
               onError: (error) => {
-                toast.error("Video upload failed. Please try again.");
+                showToast.error("Video upload failed. Please try again.");
                 console.error("Upload error:", error);
               },
             });
@@ -69,7 +69,7 @@ const ResourceUploadModal = ({
                 setResourcePdfs([...updatedPdfs]); // Update the state
               },
               onError: (error) => {
-                toast.error("PDF upload failed. Please try again.");
+                showToast.error("PDF upload failed. Please try again.");
                 console.error("Upload error:", error);
               },
             });

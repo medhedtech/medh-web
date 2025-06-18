@@ -355,13 +355,13 @@ const ExploreJourney = ({
           reset();
         },
         onFail: (error) => {
-          toast.error(error?.message || "Error submitting form. Please try again.");
+          showToast.error(error?.message || "Error submitting form. Please try again.");
           setIsSubmitting(false);
         },
       });
     } catch (error) {
       console.error("An unexpected error occurred:", error);
-      toast.error("An unexpected error occurred. Please try again.");
+      showToast.error("An unexpected error occurred. Please try again.");
       setIsSubmitting(false);
     }
   };

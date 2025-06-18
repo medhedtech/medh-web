@@ -312,7 +312,7 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
         },
         onFail: (error) => {
           console.error("Failed to fetch user details:", error);
-          toast.error("Failed to load profile data");
+          showToast.error("Failed to load profile data");
         },
       });
     }
@@ -338,14 +338,14 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
               showToast.success("Image uploaded successfully!");
             },
             onError: (error) => {
-              toast.error("Image upload failed. Please try again.");
+              showToast.error("Image upload failed. Please try again.");
               console.error("Upload error:", error);
             },
           });
         };
       } catch (error) {
         console.error("Error uploading Image:", error);
-        toast.error("Failed to upload image");
+        showToast.error("Failed to upload image");
       }
     }
   };
@@ -353,7 +353,7 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
   // Handle form submission
   const onSubmit = async (data: IFormData) => {
     if (!studentId) {
-      toast.error("Please log in to continue.");
+      showToast.error("Please log in to continue.");
       return;
     }
 
@@ -399,12 +399,12 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
         },
         onFail: (error) => {
           console.error("Error updating profile:", error);
-          toast.error("Failed to update profile. Please try again.");
+          showToast.error("Failed to update profile. Please try again.");
         },
       });
     } catch (error) {
       console.error("Form submission error:", error);
-      toast.error("An unexpected error occurred");
+      showToast.error("An unexpected error occurred");
     } finally {
       setLoading(false);
     }

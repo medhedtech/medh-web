@@ -201,7 +201,7 @@ const useAuth = () => {
       }
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || 'Login failed';
-              showToast.error(errorMessage, { groupKey: 'auth' });
+              showshowToast.error(errorMessage, { groupKey: 'auth' });
       return false;
     } finally {
       setIsLoading(false);
@@ -222,7 +222,7 @@ const useAuth = () => {
         fetchUserProfile();
         return true;
       } else {
-        showToast.error('Invalid or expired token', { groupKey: 'auth' });
+        showshowToast.error('Invalid or expired token', { groupKey: 'auth' });
         return false;
       }
     }
@@ -322,7 +322,7 @@ const useAuth = () => {
     setTokenInfo(null);
     setUser(null);
     hasAttemptedProfileFetch.current = false; // Reset profile fetch flag
-          showToast.info('Logged out successfully', { groupKey: 'auth' });
+          showshowToast.info('Logged out successfully', { groupKey: 'auth' });
   }, []);
 
   /**

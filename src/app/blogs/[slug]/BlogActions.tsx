@@ -44,7 +44,7 @@ export default function BlogActions({ blogId }: BlogActionsProps) {
       showToast.success('Blog link copied to clipboard!');
     } catch (error) {
       console.error('Clipboard error:', error);
-      toast.error('Could not copy link. Please try again.');
+      showToast.error('Could not copy link. Please try again.');
     }
   };
 
@@ -64,7 +64,7 @@ export default function BlogActions({ blogId }: BlogActionsProps) {
       }
     } catch (error) {
       console.error('Bookmark error:', error);
-      toast.error('Could not bookmark this post. Please try again.');
+      showToast.error('Could not bookmark this post. Please try again.');
     }
   };
 
