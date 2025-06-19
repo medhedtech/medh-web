@@ -3,12 +3,13 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, X, FileVideo, FileText, BookOpen, Video, File, Search, Calendar, Clock, Star, Award, CheckCircle, Eye, Play, RefreshCw } from "lucide-react";
+import { Download, X, FileVideo, FileText, BookOpen, Video, File, Search, Calendar, Clock, Star, Award, CheckCircle, Eye, Play, RefreshCw, BarChart3, TrendingUp, Target, Activity, Trophy, Zap, Brain, Timer } from "lucide-react";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import defaultCourseImage from "@/assets/images/resources/img5.png";
 import { getUserId, sanitizeAuthData } from "@/utils/auth";
 import { useRouter } from "next/navigation";
+import { progressAPI, IProgressEntry, IProgressOverview, IProgressAnalytics, progressUtils } from "@/apis/progress.api";
 
 interface Resource {
   url: string;
@@ -43,6 +44,240 @@ interface ResourceDownloadButtonProps {
   label: string;
   onClick: () => void;
 }
+
+interface ProgressStatsProps {
+  overview: IProgressOverview;
+  analytics: IProgressAnalytics;
+  isLoading: boolean;
+}
+
+// Progress Statistics Component
+const ProgressStats: React.FC<ProgressStatsProps> = ({ overview, analytics, isLoading }) => {
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="bg-white dark:bg-gray-800 rounded-lg p-6 animate-pulse">
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3"></div>
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  const stats = [
+    {
+      title: "Overall Progress",
+      value: `${Math.round(overview?.totalProgress || 0)}%`,
+      icon: Target,
+      color: "text-blue-600",
+      bgColor: "bg-blue-100 dark:bg-blue-900/30",
+      trend: analytics?.trends?.progressTrend,
+    },
+    {
+      title: "Completion Rate",
+      value: `${Math.round(overview?.completionRate || 0)}%`,
+      icon: CheckCircle,
+      color: "text-green-600",
+      bgColor: "bg-green-100 dark:bg-green-900/30",
+      trend: "increasing",
+    },
+    {
+      title: "Study Streak",
+      value: `${overview?.streakDays || 0} days`,
+      icon: Trophy,
+      color: "text-yellow-600",
+      bgColor: "bg-yellow-100 dark:bg-yellow-900/30",
+      trend: "stable",
+    },
+    {
+      title: "Time Spent",
+      value: progressUtils.formatTimeSpent(overview?.totalTimeSpent || 0),
+      icon: Timer,
+      color: "text-purple-600",
+      bgColor: "bg-purple-100 dark:bg-purple-900/30",
+      trend: analytics?.trends?.timeSpentTrend,
+    },
+  ];
+
+  const getTrendIcon = (trend: string) => {
+    switch (trend) {
+      case 'increasing': return <TrendingUp className="w-4 h-4 text-green-500" />;
+      case 'decreasing': return <TrendingUp className="w-4 h-4 text-red-500 transform rotate-180" />;
+      default: return <Activity className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {stats.map((stat, index) => (
+        <motion.div
+          key={stat.title}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.1 }}
+          className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className={`p-2 rounded-lg ${stat.bgColor}`}>
+              <stat.icon className={`w-5 h-5 ${stat.color}`} />
+            </div>
+            {stat.trend && getTrendIcon(stat.trend)}
+          </div>
+          <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+            {stat.title}
+          </h3>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">
+            {stat.value}
+          </p>
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
+// Enhanced Progress Bar Component
+const EnhancedProgressBar: React.FC<{ 
+  progress: number; 
+  label?: string; 
+  showPercentage?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+  colorScheme?: 'primary' | 'success' | 'warning' | 'danger';
+}> = ({ 
+  progress, 
+  label, 
+  showPercentage = true, 
+  size = 'md',
+  colorScheme = 'primary' 
+}) => {
+  const sizeClasses = {
+    sm: 'h-1',
+    md: 'h-2',
+    lg: 'h-3'
+  };
+
+  const colorClasses = {
+    primary: 'bg-primary-600',
+    success: 'bg-green-600',
+    warning: 'bg-yellow-600',
+    danger: 'bg-red-600'
+  };
+
+  const getProgressColor = (progress: number) => {
+    if (progress >= 80) return 'success';
+    if (progress >= 60) return 'primary';
+    if (progress >= 30) return 'warning';
+    return 'danger';
+  };
+
+  const finalColorScheme = colorScheme === 'primary' ? getProgressColor(progress) : colorScheme;
+
+  return (
+    <div className="w-full">
+      {(label || showPercentage) && (
+        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+          {label && <span>{label}</span>}
+          {showPercentage && <span>{Math.round(progress)}%</span>}
+        </div>
+      )}
+      <div className={`w-full bg-gray-200 dark:bg-gray-700 rounded-full ${sizeClasses[size]}`}>
+        <motion.div 
+          className={`${colorClasses[finalColorScheme]} ${sizeClasses[size]} rounded-full transition-all duration-500`}
+          initial={{ width: 0 }}
+          animate={{ width: `${Math.min(progress, 100)}%` }}
+          transition={{ duration: 1, ease: "easeOut" }}
+        />
+      </div>
+    </div>
+  );
+};
+
+// Course Progress Insights Component
+const CourseProgressInsights: React.FC<{ courseId: string; userId: string }> = ({ courseId, userId }) => {
+  const [progressEntries, setProgressEntries] = useState<IProgressEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { getQuery } = useGetQuery();
+
+  useEffect(() => {
+    const fetchCourseProgress = async () => {
+      try {
+        await getQuery({
+          url: progressAPI.progress.getByUser(userId, { courseId, limit: 10 }),
+          onSuccess: (response) => {
+            setProgressEntries(response.data?.progress || []);
+            setIsLoading(false);
+          },
+          onFail: () => {
+            setIsLoading(false);
+          }
+        });
+      } catch (error) {
+        console.error('Error fetching course progress:', error);
+        setIsLoading(false);
+      }
+    };
+
+    if (userId && courseId) {
+      fetchCourseProgress();
+    }
+  }, [userId, courseId, getQuery]);
+
+  if (isLoading) {
+    return (
+      <div className="p-4 space-y-2">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex items-center space-x-3 animate-pulse">
+            <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="flex-1 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (progressEntries.length === 0) {
+    return (
+      <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+        <Brain className="w-8 h-8 mx-auto mb-2 opacity-50" />
+        <p className="text-sm">No progress data available yet</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 space-y-3">
+      <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+        Recent Activity
+      </h4>
+      {progressEntries.slice(0, 5).map((entry, index) => (
+        <motion.div
+          key={entry._id || index}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: index * 0.1 }}
+          className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50"
+        >
+          <div 
+            className="w-3 h-3 rounded-full"
+            style={{ backgroundColor: progressUtils.getStatusColor(entry.status) }}
+          />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
+              {entry.contentTitle || entry.contentType}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {entry.progressPercentage}% • {progressUtils.formatTimeSpent(entry.timeSpent)}
+            </p>
+          </div>
+          <div className="text-xs text-gray-400">
+            {entry.lastAccessedAt && new Date(entry.lastAccessedAt).toLocaleDateString()}
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+};
 
 // Updated TabButton with blog-style filter button styling
 const TabButton: React.FC<TabButtonProps> = ({ active, onClick, children }) => (
@@ -83,9 +318,14 @@ const ResourceDownloadButton: React.FC<ResourceDownloadButtonProps> = ({ icon: I
   </motion.button>
 );
 
-// Course Card Component - matching completed courses style
-const CourseCard = ({ course, onViewMaterials }: { course: Course; onViewMaterials: (course: Course) => void }) => {
+// Enhanced Course Card Component with Progress Tracking
+const CourseCard = ({ course, onViewMaterials, userId }: { 
+  course: Course; 
+  onViewMaterials: (course: Course) => void;
+  userId: string;
+}) => {
   const router = useRouter();
+  const [showInsights, setShowInsights] = useState(false);
 
   const handleContinueLearning = () => {
     if (course?.id) {
@@ -99,95 +339,124 @@ const CourseCard = ({ course, onViewMaterials }: { course: Course; onViewMateria
     }
   };
 
+  const getProgressColor = (progress: number) => {
+    if (progress >= 80) return 'text-green-600';
+    if (progress >= 60) return 'text-blue-600';
+    if (progress >= 30) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300">
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
-          <h3 
-            className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 cursor-pointer hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-            onClick={handleTitleClick}
-          >
-            {course?.course_title || "No Title Available"}
-          </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-            by {course?.assigned_instructor?.full_name || "No instructor"}
-          </p>
-          <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
-            <div className="flex items-center">
-              <Calendar className="w-3 h-3 mr-1" />
-              Enrolled {course?.enrollment_date ? new Date(course.enrollment_date).toLocaleDateString() : "Recently"}
-            </div>
-            <div className="flex items-center">
-              <Clock className="w-3 h-3 mr-1" />
-              {course?.duration || "Ongoing"}
+    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 overflow-hidden">
+      <div className="p-6">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1">
+            <h3 
+              className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 cursor-pointer hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+              onClick={handleTitleClick}
+            >
+              {course?.course_title || "No Title Available"}
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+              by {course?.assigned_instructor?.full_name || "No instructor"}
+            </p>
+            <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
+              <div className="flex items-center">
+                <Calendar className="w-3 h-3 mr-1" />
+                Enrolled {course?.enrollment_date ? new Date(course.enrollment_date).toLocaleDateString() : "Recently"}
+              </div>
+              <div className="flex items-center">
+                <Clock className="w-3 h-3 mr-1" />
+                {course?.duration || "Ongoing"}
+              </div>
             </div>
           </div>
+          <div className="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+            <Play className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          </div>
         </div>
-        <div className="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full">
-          <Play className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-        </div>
-      </div>
 
-      {/* Category and Class Type */}
-      <div className="mb-4">
-        <div className="flex flex-wrap gap-2">
-          {course?.category && (
-            <span className="px-2 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs rounded-full">
-              {course.category}
+        {/* Category and Class Type */}
+        <div className="mb-4">
+          <div className="flex flex-wrap gap-2">
+            {course?.category && (
+              <span className="px-2 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs rounded-full">
+                {course.category}
+              </span>
+            )}
+            {course?.class_type && (
+              <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs rounded-full">
+                {course.class_type}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Progress and Rating */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center">
+            <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              {course?.rating || "4.5"}
             </span>
+          </div>
+          <div className="flex items-center text-blue-600 dark:text-blue-400">
+            <BookOpen className="w-4 h-4 mr-1" />
+            <span className="text-sm font-medium">In Progress</span>
+          </div>
+        </div>
+
+        {/* Enhanced Progress Section */}
+        <div className="mb-4">
+          <EnhancedProgressBar 
+            progress={course?.progress || 25}
+            label="Progress"
+            size="md"
+          />
+        </div>
+
+        {/* Progress Insights Toggle */}
+        <div className="mb-4">
+          <button
+            onClick={() => setShowInsights(!showInsights)}
+            className="flex items-center text-xs text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+          >
+            <BarChart3 className="w-3 h-3 mr-1" />
+            {showInsights ? 'Hide' : 'Show'} Progress Details
+          </button>
+        </div>
+
+        {/* Progress Insights */}
+        <AnimatePresence>
+          {showInsights && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-4 border-t border-gray-200 dark:border-gray-700"
+            >
+              <CourseProgressInsights courseId={course.id} userId={userId} />
+            </motion.div>
           )}
-          {course?.class_type && (
-            <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs rounded-full">
-              {course.class_type}
-            </span>
-          )}
-        </div>
-      </div>
+        </AnimatePresence>
 
-      {/* Progress and Rating */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center">
-          <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {course?.rating || "4.5"}
-          </span>
+        {/* Actions */}
+        <div className="flex space-x-2">
+          <button 
+            onClick={() => onViewMaterials(course)}
+            className="flex-1 flex items-center justify-center px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm"
+          >
+            <Eye className="w-4 h-4 mr-2" />
+            View Materials
+          </button>
+          <button 
+            onClick={handleContinueLearning}
+            className="flex-1 flex items-center justify-center px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm"
+          >
+            <Play className="w-4 h-4 mr-2" />
+            Continue
+          </button>
         </div>
-        <div className="flex items-center text-blue-600 dark:text-blue-400">
-          <BookOpen className="w-4 h-4 mr-1" />
-          <span className="text-sm font-medium">In Progress</span>
-        </div>
-      </div>
-
-      {/* Progress Bar */}
-      <div className="mb-4">
-        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-          <span>Progress</span>
-          <span>{course?.progress || 25}%</span>
-        </div>
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-          <div 
-            className="bg-primary-600 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${course?.progress || 25}%` }}
-          ></div>
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className="flex space-x-2">
-        <button 
-          onClick={() => onViewMaterials(course)}
-          className="flex-1 flex items-center justify-center px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm"
-        >
-          <Eye className="w-4 h-4 mr-2" />
-          View Materials
-        </button>
-        <button 
-          onClick={handleContinueLearning}
-          className="flex-1 flex items-center justify-center px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm"
-        >
-          <Play className="w-4 h-4 mr-2" />
-          Continue
-        </button>
       </div>
     </div>
   );
@@ -202,16 +471,50 @@ const StudentEnrolledCourses: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Progress tracking state
+  const [progressOverview, setProgressOverview] = useState<IProgressOverview | null>(null);
+  const [progressAnalytics, setProgressAnalytics] = useState<IProgressAnalytics | null>(null);
+  const [isProgressLoading, setIsProgressLoading] = useState<boolean>(true);
+  const [userId, setUserId] = useState<string>("");
+
   const { getQuery } = useGetQuery();
 
   // Refresh function
   const refreshCourses = async () => {
-    const userId = getUserId();
-    if (userId) {
+    const currentUserId = getUserId();
+    if (currentUserId) {
       setIsLoading(true);
       setError(null);
-      await fetchEnrolledCourses(userId);
+      await fetchEnrolledCourses(currentUserId);
+      await fetchProgressData(currentUserId);
       setIsLoading(false);
+    }
+  };
+
+  // Fetch progress data
+  const fetchProgressData = async (studentId: string) => {
+    try {
+      setIsProgressLoading(true);
+      
+      // Fetch progress analytics
+      await getQuery({
+        url: progressAPI.analytics.getByUser(studentId),
+        onSuccess: (response) => {
+          if (response.data?.analytics) {
+            setProgressAnalytics(response.data.analytics);
+            setProgressOverview(response.data.analytics.overview);
+          }
+        },
+        onFail: (error) => {
+          console.error('Failed to fetch progress analytics:', error);
+        }
+      });
+
+      setIsProgressLoading(false);
+    } catch (error) {
+      console.error('Error fetching progress data:', error);
+      setIsProgressLoading(false);
     }
   };
 
@@ -224,8 +527,8 @@ const StudentEnrolledCourses: React.FC = () => {
         // First sanitize any invalid auth data
         sanitizeAuthData();
         
-        const userId = getUserId();
-        if (!userId) {
+        const currentUserId = getUserId();
+        if (!currentUserId) {
           console.error("User ID not found");
           setError("Please log in to view your enrolled courses");
           setIsLoading(false);
@@ -237,13 +540,18 @@ const StudentEnrolledCourses: React.FC = () => {
           return;
         }
 
+        setUserId(currentUserId);
+
         if (!apiUrls?.enrolledCourses?.getEnrollmentsByStudent) {
           setError("API endpoint not configured properly");
           setIsLoading(false);
           return;
         }
 
-        await fetchEnrolledCourses(userId);
+        await Promise.all([
+          fetchEnrolledCourses(currentUserId),
+          fetchProgressData(currentUserId)
+        ]);
       } catch (err) {
         console.error("Error fetching courses:", err);
         setError("Failed to load courses. Please try again later.");
@@ -263,7 +571,7 @@ const StudentEnrolledCourses: React.FC = () => {
     }
     
     try {
-      const response =         await getQuery({
+      const response = await getQuery({
         url: apiUrls.enrolledCourses.getEnrollmentsByStudent(studentId),
         onSuccess: (response) => {
           if (!response) {
@@ -332,7 +640,6 @@ const StudentEnrolledCourses: React.FC = () => {
             
           } catch (parseError) {
             console.error("Error parsing enrolled courses data:", parseError);
-            showToast.error("Error processing course data");
           }
         },
         onFail: (error) => {
@@ -345,24 +652,21 @@ const StudentEnrolledCourses: React.FC = () => {
           } else {
             setError("Failed to load enrolled courses. Please try again later.");
           }
-          showToast.error("Failed to fetch enrolled courses. Please try again.");
         },
       });
       
       return response;
     } catch (err) {
       console.error("Error in fetchEnrolledCourses:", err);
-      showToast.error("An unexpected error occurred while fetching courses");
       return null;
     }
   };
-
-
 
   const tabs = [
     { name: "All Courses", content: enrolledCourses, icon: BookOpen },
     { name: "Live Courses", content: liveCourses, icon: Video },
     { name: "Self-Paced", content: selfPacedCourses, icon: Clock },
+    { name: "Progress Analytics", content: [], icon: BarChart3 },
   ];
 
   const handleDownload = (course: Course) => {
@@ -381,14 +685,12 @@ const StudentEnrolledCourses: React.FC = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      showToast.success(`Downloading ${fileName}`);
     } catch (err) {
       console.error("Error downloading file:", err);
-      showToast.error("Failed to download file. Please try again.");
     }
   };
 
-  const filteredContent = tabs[currentTab].content.filter(course => 
+  const filteredContent = currentTab === 3 ? [] : tabs[currentTab].content.filter(course => 
     course?.course_title?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -443,7 +745,7 @@ const StudentEnrolledCourses: React.FC = () => {
               <BookOpen className="w-6 h-6 text-primary-600 dark:text-primary-400" />
             </div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
-              Enrolled Courses
+              Enrolled Courses & Progress
             </h1>
             <button
               onClick={refreshCourses}
@@ -455,27 +757,38 @@ const StudentEnrolledCourses: React.FC = () => {
             </button>
           </motion.div>
           <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed px-4 mb-6">
-            Continue your learning journey and access course materials
+            Continue your learning journey with detailed progress tracking and insights
           </p>
 
           {/* Search Bar */}
-          <motion.div 
-            className="relative max-w-md mx-auto"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search courses..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200"
-            />
-          </motion.div>
+          {currentTab !== 3 && (
+            <motion.div 
+              className="relative max-w-md mx-auto"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+            >
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search courses..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200"
+              />
+            </motion.div>
+          )}
         </div>
+
+        {/* Progress Overview Stats */}
+        {progressOverview && progressAnalytics && (
+          <ProgressStats 
+            overview={progressOverview}
+            analytics={progressAnalytics}
+            isLoading={isProgressLoading}
+          />
+        )}
 
         {/* Tabs - in a box container */}
         <div className="flex justify-center">
@@ -496,45 +809,124 @@ const StudentEnrolledCourses: React.FC = () => {
 
         {/* Content */}
         <AnimatePresence mode="wait">
-          <motion.div
-            key={currentTab}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
-          >
-            {filteredContent.length > 0 ? (
-              filteredContent.map((course, index) => (
+          {currentTab === 3 ? (
+            // Progress Analytics Tab
+            <motion.div
+              key="progress-analytics"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
+            >
+              {progressAnalytics ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Content Type Breakdown */}
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                      Progress by Content Type
+                    </h3>
+                    <div className="space-y-4">
+                      {Object.entries(progressAnalytics.breakdown.byContentType).map(([type, data]) => (
+                        <div key={type} className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 capitalize">
+                              {type}
+                            </span>
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                              {data.count} items
+                            </span>
+                          </div>
+                          <EnhancedProgressBar 
+                            progress={data.completionRate}
+                            showPercentage={true}
+                            size="sm"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Weekly Progress Trend */}
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                      Weekly Progress Trend
+                    </h3>
+                    <div className="space-y-3">
+                      {progressAnalytics.breakdown.byWeek.slice(0, 4).map((week, index) => (
+                        <div key={week.week} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              Week of {week.week}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {progressUtils.formatTimeSpent(week.timeSpent)}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-semibold text-primary-600 dark:text-primary-400">
+                              {week.progress}%
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    No Analytics Data Available
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Start learning to see your progress analytics here.
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          ) : (
+            // Course listings
+            <motion.div
+              key={currentTab}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
+            >
+              {filteredContent.length > 0 ? (
+                filteredContent.map((course, index) => (
+                  <motion.div
+                    key={course.id || index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <CourseCard
+                      course={course}
+                      onViewMaterials={handleDownload}
+                      userId={userId}
+                    />
+                  </motion.div>
+                ))
+              ) : (
                 <motion.div
-                  key={course.id || index}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  className="col-span-full flex flex-col items-center justify-center text-center py-12"
                 >
-                  <CourseCard
-                    course={course}
-                    onViewMaterials={handleDownload}
-                  />
+                  <BookOpen className="w-16 h-16 text-gray-400 mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    {searchTerm ? "No courses found" : "No courses available"}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {searchTerm 
+                      ? "Try adjusting your search term to find what you're looking for."
+                      : "There are no courses available in this category yet."}
+                  </p>
                 </motion.div>
-              ))
-            ) : (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="col-span-full flex flex-col items-center justify-center text-center py-12"
-              >
-                <BookOpen className="w-16 h-16 text-gray-400 mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  {searchTerm ? "No courses found" : "No courses available"}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  {searchTerm 
-                    ? "Try adjusting your search term to find what you're looking for."
-                    : "There are no courses available in this category yet."}
-                </p>
-              </motion.div>
-            )}
-          </motion.div>
+              )}
+            </motion.div>
+          )}
         </AnimatePresence>
 
         {/* Download Modal */}

@@ -13,7 +13,8 @@ import {
   Bell, 
   School,
   Briefcase,
-  BookOpen
+  BookOpen,
+  Tag
 } from 'lucide-react';
 import { apiUrls } from '@/apis';
 import useGetQuery from '@/hooks/getQuery.hook';
@@ -290,7 +291,7 @@ const AdminDashboardMain = () => {
 
         <div className="rounded-lg bg-white p-6 shadow">
           <h2 className="mb-4 text-lg font-medium">Quick Actions</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             <button
               onClick={() => router.push('/dashboards/admin-dashboard?view=admin-studentmange')}
               className="rounded-md bg-blue-600 px-4 py-2 text-white shadow-sm hover:bg-blue-700"
@@ -314,6 +315,13 @@ const AdminDashboardMain = () => {
               className="rounded-md bg-amber-600 px-4 py-2 text-white shadow-sm hover:bg-amber-700"
             >
               Schedule Class
+            </button>
+            <button
+              onClick={() => router.push('/dashboards/admin/coupons')}
+              className="rounded-md bg-rose-600 px-4 py-2 text-white shadow-sm hover:bg-rose-700 flex items-center justify-center gap-2"
+            >
+              <Tag className="w-4 h-4" />
+              Add Coupon
             </button>
           </div>
         </div>

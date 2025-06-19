@@ -13,7 +13,7 @@ import { apiUrls } from "@/apis";
 import Preloader from "../others/Preloader";
 import { useRouter, useSearchParams } from "next/navigation";
 import { jwtDecode, JwtPayload } from "jwt-decode";
-import { Eye, EyeOff, Mail, Lock, Loader2, CheckCircle, AlertCircle, Sparkles, ArrowRight, ChevronLeft, Home, Check } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Loader2, CheckCircle, AlertCircle, Sparkles, ArrowRight, ChevronLeft, Home, Check, Clock, Shield, RefreshCw } from "lucide-react";
 import { Github } from "lucide-react";
 import CustomReCaptcha from '../ReCaptcha';
 import { useStorage } from "@/contexts/StorageContext";
@@ -153,6 +153,12 @@ const LoginForm = () => {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isOAuthLoading, setIsOAuthLoading] = useState<{ [key: string]: boolean }>({});
   const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
+  const [accountLockInfo, setAccountLockInfo] = useState<{
+    isLocked: boolean;
+    lockedUntil?: string;
+    message?: string;
+  }>({ isLocked: false });
   
   const {
     register,
@@ -169,13 +175,6 @@ const LoginForm = () => {
     mode: "onChange",
     reValidateMode: "onChange",
   });
-
-  // Sanitize any invalid auth data when component mounts
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      sanitizeAuthData();
-    }
-  }, []);
 
   // Add entrance animation effect
   useEffect(() => {
@@ -311,6 +310,32 @@ const LoginForm = () => {
     rolePathCache.set(roleLower, dashboardPath);
     return dashboardPath;
   }, [rolePathCache]);
+
+  // Sanitize any invalid auth data when component mounts and check if user is already logged in
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sanitizeAuthData();
+      
+      // Check if user is already authenticated
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+      const userRole = localStorage.getItem('role');
+      
+      if (token && userId) {
+        // User is already logged in, redirect them to their dashboard
+        const dashboardPath = getRoleBasedRedirectPath(userRole || 'student');
+        const finalRedirectPath = (redirectPath && redirectPath.startsWith('/')) ? redirectPath : dashboardPath;
+        
+        console.log('User already authenticated, redirecting to:', finalRedirectPath);
+        setIsRedirecting(true);
+        router.push(finalRedirectPath);
+        return;
+      }
+      
+      // User is not authenticated, show the login form
+      setIsCheckingAuth(false);
+    }
+  }, [router, redirectPath, getRoleBasedRedirectPath]);
 
   // Enhanced keyboard support for form navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -792,6 +817,21 @@ const LoginForm = () => {
             return;
           }
           
+          // Check if this is an account lockout error
+          const isAccountLocked = errorResponse?.message?.includes("temporarily locked") || 
+                                errorResponse?.message?.includes("Account locked") ||
+                                errorResponse?.error_code === "ACCOUNT_LOCKED" ||
+                                errorResponse?.locked_until;
+          
+          if (isAccountLocked) {
+            setAccountLockInfo({
+              isLocked: true,
+              lockedUntil: errorResponse?.locked_until,
+              message: errorResponse?.message || "Account temporarily locked due to multiple failed login attempts"
+            });
+            return;
+          }
+          
           // Handle other login errors
           showToast.error(authUtils.handleAuthError(error));
           setTimeout(() => emailInputRef.current?.focus(), 100);
@@ -804,6 +844,162 @@ const LoginForm = () => {
       }
     }
   };
+
+  // Account Lockout Warning Component
+  const AccountLockoutWarning = () => {
+    const formatLockoutTime = (lockedUntil: string) => {
+      try {
+        const lockDate = new Date(lockedUntil);
+        const now = new Date();
+        const timeDiff = lockDate.getTime() - now.getTime();
+        
+        if (timeDiff <= 0) {
+          return "Your account should be unlocked now. Please try again.";
+        }
+        
+        const minutes = Math.ceil(timeDiff / (1000 * 60));
+        const hours = Math.ceil(timeDiff / (1000 * 60 * 60));
+        
+        if (minutes < 60) {
+          return `Account will be unlocked in approximately ${minutes} minute${minutes !== 1 ? 's' : ''}`;
+        } else {
+          return `Account will be unlocked in approximately ${hours} hour${hours !== 1 ? 's' : ''}`;
+        }
+      } catch (error) {
+        return "Account is temporarily locked. Please try again later.";
+      }
+    };
+
+    const handleTryAgain = () => {
+      setAccountLockInfo({ isLocked: false });
+      reset();
+      setTimeout(() => emailInputRef.current?.focus(), 100);
+    };
+
+    const handleContactSupport = () => {
+      window.open('mailto:support@medh.io?subject=Account Lockout Issue', '_blank');
+    };
+
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-4 px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md relative">
+          {/* Decorative elements */}
+          <div className="absolute -top-10 -left-10 w-20 h-20 bg-red-300/30 dark:bg-red-600/20 rounded-full blur-xl hidden sm:block"></div>
+          <div className="absolute -bottom-12 -right-12 w-24 h-24 bg-orange-300/30 dark:bg-orange-600/20 rounded-full blur-xl hidden sm:block"></div>
+          
+          {/* Card container */}
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50">
+            
+            {/* Header */}
+            <div className="px-4 sm:px-8 pt-6 sm:pt-8 pb-4 text-center">
+              <Link href="/" className="inline-block mb-4">
+                <Image 
+                  src={theme === 'dark' ? logo1 : logo2} 
+                  alt="Medh Logo" 
+                  width={100} 
+                  height={32} 
+                  className="mx-auto w-24 sm:w-32"
+                  priority
+                />
+              </Link>
+            </div>
+
+            {/* Warning Content */}
+            <div className="px-4 sm:px-8 pb-6 sm:pb-8">
+              {/* Warning Icon */}
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                  <Shield className="w-8 h-8 text-red-600 dark:text-red-400" />
+                </div>
+              </div>
+
+              {/* Warning Title */}
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white text-center mb-2">
+                Account Temporarily Locked
+              </h2>
+
+              {/* Warning Message */}
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-6">
+                <div className="flex items-start">
+                  <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 mr-3 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-sm text-red-800 dark:text-red-200 mb-2">
+                      {accountLockInfo.message}
+                    </p>
+                    {accountLockInfo.lockedUntil && (
+                      <div className="flex items-center text-xs text-red-700 dark:text-red-300">
+                        <Clock className="w-4 h-4 mr-1" />
+                        {formatLockoutTime(accountLockInfo.lockedUntil)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Security Information */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-6">
+                <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                  Why was my account locked?
+                </h3>
+                <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1">
+                  <li>• Multiple failed login attempts detected</li>
+                  <li>• This is a security measure to protect your account</li>
+                  <li>• Your account will be automatically unlocked after the timeout period</li>
+                </ul>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                <button
+                  onClick={handleTryAgain}
+                  className="w-full flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-primary-500 to-indigo-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Try Again
+                </button>
+
+                <button
+                  onClick={handleContactSupport}
+                  className="w-full flex items-center justify-center px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  Contact Support
+                </button>
+
+                <Link
+                  href="/forgot-password"
+                  className="w-full flex items-center justify-center px-4 py-2.5 text-primary-600 dark:text-primary-400 font-medium rounded-xl hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
+                >
+                  Reset Password Instead
+                </Link>
+              </div>
+
+              {/* Back to Home */}
+              <div className="text-center mt-6">
+                <Link 
+                  href="/"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex items-center justify-center"
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Back to Home
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="text-center mt-4 text-xs text-gray-400 dark:text-gray-500">
+            <p>© {currentYear} Medh. All rights reserved.</p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Show account lockout warning if account is locked
+  if (accountLockInfo.isLocked) {
+    return <AccountLockoutWarning />;
+  }
 
   // Show OTP verification if needed
   if (showOTPVerification) {
@@ -885,12 +1081,15 @@ const LoginForm = () => {
     );
   }
 
-  if (loading) {
+  // Show loading state while checking authentication or during login process
+  if (loading || isCheckingAuth) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="flex flex-col items-center">
           <Loader2 size={40} className="text-primary-500 animate-spin mb-4" />
-          <p className="font-body text-gray-600 dark:text-gray-300">Signing you in...</p>
+          <p className="font-body text-gray-600 dark:text-gray-300">
+            {isCheckingAuth ? "Checking authentication..." : "Signing you in..."}
+          </p>
         </div>
       </div>
     );

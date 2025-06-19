@@ -365,7 +365,7 @@ export default function MembershipFaq() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="mt-8 p-6 bg-gradient-to-r from-[#379392]/10 via-white to-[#379392]/10 dark:from-[#379392]/20 dark:via-gray-800/50 dark:to-[#379392]/20 rounded-xl border border-[#379392]/20 dark:border-[#379392]/30 backdrop-blur-sm"
           >
-            <p className="text-gray-700 dark:text-gray-300 flex flex-col sm:flex-row sm:items-center text-center sm:text-left">
+            <div className="text-gray-700 dark:text-gray-300 flex flex-col sm:flex-row sm:items-center text-center sm:text-left">
               <motion.div 
                 whileHover={{ scale: 1.1, rotate: 15 }}
                 className="w-12 h-12 mx-auto sm:mx-0 sm:mr-4 mb-3 sm:mb-0 rounded-xl bg-[#379392]/20 flex items-center justify-center transform transition-transform duration-300"
@@ -387,7 +387,7 @@ export default function MembershipFaq() {
                   </motion.span>
                 </a>
               </span>
-            </p>
+            </div>
           </motion.div>
         </div>
       </motion.div>

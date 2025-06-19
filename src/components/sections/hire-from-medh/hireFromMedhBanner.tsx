@@ -368,6 +368,7 @@ const HireFromMedhBanner: React.FC<HireFromMedhBannerProps> = ({ onLearnMoreClic
                 <div className="mt-3 sm:mt-4 mb-3">
                   <button 
                     onClick={onLearnMoreClick || handleScrollToRegistration}
+                    suppressHydrationWarning
                     className={`inline-flex items-center justify-center py-2.5 px-5 font-semibold rounded-xl transition-all duration-300 hover:scale-105 group text-sm relative overflow-hidden ${
                       isDark 
                         ? 'bg-gradient-to-r from-primary-500 to-blue-500 text-white hover:shadow-lg hover:shadow-primary-500/25 glass-stats' 
@@ -463,6 +464,7 @@ const HireFromMedhBanner: React.FC<HireFromMedhBannerProps> = ({ onLearnMoreClic
               <div className="mt-4 sm:mt-6 md:mt-8 flex flex-wrap gap-4 justify-center">
                 <button 
                   onClick={onLearnMoreClick || handleScrollToRegistration}
+                  suppressHydrationWarning
                   className={`inline-flex items-center justify-center py-2.5 px-5 font-semibold rounded-xl transition-all duration-300 hover:scale-105 group text-sm relative overflow-hidden ${
                     isDark 
                       ? 'bg-gradient-to-r from-primary-500 to-blue-500 text-white hover:shadow-lg hover:shadow-primary-500/25 glass-stats' 

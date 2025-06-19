@@ -8,7 +8,7 @@ import CorporateFaq from "@/components/sections/corporate-training/corporateFaq"
 import CorporateOverview from "@/components/sections/corporate-training/corporateOverview";
 import CourceBanner from "@/components/sections/corporate-training/courseBanner";
 import Certified from "@/components/sections/why-medh/Certified";
-import CorporateJourneyForm from "@/components/sections/corporate-enquiry-form/Corporate-Form";
+import { CorporateForm as CorporateJourneyForm } from "@/components/sections/corporate-enquiry-form/Corporate-Form";
 import { AnimatedContent } from "@/components/shared/course-content";
 
 const CorporateTraining: NextPage = () => {

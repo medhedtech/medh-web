@@ -317,6 +317,7 @@ export const storeAuthData = (
     
     if (data.email) {
       localStorage.setItem('email', data.email);
+      localStorage.setItem('userEmail', data.email); // Also store as userEmail for compatibility
     }
     
     if (data.role) {

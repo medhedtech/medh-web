@@ -8,8 +8,9 @@ import useIsTrue from "@/hooks/useIsTrue";
 import NavbarTop from "./NavbarTop";
 import { useState, useEffect, useRef, useCallback } from "react";
 import NavbarSearch from "@/components/shared/search/NavbarSearch";
-import { Search, ShoppingCart } from "lucide-react";
+import { Search, ShoppingCart, Video, Calendar, Zap, Play, User } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 /**
  * Modern navigation component with enhanced styling and interactions
@@ -33,16 +34,46 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
   const [hideNavbar, setHideNavbar] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
+  const [isDemoDropdownOpen, setIsDemoDropdownOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState("");
   
   // Refs
   const lastScrollY = useRef(0);
   const navbarRef = useRef(null);
   const searchRef = useRef(null);
+  const demoDropdownRef = useRef(null);
+  
+  // Router for navigation
+  const router = useRouter();
 
   // Mobile detection using both resize observer and props
   useEffect(() => {
     setIsMobile(viewportWidth > 0 ? viewportWidth < 1024 : window.innerWidth < 1024);
   }, [viewportWidth]);
+
+  // Check login status and get user info
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId");
+    setIsLoggedIn(!!token && !!userId);
+
+    if (token && userId) {
+      try {
+        const storedFullName = localStorage.getItem("fullName");
+        const storedUserName = localStorage.getItem("userName");
+        const name = storedFullName || storedUserName || "";
+        
+        if (name) {
+          // Get first name for display
+          const firstName = name.trim().split(' ')[0];
+          setUserName(firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase());
+        }
+      } catch (error) {
+        console.error("Error accessing localStorage:", error);
+      }
+    }
+  }, []);
 
   // Scroll handler with debouncing for better performance
   const handleScroll = useCallback(() => {
@@ -93,11 +124,14 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
     setIsSearchActive(!isSearchActive);
   }, [isSearchActive]);
 
-  // Handle clicks outside search to close it
+  // Handle clicks outside search and demo dropdown to close them
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         setIsSearchActive(false);
+      }
+      if (demoDropdownRef.current && !demoDropdownRef.current.contains(event.target)) {
+        setIsDemoDropdownOpen(false);
       }
     };
 
@@ -106,6 +140,18 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  // Handle schedule demo action
+  const handleScheduleDemo = useCallback(() => {
+    if (isLoggedIn) {
+      // Redirect to demo scheduling page for logged-in users
+      router.push("/dashboards/student/schedule-demo");
+    } else {
+      // Show login modal with demo context
+      router.push("/login?action=schedule-demo");
+    }
+    setIsDemoDropdownOpen(false);
+  }, [isLoggedIn, router]);
 
   // Determine container class based on page type
   const containerClass = (() => {
@@ -248,6 +294,7 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
                       className="p-2.5 rounded-full text-gray-600 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 hover:scale-105 active:scale-95"
                       aria-label="Search"
                       onClick={toggleSearch}
+                      suppressHydrationWarning
                     >
                       <Search size={22} />
                     </button>
@@ -266,6 +313,7 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
                           onClick={() => setIsSearchActive(false)}
                           className="ml-2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 transition-all duration-300 hover:rotate-90 hover:text-primary-500"
                           aria-label="Close search"
+                          suppressHydrationWarning
                           style={{
                             transitionDelay: '0.05s'
                           }}
@@ -287,6 +335,7 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
                       className="p-2.5 rounded-full text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
                       aria-label="EduStore - Coming Soon"
                       title="EduStore - Coming Soon"
+                      suppressHydrationWarning
                     >
                       <ShoppingCart size={22} className="transform group-hover:rotate-12 transition-transform duration-300" />
                     </button>
@@ -301,6 +350,94 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
                     </div>
                   </div>
                 </div>
+
+                {/* Schedule Demo - Only show for non-logged-in users */}
+                {!isLoggedIn && (
+                  <div className="relative" ref={demoDropdownRef}>
+                    <button
+                      onClick={() => setIsDemoDropdownOpen(!isDemoDropdownOpen)}
+                      suppressHydrationWarning
+                      className={`group relative inline-flex items-center justify-center gap-1 
+                        px-3 py-2 
+                        ${isScrolled ? 'text-sm' : 'text-sm'} 
+                        font-medium text-white
+                        bg-gradient-to-r from-green-500 to-emerald-600
+                        hover:from-green-600 hover:to-emerald-700
+                        shadow-sm hover:shadow-md
+                        rounded-full
+                        transition-all duration-300
+                        overflow-hidden hover:scale-105`}
+                      aria-label="Free demo class"
+                    >
+                      {/* Button content - Simple arrow design */}
+                      <span className="relative z-10 inline-flex items-center gap-1">
+                        <Video size={16} className="transform transition-transform duration-300 group-hover:scale-110" />
+                        <span className="font-semibold">FREE</span>
+                        <svg 
+                          className="w-4 h-4 transform transition-transform duration-300 group-hover:translate-x-1" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </span>
+                      
+                      {/* Live indicator - smaller */}
+                      <div className="absolute -top-1 -right-1">
+                        <span className="relative flex h-2.5 w-2.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                        </span>
+                      </div>
+                    </button>
+
+                    {/* Minimalistic Demo Dropdown */}
+                    {isDemoDropdownOpen && (
+                      <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 shadow-xl rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700 z-50 transform origin-top-right transition-all duration-200 animate-fadeIn">
+                        {/* Simple Header */}
+                        <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-3 text-white text-center">
+                          <h3 className="font-bold text-base flex items-center justify-center gap-2">
+                            <Video size={18} />
+                            FREE Demo
+                            <span className="text-xs bg-white/20 px-1.5 py-0.5 rounded-full">LIVE</span>
+                          </h3>
+                        </div>
+
+                        {/* Minimal Content */}
+                        <div className="p-4">
+                          <div className="space-y-3 text-center">
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                              45-min live session • Expert instructor • Free
+                            </p>
+                            
+                            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2">
+                              <p className="text-xs text-green-700 dark:text-green-300 font-medium">
+                                🎯 Next: Today 6PM, Tomorrow 11AM
+                              </p>
+                            </div>
+
+                            <button
+                              onClick={handleScheduleDemo}
+                              suppressHydrationWarning
+                              className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-150 flex items-center justify-center gap-2 group"
+                            >
+                              Click to Book
+                              <svg 
+                                className="w-4 h-4 transform transition-transform duration-300 group-hover:translate-x-1" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
                 
                 {/* DashboardProfileComponent instead of NavbarRight */}
                 <div 

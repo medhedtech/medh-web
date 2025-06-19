@@ -26,12 +26,14 @@ import {
   Target,
   CheckSquare,
   Clock,
-  Trophy
+  Trophy,
+  Video
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useIsClient } from "@/utils/hydration";
+import { useSearchParams } from "next/navigation";
 
 // Learning Resources component
 const LearningResources: React.FC = () => {
@@ -326,6 +328,284 @@ const MemoizedRecentAnnouncements = memo(RecentAnnouncements);
 const MemoizedLearningResources = memo(LearningResources);
 const MemoizedStudyGoals = memo(StudyGoals);
 
+// Demo Booking Component
+const DemoBookingCard: React.FC<{ userName: string; isHighPriority?: boolean }> = ({ userName, isHighPriority = false }) => {
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>("");
+  const [isBooking, setIsBooking] = useState<boolean>(false);
+  const [isBooked, setIsBooked] = useState<boolean>(false);
+  const router = useRouter();
+
+  const timeSlots = [
+    { id: 'today-6pm', label: 'Today 6:00 PM', available: true },
+    { id: 'tomorrow-11am', label: 'Tomorrow 11:00 AM', available: true },
+    { id: 'tomorrow-3pm', label: 'Tomorrow 3:00 PM', available: true },
+    { id: 'tomorrow-6pm', label: 'Tomorrow 6:00 PM', available: false },
+    { id: 'day-after-11am', label: 'Day After Tomorrow 11:00 AM', available: true },
+    { id: 'day-after-3pm', label: 'Day After Tomorrow 3:00 PM', available: true },
+  ];
+
+  const handleBookDemo = async () => {
+    if (!selectedTimeSlot) return;
+
+    setIsBooking(true);
+    try {
+      // Comprehensive authentication check with detailed debugging
+      const authData = {
+        userId: localStorage.getItem('userId'),
+        email: localStorage.getItem('email'),
+        fullName: localStorage.getItem('fullName'),
+        token: localStorage.getItem('token'),
+        role: localStorage.getItem('role'),
+        // Check alternative keys that might be used
+        userEmail: localStorage.getItem('userEmail'),
+        userName: localStorage.getItem('userName'),
+        authToken: localStorage.getItem('authToken')
+      };
+      
+      console.log('Complete localStorage auth check:', authData);
+      console.log('All localStorage keys:', Object.keys(localStorage));
+      
+      // Check if user is authenticated
+      const userId = authData.userId;
+      const email = authData.email || authData.userEmail;
+      const fullName = authData.fullName || authData.userName;
+      const token = authData.token || authData.authToken;
+      
+      console.log('Processed auth data:', {
+        userId: userId ? 'present' : 'missing',
+        email: email ? 'present' : 'missing',
+        fullName: fullName ? 'present' : 'missing',
+        token: token ? 'present' : 'missing'
+      });
+      
+      if (!userId) {
+        throw new Error('User ID not found. Please log in again.');
+      }
+      
+      if (!email) {
+        throw new Error('Email not found. Please log in again.');
+      }
+      
+      if (!fullName) {
+        throw new Error('Name not found. Please log in again.');
+      }
+      
+      if (!token) {
+        throw new Error('Authentication token not found. Please log in again.');
+      }
+      
+      // Import the API helper dynamically to avoid SSR issues
+      const { demoBookingHelpers } = await import('@/apis');
+      
+      // Create booking using the real API
+      const response = await demoBookingHelpers.createBookingForCurrentUser(selectedTimeSlot);
+      
+      if (response.success) {
+        setIsBooked(true);
+        console.log('Demo booking successful:', response.data);
+        
+        // Show success notification for 4 seconds
+        setTimeout(() => {
+          setIsBooked(false);
+          setSelectedTimeSlot("");
+        }, 4000);
+      } else {
+        throw new Error(response.message || 'Booking failed');
+      }
+    } catch (error) {
+      console.error('Error booking demo:', error);
+      
+      // Show more user-friendly error messages
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      if (errorMessage.includes('log in') || errorMessage.includes('authentication') || errorMessage.includes('token')) {
+        alert('Please log in to book a demo class. You will be redirected to the login page.');
+        // Redirect to login page
+        router.push('/login');
+      } else if (errorMessage.includes('Email')) {
+        // Special handling for email-related errors
+        const userConfirm = confirm(
+          'Your email information is missing. This might happen if you logged in through a different method.\n\n' +
+          'Would you like to:\n' +
+          '• Click OK to go to login page and log in again\n' +
+          '• Click Cancel to try refreshing the page'
+        );
+        
+        if (userConfirm) {
+          router.push('/login');
+        } else {
+          window.location.reload();
+        }
+      } else {
+        alert(`Booking failed: ${errorMessage}`);
+      }
+    } finally {
+      setIsBooking(false);
+    }
+  };
+
+  if (isBooked) {
+    return (
+      <div className="p-6 text-center">
+        <div className="flex items-center justify-center mb-4">
+          <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
+            <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+          </div>
+        </div>
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Demo Booked Successfully!</h3>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">
+          We'll send you a confirmation email with the meeting link.
+        </p>
+        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+          <p className="text-sm text-green-800 dark:text-green-200 font-medium">
+            📅 {timeSlots.find(slot => slot.id === selectedTimeSlot)?.label}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className={`p-2 rounded-lg ${isHighPriority ? 'bg-orange-100 dark:bg-orange-900/20' : 'bg-green-100 dark:bg-green-900/20'}`}>
+            <Video className={`w-5 h-5 ${isHighPriority ? 'text-orange-600 dark:text-orange-400' : 'text-green-600 dark:text-green-400'}`} />
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Book Your FREE Demo</h2>
+            {isHighPriority && (
+              <span className="text-xs bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-200 px-2 py-1 rounded-full">
+                Recommended for You
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center">
+          <span className="relative flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+          </span>
+          <span className="ml-2 text-xs font-medium text-red-600 dark:text-red-400">LIVE</span>
+        </div>
+      </div>
+
+      {/* Welcome Message */}
+      <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10 rounded-lg p-4 mb-4">
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+          👋 Welcome {userName}! Ready to experience MEDH?
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-300">
+          Join a 45-minute live demo session with our expert instructors. Get personalized course recommendations and career guidance.
+        </p>
+      </div>
+
+      {/* Benefits */}
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="flex items-center gap-2 text-sm">
+          <CheckCircle className="w-4 h-4 text-green-500" />
+          <span className="text-gray-700 dark:text-gray-300">Live Expert Session</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <CheckCircle className="w-4 h-4 text-green-500" />
+          <span className="text-gray-700 dark:text-gray-300">Career Guidance</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <CheckCircle className="w-4 h-4 text-green-500" />
+          <span className="text-gray-700 dark:text-gray-300">Course Roadmap</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <CheckCircle className="w-4 h-4 text-green-500" />
+          <span className="text-gray-700 dark:text-gray-300">Q&A Session</span>
+        </div>
+      </div>
+
+      {/* Time Slot Selection */}
+      <div className="mb-4">
+        <h4 className="font-medium text-gray-900 dark:text-white mb-3">Choose Your Time Slot:</h4>
+        <div className="grid grid-cols-1 gap-2">
+          {timeSlots.slice(0, 4).map((slot) => (
+            <button
+              key={slot.id}
+              onClick={() => slot.available && setSelectedTimeSlot(slot.id)}
+              disabled={!slot.available}
+              className={`p-3 rounded-lg border text-left transition-all duration-150 ${
+                selectedTimeSlot === slot.id
+                  ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                  : slot.available
+                  ? 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-green-300 dark:hover:border-green-600 text-gray-700 dark:text-gray-300'
+                  : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-medium">{slot.label}</span>
+                {!slot.available && <span className="text-xs text-red-500">Full</span>}
+                {selectedTimeSlot === slot.id && (
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Debug Button - Temporary */}
+      {process.env.NODE_ENV === 'development' && (
+        <button
+          onClick={() => {
+            const authData = {
+              userId: localStorage.getItem('userId'),
+              email: localStorage.getItem('email'),
+              fullName: localStorage.getItem('fullName'),
+              token: localStorage.getItem('token'),
+              role: localStorage.getItem('role'),
+              userEmail: localStorage.getItem('userEmail'),
+              userName: localStorage.getItem('userName'),
+              authToken: localStorage.getItem('authToken')
+            };
+            console.log('Debug - Current localStorage auth data:', authData);
+            console.log('Debug - All localStorage keys:', Object.keys(localStorage));
+            alert(`Auth Status:\nUser ID: ${authData.userId ? 'Present' : 'Missing'}\nEmail: ${authData.email ? 'Present' : 'Missing'}\nName: ${authData.fullName ? 'Present' : 'Missing'}\nToken: ${authData.token ? 'Present' : 'Missing'}\n\nCheck console for full details.`);
+          }}
+          className="w-full py-2 px-4 mb-2 rounded-lg border border-gray-300 text-gray-600 text-sm hover:bg-gray-50 transition-colors"
+        >
+          🔍 Debug Auth Data
+        </button>
+      )}
+
+      {/* Book Button */}
+      <button
+        onClick={handleBookDemo}
+        disabled={!selectedTimeSlot || isBooking}
+        className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-150 flex items-center justify-center gap-2 ${
+          selectedTimeSlot && !isBooking
+            ? 'bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg'
+            : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+        }`}
+      >
+        {isBooking ? (
+          <>
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            Booking...
+          </>
+        ) : (
+          <>
+            <Calendar className="w-4 h-4" />
+            Book FREE Demo Class
+          </>
+        )}
+      </button>
+
+      {/* Additional Info */}
+      <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-3">
+        No credit card required • Cancel anytime • 100% Free
+      </p>
+    </div>
+  );
+};
+
+const MemoizedDemoBookingCard = memo(DemoBookingCard);
+
 // Animation variants (outside component to prevent recreation)
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -359,6 +639,8 @@ const StudentDashboardMain: React.FC = () => {
   const [coursesError, setCoursesError] = useState<string | null>(null);
   const [studentId, setStudentId] = useState<string | null>(null);
   const [isNewUser, setIsNewUser] = useState<boolean>(false);
+  const [showDemoBooking, setShowDemoBooking] = useState<boolean>(false);
+  const [hasEnrolledCourses, setHasEnrolledCourses] = useState<boolean>(false);
 
   // State for banner sliding
   const [activeCourseIndex, setActiveCourseIndex] = useState(0);
@@ -366,6 +648,31 @@ const StudentDashboardMain: React.FC = () => {
   const isPausedRef = useRef(false);
   const sliderRef = useRef<HTMLDivElement>(null);
   const isClient = useIsClient();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Helper function to extract first name from full name
+  const getFirstName = (fullName: string): string => {
+    if (!fullName || fullName.trim() === '') return '';
+    
+    // Clean the input and split by space
+    const cleanName = fullName.trim();
+    const nameParts = cleanName.split(/\s+/); // Split by any whitespace
+    
+    // Get the first part (first name)
+    const firstName = nameParts[0];
+    
+    // Ensure we have a valid first name
+    if (firstName && firstName.length > 0) {
+      // Clean up the first name - remove any special characters and capitalize properly
+      const cleanFirstName = firstName.replace(/[^a-zA-Z]/g, ''); // Remove non-letters
+      if (cleanFirstName.length > 0) {
+        return cleanFirstName.charAt(0).toUpperCase() + cleanFirstName.slice(1).toLowerCase();
+      }
+    }
+    
+    return '';
+  };
 
   // Set greeting based on time of day and get user data
   useEffect(() => {
@@ -376,15 +683,64 @@ const StudentDashboardMain: React.FC = () => {
     else if (hour < 18) setGreeting("Good afternoon");
     else setGreeting("Good evening");
 
-    // Get user name and ID from localStorage
-    const storedName = localStorage.getItem("userName") || "";
-    setUserName(storedName.split(" ")[0] || "Student"); // Use first name or default to "Student"
+    // Get user name from localStorage with multiple fallbacks
+    try {
+      const storedUserName = localStorage.getItem("userName") || "";
+      const storedFullName = localStorage.getItem("fullName") || "";
+      const storedName = storedUserName || storedFullName;
+      
+      console.log('Dashboard name retrieval:', {
+        storedUserName,
+        storedFullName,
+        storedName,
+        rawStorageCheck: {
+          userName: localStorage.getItem("userName"),
+          fullName: localStorage.getItem("fullName"),
+          name: localStorage.getItem("name"),
+          user_name: localStorage.getItem("user_name"),
+          firstName: localStorage.getItem("firstName")
+        }
+      });
+      
+      if (storedName && storedName.trim() !== '') {
+        const firstName = getFirstName(storedName);
+        console.log('Extracted first name:', {
+          input: storedName,
+          output: firstName,
+          isValid: firstName && firstName.length > 0
+        });
+        
+        // Ensure we have a valid first name
+        if (firstName && firstName.length > 0) {
+          setUserName(firstName);
+        } else {
+          // Fallback: use the first word of stored name if getFirstName fails
+          const fallbackFirstName = storedName.trim().split(/\s+/)[0];
+          setUserName(fallbackFirstName || "Student");
+        }
+      } else {
+        setUserName("Student");
+      }
+    } catch (error) {
+      console.error('Error retrieving user name from localStorage:', error);
+      setUserName("Student");
+    }
     
+    // Get user ID from localStorage
     const storedUserId = localStorage.getItem("userId");
     if (storedUserId) {
       setStudentId(storedUserId);
     }
-  }, [isClient]);
+
+    // Check for demo booking action from URL
+    const action = searchParams?.get('action');
+    if (action === 'schedule-demo') {
+      setShowDemoBooking(true);
+      // Clear the URL parameter after detecting it
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [isClient, searchParams]);
 
   // Set up the 3 welcome carousel slides
   useEffect(() => {
@@ -431,6 +787,34 @@ const StudentDashboardMain: React.FC = () => {
     setIsNewUser(false);
     setCoursesLoading(false);
   }, [userName, greeting]);
+
+  // Check for enrolled courses
+  useEffect(() => {
+    const checkEnrolledCourses = async () => {
+      if (!studentId) return;
+
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/enrollments/student/${studentId}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          const enrollments = Array.isArray(data) ? data : data.data?.enrollments || [];
+          setHasEnrolledCourses(enrollments.length > 0);
+          
+          // Show demo booking for users with no enrolled courses or those coming from demo action
+          if (enrollments.length === 0) {
+            setShowDemoBooking(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking enrolled courses:', error);
+        // Show demo booking by default if we can't check enrollments
+        setShowDemoBooking(true);
+      }
+    };
+
+    checkEnrolledCourses();
+  }, [studentId]);
 
   // Helper function to get course gradient colors (MEDH official theme)
   const getCourseColor = (index: number): string => {
@@ -747,8 +1131,21 @@ const StudentDashboardMain: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
           {/* Left column - 8/12 width on desktop */}
           <div className="lg:col-span-8 grid grid-cols-1 gap-6 sm:gap-8">
+            {/* Demo Booking Section - High Priority */}
+            {showDemoBooking && (
+              <motion.section 
+                variants={itemVariants}
+                className="col-span-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden border-2 border-green-200 dark:border-green-800"
+              >
+                <MemoizedDemoBookingCard 
+                  userName={userName} 
+                  isHighPriority={!hasEnrolledCourses} 
+                />
+              </motion.section>
+            )}
+
             {/* Quick Actions Section */}
-                          <QuickActionCard courseCards={courseCards} />
+            <QuickActionCard courseCards={courseCards} />
             
             {/* Progress Overview */}
             <motion.section 

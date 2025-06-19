@@ -6,7 +6,7 @@ import HireFromMedhFaq from "@/components/sections/hire-from-medh/HireFromMedhFa
 import HireSection from "@/components/sections/hire-from-medh/HireSection";
 import HiringProcess from "@/components/sections/hire-from-medh/HiringProcess";
 import SkillsSection from "@/components/sections/hire-from-medh/SkillsSection";
-import Registration from "@/components/sections/registrations/Registration";
+import MultiStepHireForm from "@/components/sections/hire/MultiStepHireForm";
 import Certified from "@/components/sections/why-medh/Certified";
 
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
@@ -19,8 +19,10 @@ function HireFromMedh() {
       <HireSection />
       <SkillsSection />
       <HiringProcess />
-      <div id="registration-form">
-        <Registration showUploadField={true} pageTitle="hire_from_medh" />
+      <div id="hire-form" className="py-16 bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <MultiStepHireForm />
+        </div>
       </div>
       <Certified />
 

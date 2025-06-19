@@ -551,9 +551,8 @@ const LoadingSkeleton: React.FC = () => (
   </section>
 );
 
-// Registration CTA Component
+// Registration CTA Component - Direct Form
 const RegistrationCTA: React.FC<IRegistrationProps> = ({ showUploadField = false, pageTitle }) => {
-  const [isFormOpen, setIsFormOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -565,99 +564,14 @@ const RegistrationCTA: React.FC<IRegistrationProps> = ({ showUploadField = false
   }
 
   return (
-    <>
-      <motion.section 
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-        className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 flex items-center justify-center"
-      >
-        <div className="container mx-auto px-4 sm:px-6 py-12 relative">
-          {/* Floating background elements */}
-          <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-            <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary-400/10 dark:bg-primary-600/10 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-1/3 right-1/5 w-96 h-96 bg-secondary-400/10 dark:bg-secondary-600/10 rounded-full blur-3xl"></div>
-          </div>
-
-          <motion.div 
-            className="max-w-4xl mx-auto text-center relative z-10"
-            variants={itemVariants}
-          >
-            <span className="inline-block px-4 py-1.5 mb-6 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-sm font-medium rounded-full">
-              {pageTitle === "join_as_school" ? "School Partnership" : "Join Our Community"}
-            </span>
-            
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-              CONNECT EXPLORE GROW with <span className="text-primary-600 dark:text-primary-400">MEDH</span>
-            </h1>
-            
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-              {pageTitle === "join_as_school" 
-                ? "Partner with us to provide world-class education to your students. Transform learning experiences with our comprehensive programs."
-                : "Join thousands of learners who have transformed their careers with our industry-leading courses and expert mentorship."
-              }
-            </p>
-
-            <div className="grid md:grid-cols-3 gap-6 mb-12">
-              {[
-                { icon: <CheckCircle className="w-6 h-6" />, title: "Industry-recognized certifications", desc: "Get certified by leading industry experts" },
-                { icon: <User className="w-6 h-6" />, title: "Expert instructors", desc: "Learn from professionals with real-world experience" },
-                { icon: <Globe className="w-6 h-6" />, title: "Flexible learning", desc: "Study at your own pace, anywhere, anytime" }
-              ].map((feature, index) => (
-                <motion.div 
-                  key={index}
-                  variants={itemVariants}
-                  className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700"
-                >
-                  <div className="text-primary-600 dark:text-primary-400 mb-3">{feature.icon}</div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{feature.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">{feature.desc}</p>
-                </motion.div>
-              ))}
-            </div>
-            
-            <motion.div 
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-              variants={itemVariants}
-            >
-              <motion.button
-                onClick={() => setIsFormOpen(true)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center px-8 py-4 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-xl shadow-lg shadow-primary-500/20 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl"
-              >
-                <Send className="w-5 h-5 mr-2" />
-                {pageTitle === "join_as_school" ? "Apply for Partnership" : "Start Your Journey"}
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </motion.button>
-              
-              <Link href="/courses">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="flex items-center px-6 py-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Explore Courses
-                </motion.button>
-              </Link>
-            </motion.div>
-          </motion.div>
-        </div>
-      </motion.section>
-
-      {/* Full Screen Registration Form Modal */}
-      <AnimatePresence>
-        {isFormOpen && (
-          <RegistrationForm 
-            isOpen={isFormOpen}
-            onClose={() => setIsFormOpen(false)}
-            showUploadField={showUploadField}
-            pageTitle={pageTitle}
-          />
-        )}
-      </AnimatePresence>
-    </>
+    <section className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-950">
+      <RegistrationForm 
+        isOpen={true}
+        onClose={() => {}}
+        showUploadField={showUploadField}
+        pageTitle={pageTitle}
+      />
+    </section>
   );
 };
 
@@ -885,35 +799,26 @@ const RegistrationForm: React.FC<{
     : '';
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md overflow-y-auto">
+    <div className="w-full overflow-y-auto">
       <motion.div 
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.98 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
-        className="w-full h-full bg-white dark:bg-gray-800 overflow-hidden flex flex-col"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full bg-white dark:bg-gray-800 flex flex-col"
         style={{ minHeight: '100vh' }}
       >
         {/* Form Header */}
-        <div className="bg-gradient-to-r from-primary-600/90 to-primary-500/90 p-6 border-b border-white/10 flex justify-between items-center">
+        <div className="bg-gradient-to-r from-primary-600/90 to-primary-500/90 p-6 border-b border-white/10">
           <div>
             <h2 className="text-2xl font-bold text-white">
               {pageTitle === "join_as_school" ? "School Partnership Application" : "Registration Form"}
             </h2>
             <p className="text-white/80 text-sm mt-1">Complete the form to get started with your journey</p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10 transition-all duration-200"
-            aria-label="Close form"
-          >
-            <X className="w-6 h-6" />
-          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50/30 to-white dark:from-gray-900/30 dark:to-gray-950">
-          <div className="max-w-4xl mx-auto px-6 md:px-8 py-8 h-full">
+          <div className="w-full px-6 md:px-8 py-8 h-full">
             {/* Clean Header */}
             <div className="text-center mb-12">
               <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -934,7 +839,7 @@ const RegistrationForm: React.FC<{
               noValidate
             >
               {/* Personal Information Section */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-8 shadow-lg hover:shadow-xl transition-all duration-300">
                 <div className="flex items-center mb-8">
                   <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mr-4 shadow-lg">
                     <User className="w-6 h-6 text-white" />
@@ -985,7 +890,7 @@ const RegistrationForm: React.FC<{
 
               {/* School-specific fields */}
               {pageTitle === "join_as_school" && (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8 shadow-lg hover:shadow-xl transition-all duration-300">
+                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-8 shadow-lg hover:shadow-xl transition-all duration-300">
                   <div className="flex items-center mb-8">
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-4 shadow-lg">
                       <Building className="w-6 h-6 text-white" />
@@ -1029,7 +934,7 @@ const RegistrationForm: React.FC<{
               )}
 
               {/* Requirements Section */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-8 shadow-lg hover:shadow-xl transition-all duration-300">
                 <div className="flex items-center mb-8">
                   <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mr-4 shadow-lg">
                     <MessageSquare className="w-6 h-6 text-white" />
@@ -1066,7 +971,7 @@ const RegistrationForm: React.FC<{
               </div>
 
               {/* Benefits Section */}
-              <div className="bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-2xl border border-primary-200 dark:border-primary-700/50 p-8 shadow-lg">
+              <div className="bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 border border-primary-200 dark:border-primary-700/50 p-8 shadow-lg">
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
                   <CheckCircle className="w-6 h-6 text-primary-600 dark:text-primary-400 mr-3" />
                   What You'll Get
@@ -1089,7 +994,7 @@ const RegistrationForm: React.FC<{
               </div>
 
               {/* Verification Section */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8 shadow-lg">
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-8 shadow-lg">
                 <div className="space-y-6">
                   <div className="flex justify-center">
                     <CustomReCaptcha
@@ -1148,43 +1053,30 @@ const RegistrationForm: React.FC<{
 
         {/* Form Footer */}
         <div className="flex justify-center items-center p-8 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky bottom-0 z-10 shadow-lg">
-          <div className="flex gap-6">
-            <motion.button
-              type="button"
-              onClick={onClose}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="flex items-center gap-2 px-8 py-4 rounded-xl font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200"
-            >
-              <X className="w-5 h-5" />
-              Cancel
-            </motion.button>
-            
-            <motion.button
-              type="submit"
-              onClick={handleSubmit(onSubmit)}
-              disabled={loading || isSubmitting || (!isDirty || !isValid)}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className={`flex items-center gap-3 px-12 py-4 rounded-xl font-semibold text-lg transition-all duration-200 ${
-                loading || isSubmitting || (!isDirty || !isValid)
-                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400' 
-                  : 'bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/30'
-              }`}
-            >
-              {(loading || isSubmitting) ? (
-                <>
-                  <Loader2 className="w-6 h-6 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Send className="w-6 h-6" />
-                  Submit Application
-                </>
-              )}
-            </motion.button>
-          </div>
+          <motion.button
+            type="submit"
+            onClick={handleSubmit(onSubmit)}
+            disabled={loading || isSubmitting || (!isDirty || !isValid)}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className={`flex items-center gap-3 px-12 py-4 font-semibold text-lg transition-all duration-200 ${
+              loading || isSubmitting || (!isDirty || !isValid)
+                ? 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400' 
+                : 'bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/30'
+            }`}
+          >
+            {(loading || isSubmitting) ? (
+              <>
+                <Loader2 className="w-6 h-6 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Send className="w-6 h-6" />
+                Submit Application
+              </>
+            )}
+          </motion.button>
         </div>
       </motion.div>
       
