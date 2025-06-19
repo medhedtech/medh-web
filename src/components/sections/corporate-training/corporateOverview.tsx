@@ -281,17 +281,35 @@ const CorporateOverview: React.FC = () => {
 
   if (isLoading) {
     return (
-      <section className="py-16 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
-        <div className="container mx-auto px-4">
+      <section className="bg-gray-50 dark:bg-gray-950 min-h-screen">
+        <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 md:py-12">
           <div className="animate-pulse space-y-8">
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mx-auto"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mx-auto"></div>
-            <div className="flex justify-center space-x-4">
-              {[1, 2].map((i) => (
-                <div key={i} className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
-              ))}
+            {/* Header skeleton */}
+            <div className="bg-white dark:bg-gray-900 rounded-lg md:rounded-xl border border-gray-200 dark:border-gray-700 p-6 md:p-8 shadow-sm">
+              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto mb-4"></div>
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto"></div>
             </div>
-            <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            
+            {/* Tab navigation skeleton */}
+            <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-1 shadow-sm w-fit mx-auto">
+              <div className="flex space-x-1">
+                {[1, 2].map((i) => (
+                  <div key={i} className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Content skeleton */}
+            <div className="bg-white dark:bg-gray-900 rounded-lg md:rounded-xl border border-gray-200 dark:border-gray-700 p-6 md:p-8 shadow-sm">
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
