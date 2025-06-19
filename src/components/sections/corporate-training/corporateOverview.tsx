@@ -199,17 +199,17 @@ const Accordion: React.FC<IAccordionProps> = memo(({ title, children, defaultOpe
   }, []);
 
   return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+    <div className="border border-gray-200 dark:border-gray-700 rounded-lg sm:rounded-xl overflow-hidden bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
       <button
         onClick={toggleAccordion}
-        className={`w-full px-4 md:px-5 py-3 md:py-4 text-left flex items-center justify-between bg-gradient-to-r from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 hover:from-gray-100 hover:to-gray-50 dark:hover:from-gray-600 dark:hover:to-gray-700 transition-all ${titleClassName}`}
+        className={`w-full px-3 sm:px-4 md:px-5 py-2.5 sm:py-3 md:py-4 text-left flex items-center justify-between bg-gradient-to-r from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 hover:from-gray-100 hover:to-gray-50 dark:hover:from-gray-600 dark:hover:to-gray-700 transition-all ${titleClassName}`}
         aria-expanded={isOpen}
       >
-        <span className="text-base md:text-lg font-semibold text-gray-800 dark:text-white pr-4">
+        <span className="text-sm sm:text-base md:text-lg font-semibold text-gray-800 dark:text-white pr-2 sm:pr-4">
           {title}
         </span>
         <ChevronDown 
-          className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${
+          className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-500 dark:text-gray-400 transition-transform duration-200 flex-shrink-0 ${
             isOpen ? 'rotate-180' : ''
           }`} 
         />
@@ -224,7 +224,7 @@ const Accordion: React.FC<IAccordionProps> = memo(({ title, children, defaultOpe
             transition={{ duration: 0.3 }}
             className="overflow-hidden"
           >
-            <div className={`p-3 md:p-4 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 border-t border-gray-200 dark:border-gray-700 ${contentClassName}`}>
+            <div className={`p-2.5 sm:p-3 md:p-4 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 border-t border-gray-200 dark:border-gray-700 ${contentClassName}`}>
               {children}
             </div>
           </motion.div>
@@ -309,7 +309,7 @@ const CorporateOverview: React.FC = () => {
 
   return (
     <section 
-      className="py-16 lg:py-20 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 relative overflow-hidden"
+      className="py-8 md:py-12 lg:py-16 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 relative overflow-hidden"
       style={{
         backgroundImage: `url(${bgImg.src})`,
         backgroundSize: 'cover',
@@ -320,38 +320,38 @@ const CorporateOverview: React.FC = () => {
       {/* Background overlay */}
       <div className="absolute inset-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm"></div>
       
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 relative z-10">
         <motion.div
           initial="hidden"
           animate={isVisible ? "visible" : "hidden"}
           variants={fadeInUp}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="text-center mb-8 md:mb-12"
         >
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent mb-3 md:mb-4">
             Corporate Training Excellence
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-base md:text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed px-2">
             Transform your organization with our comprehensive training solutions designed to elevate performance, 
             enhance skills, and drive sustainable growth across all levels of your business.
           </p>
         </motion.div>
 
-        {/* Tab Navigation */}
+        {/* Tab Navigation - Mobile Optimized */}
         <motion.div
           initial="hidden"
           animate={isVisible ? "visible" : "hidden"}
           variants={fadeInUp}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="flex justify-center mb-8"
+          className="flex justify-center mb-6 md:mb-8"
         >
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-2 shadow-lg border border-gray-200 dark:border-gray-700">
-            <div className="flex space-x-2">
+          <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-1 sm:p-2 shadow-lg border border-gray-200 dark:border-gray-700 w-full max-w-md sm:max-w-none sm:w-auto">
+            <div className="flex space-x-1 sm:space-x-2">
               {data.tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => handleTabClick(tab.id)}
-                  className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                  className={`flex-1 sm:flex-none px-3 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-medium text-sm sm:text-base transition-all duration-300 ${
                     activeTab === tab.id
                       ? 'bg-gradient-to-r from-primary-500 to-indigo-500 text-white shadow-lg transform scale-105'
                       : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-white'
@@ -364,7 +364,7 @@ const CorporateOverview: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Tab Content */}
+        {/* Tab Content - Mobile Optimized */}
         <AnimatePresence mode="wait">
           <motion.div 
             key={activeTab}
@@ -372,10 +372,10 @@ const CorporateOverview: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.4 }}
-            className="max-w-4xl mx-auto bg-white/95 backdrop-blur-lg dark:bg-gray-800/95 px-6 py-8 md:px-10 md:py-12 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700"
+            className="max-w-5xl mx-auto bg-white/95 backdrop-blur-lg dark:bg-gray-800/95 px-3 sm:px-6 md:px-8 lg:px-10 py-6 sm:py-8 md:py-10 lg:py-12 rounded-xl sm:rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700"
           >
             {activeTab === 1 && (
-              <div className="space-y-4 md:space-y-6">
+              <div className="space-y-3 sm:space-y-4 md:space-y-6">
                 {[
                   {
                     title: "Customized Training Solutions",
@@ -403,7 +403,7 @@ const CorporateOverview: React.FC = () => {
                     title={item.title}
                     defaultOpen={index === 0}
                   >
-                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
                       {item.description}
                     </p>
                   </Accordion>
@@ -412,7 +412,7 @@ const CorporateOverview: React.FC = () => {
             )}
 
             {activeTab === 2 && (
-              <div className="space-y-4 md:space-y-6">
+              <div className="space-y-3 sm:space-y-4 md:space-y-6">
                 {[
                   {
                     title: "Strategic Talent Acquisition",
@@ -440,7 +440,7 @@ const CorporateOverview: React.FC = () => {
                     title={benefit.title}
                     defaultOpen={index === 0}
                   >
-                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
                       {benefit.description}
                     </p>
                   </Accordion>
@@ -450,28 +450,28 @@ const CorporateOverview: React.FC = () => {
           </motion.div>
         </AnimatePresence>
 
-        {/* Call to Action */}
+        {/* Call to Action - Mobile Optimized */}
         <motion.div
           initial="hidden"
           animate={isVisible ? "visible" : "hidden"}
           variants={fadeInUp}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="text-center mt-12"
+          className="text-center mt-8 md:mt-12 px-3"
         >
-          <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
+          <p className="text-base md:text-lg text-gray-600 dark:text-gray-300 mb-4 md:mb-6">
             Ready to transform your organization's potential into performance?
           </p>
           <button
             onClick={() => router.push('/contact-us')}
-            className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-primary-500 to-indigo-500 hover:from-primary-600 hover:to-indigo-600 text-white font-medium rounded-xl transition-all duration-300 shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/40 transform hover:scale-105"
+            className="inline-flex items-center px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-primary-500 to-indigo-500 hover:from-primary-600 hover:to-indigo-600 text-white font-medium rounded-xl transition-all duration-300 shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/40 transform hover:scale-105 text-sm sm:text-base w-full sm:w-auto max-w-xs sm:max-w-none mx-auto"
           >
             Start Your Journey
-            <ChevronRight className="ml-2 w-5 h-5" />
+            <ChevronRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </motion.div>
       </div>
 
-      {/* Scroll to top button */}
+      {/* Scroll to top button - Mobile Optimized */}
       <AnimatePresence>
         {showScrollTop && (
           <motion.button
@@ -479,10 +479,10 @@ const CorporateOverview: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={scrollToTop}
-            className="fixed bottom-8 right-8 p-3 bg-primary-500 hover:bg-primary-600 text-white rounded-full shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/40 transition-all z-50"
+            className="fixed bottom-6 right-4 sm:bottom-8 sm:right-8 p-2.5 sm:p-3 bg-primary-500 hover:bg-primary-600 text-white rounded-full shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/40 transition-all z-50"
             aria-label="Scroll to top"
           >
-            <ArrowUp className="w-5 h-5" />
+            <ArrowUp className="w-4 h-4 sm:w-5 sm:h-5" />
           </motion.button>
         )}
       </AnimatePresence>
