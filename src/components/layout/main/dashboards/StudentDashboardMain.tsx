@@ -856,6 +856,47 @@ const StudentDashboardMain: React.FC = () => {
     isPausedRef.current = false;
   }, []);
 
+  // Touch event handlers for mobile swipe
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+    setIsDragging(true);
+    pauseAutoSlide();
+  }, [pauseAutoSlide]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    if (!touchStart || !touchEnd) {
+      setIsDragging(false);
+      resumeAutoSlide();
+      return;
+    }
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && courseCards.length > 0) {
+      // Swipe left - go to next slide
+      setActiveCourseIndex(prev => prev === courseCards.length - 1 ? 0 : prev + 1);
+    } else if (isRightSwipe && courseCards.length > 0) {
+      // Swipe right - go to previous slide
+      setActiveCourseIndex(prev => prev === 0 ? courseCards.length - 1 : prev - 1);
+    }
+    
+    setIsDragging(false);
+    setTouchStart(null);
+    setTouchEnd(null);
+    
+    // Resume auto-slide after a delay
+    setTimeout(() => {
+      resumeAutoSlide();
+    }, 1000);
+  }, [touchStart, touchEnd, courseCards.length, minSwipeDistance, resumeAutoSlide]);
+
   return (
     <motion.div
       initial="hidden"
@@ -872,20 +913,22 @@ const StudentDashboardMain: React.FC = () => {
           {/* Course Cards Carousel */}
           <div 
             ref={sliderRef}
-            className="relative overflow-hidden"
+            className="relative overflow-hidden touch-pan-x"
             onMouseEnter={pauseAutoSlide}
             onMouseLeave={resumeAutoSlide}
-            onTouchStart={pauseAutoSlide}
-            onTouchEnd={resumeAutoSlide}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{ touchAction: 'pan-x' }}
           >
             {courseCards.length === 0 ? (
               // Fallback when no courses are available
-              <div className="relative w-full flex-shrink-0 bg-gradient-to-br from-slate-600 via-blue-600 to-indigo-600 dark:from-slate-700 dark:via-blue-700 dark:to-indigo-700 overflow-hidden min-h-[220px] md:min-h-[260px] lg:min-h-[280px]">
+              <div className="relative w-full flex-shrink-0 bg-gradient-to-br from-slate-600 via-blue-600 to-indigo-600 dark:from-slate-700 dark:via-blue-700 dark:to-indigo-700 overflow-hidden min-h-[280px] sm:min-h-[320px] md:min-h-[360px] lg:min-h-[380px]">
                 <div className="absolute inset-0 bg-[url('/backgrounds/grid-pattern.svg')] opacity-10"></div>
-                <div className="w-full px-6 py-4 sm:py-6 sm:px-12 lg:px-16 relative z-10 h-full flex items-center">
+                <div className="w-full px-4 py-6 sm:px-6 sm:py-8 md:px-8 lg:px-16 relative z-10 h-full flex items-center">
                   <div className="flex flex-col md:flex-row items-center md:items-center justify-center gap-4 md:gap-6 w-full max-w-[1200px] mx-auto">
-                    <div className="text-center md:text-left space-y-3">
-                      <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight"
+                    <div className="text-center md:text-left space-y-3 sm:space-y-4">
+                      <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-white leading-tight"
                         style={{ 
                           textShadow: '0 2px 4px rgba(0,0,0,0.3)',
                           wordWrap: 'break-word',
@@ -893,7 +936,7 @@ const StudentDashboardMain: React.FC = () => {
                         }}>
                         {greeting}, {userName}
                       </h1>
-                      <p className="text-white/95 text-sm sm:text-base max-w-2xl mx-auto md:mx-0 leading-relaxed"
+                      <p className="text-white/95 text-xs sm:text-sm md:text-base max-w-2xl mx-auto md:mx-0 leading-relaxed"
                         style={{ 
                           textShadow: '0 1px 2px rgba(0,0,0,0.2)',
                           wordWrap: 'break-word',
@@ -904,10 +947,11 @@ const StudentDashboardMain: React.FC = () => {
                       <div className="mt-4 flex justify-center md:justify-start">
                         <Link 
                           href="/courses" 
-                          className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors inline-flex text-sm font-medium backdrop-blur-sm shadow-sm"
+                          className="bg-white/20 hover:bg-white/30 active:bg-white/40 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg flex items-center justify-center transition-colors text-xs sm:text-sm font-medium backdrop-blur-sm shadow-sm min-h-[44px]"
+                          style={{ touchAction: 'manipulation' }}
                         >
-                          <BookOpen className="mr-2 h-4 w-4" />
-                          Browse Courses
+                          <BookOpen className="mr-2 h-4 w-4 flex-shrink-0" />
+                          <span>Browse Courses</span>
                         </Link>
                       </div>
                     </div>
@@ -922,7 +966,7 @@ const StudentDashboardMain: React.FC = () => {
                 {courseCards.map((course, index) => (
                   <div 
                     key={course.id}
-                    className={`relative w-full flex-shrink-0 ${course.color} overflow-hidden min-h-[220px] md:min-h-[260px] lg:min-h-[280px] transition-all duration-300`}
+                    className={`relative w-full flex-shrink-0 ${course.color} overflow-hidden min-h-[280px] sm:min-h-[320px] md:min-h-[360px] lg:min-h-[380px] transition-all duration-300 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
                   >
                     {/* Course background image with overlay */}
                     <div className="absolute inset-0 bg-black/40 mix-blend-multiply"></div>
@@ -937,8 +981,8 @@ const StudentDashboardMain: React.FC = () => {
                       <div className="w-full h-full bg-[url('/backgrounds/grid-pattern.svg')] opacity-10 absolute inset-0"></div>
                     </div>
                     
-                    <div className="relative z-10 w-full px-6 py-4 sm:py-6 sm:px-12 lg:px-16 h-full flex items-center transition-all duration-300">
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full w-full max-w-[1200px] mx-auto">
+                    <div className="relative z-10 w-full px-4 py-6 sm:px-6 sm:py-8 md:px-8 lg:px-16 h-full flex items-center transition-all duration-300">
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 h-full w-full max-w-[1200px] mx-auto">
                         {/* Left side - Welcome information */}
                         <div className="lg:col-span-2 flex flex-col justify-center space-y-4">
                           {/* Welcome badge */}
@@ -952,7 +996,7 @@ const StudentDashboardMain: React.FC = () => {
                           </div>
                         
                           {/* Main welcome title */}
-                          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white transition-all duration-300 text-center sm:text-left leading-tight" 
+                          <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-white transition-all duration-300 text-center sm:text-left leading-tight" 
                             style={{ 
                               wordWrap: 'break-word', 
                               overflowWrap: 'anywhere', 
@@ -964,7 +1008,7 @@ const StudentDashboardMain: React.FC = () => {
 
                           {/* Subtitle */}
                           {course.subtitle && (
-                            <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-white/90 text-center sm:text-left"
+                            <h2 className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-white/90 text-center sm:text-left"
                               style={{ 
                                 textShadow: '0 1px 3px rgba(0,0,0,0.3)'
                               }}>
@@ -973,100 +1017,100 @@ const StudentDashboardMain: React.FC = () => {
                           )}
                           
                           {/* Welcome message */}
-                          <div className="text-white/95 text-sm sm:text-base leading-relaxed max-w-2xl text-center sm:text-left mx-auto sm:mx-0" 
+                          <div className="text-white/95 text-xs sm:text-sm md:text-base leading-relaxed max-w-2xl text-center sm:text-left mx-auto sm:mx-0" 
                             style={{ 
                               wordWrap: 'break-word', 
                               overflowWrap: 'anywhere', 
-                              lineHeight: '1.6',
+                              lineHeight: '1.5',
                               textShadow: '0 1px 2px rgba(0,0,0,0.2)'
                             }}>
                             {course.message}
                           </div>
                           
-                          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mt-4">
+                          <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 sm:gap-3 mt-4">
                             {/* Welcome slide buttons - customized for each slide */}
                             <Link 
                               href={course.id === 'welcome-slide-1' ? "/courses" : 
                                     course.id === 'welcome-slide-2' ? "/courses" : 
                                     "/courses"}
-                              className="bg-white/20 hover:bg-white/30 text-white px-5 py-2.5 rounded-lg flex items-center transition-colors font-medium text-sm backdrop-blur-sm shadow-sm"
+                              className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg flex items-center justify-center transition-colors font-medium text-xs sm:text-sm backdrop-blur-sm shadow-sm w-full sm:w-auto min-h-[44px]"
                             >
-                              <BookOpen className="mr-2 h-4 w-4" />
-                              {course.actionText || 'Explore Courses'}
+                              <BookOpen className="mr-2 h-4 w-4 flex-shrink-0" />
+                              <span className="truncate">{course.actionText || 'Explore Courses'}</span>
                             </Link>
                             
                             <Link 
                               href={course.id === 'welcome-slide-1' ? "/dashboards/student/goals" : 
                                     course.id === 'welcome-slide-2' ? "/dashboards/student" : 
                                     "/dashboards/student/resources"}
-                              className="border border-white/30 hover:bg-white/10 text-white px-5 py-2.5 rounded-lg flex items-center transition-colors text-sm backdrop-blur-sm"
+                              className="border border-white/30 hover:bg-white/10 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg flex items-center justify-center transition-colors text-xs sm:text-sm backdrop-blur-sm w-full sm:w-auto min-h-[44px]"
                             >
-                              {course.id === 'welcome-slide-1' ? <Target className="mr-2 h-4 w-4" /> : 
-                               course.id === 'welcome-slide-2' ? <BarChart2 className="mr-2 h-4 w-4" /> : 
-                               <FileText className="mr-2 h-4 w-4" />}
-                              {course.secondaryText || 'Get Started'}
+                              {course.id === 'welcome-slide-1' ? <Target className="mr-2 h-4 w-4 flex-shrink-0" /> : 
+                               course.id === 'welcome-slide-2' ? <BarChart2 className="mr-2 h-4 w-4 flex-shrink-0" /> : 
+                               <FileText className="mr-2 h-4 w-4 flex-shrink-0" />}
+                              <span className="truncate">{course.secondaryText || 'Get Started'}</span>
                             </Link>
                           </div>
                         </div>
                         
                         {/* Right side - Welcome Features Card */}
-                        <div className="lg:col-span-1 flex flex-col justify-center mt-3 lg:mt-0">
-                          <div className="bg-white/15 backdrop-blur-md rounded-xl p-4 border border-white/20 transition-all duration-300 shadow-lg">
-                            <h3 className="text-white text-sm font-semibold mb-3 flex items-center">
-                              <Trophy className="h-4 w-4 mr-2" /> 
-                              Why Choose MEDH?
+                        <div className="lg:col-span-1 flex flex-col justify-center mt-4 lg:mt-0">
+                          <div className="bg-white/15 backdrop-blur-md rounded-xl p-3 sm:p-4 border border-white/20 transition-all duration-300 shadow-lg">
+                            <h3 className="text-white text-xs sm:text-sm font-semibold mb-2 sm:mb-3 flex items-center">
+                              <Trophy className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0" /> 
+                              <span className="truncate">Why Choose MEDH?</span>
                             </h3>
                             
-                            <div className="space-y-3">
+                            <div className="space-y-2 sm:space-y-3">
                               {/* Feature highlights based on slide */}
-                              <div className="space-y-2">
+                              <div className="space-y-1 sm:space-y-2">
                                 {course.id === 'welcome-slide-1' && (
                                   <>
-                                    <div className="flex items-center text-white/90 text-sm">
-                                      <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0 text-green-400" /> 
-                                      Expert-led courses
+                                    <div className="flex items-center text-white/90 text-xs sm:text-sm">
+                                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-green-400" /> 
+                                      <span className="truncate">Expert-led courses</span>
                                     </div>
-                                    <div className="flex items-center text-white/90 text-sm">
-                                      <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0 text-green-400" /> 
-                                      Industry certifications
+                                    <div className="flex items-center text-white/90 text-xs sm:text-sm">
+                                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-green-400" /> 
+                                      <span className="truncate">Industry certifications</span>
                                     </div>
-                                    <div className="flex items-center text-white/90 text-sm">
-                                      <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0 text-green-400" /> 
-                                      Career growth focus
+                                    <div className="flex items-center text-white/90 text-xs sm:text-sm">
+                                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-green-400" /> 
+                                      <span className="truncate">Career growth focus</span>
                                     </div>
                                   </>
                                 )}
                                 
                                 {course.id === 'welcome-slide-2' && (
                                   <>
-                                    <div className="flex items-center text-white/90 text-sm">
-                                      <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0 text-blue-400" /> 
-                                      Self-paced learning
+                                    <div className="flex items-center text-white/90 text-xs sm:text-sm">
+                                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-blue-400" /> 
+                                      <span className="truncate">Self-paced learning</span>
                                     </div>
-                                    <div className="flex items-center text-white/90 text-sm">
-                                      <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0 text-blue-400" /> 
-                                      24/7 access
+                                    <div className="flex items-center text-white/90 text-xs sm:text-sm">
+                                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-blue-400" /> 
+                                      <span className="truncate">24/7 access</span>
                                     </div>
-                                    <div className="flex items-center text-white/90 text-sm">
-                                      <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0 text-blue-400" /> 
-                                      Mobile-friendly
+                                    <div className="flex items-center text-white/90 text-xs sm:text-sm">
+                                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-blue-400" /> 
+                                      <span className="truncate">Mobile-friendly</span>
                                     </div>
                                   </>
                                 )}
                                 
                                 {course.id === 'welcome-slide-3' && (
                                   <>
-                                    <div className="flex items-center text-white/90 text-sm">
-                                      <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0 text-emerald-400" /> 
-                                      Live sessions available
+                                    <div className="flex items-center text-white/90 text-xs sm:text-sm">
+                                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-emerald-400" /> 
+                                      <span className="truncate">Live sessions available</span>
                                     </div>
-                                    <div className="flex items-center text-white/90 text-sm">
-                                      <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0 text-emerald-400" /> 
-                                      Premium content
+                                    <div className="flex items-center text-white/90 text-xs sm:text-sm">
+                                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-emerald-400" /> 
+                                      <span className="truncate">Premium content</span>
                                     </div>
-                                    <div className="flex items-center text-white/90 text-sm">
-                                      <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0 text-emerald-400" /> 
-                                      Job assistance
+                                    <div className="flex items-center text-white/90 text-xs sm:text-sm">
+                                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-emerald-400" /> 
+                                      <span className="truncate">Job assistance</span>
                                     </div>
                                   </>
                                 )}
@@ -1084,39 +1128,42 @@ const StudentDashboardMain: React.FC = () => {
             {/* Navigation elements - Only show if we have courses */}
             {courseCards.length > 0 && (
               <>
-                {/* Navigation arrows - Adjusted position further away from content */}
+                {/* Navigation arrows - Optimized for mobile touch targets */}
                 <button 
                   onClick={() => navigateToCourse(activeCourseIndex === 0 ? courseCards.length - 1 : activeCourseIndex - 1)}
-                  className="absolute left-2 md:left-4 lg:left-6 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-2 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 shadow-md z-20"
+                  className="absolute left-1 sm:left-2 md:left-4 lg:left-6 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 active:bg-black/70 text-white rounded-full p-2 sm:p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 shadow-md z-20 min-w-[44px] min-h-[44px] flex items-center justify-center"
                   aria-label="Previous course"
+                  style={{ touchAction: 'manipulation' }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
                 
                 <button 
                   onClick={() => navigateToCourse(activeCourseIndex === courseCards.length - 1 ? 0 : activeCourseIndex + 1)}
-                  className="absolute right-2 md:right-4 lg:right-6 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-2 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 shadow-md z-20"
+                  className="absolute right-1 sm:right-2 md:right-4 lg:right-6 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 active:bg-black/70 text-white rounded-full p-2 sm:p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 shadow-md z-20 min-w-[44px] min-h-[44px] flex items-center justify-center"
                   aria-label="Next course"
+                  style={{ touchAction: 'manipulation' }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
                 
-                {/* Navigation dots - Made more visible */}
-                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2 bg-black/20 backdrop-blur-sm px-2 py-1 rounded-full">
+                {/* Navigation dots - Optimized for mobile touch */}
+                <div className="absolute bottom-3 sm:bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2 sm:space-x-1 bg-black/20 backdrop-blur-sm px-3 py-2 sm:px-2 sm:py-1 rounded-full">
                   {courseCards.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => navigateToCourse(index)}
-                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      className={`w-3 h-3 sm:w-2 sm:h-2 rounded-full transition-all duration-300 min-w-[12px] min-h-[12px] ${
                         activeCourseIndex === index 
                           ? 'bg-white scale-110' 
-                          : 'bg-white/40 hover:bg-white/60'
-                      } focus:outline-none`}
+                          : 'bg-white/40 hover:bg-white/60 active:bg-white/80'
+                      } focus:outline-none focus:ring-1 focus:ring-white/50`}
                       aria-label={`Go to slide ${index + 1}`}
+                      style={{ touchAction: 'manipulation' }}
                     />
                   ))}
                 </div>

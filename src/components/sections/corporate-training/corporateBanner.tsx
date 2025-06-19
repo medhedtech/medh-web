@@ -8,6 +8,22 @@ import { useTheme } from "next-themes";
 import Iso from "@/assets/images/courseai/iso.png";
 import medhLogo from "@/assets/images/logo/medh.png";
 
+// Mobile-specific tagline styling - matching home page exactly
+const mobileTaglineStyles = `
+  @media (max-width: 767px) {
+    .mobile-tagline-large {
+      font-size: 2.0rem !important;
+      white-space: nowrap !important;
+    }
+  }
+  @media (min-width: 640px) and (max-width: 767px) {
+    .mobile-tagline-large {
+      font-size: 2.5rem !important;
+      white-space: nowrap !important;
+    }
+  }
+`;
+
 // Enhanced custom animations for the corporate banner with theme-aware glassmorphism
 const getThemeStyles = (isDark: boolean) => `
   @keyframes animate-gradient-x {
@@ -241,8 +257,6 @@ const values = [
   }
 ];
 
-
-
 // Key highlights for corporate training
 const highlights = [
   {
@@ -328,7 +342,10 @@ const CorporateBanner: React.FC<CorporateBannerProps> = ({ onLearnMoreClick }) =
   // Mobile version with enhanced styling
   if (isMobile) {
     return (
-      <div className="mobile-corporate-wrapper h-screen max-h-[100vh] relative overflow-hidden animate-theme-transition">
+      <div className="mobile-corporate-wrapper min-h-screen relative overflow-hidden animate-theme-transition">
+        {/* Add mobile tagline styles */}
+        <style jsx>{mobileTaglineStyles}</style>
+        
         {/* Enhanced Background */}
         <div className="absolute inset-0 overflow-hidden">
           {/* Animated gradient blobs - theme aware */}
@@ -336,58 +353,60 @@ const CorporateBanner: React.FC<CorporateBannerProps> = ({ onLearnMoreClick }) =
           <div className={`absolute bottom-0 left-0 w-3/4 h-3/4 ${isDark ? 'bg-gradient-to-tr from-green-500/10 via-emerald-500/5 to-transparent' : 'bg-gradient-to-tr from-green-300/15 via-emerald-300/10 to-transparent'} rounded-full blur-3xl transform -translate-x-1/4 translate-y-1/4 animate-float`} style={{ animationDelay: '2s' }}></div>
           
           {/* Decorative elements - theme aware */}
-          <div className={`absolute top-1/4 left-1/3 w-16 h-16 rounded-full border-4 ${isDark ? 'border-blue-500/20' : 'border-blue-400/30'} animate-bounce-slow`}></div>
-          <div className={`absolute bottom-1/4 right-1/3 w-24 h-24 rounded-full border-4 border-dashed ${isDark ? 'border-green-500/20' : 'border-green-400/30'} animate-pulse-slow`}></div>
+          <div className={`absolute top-1/4 left-1/3 w-12 h-12 rounded-full border-2 ${isDark ? 'border-blue-500/20' : 'border-blue-400/30'} animate-bounce-slow`}></div>
+          <div className={`absolute bottom-1/4 right-1/3 w-16 h-16 rounded-full border-2 border-dashed ${isDark ? 'border-green-500/20' : 'border-green-400/30'} animate-pulse-slow`}></div>
         </div>
 
-        {/* Content - Centered Layout with Glassmorphism */}
-        <div className="relative z-10 px-4 py-2 flex flex-col h-full justify-center text-center">
-          <div className={`flex-1 flex flex-col justify-center transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+        {/* Content - Optimized Mobile Layout */}
+        <div className="relative z-10 px-3 pt-20 pb-6 flex flex-col justify-start text-center">
+          <div className={`transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             
             {/* Hero Content Card with Enhanced Glassmorphism */}
-            <div className="mx-auto mb-4 glass-container rounded-2xl p-4 shadow-2xl max-w-sm sm:max-w-md md:max-w-lg">
-              <div className="text-center">
+            <div className="mx-auto glass-container rounded-2xl p-4 shadow-2xl max-w-sm">
+              <div className="text-center space-y-3">
                 {/* Certification Badges */}
-                <div className="flex flex-wrap justify-center gap-2 mb-3">
+                <div className="flex flex-wrap justify-center gap-2 mb-2">
                   <div className={`inline-flex items-center px-2 py-1 glass-stats rounded-full text-xs font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
-                    <Shield size={10} className="mr-1" />
+                    <Shield size={8} className="mr-1" />
                     ISO Certified
                   </div>
                   <div className={`inline-flex items-center px-2 py-1 glass-stats rounded-full text-xs font-medium opacity-95 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
-                    <Award size={10} className="mr-1" />
+                    <Award size={8} className="mr-1" />
                     STEM Certified
                   </div>
                 </div>
                 
-                {/* Main Heading - Proper Caps */}
-                <h1 className={`text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3 leading-tight tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  <span className="block text-sm font-medium uppercase tracking-widest mb-2 opacity-80">Corporate Training</span>
-                  <span className="block whitespace-nowrap">Elevate Your Workforce Skills</span>
-                  <span className="block">
-                    <em className="font-normal mr-1">with</em>
-                    <span className="inline-flex items-center">
-                      <Image 
-                        src={medhLogo} 
-                        alt="Medh Logo" 
-                        width={24} 
-                        height={24} 
-                        className="inline-block h-6 sm:h-8 w-auto"
-                        style={{ filter: 'brightness(1.1) contrast(1.2)' }}
-                      />
+                {/* Main Heading - Mobile Optimized */}
+                <div className="space-y-2">
+                  <span className="block text-xs font-medium uppercase tracking-widest opacity-80">Corporate Training</span>
+                  <h1 className={`text-lg font-bold leading-tight tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    <span className="block">Elevate Your Workforce Skills</span>
+                    <span className="block mt-1">
+                      <em className="font-normal text-sm mr-1">with</em>
+                      <span className="inline-flex items-center">
+                        <Image 
+                          src={medhLogo} 
+                          alt="Medh Logo" 
+                          width={20} 
+                          height={20} 
+                          className="inline-block h-5 w-auto ml-1"
+                          style={{ filter: 'brightness(1.1) contrast(1.2)' }}
+                        />
+                      </span>
                     </span>
-                  </span>
-                </h1>
+                  </h1>
+                </div>
                 
-                {/* Description */}
-                <p className={`text-sm leading-relaxed mb-3 sm:mb-4 max-w-sm mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
-                  Transform your team's potential into performance with our customized corporate training programs.
+                {/* Description - Compact */}
+                <p className={`text-sm leading-relaxed max-w-xs mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
+                  Transform your team's potential into performance with customized corporate training programs.
                 </p>
 
-                {/* CTA Button */}
-                <div className="mt-3 sm:mt-4 mb-3">
+                {/* CTA Button - Mobile Optimized */}
+                <div className="pt-2">
                   <button 
                     onClick={onLearnMoreClick || handleScrollToForm}
-                    className={`inline-flex items-center justify-center py-2.5 px-5 font-semibold rounded-xl transition-all duration-300 hover:scale-105 group text-sm relative overflow-hidden ${
+                    className={`inline-flex items-center justify-center py-2.5 px-4 font-semibold rounded-xl transition-all duration-300 hover:scale-105 group text-sm relative overflow-hidden w-full ${
                       isDark 
                         ? 'bg-gradient-to-r from-primary-500 to-blue-500 text-white hover:shadow-lg hover:shadow-primary-500/25 glass-stats' 
                         : 'bg-white/90 backdrop-blur-md text-gray-900 border-2 border-primary-500/30 hover:border-primary-500/60 hover:bg-white/95 shadow-lg hover:shadow-xl'
@@ -401,8 +420,8 @@ const CorporateBanner: React.FC<CorporateBannerProps> = ({ onLearnMoreClick }) =
                   </button>
                 </div>
 
-                {/* Tagline */}
-                <div className={`mumkinMedh text-xl sm:text-2xl font-extrabold leading-tight ${
+                {/* Tagline - Mobile Optimized - Matching Homepage */}
+                <div className={`mumkinMedh mobile-tagline-large font-extrabold leading-tight pt-2 whitespace-nowrap ${
                   isDark 
                     ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
                     : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
@@ -410,6 +429,28 @@ const CorporateBanner: React.FC<CorporateBannerProps> = ({ onLearnMoreClick }) =
                   Medh Hai Toh Mumkin Hai !
                 </div>
               </div>
+            </div>
+
+            {/* Mobile Highlights - Compact Cards */}
+            <div className="mt-6 grid grid-cols-1 gap-3 max-w-sm mx-auto">
+              {highlights.slice(0, 3).map((highlight, index) => (
+                <div
+                  key={index}
+                  className="glass-stats rounded-lg p-3 text-center transition-all duration-300 hover:scale-105"
+                >
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className={`${isDark ? 'text-primary-300' : 'text-primary-600'}`}>
+                      <div className="w-4 h-4">
+                        {highlight.icon}
+                      </div>
+                    </div>
+                    <div className="text-left">
+                      <div className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-800'}`}>{highlight.title}</div>
+                      <div className={`text-xs ${isDark ? 'text-white/80' : 'text-gray-600'}`}>{highlight.description}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -419,7 +460,7 @@ const CorporateBanner: React.FC<CorporateBannerProps> = ({ onLearnMoreClick }) =
 
   // Desktop version with professional styling
   return (
-    <section className="relative min-h-screen overflow-hidden animate-theme-transition">
+    <section className="relative overflow-hidden animate-theme-transition">
       {/* Enhanced Background */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Animated gradient blobs - theme aware */}
@@ -434,11 +475,11 @@ const CorporateBanner: React.FC<CorporateBannerProps> = ({ onLearnMoreClick }) =
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
         {/* Main Content with Enhanced Glassmorphism */}
-        <div className="flex flex-col items-center justify-center min-h-screen text-center py-8">
+        <div className="flex flex-col items-center justify-start text-center pt-20 pb-8">
           
           {/* Hero Text Section with Glass Container */}
           <div className={`mb-2 md:mb-3 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <div className="glass-container rounded-3xl p-6 md:p-8 lg:p-12 mb-1 transform scale-90 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
+            <div className="glass-container rounded-3xl p-6 md:p-8 lg:p-12 mb-1 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto" style={{ transform: 'scale(0.9)' }}>
               {/* Badges */}
               <div className="flex flex-wrap justify-center gap-3 mb-3 sm:mb-4">
                 <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
@@ -505,8 +546,8 @@ const CorporateBanner: React.FC<CorporateBannerProps> = ({ onLearnMoreClick }) =
                 </button>
               </div>
 
-              {/* Tagline - Enhanced Size */}
-              <div className={`mumkinMedh text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-2 leading-tight pt-12 ${
+              {/* Tagline - Exact Homepage Size Match */}
+              <div className={`mumkinMedh text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-2 leading-tight pt-12 whitespace-nowrap ${
                 isDark 
                   ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
                   : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
