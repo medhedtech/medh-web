@@ -2537,10 +2537,9 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                     )}
                   </div>
                 )}
-              </div>
               
-              {/* Mobile Confirmation Buttons */}
-              <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4 md:hidden">
+              {/* Mobile Confirmation Buttons - Moved to end of filter block (mobile only) */}
+              <div className="mt-6 md:hidden">
                 <div className="flex gap-3">
                   <button
                     onClick={() => {
@@ -2565,6 +2564,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                     Apply Filters
                   </button>
                 </div>
+              </div>
               </div>
             </div>
           </div>
