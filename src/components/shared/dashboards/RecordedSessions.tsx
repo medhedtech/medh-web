@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import batchAPI from "@/apis/batch";
 import { motion, AnimatePresence } from "framer-motion";
+import VideoPlayer from "@/components/shared/lessons/VideoPlayer";
 import { 
   Video, 
   Search, 
@@ -18,8 +19,11 @@ import {
   FileVideo,
   RotateCcw,
   Filter,
-  Eye
+  Eye,
+  X,
+  ArrowLeft
 } from "lucide-react";
+
 interface RecordedLesson {
   _id: string;
   title: string;
@@ -41,6 +45,189 @@ interface BatchGroup {
   };
   recorded_lessons: RecordedLesson[];
 }
+
+interface CurrentVideo {
+  lesson: RecordedLesson;
+  batchName: string;
+}
+
+// URL obfuscation utilities
+const urlObfuscation = {
+  encode: (url: string): string => {
+    try {
+      // Simple obfuscation: base64 + reversing + adding noise
+      const reversed = url.split('').reverse().join('');
+      const encoded = btoa(reversed);
+      const noise = Math.random().toString(36).substring(2, 8);
+      return `${noise}${encoded}${noise}`;
+    } catch (error) {
+      console.error('URL encoding failed:', error);
+      return url;
+    }
+  },
+  
+  decode: (obfuscatedUrl: string): string => {
+    try {
+      // Remove noise (first 6 and last 6 characters) and decode
+      const noiseLength = 6;
+      const encoded = obfuscatedUrl.slice(noiseLength, -noiseLength);
+      const decoded = atob(encoded);
+      const original = decoded.split('').reverse().join('');
+      return original;
+    } catch (error) {
+      console.error('URL decoding failed:', error);
+      return obfuscatedUrl;
+    }
+  }
+};
+
+// Video Player Modal Component
+const VideoPlayerModal: React.FC<{
+  currentVideo: CurrentVideo | null;
+  onClose: () => void;
+  onProgress?: (progress: number, currentTime: number) => void;
+}> = ({ currentVideo, onClose, onProgress }) => {
+  const [videoError, setVideoError] = useState<string | null>(null);
+
+  if (!currentVideo) return null;
+
+  const decodedUrl = urlObfuscation.decode(currentVideo.lesson.url);
+
+  const handleVideoError = (error: string) => {
+    setVideoError(error);
+    console.error('Video playback error:', error);
+  };
+
+  const handleVideoProgress = (progress: number, currentTime: number) => {
+    onProgress?.(progress, currentTime);
+    
+    // Optional: Save progress to localStorage or API
+    try {
+      const progressKey = `video_progress_${currentVideo.lesson._id}`;
+      localStorage.setItem(progressKey, JSON.stringify({
+        currentTime,
+        progress,
+        lastWatched: new Date().toISOString()
+      }));
+    } catch (error) {
+      console.warn('Failed to save video progress:', error);
+    }
+  };
+
+  const getSavedProgress = () => {
+    try {
+      const progressKey = `video_progress_${currentVideo.lesson._id}`;
+      const saved = localStorage.getItem(progressKey);
+      if (saved) {
+        const data = JSON.parse(saved);
+        return data.currentTime || 0;
+      }
+    } catch (error) {
+      console.warn('Failed to load saved progress:', error);
+    }
+    return 0;
+  };
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0, y: 50 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.9, opacity: 0, y: 50 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          className="w-full max-w-6xl bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                className="p-3 bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/40 dark:to-primary-800/40 rounded-xl"
+              >
+                <Play className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+              </motion.div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1 truncate">
+                  {currentVideo.lesson.title}
+                </h2>
+                <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                  <span className="flex items-center gap-1">
+                    <FileVideo className="w-4 h-4" />
+                    {currentVideo.batchName}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    {new Date(currentVideo.lesson.recorded_date).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
+            >
+              <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+            </motion.button>
+          </div>
+
+          {/* Video Player */}
+          <div className="p-6">
+            {videoError ? (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
+                <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-red-700 dark:text-red-400 mb-2">
+                  Video Error
+                </h3>
+                <p className="text-red-600 dark:text-red-300 mb-4">
+                  {videoError}
+                </p>
+                <button
+                  onClick={() => setVideoError(null)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : (
+              <VideoPlayer
+                src={decodedUrl}
+                autoplay={true}
+                onProgress={handleVideoProgress}
+                onError={handleVideoError}
+                initialTime={getSavedProgress()}
+                allowDownload={false}
+                quality="auto"
+              />
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="px-6 pb-6">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onClose}
+              className="flex items-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Sessions
+            </motion.button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
 
 // Individual Recording Card Component
 const RecordingCard: React.FC<{
@@ -87,7 +274,7 @@ const RecordingCard: React.FC<{
 // Collapsible Batch Card Component
 const BatchCard: React.FC<{
   batchGroup: BatchGroup;
-  onRecordingClick: (url: string) => void;
+  onRecordingClick: (lesson: RecordedLesson, batchName: string) => void;
   isExpanded: boolean;
   onToggle: () => void;
 }> = ({ batchGroup, onRecordingClick, isExpanded, onToggle }) => {
@@ -170,7 +357,7 @@ const BatchCard: React.FC<{
                   >
                     <RecordingCard
                       lesson={lesson}
-                      onClick={() => onRecordingClick(lesson.url)}
+                      onClick={() => onRecordingClick(lesson, batch.name)}
                     />
                   </motion.div>
                 ))}
@@ -191,6 +378,7 @@ const RecordedSessions: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [expandedBatches, setExpandedBatches] = useState<Set<string>>(new Set());
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [currentVideo, setCurrentVideo] = useState<CurrentVideo | null>(null);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -278,10 +466,18 @@ const RecordedSessions: React.FC = () => {
       const apiResponse = response.data as any;
       
       if (apiResponse && apiResponse.success && apiResponse.data) {
-        // Filter out batches with no recorded lessons
-        const validBatchGroups = apiResponse.data.filter((group: BatchGroup) => 
-          group.recorded_lessons && group.recorded_lessons.length > 0
-        );
+        // Filter out batches with no recorded lessons and obfuscate URLs
+        const validBatchGroups = apiResponse.data
+          .filter((group: BatchGroup) => 
+            group.recorded_lessons && group.recorded_lessons.length > 0
+          )
+          .map((group: BatchGroup) => ({
+            ...group,
+            recorded_lessons: group.recorded_lessons.map(lesson => ({
+              ...lesson,
+              url: urlObfuscation.encode(lesson.url) // Obfuscate the URL
+            }))
+          }));
         
         setBatchGroups(validBatchGroups);
         
@@ -298,7 +494,6 @@ const RecordedSessions: React.FC = () => {
     } catch (error: any) {
       console.error("Error fetching recorded sessions:", error);
       setError("Failed to load recorded sessions. Please try again later.");
-      showToast.error("Failed to load recorded sessions. Please try again later.");
       setIsLoading(false);
       setIsRefreshing(false);
     }
@@ -312,8 +507,17 @@ const RecordedSessions: React.FC = () => {
     fetchRecordedSessions(true);
   };
 
-  const handleRecordingClick = (url: string) => {
-    window.open(url, '_blank');
+  const handleRecordingClick = (lesson: RecordedLesson, batchName: string) => {
+    setCurrentVideo({ lesson, batchName });
+  };
+
+  const handleCloseVideo = () => {
+    setCurrentVideo(null);
+  };
+
+  const handleVideoProgress = (progress: number, currentTime: number) => {
+    // Optional: Track video progress for analytics
+    console.log(`Video progress: ${progress}% at ${currentTime}s`);
   };
 
   const toggleBatch = (batchId: string) => {
@@ -418,137 +622,146 @@ const RecordedSessions: React.FC = () => {
   }
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-      className="p-6 max-w-7xl mx-auto"
-    >
-      {/* Header */}
-      <motion.div 
-        variants={itemVariants}
-        className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8"
+    <>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="p-6 max-w-7xl mx-auto"
       >
-        <div className="flex items-center gap-4">
-          <motion.div 
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            className="p-3 bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/40 dark:to-primary-800/40 rounded-xl shadow-sm"
-          >
-            <Video className="w-8 h-8 text-primary-600 dark:text-primary-400" />
-          </motion.div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-              Recorded Sessions
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              {filteredBatchGroups.length} batch{filteredBatchGroups.length !== 1 ? 'es' : ''} • {totalRecordings} recording{totalRecordings !== 1 ? 's' : ''}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          {/* Search */}
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search batches or recordings..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full sm:w-80 px-4 py-3 pl-11 pr-4 text-sm rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent shadow-sm transition-all duration-200"
-            />
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          </div>
-
-          {/* Controls */}
-          <div className="flex items-center gap-2">
-            {/* Refresh Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="p-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-xl transition-all duration-200 disabled:opacity-50"
-              title="Refresh sessions"
-            >
-              <RotateCcw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            </motion.button>
-
-            {/* Expand/Collapse Controls */}
-            {filteredBatchGroups.length > 1 && (
-              <div className="flex bg-gray-100 dark:bg-gray-700 rounded-xl p-1">
-                <button
-                  onClick={expandAllBatches}
-                  className="px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-gray-600 rounded-lg transition-all duration-200"
-                >
-                  Expand All
-                </button>
-                <button
-                  onClick={collapseAllBatches}
-                  className="px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-gray-600 rounded-lg transition-all duration-200"
-                >
-                  Collapse All
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Content */}
-      {filteredBatchGroups.length === 0 ? (
+        {/* Header */}
         <motion.div 
           variants={itemVariants}
-          className="flex flex-col items-center justify-center py-16 text-center"
+          className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8"
         >
-          <motion.div 
-            whileHover={{ scale: 1.05 }}
-            className="p-6 rounded-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 mb-6"
-          >
-            <BookOpen className="w-12 h-12 text-gray-400" />
-          </motion.div>
-          <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-3">
-            {searchTerm ? 'No matching recordings found' : 'No recorded sessions available'}
-          </h3>
-          <p className="text-gray-500 dark:text-gray-400 max-w-md leading-relaxed">
-            {searchTerm 
-              ? 'Try adjusting your search terms or check if the recordings are available in other batches'
-              : 'Your recorded sessions will appear here after you attend live classes and recordings are made available'
-            }
-          </p>
-          {searchTerm && (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setSearchTerm("")}
-              className="mt-6 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium transition-colors"
+          <div className="flex items-center gap-4">
+            <motion.div 
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              className="p-3 bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/40 dark:to-primary-800/40 rounded-xl shadow-sm"
             >
-              Clear Search
-            </motion.button>
-          )}
-        </motion.div>
-      ) : (
-        <div className="space-y-6">
-          <AnimatePresence mode="popLayout">
-            {filteredBatchGroups.map((batchGroup, index) => (
-              <motion.div
-                key={batchGroup.batch.id}
-                variants={itemVariants}
-                exit={{ opacity: 0, scale: 0.95, y: -20 }}
-                layout
-                custom={index}
+              <Video className="w-8 h-8 text-primary-600 dark:text-primary-400" />
+            </motion.div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                Recorded Sessions
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400">
+                {filteredBatchGroups.length} batch{filteredBatchGroups.length !== 1 ? 'es' : ''} • {totalRecordings} recording{totalRecordings !== 1 ? 's' : ''}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            {/* Search */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search batches or recordings..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full sm:w-80 px-4 py-3 pl-11 pr-4 text-sm rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent shadow-sm transition-all duration-200"
+              />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            </div>
+
+            {/* Controls */}
+            <div className="flex items-center gap-2">
+              {/* Refresh Button */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="p-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-xl transition-all duration-200 disabled:opacity-50"
+                title="Refresh sessions"
               >
-                <BatchCard
-                  batchGroup={batchGroup}
-                  onRecordingClick={handleRecordingClick}
-                  isExpanded={expandedBatches.has(batchGroup.batch.id)}
-                  onToggle={() => toggleBatch(batchGroup.batch.id)}
-                />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-      )}
-    </motion.div>
+                <RotateCcw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              </motion.button>
+
+              {/* Expand/Collapse Controls */}
+              {filteredBatchGroups.length > 1 && (
+                <div className="flex bg-gray-100 dark:bg-gray-700 rounded-xl p-1">
+                  <button
+                    onClick={expandAllBatches}
+                    className="px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-gray-600 rounded-lg transition-all duration-200"
+                  >
+                    Expand All
+                  </button>
+                  <button
+                    onClick={collapseAllBatches}
+                    className="px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-gray-600 rounded-lg transition-all duration-200"
+                  >
+                    Collapse All
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Content */}
+        {filteredBatchGroups.length === 0 ? (
+          <motion.div 
+            variants={itemVariants}
+            className="flex flex-col items-center justify-center py-16 text-center"
+          >
+            <motion.div 
+              whileHover={{ scale: 1.05 }}
+              className="p-6 rounded-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 mb-6"
+            >
+              <BookOpen className="w-12 h-12 text-gray-400" />
+            </motion.div>
+            <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-3">
+              {searchTerm ? 'No matching recordings found' : 'No recorded sessions available'}
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 max-w-md leading-relaxed">
+              {searchTerm 
+                ? 'Try adjusting your search terms or check if the recordings are available in other batches'
+                : 'Your recorded sessions will appear here after you attend live classes and recordings are made available'
+              }
+            </p>
+            {searchTerm && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setSearchTerm("")}
+                className="mt-6 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium transition-colors"
+              >
+                Clear Search
+              </motion.button>
+            )}
+          </motion.div>
+        ) : (
+          <div className="space-y-6">
+            <AnimatePresence mode="popLayout">
+              {filteredBatchGroups.map((batchGroup, index) => (
+                <motion.div
+                  key={batchGroup.batch.id}
+                  variants={itemVariants}
+                  exit={{ opacity: 0, scale: 0.95, y: -20 }}
+                  layout
+                  custom={index}
+                >
+                  <BatchCard
+                    batchGroup={batchGroup}
+                    onRecordingClick={handleRecordingClick}
+                    isExpanded={expandedBatches.has(batchGroup.batch.id)}
+                    onToggle={() => toggleBatch(batchGroup.batch.id)}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+      </motion.div>
+
+      {/* Video Player Modal */}
+      <VideoPlayerModal
+        currentVideo={currentVideo}
+        onClose={handleCloseVideo}
+        onProgress={handleVideoProgress}
+      />
+    </>
   );
 };
 

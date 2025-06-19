@@ -54,6 +54,7 @@ export interface IChangePasswordData {
   current_password: string;
   new_password: string;
   confirm_password: string;
+  invalidateAllSessions?: boolean;
 }
 
 export interface IUpdateProfileData {
@@ -305,6 +306,131 @@ export interface IDataDeletionStatus {
   };
 }
 
+// 🔒 Account Lockout Management System Interfaces
+export interface ILockedAccount {
+  id: string;
+  full_name: string;
+  email: string;
+  failed_login_attempts: number;
+  password_change_attempts: number;
+  lockout_reason: 'failed_login_attempts' | 'password_change_attempts' | 'admin_lock';
+  locked_until: string;
+  remaining_minutes: number;
+  remaining_time_formatted: string;
+  created_at: string;
+  last_login?: string;
+}
+
+export interface ILockoutStatistics {
+  current_status: {
+    currently_locked: number;
+    locked_last_24h: number;
+    locked_last_week: number;
+  };
+  lockout_reasons: {
+    failed_login_attempts: number;
+    password_change_attempts: number;
+    admin_lock: number;
+  };
+  attempt_statistics: {
+    avg_failed_login_attempts: number;
+    max_failed_login_attempts: number;
+    users_with_failed_logins: number;
+    avg_password_change_attempts: number;
+    max_password_change_attempts: number;
+    users_with_failed_password_changes: number;
+  };
+  lockout_levels: {
+    level_1: string;
+    level_2: string;
+    level_3: string;
+    level_4: string;
+  };
+}
+
+export interface ILockoutLevel {
+  attempts: number;
+  duration: string;
+  duration_minutes: number;
+}
+
+export interface ILockoutInfo {
+  current_attempts: number;
+  next_lockout_duration: string;
+  lockout_levels: {
+    [key: string]: string;
+  };
+}
+
+export interface IUnlockAccountRequest {
+  resetAttempts?: boolean;
+}
+
+export interface IUnlockAllAccountsRequest {
+  resetAttempts?: boolean;
+}
+
+// Account Lockout Response Interfaces
+export interface ILockedAccountsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    total_locked: number;
+    accounts: ILockedAccount[];
+  };
+}
+
+export interface IUnlockAccountResponse {
+  success: boolean;
+  message: string;
+  data: {
+    user: {
+      id: string;
+      email: string;
+      full_name: string;
+      unlocked_at: string;
+      attempts_reset: boolean;
+    };
+    previous_state: {
+      locked_until: string;
+      failed_login_attempts: number;
+      password_change_attempts: number;
+      lockout_reason: string;
+    };
+  };
+}
+
+export interface IUnlockAllAccountsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    unlocked_count: number;
+    attempts_reset: boolean;
+    accounts: Array<{
+      id: string;
+      email: string;
+      full_name: string;
+      was_locked_until: string;
+      lockout_reason: string;
+      failed_login_attempts: number;
+      password_change_attempts: number;
+    }>;
+  };
+}
+
+export interface ILockoutStatsResponse {
+  success: boolean;
+  message: string;
+  data: ILockoutStatistics;
+}
+
+export interface IPasswordChangeFailureResponse {
+  success: false;
+  message: string;
+  attempts_remaining: number;
+  lockout_info: ILockoutInfo;
+}
+
 // Authentication API URLs
 export const authAPI = {
   // Base authentication endpoints
@@ -471,6 +597,15 @@ export const authAPI = {
       if (options.limit) queryParams.append('limit', String(options.limit));
       return `${apiBaseUrl}/auth/admin/users/${userId}/activity?${queryParams.toString()}`;
     },
+    
+    // 🔒 Account Lockout Management (Admin/Super Admin only)
+    getLockedAccounts: `${apiBaseUrl}/auth/locked-accounts`,
+    unlockAccount: (userId: string): string => {
+      if (!userId) throw new Error('User ID is required');
+      return `${apiBaseUrl}/auth/unlock-account/${userId}`;
+    },
+    unlockAllAccounts: `${apiBaseUrl}/auth/unlock-all-accounts`,
+    getLockoutStats: `${apiBaseUrl}/auth/lockout-stats`,
   },
   
   // 5. Session Management
@@ -748,6 +883,164 @@ export const authUtils = {
     }
     
     return 'An authentication error occurred. Please try again.';
+  },
+
+  // 🔒 Account Lockout Management Utilities
+  
+  /**
+   * Get all locked accounts
+   */
+  getLockedAccounts: async (): Promise<ILockedAccountsResponse> => {
+    const response = await fetch(authAPI.admin.getLockedAccounts, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...authUtils.getAuthHeaders()
+      }
+    });
+    return response.json();
+  },
+
+  /**
+   * Unlock a specific account
+   */
+  unlockAccount: async (userId: string, resetAttempts: boolean = true): Promise<IUnlockAccountResponse> => {
+    const response = await fetch(authAPI.admin.unlockAccount(userId), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...authUtils.getAuthHeaders()
+      },
+      body: JSON.stringify({ resetAttempts })
+    });
+    return response.json();
+  },
+
+  /**
+   * Unlock all locked accounts (Super Admin only)
+   */
+  unlockAllAccounts: async (resetAttempts: boolean = true): Promise<IUnlockAllAccountsResponse> => {
+    const response = await fetch(authAPI.admin.unlockAllAccounts, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...authUtils.getAuthHeaders()
+      },
+      body: JSON.stringify({ resetAttempts })
+    });
+    return response.json();
+  },
+
+  /**
+   * Get lockout statistics
+   */
+  getLockoutStats: async (): Promise<ILockoutStatsResponse> => {
+    const response = await fetch(authAPI.admin.getLockoutStats, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...authUtils.getAuthHeaders()
+      }
+    });
+    return response.json();
+  },
+
+  /**
+   * Format remaining lockout time
+   */
+  formatRemainingTime: (remainingMinutes: number): string => {
+    if (remainingMinutes <= 0) return 'Unlocked';
+    
+    const hours = Math.floor(remainingMinutes / 60);
+    const minutes = remainingMinutes % 60;
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else {
+      return `${minutes}m`;
+    }
+  },
+
+  /**
+   * Get lockout level information
+   */
+  getLockoutLevels: (): ILockoutLevel[] => {
+    return [
+      { attempts: 3, duration: '1 minute', duration_minutes: 1 },
+      { attempts: 4, duration: '5 minutes', duration_minutes: 5 },
+      { attempts: 5, duration: '10 minutes', duration_minutes: 10 },
+      { attempts: 6, duration: '30 minutes', duration_minutes: 30 }
+    ];
+  },
+
+  /**
+   * Calculate next lockout duration based on attempts
+   */
+  getNextLockoutDuration: (attempts: number): string => {
+    const levels = authUtils.getLockoutLevels();
+    const level = levels.find(l => l.attempts === attempts + 1);
+    return level ? level.duration : '30 minutes';
+  },
+
+  /**
+   * Check if account is currently locked
+   */
+  isAccountLocked: (lockedUntil?: string): boolean => {
+    if (!lockedUntil) return false;
+    return new Date(lockedUntil) > new Date();
+  },
+
+  /**
+   * Get lockout reason display text
+   */
+  getLockoutReasonText: (reason: string): string => {
+    const reasonMap: Record<string, string> = {
+      'failed_login_attempts': 'Failed Login Attempts',
+      'password_change_attempts': 'Failed Password Change Attempts',
+      'admin_lock': 'Manually Locked by Admin'
+    };
+    
+    return reasonMap[reason] || 'Unknown Reason';
+  },
+
+  /**
+   * Handle lockout-specific errors
+   */
+  handleLockoutError: (error: any): string => {
+    if (error?.response?.status === 423) {
+      const data = error.response.data;
+      if (data?.lockout_info) {
+        return `Account is locked. ${data.attempts_remaining} attempts remaining. Next lockout: ${data.lockout_info.next_lockout_duration}`;
+      }
+      return 'Account is temporarily locked due to security reasons.';
+    }
+    
+    return authUtils.handleAuthError(error);
+  },
+
+  /**
+   * Calculate lockout severity level
+   */
+  getLockoutSeverity: (attempts: number): 'low' | 'medium' | 'high' | 'critical' => {
+    if (attempts <= 2) return 'low';
+    if (attempts <= 4) return 'medium';
+    if (attempts <= 5) return 'high';
+    return 'critical';
+  },
+
+  /**
+   * Get lockout severity color
+   */
+  getLockoutSeverityColor: (attempts: number): string => {
+    const severity = authUtils.getLockoutSeverity(attempts);
+    const colorMap = {
+      'low': '#10B981',     // green
+      'medium': '#F59E0B',  // yellow
+      'high': '#EF4444',    // red
+      'critical': '#DC2626' // dark red
+    };
+    
+    return colorMap[severity];
   }
 };
 

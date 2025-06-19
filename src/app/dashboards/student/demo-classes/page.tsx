@@ -3,8 +3,8 @@ import { Metadata } from "next";
 import dynamic from "next/dynamic";
 
 export const metadata: Metadata = {
-  title: "My Demo Classes | Student Dashboard | Medh",
-  description: "Access and manage your demo classes, trial sessions, and preview content",
+  title: "Demo Classes & Booking | Student Dashboard | Medh",
+  description: "Schedule new demo classes, manage your bookings, access session materials, and track your demo class progress",
 };
 
 // Client component wrapper for the demo classes dashboard

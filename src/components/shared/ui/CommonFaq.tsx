@@ -347,6 +347,7 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
                           whileHover="hover"
                           whileTap="tap"
                           onClick={() => handleCategoryChange(category)}
+                          suppressHydrationWarning
                           className={`px-4 py-2 rounded-md transition-all duration-200 ${
                             selectedCategory === category
                               ? `bg-[${primaryColor}] text-white shadow-md`
@@ -390,6 +391,7 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
                 whileHover="hover"
                 whileTap="tap"
                 onClick={handleRetry}
+                suppressHydrationWarning
                 className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
               >
                 <RefreshCw size={16} className="mr-2" />
@@ -431,6 +433,7 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
                     className="w-full px-6 py-4 flex items-center gap-4 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50 group"
                     aria-expanded={openIndex === index}
                     aria-controls={`faq-answer-${index}`}
+                    suppressHydrationWarning
                   >
                     <IconWrapper 
                       isOpen={openIndex === index || hoveredIndex === index}
@@ -512,6 +515,7 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
+                    suppressHydrationWarning
                     className={`text-[${primaryColor}] hover:text-[${primaryColor}]/80 dark:text-[${primaryColor}]/90 dark:hover:text-[${primaryColor}]/70 font-medium`}
                   >
                     Clear search

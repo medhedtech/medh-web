@@ -5,9 +5,11 @@ import {
   DollarSign, Monitor, Shield, CheckCircle, XCircle, BarChart3, Target, Activity, 
   CreditCard, Smartphone, Tablet, Laptop, Globe, Eye, MousePointer, Timer, Brain, 
   Heart, Zap, FileText, Settings, Edit, UserCircle, GraduationCap, Link2,
-  Facebook, Instagram, Linkedin, Twitter, Youtube, Github
+  Facebook, Instagram, Linkedin, Twitter, Youtube, Github, Lock, EyeOff
 } from 'lucide-react';
 import { getComprehensiveUserProfile, updateCurrentUserComprehensiveProfile } from '@/apis/profile.api';
+import { authAPI, IChangePasswordData } from '@/apis/auth.api';
+import { apiClient } from '@/apis/apiClient';
 import { showToast } from '@/utils/toastManager';
 
 // Interfaces
@@ -124,7 +126,41 @@ interface ComprehensiveProfile {
     average_score: number;
     average_lesson_time: number;
   };
-  education: any;
+  education: {
+    course_stats: {
+      total_enrolled: number;
+      active_courses: number;
+      completed_courses: number;
+      on_hold_courses: number;
+      average_progress: number;
+    };
+    enrollments: Array<{
+      course_title: string;
+      status: string;
+      progress: number;
+      enrollment_date: string;
+      course_id?: string;
+      course_image?: string;
+      instructor?: string;
+      duration?: string;
+      difficulty?: string;
+    }>;
+    achievements: any[];
+    certifications: any[];
+    learning_paths?: Array<{
+      name: string;
+      courses_completed: number;
+      total_courses: number;
+      progress: number;
+      description?: string;
+    }>;
+    upcoming_courses?: Array<{
+      course_title: string;
+      start_date: string;
+      course_id?: string;
+      instructor?: string;
+    }>;
+  };
   social_metrics: {
     followers_count: number;
     following_count: number;
@@ -187,6 +223,22 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
   const [editData, setEditData] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Password change states
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    current_password: '',
+    new_password: '',
+    confirm_password: ''
+  });
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false
+  });
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
 
   // Helper functions
   const formatDuration = (seconds: number) => {
@@ -319,7 +371,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       
       if (response.data) {
         showToast.dismiss(); // Dismiss any existing toasts
-        showToast.success('Profile updated successfully!', { groupKey: 'profile-update' });
+        showToast.success('Profile updated successfully!');
         
         // Auto-refresh the profile data using the centralized fetchProfile function
         await fetchProfile();
@@ -348,13 +400,13 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
         if (errorObj?.response?.data?.errors && Array.isArray(errorObj.response.data.errors)) {
           showToast.dismiss(); // Dismiss any existing toasts
           errorObj.response.data.errors.forEach((err: any) => {
-            showshowToast.error(`${err.field}: ${err.message}`, { groupKey: 'profile-validation' });
+            showToast.error(`${err.field}: ${err.message}`);
           });
         }
       }
       
       showToast.dismiss(); // Dismiss any existing toasts
-      showshowToast.error(errorMessage, { groupKey: 'profile-update' });
+      showToast.error(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -382,6 +434,17 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
   };
 
   // Fetch profile data
+  // Auth helper function to get token - using x-access-token format
+  const getAuthToken = () => {
+    if (typeof window === "undefined") return null;
+    
+    // Get the token from localStorage
+    const token = localStorage.getItem("token");
+    
+    // Return without Bearer prefix for x-access-token usage
+    return token;
+  };
+
   const fetchProfile = async () => {
     try {
       // Use different loading states for initial load vs refresh
@@ -389,6 +452,20 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
         setRefreshing(true);
       } else {
         setLoading(true);
+      }
+
+      // Check authentication before making the request
+      const token = getAuthToken();
+      if (!token) {
+        console.error("Authentication token not found in localStorage");
+        setError('Authentication required. Please sign in again.');
+        showToast.error('Authentication required. Please sign in again.');
+        
+        // Redirect to login after a delay
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 2000);
+        return;
       }
       
       const response = await getComprehensiveUserProfile();
@@ -495,7 +572,20 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
               average_score: apiData.learning_analytics?.average_score || 0,
               average_lesson_time: apiData.learning_analytics?.average_lesson_time || 0,
             },
-            education: apiData.education || {},
+            education: {
+              course_stats: apiData.education?.course_stats || {
+                total_enrolled: 0,
+                active_courses: 0,
+                completed_courses: 0,
+                on_hold_courses: 0,
+                average_progress: 0
+              },
+              enrollments: apiData.education?.enrollments || [],
+              achievements: apiData.education?.achievements || [],
+              certifications: apiData.education?.certifications || [],
+              learning_paths: apiData.education?.learning_paths || [],
+              upcoming_courses: apiData.education?.upcoming_courses || []
+            },
             social_metrics: {
               followers_count: apiData.social_metrics?.followers_count || 0,
               following_count: apiData.social_metrics?.following_count || 0,
@@ -548,25 +638,48 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
           // Show success message only if it's a manual refresh (not initial load)
           if (profile) {
             showToast.dismiss(); // Dismiss any existing toasts
-            showToast.success('Profile data refreshed successfully!', { groupKey: 'profile-refresh' });
+            showToast.success('Profile data refreshed successfully!');
           }
         } else {
           const errorMessage = serverResponse?.message || 'Failed to load profile data';
           throw new Error(errorMessage);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching profile:', error);
-        setError('Failed to load profile data. Please try again.');
-        showToast.dismiss(); // Dismiss any existing toasts
-        showshowToast.error('Failed to refresh profile data. Please try again.', { groupKey: 'profile-refresh' });
+        
+        // Check if error is authentication related
+        if (error?.response?.status === 401 || 
+            error?.message?.includes("Authentication") || 
+            error?.message?.includes("token") ||
+            error?.message?.includes("Authentication required")) {
+          setError('Authentication required. Please sign in again.');
+          showToast.dismiss();
+          showToast.error('Authentication required. Please sign in again.');
+          
+          // Redirect to login after a delay
+          setTimeout(() => {
+            window.location.href = "/login";
+          }, 2000);
+        } else {
+          setError('Failed to load profile data. Please try again.');
+          showToast.dismiss(); // Dismiss any existing toasts
+          showToast.error('Failed to refresh profile data. Please try again.');
+        }
       } finally {
         setLoading(false);
         setRefreshing(false);
       }
     };
 
-  // Initial fetch on component mount
+  // Initialize authentication and fetch profile
   useEffect(() => {
+    // Ensure apiClient has the current token
+    const token = getAuthToken();
+    if (token) {
+      // Re-initialize the apiClient with the current token
+      apiClient.setAuthToken(token);
+    }
+    
     fetchProfile();
   }, []);
 
@@ -582,6 +695,186 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, [profile, loading, refreshing]);
+
+  // Password validation function
+  const validatePasswordChange = () => {
+    const errors: string[] = [];
+    
+    // Current password validation
+    if (!passwordData.current_password || passwordData.current_password.trim().length === 0) {
+      errors.push('Current password is required');
+    }
+    
+    // New password validation - matching backend requirements
+    if (!passwordData.new_password) {
+      errors.push('New password is required');
+    } else {
+      // Length validation (8-128 characters as per backend)
+      if (passwordData.new_password.length < 8) {
+        errors.push('New password must be at least 8 characters long');
+      }
+      
+      if (passwordData.new_password.length > 128) {
+        errors.push('New password must not exceed 128 characters');
+      }
+      
+      // Character requirements matching backend regex
+      if (!/[A-Z]/.test(passwordData.new_password)) {
+        errors.push('New password must contain at least one uppercase letter');
+      }
+      
+      if (!/[a-z]/.test(passwordData.new_password)) {
+        errors.push('New password must contain at least one lowercase letter');
+      }
+      
+      if (!/\d/.test(passwordData.new_password)) {
+        errors.push('New password must contain at least one number');
+      }
+      
+      // Special characters matching backend regex pattern
+      if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(passwordData.new_password)) {
+        errors.push('New password must contain at least one special character');
+      }
+      
+      // Common weak pattern checks (matching backend validation)
+      const weakPatterns = [
+        { pattern: /^123456/i, message: 'Password cannot start with "123456"' },
+        { pattern: /^password/i, message: 'Password cannot start with "password"' },
+        { pattern: /^qwerty/i, message: 'Password cannot start with "qwerty"' },
+        { pattern: /^abc123/i, message: 'Password cannot start with "abc123"' },
+        { pattern: /^admin/i, message: 'Password cannot start with "admin"' },
+        { pattern: /^letmein/i, message: 'Password cannot start with "letmein"' },
+        { pattern: /(.)\1{3,}/, message: 'Password cannot contain more than 3 repeated characters' }
+      ];
+      
+      for (const weakPattern of weakPatterns) {
+        if (weakPattern.pattern.test(passwordData.new_password)) {
+          errors.push(weakPattern.message);
+          break; // Only show first weak pattern found
+        }
+      }
+      
+      // Check if new password is different from current
+      if (passwordData.new_password === passwordData.current_password) {
+        errors.push('New password must be different from current password');
+      }
+    }
+    
+    // Confirm password validation
+    if (!passwordData.confirm_password) {
+      errors.push('Please confirm your new password');
+    } else if (passwordData.new_password !== passwordData.confirm_password) {
+      errors.push('New password and confirmation do not match');
+    }
+    
+    return errors;
+  };
+
+  // Change password function with proper backend integration
+  const handleChangePassword = async () => {
+    const validationErrors = validatePasswordChange();
+    
+    if (validationErrors.length > 0) {
+      setPasswordErrors(validationErrors);
+      return;
+    }
+    
+    setChangingPassword(true);
+    setPasswordErrors([]);
+    
+    try {
+      // Use the proper change-password endpoint from auth.api.ts with correct interface
+      const changePasswordPayload: IChangePasswordData & { invalidateAllSessions?: boolean } = {
+        current_password: passwordData.current_password,
+        new_password: passwordData.new_password,
+        confirm_password: passwordData.confirm_password
+      };
+
+      const response = await fetch(authAPI.local.changePassword, {
+        method: 'PUT', // Backend uses PUT method
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          currentPassword: changePasswordPayload.current_password,      // Backend expects currentPassword
+          newPassword: changePasswordPayload.new_password,             // Backend expects newPassword  
+          confirmPassword: changePasswordPayload.confirm_password,     // Backend expects confirmPassword
+          invalidateAllSessions: false                                 // Keep current session active
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
+        showToast.success('Password changed successfully!');
+        setIsChangingPassword(false);
+        setPasswordData({
+          current_password: '',
+          new_password: '',
+          confirm_password: ''
+        });
+        
+        // Optional: Show security info
+        showToast.info('For security, consider logging out and back in on other devices.', {
+          duration: 5000
+        });
+      } else {
+        // Handle specific error cases based on HTTP status codes
+        let errorMessage = result.message || 'Failed to change password';
+        
+        switch (response.status) {
+          case 400:
+            errorMessage = result.message || 'Invalid password requirements. Please check your input.';
+            break;
+          case 401:
+            errorMessage = 'Current password is incorrect. Please try again.';
+            break;
+          case 422:
+            errorMessage = 'Password validation failed. Please ensure your new password meets all requirements.';
+            break;
+          case 429:
+            errorMessage = 'Too many password change attempts. Please try again later.';
+            break;
+          case 500:
+            errorMessage = 'Server error occurred. Please try again later.';
+            break;
+        }
+        
+        setPasswordErrors([errorMessage]);
+        showToast.error(errorMessage);
+      }
+      
+    } catch (error: unknown) {
+      console.error('Error changing password:', error);
+      
+      let errorMessage = 'Network error occurred while changing password. Please check your connection and try again.';
+      
+      if (error instanceof Error) {
+        if (error.name === 'NetworkError' || error.message.includes('fetch')) {
+          errorMessage = 'Network connection failed. Please check your internet connection.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setPasswordErrors([errorMessage]);
+      showToast.error(errorMessage);
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  // Cancel password change
+  const handleCancelPasswordChange = () => {
+    setIsChangingPassword(false);
+    setPasswordData({
+      current_password: '',
+      new_password: '',
+      confirm_password: ''
+    });
+    setPasswordErrors([]);
+  };
 
   if (loading) {
     return (
@@ -1139,35 +1432,92 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                   </h3>
                   {education.enrollments && education.enrollments.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {education.enrollments.map((course: any, index: number) => (
-                        <div key={index} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow">
-                          <div className="flex items-start justify-between mb-3">
-                            <h4 className="font-medium text-gray-900 dark:text-white text-sm">{course.course_title}</h4>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              course.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
-                              course.status === 'completed' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' :
-                              'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
-                            }`}>
-                              {course.status}
-                            </span>
-                          </div>
-                          <div className="mb-3">
-                            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
-                              <span>Progress</span>
-                              <span>{course.progress}%</span>
+                      {education.enrollments.map((course: any, index: number) => {
+                        // Extract course title from various possible fields
+                        const courseTitle = course.course_title || 
+                                          course.title || 
+                                          course.name || 
+                                          course.course?.title || 
+                                          course.course?.name ||
+                                          `Course ${index + 1}`;
+                        
+                        // Ensure progress is a number and handle various formats
+                        const progressValue = typeof course.progress === 'number' ? course.progress : 
+                                            parseFloat(course.progress) || 0;
+                        
+                        // Handle enrollment date from various possible fields
+                        const enrollmentDate = course.enrollment_date || 
+                                             course.enrollmentDate || 
+                                             course.enrolled_at || 
+                                             course.created_at ||
+                                             new Date().toISOString();
+                        
+                        // Handle status with proper capitalization
+                        const status = (course.status || course.enrollmentStatus || 'active').toLowerCase();
+                        
+                        return (
+                          <div key={course.course_id || course.id || index} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-medium text-gray-900 dark:text-white text-sm truncate" title={courseTitle}>
+                                  {courseTitle}
+                                </h4>
+                                {course.instructor && (
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    by {course.instructor}
+                                  </p>
+                                )}
+                              </div>
+                              <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
+                                status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
+                                status === 'completed' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' :
+                                status === 'paused' || status === 'on_hold' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' :
+                                'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
+                              }`}>
+                                {status.charAt(0).toUpperCase() + status.slice(1)}
+                              </span>
                             </div>
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                              <div 
-                                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                                style={{ width: `${course.progress}%` }}
-                              ></div>
+                            
+                            {/* Course metadata */}
+                            {(course.difficulty || course.duration) && (
+                              <div className="flex gap-2 mb-3">
+                                {course.difficulty && (
+                                  <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded">
+                                    {course.difficulty}
+                                  </span>
+                                )}
+                                {course.duration && (
+                                  <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded">
+                                    {course.duration}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            
+                            <div className="mb-3">
+                              <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                <span>Progress</span>
+                                <span>{Math.round(progressValue)}%</span>
+                              </div>
+                              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div 
+                                  className={`h-2 rounded-full transition-all duration-300 ${
+                                    progressValue === 0 ? 'bg-gray-400' :
+                                    progressValue < 25 ? 'bg-red-500' :
+                                    progressValue < 50 ? 'bg-yellow-500' :
+                                    progressValue < 75 ? 'bg-blue-500' :
+                                    'bg-green-500'
+                                  }`}
+                                  style={{ width: `${Math.min(Math.max(progressValue, 0), 100)}%` }}
+                                ></div>
+                              </div>
                             </div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              Enrolled: {formatDate(enrollmentDate)}
+                            </p>
                           </div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Enrolled: {formatDate(course.enrollment_date)}
-                          </p>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="text-center py-8 text-gray-500 dark:text-gray-400">
@@ -1178,38 +1528,57 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                 </div>
 
                 {/* Learning Paths */}
-                {education.learning_paths && education.learning_paths.length > 0 && (
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-                      <Target className="h-5 w-5 mr-2 text-purple-600" />
-                      Learning Paths
-                    </h3>
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                    <Target className="h-5 w-5 mr-2 text-purple-600" />
+                    Learning Paths
+                  </h3>
+                  {education.learning_paths && education.learning_paths.length > 0 ? (
                     <div className="space-y-4">
-                      {education.learning_paths.map((path: any, index: number) => (
-                        <div key={index} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-gray-900 dark:text-white">{path.name}</h4>
-                            <span className="text-sm text-gray-500 dark:text-gray-400">
-                              {path.courses_completed}/{path.total_courses} courses
-                            </span>
-                          </div>
-                          <div className="mb-2">
-                            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
-                              <span>Overall Progress</span>
-                              <span>{path.progress}%</span>
+                      {education.learning_paths.map((path: any, index: number) => {
+                        const coursesCompleted = path.courses_completed || 0;
+                        const totalCourses = path.total_courses || 1;
+                        const progress = path.progress || Math.round((coursesCompleted / totalCourses) * 100);
+                        
+                        return (
+                          <div key={path.id || index} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="font-medium text-gray-900 dark:text-white">
+                                {path.name || `Learning Path ${index + 1}`}
+                              </h4>
+                              <span className="text-sm text-gray-500 dark:text-gray-400">
+                                {coursesCompleted}/{totalCourses} courses
+                              </span>
                             </div>
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                              <div 
-                                className="bg-purple-600 h-2 rounded-full transition-all duration-300"
-                                style={{ width: `${path.progress}%` }}
-                              ></div>
+                            {path.description && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                {path.description}
+                              </p>
+                            )}
+                            <div className="mb-2">
+                              <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                <span>Overall Progress</span>
+                                <span>{Math.round(progress)}%</span>
+                              </div>
+                              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div 
+                                  className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                                  style={{ width: `${Math.min(Math.max(progress, 0), 100)}%` }}
+                                ></div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      <Target className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                      <p className="text-sm">No learning paths available</p>
+                      <p className="text-xs mt-1">Complete your first course to unlock learning paths!</p>
+                    </div>
+                  )}
+                </div>
 
                 {/* Upcoming Courses */}
                 {education.upcoming_courses && education.upcoming_courses.length > 0 && (
@@ -1538,6 +1907,207 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                       </div>
                     </div>
                   </div>
+                </div>
+
+                {/* Password Change Section */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                      <Lock className="h-5 w-5 mr-2 text-red-600" />
+                      Change Password
+                    </h3>
+                    {!isChangingPassword && (
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setIsChangingPassword(true)}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                      >
+                        <Lock className="h-4 w-4 mr-2 inline" />
+                        Change Password
+                      </motion.button>
+                    )}
+                  </div>
+
+                  {!isChangingPassword ? (
+                    <div className="text-center py-8">
+                      <Lock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600 dark:text-gray-400 mb-2">Keep your account secure</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-500">
+                        Regular password updates help protect your account from unauthorized access
+                      </p>
+                    </div>
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {/* Password Change Form */}
+                      <div className="space-y-6">
+                        {/* Error Display */}
+                        {passwordErrors.length > 0 && (
+                          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                            <div className="flex">
+                              <XCircle className="h-5 w-5 text-red-400 mr-3 mt-0.5" />
+                              <div>
+                                <h4 className="text-sm font-medium text-red-800 dark:text-red-200 mb-2">
+                                  Please fix the following errors:
+                                </h4>
+                                <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
+                                  {passwordErrors.map((error, index) => (
+                                    <li key={index} className="flex items-start">
+                                      <span className="mr-2">•</span>
+                                      <span>{error}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Password Requirements */}
+                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                          <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
+                            Password Requirements:
+                          </h4>
+                          <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                            <li className="flex items-center">
+                              <span className="mr-2">•</span>
+                              <span>At least 8 characters long</span>
+                            </li>
+                            <li className="flex items-center">
+                              <span className="mr-2">•</span>
+                              <span>Contains uppercase and lowercase letters</span>
+                            </li>
+                            <li className="flex items-center">
+                              <span className="mr-2">•</span>
+                              <span>Contains at least one number</span>
+                            </li>
+                            <li className="flex items-center">
+                              <span className="mr-2">•</span>
+                              <span>Contains at least one special character</span>
+                            </li>
+                          </ul>
+                        </div>
+
+                        {/* Current Password */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Current Password *
+                          </label>
+                          <div className="relative">
+                            <input
+                              type={showPasswords.current ? "text" : "password"}
+                              value={passwordData.current_password}
+                              onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
+                              className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Enter your current password"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })}
+                              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                            >
+                              {showPasswords.current ? (
+                                <EyeOff className="h-5 w-5" />
+                              ) : (
+                                <Eye className="h-5 w-5" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* New Password */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            New Password *
+                          </label>
+                          <div className="relative">
+                            <input
+                              type={showPasswords.new ? "text" : "password"}
+                              value={passwordData.new_password}
+                              onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
+                              className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Enter your new password"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
+                              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                            >
+                              {showPasswords.new ? (
+                                <EyeOff className="h-5 w-5" />
+                              ) : (
+                                <Eye className="h-5 w-5" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Confirm New Password */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Confirm New Password *
+                          </label>
+                          <div className="relative">
+                            <input
+                              type={showPasswords.confirm ? "text" : "password"}
+                              value={passwordData.confirm_password}
+                              onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
+                              className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Confirm your new password"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
+                              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                            >
+                              {showPasswords.confirm ? (
+                                <EyeOff className="h-5 w-5" />
+                              ) : (
+                                <Eye className="h-5 w-5" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex space-x-4 pt-4">
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={handleChangePassword}
+                            disabled={changingPassword}
+                            className="flex-1 flex items-center justify-center px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg font-medium transition-colors"
+                          >
+                            {changingPassword ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                Changing Password...
+                              </>
+                            ) : (
+                              <>
+                                <Lock className="h-4 w-4 mr-2" />
+                                Change Password
+                              </>
+                            )}
+                          </motion.button>
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={handleCancelPasswordChange}
+                            disabled={changingPassword}
+                            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            Cancel
+                          </motion.button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
               </motion.div>
             )}

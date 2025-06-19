@@ -9,13 +9,17 @@ import {
   Star, 
   Eye, 
   Play, 
-  MonitorPlay
+  MonitorPlay,
+  X,
+  ArrowLeft,
+  AlertCircle
 } from "lucide-react";
 
 import StudentDashboardLayout from "./StudentDashboardLayout";
 import batchAPI, { IRecordedLesson, IBatchWithDetails } from "@/apis/batch";
 import EnrollmentAPI, { IEnrollment } from "@/apis/enrollment";
 import { PageLoading } from "@/components/ui/loading";
+import VideoPlayer from "@/components/shared/lessons/VideoPlayer";
 
 interface RecordedSession {
   id: string;
@@ -44,7 +48,198 @@ interface RecordedSession {
   enrollmentId?: string;
 }
 
+interface CurrentVideo {
+  session: RecordedSession;
+  batchName: string;
+}
 
+// URL obfuscation utilities
+const urlObfuscation = {
+  encode: (url: string): string => {
+    try {
+      // Simple obfuscation: base64 + reversing + adding noise
+      const reversed = url.split('').reverse().join('');
+      const encoded = btoa(reversed);
+      const noise = Math.random().toString(36).substring(2, 8);
+      return `${noise}${encoded}${noise}`;
+    } catch (error) {
+      console.error('URL encoding failed:', error);
+      return url;
+    }
+  },
+  
+  decode: (obfuscatedUrl: string): string => {
+    try {
+      // Remove noise (first 6 and last 6 characters) and decode
+      const noiseLength = 6;
+      const encoded = obfuscatedUrl.slice(noiseLength, -noiseLength);
+      const decoded = atob(encoded);
+      const original = decoded.split('').reverse().join('');
+      return original;
+    } catch (error) {
+      console.error('URL decoding failed:', error);
+      return obfuscatedUrl;
+    }
+  }
+};
+
+// Video Player Modal Component
+const VideoPlayerModal: React.FC<{
+  currentVideo: CurrentVideo | null;
+  onClose: () => void;
+  onProgress?: (progress: number, currentTime: number) => void;
+}> = ({ currentVideo, onClose, onProgress }) => {
+  const [videoError, setVideoError] = useState<string | null>(null);
+
+  if (!currentVideo) return null;
+
+  const decodedUrl = currentVideo.session.url ? urlObfuscation.decode(currentVideo.session.url) : '';
+
+  const handleVideoError = (error: string) => {
+    setVideoError(error);
+    console.error('Video playback error:', error);
+  };
+
+  const handleVideoProgress = (progress: number, currentTime: number) => {
+    onProgress?.(progress, currentTime);
+    
+    // Optional: Save progress to localStorage or API
+    try {
+      const progressKey = `video_progress_${currentVideo.session.id}`;
+      localStorage.setItem(progressKey, JSON.stringify({
+        currentTime,
+        progress,
+        lastWatched: new Date().toISOString()
+      }));
+    } catch (error) {
+      console.warn('Failed to save video progress:', error);
+    }
+  };
+
+  const getSavedProgress = () => {
+    try {
+      const progressKey = `video_progress_${currentVideo.session.id}`;
+      const saved = localStorage.getItem(progressKey);
+      if (saved) {
+        const data = JSON.parse(saved);
+        return data.currentTime || 0;
+      }
+    } catch (error) {
+      console.warn('Failed to load saved progress:', error);
+    }
+    return 0;
+  };
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0, y: 50 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.9, opacity: 0, y: 50 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          className="w-full max-w-6xl bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                className="p-3 bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/40 dark:to-primary-800/40 rounded-xl"
+              >
+                <Play className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+              </motion.div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1 truncate">
+                  {currentVideo.session.title}
+                </h2>
+                <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                  <span className="flex items-center gap-1">
+                    <MonitorPlay className="w-4 h-4" />
+                    {currentVideo.batchName}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    {currentVideo.session.recordedDate ? new Date(currentVideo.session.recordedDate).toLocaleDateString() : 'Unknown date'}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
+            >
+              <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+            </motion.button>
+          </div>
+
+          {/* Video Player */}
+          <div className="p-6">
+            {videoError ? (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
+                <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-red-700 dark:text-red-400 mb-2">
+                  Video Error
+                </h3>
+                <p className="text-red-600 dark:text-red-300 mb-4">
+                  {videoError}
+                </p>
+                <button
+                  onClick={() => setVideoError(null)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : decodedUrl ? (
+              <VideoPlayer
+                src={decodedUrl}
+                autoplay={true}
+                onProgress={handleVideoProgress}
+                onError={handleVideoError}
+                initialTime={getSavedProgress()}
+                allowDownload={false}
+                quality="auto"
+              />
+            ) : (
+              <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 text-center">
+                <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  No Video URL
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  This session doesn't have a video URL available.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="px-6 pb-6">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onClose}
+              className="flex items-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Sessions
+            </motion.button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
 
 // Batch Card Component
 const BatchCard = ({ 
@@ -58,7 +253,7 @@ const BatchCard = ({
     instructor?: { name: string; rating?: number };
     sessions: RecordedSession[];
   };
-  onWatchNow: (session: RecordedSession) => void;
+  onWatchNow: (session: RecordedSession, batchName: string) => void;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -131,12 +326,12 @@ const BatchCard = ({
             className="overflow-hidden"
           >
             <div className="p-4">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {batch.sessions.map((session, index) => (
                   <RecordedSessionCard
                     key={session.id || index}
                     session={session}
-                    onWatchNow={onWatchNow}
+                    onWatchNow={(session) => onWatchNow(session, batch.batchName)}
                     compact={true}
                   />
                 ))}
@@ -317,6 +512,7 @@ const StudentRecordedSessions: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [enrollments, setEnrollments] = useState<IEnrollment[]>([]);
+  const [currentVideo, setCurrentVideo] = useState<CurrentVideo | null>(null);
 
   useEffect(() => {
     fetchRecordedSessions();
@@ -353,12 +549,16 @@ const StudentRecordedSessions: React.FC = () => {
         });
         
         // Race between API call and timeout
-        const recordedLessonsResponse = await Promise.race([apiCall, timeoutPromise]);
+        const recordedLessonsResponse = await Promise.race([apiCall, timeoutPromise]) as any;
         
         console.log('Recorded lessons API response received');
         
         // Check if we have a successful response with data
-        if (recordedLessonsResponse?.data?.success && recordedLessonsResponse.data?.data) {
+        if (recordedLessonsResponse && typeof recordedLessonsResponse === 'object' && 
+            'data' in recordedLessonsResponse && recordedLessonsResponse.data && 
+            typeof recordedLessonsResponse.data === 'object' &&
+            'success' in recordedLessonsResponse.data && recordedLessonsResponse.data.success &&
+            'data' in recordedLessonsResponse.data && recordedLessonsResponse.data.data) {
           const sessionData = recordedLessonsResponse.data.data;
           console.log(`Processing ${sessionData.length} session entries with recorded lessons`);
           
@@ -390,7 +590,7 @@ const StudentRecordedSessions: React.FC = () => {
                 batchName: batch.name,
                 sessionNumber: sessionIndex + 1,
                 viewCount: Math.floor(Math.random() * 50) + 10,
-                url: lesson.url,
+                url: lesson.url ? urlObfuscation.encode(lesson.url) : undefined, // Obfuscate URL
                 // Additional API fields
                 batchId: batch.id,
                 sessionId: session.id,
@@ -472,19 +672,10 @@ const StudentRecordedSessions: React.FC = () => {
     }
   };
 
-
-
-
-
-  const handleWatchNow = (session: RecordedSession) => {
+  const handleWatchNow = (session: RecordedSession, batchName: string) => {
     if (session.status === 'available' && session.url) {
-      try {
-        // Open the recorded session URL
-        window.open(session.url, '_blank');
-        console.log(`Opening: ${session.title}`);
-      } catch (error) {
-        console.error('Error opening video:', error);
-      }
+      setCurrentVideo({ session, batchName });
+      console.log(`Opening video player for: ${session.title}`);
     } else if (!session.url) {
       console.warn('Video URL not available for this session');
     } else {
@@ -492,7 +683,16 @@ const StudentRecordedSessions: React.FC = () => {
     }
   };
 
-    // Group sessions by batch
+  const handleCloseVideo = () => {
+    setCurrentVideo(null);
+  };
+
+  const handleVideoProgress = (progress: number, currentTime: number) => {
+    // Optional: Track video progress for analytics
+    console.log(`Video progress: ${progress}% at ${currentTime}s`);
+  };
+
+  // Group sessions by batch
   const groupedByBatch = recordedSessions.reduce((acc, session) => {
     const batchKey = session.batchName || session.batchId || 'Unknown Batch';
     if (!acc[batchKey]) {
@@ -550,96 +750,98 @@ const StudentRecordedSessions: React.FC = () => {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="p-8 lg:p-12 rounded-lg max-w-7xl mx-auto"
-    >
-      <div className="flex flex-col space-y-6">
-      {/* Header */}
-        <div className="text-center pt-6 pb-4">
-        <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex items-center justify-center mb-4"
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-8 lg:p-12 rounded-lg max-w-7xl mx-auto"
+      >
+        <div className="flex flex-col space-y-6">
+          {/* Header */}
+          <div className="text-center pt-6 pb-4">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex items-center justify-center mb-4"
+            >
+              <div className="p-2 bg-primary-100/80 dark:bg-primary-900/30 rounded-xl backdrop-blur-sm mr-3">
+                <MonitorPlay className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+              </div>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
+                Recorded Sessions
+              </h1>
+            </motion.div>
+            <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed px-4 mb-6">
+              Access and watch recordings of your past classes and catch up on any missed content
+            </p>
+
+            {/* Search Bar */}
+            <motion.div
+              className="relative max-w-md mx-auto"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+            >
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search recorded sessions..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200"
+              />
+            </motion.div>
+          </div>
+
+          {/* Content - Batches */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
           >
-            <div className="p-2 bg-primary-100/80 dark:bg-primary-900/30 rounded-xl backdrop-blur-sm mr-3">
-              <MonitorPlay className="w-6 h-6 text-primary-600 dark:text-primary-400" />
-            </div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
-              Recorded Sessions
-          </h1>
-
-          </motion.div>
-          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed px-4 mb-6">
-            Access and watch recordings of your past classes and catch up on any missed content
-          </p>
-
-        {/* Search Bar */}
-        <motion.div
-            className="relative max-w-md mx-auto"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-          <input
-            type="text"
-            placeholder="Search recorded sessions..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200"
-          />
-        </motion.div>
-
-
-        </div>
-
-        
-
-                {/* Content - Batches */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
-        >
-          {filteredBatches.length > 0 ? (
-            filteredBatches.map((batch, index) => (
+            {filteredBatches.length > 0 ? (
+              filteredBatches.map((batch, index) => (
+                <motion.div
+                  key={batch.batchId || batch.batchName || index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <BatchCard
+                    batch={batch}
+                    onWatchNow={handleWatchNow}
+                  />
+                </motion.div>
+              ))
+            ) : (
               <motion.div
-                key={batch.batchId || batch.batchName || index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
+                className="flex flex-col items-center justify-center text-center py-12"
               >
-                <BatchCard
-                  batch={batch}
-                  onWatchNow={handleWatchNow}
-                />
+                <MonitorPlay className="w-16 h-16 text-gray-400 mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  {searchTerm ? "No batches found" : "No recorded sessions available"}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  {searchTerm 
+                    ? "Try adjusting your search term to find what you're looking for."
+                    : "Recorded sessions will appear here organized by batches after your classes are completed."}
+                </p>
               </motion.div>
-            ))
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col items-center justify-center text-center py-12"
-            >
-              <MonitorPlay className="w-16 h-16 text-gray-400 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                {searchTerm ? "No batches found" : "No recorded sessions available"}
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                {searchTerm 
-                  ? "Try adjusting your search term to find what you're looking for."
-                  : "Recorded sessions will appear here organized by batches after your classes are completed."}
-              </p>
-            </motion.div>
-          )}
-        </motion.div>
+            )}
+          </motion.div>
+        </div>
+      </motion.div>
 
-
-      </div>
-    </motion.div>
+      {/* Video Player Modal */}
+      <VideoPlayerModal
+        currentVideo={currentVideo}
+        onClose={handleCloseVideo}
+        onProgress={handleVideoProgress}
+      />
+    </>
   );
 };
 

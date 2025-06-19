@@ -4,7 +4,7 @@ import DropdownCart from "./DropdownCart";
 import Link from "next/link";
 import useIsTrue from "@/hooks/useIsTrue";
 import LoginButton from "./LoginButton";
-import { ShoppingBag, ExternalLink, User, LogOut, Settings, ChevronDown, UserCircle, Shield, Briefcase, GraduationCap, School } from "lucide-react";
+import { ShoppingBag, ExternalLink, User, LogOut, Settings, ChevronDown, UserCircle, Shield, Briefcase, GraduationCap, School, Video, Calendar, Zap, Play } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { apiUrls } from "@/apis";
@@ -24,7 +24,9 @@ const NavbarRight = ({ isScrolled }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userName, setUserName] = useState("");
   const [userRole, setUserRole] = useState("");
+  const [isDemoDropdownOpen, setIsDemoDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const demoDropdownRef = useRef(null);
 
   useEffect(() => {
     // Check if user is logged in by looking for token and userId
@@ -149,6 +151,9 @@ const NavbarRight = ({ isScrolled }) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
       }
+      if (demoDropdownRef.current && !demoDropdownRef.current.contains(event.target)) {
+        setIsDemoDropdownOpen(false);
+      }
     };
 
     window.addEventListener("storage", handleStorageChange);
@@ -216,6 +221,18 @@ const NavbarRight = ({ isScrolled }) => {
     } else {
       return <UserCircle size={14} className="text-gray-500" />;
     }
+  };
+
+  // Handle schedule demo action
+  const handleScheduleDemo = () => {
+    if (isLoggedIn) {
+      // Redirect to demo scheduling page for logged-in users
+      router.push("/dashboards/student/schedule-demo");
+    } else {
+      // Show login modal with demo context
+      router.push("/login?action=schedule-demo");
+    }
+    setIsDemoDropdownOpen(false);
   };
 
   return (
@@ -314,6 +331,152 @@ const NavbarRight = ({ isScrolled }) => {
           </li>
         )}
         
+        {/* Schedule Demo Class - Enhanced Call-to-Action */}
+        <li className="relative" ref={demoDropdownRef}>
+                      <button
+              onClick={() => setIsDemoDropdownOpen(!isDemoDropdownOpen)}
+              className={`group relative inline-flex items-center justify-center gap-1 sm:gap-2 
+                px-2 sm:px-4 md:px-5 py-2 sm:py-2.5
+                ${isScrolled ? 'text-xs sm:text-sm' : 'text-xs sm:text-sm md:text-base'} 
+                min-w-[100px] sm:min-w-[140px] max-w-[180px] sm:max-w-[220px] w-full
+                font-semibold text-white
+                bg-gradient-to-r from-green-500 to-emerald-600
+                hover:from-green-600 hover:to-emerald-700
+                shadow-md hover:shadow-lg
+                rounded-lg
+                transition-all duration-200
+                overflow-hidden animate-pulse hover:animate-none`}
+              aria-label="Schedule a demo class"
+            >
+            {/* Pulsing background effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 opacity-0 group-hover:opacity-20 transition-opacity duration-200"></div>
+            
+            {/* Button content */}
+            <span className="relative z-10 inline-flex items-center gap-1 sm:gap-1.5">
+              <Video size={14} className="sm:w-4 sm:h-4 transform transition-transform duration-200 group-hover:scale-110" />
+              <span className="hidden sm:inline">
+                {isLoggedIn ? "Schedule Demo" : "Demo Class FREE"}
+              </span>
+              <span className="sm:hidden">
+                {isLoggedIn ? "Demo" : "FREE Demo"}
+              </span>
+              <Zap size={12} className="sm:w-3.5 sm:h-3.5 transform transition-transform duration-200 group-hover:rotate-12" />
+            </span>
+            
+            {/* Live indicator */}
+            <div className="absolute -top-1 -right-1 flex items-center">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+              </span>
+            </div>
+          </button>
+
+          {/* Demo Schedule Dropdown */}
+          {isDemoDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 shadow-xl rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 z-50 transform origin-top-right transition-all duration-200 animate-fadeIn">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-4 text-white">
+                <div className="flex items-center gap-2 mb-2">
+                  <Video size={20} />
+                  <h3 className="font-bold text-lg">FREE Demo Class</h3>
+                  <span className="text-xs bg-white/20 px-2 py-1 rounded-full">LIVE</span>
+                </div>
+                <p className="text-sm text-green-100">
+                  Experience our teaching methodology firsthand
+                </p>
+              </div>
+
+              {/* Content */}
+              <div className="p-4">
+                {!isLoggedIn ? (
+                  // For non-logged-in users
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-blue-100 dark:bg-blue-900/20 p-2 rounded-lg">
+                        <Play size={16} className="text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
+                          What you'll get:
+                        </h4>
+                        <ul className="text-xs text-gray-600 dark:text-gray-300 mt-1 space-y-1">
+                          <li>• 45-minute live session with expert instructor</li>
+                          <li>• Interactive learning experience</li>
+                          <li>• Course roadmap & career guidance</li>
+                          <li>• Q&A with industry professionals</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                      <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-200">
+                        <Calendar size={14} />
+                        <span className="text-xs font-medium">Next Available Slots</span>
+                      </div>
+                      <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+                        Today: 6:00 PM • Tomorrow: 11:00 AM, 3:00 PM
+                      </p>
+                    </div>
+
+                    <div className="text-center">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                        Login to book your FREE demo class
+                      </p>
+                      <button
+                        onClick={handleScheduleDemo}
+                        className="w-full bg-primary-600 hover:bg-primary-700 text-white px-4 py-2.5 rounded-lg font-medium text-sm transition-colors duration-150 flex items-center justify-center gap-2"
+                      >
+                        <User size={16} />
+                        Login to Schedule Demo
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  // For logged-in users
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-sm font-medium">Welcome back, {userName}!</span>
+                    </div>
+
+                    <div className="bg-gray-50 dark:bg-gray-800/60 rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Calendar size={14} className="text-gray-600 dark:text-gray-400" />
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">
+                          Available Slots
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <button className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md p-2 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                          Today 6:00 PM
+                        </button>
+                        <button className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md p-2 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                          Tomorrow 11:00 AM
+                        </button>
+                        <button className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md p-2 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                          Tomorrow 3:00 PM
+                        </button>
+                        <button className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md p-2 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                          More Slots...
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={handleScheduleDemo}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-lg font-medium text-sm transition-colors duration-150 flex items-center justify-center gap-2"
+                    >
+                      <Calendar size={16} />
+                      Schedule My Demo
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </li>
+
         {/* Enhanced Get Started Button */}
         {!isLoggedIn && (
           <li className="hidden lg:block">
