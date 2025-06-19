@@ -1208,7 +1208,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
             transition-all duration-300 
             ${isHovered || mobileHoverActive ? 'scale-[1.02] z-10 shadow-2xl' : 'scale-100 z-0 shadow-lg'}
             ${styles.borderHover} ${styles.shadowHover} ${isLiveCourse ? styles.borderLeft : ''}
-            ${isMobile ? 'pb-20 last:mb-0' : ''}
+            ${isMobile ? (isBlendedCourse ? 'pb-8 last:mb-0' : 'pb-20 last:mb-0') : ''}
             ${viewMode === 'grid' ? 'sm:mx-2 md:mx-3' : ''}
             hover:shadow-2xl
             ${isFlipping ? 'pointer-events-none' : ''}`}
@@ -1465,7 +1465,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
             ${isBlendedCourse ? '' : 'transition-all duration-300'} 
             ${(isHovered || mobileHoverActive) && !isBlendedCourse ? 'scale-[1.02] z-10 shadow-2xl' : 'scale-100 z-0 shadow-lg'}
             ${!isBlendedCourse ? styles.borderHover : ''} ${!isBlendedCourse ? styles.shadowHover : ''} ${isLiveCourse ? styles.borderLeft : ''}
-            ${isMobile ? 'pb-20 last:mb-0' : ''}
+            ${isMobile ? (isBlendedCourse ? 'pb-8 last:mb-0' : 'pb-20 last:mb-0') : ''}
             ${viewMode === 'grid' ? 'sm:mx-2 md:mx-3' : ''}
             ${!isBlendedCourse ? 'hover:shadow-2xl' : ''}`}
           onMouseEnter={handleMouseEnter}
@@ -1473,15 +1473,11 @@ const CourseCard: React.FC<CourseCardProps> = ({
           onMouseMove={handleMouseMove}
           style={isBlendedCourse ? {} : tiltStyle}
         >
-          {/* View More button - Completely removed from both mobile and desktop */}
-          {false && (
+          {/* View More button - Only for live courses on mobile, disappears when clicked */}
+          {isMobile && isLiveCourse && !mobileHoverActive && (
             <button 
               onClick={openMobileHover}
-              className={`${mobileButtonStyles} ${
-                isLiveCourse 
-                  ? 'bg-[#379392]/90 text-white hover:bg-[#379392]' 
-                  : 'bg-indigo-500/90 text-white hover:bg-indigo-500'
-              }`}
+              className={`${mobileButtonStyles} bg-[#379392]/90 text-white hover:bg-[#379392] transition-all duration-200`}
             >
               View More
               <ArrowUpRight size={14} className="text-white" />
