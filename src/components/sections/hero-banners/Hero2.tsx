@@ -8,6 +8,20 @@ import { VideoBackgroundContext } from "@/components/layout/main/Home2";
 import medhLogo from "@/assets/images/logo/medh.png";
 import "@/styles/glassmorphism.css";
 
+// Mobile-specific tagline styling
+const mobileTaglineStyles = `
+  @media (max-width: 767px) {
+    .mobile-tagline-large {
+      font-size: 2.0rem !important;
+    }
+  }
+  @media (min-width: 640px) and (max-width: 767px) {
+    .mobile-tagline-large {
+      font-size: 2.5rem !important;
+    }
+  }
+`;
+
 // Essential icons only
 import { 
   ArrowRight, GraduationCap, Users, Star, Clock, BookOpen, TrendingUp,
@@ -154,6 +168,7 @@ const HeroMobile: React.FC<{
   isDark: boolean;
 }> = ({ isLoaded, isDark }) => (
     <div className="mobile-hero-wrapper h-screen max-h-[100vh] relative overflow-hidden">
+      <style jsx>{mobileTaglineStyles}</style>
       <div className="relative z-10 px-4 py-2 flex flex-col h-full justify-center text-center">
       <div className={`flex-1 flex flex-col justify-center transition-all duration-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
 
@@ -246,11 +261,14 @@ const HeroMobile: React.FC<{
 
             {/* Tagline */}
               <div className="mt-6 mb-4 sm:mb-5">
-              <div className={`mumkinMedh text-2xl sm:text-3xl font-extrabold leading-tight ${
+              <div className={`mumkinMedh font-extrabold leading-tight mobile-tagline-large ${
                   isDark 
                     ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
                     : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
-                }`} style={{ transform: 'scaleX(1.1)', letterSpacing: '0.05em' }}>
+                }`} style={{ 
+                  transform: 'scaleX(1.1)', 
+                  letterSpacing: '0.05em' 
+                }}>
                   Medh Hai Toh Mumkin Hai !
                 </div>
               </div>

@@ -152,16 +152,16 @@ const Certified: React.FC = () => {
   return (
     <div
       id="certified-section"
-      className={`py-10 w-full dark:bg-screen-dark bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 transition-all duration-700 ${
+      className={`py-6 md:py-8 lg:py-10 w-full dark:bg-screen-dark bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 transition-all duration-700 ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
       }`}
     >
-      <div className="w-[95%] max-w-7xl mx-auto">
-        <div className="text-center mb-8 space-y-1">
-          <h3 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
+      <div className="w-[95%] max-w-7xl mx-auto px-2 sm:px-4">
+        <div className="text-center mb-6 md:mb-8 space-y-1">
+          <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
             Our Certifications! 🏆
           </h3>
-          <p className="text-gray-600 dark:text-gray-300 text-base">
+          <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">
             Swipe to explore our achievements ✨
           </p>
         </div>
@@ -171,17 +171,17 @@ const Certified: React.FC = () => {
             {certifications.map((cert, index) => (
               <div
                 key={index}
-                className="p-2"
+                className="p-1 sm:p-2"
                 onMouseEnter={() => setIsHovered(index)}
                 onMouseLeave={() => setIsHovered(null)}
               >
                 <div
                   className={`relative group transition-all duration-300 transform 
                     ${isHovered === index ? 'scale-105' : 'scale-100'}
-                    hover:shadow-lg hover:shadow-primary-500/20 rounded-xl
-                    bg-white dark:bg-gray-800 p-4 cursor-pointer`}
+                    hover:shadow-lg hover:shadow-primary-500/20 rounded-lg sm:rounded-xl
+                    bg-white dark:bg-gray-800 p-2 sm:p-3 md:p-4 cursor-pointer`}
                 >
-                  <div className="relative h-[140px] w-[100px] mx-auto">
+                  <div className="relative h-[120px] sm:h-[140px] w-[80px] sm:w-[100px] mx-auto">
                     <Image
                       src={cert.image}
                       alt={cert.alt}
@@ -193,11 +193,11 @@ const Certified: React.FC = () => {
                     />
                   </div>
                   <div className={`
-                    absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100
+                    absolute inset-0 rounded-lg sm:rounded-xl opacity-0 group-hover:opacity-100
                     bg-gradient-to-b from-primary-500/80 to-indigo-600/80
                     transition-opacity duration-300 flex items-center justify-center
                   `}>
-                    <p className="text-white font-medium text-base transform -translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                    <p className="text-white font-medium text-sm sm:text-base transform -translate-y-2 group-hover:translate-y-0 transition-transform duration-300 text-center px-2">
                       {cert.title}
                     </p>
                   </div>
@@ -206,21 +206,21 @@ const Certified: React.FC = () => {
             ))}
           </Slider>
 
-          {/* Decorative elements */}
-          <div className="absolute -top-8 -left-8 w-16 h-16 bg-primary-300/30 dark:bg-primary-600/20 rounded-full blur-xl"></div>
-          <div className="absolute -bottom-8 -right-8 w-16 h-16 bg-indigo-300/30 dark:bg-indigo-600/20 rounded-full blur-xl"></div>
+          {/* Decorative elements - Mobile optimized */}
+          <div className="absolute -top-6 -left-6 sm:-top-8 sm:-left-8 w-12 h-12 sm:w-16 sm:h-16 bg-primary-300/30 dark:bg-primary-600/20 rounded-full blur-xl"></div>
+          <div className="absolute -bottom-6 -right-6 sm:-bottom-8 sm:-right-8 w-12 h-12 sm:w-16 sm:h-16 bg-indigo-300/30 dark:bg-indigo-600/20 rounded-full blur-xl"></div>
         </div>
 
-        {/* Dots navigation - replacing scroll indicator */}
-        <div className="mt-6 text-center">
+        {/* Dots navigation - Mobile optimized */}
+        <div className="mt-4 sm:mt-6 text-center">
           <div className="inline-flex items-center justify-center space-x-2">
             {certifications.map((_, index) => (
               <button
                 key={index}
                 onClick={() => handleDotClick(index)}
-                className={`w-2.5 h-2.5 rounded-full transition-all duration-500 ease-out transform ${
+                className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full transition-all duration-500 ease-out transform ${
                   currentSlide === index 
-                    ? `bg-gradient-to-r from-primary-500 to-indigo-500 w-6 ${isScrolling ? 'scale-110' : ''}`
+                    ? `bg-gradient-to-r from-primary-500 to-indigo-500 w-5 sm:w-6 ${isScrolling ? 'scale-110' : ''}`
                     : `bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 ${
                         isScrolling ? 'translate-y-0.5' : ''
                       }`

@@ -338,13 +338,13 @@ const CorporateOverview: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* Tab Navigation */}
+        {/* Tab Navigation - Mobile Optimized */}
         <motion.div
           initial="hidden"
           animate={isVisible ? "visible" : "hidden"}
           variants={fadeInUp}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="flex justify-center mb-8"
+          className="flex justify-center mb-6 md:mb-8"
         >
           <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-1 shadow-sm">
             <div className="flex space-x-1">
@@ -365,7 +365,7 @@ const CorporateOverview: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Tab Content */}
+        {/* Tab Content - Mobile Optimized */}
         <AnimatePresence mode="wait">
           <motion.div 
             key={activeTab}
@@ -376,7 +376,7 @@ const CorporateOverview: React.FC = () => {
             className="bg-white dark:bg-gray-900 rounded-lg md:rounded-xl border border-gray-200 dark:border-gray-700 p-6 md:p-8 shadow-sm"
           >
             {activeTab === 1 && (
-              <div className="space-y-4 md:space-y-6">
+              <div className="space-y-3 sm:space-y-4 md:space-y-6">
                 {[
                   {
                     title: "Customized Training Solutions",
@@ -404,7 +404,7 @@ const CorporateOverview: React.FC = () => {
                     title={item.title}
                     defaultOpen={index === 0}
                   >
-                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
                       {item.description}
                     </p>
                   </Accordion>
@@ -413,7 +413,7 @@ const CorporateOverview: React.FC = () => {
             )}
 
             {activeTab === 2 && (
-              <div className="space-y-4 md:space-y-6">
+              <div className="space-y-3 sm:space-y-4 md:space-y-6">
                 {[
                   {
                     title: "Strategic Talent Acquisition",
@@ -441,7 +441,7 @@ const CorporateOverview: React.FC = () => {
                     title={benefit.title}
                     defaultOpen={index === 0}
                   >
-                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
                       {benefit.description}
                     </p>
                   </Accordion>
@@ -451,7 +451,7 @@ const CorporateOverview: React.FC = () => {
           </motion.div>
         </AnimatePresence>
 
-        {/* Call to Action */}
+        {/* Call to Action - Mobile Optimized */}
         <motion.div
           initial="hidden"
           animate={isVisible ? "visible" : "hidden"}
@@ -472,7 +472,7 @@ const CorporateOverview: React.FC = () => {
         </motion.div>
       </div>
 
-      {/* Scroll to top button */}
+      {/* Scroll to top button - Mobile Optimized */}
       <AnimatePresence>
         {showScrollTop && (
           <motion.button
