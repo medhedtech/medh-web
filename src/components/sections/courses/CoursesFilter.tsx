@@ -3167,7 +3167,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                   {!hideSortOptions && <SortDropdown sortOrder={sortOrder} handleSortChange={handleSortChange} showSortDropdown={showSortDropdown} setShowSortDropdown={setShowSortDropdown} />}
 
                   {/* Enhanced Filter Dropdown - replaces the simple filter button */}
-                  <FilterDropdown />
+                  {/* <FilterDropdown /> - Removed as requested */}
                   
                   {/* Mobile Categories Dropdown - visible only on mobile */}
                   <MobileCategoriesDropdown />
