@@ -193,17 +193,17 @@ const Accordion: React.FC<IAccordionProps> = memo(({ title, children, defaultOpe
   }, []);
 
   return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-800 mb-3">
+    <div className="border border-slate-200 dark:border-slate-600 rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-800 mb-3">
       <button
         onClick={toggleAccordion}
-        className={`w-full px-4 md:px-6 py-3 md:py-4 text-left flex items-center justify-between bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${titleClassName}`}
+        className={`w-full px-4 md:px-6 py-3 md:py-4 text-left flex items-center justify-between bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${titleClassName}`}
         aria-expanded={isOpen}
       >
-        <span className="text-sm md:text-base font-semibold text-gray-900 dark:text-white pr-4">
+        <span className="text-sm md:text-base font-semibold text-slate-900 dark:text-white pr-4">
           {title}
         </span>
         <ChevronDown 
-          className={`w-4 h-4 md:w-5 md:h-5 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${
+          className={`w-4 h-4 md:w-5 md:h-5 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${
             isOpen ? 'rotate-180' : ''
           }`} 
         />
@@ -218,7 +218,7 @@ const Accordion: React.FC<IAccordionProps> = memo(({ title, children, defaultOpe
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className={`p-4 md:p-6 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 ${contentClassName}`}>
+            <div className={`p-4 md:p-6 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-600 ${contentClassName}`}>
               {children}
             </div>
           </motion.div>
@@ -281,31 +281,37 @@ const CorporateOverview: React.FC = () => {
 
   if (isLoading) {
     return (
-      <section className="bg-gray-50 dark:bg-gray-950 min-h-screen">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 md:py-12">
-          <div className="animate-pulse space-y-8">
+      <section className="relative bg-slate-50 dark:bg-slate-900 min-h-screen overflow-hidden w-full">
+        {/* Enhanced Background Pattern */}
+        <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
+        
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-emerald-50/50 dark:from-blue-950/20 dark:via-transparent dark:to-emerald-950/20"></div>
+        
+        <div className="relative z-10 w-full px-3 sm:px-4 md:px-6 lg:px-8 py-8 md:py-12">
+          <div className="animate-pulse space-y-8 max-w-6xl mx-auto">
             {/* Header skeleton */}
-            <div className="bg-white dark:bg-gray-900 rounded-lg md:rounded-xl border border-gray-200 dark:border-gray-700 p-6 md:p-8 shadow-sm">
-              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto mb-4"></div>
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto"></div>
+            <div className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm">
+              <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/2 mx-auto mb-4"></div>
+              <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4 mx-auto"></div>
             </div>
             
             {/* Tab navigation skeleton */}
-            <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-1 shadow-sm w-fit mx-auto">
+            <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-600 p-1 shadow-sm w-fit mx-auto">
               <div className="flex space-x-1">
                 {[1, 2].map((i) => (
-                  <div key={i} className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+                  <div key={i} className="h-10 bg-slate-200 dark:bg-slate-700 rounded w-24"></div>
                 ))}
               </div>
             </div>
             
             {/* Content skeleton */}
-            <div className="bg-white dark:bg-gray-900 rounded-lg md:rounded-xl border border-gray-200 dark:border-gray-700 p-6 md:p-8 shadow-sm">
+            <div className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm">
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2"></div>
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+                  <div key={i} className="border border-slate-200 dark:border-slate-600 rounded-lg p-4">
+                    <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-2"></div>
+                    <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-full"></div>
                   </div>
                 ))}
               </div>
@@ -317,10 +323,21 @@ const CorporateOverview: React.FC = () => {
   }
 
   return (
-    <section className="bg-gray-50 dark:bg-gray-950 min-h-screen">
-      <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 md:py-12">
-        {/* Clean Header */}
-        <div className="bg-white dark:bg-gray-900 rounded-lg md:rounded-xl border border-gray-200 dark:border-gray-700 p-6 md:p-8 shadow-sm mb-8">
+    <section className="relative bg-slate-50 dark:bg-slate-900 min-h-screen overflow-hidden w-full">
+      {/* Enhanced Background Pattern */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
+      
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-emerald-50/50 dark:from-blue-950/20 dark:via-transparent dark:to-emerald-950/20"></div>
+      
+      {/* Floating Elements */}
+      <div className="absolute top-20 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-3xl animate-blob"></div>
+      <div className="absolute top-40 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-emerald-200/20 dark:bg-emerald-800/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+      <div className="absolute bottom-20 left-1/2 w-28 h-28 sm:w-36 sm:h-36 bg-purple-200/20 dark:bg-purple-800/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+
+      <div className="relative z-10 w-full px-3 sm:px-4 md:px-6 lg:px-8 py-8 md:py-12">
+        {/* Enhanced Header */}
+        <div className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 mb-8 max-w-6xl mx-auto">
           <motion.div
             initial="hidden"
             animate={isVisible ? "visible" : "hidden"}
@@ -328,10 +345,10 @@ const CorporateOverview: React.FC = () => {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-50 mb-4">
               Corporate Training Excellence
             </h1>
-            <p className="text-base md:text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
               Transform your organization with our comprehensive training solutions designed to elevate performance, 
               enhance skills, and drive sustainable growth across all levels of your business.
             </p>
@@ -346,16 +363,16 @@ const CorporateOverview: React.FC = () => {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="flex justify-center mb-6 md:mb-8"
         >
-          <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-1 shadow-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-600 p-1 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 max-w-fit mx-auto">
             <div className="flex space-x-1">
               {data.tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => handleTabClick(tab.id)}
-                  className={`px-4 md:px-6 py-2 md:py-3 rounded-md font-medium transition-all duration-200 text-sm md:text-base ${
+                                      className={`px-4 md:px-6 py-2 md:py-3 rounded-md font-medium transition-all duration-200 text-sm md:text-base ${
                     activeTab === tab.id
                       ? 'bg-blue-600 dark:bg-blue-500 text-white'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   {tab.name}
@@ -373,7 +390,7 @@ const CorporateOverview: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="bg-white dark:bg-gray-900 rounded-lg md:rounded-xl border border-gray-200 dark:border-gray-700 p-6 md:p-8 shadow-sm"
+            className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 max-w-6xl mx-auto"
           >
             {activeTab === 1 && (
               <div className="space-y-3 sm:space-y-4 md:space-y-6">
@@ -404,7 +421,7 @@ const CorporateOverview: React.FC = () => {
                     title={item.title}
                     defaultOpen={index === 0}
                   >
-                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                    <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
                       {item.description}
                     </p>
                   </Accordion>
@@ -441,7 +458,7 @@ const CorporateOverview: React.FC = () => {
                     title={benefit.title}
                     defaultOpen={index === 0}
                   >
-                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                    <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
                       {benefit.description}
                     </p>
                   </Accordion>
@@ -457,9 +474,9 @@ const CorporateOverview: React.FC = () => {
           animate={isVisible ? "visible" : "hidden"}
           variants={fadeInUp}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="bg-white dark:bg-gray-900 rounded-lg md:rounded-xl border border-gray-200 dark:border-gray-700 p-6 md:p-8 shadow-sm text-center mt-8"
+          className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 text-center mt-8 max-w-6xl mx-auto"
         >
-          <p className="text-base md:text-lg text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 mb-6">
             Ready to transform your organization's potential into performance?
           </p>
           <button

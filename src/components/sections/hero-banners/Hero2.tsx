@@ -8,16 +8,16 @@ import { VideoBackgroundContext } from "@/components/layout/main/Home2";
 import medhLogo from "@/assets/images/logo/medh.png";
 import "@/styles/glassmorphism.css";
 
-// Mobile-specific tagline styling
+// Mobile-specific tagline styling - 10% bigger
 const mobileTaglineStyles = `
   @media (max-width: 767px) {
     .mobile-tagline-large {
-      font-size: 2.0rem !important;
+      font-size: 2.2rem !important;
     }
   }
   @media (min-width: 640px) and (max-width: 767px) {
     .mobile-tagline-large {
-      font-size: 2.5rem !important;
+      font-size: 2.75rem !important;
     }
   }
 `;

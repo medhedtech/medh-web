@@ -29,7 +29,7 @@ import {
   CheckCircle, 
   X, 
   ArrowRight, 
-  ArrowLeft,
+  ArrowLeft, 
   Loader2, 
   User,
   Mail,
@@ -67,7 +67,7 @@ interface IFormData {
   // Step 2: Organization Details
   designation: string;
   company_name: string;
-  company_website: string;
+  company_website?: string | null;
   
   // Step 3: Training Requirements
   training_requirements: string;
@@ -180,7 +180,7 @@ const universalFormUtils = {
       professional_info: {
         designation: data.designation.trim(),
         company_name: data.company_name.trim(),
-        company_website: data.company_website.trim(),
+        company_website: data.company_website?.trim() || '',
       },
       
       message: data.training_requirements.trim(),
@@ -310,10 +310,65 @@ const stepValidationSchemas = {
 };
 
 // Complete form validation schema
-const completeFormSchema = yup.object({
-  ...stepValidationSchemas.contact_info.fields,
-  ...stepValidationSchemas.organization_info.fields,
-  ...stepValidationSchemas.training_needs.fields,
+const completeFormSchema = yup.object().shape({
+    full_name: yup
+      .string()
+      .trim()
+      .min(2, "Name must be at least 2 characters long")
+      .max(100, "Name cannot exceed 100 characters")
+      .matches(/^[a-zA-Z\s'-]+$/, "Name can only contain alphabets, spaces, hyphens, and apostrophes")
+      .required("Full name is required"),
+      
+    email: yup
+      .string()
+      .trim()
+      .lowercase()
+      .matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, "Please enter a valid business email address")
+      .required("Business email is required"),
+      
+    country: yup
+      .string()
+      .required("Country is required"),
+      
+    phone_number: yup
+      .string()
+      .required("Phone number is required"),
+  
+    designation: yup
+      .string()
+      .trim()
+      .min(2, "Designation must be at least 2 characters")
+      .max(100, "Designation cannot exceed 100 characters")
+      .required("Job designation/title is required"),
+      
+    company_name: yup
+      .string()
+      .trim()
+      .min(2, "Company name must be at least 2 characters")
+      .max(150, "Company name cannot exceed 150 characters")
+      .required("Company name is required"),
+      
+    company_website: yup
+      .string()
+      .trim()
+      .matches(
+        /^(https?:\/\/)?(www\.)?[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+([\/\w\.-]*)*\/?$/,
+        "Please enter a valid company website URL"
+      )
+      .nullable()
+      .transform(value => value === '' ? null : value),
+  
+    training_requirements: yup
+      .string()
+      .trim()
+      .min(20, "Please provide at least 20 characters describing your training requirements")
+      .max(2000, "Message cannot exceed 2000 characters")
+      .required("Please describe your corporate training requirements"),
+      
+    terms_accepted: yup
+      .boolean()
+      .oneOf([true], "You must accept the terms and privacy policy to proceed")
+      .required("Acceptance of terms is required"),
 });
 
 // Reusable form components
@@ -325,7 +380,7 @@ interface IFormInputProps {
   [key: string]: any;
 }
 
-// Enhanced Form Components with Consistent Design System
+// Enhanced Form Components with Mobile-First Design
 const FormInput: React.FC<IFormInputProps> = ({ 
   label, 
   icon: Icon, 
@@ -367,19 +422,19 @@ const FormInput: React.FC<IFormInputProps> = ({
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative space-y-2"
+      className="relative space-y-3"
     >
-      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200">
+      <label className="block text-sm sm:text-base font-semibold text-slate-700 dark:text-slate-200">
         {label}
       </label>
       <div className="relative group">
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <Icon className={`h-5 w-5 transition-colors duration-200 ${
+        <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
+          <Icon className={`h-5 w-5 sm:h-6 sm:w-6 transition-colors duration-200 ${
             error 
               ? 'text-red-500 dark:text-red-400' 
               : isFocused 
                 ? 'text-blue-500 dark:text-blue-400' 
-                : 'text-gray-400 dark:text-gray-500'
+                : 'text-slate-400 dark:text-slate-500'
           }`} />
         </div>
         <input
@@ -388,34 +443,36 @@ const FormInput: React.FC<IFormInputProps> = ({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           className={`
-            w-full pl-12 pr-4 py-4 rounded-xl border-2 transition-all duration-200
-            bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm
-            text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400
-            font-medium
+            w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 rounded-lg sm:rounded-xl border-2 transition-all duration-200
+            bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm
+            text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400
+            font-medium text-sm sm:text-base
+            min-h-[44px] sm:min-h-[48px]
             ${error 
               ? 'border-red-500 dark:border-red-400 bg-red-50/50 dark:bg-red-900/10 focus:border-red-500 dark:focus:border-red-400 focus:ring-4 focus:ring-red-500/10 dark:focus:ring-red-400/10' 
-              : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-blue-400/10'
+              : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-blue-400/10'
             }
             focus:outline-none
+            touch-manipulation
           `}
           {...props}
         />
         
-        {/* Enhanced Autocomplete */}
+        {/* Enhanced Mobile-Friendly Autocomplete */}
         <AnimatePresence>
           {showSuggestions && (
             <motion.div 
               initial={{ opacity: 0, y: -10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              className="absolute z-20 w-full mt-2 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border border-gray-200 dark:border-gray-600 rounded-xl shadow-xl dark:shadow-gray-900/30 max-h-48 overflow-y-auto"
+              className="absolute z-20 w-full mt-2 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md border border-slate-200 dark:border-slate-600 rounded-lg sm:rounded-xl shadow-xl dark:shadow-slate-900/30 max-h-48 overflow-y-auto"
             >
               {filteredSuggestions.map((suggestion, index) => (
                 <button
                   key={index}
                   type="button"
                   onClick={() => handleSuggestionClick(suggestion)}
-                  className="w-full text-left px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-gray-900 dark:text-white transition-colors duration-150 first:rounded-t-xl last:rounded-b-xl font-medium"
+                  className="w-full text-left px-3 sm:px-4 py-3 sm:py-4 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-slate-900 dark:text-white transition-colors duration-150 first:rounded-t-lg sm:first:rounded-t-xl last:rounded-b-lg sm:last:rounded-b-xl font-medium text-sm sm:text-base min-h-[44px] flex items-center touch-manipulation"
                 >
                   {suggestion}
                 </button>
@@ -431,10 +488,10 @@ const FormInput: React.FC<IFormInputProps> = ({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm font-medium"
+            className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs sm:text-sm font-medium"
           >
-            <AlertCircle className="h-4 w-4" />
-            {error}
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            <span className="leading-tight">{error}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -455,19 +512,19 @@ const FormTextArea: React.FC<IFormInputProps> = ({
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative space-y-2"
+      className="relative space-y-3"
     >
-      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200">
+      <label className="block text-sm sm:text-base font-semibold text-slate-700 dark:text-slate-200">
         {label}
       </label>
       <div className="relative group">
-        <div className="absolute top-4 left-4 pointer-events-none">
-          <Icon className={`h-5 w-5 transition-colors duration-200 ${
+        <div className="absolute top-3 sm:top-4 left-3 sm:left-4 pointer-events-none">
+          <Icon className={`h-5 w-5 sm:h-6 sm:w-6 transition-colors duration-200 ${
             error 
               ? 'text-red-500 dark:text-red-400' 
               : isFocused 
                 ? 'text-blue-500 dark:text-blue-400' 
-                : 'text-gray-400 dark:text-gray-500'
+                : 'text-slate-400 dark:text-slate-500'
           }`} />
         </div>
         <textarea
@@ -475,15 +532,17 @@ const FormTextArea: React.FC<IFormInputProps> = ({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           className={`
-            w-full pl-12 pr-4 py-4 rounded-xl border-2 transition-all duration-200
-            bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm
-            text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400
-            font-medium resize-none
+            w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 rounded-lg sm:rounded-xl border-2 transition-all duration-200
+            bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm
+            text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400
+            font-medium resize-none text-sm sm:text-base
+            min-h-[120px] sm:min-h-[140px]
             ${error 
               ? 'border-red-500 dark:border-red-400 bg-red-50/50 dark:bg-red-900/10 focus:border-red-500 dark:focus:border-red-400 focus:ring-4 focus:ring-red-500/10 dark:focus:ring-red-400/10' 
-              : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-blue-400/10'
+              : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-blue-400/10'
             }
             focus:outline-none
+            touch-manipulation
           `}
           {...props}
         />
@@ -495,10 +554,10 @@ const FormTextArea: React.FC<IFormInputProps> = ({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm font-medium"
+            className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs sm:text-sm font-medium"
           >
-            <AlertCircle className="h-4 w-4" />
-            {error}
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            <span className="leading-tight">{error}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -515,18 +574,18 @@ const FormCheckbox: React.FC<{
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative space-y-2"
+      className="relative space-y-3"
     >
-      <div className="flex items-start space-x-3">
-        <div className="flex items-center h-6">
+      <div className="flex items-start space-x-3 sm:space-x-4">
+        <div className="flex items-center h-6 mt-0.5">
           <input
             type="checkbox"
-            className="w-5 h-5 text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-2 transition-all duration-200"
+            className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 rounded-md sm:rounded-lg focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-2 transition-all duration-200 touch-manipulation"
             {...props}
           />
         </div>
-        <div className="text-sm">
-          <label className="font-medium text-gray-700 dark:text-gray-200 leading-relaxed">
+        <div className="text-sm sm:text-base flex-1">
+          <label className="font-medium text-slate-700 dark:text-slate-200 leading-relaxed cursor-pointer">
             {label}
           </label>
         </div>
@@ -538,10 +597,10 @@ const FormCheckbox: React.FC<{
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm font-medium ml-8"
+            className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs sm:text-sm font-medium ml-8 sm:ml-10"
           >
-            <AlertCircle className="h-4 w-4" />
-            {error}
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            <span className="leading-tight">{error}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -923,11 +982,11 @@ const MultiStepCorporateForm: React.FC<{
               error={errors.training_requirements?.message}
               {...register("training_requirements")}
             />
-            <p className="text-xs text-gray-500 -mt-4">
+            <p className="text-xs text-slate-500 -mt-4">
               Include skills, timeline, format (online/onsite), team size, and goals.
             </p>
 
-            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-6">
+            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-6">
               <FormCheckbox
                 label={
                   <span className="text-sm">
@@ -961,65 +1020,102 @@ const MultiStepCorporateForm: React.FC<{
   if (!isOpen) return null;
 
   return (
+    <section className="relative bg-slate-50 dark:bg-slate-900 min-h-screen overflow-hidden w-full">
+      {/* Enhanced Background Pattern matching corporateFaq.tsx */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
+      
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-violet-50/50 dark:from-blue-950/20 dark:via-transparent dark:to-violet-950/20"></div>
+      
+      {/* Floating Elements matching corporateFaq.tsx */}
+      <div className="absolute top-20 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-3xl animate-blob"></div>
+      <div className="absolute top-40 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-violet-200/20 dark:bg-violet-800/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+      <div className="absolute bottom-20 left-1/2 w-28 h-28 sm:w-36 sm:h-36 bg-amber-200/20 dark:bg-amber-800/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+
+      <div className="relative z-10 w-full px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-4 md:py-8">
+        
     <motion.div 
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 50 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="w-full max-w-4xl mx-auto bg-white dark:bg-gray-900 shadow-xl md:rounded-2xl border-0 md:border border-gray-200 dark:border-gray-700 overflow-hidden min-h-screen md:min-h-0"
-    >
-      {/* Clean Header */}
-      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 md:px-8 py-6 md:py-8">
-        <div className="max-w-2xl">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          className="relative w-full max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 overflow-hidden"
+        >
+          {/* Enhanced Mobile-First Header */}
+          <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-600 px-3 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 text-center">
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-50 mb-2 sm:mb-3 leading-tight"
+            >
             Corporate Training Inquiry
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 text-base md:text-lg">
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mx-auto px-2"
+            >
             Let us help your team grow. Share your training requirements, and we'll tailor a solution for your organization.
-          </p>
-        </div>
+            </motion.p>
       </div>
 
-      {/* Form Content */}
-      <div className="bg-gray-50 dark:bg-gray-950 flex-1">
-        <div className="px-4 md:px-8 py-6 md:py-8 pb-8 md:pb-12">
+          {/* Enhanced Mobile-First Form Content */}
+          <div className="bg-white dark:bg-slate-800 p-2 sm:p-4 md:p-6 lg:p-8">
+            <div className="w-full">
           <StepProgress 
             steps={FORM_STEPS}
             currentStep={currentStep}
             completedSteps={completedSteps}
           />
 
-          <form onSubmit={handleSubmit(onSubmit)} className="mt-8">
-            {/* Current Step Content */}
+              <form onSubmit={handleSubmit(onSubmit)} className="mt-6 sm:mt-8 md:mt-10">
+                {/* Enhanced Mobile-First Step Content Card */}
             <motion.div
               key={currentStep}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
-              className="bg-white dark:bg-gray-900 rounded-lg md:rounded-xl border border-gray-200 dark:border-gray-700 p-6 md:p-8 shadow-sm mb-6 md:mb-8"
+                  className="relative bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-lg sm:rounded-xl md:rounded-2xl border border-white/50 dark:border-slate-600/50 p-4 sm:p-6 md:p-8 lg:p-10 shadow-lg sm:shadow-xl shadow-slate-200/20 dark:shadow-slate-900/30 mb-6 sm:mb-8"
             >
-              {/* Step Header */}
+                  {/* Subtle gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-transparent to-indigo-50/30 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-lg sm:rounded-xl md:rounded-2xl pointer-events-none"></div>
+                  
+                  {/* Enhanced Mobile-First Step Header */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700"
-              >
-                <h3 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">
+                    className="relative z-10 mb-6 sm:mb-8 pb-4 sm:pb-6 border-b border-slate-200/60 dark:border-slate-600/60"
+                  >
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold text-base sm:text-lg shadow-lg">
+                        {currentStep + 1}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white leading-tight">
                   {FORM_STEPS[currentStep]?.title}
                 </h3>
+                        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                          {FORM_STEPS[currentStep]?.description}
+                        </p>
+                      </div>
+                    </div>
               </motion.div>
 
               {/* Step Content */}
+                  <div className="relative z-10">
               {renderStep()}
+                  </div>
             </motion.div>
           </form>
         </div>
       </div>
 
-      {/* Clean Navigation Footer */}
-      <div className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-4 md:px-8 py-4 md:py-6">
-        <div className="flex justify-between items-center">
+          {/* Enhanced Mobile-First Navigation Footer */}
+          <div className="relative bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border-t border-slate-200/50 dark:border-slate-600/50 px-3 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8">
+            <div className="flex justify-between items-center gap-3">
           <motion.button
             type="button"
             onClick={handlePrevious}
@@ -1027,14 +1123,14 @@ const MultiStepCorporateForm: React.FC<{
             suppressHydrationWarning
             whileHover={{ scale: currentStep === 0 ? 1 : 1.02 }}
             whileTap={{ scale: currentStep === 0 ? 1 : 0.98 }}
-            className={`flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 rounded-lg font-medium transition-all duration-200 ${
+                className={`flex items-center gap-2 sm:gap-3 px-4 sm:px-6 md:px-8 py-3 sm:py-3 md:py-4 rounded-lg sm:rounded-xl font-semibold transition-all duration-200 min-h-[44px] touch-manipulation ${
               currentStep === 0
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
-                : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'bg-slate-100/60 text-slate-400 cursor-not-allowed dark:bg-slate-700/60 dark:text-slate-500'
+                    : 'bg-slate-100/80 text-slate-700 dark:bg-slate-700/80 dark:text-slate-200 hover:bg-slate-200/80 dark:hover:bg-slate-600/80 shadow-lg hover:shadow-xl'
             }`}
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Previous</span>
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="text-sm sm:text-base hidden xs:inline">Previous</span>
           </motion.button>
 
           {currentStep === FORM_STEPS.length - 1 ? (
@@ -1043,25 +1139,25 @@ const MultiStepCorporateForm: React.FC<{
               onClick={handleSubmit(onSubmit)}
               disabled={loading}
               suppressHydrationWarning
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className={`flex items-center gap-2 px-6 md:px-8 py-2 md:py-3 rounded-lg font-semibold transition-all duration-200 ${
+                  whileHover={{ scale: loading ? 1 : 1.02 }}
+                  whileTap={{ scale: loading ? 1 : 0.98 }}
+                  className={`flex items-center gap-2 sm:gap-3 px-6 sm:px-8 md:px-10 py-3 sm:py-3 md:py-4 rounded-lg sm:rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl min-h-[44px] touch-manipulation text-sm sm:text-base ${
                 loading 
-                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-800 dark:text-gray-500' 
-                  : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white'
+                      ? 'bg-slate-200/60 text-slate-500 cursor-not-allowed dark:bg-slate-700/60 dark:text-slate-400' 
+                      : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-500/25 hover:shadow-blue-500/40'
               }`}
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="hidden sm:inline">Processing...</span>
-                  <span className="sm:hidden">...</span>
+                      <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                      <span className="hidden xs:inline">Processing...</span>
+                      <span className="xs:hidden">...</span>
                 </>
               ) : (
                 <>
-                  <Send className="w-4 h-4" />
-                  <span className="hidden sm:inline">Submit Inquiry</span>
-                  <span className="sm:hidden">Submit</span>
+                      <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <span className="hidden xs:inline">Submit Inquiry</span>
+                      <span className="xs:hidden">Submit</span>
                 </>
               )}
             </motion.button>
@@ -1072,15 +1168,16 @@ const MultiStepCorporateForm: React.FC<{
               suppressHydrationWarning
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="flex items-center gap-2 px-6 md:px-8 py-2 md:py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-semibold rounded-lg transition-all duration-200"
-            >
-              <span className="hidden sm:inline">Next Step</span>
-              <span className="sm:hidden">Next</span>
-              <ArrowRight className="w-4 h-4" />
+                  className="flex items-center gap-2 sm:gap-3 px-6 sm:px-8 md:px-10 py-3 sm:py-3 md:py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-lg sm:rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl shadow-blue-500/25 hover:shadow-blue-500/40 min-h-[44px] touch-manipulation text-sm sm:text-base"
+                >
+                  <span className="hidden xs:inline">Next Step</span>
+                  <span className="xs:hidden">Next</span>
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </motion.button>
           )}
         </div>
       </div>
+        </motion.div>
 
       {/* Enhanced Success Modal */}
       <AnimatePresence>
@@ -1147,7 +1244,8 @@ const MultiStepCorporateForm: React.FC<{
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+      </div>
+    </section>
   );
 };
 
