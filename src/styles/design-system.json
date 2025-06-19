@@ -1,0 +1,1989 @@
+{
+  "designSystem": {
+    "name": "MEDH Professional Design System",
+    "version": "3.0.0",
+    "description": "A refined design system emphasizing premium minimalism, modern elegance, and joyful interactions across all devices",
+    
+    "colors": {
+      "primary": {
+        "50": "#eff6ff",
+        "100": "#dbeafe", 
+        "200": "#bfdbfe",
+        "300": "#93c5fd",
+        "400": "#60a5fa",
+        "500": "#3b82f6",
+        "600": "#2563eb",
+        "700": "#1d4ed8",
+        "800": "#1e40af",
+        "900": "#1e3a8a",
+        "950": "#172554"
+      },
+      
+      "semantic": {
+        "courses": {
+          "light": "#3b82f6",
+          "dark": "#1e40af",
+          "bg": "rgba(59, 130, 246, 0.15)",
+          "glass": "rgba(59, 130, 246, 0.08)"
+        },
+        "pricing": {
+          "light": "#10b981",
+          "dark": "#047857", 
+          "bg": "rgba(16, 185, 129, 0.15)",
+          "glass": "rgba(16, 185, 129, 0.08)"
+        },
+        "certification": {
+          "light": "#f59e0b",
+          "dark": "#d97706",
+          "bg": "rgba(245, 158, 11, 0.15)",
+          "glass": "rgba(245, 158, 11, 0.08)"
+        },
+        "support": {
+          "light": "#8b5cf6",
+          "dark": "#7c3aed",
+          "bg": "rgba(139, 92, 246, 0.15)",
+          "glass": "rgba(139, 92, 246, 0.08)"
+        },
+        "enrollment": {
+          "light": "#ec4899",
+          "dark": "#db2777",
+          "bg": "rgba(236, 72, 153, 0.15)",
+          "glass": "rgba(236, 72, 153, 0.08)"
+        }
+      },
+
+      "neutral": {
+        "light": {
+          "50": "#fafbfc",
+          "100": "#f4f6f8", 
+          "200": "#e8ecf0",
+          "300": "#d1d9e0",
+          "400": "#9ca6b2",
+          "500": "#6b7684",
+          "600": "#4f5b69",
+          "700": "#3c4651",
+          "800": "#2a3441",
+          "900": "#1a202c",
+          "950": "#0d1117"
+        },
+        "dark": {
+          "50": "#0d1117",
+          "100": "#1a202c",
+          "200": "#2a3441", 
+          "300": "#3c4651",
+          "400": "#4f5b69",
+          "500": "#6b7684",
+          "600": "#9ca6b2",
+          "700": "#d1d9e0",
+          "800": "#e8ecf0",
+          "900": "#f4f6f8",
+          "950": "#fafbfc"
+        }
+      },
+
+      "backgrounds": {
+        "primary": {
+          "light": "#fafbfc",
+          "dark": "#1a202c"
+        },
+        "secondary": {
+          "light": "#f4f6f8",
+          "dark": "#2a3441"
+        },
+        "surface": {
+          "light": "#ffffff",
+          "dark": "#1a202c"
+        },
+        "elevated": {
+          "light": "#ffffff",
+          "dark": "#2a3441"
+        }
+      },
+
+      "glassmorphism": {
+        "backgrounds": {
+          "subtle": "rgba(255, 255, 255, 0.03)",
+          "gentle": "rgba(255, 255, 255, 0.06)",
+          "moderate": "rgba(255, 255, 255, 0.08)",
+          "prominent": "rgba(255, 255, 255, 0.12)"
+        },
+        "borders": {
+          "whisper": "rgba(255, 255, 255, 0.08)",
+          "soft": "rgba(255, 255, 255, 0.12)",
+          "defined": "rgba(255, 255, 255, 0.18)",
+          "bold": "rgba(255, 255, 255, 0.25)"
+        },
+        "blurs": {
+          "subtle": "blur(4px)",
+          "gentle": "blur(8px)",
+          "moderate": "blur(12px)",
+          "strong": "blur(16px)"
+        }
+      },
+
+      "backgroundPatterns": {
+        "grid": {
+          "className": "bg-grid-pattern",
+          "opacity": {
+            "light": "opacity-30",
+            "dark": "opacity-20"
+          },
+          "description": "Subtle grid pattern for background texture",
+          "usage": "Apply to section backgrounds for visual depth"
+        },
+        "gradientOverlays": {
+          "blueViolet": {
+            "light": "bg-gradient-to-br from-blue-50/50 via-transparent to-violet-50/50",
+            "dark": "bg-gradient-to-br from-blue-950/20 via-transparent to-violet-950/20"
+          },
+          "blueIndigo": {
+            "light": "bg-gradient-to-r from-blue-100/40 via-indigo-50/30 to-purple-100/40",
+            "dark": "bg-gradient-to-r from-blue-400/5 to-indigo-400/5"
+          }
+        },
+        "floatingElements": {
+          "blob1": {
+            "className": "absolute top-20 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-3xl animate-blob"
+          },
+          "blob2": {
+            "className": "absolute top-40 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-violet-200/20 dark:bg-violet-800/20 rounded-full blur-3xl animate-blob animation-delay-2000"
+          },
+          "blob3": {
+            "className": "absolute bottom-20 left-1/2 w-28 h-28 sm:w-36 sm:h-36 bg-amber-200/20 dark:bg-amber-800/20 rounded-full blur-3xl animate-blob animation-delay-4000"
+          }
+        }
+      },
+
+      "elevation": {
+        "minimal": {
+          "light": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+          "dark": "0 1px 2px 0 rgba(0, 0, 0, 0.2)"
+        },
+        "subtle": {
+          "light": "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+          "dark": "0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2)"
+        },
+        "gentle": {
+          "light": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+          "dark": "0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.25)"
+        },
+        "elevated": {
+          "light": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+          "dark": "0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3)"
+        },
+        "floating": {
+          "light": "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+          "dark": "0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.3)"
+        }
+      }
+    },
+
+    "typography": {
+      "fontFamily": {
+        "sans": ["Inter", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
+        "mono": ["JetBrains Mono", "Fira Code", "Consolas", "monospace"],
+        "display": ["Inter", "system-ui", "sans-serif"]
+      },
+      
+      "fontSize": {
+        "xs": {
+          "mobile": "0.75rem",
+          "tablet": "0.75rem",
+          "desktop": "0.75rem",
+          "lineHeight": "1rem",
+          "clamp": "clamp(0.7rem, 2vw, 0.75rem)"
+        },
+        "sm": {
+          "mobile": "0.875rem", 
+          "tablet": "0.875rem",
+          "desktop": "0.875rem",
+          "lineHeight": "1.25rem",
+          "clamp": "clamp(0.8rem, 2.5vw, 0.875rem)"
+        },
+        "base": {
+          "mobile": "0.875rem",
+          "tablet": "0.9375rem",
+          "desktop": "1rem", 
+          "lineHeight": "1.5rem",
+          "clamp": "clamp(0.875rem, 3vw, 1rem)"
+        },
+        "lg": {
+          "mobile": "1rem",
+          "tablet": "1.0625rem",
+          "desktop": "1.125rem",
+          "lineHeight": "1.75rem",
+          "clamp": "clamp(1rem, 3.5vw, 1.125rem)"
+        },
+        "xl": {
+          "mobile": "1.125rem",
+          "tablet": "1.1875rem",
+          "desktop": "1.25rem",
+          "lineHeight": "1.75rem",
+          "clamp": "clamp(1.125rem, 4vw, 1.25rem)"
+        },
+        "2xl": {
+          "mobile": "1.25rem",
+          "tablet": "1.375rem",
+          "desktop": "1.5rem", 
+          "lineHeight": "2rem",
+          "clamp": "clamp(1.25rem, 4.5vw, 1.5rem)"
+        },
+        "3xl": {
+          "mobile": "1.5rem",
+          "tablet": "1.6875rem",
+          "desktop": "1.875rem",
+          "lineHeight": "2.25rem",
+          "clamp": "clamp(1.5rem, 5vw, 1.875rem)"
+        },
+        "4xl": {
+          "mobile": "1.875rem",
+          "tablet": "2.0625rem",
+          "desktop": "2.25rem",
+          "lineHeight": "2.5rem",
+          "clamp": "clamp(1.875rem, 6vw, 2.25rem)"
+        },
+        "5xl": {
+          "mobile": "2.25rem",
+          "tablet": "2.625rem",
+          "desktop": "3rem",
+          "lineHeight": "3rem",
+          "clamp": "clamp(2.25rem, 7vw, 3rem)"
+        },
+        "6xl": {
+          "mobile": "2.625rem",
+          "tablet": "3.375rem",
+          "desktop": "3.75rem",
+          "lineHeight": "3.75rem",
+          "clamp": "clamp(2.625rem, 8vw, 3.75rem)"
+        }
+      },
+
+      "fontWeight": {
+        "thin": "100",
+        "extralight": "200",
+        "light": "300",
+        "normal": "400",
+        "medium": "500", 
+        "semibold": "600",
+        "bold": "700",
+        "extrabold": "800",
+        "black": "900"
+      }
+    },
+
+    "spacing": {
+      "mobile": {
+        "xs": "0.25rem",
+        "sm": "0.5rem", 
+        "base": "0.75rem",
+        "md": "1rem",
+        "lg": "1.25rem",
+        "xl": "1.5rem",
+        "2xl": "2rem",
+        "3xl": "2.5rem",
+        "4xl": "3rem",
+        "5xl": "4rem",
+        "6xl": "5rem"
+      },
+      "tablet": {
+        "xs": "0.375rem",
+        "sm": "0.625rem",
+        "base": "0.875rem", 
+        "md": "1.25rem",
+        "lg": "1.75rem",
+        "xl": "2rem", 
+        "2xl": "2.5rem",
+        "3xl": "3.5rem",
+        "4xl": "4rem",
+        "5xl": "5rem",
+        "6xl": "6rem"
+      },
+      "desktop": {
+        "xs": "0.5rem",
+        "sm": "0.75rem",
+        "base": "1rem", 
+        "md": "1.5rem",
+        "lg": "2rem",
+        "xl": "2.5rem", 
+        "2xl": "3rem",
+        "3xl": "4rem",
+        "4xl": "5rem",
+        "5xl": "6rem",
+        "6xl": "8rem"
+      }
+    },
+
+    "layout": {
+      "containers": {
+        "xs": "20rem",
+        "sm": "24rem",
+        "md": "28rem", 
+        "lg": "32rem",
+        "xl": "36rem",
+        "2xl": "42rem",
+        "3xl": "48rem",
+        "4xl": "56rem",
+        "5xl": "64rem",
+        "6xl": "72rem",
+        "7xl": "80rem",
+        "8xl": "88rem",
+        "9xl": "96rem"
+      },
+      
+      "breakpoints": {
+        "xs": "320px",
+        "sm": "480px",
+        "md": "768px", 
+        "lg": "1024px",
+        "xl": "1280px",
+        "2xl": "1440px",
+        "3xl": "1600px",
+        "4xl": "1920px"
+      },
+
+      "deviceBreakpoints": {
+        "mobile": {
+          "xs": "320px",
+          "sm": "360px",
+          "md": "390px",
+          "lg": "414px",
+          "xl": "480px"
+        },
+        "tablet": {
+          "sm": "600px",
+          "md": "768px",
+          "lg": "810px",
+          "xl": "834px",
+          "2xl": "1024px"
+        },
+        "desktop": {
+          "sm": "1280px",
+          "md": "1366px",
+          "lg": "1440px",
+          "xl": "1536px",
+          "2xl": "1600px",
+          "3xl": "1920px",
+          "4xl": "2560px"
+        },
+        "aspectRatios": {
+          "16:9": "aspect-[16/9]",
+          "16:10": "aspect-[16/10]",
+          "21:9": "aspect-[21/9]",
+          "4:3": "aspect-[4/3]",
+          "1:1": "aspect-square"
+        }
+      },
+
+      "padding": {
+        "mobile": "0.75rem",
+        "tablet": "1.5rem",
+        "desktop": "2rem",
+        "ultrawide": "2.5rem"
+      },
+
+      "maxWidths": {
+        "mobile": "100%",
+        "tablet": "90%",
+        "desktop": "85%",
+        "ultrawide": "80%"
+      }
+    },
+
+    "components": {
+      "forms": {
+        "input": {
+          "standard": {
+            "mobile": {
+              "height": "2.75rem",
+              "padding": "0.75rem 1rem",
+              "fontSize": "0.875rem",
+              "borderRadius": "0.5rem",
+              "borderWidth": "1px"
+            },
+            "tablet": {
+              "height": "3rem",
+              "padding": "0.875rem 1.25rem",
+              "fontSize": "0.9375rem",
+              "borderRadius": "0.75rem",
+              "borderWidth": "1px"
+            },
+            "desktop": {
+              "height": "3.25rem",
+              "padding": "1rem 1.5rem",
+              "fontSize": "1rem",
+              "borderRadius": "0.75rem",
+              "borderWidth": "1px"
+            },
+            "background": {
+              "light": "#ffffff",
+              "dark": "#1e293b"
+            },
+            "border": {
+              "light": "#cbd5e1",
+              "dark": "#475569",
+              "focus": "#3b82f6",
+              "error": "#ef4444",
+              "success": "#10b981"
+            },
+            "text": {
+              "light": "#0f172a",
+              "dark": "#f8fafc",
+              "placeholder": {
+                "light": "#64748b",
+                "dark": "#94a3b8"
+              }
+            },
+            "states": {
+              "hover": {
+                "borderColor": {
+                  "light": "#94a3b8",
+                  "dark": "#64748b"
+                }
+              },
+              "focus": {
+                "borderColor": "#3b82f6",
+                "ringColor": "rgba(59, 130, 246, 0.2)",
+                "ringWidth": "3px"
+              },
+              "disabled": {
+                "background": {
+                  "light": "#f1f5f9",
+                  "dark": "#334155"
+                },
+                "text": {
+                  "light": "#94a3b8",
+                  "dark": "#64748b"
+                }
+              }
+            }
+          },
+          "enhanced": {
+            "className": "w-full pl-12 pr-4 py-4 rounded-xl border-2 transition-all duration-200 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 font-medium",
+            "withIcon": {
+              "padding": "1rem 1rem 1rem 3rem",
+              "iconPosition": "absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
+            },
+            "states": {
+              "default": "border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-blue-400/10",
+              "error": "border-red-500 dark:border-red-400 bg-red-50/50 dark:bg-red-900/10 focus:border-red-500 dark:focus:border-red-400 focus:ring-4 focus:ring-red-500/10 dark:focus:ring-red-400/10",
+              "success": "border-green-500 dark:border-green-400 bg-green-50/50 dark:bg-green-900/10 focus:border-green-500 dark:focus:border-green-400 focus:ring-4 focus:ring-green-500/10 dark:focus:ring-green-400/10"
+            },
+            "iconColors": {
+              "default": "text-slate-400 dark:text-slate-500",
+              "focused": "text-blue-500 dark:text-blue-400",
+              "error": "text-red-500 dark:text-red-400"
+            }
+          },
+          "glass": {
+            "background": "rgba(255, 255, 255, 0.08)",
+            "backdropFilter": "blur(12px)",
+            "border": "1px solid rgba(255, 255, 255, 0.15)",
+            "borderFocus": "1px solid rgba(59, 130, 246, 0.5)",
+            "text": {
+              "light": "#1e293b",
+              "dark": "#f8fafc"
+            },
+            "placeholder": "rgba(100, 116, 139, 0.7)"
+          }
+        },
+
+        "multiStep": {
+          "container": {
+            "mobile": "relative w-full max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-600 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 overflow-hidden",
+            "desktop": "md:rounded-xl",
+            "className": "relative w-full max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 overflow-hidden"
+          },
+          "header": {
+            "mobile": "bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-600 px-3 py-4 text-center",
+            "desktop": "sm:px-6 md:px-8 sm:py-6 md:py-8",
+            "className": "bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-600 px-3 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 text-center"
+          },
+          "content": {
+            "mobile": "bg-white dark:bg-slate-800 p-2",
+            "desktop": "sm:p-4 md:p-6 lg:p-8",
+            "className": "bg-white dark:bg-slate-800 p-2 sm:p-4 md:p-6 lg:p-8"
+          },
+          "stepCard": {
+            "mobile": "relative bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-lg border border-white/50 dark:border-slate-600/50 p-4 shadow-lg mb-6",
+            "desktop": "sm:rounded-xl md:rounded-2xl sm:p-6 md:p-8 lg:p-10 sm:shadow-xl sm:mb-8",
+            "className": "relative bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-lg sm:rounded-xl md:rounded-2xl border border-white/50 dark:border-slate-600/50 p-4 sm:p-6 md:p-8 lg:p-10 shadow-lg sm:shadow-xl shadow-slate-200/20 dark:shadow-slate-900/30 mb-6 sm:mb-8"
+          },
+          "stepHeader": {
+            "mobile": "relative z-10 mb-6 pb-4 border-b border-slate-200/60 dark:border-slate-600/60",
+            "desktop": "sm:mb-8 sm:pb-6",
+            "className": "relative z-10 mb-6 sm:mb-8 pb-4 sm:pb-6 border-b border-slate-200/60 dark:border-slate-600/60",
+            "stepNumber": {
+              "mobile": "flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold text-base shadow-lg",
+              "desktop": "sm:w-12 sm:h-12 sm:rounded-xl sm:text-lg",
+              "className": "flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold text-base sm:text-lg shadow-lg"
+            }
+          },
+          "progressBar": {
+            "container": "mb-6 md:mb-8",
+            "stepCircle": {
+              "base": "w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200",
+              "completed": "bg-green-600 dark:bg-green-500 text-white shadow-sm",
+              "current": "bg-blue-600 dark:bg-blue-500 text-white shadow-sm",
+              "inactive": "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
+            },
+            "connectingLine": {
+              "base": "h-0.5 md:h-1 rounded-full transition-all duration-300",
+              "completed": "bg-green-600 dark:bg-green-500",
+              "inactive": "bg-gray-200 dark:bg-gray-700"
+            },
+            "stepLabel": {
+              "current": "text-blue-600 dark:text-blue-400",
+              "completed": "text-green-600 dark:text-green-400",
+              "inactive": "text-gray-500 dark:text-gray-500"
+            }
+          },
+          "navigation": {
+            "mobile": "relative bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border-t border-slate-200/50 dark:border-slate-600/50 px-3 py-4",
+            "desktop": "sm:px-6 md:px-8 sm:py-6 md:py-8",
+            "className": "relative bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border-t border-slate-200/50 dark:border-slate-600/50 px-3 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8",
+            "buttonBase": {
+              "mobile": "flex items-center gap-2 py-3 rounded-lg font-semibold transition-all duration-200 min-h-[44px] touch-manipulation text-sm",
+              "desktop": "sm:gap-3 sm:rounded-xl sm:text-base md:py-4",
+              "className": "flex items-center gap-2 sm:gap-3 py-3 sm:py-3 md:py-4 rounded-lg sm:rounded-xl font-semibold transition-all duration-200 min-h-[44px] touch-manipulation text-sm sm:text-base"
+            },
+            "buttonPrevious": {
+              "enabled": "bg-slate-100/80 text-slate-700 dark:bg-slate-700/80 dark:text-slate-200 hover:bg-slate-200/80 dark:hover:bg-slate-600/80 shadow-lg hover:shadow-xl px-4 sm:px-6 md:px-8",
+              "disabled": "bg-slate-100/60 text-slate-400 cursor-not-allowed dark:bg-slate-700/60 dark:text-slate-500 px-4 sm:px-6 md:px-8"
+            },
+            "buttonNext": "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold transition-all duration-200 shadow-lg hover:shadow-xl shadow-blue-500/25 hover:shadow-blue-500/40 px-6 sm:px-8 md:px-10",
+            "buttonSubmit": {
+              "enabled": "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-500/25 hover:shadow-blue-500/40 px-6 sm:px-8 md:px-10",
+              "loading": "bg-slate-200/60 text-slate-500 cursor-not-allowed dark:bg-slate-700/60 dark:text-slate-400 px-6 sm:px-8 md:px-10"
+            }
+          }
+        },
+
+        "autocomplete": {
+          "dropdown": {
+            "className": "absolute z-20 w-full mt-2 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md border border-slate-200 dark:border-slate-600 rounded-xl shadow-xl dark:shadow-slate-900/30 max-h-48 overflow-y-auto"
+          },
+          "item": {
+            "className": "w-full text-left px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-slate-900 dark:text-white transition-colors duration-150 first:rounded-t-xl last:rounded-b-xl font-medium"
+          }
+        },
+
+        "validation": {
+          "errorMessage": {
+            "className": "flex items-center gap-2 text-red-600 dark:text-red-400 text-sm font-medium",
+            "icon": "h-4 w-4"
+          },
+          "successMessage": {
+            "className": "flex items-center gap-2 text-green-600 dark:text-green-400 text-sm font-medium",
+            "icon": "h-4 w-4"
+          }
+        },
+
+        "mobileFirst": {
+          "input": {
+            "mobile": {
+              "height": "44px",
+              "padding": "0.75rem 2.5rem 0.75rem 2.5rem",
+              "fontSize": "0.875rem",
+              "borderRadius": "0.5rem",
+              "borderWidth": "2px",
+              "iconSize": "1.25rem",
+              "iconPadding": "0.75rem"
+            },
+            "tablet": {
+              "height": "48px", 
+              "padding": "1rem 3rem 1rem 3rem",
+              "fontSize": "1rem",
+              "borderRadius": "0.75rem",
+              "iconSize": "1.5rem",
+              "iconPadding": "1rem"
+            },
+            "className": "w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 rounded-lg sm:rounded-xl border-2 transition-all duration-200 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 font-medium text-sm sm:text-base min-h-[44px] sm:min-h-[48px] focus:outline-none touch-manipulation"
+          },
+          "textarea": {
+            "mobile": {
+              "minHeight": "120px",
+              "padding": "0.75rem 2.5rem 0.75rem 2.5rem",
+              "fontSize": "0.875rem",
+              "borderRadius": "0.5rem",
+              "iconTop": "0.75rem",
+              "iconLeft": "0.75rem"
+            },
+            "tablet": {
+              "minHeight": "140px",
+              "padding": "1rem 3rem 1rem 3rem", 
+              "fontSize": "1rem",
+              "borderRadius": "0.75rem",
+              "iconTop": "1rem",
+              "iconLeft": "1rem"
+            },
+            "className": "w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 rounded-lg sm:rounded-xl border-2 transition-all duration-200 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 font-medium resize-none text-sm sm:text-base min-h-[120px] sm:min-h-[140px] focus:outline-none touch-manipulation"
+          },
+          "checkbox": {
+            "mobile": {
+              "size": "1.25rem",
+              "borderRadius": "0.375rem",
+              "spacing": "0.75rem"
+            },
+            "tablet": {
+              "size": "1.5rem",
+              "borderRadius": "0.5rem",
+              "spacing": "1rem"
+            },
+            "className": "w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 rounded-md sm:rounded-lg focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-2 transition-all duration-200 touch-manipulation"
+          },
+          "label": {
+            "className": "block text-sm sm:text-base font-semibold text-slate-700 dark:text-slate-200"
+          },
+          "error": {
+            "mobile": "flex items-center gap-2 text-red-600 dark:text-red-400 text-xs font-medium",
+            "desktop": "sm:text-sm",
+            "className": "flex items-center gap-2 text-red-600 dark:text-red-400 text-xs sm:text-sm font-medium",
+            "icon": "h-4 w-4 flex-shrink-0"
+          },
+          "autocomplete": {
+            "container": "absolute z-20 w-full mt-2 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md border border-slate-200 dark:border-slate-600 rounded-lg sm:rounded-xl shadow-xl dark:shadow-slate-900/30 max-h-48 overflow-y-auto",
+            "option": "w-full text-left px-3 sm:px-4 py-3 sm:py-4 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-slate-900 dark:text-white transition-colors duration-150 first:rounded-t-lg sm:first:rounded-t-xl last:rounded-b-lg sm:last:rounded-b-xl font-medium text-sm sm:text-base min-h-[44px] flex items-center touch-manipulation"
+          },
+          "touchTargets": {
+            "minimum": "44px",
+            "recommended": "48px",
+            "spacing": "8px"
+          },
+          "accessibility": {
+            "focusRing": "focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+            "contrast": {
+              "normal": "4.5:1",
+              "large": "3:1"
+            },
+            "animation": "prefers-reduced-motion:motion-reduce"
+          }
+        },
+        "textarea": {
+          "minHeight": {
+            "mobile": "5rem",
+            "tablet": "6rem",
+            "desktop": "7rem"
+          },
+          "resize": "vertical",
+          "lineHeight": "1.5"
+        },
+        "select": {
+          "icon": {
+            "size": "1.25rem",
+            "position": "right 0.75rem center",
+            "color": {
+              "light": "#64748b",
+              "dark": "#94a3b8"
+            }
+          },
+          "appearance": "none"
+        },
+        "checkbox": {
+          "size": {
+            "mobile": "1rem",
+            "desktop": "1.125rem"
+          },
+          "borderRadius": "0.25rem",
+          "checkedBackground": "#3b82f6",
+          "checkedBorder": "#3b82f6"
+        },
+        "radio": {
+          "size": {
+            "mobile": "1rem",
+            "desktop": "1.125rem"
+          },
+          "borderRadius": "50%",
+          "checkedBackground": "#3b82f6"
+        },
+        "label": {
+          "fontSize": {
+            "mobile": "0.875rem",
+            "desktop": "1rem"
+          },
+          "fontWeight": "500",
+          "marginBottom": "0.5rem",
+          "color": {
+            "light": "#374151",
+            "dark": "#d1d5db"
+          }
+        },
+        "error": {
+          "fontSize": "0.75rem",
+          "color": "#ef4444",
+          "marginTop": "0.25rem"
+        },
+        "helper": {
+          "fontSize": "0.75rem",
+          "color": {
+            "light": "#6b7280",
+            "dark": "#9ca3af"
+          },
+          "marginTop": "0.25rem"
+        },
+        "group": {
+          "marginBottom": {
+            "mobile": "1rem",
+            "desktop": "1.25rem"
+          }
+        }
+      },
+
+      "authentication": {
+        "loginForm": {
+          "container": {
+            "maxWidth": "28rem",
+            "padding": {
+              "mobile": "1.5rem",
+              "desktop": "2rem"
+            },
+            "borderRadius": "1rem",
+            "background": {
+              "light": "#ffffff",
+              "dark": "#1e293b"
+            }
+          },
+          "header": {
+            "marginBottom": "2rem",
+            "textAlign": "center"
+          },
+          "socialButtons": {
+            "marginBottom": "1.5rem",
+            "gap": "0.75rem"
+          },
+          "divider": {
+            "marginY": "1.5rem",
+            "text": "or",
+            "fontSize": "0.875rem",
+            "color": {
+              "light": "#6b7280",
+              "dark": "#9ca3af"
+            }
+          }
+        },
+        "oauthButton": {
+          "height": "2.75rem",
+          "padding": "0 1rem",
+          "borderRadius": "0.5rem",
+          "fontSize": "0.875rem",
+          "fontWeight": "500",
+          "border": "1px solid",
+          "borderColor": {
+            "light": "#d1d5db",
+            "dark": "#374151"
+          },
+          "background": {
+            "light": "#ffffff",
+            "dark": "#374151"
+          },
+          "hoverBackground": {
+            "light": "#f9fafb",
+            "dark": "#4b5563"
+          },
+          "icon": {
+            "size": "1.25rem",
+            "marginRight": "0.5rem"
+          }
+        }
+      },
+
+      "modal": {
+        "backdrop": {
+          "background": "rgba(0, 0, 0, 0.5)",
+          "backdropFilter": "blur(8px)",
+          "zIndex": "9998"
+        },
+        "container": {
+          "zIndex": "9999",
+          "position": "fixed",
+          "inset": "0",
+          "display": "flex",
+          "alignItems": "center",
+          "justifyContent": "center",
+          "padding": {
+            "mobile": "1rem",
+            "desktop": "2rem"
+          }
+        },
+        "content": {
+          "background": {
+            "light": "#ffffff",
+            "dark": "#1e293b"
+          },
+          "borderRadius": "1rem",
+          "maxWidth": {
+            "sm": "28rem",
+            "md": "32rem",
+            "lg": "42rem",
+            "xl": "48rem"
+          },
+          "maxHeight": "90vh",
+          "overflow": "auto",
+          "shadow": "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+        },
+        "header": {
+          "padding": "1.5rem 1.5rem 0",
+          "borderBottom": "1px solid",
+          "borderColor": {
+            "light": "#e5e7eb",
+            "dark": "#374151"
+          }
+        },
+        "body": {
+          "padding": "1.5rem"
+        },
+        "footer": {
+          "padding": "0 1.5rem 1.5rem",
+          "borderTop": "1px solid",
+          "borderColor": {
+            "light": "#e5e7eb",
+            "dark": "#374151"
+          }
+        }
+      },
+
+      "toast": {
+        "container": {
+          "position": "fixed",
+          "top": "1rem",
+          "right": "1rem",
+          "zIndex": "9999",
+          "maxWidth": "24rem"
+        },
+        "item": {
+          "padding": "1rem",
+          "borderRadius": "0.5rem",
+          "marginBottom": "0.5rem",
+          "boxShadow": "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+          "backdrop": "blur(8px)"
+        },
+        "variants": {
+          "success": {
+            "background": {
+              "light": "#ecfdf5",
+              "dark": "rgba(16, 185, 129, 0.1)"
+            },
+            "text": {
+              "light": "#065f46",
+              "dark": "#6ee7b7"
+            },
+            "border": "1px solid #10b981"
+          },
+          "error": {
+            "background": {
+              "light": "#fef2f2",
+              "dark": "rgba(239, 68, 68, 0.1)"
+            },
+            "text": {
+              "light": "#991b1b",
+              "dark": "#fca5a5"
+            },
+            "border": "1px solid #ef4444"
+          },
+          "warning": {
+            "background": {
+              "light": "#fffbeb",
+              "dark": "rgba(245, 158, 11, 0.1)"
+            },
+            "text": {
+              "light": "#92400e",
+              "dark": "#fcd34d"
+            },
+            "border": "1px solid #f59e0b"
+          },
+          "info": {
+            "background": {
+              "light": "#eff6ff",
+              "dark": "rgba(59, 130, 246, 0.1)"
+            },
+            "text": {
+              "light": "#1e40af",
+              "dark": "#93c5fd"
+            },
+            "border": "1px solid #3b82f6"
+          }
+        }
+      },
+
+      "courseCard": {
+        "container": {
+          "borderRadius": {
+            "mobile": "0.75rem",
+            "desktop": "1rem"
+          },
+          "background": {
+            "light": "#ffffff",
+            "dark": "#1e293b"
+          },
+          "border": "1px solid",
+          "borderColor": {
+            "light": "#e2e8f0",
+            "dark": "#334155"
+          },
+          "shadow": "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
+          "hoverShadow": "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          "hoverTransform": "translateY(-2px)",
+          "transition": "all 200ms cubic-bezier(0.4, 0, 0.2, 1)"
+        },
+        "image": {
+          "aspectRatio": "16/9",
+          "borderRadius": {
+            "mobile": "0.5rem 0.5rem 0 0",
+            "desktop": "0.75rem 0.75rem 0 0"
+          },
+          "objectFit": "cover"
+        },
+        "content": {
+          "padding": {
+            "mobile": "1rem",
+            "desktop": "1.25rem"
+          }
+        },
+        "title": {
+          "fontSize": {
+            "mobile": "0.875rem",
+            "desktop": "1rem"
+          },
+          "fontWeight": "600",
+          "lineHeight": "1.25",
+          "marginBottom": "0.5rem",
+          "lineClamp": "2"
+        },
+        "instructor": {
+          "fontSize": "0.75rem",
+          "color": {
+            "light": "#64748b",
+            "dark": "#94a3b8"
+          },
+          "marginBottom": "0.75rem"
+        },
+        "badge": {
+          "fontSize": "0.65rem",
+          "padding": "0.25rem 0.5rem",
+          "borderRadius": "9999px",
+          "fontWeight": "500",
+          "textTransform": "uppercase",
+          "letterSpacing": "0.025em"
+        },
+        "price": {
+          "fontSize": {
+            "mobile": "1rem",
+            "desktop": "1.125rem"
+          },
+          "fontWeight": "700",
+          "color": "#16a34a"
+        },
+        "button": {
+          "marginTop": "1rem",
+          "width": "100%",
+          "height": "2.5rem",
+          "fontSize": "0.875rem",
+          "fontWeight": "500"
+        }
+      },
+
+      "glassmorphism": {
+        "minimalGlass": {
+          "background": "rgba(255, 255, 255, 0.03)",
+          "backdropFilter": "blur(8px)",
+          "border": "1px solid rgba(255, 255, 255, 0.08)",
+          "borderRadius": "0.75rem",
+          "boxShadow": "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
+          "className": "minimal-glass"
+        },
+        "elegantGlass": {
+          "background": "rgba(255, 255, 255, 0.06)",
+          "backdropFilter": "blur(12px)",
+          "border": "1px solid rgba(255, 255, 255, 0.12)",
+          "borderRadius": "1rem",
+          "boxShadow": "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          "className": "elegant-glass"
+        },
+        "premiumGlass": {
+          "background": "rgba(255, 255, 255, 0.08)",
+          "backdropFilter": "blur(16px)",
+          "border": "1px solid rgba(255, 255, 255, 0.15)",
+          "borderRadius": "1.25rem",
+          "boxShadow": "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+          "className": "premium-glass"
+        },
+        "floatingGlass": {
+          "background": "rgba(255, 255, 255, 0.12)",
+          "backdropFilter": "blur(20px)",
+          "border": "1px solid rgba(255, 255, 255, 0.18)",
+          "borderRadius": "1.5rem",
+          "boxShadow": "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
+          "className": "floating-glass"
+        }
+      },
+
+      "card": {
+        "minimal": {
+          "background": {
+            "light": "#ffffff",
+            "dark": "#1a202c"
+          },
+          "border": {
+            "light": "#f4f6f8", 
+            "dark": "#2a3441"
+          },
+          "shadow": {
+            "light": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+            "dark": "0 1px 2px 0 rgba(0, 0, 0, 0.2)"
+          },
+          "radius": {
+            "mobile": "0.5rem",
+            "tablet": "0.75rem",
+            "desktop": "1rem"
+          },
+          "padding": {
+            "mobile": "1rem",
+            "tablet": "1.25rem", 
+            "desktop": "1.5rem",
+            "large": "2rem"
+          }
+        },
+        "elegant": {
+          "background": {
+            "light": "#ffffff",
+            "dark": "#1a202c"
+          },
+          "border": {
+            "light": "#e8ecf0", 
+            "dark": "#3c4651"
+          },
+          "shadow": {
+            "light": "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+            "dark": "0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2)"
+          },
+          "radius": {
+            "mobile": "0.75rem",
+            "tablet": "1rem",
+            "desktop": "1.25rem"
+          },
+          "padding": {
+            "mobile": "1.25rem",
+            "tablet": "1.5rem", 
+            "desktop": "2rem",
+            "large": "2.5rem"
+          }
+        },
+        "premium": {
+          "background": {
+            "light": "#ffffff",
+            "dark": "#1a202c"
+          },
+          "border": {
+            "light": "#e8ecf0", 
+            "dark": "#3c4651"
+          },
+          "shadow": {
+            "light": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+            "dark": "0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.25)"
+          },
+          "radius": {
+            "mobile": "1rem",
+            "tablet": "1.25rem",
+            "desktop": "1.5rem"
+          },
+          "padding": {
+            "mobile": "1.5rem",
+            "tablet": "2rem", 
+            "desktop": "2.5rem",
+            "large": "3rem"
+          }
+        },
+        "floating": {
+          "shadow": {
+            "light": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+            "dark": "0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3)"
+          }
+        }
+      },
+
+      "button": {
+        "primary": {
+          "background": {
+            "light": "#3b82f6",
+            "dark": "#2563eb"
+          },
+          "backgroundHover": {
+            "light": "#2563eb", 
+            "dark": "#1d4ed8"
+          },
+          "text": "#ffffff",
+          "padding": {
+            "mobile": "0.75rem 1.5rem",
+            "tablet": "1rem 2rem",
+            "desktop": "1rem 2.5rem"
+          },
+          "borderRadius": {
+            "mobile": "0.5rem",
+            "desktop": "0.75rem"
+          },
+          "transform": {
+            "hover": "translateY(-1px)",
+            "active": "translateY(0)"
+          },
+          "transition": "all 200ms cubic-bezier(0.4, 0, 0.2, 1)"
+        },
+        "secondary": {
+          "background": {
+            "light": "transparent",
+            "dark": "transparent"
+          },
+          "border": {
+            "light": "#e2e8f0",
+            "dark": "#475569"
+          },
+          "backgroundHover": {
+            "light": "#f8fafc",
+            "dark": "#1e293b" 
+          },
+          "text": {
+            "light": "#475569",
+            "dark": "#94a3b8"
+          },
+          "textHover": {
+            "light": "#1e293b",
+            "dark": "#f8fafc"
+          },
+          "padding": {
+            "mobile": "0.75rem 1.5rem",
+            "tablet": "1rem 2rem",
+            "desktop": "1rem 2.5rem"
+          },
+          "borderRadius": {
+            "mobile": "0.5rem",
+            "desktop": "0.75rem"
+          },
+          "transition": "all 200ms cubic-bezier(0.4, 0, 0.2, 1)"
+        },
+        "minimal": {
+          "background": "transparent",
+          "backgroundHover": {
+            "light": "#f1f5f9",
+            "dark": "#1e293b"
+          },
+          "text": {
+            "light": "#64748b",
+            "dark": "#94a3b8"
+          },
+          "textHover": {
+            "light": "#1e293b",
+            "dark": "#f8fafc"
+          },
+          "padding": {
+            "mobile": "0.5rem 1rem",
+            "tablet": "0.75rem 1.25rem",
+            "desktop": "0.75rem 1.5rem"
+          },
+          "borderRadius": "0.5rem",
+          "transition": "all 150ms cubic-bezier(0.4, 0, 0.2, 1)"
+        }
+      },
+
+      "input": {
+        "standard": {
+          "background": {
+            "light": "#ffffff",
+            "dark": "#1e293b"
+          },
+          "border": {
+            "light": "#cbd5e1",
+            "dark": "#475569"
+          },
+          "borderFocus": {
+            "light": "#3b82f6",
+            "dark": "#60a5fa" 
+          },
+          "text": {
+            "light": "#0f172a",
+            "dark": "#f8fafc"
+          },
+          "placeholder": {
+            "light": "#64748b",
+            "dark": "#94a3b8"
+          }
+        },
+        "glass": {
+          "background": "rgba(255, 255, 255, 0.08)",
+          "backdropFilter": "blur(12px)",
+          "border": "1px solid rgba(255, 255, 255, 0.15)",
+          "borderFocus": "1px solid rgba(59, 130, 246, 0.5)",
+          "text": {
+            "light": "#1e293b",
+            "dark": "#f8fafc"
+          },
+          "placeholder": "rgba(100, 116, 139, 0.7)"
+        }
+      },
+
+      "modal": {
+        "backdrop": {
+          "background": "rgba(0, 0, 0, 0.5)",
+          "backdropFilter": "blur(8px)"
+        },
+        "content": {
+          "background": {
+            "light": "#ffffff",
+            "dark": "#1e293b"
+          },
+          "glass": {
+            "background": "rgba(255, 255, 255, 0.1)",
+            "backdropFilter": "blur(24px)",
+            "border": "1px solid rgba(255, 255, 255, 0.2)"
+          }
+        }
+      },
+
+      "navigation": {
+        "standard": {
+          "background": {
+            "light": "#ffffff",
+            "dark": "#1a202c"
+          },
+          "activeBackground": {
+            "light": "#3b82f6",
+            "dark": "#2563eb"
+          },
+          "activeText": "#ffffff",
+          "inactiveText": {
+            "light": "#4f5b69", 
+            "dark": "#9ca6b2"
+          }
+        },
+        "glass": {
+          "background": "rgba(255, 255, 255, 0.12)",
+          "backdropFilter": "blur(24px)",
+          "border": "1px solid rgba(255, 255, 255, 0.25)",
+          "activeBackground": "rgba(59, 130, 246, 0.2)",
+          "activeText": {
+            "light": "#1e40af",
+            "dark": "#93c5fd"
+          }
+        }
+      },
+
+      "tooltip": {
+        "glass": {
+          "background": "rgba(0, 0, 0, 0.8)",
+          "backdropFilter": "blur(12px)",
+          "border": "1px solid rgba(255, 255, 255, 0.1)",
+          "text": "#ffffff",
+          "borderRadius": "0.5rem",
+          "padding": "0.5rem 0.75rem"
+        }
+      },
+
+      "faq": {
+        "container": {
+          "mobile": {
+            "padding": "0.75rem",
+            "borderRadius": "0.75rem",
+            "spacing": "0.75rem"
+          },
+          "tablet": {
+            "padding": "1rem",
+            "borderRadius": "1rem", 
+            "spacing": "1rem"
+          },
+          "desktop": {
+            "padding": "1.5rem",
+            "borderRadius": "1.25rem",
+            "spacing": "1.25rem"
+          }
+        },
+        "item": {
+          "mobile": {
+            "padding": "1rem",
+            "borderRadius": "0.75rem",
+            "iconSize": "1.25rem",
+            "iconContainer": "2.5rem",
+            "titleSize": "0.875rem",
+            "contentPadding": "0.75rem",
+            "spacing": "0.75rem"
+          },
+          "tablet": {
+            "padding": "1.25rem",
+            "borderRadius": "1rem",
+            "iconSize": "1.375rem", 
+            "iconContainer": "3rem",
+            "titleSize": "1rem",
+            "contentPadding": "1rem",
+            "spacing": "1rem"
+          },
+          "desktop": {
+            "padding": "1.5rem",
+            "borderRadius": "1.25rem",
+            "iconSize": "1.5rem",
+            "iconContainer": "3.5rem", 
+            "titleSize": "1.125rem",
+            "contentPadding": "1.25rem",
+            "spacing": "1.25rem"
+          }
+        },
+        "interactions": {
+          "expandAnimation": "300ms cubic-bezier(0.4, 0, 0.2, 1)",
+          "hoverTransition": "200ms cubic-bezier(0.4, 0, 0.2, 1)",
+          "iconRotation": "180deg",
+          "mobileMinTouchTarget": "44px"
+        },
+        "accessibility": {
+          "focusRing": "2px solid rgba(59, 130, 246, 0.5)",
+          "focusOffset": "2px",
+          "ariaExpanded": true,
+          "keyboardNavigation": true
+        },
+        "search": {
+          "mobile": {
+            "height": "2.75rem",
+            "padding": "0.75rem 1rem 0.75rem 2.5rem",
+            "iconSize": "1rem",
+            "fontSize": "0.875rem"
+          },
+          "desktop": {
+            "height": "3rem", 
+            "padding": "0.875rem 1rem 0.875rem 2.75rem",
+            "iconSize": "1.125rem",
+            "fontSize": "1rem"
+          }
+        },
+        "categories": {
+          "mobile": {
+            "padding": "0.5rem 0.75rem",
+            "fontSize": "0.75rem",
+            "borderRadius": "1rem",
+            "spacing": "0.5rem"
+          },
+          "desktop": {
+            "padding": "0.625rem 1rem", 
+            "fontSize": "0.875rem",
+            "borderRadius": "1.25rem",
+            "spacing": "0.75rem"
+          }
+        }
+      }
+    },
+
+    "animations": {
+      "duration": {
+        "instant": "0ms",
+        "quick": "100ms",
+        "fast": "150ms",
+        "normal": "200ms", 
+        "smooth": "250ms",
+        "slow": "300ms",
+        "slower": "400ms"
+      },
+      "easing": {
+        "linear": "linear",
+        "easeOut": "cubic-bezier(0.0, 0, 0.2, 1)", 
+        "easeIn": "cubic-bezier(0.4, 0, 1, 1)",
+        "easeInOut": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "spring": "cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+        "gentle": "cubic-bezier(0.25, 0.8, 0.25, 1)",
+        "crisp": "cubic-bezier(0.4, 0, 0.6, 1)"
+      },
+      "interactions": {
+        "subtleHover": {
+          "transform": "translateY(-1px)",
+          "transition": "all 150ms cubic-bezier(0.4, 0, 0.2, 1)"
+        },
+        "gentleHover": {
+          "transform": "translateY(-2px)",
+          "transition": "all 200ms cubic-bezier(0.4, 0, 0.2, 1)"
+        },
+        "elegantHover": {
+          "transform": "translateY(-3px) scale(1.01)",
+          "transition": "all 250ms cubic-bezier(0.4, 0, 0.2, 1)"
+        },
+        "buttonPress": {
+          "transform": "scale(0.98)",
+          "transition": "all 100ms cubic-bezier(0.4, 0, 0.6, 1)"
+        },
+        "focus": {
+          "outline": "2px solid rgba(59, 130, 246, 0.5)",
+          "outlineOffset": "2px",
+          "transition": "outline-color 150ms ease"
+        }
+      },
+      "entrances": {
+        "fadeIn": {
+          "keyframes": "opacity: 0; animation: fadeIn 300ms ease-out forwards;",
+          "delay": "0ms"
+        },
+        "slideUp": {
+          "keyframes": "transform: translateY(16px); opacity: 0; animation: slideUp 350ms ease-out forwards;",
+          "delay": "100ms"
+        },
+        "slideInLeft": {
+          "keyframes": "transform: translateX(-16px); opacity: 0; animation: slideInLeft 300ms ease-out forwards;",
+          "delay": "150ms"
+        },
+        "scaleIn": {
+          "keyframes": "transform: scale(0.95); opacity: 0; animation: scaleIn 250ms ease-out forwards;",
+          "delay": "200ms"
+        }
+      },
+      "staggering": {
+        "cardGrid": "delay: calc(var(--index) * 50ms);",
+        "listItems": "delay: calc(var(--index) * 75ms);",
+        "features": "delay: calc(var(--index) * 100ms);"
+      }
+    },
+
+    "accessibility": {
+      "focusRing": {
+        "color": "#3b82f6",
+        "width": "2px",
+        "style": "solid",
+        "offset": "2px"
+      },
+      "minTouchTarget": "44px",
+      "contrastRatios": {
+        "normal": "4.5:1",
+        "large": "3:1"
+      }
+    },
+
+          "patterns": {
+        "section": {
+          "className": "bg-slate-50 dark:bg-slate-900 min-h-screen",
+          "container": "max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-12"
+        },
+        
+        "headerCard": {
+          "className": "bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-4 sm:p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 mb-6 md:mb-8 text-center"
+        },
+
+        "contentCard": {
+          "className": "bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-3 sm:p-4 md:p-6 lg:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50"
+        },
+
+              "heading": {
+          "h1": "text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100",
+          "h2": "text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-slate-100", 
+          "h3": "text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-slate-900 dark:text-slate-100"
+        },
+
+        "text": {
+          "body": "text-sm sm:text-base text-slate-600 dark:text-slate-400",
+          "caption": "text-xs sm:text-sm text-slate-500 dark:text-slate-500",
+          "lead": "text-base sm:text-lg text-slate-600 dark:text-slate-400"
+        },
+
+              "interactive": {
+          "button": "inline-flex items-center px-4 md:px-6 py-2 md:py-3 rounded-md font-medium transition-all duration-200 text-sm md:text-base",
+          "buttonPrimary": "bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white",
+          "buttonSecondary": "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
+        }
+    },
+
+    "responsivePatterns": {
+      "containerQueries": {
+        "card": "@container (min-width: 300px)",
+        "sidebar": "@container (min-width: 250px)",
+        "grid": "@container (min-width: 400px)",
+        "hero": "@container (min-width: 600px)"
+      },
+      "fluidTypography": {
+        "display": "clamp(2rem, 8vw + 1rem, 6rem)",
+        "heading": "clamp(1.5rem, 4vw + 1rem, 3rem)",
+        "subheading": "clamp(1.25rem, 3vw + 0.5rem, 2rem)",
+        "body": "clamp(0.875rem, 2.5vw + 0.5rem, 1.125rem)",
+        "caption": "clamp(0.75rem, 2vw + 0.25rem, 0.875rem)"
+      },
+      "adaptiveSpacing": {
+        "section": "clamp(2rem, 8vw, 6rem)",
+        "component": "clamp(1rem, 4vw, 2rem)",
+        "element": "clamp(0.5rem, 2vw, 1rem)",
+        "micro": "clamp(0.25rem, 1vw, 0.5rem)"
+      },
+      "deviceOptimizations": {
+        "mobile": {
+          "touchTargets": "min-height: 44px; min-width: 44px;",
+          "scrollBehavior": "scroll-behavior: smooth;",
+          "tapHighlight": "-webkit-tap-highlight-color: transparent;"
+        },
+        "tablet": {
+          "orientation": "@media (orientation: landscape) and (max-height: 768px)",
+          "hoverStates": "@media (hover: hover) and (pointer: fine)"
+        },
+        "desktop": {
+          "reducedMotion": "@media (prefers-reduced-motion: reduce)",
+          "highContrast": "@media (prefers-contrast: high)",
+          "darkMode": "@media (prefers-color-scheme: dark)"
+        }
+      }
+    },
+
+    "cssUtilities": {
+      "glassmorphism": {
+        ".glass-primary": {
+          "background": "rgba(255, 255, 255, 0.1)",
+          "backdrop-filter": "blur(20px)",
+          "border": "1px solid rgba(255, 255, 255, 0.2)",
+          "border-radius": "1rem",
+          "box-shadow": "0 8px 32px 0 rgba(31, 38, 135, 0.37)"
+        },
+        ".glass-secondary": {
+          "background": "rgba(255, 255, 255, 0.05)",
+          "backdrop-filter": "blur(12px)",
+          "border": "1px solid rgba(255, 255, 255, 0.1)",
+          "border-radius": "0.75rem",
+          "box-shadow": "0 4px 16px 0 rgba(0, 0, 0, 0.1)"
+        },
+        ".glass-navigation": {
+          "background": "rgba(255, 255, 255, 0.12)",
+          "backdrop-filter": "blur(24px)",
+          "border": "1px solid rgba(255, 255, 255, 0.25)",
+          "border-radius": "2rem",
+          "box-shadow": "0 12px 40px 0 rgba(0, 0, 0, 0.15)"
+        },
+        ".glass-hero": {
+          "background": "linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05))",
+          "backdrop-filter": "blur(40px)",
+          "border": "1px solid rgba(255, 255, 255, 0.3)",
+          "border-radius": "1.5rem",
+          "box-shadow": "0 20px 60px 0 rgba(31, 38, 135, 0.4)"
+        }
+      },
+      "animations": {
+        "@keyframes fadeIn": {
+          "from": { "opacity": "0" },
+          "to": { "opacity": "1" }
+        },
+        "@keyframes slideUp": {
+          "from": { "transform": "translateY(20px)", "opacity": "0" },
+          "to": { "transform": "translateY(0)", "opacity": "1" }
+        },
+        "@keyframes slideInLeft": {
+          "from": { "transform": "translateX(-100%)", "opacity": "0" },
+          "to": { "transform": "translateX(0)", "opacity": "1" }
+        },
+        "@keyframes slideInRight": {
+          "from": { "transform": "translateX(100%)", "opacity": "0" },
+          "to": { "transform": "translateX(0)", "opacity": "1" }
+        },
+        "@keyframes scaleIn": {
+          "from": { "transform": "scale(0.9)", "opacity": "0" },
+          "to": { "transform": "scale(1)", "opacity": "1" }
+        },
+        "@keyframes glassShimmer": {
+          "0%": { "background-position": "-200% 0" },
+          "100%": { "background-position": "200% 0" }
+        },
+        "@keyframes float": {
+          "0%, 100%": { "transform": "translateY(0px)" },
+          "50%": { "transform": "translateY(-10px)" }
+        }
+      },
+      "motionPreferences": {
+        "@media (prefers-reduced-motion: reduce)": {
+          "*": {
+            "animation-duration": "0.01ms !important",
+            "animation-iteration-count": "1 !important",
+            "transition-duration": "0.01ms !important",
+            "scroll-behavior": "auto !important"
+          }
+        }
+      }
+    },
+
+    "usage": {
+      "guidelines": [
+        "Always use mobile-first responsive design approach",
+        "Maintain consistent spacing using the defined scale", 
+        "Ensure proper contrast ratios for accessibility",
+        "Use semantic colors for meaningful categorization",
+        "Apply consistent border radius and shadows",
+        "Follow the established typography hierarchy",
+        "Implement smooth transitions for interactive elements",
+        "Test across all breakpoints and themes",
+        "Use glassmorphism sparingly for performance",
+        "Provide fallbacks for older browsers",
+        "Respect user motion preferences",
+        "Optimize for touch interactions on mobile devices",
+        "Implement proper form validation and error handling",
+        "Use consistent loading states and feedback",
+        "Ensure all interactive elements meet touch target requirements",
+        "Apply progressive enhancement for complex interactions"
+      ],
+
+      "formImplementationGuide": {
+        "structure": {
+          "container": "Use max-width containers with proper padding and centering",
+          "fieldGroups": "Group related fields with consistent spacing (1rem mobile, 1.25rem desktop)",
+          "labeling": "Always provide clear, descriptive labels above form controls",
+          "validation": "Implement real-time validation with clear error messaging"
+        },
+        "responsiveDesign": {
+          "inputSizing": "Use responsive height: 2.75rem mobile, 3rem tablet, 3.25rem desktop",
+          "touchTargets": "Ensure minimum 44px touch target height for mobile interactions",
+          "padding": "Scale padding from 0.75rem mobile to 1rem desktop for comfortable interaction",
+          "typography": "Use fluid font sizing: 0.875rem mobile scaling to 1rem desktop"
+        },
+        "stateManagement": {
+          "default": "Neutral borders and backgrounds with clear placeholder text",
+          "focus": "Blue border with subtle ring shadow for clear focus indication", 
+          "error": "Red border with descriptive error message below field",
+          "success": "Green border with success indication when validation passes",
+          "disabled": "Muted colors with disabled cursor to indicate unavailable state"
+        },
+        "accessibility": {
+          "labeling": "Use proper label elements associated with form controls",
+          "validation": "Provide aria-describedby for error and helper text",
+          "keyboard": "Ensure tab order and Enter/Space key functionality",
+          "screenReader": "Include descriptive text for complex form interactions"
+        },
+        "examples": {
+          "standardInput": "bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-3 text-slate-900 dark:text-slate-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+          "errorInput": "border-red-500 bg-red-50 dark:bg-red-900/20 focus:ring-red-500/20",
+          "successInput": "border-green-500 bg-green-50 dark:bg-green-900/20 focus:ring-green-500/20",
+          "formGroup": "mb-4 md:mb-5",
+          "label": "block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2",
+          "errorText": "text-sm text-red-600 dark:text-red-400 mt-1",
+          "helperText": "text-sm text-slate-500 dark:text-slate-400 mt-1"
+        }
+      },
+
+      "authenticationPatterns": {
+        "loginForm": {
+          "layout": "Centered container with max-width 28rem, responsive padding",
+          "socialAuth": "OAuth buttons with brand colors and icons, consistent sizing",
+          "divider": "Clean 'or' divider between social and email authentication",
+          "validation": "Real-time validation with clear error states",
+          "loading": "Loading states for all authentication actions"
+        },
+        "oauthIntegration": {
+          "popupFlow": "Use popup-based authentication for seamless UX",
+          "errorHandling": "Graceful error handling with user-friendly messages",
+          "successRedirect": "Automatic redirect based on user role and context",
+          "securityFeatures": "CSRF protection and secure token handling"
+        }
+      },
+
+      "courseCardPatterns": {
+        "layout": {
+          "aspect": "Consistent 16:9 aspect ratio for course images",
+          "content": "Structured content hierarchy: image, title, instructor, metadata, actions",
+          "spacing": "Generous padding with responsive scaling across breakpoints"
+        },
+        "interactions": {
+          "hover": "Subtle lift animation with increased shadow on desktop",
+          "mobile": "Touch-friendly buttons with adequate spacing",
+          "accessibility": "Proper focus states and keyboard navigation"
+        },
+        "responsive": {
+          "mobile": "Single column with full-width cards",
+          "tablet": "2-column grid with optimized card proportions", 
+          "desktop": "3-4 column grid with hover interactions"
+        }
+      },
+
+      "modalPatterns": {
+        "backdrop": {
+          "implementation": "Fixed overlay with blur effect and click-to-close",
+          "accessibility": "Focus trap and escape key handling",
+          "animation": "Smooth fade-in/out with backdrop blur transition"
+        },
+        "content": {
+          "sizing": "Responsive sizing with max-width constraints",
+          "overflow": "Scrollable content area for longer modal content",
+          "structure": "Clear header, body, and footer sections"
+        },
+        "mobile": {
+          "fullScreen": "Consider full-screen modals on small mobile devices",
+          "gesture": "Support swipe-to-dismiss gesture where appropriate"
+        }
+      },
+
+      "toastNotifications": {
+        "positioning": "Top-right corner with responsive positioning",
+        "stacking": "Auto-stacking with consistent spacing between toasts",
+        "timing": "Auto-dismiss after 5 seconds with pause on hover",
+        "variants": "Clear visual distinction between success, error, warning, and info",
+        "accessibility": "Screen reader announcements and keyboard dismissal"
+      },
+      
+      "glassmorphismBestPractices": {
+        "when": "Use for overlays, modals, navigation bars, hero sections, and floating elements",
+        "avoid": "Avoid on text-heavy content, form inputs, or when accessibility is compromised",
+        "performance": "Use backdrop-filter sparingly as it can impact performance on older devices",
+        "fallback": "Always provide solid background fallbacks: background: rgba(255, 255, 255, 0.9); background: rgba(255, 255, 255, 0.1);",
+        "accessibility": "Ensure sufficient contrast ratios and provide high-contrast alternatives",
+        "testing": "Test on various devices and browsers, especially Safari and older Android browsers"
+      },
+
+      "responsiveDesignPrinciples": {
+        "mobileFirst": "Start with mobile (320px) and progressively enhance for larger screens",
+        "breakpoints": "Use logical breakpoints: 320px, 480px, 768px, 1024px, 1440px, 1920px+",
+        "touchTargets": "Ensure minimum 44px touch targets with adequate spacing",
+        "typography": "Use fluid typography with clamp() for seamless scaling",
+        "images": "Implement responsive images with srcset and sizes attributes",
+        "testing": "Test on real devices including foldables, tablets, and ultrawide monitors"
+      },
+
+      "faqImplementationGuide": {
+        "structure": {
+          "layout": "Use consistent section wrapper, container, header card, and content card pattern",
+          "spacing": "Follow mobile-first spacing: 0.75rem mobile, 1rem tablet, 1.5rem desktop",
+          "typography": "Use responsive font sizes with proper line heights for readability"
+        },
+        "mobileOptimizations": {
+          "touchTargets": "Ensure minimum 44px touch targets for FAQ question buttons",
+          "iconSizing": "Use w-5 h-5 on mobile, w-6 h-6 on larger screens for better visibility",
+          "padding": "Use 0.75rem mobile, 1rem tablet, 1.25rem desktop for comfortable spacing",
+          "typography": "Start with text-sm on mobile, scale to text-base and text-lg on larger screens",
+          "animations": "Reduce motion on mobile for better performance and battery life"
+        },
+        "iconGuidelines": {
+          "semanticMapping": {
+            "courses": "BookOpen, GraduationCap, Monitor",
+            "pricing": "CreditCard, DollarSign, Receipt", 
+            "certification": "Award, Certificate, Badge",
+            "support": "MessageCircle, HelpCircle, Phone",
+            "enrollment": "UserPlus, Users, Calendar",
+            "technical": "Settings, Wrench, Code",
+            "general": "HelpCircle, Info, Question"
+          },
+          "sizing": "Use consistent icon sizing: w-5 h-5 mobile, w-6 h-6 desktop",
+          "styling": "Apply semantic fill colors with 15% opacity backgrounds",
+          "accessibility": "Ensure icons are decorative with proper ARIA labels on containers"
+        },
+        "responsiveDesign": {
+          "breakpoints": "320px (mobile), 480px (large mobile), 768px (tablet), 1024px (desktop)",
+          "containers": "Use responsive padding: p-3 sm:p-4 md:p-6 lg:p-8",
+          "typography": "Scale from text-sm to text-lg across breakpoints",
+          "spacing": "Increase gaps from 0.75rem to 1.5rem as screen size grows"
+        },
+        "interactions": {
+          "expandCollapse": "Use smooth 300ms cubic-bezier animations",
+          "hover": "Subtle shadow and transform effects on desktop only",
+          "focus": "Clear focus rings with 2px blue outline and 2px offset",
+          "keyboard": "Support Enter and Space keys for activation"
+        },
+        "accessibility": {
+          "semantics": "Use proper button elements with aria-expanded attributes",
+          "navigation": "Support Tab, Enter, Space, and Arrow key navigation",
+          "screenReaders": "Provide clear question text and content structure",
+          "contrast": "Ensure 4.5:1 contrast ratio for all text elements",
+          "reducedMotion": "Respect prefers-reduced-motion user preferences"
+        },
+        "contentGuidelines": {
+          "questions": "Keep questions concise and specific (8-15 words ideal)",
+          "answers": "Provide comprehensive but scannable answers (2-4 sentences)",
+          "categorization": "Group related questions into logical categories",
+          "searchability": "Use keywords that users would naturally search for"
+        },
+        "performanceConsiderations": {
+          "lazyLoading": "Consider lazy loading for large FAQ sets",
+          "searchOptimization": "Implement client-side search with debouncing",
+          "animationOptimization": "Use transform and opacity for smooth animations",
+          "bundleSize": "Import only necessary icons to reduce bundle size"
+        }
+      },
+
+              "examples": {
+        "layouts": {
+          "sectionWrapper": "bg-slate-50 dark:bg-slate-900 min-h-screen",
+          "containerWrapper": "max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-12",
+          "cardComponent": "bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-4 sm:p-6 md:p-8 shadow-sm",
+          "glassCard": "glass-primary backdrop-blur-xl bg-white/10 border-white/20 rounded-xl p-6",
+          "responsiveGrid": "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6",
+          "flexCenter": "flex items-center justify-center",
+          "spaceBetween": "flex items-center justify-between"
+        },
+        
+        "buttons": {
+          "primaryButton": "bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white px-6 md:px-8 py-3 md:py-4 rounded-lg font-semibold transition-all duration-200 hover:-translate-y-0.5",
+          "secondaryButton": "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600 px-6 py-3 rounded-lg font-medium transition-all duration-200",
+          "glassButton": "glass-secondary backdrop-blur-md bg-white/10 border-white/20 hover:bg-white/15 text-slate-800 dark:text-white px-6 py-3 rounded-lg font-medium transition-all duration-300",
+          "iconButton": "p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-200",
+          "cta": "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
+        },
+
+        "forms": {
+          "formContainer": "max-w-md mx-auto bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8",
+          "formGroup": "mb-4 md:mb-5",
+          "label": "block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2",
+          "input": "w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors duration-200",
+          "inputError": "border-red-500 bg-red-50 dark:bg-red-900/20 focus:ring-red-500/20",
+          "inputSuccess": "border-green-500 bg-green-50 dark:bg-green-900/20 focus:ring-green-500/20",
+          "textarea": "w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors duration-200 resize-vertical min-h-[120px]",
+          "select": "w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors duration-200 appearance-none",
+          "checkbox": "w-4 h-4 text-blue-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-blue-500 focus:ring-2",
+          "errorText": "text-sm text-red-600 dark:text-red-400 mt-1",
+          "helperText": "text-sm text-slate-500 dark:text-slate-400 mt-1"
+        },
+
+        "navigation": {
+          "navbar": "bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-600 px-4 py-3",
+          "navLink": "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-3 py-2 rounded-md font-medium transition-colors duration-200",
+          "navLinkActive": "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-3 py-2 rounded-md font-medium",
+          "dropdown": "absolute top-full left-0 mt-1 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg shadow-lg py-1 z-50",
+          "dropdownItem": "block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+        },
+
+        "cards": {
+          "courseCard": "bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-600 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200",
+          "featureCard": "bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-600 p-6 text-center hover:shadow-md transition-shadow duration-200",
+          "testimonialCard": "bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-600 p-6 relative",
+          "pricingCard": "bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-600 p-8 relative hover:border-blue-300 dark:hover:border-blue-600 transition-colors duration-200"
+        },
+
+        "faq": {
+          "faqContainer": "bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-3 sm:p-4 md:p-6 lg:p-8 shadow-sm",
+          "faqItem": "border border-slate-200 dark:border-slate-600 rounded-lg md:rounded-xl p-3 sm:p-4 md:p-5 transition-all duration-200 hover:shadow-md",
+          "faqButton": "w-full flex items-center justify-between text-left p-3 sm:p-4 focus:outline-none focus:ring-2 focus:ring-blue-500/20 rounded-lg",
+          "faqIcon": "w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 transition-all duration-200",
+          "faqTitle": "text-sm sm:text-base md:text-lg font-medium text-slate-900 dark:text-slate-100 leading-snug pr-4",
+          "faqContent": "px-3 sm:px-4 pb-3 sm:pb-4 text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed"
+        },
+
+        "modals": {
+          "modalBackdrop": "fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4",
+          "modalContainer": "bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-600 shadow-xl max-w-md w-full max-h-[90vh] overflow-auto",
+          "modalHeader": "px-6 py-4 border-b border-slate-200 dark:border-slate-600",
+          "modalBody": "px-6 py-4",
+          "modalFooter": "px-6 py-4 border-t border-slate-200 dark:border-slate-600 flex justify-end gap-2"
+        },
+
+        "typography": {
+          "heading1": "text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-slate-100 leading-tight",
+          "heading2": "text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 leading-tight",
+          "heading3": "text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold text-slate-900 dark:text-slate-100 leading-tight",
+          "bodyText": "text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed",
+          "captionText": "text-xs sm:text-sm text-slate-500 dark:text-slate-500",
+          "leadText": "text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 leading-relaxed",
+          "fluidText": "text-[clamp(0.875rem,2.5vw+0.5rem,1.125rem)]"
+        },
+
+        "utilities": {
+          "screenReaderOnly": "sr-only",
+          "focusRing": "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+          "hover": "hover:-translate-y-0.5 transition-transform duration-200",
+          "fadeIn": "animate-fadeIn",
+          "slideUp": "animate-slideUp",
+          "loading": "animate-pulse"
+        }
+      },
+
+      "implementationNotes": {
+        "setup": {
+          "tailwindConfig": "Extend Tailwind CSS with custom utilities for glassmorphism effects and design tokens",
+          "cssCustomProperties": "Use CSS custom properties for theme switching and dynamic values",
+          "importStrategy": "Import design system utilities from @/utils/designSystem for consistent usage",
+          "typeScript": "Use TypeScript interfaces for component props and design system tokens"
+        },
+        
+        "performance": {
+          "glassmorphism": "Use backdrop-filter sparingly as it can impact performance on older devices",
+          "animations": "Use will-change property sparingly and remove after animations complete",
+          "bundleOptimization": "Import only necessary icons and components to reduce bundle size",
+          "lazyLoading": "Implement lazy loading for non-critical components and images",
+          "codesplitting": "Use dynamic imports for large components and route-based splitting"
+        },
+        
+        "browserSupport": {
+          "fallbacks": "Provide graceful degradation for browsers without backdrop-filter support",
+          "polyfills": "Include necessary polyfills for CSS custom properties and modern features",
+          "testing": "Test across Chrome, Firefox, Safari, and Edge browsers",
+          "mobileSupport": "Ensure compatibility with iOS Safari and Chrome Android"
+        },
+        
+        "accessibility": {
+          "screenReaders": "Test with NVDA, JAWS, and VoiceOver screen readers",
+          "keyboardNavigation": "Ensure full keyboard accessibility with logical tab order",
+          "colorContrast": "Maintain WCAG AA compliance with 4.5:1 contrast ratios",
+          "focusManagement": "Implement clear focus indicators and focus trap in modals",
+          "semanticHTML": "Use proper semantic HTML elements and ARIA attributes"
+        },
+        
+        "responsiveDesign": {
+          "breakpoints": "Test at 320px, 480px, 768px, 1024px, 1440px, and 1920px+ viewports",
+          "touchTargets": "Ensure minimum 44px touch targets on mobile devices",
+          "orientation": "Test both portrait and landscape orientations on tablets",
+          "foldables": "Consider foldable devices and ultra-wide monitors",
+          "deviceTesting": "Validate on real devices including various Android and iOS versions"
+        },
+        
+        "formGuidelines": {
+          "validation": "Implement real-time validation with clear error messaging",
+          "errorStates": "Use consistent error styling across all form components",
+          "loadingStates": "Show loading indicators during form submission",
+          "successFeedback": "Provide clear success feedback after form completion",
+          "autofocus": "Use autofocus strategically for better user experience"
+        },
+        
+        "componentPatterns": {
+          "composition": "Build complex components by composing simpler, reusable parts",
+          "propsInterface": "Define clear TypeScript interfaces for all component props",
+          "defaultValues": "Provide sensible default values for optional props",
+          "stateManagement": "Use consistent state management patterns across components",
+          "errorBoundaries": "Implement error boundaries for robust component isolation"
+        },
+        
+        "themeImplementation": {
+          "darkMode": "Support both system preference and manual dark mode toggle",
+          "transitions": "Smooth transitions between light and dark themes",
+          "persistence": "Store user theme preference in localStorage",
+          "cssVariables": "Use CSS custom properties for dynamic theme values",
+          "fallbacks": "Provide fallback colors for older browsers"
+        },
+        
+        "testing": {
+          "unitTests": "Write unit tests for all reusable components",
+          "integrationTests": "Test component interactions and data flow",
+          "visualRegression": "Use visual regression testing for UI consistency",
+          "e2eTests": "Test critical user flows end-to-end",
+          "accessibilityTests": "Automated accessibility testing with axe-core"
+        },
+        
+        "deployment": {
+          "buildOptimization": "Optimize builds for production with proper minification",
+          "assetOptimization": "Compress images and use modern formats (WebP, AVIF)",
+          "caching": "Implement proper caching strategies for static assets",
+          "monitoring": "Monitor performance metrics and user experience",
+          "errorTracking": "Implement error tracking and reporting systems"
+        },
+        
+        "maintenance": {
+          "documentation": "Keep design system documentation up-to-date",
+          "versioning": "Use semantic versioning for design system updates",
+          "migration": "Provide migration guides for breaking changes",
+          "feedback": "Collect feedback from developers using the design system",
+          "evolution": "Regularly review and evolve patterns based on usage data"
+        }
+      },
+      
+      "changelog": {
+        "3.0.0": {
+          "date": "2024-01-15",
+          "changes": [
+            "Added comprehensive form component specifications",
+            "Enhanced authentication patterns with OAuth integration",
+            "Improved mobile-first responsive design guidelines",
+            "Added course card and modal component patterns",
+            "Expanded accessibility requirements and testing guidelines",
+            "Added toast notification system specifications",
+            "Enhanced glassmorphism implementation with performance considerations",
+            "Added comprehensive implementation examples and utilities",
+            "Improved TypeScript integration and type safety",
+            "Added comprehensive testing and deployment guidelines"
+          ]
+        },
+        "2.0.0": {
+          "date": "2024-01-01", 
+          "changes": [
+            "Introduced glassmorphism design patterns",
+            "Added semantic color system for categorization",
+            "Enhanced responsive typography with fluid scaling",
+            "Added comprehensive FAQ component guidelines",
+            "Improved accessibility standards and focus management"
+          ]
+        }
+      }
+    }
+  }
+} 

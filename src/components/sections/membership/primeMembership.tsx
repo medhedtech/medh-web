@@ -132,28 +132,38 @@ const PrimeMembership: React.FC = () => {
       <MembershipBanner />
       
       {/* Membership Plans Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-16">
-        {/* Background Decorative Elements */}
-        <div className="absolute inset-0">
-          <div className="absolute top-0 left-0 w-2/3 h-2/3 bg-gradient-to-br from-primary-500/10 via-secondary-500/10 to-transparent rounded-full blur-3xl opacity-60 -translate-x-1/4 -translate-y-1/4"></div>
-          <div className="absolute bottom-0 right-0 w-2/3 h-2/3 bg-gradient-to-tl from-primary-500/10 via-secondary-500/10 to-transparent rounded-full blur-3xl opacity-60 translate-x-1/4 translate-y-1/4"></div>
-        </div>
+      <section className="relative bg-slate-50 dark:bg-slate-900 py-16 lg:py-24 overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
+        
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-amber-50/50 dark:from-blue-950/20 dark:via-transparent dark:to-amber-950/20"></div>
+        
+        {/* Floating Elements */}
+        <div className="absolute top-20 left-10 w-32 h-32 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-3xl animate-blob"></div>
+        <div className="absolute top-40 right-20 w-40 h-40 bg-amber-200/20 dark:bg-amber-800/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-20 left-20 w-36 h-36 bg-purple-200/20 dark:bg-purple-800/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
 
-        <div className="container mx-auto px-4 relative z-10">
+        <div className="relative max-w-6xl mx-auto px-4 md:px-8 py-8 md:py-12 z-10">
           {/* Section Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center max-w-4xl mx-auto mb-16"
-          >
-            <h1 id="choose-membership" className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-6">
-              Choose Your <span className="text-primary-500 dark:text-primary-400">MEDH</span> Membership
-            </h1>
-          </motion.div>
+          <div className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 mb-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-center"
+            >
+              <h1 id="choose-membership" className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-50 mb-4">
+                Choose Your <span className="text-blue-600 dark:text-blue-400">MEDH</span> Membership
+              </h1>
+              <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 max-w-3xl mx-auto leading-relaxed">
+                Select the perfect membership plan that aligns with your learning goals and unlock premium features.
+              </p>
+            </motion.div>
+          </div>
 
           {/* Membership Cards */}
-          <div className="grid md:grid-cols-2 gap-8 mb-16">
+          <div className="grid md:grid-cols-2 gap-6 md:gap-8 mb-12">
             {membershipData.map((membership: IMembershipData, index: number) => (
               <motion.div
                 key={index}
@@ -162,36 +172,38 @@ const PrimeMembership: React.FC = () => {
                 transition={{ delay: index * 0.2 }}
                 onHoverStart={() => setHoveredCard(index)}
                 onHoverEnd={() => setHoveredCard(null)}
-                className={`bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border-2 ${
+                className={`group bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 shadow-sm hover:shadow-xl hover:shadow-slate-200/25 dark:hover:shadow-slate-800/50 hover:-translate-y-2 hover:scale-[1.02] hover:border-slate-300 dark:hover:border-slate-500 transition-all duration-300 ease-out cursor-pointer overflow-hidden ${
                   membership.color === 'amber' 
-                    ? 'border-amber-200 dark:border-amber-800' 
-                    : 'border-primary-200 dark:border-primary-800'
+                    ? 'hover:border-amber-300 dark:hover:border-amber-600' 
+                    : 'hover:border-blue-300 dark:hover:border-blue-600'
                 }`}
               >
                 {/* Header */}
                 <div className={`p-6 ${
                   membership.color === 'amber' 
-                    ? 'bg-gradient-to-r from-amber-500/10 to-amber-600/10' 
-                    : 'bg-gradient-to-r from-primary-500/10 to-primary-600/10'
+                    ? 'bg-gradient-to-r from-amber-50/50 to-amber-100/50 dark:from-amber-950/20 dark:to-amber-900/20' 
+                    : 'bg-gradient-to-r from-blue-50/50 to-blue-100/50 dark:from-blue-950/20 dark:to-blue-900/20'
                 }`}>
                   <div className="flex items-center gap-3 mb-4">
-                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 ${
                       membership.color === 'amber'
                         ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
-                        : 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
+                        : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                     }`}>
-                      {membership.icon}
+                      <div className="transition-all duration-300 group-hover:scale-110">
+                        {membership.icon}
+                      </div>
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+                      <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-slate-50 transition-colors duration-300 group-hover:text-slate-700 dark:group-hover:text-slate-200">
                         {membership.type}
                       </h2>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
                         Membership
                       </p>
                     </div>
                   </div>
-                  <p className="text-gray-600 dark:text-gray-300">
+                  <p className="text-sm md:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
                     {membership.description}
                   </p>
                 </div>
@@ -212,34 +224,34 @@ const PrimeMembership: React.FC = () => {
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => handlePlanSelection(membership.type, plan.duration)}
-                          className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 text-left ${
+                          className={`p-4 rounded-lg border border-slate-200 dark:border-slate-600 cursor-pointer transition-all duration-200 text-left hover:shadow-md ${
                             isSelected
                               ? membership.color === 'amber'
                                 ? 'border-amber-500 bg-amber-50 dark:border-amber-400 dark:bg-amber-900/20 shadow-lg'
-                                : 'border-primary-500 bg-primary-50 dark:border-primary-400 dark:bg-primary-900/20 shadow-lg'
+                                : 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-900/20 shadow-lg'
                               : membership.color === 'amber'
-                                ? 'border-amber-200 dark:border-amber-800 hover:bg-amber-50 dark:hover:bg-amber-900/10'
-                                : 'border-primary-200 dark:border-primary-800 hover:bg-primary-50 dark:hover:bg-primary-900/10'
+                                ? 'hover:border-amber-300 dark:hover:border-amber-600 hover:bg-amber-50/50 dark:hover:bg-amber-900/10'
+                                : 'hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50/50 dark:hover:bg-blue-900/10'
                           }`}
                         >
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                          <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
                             {plan.duration}
                           </p>
-                          <p className={`text-xl font-bold ${
+                          <p className={`text-lg md:text-xl font-bold ${
                             membership.color === 'amber'
                               ? 'text-amber-600 dark:text-amber-400'
-                              : 'text-primary-600 dark:text-primary-400'
+                              : 'text-blue-600 dark:text-blue-400'
                           }`}>
                             {plan.price}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
                             {plan.period}
                           </p>
                           {isSelected && (
                             <CheckCircle className={`w-5 h-5 mt-2 ${
                               membership.color === 'amber'
                                 ? 'text-amber-500 dark:text-amber-400'
-                                : 'text-primary-500 dark:text-primary-400'
+                                : 'text-blue-500 dark:text-blue-400'
                             }`} />
                           )}
                         </motion.button>
@@ -250,13 +262,13 @@ const PrimeMembership: React.FC = () => {
                   {/* Features */}
                   <div className="mt-6 space-y-3">
                     {membership.features.map((feature: string, idx: number) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <CheckCircle className={`w-5 h-5 ${
+                      <div key={idx} className="flex items-center gap-3">
+                        <CheckCircle className={`w-5 h-5 flex-shrink-0 transition-colors duration-200 ${
                           membership.color === 'amber'
                             ? 'text-amber-500 dark:text-amber-400'
-                            : 'text-primary-500 dark:text-primary-400'
+                            : 'text-blue-500 dark:text-blue-400'
                         }`} />
-                        <span className="text-gray-600 dark:text-gray-300">
+                        <span className="text-sm md:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
                           {feature}
                         </span>
                       </div>
@@ -268,14 +280,14 @@ const PrimeMembership: React.FC = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleSelectCourseModal(membership.type)}
-                    className={`mt-6 w-full py-3 px-6 rounded-lg flex items-center justify-center gap-2 ${
+                    className={`mt-6 w-full py-3 md:py-4 px-6 rounded-lg flex items-center justify-center gap-2 font-semibold shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 min-h-[44px] ${
                       membership.color === 'amber'
-                        ? 'bg-amber-500 hover:bg-amber-600 text-white'
-                        : 'bg-primary-500 hover:bg-primary-600 text-white'
+                        ? 'bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 text-white'
+                        : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white'
                     }`}
                   >
                     Select {membership.type} Plan
-                    <ArrowRight className="w-5 h-5" />
+                    <ArrowRight className="w-4 h-4 md:w-5 md:h-5 transition-transform duration-200 group-hover:translate-x-1" />
                   </motion.button>
                 </div>
               </motion.div>
@@ -287,15 +299,17 @@ const PrimeMembership: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="text-center mb-12"
+            className="mb-8"
           >
-            <div className="bg-gradient-to-r from-primary-50 to-amber-50 dark:from-primary-900/20 dark:to-amber-900/20 rounded-2xl p-8 max-w-2xl mx-auto border border-primary-200 dark:border-primary-800">
-              <h3 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-4">
-                START YOUR 7-DAY FREE TRIAL TODAY
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300 text-lg">
-                No commitment • Cancel anytime
-              </p>
+            <div className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 text-center max-w-2xl mx-auto">
+              <div className="bg-gradient-to-r from-blue-50/50 to-amber-50/50 dark:from-blue-950/20 dark:to-amber-950/20 rounded-lg p-6 mb-4">
+                <h3 className="text-xl md:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-slate-50 mb-4">
+                  START YOUR 7-DAY FREE TRIAL TODAY
+                </h3>
+                <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
+                  No commitment • Cancel anytime
+                </p>
+              </div>
             </div>
           </motion.div>
 
@@ -304,43 +318,21 @@ const PrimeMembership: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
-            className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-6 max-w-3xl mx-auto"
+            className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-amber-200 dark:border-amber-600 p-6 max-w-3xl mx-auto mb-8"
           >
-            <div className="flex items-start">
-              <AlertCircle className="w-6 h-6 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-1" />
-              <p className="text-yellow-800 dark:text-yellow-200 text-sm text-center">
-                Note: Only Medh&#39;s Blended Courses having &#39;Pre-Recorded Videos
-                with Live Interactive Doubt Clearing Sessions&#39; would be eligible
-                for these memberships.
-              </p>
+            <div className="bg-amber-50/50 dark:bg-amber-950/20 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <p className="text-sm md:text-base text-amber-800 dark:text-amber-200 leading-relaxed">
+                  <strong>Note:</strong> Only Medh's Blended Courses having 'Pre-Recorded Videos
+                  with Live Interactive Doubt Clearing Sessions' would be eligible
+                  for these memberships.
+                </p>
+              </div>
             </div>
           </motion.div>
 
-          {/* Explore More Button */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-            className="text-center mt-8"
-          >
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                const element = document.getElementById('membership-features');
-                if (element) {
-                  element.scrollIntoView({ 
-                    behavior: 'smooth',
-                    block: 'start'
-                  });
-                }
-              }}
-              className="inline-flex items-center px-8 py-4 bg-primary-500 hover:bg-primary-600 text-white rounded-xl transition-all font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-            >
-              Explore More Features
-              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-            </motion.button>
-          </motion.div>
+
         </div>
 
         {/* Modals */}

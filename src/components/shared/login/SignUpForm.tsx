@@ -22,6 +22,7 @@ import OTPVerification from './OTPVerification';
 import PhoneNumberInput, { phoneNumberSchema } from './PhoneNumberInput';
 import { authAPI, authUtils } from "@/apis/auth.api";
 import { useCurrentYear } from "@/utils/hydration";
+import { showToast } from "@/utils/toastManager";
 
 declare global {
   interface Window {
@@ -330,6 +331,71 @@ const SignUpForm: React.FC = () => {
     }
   }, [watchPassword]);
 
+  // Enhanced error message handler with more descriptive messages
+  const getEnhancedErrorMessage = (error: any): string => {
+    const errorResponse = error?.response?.data;
+    const status = error?.response?.status;
+    const message = errorResponse?.message || error?.message || 'An unexpected error occurred';
+
+    // Network and connection errors
+    if (!navigator.onLine) {
+      return "🌐 No internet connection. Please check your network and try again.";
+    }
+
+    if (error?.code === 'NETWORK_ERROR' || !error?.response) {
+      return "🔌 Unable to connect to our servers. Please check your internet connection and try again.";
+    }
+
+    // Timeout errors
+    if (error?.code === 'ECONNABORTED' || message.includes('timeout')) {
+      return "⏱️ Request timed out. Our servers might be busy. Please try again in a few moments.";
+    }
+
+    // HTTP status specific errors
+    switch (status) {
+      case 400:
+        if (message.includes('email')) {
+          return "📧 Please enter a valid email address.";
+        }
+        if (message.includes('phone')) {
+          return "📱 Please enter a valid phone number.";
+        }
+        if (message.includes('password')) {
+          return "🔑 Password doesn't meet requirements. Please check and try again.";
+        }
+        return `❌ ${message}`;
+      
+      case 409:
+        if (message.includes('already exists') || message.includes('User already exists')) {
+          return "👤 An account with this email already exists. Try logging in instead.";
+        }
+        return `⚠️ ${message}`;
+      
+      case 422:
+        return "📝 Please check your input and try again. Some fields may be invalid.";
+      
+      case 429:
+        return "🚦 Too many registration attempts. Please wait a few minutes before trying again.";
+      
+      case 500:
+        return "🛠️ Our servers are experiencing issues. Please try again later.";
+      
+      case 502:
+      case 503:
+      case 504:
+        return "⚙️ Our services are temporarily unavailable. Please try again in a few minutes.";
+      
+      default:
+        // Email verification scenarios
+        if (message.includes('verify') || message.includes('verification')) {
+          return "✉️ Please check your email for verification instructions.";
+        }
+        
+        // Generic fallback with emoji for better UX
+        return `❗ ${message}`;
+    }
+  };
+
   // Initialize form values
   useEffect(() => {
     // Set phone number data
@@ -356,6 +422,7 @@ const SignUpForm: React.FC = () => {
       await trigger('email');
       if (!errors.email) {
         setVerificationEmail(email);
+        showToast.info("📧 Email format looks good! We'll send a verification code here.", { duration: 2000 });
       }
     }
   };
@@ -364,6 +431,9 @@ const SignUpForm: React.FC = () => {
   const handleOAuthSignup = async (provider: 'google' | 'github'): Promise<void> => {
     try {
       setIsOAuthLoading(prev => ({ ...prev, [provider]: true }));
+      
+      // Show informational toast
+      showToast.info(`🔄 Opening ${provider.charAt(0).toUpperCase() + provider.slice(1)} signup...`, { duration: 3000 });
       
       // Get OAuth signup URL (same as login URL for OAuth)
       const oauthUrl = authUtils.getOAuthLoginUrl(provider, window.location.origin + '/auth/callback');
@@ -376,19 +446,24 @@ const SignUpForm: React.FC = () => {
           console.log(`${provider} OAuth signup success:`, data);
           
           if (data.token && data.user) {
+            // Show processing toast
+            const processingToastId = showToast.loading("🔄 Setting up your account...", { duration: 8000 });
+            
             // For OAuth signup, user is automatically verified
             setIsEmailVerified(true);
             setIsRegistered(true);
             setCurrentStep(2);
             
-            showToast.success(`${provider.charAt(0).toUpperCase() + provider.slice(1)} signup successful! Welcome to Medh!`);
+            showToast.dismiss(processingToastId);
+            showToast.success(`🎉 ${provider.charAt(0).toUpperCase() + provider.slice(1)} signup successful! Welcome to Medh!`, { duration: 4000 });
             
             // Redirect to login or dashboard
             setTimeout(() => {
               router.push("/login");
             }, 2000);
           } else {
-            showToast.error(`${provider.charAt(0).toUpperCase() + provider.slice(1)} signup failed. Please try again.`);
+            const errorMsg = `❌ ${provider.charAt(0).toUpperCase() + provider.slice(1)} signup failed. Invalid response from server.`;
+            showToast.error(errorMsg, { duration: 5000 });
           }
           
           setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
@@ -401,7 +476,7 @@ const SignUpForm: React.FC = () => {
           if (error.message && error.message.includes('already exists')) {
             showToast.error(
               <div>
-                <p>This {provider} account is already registered. You can login instead.</p>
+                <p>👤 This {provider} account is already registered. You can login instead.</p>
                 <button 
                   onClick={() => router.push('/login')}
                   className="mt-2 bg-white text-primary-600 px-3 py-1 rounded-md text-sm font-medium hover:bg-primary-50 transition-colors dark:bg-gray-700 dark:hover:bg-gray-600"
@@ -410,13 +485,13 @@ const SignUpForm: React.FC = () => {
                 </button>
               </div>,
               {
-                autoClose: 10000,
-                closeOnClick: false,
-                toastId: 'oauth-user-exists-error'
+                duration: 10000,
+                id: 'oauth-user-exists-error'
               }
             );
           } else {
-            showToast.error(error.message || `${provider.charAt(0).toUpperCase() + provider.slice(1)} signup failed. Please try again.`);
+            const enhancedError = getEnhancedErrorMessage(error);
+            showToast.error(`❌ ${provider.charAt(0).toUpperCase() + provider.slice(1)} signup failed: ${enhancedError}`, { duration: 6000 });
           }
           
           setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
@@ -424,7 +499,8 @@ const SignUpForm: React.FC = () => {
       );
     } catch (error) {
       console.error(`${provider} OAuth signup error:`, error);
-      showToast.error(`Failed to initiate ${provider.charAt(0).toUpperCase() + provider.slice(1)} signup. Please try again.`);
+      const errorMsg = `❌ Failed to initiate ${provider.charAt(0).toUpperCase() + provider.slice(1)} signup. Please try again.`;
+      showToast.error(errorMsg, { duration: 5000 });
       setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
     }
   };
@@ -438,15 +514,19 @@ const SignUpForm: React.FC = () => {
     console.log('Current phone_numbers value:', getValues('phone_numbers'));
     
     if (!isValid) {
-      showToast.error('Please fill in all required fields correctly');
+      showToast.warning('📝 Please fill in all required fields correctly', { duration: 4000 });
       return;
     }
+    
+    // Show loading toast
+    const loadingToastId = showToast.loading("🔄 Creating your account...", { duration: 20000 });
     
     setIsSubmitting(true);
     setApiError(null);
     
     try {
       console.log('Starting registration process...');
+      showToast.info("📋 Validating your information...", { duration: 2000 });
       
       const phoneNumbers = getValues('phone_numbers');
       const hasValidPhoneNumber = phoneNumbers && 
@@ -457,7 +537,8 @@ const SignUpForm: React.FC = () => {
       console.log('Phone number validation check:', { phoneNumbers, hasValidPhoneNumber });
       
       if (!hasValidPhoneNumber) {
-        showToast.error("Please enter a valid phone number");
+        showToast.dismiss(loadingToastId);
+        showToast.error("📱 Please enter a valid phone number", { duration: 4000 });
         setIsSubmitting(false);
         return;
       }
@@ -499,19 +580,23 @@ const SignUpForm: React.FC = () => {
           if (response?.success === false) {
             const errorMessage = response?.message || "Registration failed";
             console.error('Registration error in onSuccess handler:', errorMessage);
-            showToast.error(errorMessage);
+            showToast.dismiss(loadingToastId);
+            showToast.error(`❌ ${errorMessage}`, { duration: 5000 });
             setApiError(errorMessage);
             return;
           }
           
           console.log('Registration successful, proceeding to verification');
+          showToast.dismiss(loadingToastId);
+          showToast.success("🎉 Registration successful! Please verify your email with the code sent to your inbox.", { duration: 4000 });
+          
           setIsRegistered(true);
           setCurrentStep(2);
           setShowOTPVerification(true);
-          showToast.success("Registration successful! Please verify your email with the code sent to your inbox.");
         },
         onFail: (error: any) => {
           console.error('Registration onFail triggered with error:', error);
+          showToast.dismiss(loadingToastId);
           
           const errorResponse = error?.response?.data;
           const statusCode = error?.response?.status;
@@ -550,7 +635,7 @@ const SignUpForm: React.FC = () => {
             
             showToast.error(
               <div>
-                <p>This email is already registered. You can login instead.</p>
+                <p>👤 This email is already registered. You can login instead.</p>
                 <button 
                   onClick={() => router.push('/login')}
                   className="mt-2 bg-white text-primary-600 px-3 py-1 rounded-md text-sm font-medium hover:bg-primary-50 transition-colors dark:bg-gray-700 dark:hover:bg-gray-600"
@@ -559,9 +644,8 @@ const SignUpForm: React.FC = () => {
                 </button>
               </div>,
               {
-                autoClose: 10000,
-                closeOnClick: false,
-                toastId: 'user-exists-error'
+                duration: 10000,
+                id: 'user-exists-error'
               }
             );
             
@@ -574,22 +658,23 @@ const SignUpForm: React.FC = () => {
             return;
           } 
           
-          // Handle other error types using auth utils
-          const errorMsg = authUtils.handleAuthError(error);
-          showToast.error(errorMsg, { toastId: 'registration-error' });
-          setApiError(errorMsg);
+          // Handle other error types using enhanced error handler
+          const enhancedError = getEnhancedErrorMessage(error);
+          showToast.error(enhancedError, { duration: 6000, id: 'registration-error' });
+          setApiError(enhancedError);
         },
       });
     } catch (error) {
       console.error("Client-side registration error:", error);
+      showToast.dismiss(loadingToastId);
       
       setIsRegistered(false);
       setCurrentStep(1);
       setShowOTPVerification(false);
       
-      const errorMsg = authUtils.handleAuthError(error);
-      showToast.error(errorMsg, { toastId: 'client-error' });
-      setError(errorMsg);
+      const enhancedError = getEnhancedErrorMessage(error);
+      showToast.error(`❌ ${enhancedError}`, { duration: 6000, id: 'client-error' });
+      setError(enhancedError);
     } finally {
       setIsSubmitting(false);
     }
@@ -597,15 +682,23 @@ const SignUpForm: React.FC = () => {
 
   // Handle verification success
   const handleVerificationSuccess = (): void => {
+    // Show loading toast for completion
+    const completionToastId = showToast.loading("🎉 Finalizing your account setup...", { duration: 5000 });
+    
     setIsEmailVerified(true);
     setShowOTPVerification(false);
     setValue('is_email_verified', true, { shouldValidate: false });
     
-    // Redirect to login page after verification
-    showToast.success("Email successfully verified! You can now log in to your account.");
+    // Dismiss loading and show success
     setTimeout(() => {
-      router.push("/login");
-    }, 2000);
+      showToast.dismiss(completionToastId);
+      showToast.success("✅ Email successfully verified! Welcome to Medh! You can now log in to your account.", { duration: 5000 });
+      
+      // Redirect to login page after verification
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
+    }, 1000);
   };
 
   const handleRecaptchaChange = (value: string | null): void => {
@@ -613,6 +706,7 @@ const SignUpForm: React.FC = () => {
     setRecaptchaError(false);
     if (value) {
       setValue('recaptcha', value, { shouldValidate: true });
+      showToast.success("✅ Human verification completed!", { duration: 2000 });
     }
   };
 
