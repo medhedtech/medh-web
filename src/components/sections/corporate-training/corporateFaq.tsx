@@ -91,22 +91,24 @@ const CorporateFaq: React.FC = () => {
   ];
 
   return (
-    <CommonFaq
-      title="Frequently Asked Questions"
-      subtitle="Everything you need to know about our corporate training programs"
-      faqs={faqs}
-      theme={{
-        primaryColor: "#379392", // Primary teal color from original component
-        secondaryColor: "#7c3aed", // Violet
-        accentColor: "#f59e0b", // Amber
-        showContactSection: true,
-        contactEmail: "corporate@medh.co",
-        contactText: "Have more questions about our corporate training? Contact our team at"
-      }}
-      showSearch={true}
-      showCategories={true}
-      defaultCategory="all"
-    />
+    <div className="px-1 sm:px-2 md:px-4">
+      <CommonFaq
+        title="Frequently Asked Questions"
+        subtitle="Everything you need to know about our corporate training programs"
+        faqs={faqs}
+        theme={{
+          primaryColor: "#379392", // Primary teal color from original component
+          secondaryColor: "#7c3aed", // Violet
+          accentColor: "#f59e0b", // Amber
+          showContactSection: true,
+          contactEmail: "corporate@medh.co",
+          contactText: "Have more questions about our corporate training? Contact our team at"
+        }}
+        showSearch={true}
+        showCategories={true}
+        defaultCategory="all"
+      />
+    </div>
   );
 };
 

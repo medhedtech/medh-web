@@ -14,18 +14,32 @@ import { AnimatedContent } from "@/components/shared/course-content";
 const CorporateTraining: NextPage = () => {
   return (
     <PageWrapper>
-      <main>
-        <div>
-          <CorporateBanner />
-          <CorporateOverview />
-          <Certified />
-          <div id="enroll-form">
-            <CorporateJourneyForm 
-              mainText="Enroll Now for Corporate Training" 
-              subText="Fill out the form below to start your corporate learning journey with us"
-            />
-          </div>
-          <CorporateFaq />
+      <main className="min-h-screen">
+        <div className="space-y-2 sm:space-y-4 md:space-y-6 lg:space-y-8">
+          <section className="min-h-screen">
+            <CorporateBanner />
+          </section>
+
+          <section className="px-2 sm:px-4 md:px-6 lg:px-8">
+            <CorporateOverview />
+          </section>
+
+          <section className="px-2 sm:px-4 md:px-6 lg:px-8">
+            <Certified />
+          </section>
+
+          <section className="px-2 sm:px-4 md:px-6 lg:px-8" id="enroll-form">
+            <div className="max-w-4xl mx-auto">
+              <CorporateJourneyForm 
+                mainText="Enroll Now for Corporate Training" 
+                subText="Fill out the form below to start your corporate learning journey with us"
+              />
+            </div>
+          </section>
+
+          <section className="px-2 sm:px-4 md:px-6 lg:px-8 pb-8 md:pb-12 lg:pb-16">
+            <CorporateFaq />
+          </section>
         </div>
       </main>
     </PageWrapper>

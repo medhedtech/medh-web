@@ -263,6 +263,22 @@ const features = [
   }
 ];
 
+// Mobile-specific tagline styling - matching home page
+const mobileTaglineStyles = `
+  @media (max-width: 767px) {
+    .mobile-tagline-large {
+      font-size: 2.5rem !important;
+      white-space: nowrap !important;
+    }
+  }
+  @media (min-width: 640px) and (max-width: 767px) {
+    .mobile-tagline-large {
+      font-size: 3.0rem !important;
+      white-space: nowrap !important;
+    }
+  }
+`;
+
 function CourseAiBanner({ onLearnMoreClick }) {
   const { theme } = useTheme();
   const [isLoaded, setIsLoaded] = useState(false);
@@ -316,6 +332,9 @@ function CourseAiBanner({ onLearnMoreClick }) {
 
   return (
     <section className="relative min-h-screen overflow-hidden animate-theme-transition">
+      {/* Add mobile tagline styles */}
+      <style jsx>{mobileTaglineStyles}</style>
+      
       {/* Enhanced Background */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Animated gradient blobs - theme aware */}
@@ -399,8 +418,8 @@ function CourseAiBanner({ onLearnMoreClick }) {
               </button>
             </div>
 
-              {/* Tagline - Enhanced Size */}
-              <div className={`mumkinMedh text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-2 leading-tight pt-12 ${
+              {/* Tagline - Enhanced Size - Matching Homepage */}
+              <div className={`mumkinMedh mobile-tagline-large text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold mb-2 leading-tight pt-12 whitespace-nowrap ${
                 isDark 
                   ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
                   : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
