@@ -32,6 +32,7 @@ import {
 } from "@/utils/auth";
 import { authAPI, authUtils, ILoginData, ILoginResponse } from "@/apis/auth.api";
 import { useCurrentYear } from "@/utils/hydration";
+import { showToast } from "@/utils/toastManager";
 
 interface FormInputs {
   email: string;
@@ -234,6 +235,9 @@ const LoginForm = () => {
   const handleRecaptchaChange = (value: string): void => {
     setRecaptchaValue(value);
     setRecaptchaError(false);
+    if (value) {
+      showToast.success("✅ Human verification completed!", { duration: 2000 });
+    }
   };
 
   // Update onChange handler
@@ -345,6 +349,82 @@ const LoginForm = () => {
     }
   };
 
+  // Enhanced error message handler with more descriptive messages
+  const getEnhancedErrorMessage = (error: any): string => {
+    const errorResponse = error?.response?.data;
+    const status = error?.response?.status;
+    const message = errorResponse?.message || error?.message || 'An unexpected error occurred';
+
+    // Network and connection errors
+    if (!navigator.onLine) {
+      return "🌐 No internet connection. Please check your network and try again.";
+    }
+
+    if (error?.code === 'NETWORK_ERROR' || !error?.response) {
+      return "🔌 Unable to connect to our servers. Please check your internet connection and try again.";
+    }
+
+    // Timeout errors
+    if (error?.code === 'ECONNABORTED' || message.includes('timeout')) {
+      return "⏱️ Request timed out. Our servers might be busy. Please try again in a few moments.";
+    }
+
+    // HTTP status specific errors
+    switch (status) {
+      case 400:
+        if (message.includes('password')) {
+          return "🔑 Invalid email or password. Please check your credentials and try again.";
+        }
+        if (message.includes('email')) {
+          return "📧 Please enter a valid email address.";
+        }
+        return `❌ ${message}`;
+      
+      case 401:
+        return "🔒 Invalid email or password. Please check your credentials.";
+      
+      case 403:
+        return "🚫 Access denied. Your account may be suspended or restricted.";
+      
+      case 404:
+        return "❓ Account not found. Please check your email or create a new account.";
+      
+      case 409:
+        if (message.includes('already exists')) {
+          return "👤 An account with this email already exists. Try logging in instead.";
+        }
+        return `⚠️ ${message}`;
+      
+      case 422:
+        return "📝 Please check your input and try again. Some fields may be invalid.";
+      
+      case 429:
+        return "🚦 Too many attempts. Please wait a few minutes before trying again.";
+      
+      case 500:
+        return "🛠️ Our servers are experiencing issues. Please try again later.";
+      
+      case 502:
+      case 503:
+      case 504:
+        return "⚙️ Our services are temporarily unavailable. Please try again in a few minutes.";
+      
+      default:
+        // Account locked scenarios
+        if (message.includes('locked') || message.includes('suspended')) {
+          return "🔐 Your account has been temporarily locked for security reasons.";
+        }
+        
+        // Email verification scenarios
+        if (message.includes('verify') || message.includes('verification')) {
+          return "✉️ Please verify your email address to continue.";
+        }
+        
+        // Generic fallback with emoji for better UX
+        return `❗ ${message}`;
+    }
+  };
+
   // Optimized helper function to extract role from JWT token with caching
   const tokenRoleCache = useMemo(() => new Map<string, string>(), []);
   
@@ -391,6 +471,9 @@ const LoginForm = () => {
   // Handle verification success
   const handleVerificationSuccess = (): void => {
     if (pendingLoginData) {
+      // Show loading toast
+      const loadingToastId = showToast.loading("🔄 Completing your login...", { duration: 10000 });
+      
       // If we have incomplete login data, attempt login again after verification
       if (!pendingLoginData.access_token || !pendingLoginData.id) {
         // Re-attempt login now that email is verified
@@ -405,22 +488,28 @@ const LoginForm = () => {
           },
           onSuccess: (res: LoginResponse) => {
             console.log('Login after verification successful:', res);
+            showToast.dismiss(loadingToastId);
+            showToast.success("✅ Email verified successfully! Welcome back!", { duration: 3000 });
             completeLoginProcess(res.data);
           },
           onFail: (error) => {
             console.error('Login failed after verification:', error);
-            showToast.error("Login failed after verification. Please try logging in again.");
+            showToast.dismiss(loadingToastId);
+            const errorMessage = getEnhancedErrorMessage(error);
+            showToast.error(`❌ Login failed after verification: ${errorMessage}`, { duration: 6000 });
             // Reset to login form
             handleBackFromVerification();
           }
         });
       } else {
         // Complete the login process with existing data
+        showToast.dismiss(loadingToastId);
+        showToast.success("✅ Email verified successfully! Welcome back!", { duration: 3000 });
         completeLoginProcess(pendingLoginData);
       }
     } else {
       // Fallback: redirect to login
-      showToast.success("Email verified successfully! Please log in again.");
+      showToast.success("✅ Email verified successfully! Please log in again.", { duration: 4000 });
       handleBackFromVerification();
     }
   };
@@ -585,6 +674,9 @@ const LoginForm = () => {
     try {
       setIsOAuthLoading(prev => ({ ...prev, [provider]: true }));
       
+      // Show informational toast
+      showToast.info(`🔄 Opening ${provider.charAt(0).toUpperCase() + provider.slice(1)} login...`, { duration: 3000 });
+      
       // Get OAuth login URL
       const oauthUrl = authUtils.getOAuthLoginUrl(provider, window.location.origin + '/auth/callback');
       
@@ -596,6 +688,9 @@ const LoginForm = () => {
           console.log(`${provider} OAuth success:`, data);
           
           if (data.access_token && data.id) {
+            // Show processing toast
+            const processingToastId = showToast.loading("🔄 Setting up your account...", { duration: 8000 });
+            
             // Store auth data
             const authData = {
               token: data.access_token,
@@ -635,7 +730,10 @@ const LoginForm = () => {
               const operations = [
                 () => storageManager.login(storageData),
                 () => events.login(`${provider}_oauth`),
-                () => showToast.success(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login successful!`, { autoClose: 1500 })
+                () => {
+                  showToast.dismiss(processingToastId);
+                  showToast.success(`🎉 ${provider.charAt(0).toUpperCase() + provider.slice(1)} login successful! Welcome back!`, { duration: 3000 });
+                }
               ];
               
               operations.forEach(op => {
@@ -646,14 +744,16 @@ const LoginForm = () => {
                 }
               });
               
-                             // Immediate redirect with loading state
-               setIsRedirecting(true);
-               router.push(finalRedirectPath);
+              // Immediate redirect with loading state
+              setIsRedirecting(true);
+              router.push(finalRedirectPath);
             } else {
-              showToast.error("Failed to save authentication data. Please try again.");
+              showToast.dismiss(processingToastId);
+              showToast.error("❌ Failed to save authentication data. Please try again.", { duration: 5000 });
             }
           } else {
-            showToast.error(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login failed. Please try again.`);
+            const errorMsg = `❌ ${provider.charAt(0).toUpperCase() + provider.slice(1)} login failed. Invalid response from server.`;
+            showToast.error(errorMsg, { duration: 5000 });
           }
           
           setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
@@ -661,13 +761,15 @@ const LoginForm = () => {
         // Error callback
         (error) => {
           console.error(`${provider} OAuth error:`, error);
-          showToast.error(error.message || `${provider.charAt(0).toUpperCase() + provider.slice(1)} login failed. Please try again.`);
+          const enhancedError = getEnhancedErrorMessage(error);
+          showToast.error(`❌ ${provider.charAt(0).toUpperCase() + provider.slice(1)} login failed: ${enhancedError}`, { duration: 6000 });
           setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
         }
       );
     } catch (error) {
       console.error(`${provider} OAuth error:`, error);
-      showToast.error(`Failed to initiate ${provider.charAt(0).toUpperCase() + provider.slice(1)} login. Please try again.`);
+      const errorMsg = `❌ Failed to initiate ${provider.charAt(0).toUpperCase() + provider.slice(1)} login. Please try again.`;
+      showToast.error(errorMsg, { duration: 5000 });
       setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
     }
   };
@@ -676,9 +778,13 @@ const LoginForm = () => {
   const onSubmit = async (data: FormInputs): Promise<void> => {
     if (!recaptchaValue) {
       setRecaptchaError(true);
+      showToast.warning("🤖 Please complete the reCAPTCHA verification to continue.", { duration: 4000 });
       setTimeout(() => emailInputRef.current?.focus(), 100);
       return;
     }
+    
+    // Show loading toast
+    const loadingToastId = showToast.loading("🔐 Signing you in...", { duration: 15000 });
     
     try {
       const loginData: ILoginData = {
@@ -695,7 +801,8 @@ const LoginForm = () => {
           // Add safety checks for response structure
           if (!res || !res.data) {
             console.error('Invalid response structure:', res);
-            showToast.error("Invalid response from server. Please try again.");
+            showToast.dismiss(loadingToastId);
+            showToast.error("❌ Invalid response from server. Please try again.", { duration: 5000 });
             return;
           }
           
@@ -712,7 +819,8 @@ const LoginForm = () => {
           // Additional safety check for userData
           if (!userData || !userData.id || !userData.email) {
             console.error('Missing required user data:', userData);
-            showToast.error("Incomplete user data received. Please try again.");
+            showToast.dismiss(loadingToastId);
+            showToast.error("❌ Incomplete user data received. Please try again.", { duration: 5000 });
             return;
           }
 
@@ -736,6 +844,9 @@ const LoginForm = () => {
           
           if (userData?.email_verified === false && !shouldSkipVerification) {
             // User needs to verify email first
+            showToast.dismiss(loadingToastId);
+            showToast.info("📧 Please verify your email to complete login.", { duration: 5000 });
+            
             const mockLoginData = {
               id: userData.id || '',
               email: userData.email || data.email,
@@ -758,11 +869,12 @@ const LoginForm = () => {
               postData: { email: userData.email || data.email },
               requireAuth: false,
               onSuccess: () => {
-                showToast.info("Please verify your email. A verification code has been sent to your inbox.");
+                showToast.info("📨 Verification code sent to your email inbox.", { duration: 4000 });
               },
               onFail: (error) => {
                 console.error("Failed to send verification email:", error);
-                showToast.warning("Login successful, but we couldn't send a verification email. Please contact support.");
+                const errorMsg = getEnhancedErrorMessage(error);
+                showToast.warning(`⚠️ Login successful, but verification email failed: ${errorMsg}`, { duration: 6000 });
               }
             });
             
@@ -770,6 +882,8 @@ const LoginForm = () => {
           }
 
           // Email is verified, proceed with normal login
+          showToast.dismiss(loadingToastId);
+          
           const loginResponseData: LoginResponseData = {
             id: userData.id || '',
             email: userData.email || '',
@@ -787,6 +901,7 @@ const LoginForm = () => {
         },
         onFail: (error) => {
           console.log('Login error:', error);
+          showToast.dismiss(loadingToastId);
           
           // Check if this is an email verification error
           const errorResponse = error?.response?.data;
@@ -813,7 +928,8 @@ const LoginForm = () => {
             setCurrentStep(2);
             setShowOTPVerification(true);
             
-            showToast.info(errorResponse?.message || "Please verify your email. A verification code has been sent to your inbox.");
+            const message = errorResponse?.message || "Please verify your email. A verification code has been sent to your inbox.";
+            showToast.info(`📧 ${message}`, { duration: 5000 });
             return;
           }
           
@@ -829,16 +945,20 @@ const LoginForm = () => {
               lockedUntil: errorResponse?.locked_until,
               message: errorResponse?.message || "Account temporarily locked due to multiple failed login attempts"
             });
+            showToast.error("🔒 Account temporarily locked for security reasons.", { duration: 6000 });
             return;
           }
           
-          // Handle other login errors
-          showToast.error(authUtils.handleAuthError(error));
+          // Handle other login errors with enhanced messaging
+          const enhancedError = getEnhancedErrorMessage(error);
+          showToast.error(enhancedError, { duration: 6000 });
           setTimeout(() => emailInputRef.current?.focus(), 100);
         },
       });
     } catch (error) {
-      showToast.error("An unexpected error occurred. Please try again later.");
+      showToast.dismiss(loadingToastId);
+      const errorMsg = getEnhancedErrorMessage(error);
+      showToast.error(`❌ ${errorMsg}`, { duration: 6000 });
       if (process.env.NODE_ENV !== 'production') {
         console.error("Unexpected login error:", error);
       }

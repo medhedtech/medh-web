@@ -2,19 +2,47 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
-import Iso from "@/assets/images/courseai/iso.png";
-import { ArrowRight, ChevronDown, Users, Target, Award, Heart, Globe, Sparkles, Zap, Code, GraduationCap, Shield } from "lucide-react";
+import { ArrowRight, ChevronDown, Award, Heart, Globe, Sparkles, Zap, Code, GraduationCap, Shield, TrendingUp, BookOpen, Crown } from "lucide-react";
 import medhLogo from "@/assets/images/logo/medh.png";
 import { useTheme } from "next-themes";
 
-// Enhanced custom animations for the hero banner with theme-aware glassmorphism
-const getThemeStyles = (isDark) => `
-  @keyframes animate-gradient-x {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
+// TypeScript interfaces
+interface IValueItem {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  color: string;
+}
+
+interface IFeatureItem {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  color: string;
+}
+
+interface CourseAiBannerProps {
+  onLearnMoreClick?: () => void;
+}
+
+// Mobile-specific tagline styling - 10% bigger for better visual impact
+const mobileTaglineStyles = `
+  @media (max-width: 767px) {
+    .mobile-tagline-large {
+      font-size: 2.2rem !important;
+      white-space: nowrap !important;
+    }
   }
-  
+  @media (min-width: 640px) and (max-width: 767px) {
+    .mobile-tagline-large {
+      font-size: 2.75rem !important;
+      white-space: nowrap !important;
+    }
+  }
+`;
+
+// Enhanced custom animations for the hero banner with theme-aware glassmorphism
+const getThemeStyles = (isDark: boolean): string => `
   @keyframes animate-bounce-slow {
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-20px); }
@@ -38,11 +66,6 @@ const getThemeStyles = (isDark) => `
   @keyframes theme-transition {
     0% { opacity: 0; }
     100% { opacity: 1; }
-  }
-  
-  .animate-gradient-x {
-    background-size: 200% 200%;
-    animation: animate-gradient-x 3s ease infinite;
   }
   
   .animate-bounce-slow {
@@ -89,23 +112,6 @@ const getThemeStyles = (isDark) => `
     position: relative;
   }
   
-  .glass-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg, ${isDark 
-      ? 'rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.03)' 
-      : 'rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.4)'});
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-  
   .glass-stats {
     background: ${isDark 
       ? 'rgba(15, 23, 42, 0.12)' 
@@ -127,165 +133,58 @@ const getThemeStyles = (isDark) => `
         : 'rgba(255, 255, 255, 0.25)'};
     position: relative;
   }
-  
-  .glass-stats::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg, ${isDark 
-      ? 'rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.03)' 
-      : 'rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.4)'});
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-  
-  .glass-primary {
-    background: ${isDark 
-      ? 'rgba(15, 23, 42, 0.25)' 
-      : 'rgba(59, 172, 99, 0.15)'};
-    backdrop-filter: blur(15px);
-    border: 1px solid ${isDark 
-      ? 'rgba(59, 172, 99, 0.08)' 
-      : 'rgba(59, 172, 99, 0.4)'};
-    border-radius: 1rem;
-    box-shadow: 
-      ${isDark 
-        ? '0 4px 20px rgba(59, 172, 99, 0.2)' 
-        : '0 4px 20px rgba(59, 172, 99, 0.15)'},
-      inset 0 1px 0 ${isDark 
-        ? 'rgba(255, 255, 255, 0.06)' 
-        : 'rgba(255, 255, 255, 0.7)'},
-      inset 0 -1px 0 ${isDark 
-        ? 'rgba(255, 255, 255, 0.02)' 
-        : 'rgba(255, 255, 255, 0.3)'};
-    position: relative;
-  }
-  
-  .glass-primary::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg, ${isDark 
-      ? 'rgba(59, 172, 99, 0.05), rgba(59, 172, 99, 0.01), rgba(59, 172, 99, 0.03)' 
-      : 'rgba(59, 172, 99, 0.3), rgba(59, 172, 99, 0.1), rgba(59, 172, 99, 0.2)'});
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-  
-  .text-shadow-light {
-    text-shadow: ${isDark 
-      ? '2px 2px 8px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 0, 0, 0.6)' 
-      : '1px 1px 3px rgba(0, 0, 0, 0.3), 0 0 6px rgba(0, 0, 0, 0.2)'};
-  }
-  
-  .text-shadow-medium {
-    text-shadow: ${isDark 
-      ? '1px 1px 4px rgba(0, 0, 0, 0.7)' 
-      : '1px 1px 2px rgba(0, 0, 0, 0.4)'};
-  }
-  
-  .text-shadow-subtle {
-    text-shadow: ${isDark 
-      ? '1px 1px 3px rgba(0, 0, 0, 0.6)' 
-      : '0.5px 0.5px 1px rgba(0, 0, 0, 0.3)'};
-  }
 `;
 
-// Animation variants
-const animations = {
-  fadeInUp: {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  },
-  fadeIn: {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1 }
-  },
-  scaleIn: {
-    hidden: { opacity: 0, scale: 0.9 },
-    visible: { opacity: 1, scale: 1 }
-  }
-};
-
-// Values data
-const values = [
+// Key highlights for learning journey (matching corporate structure)
+const features: IFeatureItem[] = [
   {
-    icon: <Heart className="w-6 h-6" />,
-    title: "Student-First Approach",
-    description: "We prioritize student success and growth above all else",
-    color: "from-pink-500 to-rose-500"
-  },
-  {
-    icon: <Award className="w-6 h-6" />,
-    title: "Excellence in Education",
-    description: "Committed to delivering high-quality education and training",
+    icon: <Sparkles className="w-8 h-8" />,
+    title: "Tailored Learning",
+    description: "Personalized learning paths for your success",
     color: "from-blue-500 to-cyan-500"
   },
   {
-    icon: <Zap className="w-6 h-6" />,
-    title: "Innovation",
-    description: "Embracing new technologies and teaching methodologies",
-    color: "from-purple-500 to-indigo-500"
-  }
-];
-
-// Features data
-const features = [
-  {
-    icon: <Code className="w-8 h-8" />,
-    title: "Cutting-edge Curriculum",
-    description: "Industry-aligned courses designed by experts",
-    color: "from-blue-500 to-cyan-500"
-  },
-  {
-    icon: <GraduationCap className="w-8 h-8" />,
-    title: "Expert Mentorship",
-    description: "Learn from industry professionals",
+    icon: <TrendingUp className="w-8 h-8" />,
+    title: "Career Growth",
+    description: "Fast-track your professional development",
     color: "from-emerald-500 to-teal-500"
   },
   {
-    icon: <Globe className="w-8 h-8" />,
-    title: "Global Community",
-    description: "Connect with learners worldwide",
+    icon: <Zap className="w-8 h-8" />,
+    title: "Instant Access",
+    description: "Immediate access to all premium features",
     color: "from-purple-500 to-indigo-500"
   }
 ];
 
-// Mobile-specific tagline styling - matching home page
-const mobileTaglineStyles = `
-  @media (max-width: 767px) {
-    .mobile-tagline-large {
-      font-size: 2.5rem !important;
-      white-space: nowrap !important;
-    }
+// Learning benefits (matching corporate structure)
+const values: IValueItem[] = [
+  {
+    icon: <BookOpen className="w-6 h-6" />,
+    title: "Comprehensive Access",
+    description: "Access to all courses and learning materials",
+    color: "from-blue-500 to-cyan-500"
+  },
+  {
+    icon: <Crown className="w-6 h-6" />,
+    title: "Premium Resources",
+    description: "Exclusive content and advanced learning paths",
+    color: "from-emerald-500 to-teal-500"
+  },
+  {
+    icon: <GraduationCap className="w-6 h-6" />,
+    title: "Expert Mentorship",
+    description: "One-on-one guidance from industry professionals",
+    color: "from-purple-500 to-indigo-500"
   }
-  @media (min-width: 640px) and (max-width: 767px) {
-    .mobile-tagline-large {
-      font-size: 3.0rem !important;
-      white-space: nowrap !important;
-    }
-  }
-`;
+];
 
-function CourseAiBanner({ onLearnMoreClick }) {
+const CourseAiBanner: React.FC<CourseAiBannerProps> = ({ onLearnMoreClick }) => {
   const { theme } = useTheme();
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const [mounted, setMounted] = useState<boolean>(false);
 
-  const isDark = mounted ? theme === 'dark' : true; // Default to dark during SSR
+  const isDark: boolean = mounted ? theme === 'dark' : true;
 
   // Mount and theme effects
   useEffect(() => {
@@ -314,21 +213,15 @@ function CourseAiBanner({ onLearnMoreClick }) {
     };
   }, [mounted, isDark]);
 
-  // Check for mobile view
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkIfMobile();
-    window.addEventListener('resize', checkIfMobile);
-    
-    return () => window.removeEventListener('resize', checkIfMobile);
-  }, []);
-
   useEffect(() => {
     setIsLoaded(true);
   }, []);
+
+  const handleLearnMore = (): void => {
+    if (onLearnMoreClick) {
+      onLearnMoreClick();
+    }
+  };
 
   return (
     <section className="relative min-h-screen overflow-hidden animate-theme-transition">
@@ -349,10 +242,10 @@ function CourseAiBanner({ onLearnMoreClick }) {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
         {/* Main Content with Enhanced Glassmorphism */}
-        <div className="flex flex-col items-center justify-center min-h-screen text-center py-8">
+        <div className="flex flex-col items-center justify-center min-h-screen text-center py-6">
           {/* Hero Text Section with Glass Container */}
           <div className={`mb-2 md:mb-3 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <div className="glass-container rounded-3xl p-6 md:p-8 lg:p-12 mb-1 transform scale-90 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
+            <div className="glass-container rounded-3xl p-4 md:p-6 lg:p-8 mb-1 transform scale-90 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
               {/* Badges */}
               <div className="flex flex-wrap justify-center gap-3 mb-4">
                 <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
@@ -366,57 +259,46 @@ function CourseAiBanner({ onLearnMoreClick }) {
               </div>
                
               {/* Main Heading */}
-              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-4 md:mb-6 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-2 sm:mb-3 md:mb-4 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 <span className="block text-sm sm:text-base font-medium uppercase tracking-widest mb-3 opacity-80">Welcome to Medh</span>
                 <span className="block">Make Your Dreams Happen</span>
-                <span className="block"><em className="font-semibold inline-flex items-baseline" style={{ transform: 'scale(0.9)' }}>with</em>{' '}
+                <span className="block">
+                  <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9)' }}>with</em>
                   <span className="inline-flex items-center">
-                  <Image 
-                     src={medhLogo} 
-                     alt="Medh Logo" 
-                     width={24} 
-                     height={24} 
-                     className="inline-block ml-1 h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline"
-                                            style={{ 
-                         filter: 'brightness(1.1) contrast(1.2)',
-                         transform: 'scale(0.9) translateY(5px)',
-                         verticalAlign: 'baseline'
-                       }}
-                   />
+                    <Image 
+                      src={medhLogo} 
+                      alt="Medh Logo" 
+                      width={24} 
+                      height={24} 
+                      className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline"
+                      style={{ 
+                        filter: 'brightness(1.1) contrast(1.2)',
+                        transform: 'scale(0.9) translateY(5px)',
+                        verticalAlign: 'baseline'
+                      }}
+                    />
                   </span>
                 </span>
               </h1>
                 
-              <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
+              <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-3 sm:mb-4 md:mb-6 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
                 At Medh, we're more than just an EdTech platform. We're a community dedicated to transforming passionate learners into industry-ready professionals.
               </p>
 
               {/* Enhanced CTA Buttons */}
               <div className="mt-4 sm:mt-6 md:mt-8 flex flex-wrap gap-4 justify-center">
-              <button 
-                onClick={onLearnMoreClick}
+                <button 
+                  onClick={handleLearnMore}
                   className={`inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-all duration-300 hover:scale-105 group text-sm sm:text-base md:text-lg relative overflow-hidden ${
                     isDark 
                       ? 'bg-gradient-to-r from-primary-500 to-blue-500 text-white hover:shadow-2xl hover:shadow-primary-500/30 glass-stats' 
                       : 'bg-white/95 backdrop-blur-lg text-gray-900 border-2 border-primary-500/40 hover:border-primary-500/70 hover:bg-white shadow-2xl hover:shadow-3xl'
                   }`}
-                  style={isDark ? { textShadow: '1px 1px 4px rgba(0, 0, 0, 0.5)' } : {}}
                 >
-                  {!isDark && (
-                    <>
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary-50/60 to-blue-50/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary-100/20 to-blue-100/20 animate-pulse"></div>
-                    </>
-                  )}
                   <span className="relative z-10 font-extrabold tracking-wide">Learn More</span>
                   <ArrowRight size={16} className="relative z-10 ml-3 group-hover:translate-x-1 transition-transform sm:w-4 sm:h-4 md:w-5 md:h-5" />
-                  
-                  {/* Shine effect for light mode */}
-                  {!isDark && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                  )}
-              </button>
-            </div>
+                </button>
+              </div>
 
               {/* Tagline - Enhanced Size - Matching Homepage */}
               <div className={`mumkinMedh mobile-tagline-large text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold mb-2 leading-tight pt-12 whitespace-nowrap ${
@@ -428,10 +310,11 @@ function CourseAiBanner({ onLearnMoreClick }) {
               </div>
             </div>
           </div>
+
           {/* Enhanced Features Section */}
-          <div className={`mb-4 md:mb-6 transition-all duration-1000 delay-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+          <div className={`mb-3 md:mb-4 transition-all duration-1000 delay-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-5xl lg:max-w-6xl mx-auto">
-            {features.map((feature, index) => (
+              {features.map((feature, index) => (
                 <div
                   key={index}
                   className="glass-stats rounded-xl p-4 md:p-6 text-center hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden"
@@ -445,8 +328,8 @@ function CourseAiBanner({ onLearnMoreClick }) {
                         </div>
                       </div>
                     </div>
-                    <div className={`font-semibold text-sm md:text-base group-hover:text-primary-300 transition-colors ${isDark ? 'text-white' : 'text-gray-800'} text-shadow-medium`}>{feature.title}</div>
-                    <div className={`text-xs md:text-sm mt-1 ${isDark ? 'text-white' : 'text-gray-700'} font-medium text-shadow-subtle`}>{feature.description}</div>
+                    <div className={`font-semibold text-sm md:text-base group-hover:text-primary-300 transition-colors ${isDark ? 'text-white' : 'text-gray-800'}`}>{feature.title}</div>
+                    <div className={`text-xs md:text-sm mt-1 ${isDark ? 'text-white' : 'text-gray-700'} font-medium`}>{feature.description}</div>
                   </div>
                 </div>
               ))}
@@ -454,14 +337,14 @@ function CourseAiBanner({ onLearnMoreClick }) {
           </div>
 
           {/* Enhanced Values Section */}
-          <div className={`mb-6 md:mb-8 transition-all duration-1000 delay-500 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+          <div className={`mb-4 md:mb-6 transition-all duration-1000 delay-500 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             <div className="glass-stats rounded-2xl p-6 md:p-8 max-w-5xl lg:max-w-6xl mx-auto">
-              <h3 className={`text-xl md:text-2xl font-bold mb-4 md:mb-6 text-center ${isDark ? 'text-white' : 'text-gray-900'} text-shadow-medium`}>Our Values</h3>
+              <h3 className={`text-xl md:text-2xl font-bold mb-4 md:mb-6 text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>Learning Benefits</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                 {values.map((value, index) => (
                   <div
                     key={index}
-                    className="relative overflow-hidden rounded-xl p-4 md:p-6 group transition-all duration-300 text-center glass-stats hover:scale-102"
+                    className="relative overflow-hidden rounded-xl p-4 md:p-6 cursor-pointer group transition-all duration-300 text-center glass-stats hover:scale-105"
                   >
                     <div className="relative z-10">
                       <div className={`bg-gradient-to-br ${value.color} text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform`}>
@@ -469,8 +352,8 @@ function CourseAiBanner({ onLearnMoreClick }) {
                           {value.icon}
                         </div>
                       </div>
-                      <h4 className={`text-base md:text-lg font-bold mb-2 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'} text-shadow-medium`}>{value.title}</h4>
-                      <p className={`text-sm md:text-base transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'} text-shadow-subtle`}>{value.description}</p>
+                      <h4 className={`text-base md:text-lg font-bold mb-2 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'}`}>{value.title}</h4>
+                      <p className={`text-sm md:text-base transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'}`}>{value.description}</p>
                     </div>
                   </div>
                 ))}
@@ -478,16 +361,16 @@ function CourseAiBanner({ onLearnMoreClick }) {
             </div>
           </div>
 
-            {/* Scroll Indicator */}
-          <div className={`flex flex-col items-center mt-6 md:mt-8 transition-all duration-1000 delay-700 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <span className={`text-sm mb-2 ${isDark ? 'text-white' : 'text-gray-600'} font-medium text-shadow-subtle`}>Discover Our Story</span>
+          {/* Scroll Indicator */}
+          <div className={`flex flex-col items-center mt-4 md:mt-6 transition-all duration-1000 delay-700 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+            <span className={`text-sm mb-2 ${isDark ? 'text-white' : 'text-gray-600'} font-medium`}>Discover Our Story</span>
             <ChevronDown className={`w-6 h-6 animate-bounce ${isDark ? 'text-white' : 'text-gray-500'}`} />
           </div>
         </div>
       </div>
     </section>
   );
-}
+};
 
 export default CourseAiBanner;
 

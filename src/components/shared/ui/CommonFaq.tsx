@@ -72,14 +72,17 @@ const IconWrapper: React.FC<{
       boxShadow: isOpen ? `0 0 12px ${bgColor}40` : 'none',
     }}
     className={`
-      p-3 rounded-xl flex items-center justify-center
+      w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl 
+      flex items-center justify-center flex-shrink-0
       transition-all duration-300 transform 
       ${isOpen ? 'scale-110' : 'scale-100'}
       group-hover:scale-105 group-hover:shadow-md
     `}
     aria-hidden="true"
   >
-    {children}
+    <div className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7">
+      {children}
+    </div>
   </div>
 );
 
@@ -305,15 +308,16 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
 
           {/* Search Bar */}
           {showSearch && (
-            <div className="relative max-w-xl mx-auto mt-8 mb-8">
+            <div className="relative max-w-xl mx-auto mt-6 sm:mt-8 mb-6 sm:mb-8 px-2 sm:px-0">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={handleSearch}
                 placeholder="Search FAQs..."
-                className="w-full px-4 py-3 pl-12 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-200"
+                className="w-full h-11 sm:h-12 md:h-14 px-3 sm:px-4 py-2 sm:py-3 pl-10 sm:pl-12 text-sm sm:text-base rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all duration-200 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                style={{ minHeight: '44px' }}
               />
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+              <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400 dark:text-slate-500" />
             </div>
           )}
 
@@ -323,17 +327,17 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="flex justify-center mb-8"
+              className="flex justify-center mb-6 sm:mb-8 px-2 sm:px-0"
             >
-              <div className="flex flex-wrap gap-2 justify-center items-center">
+              <div className="flex flex-wrap gap-2 sm:gap-3 justify-center items-center max-w-full overflow-x-auto pb-2">
                 <AnimatePresence mode="wait">
                   {/* Show loading skeleton for categories */}
                   {categoriesLoading ? (
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 sm:gap-3">
                       {[1, 2, 3, 4].map((i) => (
                         <div
                           key={i}
-                          className="h-10 w-24 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse"
+                          className="h-9 sm:h-10 w-20 sm:w-24 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse"
                         />
                       ))}
                     </div>
@@ -348,12 +352,13 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
                           whileTap="tap"
                           onClick={() => handleCategoryChange(category)}
                           suppressHydrationWarning
-                          className={`px-4 py-2 rounded-md transition-all duration-200 ${
+                          className={`px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap ${
                             selectedCategory === category
                               ? `bg-[${primaryColor}] text-white shadow-md`
-                              : "bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
+                              : "bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-300"
                           }`}
                           style={{ 
+                            minHeight: '36px',
                             borderBottom: selectedCategory === category 
                               ? `3px solid ${getCategoryColor(category)}` 
                               : 'none'
@@ -408,7 +413,7 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="max-w-3xl mx-auto space-y-4"
+            className="max-w-4xl mx-auto space-y-3 sm:space-y-4 px-2 sm:px-0"
           >
             {filteredFaqs.length > 0 ? (
               filteredFaqs.map((faq, index) => (
@@ -418,11 +423,11 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
                   onMouseEnter={() => setHoveredIndex(index)}
                   onMouseLeave={() => setHoveredIndex(null)}
                   className={`
-                    bg-white dark:bg-gray-800/50 backdrop-blur-sm 
-                    rounded-xl overflow-hidden 
-                    border border-gray-100 dark:border-gray-700/50
+                    bg-white dark:bg-slate-800 backdrop-blur-sm 
+                    rounded-lg sm:rounded-xl overflow-hidden 
+                    border border-slate-200 dark:border-slate-600
                     transition-all duration-300
-                    ${hoveredIndex === index ? 'shadow-lg scale-[1.01]' : 'shadow-md'}
+                    ${hoveredIndex === index ? 'shadow-lg sm:scale-[1.01]' : 'shadow-sm sm:shadow-md'}
                   `}
                   style={{
                     boxShadow: openIndex === index ? `0 0 15px ${faq.iconColor || primaryColor}10` : ''
@@ -430,10 +435,11 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
                 >
                   <button
                     onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                    className="w-full px-6 py-4 flex items-center gap-4 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50 group"
+                    className="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3 sm:gap-4 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/50 group"
                     aria-expanded={openIndex === index}
                     aria-controls={`faq-answer-${index}`}
                     suppressHydrationWarning
+                    style={{ minHeight: '44px' }}
                   >
                     <IconWrapper 
                       isOpen={openIndex === index || hoveredIndex === index}

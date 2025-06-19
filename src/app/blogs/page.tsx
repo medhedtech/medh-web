@@ -99,23 +99,7 @@ async function fetchBlogsData(params: SearchParams) {
   }
 }
 
-// Fetch featured blogs separately
-async function fetchFeaturedBlogs() {
-  try {
-    const url = `${API_BASE_URL}/blogs/featured?limit=3&status=published`;
-    const response = await fetch(url, {
-      next: { revalidate: 1800, tags: ['blogs-featured'] },
-      headers: { 'Content-Type': 'application/json' }
-    });
-    
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const result = await response.json();
-    return result.data || [];
-  } catch (error) {
-    console.error("Error fetching featured blogs:", error);
-    return [];
-  }
-}
+
 
 // Enhanced metadata generation with better SEO
 export async function generateMetadata({ searchParams }: { searchParams: Promise<SearchParams> }): Promise<Metadata> {
@@ -248,120 +232,9 @@ function BlogHero({ currentCategory, searchTerm }: { currentCategory?: string; s
   );
 }
 
-// Category Navigation Component
-function CategoryNavigation({ currentCategory }: { currentCategory?: string }) {
-  return (
-    <section className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide">
-          <span className="text-sm font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap">
-            Browse by:
-          </span>
-          <div className="flex gap-2">
-            {BLOG_CATEGORIES.map((category) => {
-              const isActive = currentCategory === category.id || (!currentCategory && category.id === 'all');
-              return (
-                <Link
-                  key={category.id}
-                  href={category.id === 'all' ? '/blogs' : `/blogs?category=${category.id}`}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap ${
-                    isActive
-                      ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 shadow-sm'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
-                >
-                  {category.name}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
 
-// Featured Articles Section
-function FeaturedSection({ featuredBlogs }: { featuredBlogs: IBlog[] }) {
-  if (!featuredBlogs.length) return null;
 
-  return (
-    <section className="bg-gray-50 dark:bg-gray-800/50 py-12">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Featured Articles
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              Handpicked content from our editorial team
-            </p>
-          </div>
-          <Link
-            href="/blogs?featured=true"
-            className="text-green-600 dark:text-green-400 font-medium hover:underline"
-          >
-            View all featured →
-          </Link>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredBlogs.slice(0, 3).map((blog) => (
-            <article key={blog._id} className="group">
-              <Link href={`/blogs/${blog.slug}`} className="block">
-                <div className="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                  {/* Featured Badge */}
-                  <div className="absolute top-4 left-4 z-10">
-                    <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                      FEATURED
-                    </span>
-                  </div>
-                  
-                  {/* Image */}
-                  <div className="relative h-48 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800">
-                    {blog.upload_image && (
-                      <img
-                        src={blog.upload_image}
-                        alt={blog.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    )}
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="p-6">
-                                         <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-3">
-                       <span className="bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 px-2 py-1 rounded">
-                         {blog.categories?.[0]?.category_name || 'Article'}
-                       </span>
-                       <span>•</span>
-                       <time>{new Date(blog.createdAt).toLocaleDateString()}</time>
-                     </div>
-                    
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
-                      {blog.title}
-                    </h3>
-                    
-                    <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-3 mb-4">
-                      {blog.description || blog.meta_description}
-                    </p>
-                    
-                    <div className="flex items-center text-green-600 dark:text-green-400 text-sm font-medium">
-                      Read article
-                      <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
+
 
 // Loading component for better UX
 function BlogsPageLoading() {
@@ -409,11 +282,8 @@ function BlogsPageLoading() {
 const BlogsPage = async ({ searchParams }: { searchParams: Promise<SearchParams> }) => {
   const params = await searchParams;
   
-  // Fetch main blogs data and featured blogs in parallel
-  const [{ blogs, totalBlogs, currentPage, totalPages, hasMore }, featuredBlogs] = await Promise.all([
-    fetchBlogsData(params),
-    params.featured !== 'true' && !params.category && !params.search ? fetchFeaturedBlogs() : Promise.resolve([])
-  ]);
+  // Fetch main blogs data
+  const { blogs, totalBlogs, currentPage, totalPages, hasMore } = await fetchBlogsData(params);
   
   // If no blogs found and it's not a search, show 404
   if (blogs.length === 0 && !params.search && !params.category && !params.tag && params.featured !== 'true') {
@@ -482,13 +352,7 @@ const BlogsPage = async ({ searchParams }: { searchParams: Promise<SearchParams>
             searchTerm={params.search}
           />
           
-          {/* Category Navigation */}
-          <CategoryNavigation currentCategory={params.category} />
-          
-          {/* Featured Section - Only show on main page */}
-          {featuredBlogs.length > 0 && (
-            <FeaturedSection featuredBlogs={featuredBlogs} />
-          )}
+
           
           {/* Main Blog Content */}
           <BlogsMain 
