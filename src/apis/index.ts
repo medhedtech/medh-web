@@ -8,6 +8,14 @@ export * from './auth.api';
 
 // Import profile management interfaces and functions
 export * from './profile.api';
+
+// Import demo booking interfaces and functions
+export * from './demo-booking.api';
+
+// Import progress tracking interfaces and functions
+export * from './progress.api';
+export * from './progress-utils.api';
+
 export { apiBaseUrl };
 
 import { IUpdateCourseData } from '@/types/course.types';
@@ -440,6 +448,16 @@ export const apiUrls = {
     resetPassword: "/auth/reset-password",
     verifyEmail: '/auth/verify-email',
     resendOTP: '/auth/resend-verification',
+    
+    // 🔒 Account Lockout Management
+    changePassword: "/auth/change-password",
+    getLockedAccounts: "/auth/locked-accounts",
+    unlockAccount: (userId: string): string => {
+      if (!userId) throw new Error('User ID is required');
+      return `/auth/unlock-account/${userId}`;
+    },
+    unlockAllAccounts: "/auth/unlock-all-accounts",
+    getLockoutStats: "/auth/lockout-stats",
   },
   
   // 🔐 COMPREHENSIVE AUTHENTICATION API
@@ -1106,7 +1124,30 @@ export const apiUrls = {
     getAllCorporate: "/corporate-training/getAll",
     addCorporate: "/corporate-training/create",
     updateCorporate: (id: string): string => `/corporate-training/update/${id}`,
-    deleteCorporate: "/corporate-training/delete"
+    deleteCorporate: "/corporate-training/delete",
+    
+    // Universal Form Model endpoints (recommended additions)
+    createInquiry: "/corporate-training", // Aligns with Universal Form Model
+    getInquiries: (options: {
+      status?: 'submitted' | 'under_review' | 'in_progress' | 'completed';
+      priority?: 'low' | 'medium' | 'high' | 'urgent';
+      page?: number;
+      limit?: number;
+      search?: string;
+    } = {}): string => {
+      const queryParams = new URLSearchParams();
+      if (options.status) queryParams.append('status', options.status);
+      if (options.priority) queryParams.append('priority', options.priority);
+      if (options.page) queryParams.append('page', String(options.page));
+      if (options.limit) queryParams.append('limit', String(options.limit));
+      if (options.search) queryParams.append('search', options.search);
+      return `/corporate-training?${queryParams.toString()}`;
+    },
+    getFormInfo: "/corporate-training/form-info",
+    getInquiryById: (id: string): string => `/corporate-training/${id}`,
+    updateInquiryStatus: (id: string): string => `/corporate-training/${id}/status`,
+    assignInquiry: (id: string): string => `/corporate-training/${id}/assign`,
+    addInternalNote: (id: string): string => `/corporate-training/${id}/notes`,
   },
   Session_Count: {
     getCountByInstructorId: "/track-sessions/get"
@@ -1226,6 +1267,10 @@ export const apiUrls = {
       return `${apiBaseUrl}/enrolled/get-upcoming-meetings/${studentId}`;
     },
     markCourseAsCompleted: `${apiBaseUrl}/enrolled/mark-completed`,
+    getCompletedCourses: (studentId: string): string => {
+      if (!studentId) throw new Error('Student ID is required');
+      return `${apiBaseUrl}/enrolled/completed/${studentId}`;
+    },
     getAllStudentsWithEnrolledCourses: `${apiBaseUrl}/enrolled/get-enrolled-students`,
     watchVideo: `${apiBaseUrl}/enrolled/watch`,
     
@@ -1767,6 +1812,104 @@ export const apiUrls = {
       return `${apiBaseUrl}/batches/${batchId}/archive`;
     },
     checkScheduleConflicts: `${apiBaseUrl}/batches/check-conflicts`
+  },
+  
+  // 📅 Demo Booking API - Following your pre-built API documentation
+  demoBooking: {
+    // Core booking endpoints
+    createBooking: `${apiBaseUrl}/demo-booking`,
+    getBookings: (userId?: string): string => {
+      const params = userId ? `?userId=${userId}` : '';
+      return `${apiBaseUrl}/demo-booking${params}`;
+    },
+    getBookingById: (bookingId: string): string => {
+      if (!bookingId) throw new Error('Booking ID is required');
+      return `${apiBaseUrl}/demo-booking/${bookingId}`;
+    },
+    updateBooking: (bookingId: string): string => {
+      if (!bookingId) throw new Error('Booking ID is required');
+      return `${apiBaseUrl}/demo-booking/${bookingId}`;
+    },
+    cancelBooking: (bookingId: string): string => {
+      if (!bookingId) throw new Error('Booking ID is required');
+      return `${apiBaseUrl}/demo-booking/${bookingId}/cancel`;
+    },
+    rescheduleBooking: (bookingId: string): string => {
+      if (!bookingId) throw new Error('Booking ID is required');
+      return `${apiBaseUrl}/demo-booking/${bookingId}/reschedule`;
+    },
+    
+    // Availability and scheduling
+    checkAvailability: `${apiBaseUrl}/demo-booking/availability`,
+    getAvailableSlots: (options: { date?: string; instructorId?: string; demoType?: string } = {}): string => {
+      const params = new URLSearchParams();
+      if (options.date) params.append('date', options.date);
+      if (options.instructorId) params.append('instructorId', options.instructorId);
+      if (options.demoType) params.append('demoType', options.demoType);
+      const queryString = params.toString();
+      return `${apiBaseUrl}/demo-booking/slots${queryString ? '?' + queryString : ''}`;
+    },
+    
+    // User-specific endpoints
+    getUserBookings: (userId: string, options: { status?: string; page?: number; limit?: number } = {}): string => {
+      if (!userId) throw new Error('User ID is required');
+      const params = new URLSearchParams();
+      params.append('page', String(options.page || 1));
+      params.append('limit', String(options.limit || 10));
+      if (options.status) params.append('status', options.status);
+      return `${apiBaseUrl}/demo-booking/user/${userId}?${params.toString()}`;
+    },
+    
+    // Statistics and analytics
+    getBookingStats: `${apiBaseUrl}/demo-booking/stats`,
+    getUserStats: (userId: string): string => {
+      if (!userId) throw new Error('User ID is required');
+      return `${apiBaseUrl}/demo-booking/stats/user/${userId}`;
+    },
+    
+    // Meeting management
+    generateMeetingLink: (bookingId: string): string => {
+      if (!bookingId) throw new Error('Booking ID is required');
+      return `${apiBaseUrl}/demo-booking/${bookingId}/meeting-link`;
+    },
+    joinMeeting: (bookingId: string): string => {
+      if (!bookingId) throw new Error('Booking ID is required');
+      return `${apiBaseUrl}/demo-booking/${bookingId}/join`;
+    },
+    
+    // Feedback and completion
+    submitFeedback: (bookingId: string): string => {
+      if (!bookingId) throw new Error('Booking ID is required');
+      return `${apiBaseUrl}/demo-booking/${bookingId}/feedback`;
+    },
+    markCompleted: (bookingId: string): string => {
+      if (!bookingId) throw new Error('Booking ID is required');
+      return `${apiBaseUrl}/demo-booking/${bookingId}/complete`;
+    },
+    
+    // Instructor management (admin/instructor only)
+    getInstructorBookings: (instructorId: string, options: { date?: string; status?: string } = {}): string => {
+      if (!instructorId) throw new Error('Instructor ID is required');
+      const params = new URLSearchParams();
+      if (options.date) params.append('date', options.date);
+      if (options.status) params.append('status', options.status);
+      const queryString = params.toString();
+      return `${apiBaseUrl}/demo-booking/instructor/${instructorId}${queryString ? '?' + queryString : ''}`;
+    },
+    assignInstructor: (bookingId: string): string => {
+      if (!bookingId) throw new Error('Booking ID is required');
+      return `${apiBaseUrl}/demo-booking/${bookingId}/assign-instructor`;
+    },
+    
+    // Notifications and reminders
+    sendReminder: (bookingId: string): string => {
+      if (!bookingId) throw new Error('Booking ID is required');
+      return `${apiBaseUrl}/demo-booking/${bookingId}/reminder`;
+    },
+    
+    // Bulk operations (admin only)
+    bulkUpdate: `${apiBaseUrl}/demo-booking/bulk-update`,
+    exportBookings: `${apiBaseUrl}/demo-booking/export`,
   },
 };
 
@@ -3407,5 +3550,304 @@ export const aiUtils = {
     }
     
     return 'An unexpected error occurred while processing your request';
+  }
+};
+
+// 🔒 Account Lockout Management Utility Functions for Frontend Integration
+export const lockoutManagementUtils = {
+  /**
+   * Fetch all locked accounts with comprehensive details
+   */
+  getAllLockedAccounts: async (): Promise<any> => {
+    try {
+      const response = await fetch(`${apiBaseUrl}${apiUrls.user.getLockedAccounts}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch locked accounts: ${response.statusText}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching locked accounts:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Unlock a specific user account
+   */
+  unlockSpecificAccount: async (userId: string, resetAttempts: boolean = true): Promise<any> => {
+    try {
+      const response = await fetch(`${apiBaseUrl}${apiUrls.user.unlockAccount(userId)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ resetAttempts })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to unlock account: ${response.statusText}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error unlocking account:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Emergency unlock all accounts (Super Admin only)
+   */
+  unlockAllAccounts: async (resetAttempts: boolean = true): Promise<any> => {
+    try {
+      const response = await fetch(`${apiBaseUrl}${apiUrls.user.unlockAllAccounts}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ resetAttempts })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to unlock all accounts: ${response.statusText}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error unlocking all accounts:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get comprehensive lockout statistics
+   */
+  getLockoutStatistics: async (): Promise<any> => {
+    try {
+      const response = await fetch(`${apiBaseUrl}${apiUrls.user.getLockoutStats}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch lockout statistics: ${response.statusText}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching lockout statistics:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Enhanced password change with lockout protection awareness
+   */
+  changePasswordWithLockoutProtection: async (
+    currentPassword: string, 
+    newPassword: string, 
+    confirmPassword: string,
+    invalidateAllSessions: boolean = false
+  ): Promise<any> => {
+    try {
+      const response = await fetch(`${apiBaseUrl}${apiUrls.user.changePassword}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword,
+          confirm_password: confirmPassword,
+          invalidateAllSessions
+        })
+      });
+      
+      const result = await response.json();
+      
+      // Handle lockout-specific responses
+      if (response.status === 423) {
+        // Account is locked
+        throw {
+          type: 'ACCOUNT_LOCKED',
+          message: result.message,
+          lockout_info: result.lockout_info,
+          attempts_remaining: result.attempts_remaining,
+          status: 423
+        };
+      }
+      
+      if (!response.ok) {
+        throw new Error(result.message || 'Password change failed');
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('Error changing password:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Format lockout duration for display
+   */
+  formatLockoutDuration: (lockedUntil: string): string => {
+    const now = new Date();
+    const lockoutEnd = new Date(lockedUntil);
+    const diffMs = lockoutEnd.getTime() - now.getTime();
+    
+    if (diffMs <= 0) return 'Unlocked';
+    
+    const diffMinutes = Math.ceil(diffMs / (1000 * 60));
+    const hours = Math.floor(diffMinutes / 60);
+    const minutes = diffMinutes % 60;
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m remaining`;
+    } else {
+      return `${minutes}m remaining`;
+    }
+  },
+
+  /**
+   * Get lockout severity badge color
+   */
+  getLockoutSeverityBadge: (attempts: number): { color: string; text: string; level: string } => {
+    if (attempts <= 2) {
+      return { color: 'bg-green-100 text-green-800', text: 'Low Risk', level: 'low' };
+    } else if (attempts <= 4) {
+      return { color: 'bg-yellow-100 text-yellow-800', text: 'Medium Risk', level: 'medium' };
+    } else if (attempts <= 5) {
+      return { color: 'bg-orange-100 text-orange-800', text: 'High Risk', level: 'high' };
+    } else {
+      return { color: 'bg-red-100 text-red-800', text: 'Critical', level: 'critical' };
+    }
+  },
+
+  /**
+   * Get lockout reason display
+   */
+  getLockoutReasonDisplay: (reason: string): { icon: string; text: string; description: string } => {
+    const reasonMap: Record<string, { icon: string; text: string; description: string }> = {
+      'failed_login_attempts': {
+        icon: '🔐',
+        text: 'Failed Login Attempts',
+        description: 'Account locked due to multiple failed login attempts'
+      },
+      'password_change_attempts': {
+        icon: '🔑',
+        text: 'Failed Password Changes',
+        description: 'Account locked due to multiple failed password change attempts'
+      },
+      'admin_lock': {
+        icon: '🛡️',
+        text: 'Administrative Lock',
+        description: 'Account manually locked by system administrator'
+      }
+    };
+    
+    return reasonMap[reason] || {
+      icon: '❓',
+      text: 'Unknown Reason',
+      description: 'Account locked for unknown security reasons'
+    };
+  },
+
+  /**
+   * Calculate next lockout level information
+   */
+  getNextLockoutInfo: (currentAttempts: number): { nextLevel: number; nextDuration: string; isMaxLevel: boolean } => {
+    const lockoutLevels = [
+      { attempts: 3, duration: '1 minute' },
+      { attempts: 4, duration: '5 minutes' },
+      { attempts: 5, duration: '10 minutes' },
+      { attempts: 6, duration: '30 minutes' }
+    ];
+    
+    const nextLevel = lockoutLevels.find(level => level.attempts > currentAttempts);
+    
+    if (!nextLevel) {
+      return {
+        nextLevel: 6,
+        nextDuration: '30 minutes',
+        isMaxLevel: true
+      };
+    }
+    
+    return {
+      nextLevel: nextLevel.attempts,
+      nextDuration: nextLevel.duration,
+      isMaxLevel: false
+    };
+  },
+
+  /**
+   * Demo function: Display lockout management dashboard data
+   */
+  generateLockoutDashboardData: async (): Promise<{
+    lockedAccounts: any[];
+    statistics: any;
+    recentActivity: any[];
+    recommendations: string[];
+  }> => {
+    try {
+      const [lockedAccountsResponse, statsResponse] = await Promise.all([
+        lockoutManagementUtils.getAllLockedAccounts(),
+        lockoutManagementUtils.getLockoutStatistics()
+      ]);
+
+      const recentActivity = [
+        {
+          type: 'unlock',
+          message: 'Admin unlocked account for user@example.com',
+          timestamp: new Date().toISOString(),
+          severity: 'info'
+        },
+        {
+          type: 'lockout',
+          message: 'Account locked: 5 failed login attempts detected',
+          timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+          severity: 'warning'
+        },
+        {
+          type: 'password_change_failure',
+          message: 'Password change failed: Incorrect current password',
+          timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+          severity: 'error'
+        }
+      ];
+
+      const recommendations = [
+        'Monitor accounts with 2+ failed attempts for early intervention',
+        'Review lockout patterns to identify potential security threats',
+        'Consider implementing additional security measures for high-risk accounts',
+        'Educate users about password security best practices',
+        'Review and adjust lockout thresholds based on security needs'
+      ];
+
+      return {
+        lockedAccounts: lockedAccountsResponse.data?.accounts || [],
+        statistics: statsResponse.data || {},
+        recentActivity,
+        recommendations
+      };
+    } catch (error) {
+      console.error('Error generating lockout dashboard data:', error);
+      throw error;
+    }
   }
 };

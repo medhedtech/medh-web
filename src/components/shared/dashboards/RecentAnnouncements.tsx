@@ -234,23 +234,13 @@ const RecentAnnouncements: React.FC<RecentAnnouncementsProps> = ({
       });
     }
     
-    // Navigate if action button exists
-    if (announcement.actionButton && announcement.actionButton.url) {
-      if (announcement.actionButton.type === 'external' || announcement.actionButton.type === 'link') {
-        window.open(announcement.actionButton.url, '_blank', 'noopener,noreferrer');
-      } else {
-        // For internal links, you might want to use Next.js router
-        window.location.href = announcement.actionButton.url;
-      }
-    } else {
-      // If no action button, show announcement details in a toast or modal
-      showToast.info(announcement.title, {
-        description: announcement.content.length > 100 
-          ? announcement.content.substring(0, 100) + '...' 
-          : announcement.content,
-        duration: 5000
-      });
-    }
+    // Show announcement details in a toast
+    showToast.info(announcement.title, {
+      description: announcement.content.length > 100 
+        ? announcement.content.substring(0, 100) + '...' 
+        : announcement.content,
+      duration: 5000
+    });
   };
 
   const handleViewAll = () => {
@@ -609,13 +599,7 @@ const RecentAnnouncements: React.FC<RecentAnnouncementsProps> = ({
                       )}
                     </div>
                     
-                    {/* Action indicator */}
-                    {announcement.actionButton && announcement.actionButton.text && (
-                      <div className="flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400">
-                        <span>Action available</span>
-                        <ArrowRight className="w-3 h-3" />
-                      </div>
-                    )}
+
                   </div>
                 </div>
               </div>

@@ -68,6 +68,7 @@
     "@react-three/fiber": "^8.13.4",
     "@sparticuz/chromium": "^131.0.1",
     "@tanstack/react-table": "^8.21.3",
+    "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/react-datepicker": "^6.2.0",
     "@vercel/analytics": "^1.5.0",
@@ -78,6 +79,7 @@
     "aws-sdk": "^2.1692.0",
     "axios": "^1.8.4",
     "axios-retry": "^4.5.0",
+    "bcryptjs": "^3.0.2",
     "canvas-confetti": "^1.9.3",
     "chart.js": "^4.4.2",
     "class-variance-authority": "^0.7.1",
@@ -150,7 +152,7 @@
     "video.js": "^8.19.1",
     "yarn": "^1.22.22",
     "yup": "^1.6.1",
-    "zod": "^3.24.2",
+    "zod": "^3.25.67",
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {

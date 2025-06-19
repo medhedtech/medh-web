@@ -31,16 +31,10 @@ interface IAccordionProps {
   contentClassName?: string;
 }
 
-interface IAnimationVariants {
-  hidden: {
-    opacity: number;
-    y: number;
-  };
-  visible: {
-    opacity: number;
-    y: number;
-  };
-}
+const fadeInUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 }
+};
 
 const data: IData = {
   tabs: [
@@ -199,17 +193,17 @@ const Accordion: React.FC<IAccordionProps> = memo(({ title, children, defaultOpe
   }, []);
 
   return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+    <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-800 mb-3">
       <button
         onClick={toggleAccordion}
-        className={`w-full px-4 md:px-5 py-3 md:py-4 text-left flex items-center justify-between bg-gradient-to-r from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 hover:from-gray-100 hover:to-gray-50 dark:hover:from-gray-600 dark:hover:to-gray-700 transition-all ${titleClassName}`}
+        className={`w-full px-4 md:px-6 py-3 md:py-4 text-left flex items-center justify-between bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${titleClassName}`}
         aria-expanded={isOpen}
       >
-        <span className="text-base md:text-lg font-semibold text-gray-800 dark:text-white pr-4">
+        <span className="text-sm md:text-base font-semibold text-gray-900 dark:text-white pr-4">
           {title}
         </span>
         <ChevronDown 
-          className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${
+          className={`w-4 h-4 md:w-5 md:h-5 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${
             isOpen ? 'rotate-180' : ''
           }`} 
         />
@@ -218,13 +212,13 @@ const Accordion: React.FC<IAccordionProps> = memo(({ title, children, defaultOpe
       <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
-            initial={{ height: 0, opacity: 0.5 }}
+            initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0.5 }}
-            transition={{ duration: 0.3 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className={`p-3 md:p-4 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 border-t border-gray-200 dark:border-gray-700 ${contentClassName}`}>
+            <div className={`p-4 md:p-6 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 ${contentClassName}`}>
               {children}
             </div>
           </motion.div>
@@ -272,10 +266,7 @@ const CorporateOverview: React.FC = () => {
     };
   }, []);
 
-  const fadeInUp: IAnimationVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
+  // Animation variants are defined at module level
 
   const scrollToTop = useCallback(() => {
     window.scrollTo({ 
@@ -308,34 +299,26 @@ const CorporateOverview: React.FC = () => {
   }
 
   return (
-    <section 
-      className="py-16 lg:py-20 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 relative overflow-hidden"
-      style={{
-        backgroundImage: `url(${bgImg.src})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
-      }}
-    >
-      {/* Background overlay */}
-      <div className="absolute inset-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm"></div>
-      
-      <div className="container mx-auto px-4 relative z-10">
-        <motion.div
-          initial="hidden"
-          animate={isVisible ? "visible" : "hidden"}
-          variants={fadeInUp}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
-        >
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent mb-4">
-            Corporate Training Excellence
-          </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            Transform your organization with our comprehensive training solutions designed to elevate performance, 
-            enhance skills, and drive sustainable growth across all levels of your business.
-          </p>
-        </motion.div>
+    <section className="bg-gray-50 dark:bg-gray-950 min-h-screen">
+      <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 md:py-12">
+        {/* Clean Header */}
+        <div className="bg-white dark:bg-gray-900 rounded-lg md:rounded-xl border border-gray-200 dark:border-gray-700 p-6 md:p-8 shadow-sm mb-8">
+          <motion.div
+            initial="hidden"
+            animate={isVisible ? "visible" : "hidden"}
+            variants={fadeInUp}
+            transition={{ duration: 0.6 }}
+            className="text-center"
+          >
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Corporate Training Excellence
+            </h1>
+            <p className="text-base md:text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
+              Transform your organization with our comprehensive training solutions designed to elevate performance, 
+              enhance skills, and drive sustainable growth across all levels of your business.
+            </p>
+          </motion.div>
+        </div>
 
         {/* Tab Navigation */}
         <motion.div
@@ -345,16 +328,16 @@ const CorporateOverview: React.FC = () => {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="flex justify-center mb-8"
         >
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-2 shadow-lg border border-gray-200 dark:border-gray-700">
-            <div className="flex space-x-2">
+          <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-1 shadow-sm">
+            <div className="flex space-x-1">
               {data.tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => handleTabClick(tab.id)}
-                  className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                  className={`px-4 md:px-6 py-2 md:py-3 rounded-md font-medium transition-all duration-200 text-sm md:text-base ${
                     activeTab === tab.id
-                      ? 'bg-gradient-to-r from-primary-500 to-indigo-500 text-white shadow-lg transform scale-105'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-white'
+                      ? 'bg-blue-600 dark:bg-blue-500 text-white'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
                   {tab.name}
@@ -371,8 +354,8 @@ const CorporateOverview: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4 }}
-            className="max-w-4xl mx-auto bg-white/95 backdrop-blur-lg dark:bg-gray-800/95 px-6 py-8 md:px-10 md:py-12 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700"
+            transition={{ duration: 0.3 }}
+            className="bg-white dark:bg-gray-900 rounded-lg md:rounded-xl border border-gray-200 dark:border-gray-700 p-6 md:p-8 shadow-sm"
           >
             {activeTab === 1 && (
               <div className="space-y-4 md:space-y-6">
@@ -456,17 +439,17 @@ const CorporateOverview: React.FC = () => {
           animate={isVisible ? "visible" : "hidden"}
           variants={fadeInUp}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="text-center mt-12"
+          className="bg-white dark:bg-gray-900 rounded-lg md:rounded-xl border border-gray-200 dark:border-gray-700 p-6 md:p-8 shadow-sm text-center mt-8"
         >
-          <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
+          <p className="text-base md:text-lg text-gray-600 dark:text-gray-400 mb-6">
             Ready to transform your organization's potential into performance?
           </p>
           <button
             onClick={() => router.push('/contact-us')}
-            className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-primary-500 to-indigo-500 hover:from-primary-600 hover:to-indigo-600 text-white font-medium rounded-xl transition-all duration-300 shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/40 transform hover:scale-105"
+            className="inline-flex items-center px-6 md:px-8 py-3 md:py-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-semibold rounded-lg transition-all duration-200"
           >
             Start Your Journey
-            <ChevronRight className="ml-2 w-5 h-5" />
+            <ChevronRight className="ml-2 w-4 h-4 md:w-5 md:h-5" />
           </button>
         </motion.div>
       </div>
@@ -479,10 +462,10 @@ const CorporateOverview: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={scrollToTop}
-            className="fixed bottom-8 right-8 p-3 bg-primary-500 hover:bg-primary-600 text-white rounded-full shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/40 transition-all z-50"
+            className="fixed bottom-6 right-6 md:bottom-8 md:right-8 p-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-full shadow-lg transition-all z-50"
             aria-label="Scroll to top"
           >
-            <ArrowUp className="w-5 h-5" />
+            <ArrowUp className="w-4 h-4 md:w-5 md:h-5" />
           </motion.button>
         )}
       </AnimatePresence>

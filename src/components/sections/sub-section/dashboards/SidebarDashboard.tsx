@@ -87,7 +87,12 @@ import {
   Banknote,
   Activity,
   ChevronUp,
-  Crown
+  Crown,
+  Shield,
+  ShieldAlert,
+  UserX,
+  KeyRound,
+  Tag
 } from "lucide-react";
 import Cookies from 'js-cookie';
 import { motion, AnimatePresence } from "framer-motion";
@@ -813,11 +818,6 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       subItems: [
         {
           name: "All Courses",
-          path: "/dashboards/student/all-courses",
-          icon: <LayoutGrid className="w-4 h-4" />
-        },
-        {
-          name: "In Progress",
           path: formatRoute("student", "enrolled-courses"),
           icon: <TrendingUp className="w-4 h-4" />
         },
@@ -834,7 +834,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       icon: <Crown className="w-5 h-5" />
     },
     {
-      name: "Resources",
+      name: "My Resources",
       path: formatRoute("student", "resources"),
       icon: <FolderOpen className="w-5 h-5" />,
       subItems: [
@@ -856,7 +856,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       ]
     },
     {
-      name: "Live Classes",
+      name: "My Live Classes",
       path: formatRoute("student", "upcoming-classes"),
       icon: <Video className="w-5 h-5" />,
       subItems: [
@@ -878,7 +878,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       ]
     },
     {
-      name: "Certificates",
+      name: "My Certificates",
       path: formatRoute("student", "certificate"),
       icon: <Award className="w-5 h-5" />
     },
@@ -981,6 +981,27 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       ]
     },
     {
+      name: "Security Management",
+      icon: <Shield className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Account Lockouts",
+          path: formatRoute("admin", "account-lockouts"),
+          icon: <UserX className="w-4 h-4" />
+        },
+        {
+          name: "Lockout Statistics",
+          path: formatRoute("admin", "lockout-stats"),
+          icon: <ShieldAlert className="w-4 h-4" />
+        },
+        {
+          name: "Security Settings",
+          path: formatRoute("admin", "security-settings"),
+          icon: <KeyRound className="w-4 h-4" />
+        }
+      ]
+    },
+    {
       name: "Classes",
       icon: <Calendar className="w-5 h-5" />,
       subItems: [
@@ -1009,6 +1030,11 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           name: "Currency Settings",
           path: formatRoute("admin", "currency"),
           icon: <Banknote className="w-4 h-4" />
+        },
+        {
+          name: "Coupon Management",
+          path: formatRoute("admin", "coupons"),
+          icon: <Tag className="w-4 h-4" />
         },
         {
           name: "Instructor Payouts",
