@@ -58,12 +58,14 @@ export const VideoBackgroundContext = createContext<VideoBackgroundContextType>(
   startVideo: async () => {}
 });
 
-// Debounce utility
-let resizeTimeout: NodeJS.Timeout;
-const debouncedResize = (callback: () => void) => {
-  clearTimeout(resizeTimeout);
-  resizeTimeout = setTimeout(callback, 150);
-};
+// Debounce utility with proper cleanup
+const debouncedResize = (() => {
+  let resizeTimeout: NodeJS.Timeout | null = null;
+  return (callback: () => void) => {
+    if (resizeTimeout) clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(callback, 150);
+  };
+})();
 
 const Home2: React.FC = () => {
   const { theme } = useTheme();
@@ -167,8 +169,8 @@ const Home2: React.FC = () => {
     
     setIsIOSDevice(iosDevice);
     
-    // Initialize iOS optimizations
-    const cleanupIOS = initializeIOSOptimizations();
+    // Initialize iOS optimizations with safety checks
+    const cleanupIOS = initializeIOSOptimizations?.() || (() => {});
     
     // Run iOS tests in development
     if (process.env.NODE_ENV === 'development' && iosDevice) {
@@ -254,7 +256,6 @@ const Home2: React.FC = () => {
     
     return () => {
       clearTimeout(loadTimer);
-      clearTimeout(resizeTimeout);
       window.removeEventListener('resize', handleResizePassive);
       mountedRef.current = false;
     };
@@ -271,12 +272,18 @@ const Home2: React.FC = () => {
   const handleVideoError = useCallback((error: React.SyntheticEvent<HTMLVideoElement, Event>) => {
     console.warn('Video background failed to load, using fallback');
     
-    // Use iOS-specific error handling
-    if (videoRef.current) {
-      errorRecovery.handleVideoErrorWithFallback(error.nativeEvent, videoRef, () => {
+    // Use iOS-specific error handling with safety checks
+    if (videoRef.current && errorRecovery?.handleVideoErrorWithFallback) {
+      try {
+        errorRecovery.handleVideoErrorWithFallback(error.nativeEvent, videoRef, () => {
+          setHasVideoError(true);
+          setShouldShowVideo(false);
+        });
+      } catch (recoveryError) {
+        console.warn('Error recovery failed:', recoveryError);
         setHasVideoError(true);
         setShouldShowVideo(false);
-      });
+      }
     } else {
       setHasVideoError(true);
       setShouldShowVideo(false);
