@@ -617,9 +617,14 @@ const BlogsMain: React.FC<BlogsMainProps> = ({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2">
                         <span className="bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 px-2 py-1 rounded">
-                          {blog.categories?.[0]?.category_name || 'Article'}
+                          {blog.categories && blog.categories.length > 0 
+                            ? (typeof blog.categories[0] === 'string' 
+                                ? blog.categories[0] 
+                                : (blog.categories[0] as any)?.category_name || 'Article')
+                            : 'Article'
+                          }
                         </span>
-                        {blog.ai_enhanced && (
+                        {(blog as any).ai_enhanced && (
                           <span className="bg-indigo-100 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-300 px-2 py-1 rounded flex items-center gap-1">
                             <Sparkles className="w-3 h-3" />
                             AI Enhanced
@@ -627,24 +632,26 @@ const BlogsMain: React.FC<BlogsMainProps> = ({
                         )}
                         <span>•</span>
                         <Calendar className="w-3 h-3" />
-                        <time>{new Date(blog.createdAt).toLocaleDateString()}</time>
-                        {blog.reading_time && (
+                        <time dateTime={new Date(blog.createdAt).toISOString()}>
+                          {new Date(blog.createdAt).toLocaleDateString()}
+                        </time>
+                        {(blog as any).reading_time && (
                           <>
                             <span>•</span>
                             <Clock className="w-3 h-3" />
-                            <span>{blog.reading_time} min read</span>
+                            <span>{(blog as any).reading_time} min read</span>
                           </>
                         )}
                       </div>
                       
-                      <Link href={`/blogs/${blog.slug}`}>
+                      <Link href={`/blogs/${blog.slug || blog._id}`}>
                         <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
                           {blog.title}
                         </h3>
                       </Link>
                       
                       <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
-                        {blog.description || blog.meta_description}
+                        {(blog as any).description || blog.meta_description || 'Read this insightful article to learn more.'}
                       </p>
                       
                       <div className="flex items-center justify-between">
