@@ -1,27 +1,24 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useMemo, memo, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { 
-  GraduationCap, 
-  Users, 
-  BookOpen, 
-  Target, 
-  ArrowUpRight,
-  CheckCircle,
-  Sparkles,
-  Trophy,
-  Shield
-} from "lucide-react";
 import { useTheme } from "next-themes";
-import placement from "@/assets/images/iso/pllacement-logo.png";
+import { 
+  BookOpen, 
+  Users, 
+  GraduationCap, 
+  Target, 
+  Sparkles, 
+  CheckCircle, 
+  Trophy 
+} from "lucide-react";
 import medhLogo from "@/assets/images/logo/medh 2.png";
 
 // Import certification images
 import iso9001Emblem from "@/assets/images/certifications/ISO_9001-2015_Emblem.jpg";
 import iso10002Emblem from "@/assets/images/certifications/ISO_10002-2018_Emblem.jpg";
 import iso20000Emblem from "@/assets/images/certifications/ISO_20000-2018_Emblem.jpg";
-import iso22301Emblem from "@/assets/images/certifications/ISO_22301-2019_Emblem.jpg";
+import iso21001Emblem from "@/assets/images/certifications/ISO_22301-2019_Emblem.jpg";
 import iso27001Emblem from "@/assets/images/certifications/ISO_27001-2022_Emblem.jpg";
 import iso27701Emblem from "@/assets/images/certifications/ISO_27701-2019_Emblem.jpg";
 import stemAccreditation from "@/assets/images/certifications/medh-stem-accreditation-logo (1).png";
@@ -34,62 +31,239 @@ interface IWhyMedhFeature {
   color: string;
 }
 
-// Optimized feature data - reduced to essential items
-const FEATURES: IWhyMedhFeature[] = [
-  {
+// PERFORMANCE OPTIMIZATION: Frozen feature data to prevent mutations
+const FEATURES: readonly IWhyMedhFeature[] = Object.freeze([
+  Object.freeze({
     icon: <BookOpen className="w-8 h-8" />,
     title: "Quality Content",
     description: "Up-to-date, well-structured materials that drive real learning outcomes.",
     color: "blue"
-  },
-  {
+  }),
+  Object.freeze({
     icon: <Users className="w-8 h-8" />,
     title: "Learning Resources", 
     description: "Diverse materials tailored to learners of all backgrounds and skill levels.",
     color: "green"
-  },
-  {
+  }),
+  Object.freeze({
     icon: <GraduationCap className="w-8 h-8" />,
     title: "Expert Mentorship",
     description: "Learn from qualified instructors through practical projects.",
     color: "purple"
-  },
-  {
+  }),
+  Object.freeze({
     icon: <Target className="w-8 h-8" />,
     title: "Personalized Learning",
     description: "Customize your learning path with flexible modules.",
     color: "orange"
-  }
-];
+  })
+]);
 
-// Simplified color mapping
+// PERFORMANCE OPTIMIZATION: Memoized color mapping
+const COLOR_CLASSES = Object.freeze({
+  blue: "text-white bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/20",
+  green: "text-white bg-gradient-to-br from-green-500 to-green-600 shadow-lg shadow-green-500/20", 
+  purple: "text-white bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg shadow-purple-500/20",
+  orange: "text-white bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/20"
+});
+
 const getColorClasses = (color: string): string => {
-  const colors = {
-    blue: "text-white bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/20",
-    green: "text-white bg-gradient-to-br from-green-500 to-green-600 shadow-lg shadow-green-500/20", 
-    purple: "text-white bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg shadow-purple-500/20",
-    orange: "text-white bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/20"
-  };
-  return colors[color as keyof typeof colors] || colors.blue;
+  return COLOR_CLASSES[color as keyof typeof COLOR_CLASSES] || COLOR_CLASSES.blue;
 };
 
-// Optimized main component
-const WhyMedh: React.FC = () => {
+// PERFORMANCE OPTIMIZATION: Memoized FeatureCard component
+const FeatureCard = memo<{
+  feature: IWhyMedhFeature;
+  index: number;
+  isDark: boolean;
+}>(({ feature, index, isDark }) => {
+  const cardClasses = useMemo(() => {
+    return "group relative h-full transition-all duration-300 hover:-translate-y-1";
+  }, []);
+
+  const contentClasses = useMemo(() => {
+    return "relative h-full rounded-xl bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-100 dark:border-gray-800 shadow-md hover:shadow-xl transition-all duration-300 p-6";
+  }, []);
+
+  const iconClasses = useMemo(() => {
+    return `w-16 h-16 rounded-xl ${getColorClasses(feature.color)} flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-300`;
+  }, [feature.color]);
+
+  const titleClasses = useMemo(() => {
+    return "text-lg font-bold text-gray-800 dark:text-white mb-3 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors";
+  }, []);
+
+  const descriptionClasses = useMemo(() => {
+    return "text-sm text-gray-600 dark:text-gray-300 leading-relaxed";
+  }, []);
+
+  const iconWithClasses = useMemo(() => {
+    return React.cloneElement(feature.icon as React.ReactElement, {
+      className: "w-8 h-8"
+    });
+  }, [feature.icon]);
+
+  return (
+    <div
+      className={cardClasses}
+      style={{ transitionDelay: `${index * 50}ms` }}
+    >
+      <div className={contentClasses}>
+        
+        {/* Icon */}
+        <div className={iconClasses}>
+          {iconWithClasses}
+        </div>
+        
+        {/* Content */}
+        <h3 className={titleClasses}>
+          {feature.title}
+        </h3>
+        <p className={descriptionClasses}>
+          {feature.description}
+        </p>
+        
+        {/* Hover indicator */}
+        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <CheckCircle className="w-5 h-5 text-primary-500" />
+        </div>
+      </div>
+    </div>
+  );
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.feature === nextProps.feature &&
+    prevProps.index === nextProps.index &&
+    prevProps.isDark === nextProps.isDark
+  );
+});
+
+FeatureCard.displayName = 'FeatureCard';
+
+// PERFORMANCE OPTIMIZATION: Memoized CertificationCard component
+const CertificationCard = memo<{
+  image: any;
+  alt: string;
+  title: string;
+  description: string;
+}>(({ image, alt, title, description }) => {
+  const cardClasses = useMemo(() => {
+    return "text-center";
+  }, []);
+
+  const imageContainerClasses = useMemo(() => {
+    return "w-24 h-24 mx-auto mb-4 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-lg";
+  }, []);
+
+  const titleClasses = useMemo(() => {
+    return "font-semibold text-gray-800 dark:text-white mb-2";
+  }, []);
+
+  const descriptionClasses = useMemo(() => {
+    return "text-sm text-gray-600 dark:text-gray-300 max-w-xs";
+  }, []);
+
+  return (
+    <div className={cardClasses}>
+      <div className={imageContainerClasses}>
+        <Image
+          src={image}
+          alt={alt}
+          width={80}
+          height={80}
+          className="w-full h-full object-contain"
+        />
+      </div>
+      <h4 className={titleClasses}>{title}</h4>
+      <p className={descriptionClasses}>
+        {description}
+      </p>
+    </div>
+  );
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.image === nextProps.image &&
+    prevProps.alt === nextProps.alt &&
+    prevProps.title === nextProps.title &&
+    prevProps.description === nextProps.description
+  );
+});
+
+CertificationCard.displayName = 'CertificationCard';
+
+// PERFORMANCE OPTIMIZATION: Memoized CertificationGrid component
+const CertificationGrid = memo<{
+  title: string;
+  certifications: Array<{ image: any; alt: string; label: string }>;
+}>(({ title, certifications }) => {
+  const gridClasses = useMemo(() => {
+    return "bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 border border-gray-200 dark:border-gray-700";
+  }, []);
+
+  const titleClasses = useMemo(() => {
+    return "text-xl font-bold text-gray-800 dark:text-white mb-6 text-center";
+  }, []);
+
+  const itemClasses = useMemo(() => {
+    return "text-center";
+  }, []);
+
+  const imageContainerClasses = useMemo(() => {
+    return "w-20 h-20 mx-auto mb-3 bg-white dark:bg-gray-700 rounded-lg p-2 shadow-md";
+  }, []);
+
+  const labelClasses = useMemo(() => {
+    return "text-sm font-medium text-gray-700 dark:text-gray-300";
+  }, []);
+
+  return (
+    <div className={gridClasses}>
+      <h3 className={titleClasses}>{title}</h3>
+      <div className="flex flex-col gap-4">
+        {certifications.map((cert, index) => (
+          <div key={index} className={itemClasses}>
+            <div className={imageContainerClasses}>
+              <Image
+                src={cert.image}
+                alt={cert.alt}
+                width={64}
+                height={64}
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div className={labelClasses}>{cert.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.title === nextProps.title &&
+    JSON.stringify(prevProps.certifications) === JSON.stringify(nextProps.certifications)
+  );
+});
+
+CertificationGrid.displayName = 'CertificationGrid';
+
+// PERFORMANCE OPTIMIZATION: Main component with comprehensive memoization
+const WhyMedh = memo(() => {
   const router = useRouter();
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   
-  const isDark = mounted ? theme === 'dark' : true;
+  // PERFORMANCE OPTIMIZATION: Memoized computed values
+  const isDark = useMemo(() => mounted ? theme === 'dark' : true, [mounted, theme]);
   
-  // Single initialization effect
+  // PERFORMANCE OPTIMIZATION: Single initialization effect
   useEffect(() => {
     setMounted(true);
     const timer = setTimeout(() => setIsVisible(true), 200);
     return () => clearTimeout(timer);
   }, []);
 
-  // Optimized navigation handlers
+  // PERFORMANCE OPTIMIZATION: Memoized navigation handlers
   const handleGetStarted = useCallback(() => {
     router.push("/placement-guaranteed-courses");
   }, [router]);
@@ -98,7 +272,94 @@ const WhyMedh: React.FC = () => {
     router.push("/about");
   }, [router]);
 
-  // Loading state
+  // PERFORMANCE OPTIMIZATION: Memoized class names
+  const containerClasses = useMemo(() => {
+    return `w-full transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} py-8 bg-gradient-to-br from-gray-50/50 to-white dark:from-gray-900/50 dark:to-gray-800/50`;
+  }, [isVisible]);
+
+  const sectionClasses = useMemo(() => {
+    return "w-full py-8 md:py-12";
+  }, []);
+
+  const headerContainerClasses = useMemo(() => {
+    return "text-center max-w-3xl mx-auto mb-16";
+  }, []);
+
+  const badgeClasses = useMemo(() => {
+    return "inline-flex items-center gap-2 mb-6";
+  }, []);
+
+  const badgeIconClasses = useMemo(() => {
+    return "w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-blue-600 flex items-center justify-center shadow-lg";
+  }, []);
+
+  const badgeTextClasses = useMemo(() => {
+    return "text-sm font-medium text-primary-600 dark:text-primary-400 uppercase tracking-wider";
+  }, []);
+
+  const headingClasses = useMemo(() => {
+    return "text-3xl md:text-4xl font-bold mb-6 text-gray-900 dark:text-white";
+  }, []);
+
+  const descriptionClasses = useMemo(() => {
+    return "text-lg text-gray-700 dark:text-gray-300 leading-relaxed";
+  }, []);
+
+  const featuresGridClasses = useMemo(() => {
+    return "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16";
+  }, []);
+
+  const certificationsHeaderClasses = useMemo(() => {
+    return "text-center mb-16";
+  }, []);
+
+  const certificationsBadgeClasses = useMemo(() => {
+    return "inline-flex items-center gap-2 mb-8";
+  }, []);
+
+  const certificationsIconClasses = useMemo(() => {
+    return `w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg`;
+  }, []);
+
+  const certificationsTitleClasses = useMemo(() => {
+    return "text-2xl md:text-3xl font-bold text-gray-800 dark:text-white";
+  }, []);
+
+  const certificationsDescriptionClasses = useMemo(() => {
+    return "text-lg text-gray-600 dark:text-gray-300 mb-10";
+  }, []);
+
+  const featuredCertificationsClasses = useMemo(() => {
+    return "flex flex-col sm:flex-row items-center justify-center gap-8 mb-12";
+  }, []);
+
+  const certificationGridsClasses = useMemo(() => {
+    return "grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12";
+  }, []);
+
+  // PERFORMANCE OPTIMIZATION: Memoized logo styles
+  const logoStyles = useMemo(() => ({
+    filter: 'brightness(1.1) contrast(1.2)',
+    verticalAlign: 'baseline'
+  }), []);
+
+  // PERFORMANCE OPTIMIZATION: Memoized certification data
+  const learningQualityCerts = useMemo(() => [
+    { image: iso9001Emblem, alt: "ISO 9001", label: "ISO 9001" },
+    { image: iso10002Emblem, alt: "ISO 10002", label: "ISO 10002" }
+  ], []);
+
+  const dataProtectionCerts = useMemo(() => [
+    { image: iso27001Emblem, alt: "ISO 27001", label: "ISO 27001" },
+    { image: iso27701Emblem, alt: "ISO 27701", label: "ISO 27701" }
+  ], []);
+
+  const serviceReliabilityCerts = useMemo(() => [
+    { image: iso20000Emblem, alt: "ISO 20000", label: "ISO 20000" },
+    { image: iso21001Emblem, alt: "ISO 21001", label: "ISO 21001" }
+  ], []);
+
+  // Fast loading state
   if (!mounted) {
     return (
       <div className="w-full py-8 opacity-0">
@@ -118,25 +379,22 @@ const WhyMedh: React.FC = () => {
   }
 
   return (
-    <div className={`w-full transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} py-8 bg-gradient-to-br from-gray-50/50 to-white dark:from-gray-900/50 dark:to-gray-800/50`}>
-      
-
-
+    <div className={containerClasses}>
       {/* Why Choose MEDH Section */}
-      <section className="w-full py-8 md:py-12">
+      <section className={sectionClasses}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           
           {/* Section Header */}
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-blue-600 flex items-center justify-center shadow-lg">
+          <div className={headerContainerClasses}>
+            <div className={badgeClasses}>
+              <div className={badgeIconClasses}>
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
-              <span className="text-sm font-medium text-primary-600 dark:text-primary-400 uppercase tracking-wider">
+              <span className={badgeTextClasses}>
                 Our Approach
               </span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900 dark:text-white">
+            <h2 className={headingClasses}>
               Why Choose{" "}
               <span className="inline-flex items-baseline align-baseline">
                 <Image 
@@ -145,226 +403,107 @@ const WhyMedh: React.FC = () => {
                   width={32} 
                   height={32} 
                   className="inline-block h-6 sm:h-7 md:h-8 w-auto align-baseline mx-1"
-                  style={{ 
-                    filter: 'brightness(1.1) contrast(1.2)',
-                    verticalAlign: 'baseline'
-                  }}
+                  style={logoStyles}
                 />
               </span>?
             </h2>
-            <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+            <p className={descriptionClasses}>
               Empowering learners with the freedom to explore, we go beyond fundamentals, fostering critical thinking and creativity.
             </p>
           </div>
 
           {/* Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          <div className={featuresGridClasses}>
             {FEATURES.map((feature, index) => (
-              <div
+              <FeatureCard
                 key={index}
-                className="group relative h-full transition-all duration-300 hover:-translate-y-1"
-                style={{ transitionDelay: `${index * 50}ms` }}
-              >
-                <div className="relative h-full rounded-xl bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-100 dark:border-gray-800 shadow-md hover:shadow-xl transition-all duration-300 p-6">
-                  
-                  {/* Icon */}
-                  <div className={`w-16 h-16 rounded-xl ${getColorClasses(feature.color)} flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-300`}>
-                    {feature.icon}
-                  </div>
-                  
-                  {/* Content */}
-                  <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-3 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                    {feature.description}
-                  </p>
-                  
-                  {/* Hover indicator */}
-                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <CheckCircle className="w-5 h-5 text-primary-500" />
-                  </div>
-                </div>
-              </div>
+                feature={feature}
+                index={index}
+                isDark={isDark}
+              />
             ))}
           </div>
 
           {/* Our Quality Certifications Section */}
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 mb-8">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg">
+          <div className={certificationsHeaderClasses}>
+            <div className={certificationsBadgeClasses}>
+              <div className={certificationsIconClasses}>
                 <Trophy className={`w-4 h-4 ${isDark ? 'text-white' : 'text-black'}`} />
               </div>
-              <h3 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">
+              <h3 className={certificationsTitleClasses}>
                 Our Quality Certifications!
               </h3>
             </div>
-            <p className="text-lg text-gray-600 dark:text-gray-300 mb-10">
+            <p className={certificationsDescriptionClasses}>
               Certified Standards That Ensure Your Success
             </p>
             
             {/* Featured Certifications - Main Display */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-8 mb-12">
+            <div className={featuredCertificationsClasses}>
               {/* STEM Certified */}
-              <div className="text-center">
-                <div className="w-24 h-24 mx-auto mb-4 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-lg">
-                  <Image
-                    src={stemAccreditation}
-                    alt="STEM Certified"
-                    width={80}
-                    height={80}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <h4 className="font-semibold text-gray-800 dark:text-white mb-2">STEM Certified</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-300 max-w-xs">
-                  Recognized excellence in Science, Technology, Engineering, and Mathematics education.
-                </p>
-              </div>
+              <CertificationCard
+                image={stemAccreditation}
+                alt="STEM Certified"
+                title="STEM Certified"
+                description="Recognized excellence in Science, Technology, Engineering, and Mathematics education."
+              />
               
               {/* ISO Certified */}
-              <div className="text-center">
-                <div className="w-24 h-24 mx-auto mb-4 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-lg">
-                  <Image
-                    src={iso9001Emblem}
-                    alt="ISO Certified"
-                    width={80}
-                    height={80}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <h4 className="font-semibold text-gray-800 dark:text-white mb-2">ISO Certified</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-300 max-w-xs">
-                  Recognized international standards of quality, security, and reliability, protecting your data.
-                </p>
-              </div>
+              <CertificationCard
+                image={iso9001Emblem}
+                alt="ISO Certified"
+                title="ISO Certified"
+                description="International standards for quality management and continuous improvement."
+              />
             </div>
             
-            {/* Certification Categories with Images */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12">
+            <div className={certificationGridsClasses}>
               {/* Learning Quality */}
-              <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-                <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-6 text-center">Learning Quality</h3>
-                <div className="flex flex-col gap-4">
-                  <div className="text-center">
-                    <div className="w-20 h-20 mx-auto mb-3 bg-white dark:bg-gray-700 rounded-lg p-2 shadow-md">
-                      <Image
-                        src={iso9001Emblem}
-                        alt="ISO 9001"
-                        width={64}
-                        height={64}
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">ISO 9001</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-20 h-20 mx-auto mb-3 bg-white dark:bg-gray-700 rounded-lg p-2 shadow-md">
-                      <Image
-                        src={iso10002Emblem}
-                        alt="ISO 10002"
-                        width={64}
-                        height={64}
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">ISO 10002</div>
-                  </div>
-                </div>
-              </div>
+              <CertificationGrid
+                title="Learning Quality"
+                certifications={learningQualityCerts}
+              />
               
               {/* Data Protection */}
-              <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-                <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-6 text-center">Data Protection</h3>
-                <div className="flex flex-col gap-4">
-                  <div className="text-center">
-                    <div className="w-20 h-20 mx-auto mb-3 bg-white dark:bg-gray-700 rounded-lg p-2 shadow-md">
-                      <Image
-                        src={iso27001Emblem}
-                        alt="ISO 27001"
-                        width={64}
-                        height={64}
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">ISO 27001</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-20 h-20 mx-auto mb-3 bg-white dark:bg-gray-700 rounded-lg p-2 shadow-md">
-                      <Image
-                        src={iso27701Emblem}
-                        alt="ISO 27701"
-                        width={64}
-                        height={64}
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">ISO 27701</div>
-                  </div>
-                </div>
-              </div>
+              <CertificationGrid
+                title="Data Protection"
+                certifications={dataProtectionCerts}
+              />
               
               {/* Service Reliability */}
-              <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-                <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-6 text-center">Service Reliability</h3>
-                <div className="flex flex-col gap-4">
-                  <div className="text-center">
-                    <div className="w-20 h-20 mx-auto mb-3 bg-white dark:bg-gray-700 rounded-lg p-2 shadow-md">
-                      <Image
-                        src={iso20000Emblem}
-                        alt="ISO 20000-1"
-                        width={64}
-                        height={64}
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">ISO 20000-1</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-20 h-20 mx-auto mb-3 bg-white dark:bg-gray-700 rounded-lg p-2 shadow-md">
-                      <Image
-                        src={iso22301Emblem}
-                        alt="ISO 22301"
-                        width={64}
-                        height={64}
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">ISO 22301</div>
-                  </div>
-                </div>
+              <CertificationGrid
+                title="Service Reliability"
+                certifications={serviceReliabilityCerts}
+              />
+            </div>
+
+            {/* Call to Action */}
+            <div className="text-center mt-12">
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
+                Ready to experience the MEDH difference?
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button
+                  onClick={handleGetStarted}
+                  className="px-8 py-3 bg-gradient-to-r from-primary-500 to-blue-600 text-white font-semibold rounded-lg hover:from-primary-600 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                >
+                  Get Started Today
+                </button>
+                <button
+                  onClick={handleLearnMore}
+                  className="px-8 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-300"
+                >
+                  Learn More
+                </button>
               </div>
             </div>
-            
-            {/* Bottom Message */}
-            <div className="bg-gradient-to-r from-primary-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-6 border border-primary-100 dark:border-gray-600">
-              <p className="text-gray-700 dark:text-gray-300 text-lg mb-4">
-                These certifications ensure your learning journey is<br />
-                built on globally recognized standards of excellence.
-              </p>
-            </div>
-          </div>
-
-          {/* CTA Section */}
-          <div className="text-center">
-            <div className="inline-flex flex-col sm:flex-row gap-4 items-center justify-center">
-              <button
-                onClick={handleGetStarted}
-                className="group inline-flex items-center justify-center px-8 py-4 text-base font-medium text-white bg-gradient-to-r from-primary-500 to-blue-600 hover:from-primary-600 hover:to-blue-700 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
-              >
-                <span>Get Started Today</span>
-                <ArrowUpRight size={18} className="ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-              </button>
-            </div>
-            
-            <p className="mt-8 text-sm text-gray-500 dark:text-gray-400">
-              Join thousands of successful graduates who've transformed their careers with Medh
-            </p>
           </div>
         </div>
       </section>
     </div>
   );
-};
+});
+
+WhyMedh.displayName = 'WhyMedh';
 
 export default WhyMedh; 

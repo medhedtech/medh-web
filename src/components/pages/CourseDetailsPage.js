@@ -1917,73 +1917,117 @@ const CourseDetailsPage = ({ ...props }) => {
 
   return (
     <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Course Header with Download Brochure */}
-      <div className="mb-3 sm:mb-4 md:mb-6">
-        <div className="relative overflow-hidden rounded-lg sm:rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="py-4 sm:py-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div className="flex-1">
-                {/* Course Title and Description - Premium Glassmorphic Design - More Compact */}
-                <motion.div
-                  className="mb-6 relative z-10 overflow-hidden"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4 }}
-                >
-                  {/* Glassmorphic Container */}
-                  <div className="relative backdrop-blur-md bg-white/30 dark:bg-gray-900/40 rounded-xl p-4 sm:p-6 md:p-8 shadow-lg border border-white/20 dark:border-gray-700/30 overflow-hidden">
-                    {/* Background Elements */}
-                    <div className="absolute -top-24 -right-24 w-40 h-40 rounded-full bg-gradient-to-br from-purple-300/30 to-blue-300/30 dark:from-purple-500/20 dark:to-blue-500/20 blur-2xl"></div>
-                    <div className="absolute -bottom-24 -left-24 w-40 h-40 rounded-full bg-gradient-to-tr from-amber-300/30 to-rose-300/30 dark:from-amber-500/20 dark:to-rose-500/20 blur-2xl"></div>
+      {/* Course Header with Mobile-Optimized Design */}
+      <div className="mb-3 sm:mb-6 md:mb-8">
+        <div className="relative overflow-hidden rounded-xl sm:rounded-2xl md:rounded-3xl bg-gradient-to-br from-white via-gray-50/50 to-white dark:from-gray-800 dark:via-gray-700/50 dark:to-gray-800 shadow-lg sm:shadow-xl border border-gray-200/60 dark:border-gray-600/60">
+          {/* Enhanced Background Pattern - Mobile Optimized */}
+          <div className="absolute inset-0">
+            {/* Mobile Grid Pattern */}
+            <div className="block sm:hidden">
+              <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" className="opacity-2 dark:opacity-3">
+                <defs>
+                  <pattern id="mobile-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <circle cx="2" cy="2" r="0.5" fill="currentColor" opacity="0.3"/>
+                    <circle cx="18" cy="18" r="0.3" fill="currentColor" opacity="0.2"/>
+                  </pattern>
+                  <pattern id="mobile-lines" width="30" height="30" patternUnits="userSpaceOnUse">
+                    <path d="M 0 15 L 30 15" stroke="currentColor" strokeWidth="0.5" opacity="0.1"/>
+                    <path d="M 15 0 L 15 30" stroke="currentColor" strokeWidth="0.5" opacity="0.1"/>
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#mobile-grid)" />
+                <rect width="100%" height="100%" fill="url(#mobile-lines)" />
+              </svg>
+            </div>
+            
+            {/* Desktop Grid Pattern */}
+            <div className="hidden sm:block opacity-5 dark:opacity-10">
+              <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <pattern id="desktop-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="1"/>
+                    <circle cx="20" cy="20" r="1" fill="currentColor" opacity="0.3"/>
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#desktop-grid)" />
+              </svg>
+            </div>
+            
+            {/* Mobile Gradient Overlay for Better Readability */}
+            <div className="block sm:hidden absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent dark:via-gray-900/10 pointer-events-none"></div>
+          </div>
+
+          <div className="relative py-4 sm:py-8 md:py-10 px-3 sm:px-6 md:px-8">
+            {/* Course Title and Description - Mobile-First Design */}
+            <motion.div
+              className="relative z-10"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            >
+              {/* Glassmorphic Container - Mobile Optimized */}
+              <div className="relative backdrop-blur-lg sm:backdrop-blur-xl bg-gradient-to-br from-white/80 via-white/60 to-white/80 dark:from-gray-800/80 dark:via-gray-700/60 dark:to-gray-800/80 rounded-xl sm:rounded-2xl p-4 sm:p-8 md:p-10 shadow-lg sm:shadow-2xl border border-white/60 dark:border-gray-600/60 overflow-hidden">
+                {/* Mobile-Optimized Background Elements */}
+                <div className={`absolute -top-20 -right-20 sm:-top-32 sm:-right-32 w-32 h-32 sm:w-56 sm:h-56 rounded-full bg-gradient-to-br from-${getCategoryColorClasses().primaryColor}-300/25 via-${getCategoryColorClasses().primaryColor}-400/15 to-blue-300/25 dark:from-${getCategoryColorClasses().primaryColor}-500/20 dark:via-${getCategoryColorClasses().primaryColor}-600/10 dark:to-blue-500/20 blur-2xl sm:blur-3xl animate-pulse`}></div>
+                <div className={`absolute -bottom-20 -left-20 sm:-bottom-32 sm:-left-32 w-32 h-32 sm:w-56 sm:h-56 rounded-full bg-gradient-to-tr from-purple-300/25 via-${getCategoryColorClasses().primaryColor}-300/15 to-rose-300/25 dark:from-purple-500/20 dark:via-${getCategoryColorClasses().primaryColor}-500/10 dark:to-rose-500/20 blur-2xl sm:blur-3xl animate-pulse`} style={{ animationDelay: '1s' }}></div>
+                
+                {/* Content with Mobile-First Spacing */}
+                <div className="relative z-10 space-y-4 sm:space-y-6">
+                  {/* Mobile-Optimized Title Section */}
+                  <div className="text-center">
+                    <h1 className={`text-xl sm:text-3xl lg:text-4xl xl:text-5xl font-black mb-2 sm:mb-3 leading-tight bg-gradient-to-r from-gray-900 via-${getCategoryColorClasses().primaryColor}-800 to-gray-900 dark:from-white dark:via-${getCategoryColorClasses().primaryColor}-200 dark:to-white bg-clip-text text-transparent`}>
+                      {courseDetails?.course_title}
+                    </h1>
                     
-                    {/* Content with proper z-index */}
-                    <div className="relative z-10">
-                      {/* Title with refined typography */}
-                      <h1 className={`text-xl sm:text-2xl lg:text-3xl font-extrabold mb-2 leading-tight text-gray-900 dark:text-white`}>
-                        {courseDetails?.course_title}
-                      </h1>
-                      
-                      {/* Full Width Separator */}
-                      <div className="my-3">
-                        <div className="w-full h-0.5 bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 rounded-full"></div>
-                      </div>
-                        
-                        {/* Course Video Player */}
-                        <div className="mt-4 w-full px-1">
-                          <CourseVideoPlayer 
-                            courseId={courseId}
-                            courseTitle={courseDetails?.course_title}
-                            courseVideos={courseDetails?.course_videos}
-                            primaryColor={getCategoryColorClasses().primaryColor}
-                          />
-                        </div>
-                        
-                        {/* Premium UI Feature Indicators - More Compact */}
-                      <div className="flex flex-wrap gap-2 mt-4">
-                        <div className="flex items-center px-2.5 py-1 bg-white/70 dark:bg-gray-800/70 rounded-lg shadow-sm border border-gray-100/80 dark:border-gray-700/80">
-                          <Clock className={`h-3.5 w-3.5 text-${getCategoryColorClasses().primaryColor}-500 mr-1.5`} />
-                          <span className="text-xs text-gray-700 dark:text-gray-300">
-                            {formatDuration(courseDetails)}
-                          </span>
-                        </div>
-                        <div className="flex items-center px-2.5 py-1 bg-white/70 dark:bg-gray-800/70 rounded-lg shadow-sm border border-gray-100/80 dark:border-gray-700/80">
-                          <Award className={`h-3.5 w-3.5 text-${getCategoryColorClasses().primaryColor}-500 mr-1.5`} />
-                          <span className="text-xs text-gray-700 dark:text-gray-300">
-                            {courseDetails?.is_Certification === "Yes" || courseDetails?.certification?.is_certified === true ? "Certificate Included" : "No Certificate"}
-                          </span>
-                        </div>
-                        <div className="flex items-center px-2.5 py-1 bg-white/70 dark:bg-gray-800/70 rounded-lg shadow-sm border border-gray-100/80 dark:border-gray-700/80">
-                          <BookOpen className={`h-3.5 w-3.5 text-${getCategoryColorClasses().primaryColor}-500 mr-1.5`} />
-                          <span className="text-xs text-gray-700 dark:text-gray-300">
-                            Lifetime Access
-                          </span>
-                        </div>
-                      </div>
+                    {/* Mobile-Friendly Separator */}
+                    <div className="flex justify-center my-3 sm:my-4">
+                      <div className={`w-16 sm:w-24 md:w-32 h-0.5 sm:h-1 bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-500 via-${getCategoryColorClasses().primaryColor}-400 to-${getCategoryColorClasses().primaryColor}-500 rounded-full shadow-sm sm:shadow-lg`}></div>
                     </div>
                   </div>
-                </motion.div>
+                    
+                  {/* Course Video Player - Mobile Optimized */}
+                  <div className="bg-gradient-to-br from-gray-50/40 to-white/40 dark:from-gray-700/40 dark:to-gray-800/40 rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 border border-gray-200/40 dark:border-gray-600/40 shadow-sm sm:shadow-inner">
+                    <CourseVideoPlayer 
+                      courseId={courseId}
+                      courseTitle={courseDetails?.course_title}
+                      courseVideos={courseDetails?.course_videos}
+                      primaryColor={getCategoryColorClasses().primaryColor}
+                    />
+                  </div>
+                    
+                  {/* Mobile-First Feature Indicators */}
+                  <div className="grid grid-cols-1 sm:flex sm:flex-wrap gap-2 sm:gap-3 md:gap-4 justify-center">
+                    <div className={`flex items-center justify-center sm:justify-start px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-100/70 dark:from-${getCategoryColorClasses().primaryColor}-900/30 dark:to-${getCategoryColorClasses().primaryColor}-800/30 rounded-lg sm:rounded-xl shadow-sm sm:shadow-md border border-${getCategoryColorClasses().primaryColor}-200/50 dark:border-${getCategoryColorClasses().primaryColor}-700/50 backdrop-blur-sm`}>
+                      <Clock className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400 mr-2 flex-shrink-0`} />
+                      <span className={`text-xs sm:text-sm font-semibold text-${getCategoryColorClasses().primaryColor}-700 dark:text-${getCategoryColorClasses().primaryColor}-300 text-center sm:text-left`}>
+                        {formatDuration(courseDetails)}
+                      </span>
+                    </div>
+                    <div className={`flex items-center justify-center sm:justify-start px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-emerald-50 to-emerald-100/70 dark:from-emerald-900/30 dark:to-emerald-800/30 rounded-lg sm:rounded-xl shadow-sm sm:shadow-md border border-emerald-200/50 dark:border-emerald-700/50 backdrop-blur-sm`}>
+                      <Award className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600 dark:text-emerald-400 mr-2 flex-shrink-0`} />
+                      <span className="text-xs sm:text-sm font-semibold text-emerald-700 dark:text-emerald-300 text-center sm:text-left">
+                        {courseDetails?.is_Certification === "Yes" || courseDetails?.certification?.is_certified === true ? "Certificate Included" : "No Certificate"}
+                      </span>
+                    </div>
+                    <div className={`flex items-center justify-center sm:justify-start px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-blue-50 to-blue-100/70 dark:from-blue-900/30 dark:to-blue-800/30 rounded-lg sm:rounded-xl shadow-sm sm:shadow-md border border-blue-200/50 dark:border-blue-700/50 backdrop-blur-sm`}>
+                      <BookOpen className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400 mr-2 flex-shrink-0`} />
+                      <span className="text-xs sm:text-sm font-semibold text-blue-700 dark:text-blue-300 text-center sm:text-left">
+                        Lifetime Access
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Course Selection Component - Mobile Enhanced */}
+                  {props.courseSelectionComponent && (
+                    <div className="mt-4 sm:mt-6 block lg:hidden">
+                      <div className="bg-gradient-to-br from-gray-50/90 to-white/90 dark:from-gray-700/90 dark:to-gray-800/90 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-200/70 dark:border-gray-600/70 shadow-md backdrop-blur-sm">
+                        {props.courseSelectionComponent}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>

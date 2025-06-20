@@ -4,7 +4,7 @@ import { apiBaseUrl } from './config';
 
 // ===== UTILITY FUNCTIONS =====
 
-export const progressUtils = {
+export const progressUtilsExtended = {
   /**
    * Build query parameters for API requests
    */
@@ -128,7 +128,7 @@ export const enhancedProgressAPI = {
   // Analytics endpoints
   analytics: {
     advanced: (userId: string, params: any = {}): string => {
-      const query = progressUtils.buildQueryParams(params);
+      const query = progressUtilsExtended.buildQueryParams(params);
       return `${apiBaseUrl}/enhanced-progress/analytics/advanced/${userId}${query ? `?${query}` : ''}`;
     },
     
@@ -136,7 +136,7 @@ export const enhancedProgressAPI = {
       `${apiBaseUrl}/enhanced-progress/analytics/insights/${userId}`,
     
     comparison: (userId: string, params: any = {}): string => {
-      const query = progressUtils.buildQueryParams(params);
+      const query = progressUtilsExtended.buildQueryParams(params);
       return `${apiBaseUrl}/enhanced-progress/analytics/comparison/${userId}${query ? `?${query}` : ''}`;
     }
   },
@@ -144,18 +144,18 @@ export const enhancedProgressAPI = {
   // Leaderboard endpoints
   leaderboard: {
     global: (params: any = {}): string => {
-      const query = progressUtils.buildQueryParams(params);
+      const query = progressUtilsExtended.buildQueryParams(params);
       return `${apiBaseUrl}/enhanced-progress/leaderboard${query ? `?${query}` : ''}`;
     },
     
     course: (courseId: string, params: any = {}): string => {
-      const query = progressUtils.buildQueryParams(params);
+      const query = progressUtilsExtended.buildQueryParams(params);
       return `${apiBaseUrl}/enhanced-progress/leaderboard/course/${courseId}${query ? `?${query}` : ''}`;
     },
     
     weekly: (params: any = {}): string => {
       const queryParams = { ...params, timeframe: 'week' };
-      const query = progressUtils.buildQueryParams(queryParams);
+      const query = progressUtilsExtended.buildQueryParams(queryParams);
       return `${apiBaseUrl}/enhanced-progress/leaderboard${query ? `?${query}` : ''}`;
     }
   },
@@ -196,7 +196,7 @@ export const enhancedProgressAPI = {
     systemStats: `${apiBaseUrl}/enhanced-progress/admin/system/stats`,
     validateData: `${apiBaseUrl}/enhanced-progress/admin/validate`,
     userAnalytics: (userId: string, params: any = {}): string => {
-      const query = progressUtils.buildQueryParams(params);
+      const query = progressUtilsExtended.buildQueryParams(params);
       return `${apiBaseUrl}/enhanced-progress/admin/user/${userId}/analytics${query ? `?${query}` : ''}`;
     },
     resetProgress: (userId: string): string => 
@@ -204,4 +204,4 @@ export const enhancedProgressAPI = {
   }
 };
 
-export default { progressUtils, enhancedProgressAPI }; 
+export default { progressUtilsExtended, enhancedProgressAPI }; 

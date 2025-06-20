@@ -130,6 +130,8 @@ const LoginForm = () => {
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get('redirect') || searchParams.get('from') || '';
   const redirectPath = redirectParam ? decodeURIComponent(redirectParam) : '';
+  const actionParam = searchParams.get('action') || '';
+  const isDemoScheduling = actionParam === 'schedule-demo';
   const { postQuery, loading } = usePostQuery();
   const storageManager = useStorage();
   const { theme, setTheme } = useTheme();
@@ -250,14 +252,72 @@ const LoginForm = () => {
   
   // Optimized role-based dashboard routing with memoization
   const rolePathCache = useMemo(() => new Map<string, string>(), []);
+  const demoPathCache = useMemo(() => new Map<string, string>(), []);
   
-  const getRoleBasedRedirectPath = useCallback((role: string): string => {
+  const getRoleBasedRedirectPath = useCallback((role: string, isDemo: boolean = false): string => {
     if (!role || typeof role !== 'string') {
-      return "/dashboards/student";
+      return isDemo ? "/dashboards/student/demo-classes/" : "/dashboards/student";
     }
 
     const roleLower = role.toLowerCase().trim();
     
+    // Handle demo scheduling navigation
+    if (isDemo) {
+      // Check demo cache first
+      if (demoPathCache.has(roleLower)) {
+        return demoPathCache.get(roleLower)!;
+      }
+
+      let demoPath: string;
+      switch (roleLower) {
+        case "student":
+        case "learner":
+        case "user":
+          demoPath = "/dashboards/student/demo-classes/";
+          break;
+        case "admin":
+        case "super-admin":
+        case "superadmin":
+        case "administrator":
+        case "super_admin":
+          demoPath = "/dashboards/admin/demo-management/";
+          break;
+        case "instructor":
+        case "teacher":
+        case "tutor":
+        case "faculty":
+          demoPath = "/dashboards/instructor/demo-classes/";
+          break;
+        case "corporate":
+        case "coorporate":
+        case "corporate-admin":
+        case "coorporate-admin":
+        case "company":
+        case "enterprise":
+          demoPath = "/dashboards/coorporate-dashboard/demo-classes/";
+          break;
+        case "corporate-student":
+        case "coorporate-student":
+        case "corporate-employee":
+        case "coorporate-employee":
+        case "employee":
+        case "corporate-learner":
+          demoPath = "/dashboards/coorporate-employee-dashboard/demo-classes/";
+          break;
+        case "parent":
+        case "guardian":
+          demoPath = "/dashboards/parent/demo-classes/";
+          break;
+        default:
+          demoPath = "/dashboards/student/demo-classes/";
+      }
+
+      // Cache the demo result
+      demoPathCache.set(roleLower, demoPath);
+      return demoPath;
+    }
+    
+    // Regular dashboard routing
     // Check cache first for performance
     if (rolePathCache.has(roleLower)) {
       return rolePathCache.get(roleLower)!;
@@ -313,7 +373,7 @@ const LoginForm = () => {
     // Cache the result for future use
     rolePathCache.set(roleLower, dashboardPath);
     return dashboardPath;
-  }, [rolePathCache]);
+  }, [rolePathCache, demoPathCache]);
 
   // Sanitize any invalid auth data when component mounts and check if user is already logged in
   useEffect(() => {
@@ -327,7 +387,9 @@ const LoginForm = () => {
       
       if (token && userId) {
         // User is already logged in, redirect them to their dashboard
-        const dashboardPath = getRoleBasedRedirectPath(userRole || 'student');
+        // Check if this is a demo scheduling request
+        const shouldRedirectToDemo = isDemoScheduling && !redirectPath;
+        const dashboardPath = getRoleBasedRedirectPath(userRole || 'student', shouldRedirectToDemo);
         const finalRedirectPath = (redirectPath && redirectPath.startsWith('/')) ? redirectPath : dashboardPath;
         
         console.log('User already authenticated, redirecting to:', finalRedirectPath);
@@ -599,8 +661,22 @@ const LoginForm = () => {
     }
 
     const fullName = loginData.full_name;
-    const dashboardPath = getRoleBasedRedirectPath(userRole);
-    const finalRedirectPath = (redirectPath && redirectPath.startsWith('/')) ? redirectPath : dashboardPath;
+    
+    // Determine if this is a demo scheduling login
+    const shouldRedirectToDemo = isDemoScheduling && !redirectPath;
+    const dashboardPath = getRoleBasedRedirectPath(userRole, shouldRedirectToDemo);
+    
+    // Priority: explicit redirect > demo classes > default dashboard
+    let finalRedirectPath: string;
+    if (redirectPath && redirectPath.startsWith('/')) {
+      finalRedirectPath = redirectPath;
+    } else if (shouldRedirectToDemo) {
+      finalRedirectPath = dashboardPath; // This will be the demo classes path
+      // Show demo-specific welcome message
+      showToast.info("🎯 Redirecting to demo classes...", { duration: 2000 });
+    } else {
+      finalRedirectPath = dashboardPath;
+    }
 
     // Batch localStorage operations for better performance
     const localStorageUpdates: [string, string][] = [];
@@ -627,7 +703,7 @@ const LoginForm = () => {
     const operations = [
       () => storageManager.login(storageData),
       () => events.login(userRole || 'user'),
-      () => showToast.success(`Welcome back, ${fullName || 'User'}!`, { autoClose: 1500 }) // Shorter toast duration
+      () => showToast.success(`Welcome back, ${fullName || 'User'}!`, { duration: 1500 }) // Shorter toast duration
     ];
 
     // Execute operations in parallel
@@ -705,8 +781,20 @@ const LoginForm = () => {
             if (authSuccess) {
               // Fast role extraction and path determination
               const userRole = (Array.isArray(data.role) ? data.role[0] : data.role)?.toLowerCase().trim() || 'student';
-              const dashboardPath = getRoleBasedRedirectPath(userRole);
-              const finalRedirectPath = (redirectPath && redirectPath.startsWith('/')) ? redirectPath : dashboardPath;
+              const shouldRedirectToDemo = isDemoScheduling && !redirectPath;
+              const dashboardPath = getRoleBasedRedirectPath(userRole, shouldRedirectToDemo);
+              
+              // Priority: explicit redirect > demo classes > default dashboard
+              let finalRedirectPath: string;
+              if (redirectPath && redirectPath.startsWith('/')) {
+                finalRedirectPath = redirectPath;
+              } else if (shouldRedirectToDemo) {
+                finalRedirectPath = dashboardPath; // This will be the demo classes path
+                // Show demo-specific welcome message for OAuth
+                showToast.info("🎯 Taking you to demo classes...", { duration: 2000 });
+              } else {
+                finalRedirectPath = dashboardPath;
+              }
               
               // Batch localStorage operations
               const localStorageUpdates: [string, string][] = [];
@@ -1306,11 +1394,22 @@ const LoginForm = () => {
                 />
               </Link>
               <h2 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
-                Welcome Back!
+                {isDemoScheduling ? 'Join Demo Class!' : 'Welcome Back!'}
               </h2>
               <p className="mt-1 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                Sign in to continue your learning journey
+                {isDemoScheduling 
+                  ? 'Sign in to schedule your free demo class' 
+                  : 'Sign in to continue your learning journey'
+                }
               </p>
+              
+              {/* Demo scheduling indicator */}
+              {isDemoScheduling && (
+                <div className="mt-2 inline-flex items-center px-2.5 py-1 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-full text-xs font-medium text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800">
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5 animate-pulse"></div>
+                  Free Demo Class Access
+                </div>
+              )}
             </div>
             
             {/* Form area */}

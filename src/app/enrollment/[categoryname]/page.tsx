@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Calculator, BrainCircuit, TrendingUp, UserCheck, ArrowLeft, 
   ChevronUp, ArrowRight, Sparkles, GraduationCap, Blocks, Star,AlertCircle, RefreshCw,
-  HelpCircle, FileBadge, BookOpen
+  HelpCircle, FileBadge, BookOpen, CreditCard, CheckCircle2
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -21,7 +21,9 @@ import ThemeController from "@/components/shared/others/ThemeController";
 // import CourseNavigation from '@/components/sections/course-detailed/CourseNavigation';
 import GradeFilter from '@/components/sections/course-detailed/GradeFilter';
 import CourseSelector from '@/components/sections/course-detailed/CourseSelector';
+import CourseSelection from '@/components/sections/course-detailed/CourseSelection';
 import EnrollmentDetails from '@/components/sections/course-detailed/EnrollmentDetails';
+import EnrollButton from '@/components/sections/course-detailed/EnrollButton';
 
 // Existing Course Components
 import CourseFaq from '@/components/sections/course-detailed/courseFaq';
@@ -33,8 +35,11 @@ import CourseRelated from '@/components/sections/course-detailed/courseRelated';
 import CourseDetailsPage from '@/components/pages/CourseDetailsPage';
 
 // API and utilities
-import { apiUrls } from "@/apis";
+import { apiUrls, apiBaseUrl } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
+import usePostQuery from "@/hooks/postQuery.hook";
+import useRazorpay from "@/hooks/useRazorpay";
+import RAZORPAY_CONFIG from "@/config/razorpay";
 import { GRADE_OPTIONS } from '../constants';
 import { 
   CATEGORY_MAP, 
@@ -53,7 +58,86 @@ import {
 import './styles.css';
 import { getAllCoursesWithLimits } from '@/apis/course/course';
 
-// Custom CSS for sticky sidebar
+// TypeScript interfaces
+interface Course {
+  _id: string;
+  title: string;
+  description: string;
+  long_description?: string;
+  category: string;
+  grade: string;
+  course_grade?: string; // Add this property for grade filtering
+  thumbnail: string | null;
+  course_duration: string;
+  course_duration_days: number;
+  course_fee: number;
+  prices?: any[];
+  enrolled_students: number;
+  views: number;
+  is_Certification: boolean;
+  is_Assignments: boolean;
+  is_Projects: boolean;
+  is_Quizes: boolean;
+  curriculum: any[];
+  highlights: string[];
+  learning_outcomes: string[];
+  prerequisites: string[];
+  faqs: any[];
+  no_of_Sessions: number;
+  status: string;
+  isFree: boolean;
+  hasFullDetails: boolean;
+  slug?: string;
+  category_type?: string;
+  currency_code?: string;
+  original_prices?: any[];
+  classType?: string;
+  class_type?: string;
+  course_type?: string;
+  delivery_format?: string;
+  delivery_type?: string;
+}
+
+interface CategoryInfo {
+  displayName: string;
+  colorClass: string;
+  bgClass: string;
+  borderClass?: string;
+  primaryColor?: string;
+  categoryType?: string;
+  courseType?: string;
+  colorRgb?: string;
+}
+
+interface GradeOption {
+  id: string;
+  label: string;
+  description?: string;
+}
+
+interface DurationOption {
+  id: string;
+  name: string;
+  label: string;
+  description: string;
+}
+
+interface RecommendedCategory {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+}
+
+interface PageParams {
+  categoryname: string;
+}
+
+interface CategoryEnrollmentPageProps {
+  params: Promise<PageParams>;
+}
+
+// Custom CSS for sticky sidebar and floating button
 const stickyStyles = `
   /* Hide scrollbar for Chrome, Safari and Opera */
   .hide-scrollbar::-webkit-scrollbar {
@@ -90,10 +174,72 @@ const stickyStyles = `
     scroll-behavior: smooth;
   }
   
+  /* Safe area bottom padding for devices with home indicators */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* Enhanced floating button styles */
+  .floating-action-button {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 
+      0 -8px 32px -4px rgba(0, 0, 0, 0.15),
+      0 -4px 16px -2px rgba(0, 0, 0, 0.08),
+      0 0 0 1px rgba(255, 255, 255, 0.15) inset,
+      0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    position: relative;
+    z-index: 9999;
+  }
+  
+  .floating-action-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    z-index: 1;
+  }
+  
+  /* Ensure floating button is always on top */
+  .floating-action-container {
+    position: fixed !important;
+    z-index: 9999 !important;
+    pointer-events: auto !important;
+  }
+  
+  /* Add subtle glow effect */
+  .floating-action-container::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.1),
+      transparent 10%,
+      transparent 90%,
+      rgba(0, 0, 0, 0.05)
+    );
+    pointer-events: none;
+    z-index: -1;
+  }
+  
   @media (prefers-reduced-motion: reduce) {
-    .sticky-sidebar, .scroll-progress, html {
+    .sticky-sidebar, .scroll-progress, html, .floating-action-button {
       transition: none;
       scroll-behavior: auto;
+    }
+  }
+  
+  /* Fix for iOS Safari bottom safe area */
+  @supports (padding: max(0px)) {
+    .safe-area-bottom {
+      padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
     }
   }
 `;
@@ -183,7 +329,7 @@ const SECTIONS = [
 
 
 // Custom hook for handling dynamic course content
-function useDynamicCourseContent(selectedCourse, categoryInfo) {
+function useDynamicCourseContent(selectedCourse: Course | null, categoryInfo: CategoryInfo | null) {
   const [courseContent, setCourseContent] = useState({
     // Basic details always shown
     details: true,
@@ -214,11 +360,20 @@ function useDynamicCourseContent(selectedCourse, categoryInfo) {
   return courseContent;
 }
 
-function CategoryEnrollmentPage({ params }) {
+const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params }) => {
   const unwrappedParams = React.use(params);
   const { categoryname } = unwrappedParams;
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { getQuery } = useGetQuery();
+  const { postQuery } = usePostQuery();
+  const { 
+    loadRazorpayScript, 
+    openRazorpayCheckout, 
+    isScriptLoaded, 
+    isLoading: razorpayLoading, 
+    error: razorpayError 
+  } = useRazorpay();
   
   // Local currency handling - improved to avoid USD flash
   const [userCurrency, setUserCurrency] = useState(() => {
@@ -278,7 +433,7 @@ function CategoryEnrollmentPage({ params }) {
       } catch (error) {
         console.error("Error detecting location:", error);
         // Smart fallback based on browser language
-        const language = navigator.language || navigator.userLanguage || "en-US";
+        const language = navigator.language || (navigator as any).userLanguage || "en-US";
         let fallbackCurrency = "USD";
         
         if (language.includes('hi') || language.includes('IN')) {
@@ -312,16 +467,16 @@ function CategoryEnrollmentPage({ params }) {
     KRW: 1180.0
   };
   
-  const convertPrice = useCallback((priceInUSD) => {
+  const convertPrice = useCallback((priceInUSD: number) => {
     if (typeof priceInUSD !== 'number' || isNaN(priceInUSD) || !userCurrency) {
       return 0;
     }
     
-    const rate = CURRENCY_RATES[userCurrency] || 1;
+    const rate = CURRENCY_RATES[userCurrency as keyof typeof CURRENCY_RATES] || 1;
     return Math.round(priceInUSD * rate * 100) / 100;
   }, [userCurrency]);
   
-  const formatPrice = useCallback((price) => {
+  const formatPrice = useCallback((price: number) => {
     if (typeof price !== 'number' || isNaN(price) || !userCurrency) {
       return 'Loading...';
     }
@@ -343,7 +498,7 @@ function CategoryEnrollmentPage({ params }) {
       KRW: '₩'
     };
     
-    const symbol = currencySymbols[userCurrency] || '$';
+    const symbol = currencySymbols[userCurrency as keyof typeof currencySymbols] || '$';
     const formattedNumber = Math.round(price).toLocaleString();
     
     return `${symbol}${formattedNumber}`;
@@ -364,8 +519,8 @@ function CategoryEnrollmentPage({ params }) {
   const categoryInfo = useMemo(() => isCourseView ? null : getCategoryInfo(normalizedCategory), [normalizedCategory, isCourseView]);
   
   // Add states for dynamic options
-  const [availableGrades, setAvailableGrades] = useState([]);
-  const [availableDurations, setAvailableDurations] = useState([]);
+  const [availableGrades, setAvailableGrades] = useState<GradeOption[]>([]);
+  const [availableDurations, setAvailableDurations] = useState<DurationOption[]>([]);
   
   // Refs for section navigation
   const sectionRefs = {
@@ -379,6 +534,14 @@ function CategoryEnrollmentPage({ params }) {
 
   // State for active section
   const [activeSection, setActiveSection] = useState('overview');
+  
+  // Note: Enrollment states are now handled by the EnrollButton component
+  
+  // Pricing states - shared with EnrollmentDetails.tsx
+  const [enrollmentType, setEnrollmentType] = useState<'individual' | 'batch'>('batch');
+  const [activePricing, setActivePricing] = useState<any>(null);
+  
+  // This will be defined after the pricing functions
 
   // Determine icon based on category
   const CategoryIcon = useMemo(() => {
@@ -393,25 +556,24 @@ function CategoryEnrollmentPage({ params }) {
   }, [normalizedCategory]);
   
   // State for courses and filters
-  const [courses, setCourses] = useState([]);
-  const [filteredCourses, setFilteredCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [courseLoading, setCourseLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [selectedDuration, setSelectedDuration] = useState('all');
-  const [selectedGrade, setSelectedGrade] = useState('all');
-  const [selectedCourse, setSelectedCourse] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [courseLoading, setCourseLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedDuration, setSelectedDuration] = useState<string>('all');
+  const [selectedGrade, setSelectedGrade] = useState<string>('all');
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [totalItems, setTotalItems] = useState<number>(0);
+  const [scrollProgress, setScrollProgress] = useState<number>(0);
   const mainContentRef = useRef(null);
   const sidebarRef = useRef(null);
   const itemsPerPage = 8;
-  const { getQuery } = useGetQuery();
 
   // New state for recommendations
-  const [recommendedCategories, setRecommendedCategories] = useState([]);
+  const [recommendedCategories, setRecommendedCategories] = useState<RecommendedCategory[]>([]);
   
   // If category doesn't exist, redirect to main enrollment page
   useEffect(() => {
@@ -426,6 +588,183 @@ function CategoryEnrollmentPage({ params }) {
       setSelectedGrade('all');
     }
   }, [normalizedCategory]);
+
+  // Pricing utility functions - same as EnrollmentDetails.tsx
+  const getCoursePriceValue = useCallback((course: any, isBatch: boolean = true): number => {
+    // If course has prices array, use it
+    if (course?.prices && Array.isArray(course.prices) && course.prices.length > 0) {
+      // Use the first active price (typically in base currency)
+      const activePrice = course.prices.find((p: any) => p.is_active === true);
+      
+      if (activePrice) {
+        return isBatch ? activePrice.batch : activePrice.individual;
+      }
+    }
+    
+    // Fall back to price/batchPrice if available
+    if (isBatch && course?.batchPrice !== undefined) {
+      return course.batchPrice;
+    }
+    
+    if (!isBatch && course?.price !== undefined) {
+      return course.price;
+    }
+    
+    // Fall back to course_fee (with discount applied for batch)
+    if (course?.course_fee !== undefined) {
+      return isBatch ? course.course_fee * 0.75 : course.course_fee;
+    }
+    
+    // Last resort fallbacks
+    return isBatch ? 24.00 : 32.00;
+  }, []);
+
+  const getActivePrice = useCallback(() => {
+    if (!selectedCourse?.prices || !Array.isArray(selectedCourse.prices)) {
+      return null;
+    }
+
+    const prices = selectedCourse.prices;
+    if (prices.length === 0) {
+      return null;
+    }
+
+    // Find the price matching the user's currency
+    const preferredPrice = prices.find(price => 
+      price.currency?.toLowerCase() === userCurrency?.toLowerCase()
+    );
+
+    // If no currency match, find any active price
+    const activePrice = prices.find(price => price.is_active);
+
+    // If still no price found, use the first price
+    const finalPrice = preferredPrice || activePrice || prices[0] || null;
+    return finalPrice;
+  }, [selectedCourse, userCurrency]);
+
+  // Enhanced blended course detection
+  const isBlendedCourse = useMemo(() => {
+    return (
+      selectedCourse?.classType === 'Blended Courses' || 
+      selectedCourse?.class_type === 'Blended Courses' ||
+      selectedCourse?.course_type === 'blended' || 
+      selectedCourse?.course_type === 'Blended' ||
+      selectedCourse?.delivery_format === 'Blended' ||
+      selectedCourse?.delivery_type === 'Blended'
+    );
+  }, [selectedCourse]);
+
+  // Calculate final price including any applicable discounts
+  const calculateFinalPrice = useCallback((price: number | undefined, discount: number | undefined): number => {
+    if (!price) {
+      return 0;
+    }
+    const safeDiscount = discount || 0;
+    const finalPrice = price - (price * safeDiscount / 100);
+    return finalPrice;
+  }, []);
+  
+  // Get the final price in the user's currency
+  const getFinalPrice = useCallback((): number => {
+    if (!activePricing) {
+      return selectedCourse?.course_fee || 0;
+    }
+    
+    // Always use individual price for blended courses
+    const basePrice = isBlendedCourse 
+      ? activePricing.individual
+      : (enrollmentType === 'individual' ? activePricing.individual : activePricing.batch);
+    
+    const discountPercentage = isBlendedCourse
+      ? activePricing.early_bird_discount
+      : (enrollmentType === 'batch' ? activePricing.group_discount : activePricing.early_bird_discount);
+    
+    const finalPrice = calculateFinalPrice(basePrice, discountPercentage);
+    return finalPrice;
+  }, [activePricing, enrollmentType, calculateFinalPrice, isBlendedCourse, selectedCourse]);
+
+  // Format price for display with proper currency symbol
+  const getDisplayCurrencySymbol = useCallback(() => {
+    const currencySymbols: { [key: string]: string } = {
+      'USD': '$', 'INR': '₹', 'EUR': '€', 'GBP': '£', 'JPY': '¥',
+      'CAD': 'C$', 'AUD': 'A$', 'SGD': 'S$', 'CHF': 'CHF', 'CNY': '¥',
+      'KRW': '₩', 'THB': '฿', 'MYR': 'RM', 'PHP': '₱', 'VND': '₫',
+      'IDR': 'Rp', 'BRL': 'R$', 'MXN': '$', 'ZAR': 'R', 'RUB': '₽',
+      'TRY': '₺', 'AED': 'د.إ', 'SAR': 'ر.س', 'QAR': 'ر.ق', 'KWD': 'د.ك',
+      'BHD': 'د.ب', 'OMR': 'ر.ع.', 'JOD': 'د.أ', 'LBP': 'ل.ل', 'EGP': 'ج.م',
+      'PKR': '₨', 'BDT': '৳', 'LKR': '₨', 'NPR': '₨', 'AFN': '؋', 'IRR': '﷼'
+    };
+
+    // Prioritize currency from the first active price object
+    if (selectedCourse?.prices && selectedCourse.prices.length > 0) {
+      const activePrice = selectedCourse.prices.find((p: any) => p.is_active);
+      if (activePrice && activePrice.currency) {
+        return currencySymbols[activePrice.currency.toUpperCase()] || activePrice.currency;
+      }
+      // Fallback to the first price object's currency if no active one found
+      if (selectedCourse.prices[0]?.currency) {
+        return currencySymbols[selectedCourse.prices[0].currency.toUpperCase()] || selectedCourse.prices[0].currency;
+      }
+    }
+    return currencySymbols[userCurrency?.toUpperCase() || 'INR'] || '₹';
+  }, [selectedCourse, userCurrency]);
+  
+  const formatPriceDisplay = useCallback((price: number | undefined | null): string => {
+    // Check if course is free using multiple indicators
+    const courseIsActuallyFree = selectedCourse?.isFree || 
+      selectedCourse?.course_fee === 0 ||
+      (selectedCourse?.prices && selectedCourse.prices.every((p: any) => p.individual === 0 && p.batch === 0));
+    
+    if (courseIsActuallyFree || price === 0) return "Free";
+    if (price === undefined || price === null || isNaN(price)) return "N/A";
+
+    const symbol = getDisplayCurrencySymbol();
+    const numericPrice = Number(price);
+    if (isNaN(numericPrice)) return "N/A";
+
+    const formattedPrice = numericPrice.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    return symbol.length > 1 ? `${symbol} ${formattedPrice}` : `${symbol}${formattedPrice}`;
+  }, [selectedCourse, getDisplayCurrencySymbol]);
+
+  // Check if a price is free
+  const isFreePrice = useCallback((price: number): boolean => {
+    return !price || price <= 0 || price < 0.01;
+  }, []);
+
+  // Update activePricing when course details changes
+  useEffect(() => {
+    const price = getActivePrice();
+    setActivePricing(price);
+  }, [selectedCourse?.prices, selectedCourse?._id, getActivePrice]);
+
+  // Always force individual enrollment for blended courses
+  useEffect(() => {
+    if (isBlendedCourse) {
+      setEnrollmentType('individual');
+    }
+  }, [isBlendedCourse]);
+
+  // Add a pricing sync key that both components can watch
+  const [pricingSyncKey, setPricingSyncKey] = useState(0);
+  
+  // Force re-sync when enrollment type or pricing changes
+  useEffect(() => {
+    setPricingSyncKey(prev => prev + 1);
+  }, [enrollmentType, activePricing]);
+
+  // Create a shared pricing context that both components can use
+  const sharedPricingState = useMemo(() => ({
+    enrollmentType,
+    setEnrollmentType,
+    activePricing,
+    setActivePricing,
+    getFinalPrice,
+    formatPriceDisplay,
+    isFreePrice,
+    isBlendedCourse
+  }), [enrollmentType, activePricing, getFinalPrice, formatPriceDisplay, isFreePrice, isBlendedCourse]);
+
+  // Note: Authentication is now handled by the EnrollButton component
 
   // Set document title based on category
   useEffect(() => {
@@ -464,10 +803,10 @@ function CategoryEnrollmentPage({ params }) {
   }, [normalizedCategory]);
 
   // Function to extract and format duration options from courses
-  const extractDurationOptions = useCallback((courses) => {
+  const extractDurationOptions = useCallback((courses: Course[]) => {
     const durationMap = new Map();
     
-    courses.forEach(course => {
+    courses.forEach((course: Course) => {
       if (!course.course_duration) return;
       
       const duration = course.course_duration;
@@ -485,10 +824,10 @@ function CategoryEnrollmentPage({ params }) {
   }, []);
 
   // Function to extract and format grade options from courses
-  const extractGradeOptions = useCallback((courses) => {
+  const extractGradeOptions = useCallback((courses: Course[]) => {
     const gradeMap = new Map();
     
-    courses.forEach(course => {
+    courses.forEach((course: Course) => {
       if (!course.grade) return;
       
       const grade = course.grade.toLowerCase();
@@ -524,7 +863,7 @@ function CategoryEnrollmentPage({ params }) {
   }, []);
 
   // Handle grade selection
-  const handleGradeChange = (gradeId) => {
+  const handleGradeChange = (gradeId: string) => {
     console.log('Grade selected:', gradeId); // Debug log
     setSelectedGrade(gradeId);
     // Reset selected course when grade changes
@@ -553,9 +892,9 @@ function CategoryEnrollmentPage({ params }) {
     // Apply duration filter if active
     if (selectedDuration !== 'all') {
       const durationFilter = getDurationFilter(selectedDuration);
-      if (durationFilter) {
+      if (durationFilter && typeof durationFilter === 'function') {
         filteredResults = filteredResults.filter(course => 
-          durationFilter.test(course, durationFilter.days)
+          durationFilter(course)
         );
       }
     }
@@ -579,35 +918,43 @@ function CategoryEnrollmentPage({ params }) {
         
         console.log("Category Info:", categoryInfo);
         
-        // Construct API endpoint using apiUrls helper
-        const apiEndpoint = getAllCoursesWithLimits({
-          page: currentPage,
-          limit: itemsPerPage,
-          course_title: "",
-          course_tag: "",
-          course_category: categoryInfo?.displayName || "",
-          status: "Published",
-          search: "",
-          course_grade: selectedGrade !== 'all' ? selectedGrade : "",
-          category: [],
-          filters: {
-            certification: false,
-            hasAssignments: false,
-            hasProjects: false,
-            hasQuizzes: false,
-            course_duration: selectedDuration !== 'all' ? selectedDuration : undefined
-          },
-          class_type: "",
-          course_duration: undefined,
-          course_fee: undefined,
-          course_type: categoryInfo?.courseType || undefined,
-          skill_level: undefined,
-          language: undefined,
-          sort_by: "createdAt",
-          sort_order: "asc",
-          category_type: categoryInfo?.categoryType || undefined,
-          currency: userCurrency
-        });
+        // Use specific endpoint for digital marketing
+        let apiEndpoint;
+        if (normalizedCategory === 'digital-marketing') {
+          // Use the exact digital marketing endpoint as specified
+          const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+          apiEndpoint = `${baseUrl}/courses/search?page=${currentPage}&limit=12&sort_by=createdAt&sort_order=desc&status=Published&currency=${userCurrency.toLowerCase()}&course_category=Digital%2520Marketing%2520with%2520Data%2520Analytics`;
+        } else {
+          // Construct API endpoint using apiUrls helper for other categories
+          apiEndpoint = getAllCoursesWithLimits({
+            page: currentPage,
+            limit: itemsPerPage,
+            course_title: "",
+            course_tag: "",
+            course_category: categoryInfo?.displayName || "",
+            status: "Published",
+            search: "",
+            course_grade: selectedGrade !== 'all' ? selectedGrade : "",
+            category: [],
+            filters: {
+              certification: false,
+              assignments: false,
+              projects: false,
+              quizzes: false,
+              course_duration: selectedDuration !== 'all' ? selectedDuration : undefined
+            },
+            class_type: "",
+            course_duration: undefined,
+            course_fee: undefined,
+            course_type: categoryInfo?.courseType || undefined,
+            skill_level: undefined,
+            language: undefined,
+            sort_by: "createdAt",
+            sort_order: "asc",
+            category_type: categoryInfo?.categoryType || undefined,
+            currency: userCurrency
+          });
+        }
         
         console.log("API Endpoint:", apiEndpoint);
 
@@ -621,10 +968,10 @@ function CategoryEnrollmentPage({ params }) {
             console.log("API Response:", response); // Debug log to inspect raw API response
             
             // Process course data
-            const processedCourseData = courseData.map(course => {
+            const processedCourseData = courseData.map((course: any) => {
               const coursePrice = course.prices && course.prices.length > 0 
-                ? course.prices.find(p => p.currency === userCurrency)?.individual || 
-                  convertPrice(course.prices.find(p => p.currency === "USD")?.individual || course.course_fee || 0)
+                ? course.prices.find((p: any) => p.currency === userCurrency)?.individual || 
+                  convertPrice(course.prices.find((p: any) => p.currency === "USD")?.individual || course.course_fee || 0)
                 : convertPrice(course.course_fee || 0);
                 
               return {
@@ -798,13 +1145,13 @@ function CategoryEnrollmentPage({ params }) {
   ]);
 
   // Handle page change
-  const handlePageChange = (newPage) => {
+  const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Update the loadAdditionalCourseDetails to work with the new API format
-  const loadAdditionalCourseDetails = useCallback((courseId) => {
+  const loadAdditionalCourseDetails = useCallback((courseId: string) => {
     if (!courseId) return;
     
     // Since we're already getting full course details from the search API,
@@ -820,7 +1167,7 @@ function CategoryEnrollmentPage({ params }) {
     setCourseLoading(true);
     
     // Use direct API endpoint for course details (adjust as needed)
-    const courseDetailsEndpoint = `${apiUrls.baseURL}/courses/${courseId}`;
+    const courseDetailsEndpoint = `${apiBaseUrl}/courses/${courseId}`;
     
     getQuery({
       url: courseDetailsEndpoint,
@@ -887,7 +1234,7 @@ function CategoryEnrollmentPage({ params }) {
   }, [getQuery, selectedCourse, categoryInfo, userCurrency, convertPrice]);
 
   // Handle duration selection
-  const handleDurationChange = (durationId) => {
+  const handleDurationChange = (durationId: string) => {
     setSelectedDuration(durationId);
   };
 
@@ -1108,6 +1455,8 @@ function CategoryEnrollmentPage({ params }) {
     };
   }, []);
 
+  // Note: All enrollment functions are now handled by the EnrollButton component
+
   // Ensure we have a selected course when filtered courses change
   useEffect(() => {
     if (filteredCourses.length > 0 && !selectedCourse) {
@@ -1199,11 +1548,10 @@ function CategoryEnrollmentPage({ params }) {
     <PageWrapper>
       <Toaster position="bottom-center" />
       <style jsx global>{stickyStyles}</style>
-      <div className="flex flex-col min-h-screen w-full px-4 sm:px-6 md:px-8 lg:px-12 border-x border-transparent">
-
-
-        {/* Content - Full width */}
-        <main className="flex-grow pt-8 md:pt-12 lg:pt-6 flex justify-center items-center w-full">
+      <div className="flex flex-col min-h-screen w-full">
+        {/* Main Content Container with proper spacing */}
+        <main className="flex-grow w-full py-4 sm:py-6 lg:py-8 mb-20 sm:mb-24 lg:mb-32">
+          <div className="w-full max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
           {loading || isDetectingLocation || !userCurrency ? (
             <div className="flex items-center justify-center min-h-[60vh] w-full">
               <div className="category-loader">
@@ -1220,10 +1568,8 @@ function CategoryEnrollmentPage({ params }) {
             </div>
           ) : error ? (
             <ErrorDisplay />
-          ) : (
-            <div className="w-full max-w-8xl mx-auto px-4">
-              {/* Two Column Layout - Improved mobile design */}
-              <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 w-full min-h-full" ref={mainContentRef}>
+                      ) : (
+              <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 w-full min-h-full" ref={mainContentRef}>
                 {/* Left Column - Dynamic Course Content */}
                 <div className={`w-full ${isCourseView ? 'lg:w-8/12' : 'lg:w-8/12'} space-y-4 lg:space-y-8`}>
                   {/* CourseDetailsPage integration - show dynamically based on selected course */}
@@ -1234,6 +1580,25 @@ function CategoryEnrollmentPage({ params }) {
                         courseId={selectedCourse?._id} 
                         initialActiveSection={activeSection !== 'overview' ? activeSection : 'about'}
                         faqComponent={<CourseFaq courseId={selectedCourse._id} />}
+                        courseSelectionComponent={
+                          !isCourseView && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.5 }}
+                              className="mb-6 block lg:hidden"
+                            >
+                              <CourseSelection 
+                                filteredCourses={filteredCourses}
+                                selectedCourse={selectedCourse}
+                                onCourseSelect={handleCourseSelection}
+                                categoryInfo={categoryInfo}
+                                formatPriceFunc={formatPrice}
+                                loading={loading}
+                              />
+                            </motion.div>
+                          )
+                        }
                       />
                     </div>
                   )}
@@ -1244,13 +1609,33 @@ function CategoryEnrollmentPage({ params }) {
                   <div className="flex-grow flex flex-col lg:sticky lg:top-24">
                     {/* Remove scrolling from sidebar and fill available height */}
                     <div className="w-full flex-grow flex flex-col" ref={sidebarRef}>
-                      {/* Only show grade filter if not in course view mode */}
+                      {/* Course Selection Component - Show for desktop only */}
+                      {!isCourseView && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.5 }}
+                          className="hidden lg:block"
+                        >
+                          <CourseSelection 
+                            filteredCourses={filteredCourses}
+                            selectedCourse={selectedCourse}
+                            onCourseSelect={handleCourseSelection}
+                            categoryInfo={categoryInfo}
+                            formatPriceFunc={formatPrice}
+                            loading={loading}
+                          />
+                        </motion.div>
+                      )}
+
+                      {/* Grade Filter Component - Only show for categories that need grade filtering */}
                       {!isCourseView && (normalizedCategory === 'vedic-mathematics' || 
                        normalizedCategory === 'personality-development') && (
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5 }}
+                          transition={{ duration: 0.5, delay: 0.1 }}
+                          className="mt-4"
                         >
                           <GradeFilter 
                             selectedGrade={selectedGrade}
@@ -1261,48 +1646,7 @@ function CategoryEnrollmentPage({ params }) {
                             handleCourseSelection={handleCourseSelection}
                             categoryInfo={categoryInfo}
                             setSelectedGrade={setSelectedGrade}
-                          />
-                        </motion.div>
-                      )}
-
-                      {/* For AI/Data Science and Digital Marketing, just show course selection (if not in course view) */}
-                      {!isCourseView && (normalizedCategory === 'ai-and-data-science' || 
-                       normalizedCategory === 'digital-marketing') && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          <GradeFilter 
-                            selectedGrade={selectedGrade}
-                            availableGrades={availableGrades}
-                            filteredCourses={filteredCourses}
-                            selectedCourse={selectedCourse}
-                            handleGradeChange={handleGradeChange}
-                            handleCourseSelection={handleCourseSelection}
-                            categoryInfo={categoryInfo}
-                            setSelectedGrade={setSelectedGrade}
-                            hideGradeSelector={true}
-                          />
-                        </motion.div>
-                      )}
-
-                      {/* For other categories, show regular filter (if not in course view) */}
-                      {!isCourseView && !(['vedic-mathematics', 'personality-development', 'ai-and-data-science', 'digital-marketing'].includes(normalizedCategory)) && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          <GradeFilter 
-                            selectedGrade={selectedGrade}
-                            availableGrades={availableGrades}
-                            filteredCourses={filteredCourses}
-                            selectedCourse={selectedCourse}
-                            handleGradeChange={handleGradeChange}
-                            handleCourseSelection={handleCourseSelection}
-                            categoryInfo={categoryInfo}
-                            setSelectedGrade={setSelectedGrade}
+                            showOnlyGradeFilter={true}
                           />
                         </motion.div>
                       )}
@@ -1325,49 +1669,61 @@ function CategoryEnrollmentPage({ params }) {
                             } : categoryInfo}
                             currencyCode={userCurrency}
                             formatPriceFunc={formatPrice}
+                            onEnrollmentTypeChange={(newType) => {
+                              setEnrollmentType(newType);
+                            }}
+                            onActivePricingChange={(newPricing) => {
+                              setActivePricing(newPricing);
+                            }}
+                            initialEnrollmentType={enrollmentType}
+                            initialActivePricing={activePricing}
                           />
                         </motion.div>
                       )}
                     </div>
 
-                    {/* Scroll indicator - hidden on mobile */}
-                    <div className="hidden lg:block h-1 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mt-2">
-                      <motion.div 
-                        className="h-full bg-gradient-to-r from-emerald-500 to-green-500"
-                        initial={{ width: "0%" }}
-                        animate={{ width: `${scrollProgress}%` }}
-                        transition={{ duration: 0.1 }}
-                      />
-                    </div>
+
                     
-                    {/* Mobile Action Button */}
-                    <div className="fixed bottom-0 left-0 right-0 z-50 p-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 lg:hidden">
-                      <button 
-                        onClick={() => {
-                          // Handle enrollment action
-                          if (selectedCourse) {
-                            // Implement your enrollment logic here
-                            showToast.success("Enrollment feature coming soon!");
-                          } else {
-                            showToast.error("Please select a course first!");
-                          }
-                        }} 
-                        className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-all ${
-                          selectedCourse 
-                            ? "bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700"
-                            : "bg-gray-400 cursor-not-allowed"
-                        }`}
-                        disabled={!selectedCourse}
-                      >
-                        {selectedCourse ? "Enroll Now" : "Select a Course"}
-                      </button>
-                    </div>
+                    {/* Enhanced Mobile Floating Action Button using EnrollButton component */}
+                    <motion.div 
+                      initial={{ y: 100, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      className="floating-action-container bottom-0 left-0 right-0 lg:hidden"
+                      style={{ 
+                        position: 'fixed',
+                        bottom: '0px',
+                        zIndex: 9999,
+                        isolation: 'isolate'
+                      }}
+                    >
+                      {/* Clean container without extra backgrounds - stick to bottom */}
+                      <div className="relative">
+                        <EnrollButton
+                          courseDetails={selectedCourse}
+                          categoryInfo={isCourseView ? {
+                            displayName: selectedCourse?.category,
+                            colorClass: 'text-emerald-700 dark:text-emerald-300',
+                            bgClass: 'bg-emerald-50 dark:bg-emerald-900/30'
+                          } : categoryInfo}
+                          userCurrency={userCurrency}
+                          enrollmentType={enrollmentType}
+                          activePricing={activePricing}
+                          onEnrollmentTypeChange={setEnrollmentType}
+                          onActivePricingChange={setActivePricing}
+                          variant="floating"
+                          showCourseInfo={true}
+                        />
+                      </div>
+                    </motion.div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </main>
+        
+        {/* Note: Success Modal is now handled by the EnrollButton component */}
       </div>
     </PageWrapper>
   );

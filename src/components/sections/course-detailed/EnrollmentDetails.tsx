@@ -260,6 +260,12 @@ interface EnrollmentDetailsProps {
   courseDetails: CourseDetails | null;
   categoryInfo?: CategoryInfo;
   onEnrollClick?: (data: any) => Promise<void>; // Adjust 'any' to a more specific type
+  currencyCode?: string;
+  formatPriceFunc?: (price: number) => string;
+  onEnrollmentTypeChange?: (type: 'individual' | 'batch') => void;
+  onActivePricingChange?: (pricing: any) => void;
+  initialEnrollmentType?: 'individual' | 'batch';
+  initialActivePricing?: any;
 }
 
 interface RazorpayOptions {
@@ -715,7 +721,13 @@ const SuccessModal: React.FC<SuccessModalProps> = ({ isOpen, onClose, courseTitl
 const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({ 
   courseDetails = null,
   categoryInfo = {},
-  onEnrollClick
+  onEnrollClick,
+  currencyCode,
+  formatPriceFunc,
+  onEnrollmentTypeChange,
+  onActivePricingChange,
+  initialEnrollmentType = 'batch',
+  initialActivePricing = null
 }) => {
   const router = useRouter();
   const { getQuery } = useGetQuery();
@@ -750,7 +762,9 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     courseDetails?.delivery_type
   ]);
   
-  const [enrollmentType, setEnrollmentType] = useState<EnrollmentType>(isBlendedCourse ? 'individual' : 'batch');
+  const [enrollmentType, setEnrollmentType] = useState<EnrollmentType>(
+    isBlendedCourse ? 'individual' : (initialEnrollmentType || 'batch')
+  );
   const [showBatchInfo, setShowBatchInfo] = useState<boolean>(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState<boolean>(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -815,6 +829,13 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       setShowBatchInfo(false);
     }
   }, [isBlendedCourse]);
+
+  // Call callback when enrollment type changes
+  useEffect(() => {
+    if (onEnrollmentTypeChange) {
+      onEnrollmentTypeChange(enrollmentType);
+    }
+  }, [enrollmentType, onEnrollmentTypeChange]);
 
   // Extract data from courseDetails with better fallbacks
   const duration = courseDetails?.course_duration || 
@@ -975,13 +996,20 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   }, [courseDetails]);
 
   // State for active pricing
-  const [activePricing, setActivePricing] = useState<Price | null>(null);
+  const [activePricing, setActivePricing] = useState<Price | null>(initialActivePricing || null);
 
   // Update activePricing when course details changes
   useEffect(() => {
     const price = getActivePrice();
     setActivePricing(price);
   }, [courseDetails?.prices, courseDetails?._id]); // Only depend on specific properties
+
+  // Call callback when active pricing changes
+  useEffect(() => {
+    if (onActivePricingChange) {
+      onActivePricingChange(activePricing);
+    }
+  }, [activePricing, onActivePricingChange]);
 
   // Calculate final price including any applicable discounts
   const calculateFinalPrice = useCallback((price: number | undefined, discount: number | undefined): number => {
