@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, Mail, Calendar, Award, BookOpen, Clock, TrendingUp, Users, MessageSquare, Star, 
   DollarSign, Monitor, Shield, CheckCircle, XCircle, BarChart3, Target, Activity, 
   CreditCard, Smartphone, Tablet, Laptop, Globe, Eye, MousePointer, Timer, Brain, 
   Heart, Zap, FileText, Settings, Edit, UserCircle, GraduationCap, Link2,
-  Facebook, Instagram, Linkedin, Twitter, Youtube, Github, Lock, EyeOff
+  Facebook, Instagram, Linkedin, Twitter, Youtube, Github, Lock, EyeOff, ChevronLeft, ChevronRight,
+  Menu, X, ChevronDown
 } from 'lucide-react';
 import { getComprehensiveUserProfile, updateCurrentUserComprehensiveProfile } from '@/apis/profile.api';
 import { authAPI, IChangePasswordData } from '@/apis/auth.api';
@@ -239,6 +240,12 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
   });
   const [changingPassword, setChangingPassword] = useState(false);
   const [showDebugInfo, setShowDebugInfo] = useState(false);
+
+  // Add new state for mobile navigation
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [touchStartX, setTouchStartX] = useState(0);
+  const [touchEndX, setTouchEndX] = useState(0);
+  const tabScrollRef = useRef<HTMLDivElement>(null);
 
   // Helper functions
   const formatDuration = (seconds: number) => {
@@ -876,6 +883,133 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
     setPasswordErrors([]);
   };
 
+  // Tab configuration with improved mobile labels
+  const tabs = [
+    { id: 'overview', label: 'Overview', shortLabel: 'Home', icon: User },
+    { id: 'learning', label: 'Learning Analytics', shortLabel: 'Learn', icon: Brain },
+    { id: 'courses', label: 'Courses & Progress', shortLabel: 'Courses', icon: BookOpen },
+    { id: 'financial', label: 'Financial', shortLabel: 'Money', icon: DollarSign },
+    { id: 'engagement', label: 'Engagement', shortLabel: 'Stats', icon: Activity },
+    { id: 'security', label: 'Security & Devices', shortLabel: 'Security', icon: Shield },
+    { id: 'personal', label: 'Personal Details', shortLabel: 'Profile', icon: FileText }
+  ];
+
+  // Handle touch gestures for tab navigation
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    
+    const distance = touchStartX - touchEndX;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      // Swipe left - next tab
+      const currentIndex = tabs.findIndex(tab => tab.id === activeTab);
+      if (currentIndex < tabs.length - 1) {
+        setActiveTab(tabs[currentIndex + 1].id);
+      }
+    }
+
+    if (isRightSwipe) {
+      // Swipe right - previous tab
+      const currentIndex = tabs.findIndex(tab => tab.id === activeTab);
+      if (currentIndex > 0) {
+        setActiveTab(tabs[currentIndex - 1].id);
+      }
+    }
+  };
+
+  // Auto-scroll active tab into view
+  useEffect(() => {
+    if (tabScrollRef.current) {
+      const activeButton = tabScrollRef.current.querySelector(`[data-tab="${activeTab}"]`) as HTMLElement;
+      if (activeButton) {
+        activeButton.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'nearest',
+          inline: 'center'
+        });
+      }
+    }
+  }, [activeTab]);
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isMobileMenuOpen && !(event.target as Element).closest('.mobile-menu-container')) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMobileMenuOpen]);
+
+  // Add CSS styles for mobile navigation improvements
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      /* Improve scrollbar for tab navigation */
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      
+      /* Smooth scrolling for tab container */
+      .tab-scroll {
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      /* Touch feedback for mobile buttons */
+      @media (hover: none) {
+        .mobile-touch-feedback:active {
+          background-color: rgba(59, 130, 246, 0.1);
+          transform: scale(0.98);
+        }
+      }
+      
+      /* Prevent text selection during swipe gestures */
+      .swipe-container {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+      }
+      
+      /* Improved mobile menu animation */
+      .mobile-menu-slide {
+        transform-origin: top;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      /* Better mobile tap targets */
+      @media (max-width: 768px) {
+        .mobile-tap-target {
+          min-height: 44px;
+          min-width: 44px;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex justify-center items-center">
@@ -911,17 +1045,6 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
     );
   }
 
-  // Tab configuration
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: User },
-    { id: 'learning', label: 'Learning Analytics', icon: Brain },
-    { id: 'courses', label: 'Courses & Progress', icon: BookOpen },
-    { id: 'financial', label: 'Financial', icon: DollarSign },
-    { id: 'engagement', label: 'Engagement', icon: Activity },
-    { id: 'security', label: 'Security & Devices', icon: Shield },
-    { id: 'personal', label: 'Personal Details', icon: FileText }
-  ];
-
   const { 
     basic_info, 
     profile_media,
@@ -940,81 +1063,239 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto">
-        {/* Fixed Header with Profile Info */}
-        <div className="sticky top-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-          <div className="px-4 md:px-6 py-4">
+        {/* Enhanced Mobile-Optimized Fixed Header with Profile Info */}
+        <div className="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+          <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
+              {/* Mobile-optimized profile section */}
+              <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-1">
+                {/* Smaller profile image on mobile */}
+                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm sm:text-lg flex-shrink-0">
                   {basic_info?.full_name?.charAt(0)?.toUpperCase() || 'U'}
                 </div>
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <h1 className="text-xl font-bold text-gray-900 dark:text-white">{basic_info?.full_name || 'Unknown User'}</h1>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center space-x-1 sm:space-x-2">
+                    {/* Responsive heading */}
+                    <h1 className="text-base sm:text-xl font-bold text-gray-900 dark:text-white truncate">
+                      {basic_info?.full_name || 'Unknown User'}
+                    </h1>
                     {refreshing && (
-                      <div className="flex items-center text-blue-600">
-                        <svg className="animate-spin h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <div className="flex items-center text-blue-600 flex-shrink-0">
+                        <svg className="animate-spin h-3 w-3 sm:h-4 sm:w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
-                        <span className="text-xs">Refreshing...</span>
+                        <span className="text-xs hidden sm:inline">Refreshing...</span>
                       </div>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{basic_info?.email || 'No email'}</p>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">
+                    {basic_info?.email || 'No email'}
+                  </p>
                 </div>
               </div>
-              <div className="flex items-center space-x-4">
-                <div className="text-right">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Profile Completion</p>
-                  <p className="text-lg font-bold text-blue-600">{basic_info?.profile_completion || 0}%</p>
+              
+              {/* Mobile-optimized action buttons */}
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                {/* Profile completion - hidden on very small screens */}
+                <div className="text-right hidden xs:block">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Completion</p>
+                  <p className="text-sm sm:text-lg font-bold text-blue-600">
+                    {basic_info?.profile_completion || 0}%
+                  </p>
                 </div>
+                
+                {/* Touch-friendly buttons */}
                 <button 
                   onClick={() => fetchProfile()}
-                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                  className="mobile-touch-feedback mobile-tap-target p-2 sm:p-2.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 flex items-center justify-center"
                   title="Refresh Profile Data"
                   disabled={loading || refreshing}
                 >
-                  <svg className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className={`h-4 w-4 sm:h-5 sm:w-5 ${refreshing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 </button>
                 <button 
                   onClick={handleEditProfile}
-                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="mobile-touch-feedback mobile-tap-target p-2 sm:p-2.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center"
                   title="Edit Profile"
                 >
-                  <Edit className="h-5 w-5" />
+                  <Edit className="h-4 w-4 sm:h-5 sm:w-5" />
+                </button>
+                
+                {/* Mobile menu toggle - only visible on very small screens */}
+                <button 
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="mobile-touch-feedback mobile-tap-target p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center md:hidden mobile-menu-container"
+                  title="Menu"
+                >
+                  {isMobileMenuOpen ? (
+                    <X className="h-4 w-4" />
+                  ) : (
+                    <Menu className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Tab Navigation */}
-          <div className="px-4 md:px-6">
-            <div className="flex space-x-1 overflow-x-auto scrollbar-hide">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium rounded-t-lg whitespace-nowrap transition-colors ${
-                      activeTab === tab.id
-                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-b-2 border-blue-600'
-                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span>{tab.label}</span>
-                  </button>
-                );
-              })}
+          {/* Enhanced Mobile-Optimized Tab Navigation */}
+          <div className="relative">
+            {/* Current tab indicator for mobile */}
+            <div className="block md:hidden px-3 sm:px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  {tabs.find(tab => tab.id === activeTab) && (
+                    <>
+                      {React.createElement(tabs.find(tab => tab.id === activeTab)!.icon, {
+                        className: "h-4 w-4 text-blue-600"
+                      })}
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        {tabs.find(tab => tab.id === activeTab)!.label}
+                      </span>
+                    </>
+                  )}
+                </div>
+                <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
+                  <span>{tabs.findIndex(tab => tab.id === activeTab) + 1}</span>
+                  <span>/</span>
+                  <span>{tabs.length}</span>
+                </div>
+              </div>
             </div>
+
+            {/* Desktop tab navigation */}
+            <div className="hidden md:block px-3 sm:px-4 md:px-6">
+              <div 
+                ref={tabScrollRef}
+                className="flex space-x-1 overflow-x-auto scrollbar-hide tab-scroll -mb-px"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+              >
+                {tabs.map((tab, index) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      data-tab={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-3 text-xs sm:text-sm font-medium rounded-t-lg whitespace-nowrap transition-all duration-200 min-h-[44px] relative ${
+                        isActive
+                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-b-2 border-blue-600'
+                          : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      <Icon className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                      <span className="hidden sm:inline">{tab.label}</span>
+                      <span className="sm:hidden">{tab.shortLabel}</span>
+                      
+                      {/* Active indicator dot */}
+                      {isActive && (
+                        <motion.div
+                          layoutId="activeTab"
+                          className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600 rounded-full"
+                          initial={false}
+                          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+                
+                {/* Swipe hint indicator */}
+                <div className="flex items-center px-3 text-gray-400 text-xs sm:hidden">
+                  <ChevronLeft className="h-3 w-3" />
+                  <span className="mx-1">Swipe</span>
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile dropdown menu */}
+            <AnimatePresence>
+              {isMobileMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-lg z-40 md:hidden mobile-menu-container"
+                >
+                  <div className="p-2">
+                    <div className="grid grid-cols-2 gap-1">
+                      {tabs.map((tab) => {
+                        const Icon = tab.icon;
+                        const isActive = activeTab === tab.id;
+                        return (
+                          <button
+                            key={tab.id}
+                            onClick={() => {
+                              setActiveTab(tab.id);
+                              setIsMobileMenuOpen(false);
+                            }}
+                            className={`flex items-center space-x-2 p-3 rounded-lg transition-colors min-h-[48px] ${
+                              isActive
+                                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                            }`}
+                          >
+                            <Icon className="h-4 w-4 flex-shrink-0" />
+                            <span className="text-sm font-medium truncate">{tab.shortLabel}</span>
+                            {isActive && (
+                              <div className="ml-auto w-2 h-2 bg-blue-600 rounded-full flex-shrink-0" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    
+                    {/* Quick actions in mobile menu */}
+                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                        <span>Profile Completion</span>
+                        <span className="font-semibold text-blue-600">
+                          {basic_info?.profile_completion || 0}%
+                        </span>
+                      </div>
+                      <div className="mt-2 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-blue-600 rounded-full transition-all duration-300"
+                          style={{ width: `${basic_info?.profile_completion || 0}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
-        {/* Tab Content */}
-        <div className="p-4 md:p-6">
+        {/* Enhanced Mobile-Optimized Tab Content with Gesture Support */}
+        <div 
+          className="p-3 sm:p-4 md:p-6"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* Swipe indicator for mobile */}
+          <div className="flex justify-center mb-4 md:hidden">
+            <div className="flex space-x-1">
+              {tabs.map((tab, index) => (
+                <div
+                  key={tab.id}
+                  className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                    activeTab === tab.id 
+                      ? 'bg-blue-600 w-6' 
+                      : 'bg-gray-300 dark:bg-gray-600'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
           <AnimatePresence mode="wait">
             {activeTab === 'overview' && (
               <motion.div
@@ -1023,130 +1304,156 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2 }}
-                className="space-y-6"
+                className="space-y-4 sm:space-y-6"
               >
-                                 {/* Quick Stats Grid */}
-                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                   <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                     <div className="flex items-center justify-between">
-                       <div>
-                         <p className="text-sm text-gray-500 dark:text-gray-400">Total Courses</p>
-                         <p className="text-2xl font-bold text-gray-900 dark:text-white">{learning_analytics.total_courses_enrolled}</p>
-                       </div>
-                       <BookOpen className="h-8 w-8 text-blue-600" />
-                     </div>
-                   </div>
-                   
-                   <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                     <div className="flex items-center justify-between">
-                       <div>
-                         <p className="text-sm text-gray-500 dark:text-gray-400">Certificates</p>
-                         <p className="text-2xl font-bold text-gray-900 dark:text-white">{learning_analytics.certificates_earned}</p>
-                       </div>
-                       <Award className="h-8 w-8 text-yellow-600" />
-                     </div>
-                   </div>
-                   
-                   <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                     <div className="flex items-center justify-between">
-                       <div>
-                         <p className="text-sm text-gray-500 dark:text-gray-400">Streak</p>
-                         <p className="text-2xl font-bold text-gray-900 dark:text-white">{learning_analytics.current_streak}</p>
-                       </div>
-                       <TrendingUp className="h-8 w-8 text-green-600" />
-                     </div>
-                   </div>
-                   
-                   <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                     <div className="flex items-center justify-between">
-                       <div>
-                         <p className="text-sm text-gray-500 dark:text-gray-400">Learning Time</p>
-                         <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatDuration(learning_analytics.total_learning_time)}</p>
-                       </div>
-                       <Clock className="h-8 w-8 text-purple-600" />
-                     </div>
-                   </div>
-                 </div>
+                {/* Mobile-Optimized Quick Stats Grid */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                  <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0">
+                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Courses</p>
+                        <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
+                          {learning_analytics.total_courses_enrolled}
+                        </p>
+                      </div>
+                      <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 flex-shrink-0" />
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0">
+                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Certificates</p>
+                        <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
+                          {learning_analytics.certificates_earned}
+                        </p>
+                      </div>
+                      <Award className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-600 flex-shrink-0" />
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0">
+                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Streak</p>
+                        <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
+                          {learning_analytics.current_streak}
+                        </p>
+                      </div>
+                      <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 flex-shrink-0" />
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0">
+                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Time</p>
+                        <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
+                          {formatDuration(learning_analytics.total_learning_time)}
+                        </p>
+                      </div>
+                      <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 flex-shrink-0" />
+                    </div>
+                  </div>
+                </div>
 
-                 {/* Learning Progress */}
-                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700 mb-6">
-                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                     <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
-                     Learning Progress
-                   </h3>
-                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                     <div className="text-center">
-                       <div className="text-2xl font-bold text-blue-600">{learning_analytics.active_courses}</div>
-                       <div className="text-sm text-gray-500 dark:text-gray-400">Active</div>
-                     </div>
-                     <div className="text-center">
-                       <div className="text-2xl font-bold text-green-600">{learning_analytics.completed_courses}</div>
-                       <div className="text-sm text-gray-500 dark:text-gray-400">Completed</div>
-                     </div>
-                     <div className="text-center">
-                       <div className="text-2xl font-bold text-orange-600">{learning_analytics.courses_on_hold}</div>
-                       <div className="text-sm text-gray-500 dark:text-gray-400">On Hold</div>
-                     </div>
-                     <div className="text-center">
-                       <div className="text-2xl font-bold text-purple-600">{learning_analytics.average_progress}%</div>
-                       <div className="text-sm text-gray-500 dark:text-gray-400">Avg Progress</div>
-                     </div>
-                   </div>
-                 </div>
+                {/* Mobile-Optimized Learning Progress */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700 mb-4 sm:mb-6">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center">
+                    <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" />
+                    Learning Progress
+                  </h3>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div className="text-center p-3">
+                      <div className="text-xl sm:text-2xl font-bold text-blue-600">
+                        {learning_analytics.active_courses}
+                      </div>
+                      <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Active</div>
+                    </div>
+                    <div className="text-center p-3">
+                      <div className="text-xl sm:text-2xl font-bold text-green-600">
+                        {learning_analytics.completed_courses}
+                      </div>
+                      <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Completed</div>
+                    </div>
+                    <div className="text-center p-3">
+                      <div className="text-xl sm:text-2xl font-bold text-orange-600">
+                        {learning_analytics.courses_on_hold}
+                      </div>
+                      <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">On Hold</div>
+                    </div>
+                    <div className="text-center p-3">
+                      <div className="text-xl sm:text-2xl font-bold text-purple-600">
+                        {learning_analytics.average_progress}%
+                      </div>
+                      <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Avg Progress</div>
+                    </div>
+                  </div>
+                </div>
 
-                 {/* Account Details & Community */}
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                       <User className="h-5 w-5 mr-2 text-green-600" />
-                       Account Details
-                     </h3>
-                     <div className="space-y-3">
-                       <div className="flex items-center justify-between">
-                         <span className="text-sm text-gray-600 dark:text-gray-400">Email</span>
-                         <div className="flex items-center">
-                                                       <span className="text-sm font-medium text-gray-900 dark:text-white mr-2">{basic_info?.email}</span>
-                           {account_status.email_verified ? (
-                             <CheckCircle className="h-4 w-4 text-green-500" />
-                           ) : (
-                             <XCircle className="h-4 w-4 text-red-500" />
-                           )}
-                         </div>
-                       </div>
-                       <div className="flex items-center justify-between">
-                         <span className="text-sm text-gray-600 dark:text-gray-400">Member Since</span>
-                         <span className="text-sm font-medium text-gray-900 dark:text-white">
-                           {formatDate(account_insights.member_since)}
-                         </span>
-                       </div>
-                     </div>
-                   </div>
+                {/* Mobile-Optimized Account Details & Community */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center">
+                      <User className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-green-600" />
+                      Account Details
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Email</span>
+                        <div className="flex items-center min-w-0">
+                          <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white mr-2 truncate">
+                            {basic_info?.email}
+                          </span>
+                          {account_status.email_verified ? (
+                            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
+                          ) : (
+                            <XCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-500 flex-shrink-0" />
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Member Since</span>
+                        <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
+                          {formatDate(account_insights.member_since)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-                   <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                       <Users className="h-5 w-5 mr-2 text-blue-600" />
-                       Community
-                     </h3>
-                     <div className="grid grid-cols-2 gap-4">
-                       <div className="text-center">
-                         <div className="text-lg font-bold text-gray-900 dark:text-white">{social_metrics.followers_count}</div>
-                         <div className="text-sm text-gray-500 dark:text-gray-400">Followers</div>
-                       </div>
-                       <div className="text-center">
-                         <div className="text-lg font-bold text-gray-900 dark:text-white">{social_metrics.following_count}</div>
-                         <div className="text-sm text-gray-500 dark:text-gray-400">Following</div>
-                       </div>
-                       <div className="text-center">
-                         <div className="text-lg font-bold text-gray-900 dark:text-white">{social_metrics.reviews_written}</div>
-                         <div className="text-sm text-gray-500 dark:text-gray-400">Reviews Written</div>
-                       </div>
-                       <div className="text-center">
-                         <div className="text-lg font-bold text-gray-900 dark:text-white">{social_metrics.reputation_score}</div>
-                         <div className="text-sm text-gray-500 dark:text-gray-400">Reputation</div>
-                       </div>
-                     </div>
-                   </div>
-                 </div>
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center">
+                      <Users className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" />
+                      Community
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                      <div className="text-center">
+                        <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                          {social_metrics.followers_count}
+                        </div>
+                        <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Followers</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                          {social_metrics.following_count}
+                        </div>
+                        <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Following</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                          {social_metrics.reviews_written}
+                        </div>
+                        <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Reviews</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                          {social_metrics.reputation_score}
+                        </div>
+                        <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Reputation</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             )}
 
@@ -1157,261 +1464,344 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2 }}
-                className="space-y-6"
+                className="space-y-4 sm:space-y-6"
               >
-                                 {/* Achievements Section */}
-                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700 mb-6">
-                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-                     <Award className="h-5 w-5 mr-2 text-yellow-600" />
-                     Achievements
-                   </h3>
-                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                     <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                       <div className="text-2xl font-bold text-yellow-600">{learning_analytics.skill_points}</div>
-                       <div className="text-sm text-yellow-700 dark:text-yellow-300">Skill Points</div>
-                     </div>
-                     <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                       <div className="text-2xl font-bold text-green-600">{learning_analytics.certificates_earned}</div>
-                       <div className="text-sm text-green-700 dark:text-green-300">Achievements</div>
-                     </div>
-                     <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                       <div className="text-2xl font-bold text-purple-600">{learning_analytics.longest_streak}</div>
-                       <div className="text-sm text-purple-700 dark:text-purple-300">Longest Streak</div>
-                     </div>
-                     <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                       <div className="text-2xl font-bold text-blue-600">{learning_analytics.completion_rate}%</div>
-                       <div className="text-sm text-blue-700 dark:text-blue-300">Completion Rate</div>
-                     </div>
-                   </div>
-                 </div>
+                {/* Mobile-Optimized Achievements Section */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700 mb-4 sm:mb-6">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
+                    <Award className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-yellow-600" />
+                    Achievements
+                  </h3>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div className="text-center p-3 sm:p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-yellow-600">
+                        {learning_analytics.skill_points}
+                      </div>
+                      <div className="text-xs sm:text-sm text-yellow-700 dark:text-yellow-300">
+                        Skill Points
+                      </div>
+                    </div>
+                    <div className="text-center p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-green-600">
+                        {learning_analytics.certificates_earned}
+                      </div>
+                      <div className="text-xs sm:text-sm text-green-700 dark:text-green-300">
+                        Certificates
+                      </div>
+                    </div>
+                    <div className="text-center p-3 sm:p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-purple-600">
+                        {learning_analytics.longest_streak}
+                      </div>
+                      <div className="text-xs sm:text-sm text-purple-700 dark:text-purple-300">
+                        Best Streak
+                      </div>
+                    </div>
+                    <div className="text-center p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-blue-600">
+                        {learning_analytics.completion_rate}%
+                      </div>
+                      <div className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">
+                        Completion
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                 {/* Detailed Learning Analytics */}
-                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-                     <Brain className="h-5 w-5 mr-2 text-purple-600" />
-                     Detailed Learning Analytics
-                   </h3>
-                   <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-                     <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                       <div className="text-lg font-bold text-blue-600">{learning_analytics.total_lessons_completed}</div>
-                       <div className="text-sm text-blue-700 dark:text-blue-300">Lessons Completed</div>
-                     </div>
-                     <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                       <div className="text-lg font-bold text-green-600">{learning_analytics.total_assignments_completed}</div>
-                       <div className="text-sm text-green-700 dark:text-green-300">Assignments Done</div>
-                     </div>
-                     <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                       <div className="text-lg font-bold text-yellow-600">{learning_analytics.total_quiz_attempts}</div>
-                       <div className="text-sm text-yellow-700 dark:text-yellow-300">Quiz Attempts</div>
-                     </div>
-                     <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                       <div className="text-lg font-bold text-purple-600">{learning_analytics.completion_rate}%</div>
-                       <div className="text-sm text-purple-700 dark:text-purple-300">Completion Rate</div>
-                     </div>
-                     <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                       <div className="text-lg font-bold text-orange-600">{learning_analytics.average_score}%</div>
-                       <div className="text-sm text-orange-700 dark:text-orange-300">Average Score</div>
-                     </div>
-                     <div className="text-center p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-                       <div className="text-lg font-bold text-indigo-600">{formatDuration(learning_analytics.average_lesson_time)}</div>
-                       <div className="text-sm text-indigo-700 dark:text-indigo-300">Avg Lesson Time</div>
-                     </div>
-                   </div>
-                 </div>
+                {/* Mobile-Optimized Detailed Learning Analytics */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
+                    <Brain className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-purple-600" />
+                    Learning Analytics
+                  </h3>
+                  {/* Stack on mobile, grid on larger screens */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                    <div className="text-center p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <div className="text-base sm:text-lg font-bold text-blue-600">
+                        {learning_analytics.total_lessons_completed}
+                      </div>
+                      <div className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">
+                        Lessons Completed
+                      </div>
+                    </div>
+                    <div className="text-center p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <div className="text-base sm:text-lg font-bold text-green-600">
+                        {learning_analytics.total_assignments_completed}
+                      </div>
+                      <div className="text-xs sm:text-sm text-green-700 dark:text-green-300">
+                        Assignments Done
+                      </div>
+                    </div>
+                    <div className="text-center p-3 sm:p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                      <div className="text-base sm:text-lg font-bold text-yellow-600">
+                        {learning_analytics.total_quiz_attempts}
+                      </div>
+                      <div className="text-xs sm:text-sm text-yellow-700 dark:text-yellow-300">
+                        Quiz Attempts
+                      </div>
+                    </div>
+                    <div className="text-center p-3 sm:p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                      <div className="text-base sm:text-lg font-bold text-purple-600">
+                        {learning_analytics.completion_rate}%
+                      </div>
+                      <div className="text-xs sm:text-sm text-purple-700 dark:text-purple-300">
+                        Completion Rate
+                      </div>
+                    </div>
+                    <div className="text-center p-3 sm:p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                      <div className="text-base sm:text-lg font-bold text-orange-600">
+                        {learning_analytics.average_score}%
+                      </div>
+                      <div className="text-xs sm:text-sm text-orange-700 dark:text-orange-300">
+                        Average Score
+                      </div>
+                    </div>
+                    <div className="text-center p-3 sm:p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+                      <div className="text-base sm:text-lg font-bold text-indigo-600">
+                        {formatDuration(learning_analytics.average_lesson_time)}
+                      </div>
+                      <div className="text-xs sm:text-sm text-indigo-700 dark:text-indigo-300">
+                        Avg Lesson Time
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                 {/* Financial Overview */}
-                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700 mb-6">
-                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-                     <DollarSign className="h-5 w-5 mr-2 text-green-600" />
-                     Financial Overview
-                   </h3>
-                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                     <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                       <div className="text-lg font-bold text-gray-900 dark:text-white">
-                         {formatCurrency(financial_metrics.total_spent)}
-                       </div>
-                       <div className="text-sm text-gray-600 dark:text-gray-400">Total Spent</div>
-                     </div>
-                     <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                       <div className="text-lg font-bold text-gray-900 dark:text-white">{financial_metrics.total_courses_purchased}</div>
-                       <div className="text-sm text-gray-600 dark:text-gray-400">Courses Purchased</div>
-                     </div>
-                     <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                       <div className="text-lg font-bold text-gray-900 dark:text-white">{financial_metrics.successful_transactions}</div>
-                       <div className="text-sm text-gray-600 dark:text-gray-400">Successful Payments</div>
-                     </div>
-                     <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                       <div className="text-lg font-bold text-gray-900 dark:text-white">
-                         {formatCurrency(financial_metrics.lifetime_value)}
-                       </div>
-                       <div className="text-sm text-gray-600 dark:text-gray-400">Lifetime Value</div>
-                     </div>
-                   </div>
-                 </div>
+                {/* Mobile-Optimized Financial Overview */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700 mb-4 sm:mb-6">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
+                    <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-green-600" />
+                    Financial Overview
+                  </h3>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div className="text-center p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                        {formatCurrency(financial_metrics.total_spent)}
+                      </div>
+                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Total Spent</div>
+                    </div>
+                    <div className="text-center p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                        {financial_metrics.total_courses_purchased}
+                      </div>
+                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Courses</div>
+                    </div>
+                    <div className="text-center p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                        {financial_metrics.successful_transactions}
+                      </div>
+                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Payments</div>
+                    </div>
+                    <div className="text-center p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                        {formatCurrency(financial_metrics.lifetime_value)}
+                      </div>
+                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Lifetime Value</div>
+                    </div>
+                  </div>
+                </div>
 
-                 {/* Device & Security Info */}
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                   <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-                       <Monitor className="h-5 w-5 mr-2 text-purple-600" />
-                       Device Information
-                     </h3>
-                     <div className="space-y-4">
-                       <div className="flex items-center justify-between">
-                         <span className="text-sm text-gray-600 dark:text-gray-400">Active Sessions</span>
-                         <span className="text-sm font-medium text-gray-900 dark:text-white">{device_info.active_sessions}</span>
-                       </div>
-                       <div className="flex items-center justify-between">
-                         <span className="text-sm text-gray-600 dark:text-gray-400">Trusted Devices</span>
-                         <span className="text-sm font-medium text-gray-900 dark:text-white">{device_info.trusted_devices}</span>
-                       </div>
-                       <div className="flex items-center justify-between">
-                         <span className="text-sm text-gray-600 dark:text-gray-400">Unique IPs</span>
-                         <span className="text-sm font-medium text-gray-900 dark:text-white">{device_info.unique_ip_addresses}</span>
-                       </div>
-                       <div className="mt-4">
-                         <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Device Breakdown</h4>
-                         <div className="grid grid-cols-3 gap-2 text-center">
-                           <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                             <div className="text-lg font-bold text-gray-900 dark:text-white">{device_info.device_breakdown.mobile}</div>
-                             <div className="text-xs text-gray-500 dark:text-gray-400">Mobile</div>
-                           </div>
-                           <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                             <div className="text-lg font-bold text-gray-900 dark:text-white">{device_info.device_breakdown.tablet}</div>
-                             <div className="text-xs text-gray-500 dark:text-gray-400">Tablet</div>
-                           </div>
-                           <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                             <div className="text-lg font-bold text-gray-900 dark:text-white">{device_info.device_breakdown.desktop}</div>
-                             <div className="text-xs text-gray-500 dark:text-gray-400">Desktop</div>
-                           </div>
-                         </div>
-                       </div>
-                     </div>
-                   </div>
+                {/* Mobile-Optimized Device & Security Info */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
+                      <Monitor className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-purple-600" />
+                      Device Information
+                    </h3>
+                    <div className="space-y-3 sm:space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Active Sessions</span>
+                        <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
+                          {device_info.active_sessions}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Trusted Devices</span>
+                        <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
+                          {device_info.trusted_devices}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Unique IPs</span>
+                        <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
+                          {device_info.unique_ip_addresses}
+                        </span>
+                      </div>
+                      <div className="mt-3 sm:mt-4">
+                        <h4 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white mb-2">
+                          Device Breakdown
+                        </h4>
+                        <div className="grid grid-cols-3 gap-2 text-center">
+                          <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                            <div className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">
+                              {device_info.device_breakdown.mobile}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Mobile</div>
+                          </div>
+                          <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                            <div className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">
+                              {device_info.device_breakdown.tablet}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Tablet</div>
+                          </div>
+                          <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                            <div className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">
+                              {device_info.device_breakdown.desktop}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Desktop</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
-                   <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-                       <Shield className="h-5 w-5 mr-2 text-green-600" />
-                       Security Overview
-                     </h3>
-                     <div className="space-y-4">
-                       <div className="flex items-center justify-between">
-                         <span className="text-sm text-gray-600 dark:text-gray-400">Security Score</span>
-                         <span className="text-sm font-medium text-green-600">{account_insights.security_score}/100</span>
-                       </div>
-                       <div className="flex items-center justify-between">
-                         <span className="text-sm text-gray-600 dark:text-gray-400">2FA Enabled</span>
-                         {account_status.two_factor_enabled ? (
-                           <CheckCircle className="h-4 w-4 text-green-500" />
-                         ) : (
-                           <XCircle className="h-4 w-4 text-red-500" />
-                         )}
-                       </div>
-                       <div className="flex items-center justify-between">
-                         <span className="text-sm text-gray-600 dark:text-gray-400">Failed Login Attempts</span>
-                         <span className="text-sm font-medium text-gray-900 dark:text-white">{account_status.failed_login_attempts}</span>
-                       </div>
-                       <div className="mt-4">
-                         <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Account Verification</h4>
-                         <div className="space-y-2">
-                           <div className="flex items-center justify-between">
-                             <span className="text-xs text-gray-500 dark:text-gray-400">Email</span>
-                             {account_status.email_verified ? (
-                               <CheckCircle className="h-4 w-4 text-green-500" />
-                             ) : (
-                               <XCircle className="h-4 w-4 text-red-500" />
-                             )}
-                           </div>
-                           <div className="flex items-center justify-between">
-                             <span className="text-xs text-gray-500 dark:text-gray-400">Phone</span>
-                             {account_status.phone_verified ? (
-                               <CheckCircle className="h-4 w-4 text-green-500" />
-                             ) : (
-                               <XCircle className="h-4 w-4 text-red-500" />
-                             )}
-                           </div>
-                           <div className="flex items-center justify-between">
-                             <span className="text-xs text-gray-500 dark:text-gray-400">Identity</span>
-                             {account_status.identity_verified ? (
-                               <CheckCircle className="h-4 w-4 text-green-500" />
-                             ) : (
-                               <XCircle className="h-4 w-4 text-red-500" />
-                             )}
-                           </div>
-                         </div>
-                       </div>
-                     </div>
-                   </div>
-                 </div>
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
+                      <Shield className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-green-600" />
+                      Security Overview
+                    </h3>
+                    <div className="space-y-3 sm:space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Security Score</span>
+                        <span className="text-xs sm:text-sm font-medium text-green-600">
+                          {account_insights.security_score}/100
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">2FA Enabled</span>
+                        {account_status.two_factor_enabled ? (
+                          <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                        ) : (
+                          <XCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Failed Attempts</span>
+                        <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
+                          {account_status.failed_login_attempts}
+                        </span>
+                      </div>
+                      <div className="mt-3 sm:mt-4">
+                        <h4 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white mb-2">
+                          Verification Status
+                        </h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Email</span>
+                            {account_status.email_verified ? (
+                              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                            ) : (
+                              <XCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Phone</span>
+                            {account_status.phone_verified ? (
+                              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                            ) : (
+                              <XCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Identity</span>
+                            {account_status.identity_verified ? (
+                              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                            ) : (
+                              <XCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                 {/* Engagement & Performance */}
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                   <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-                       <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
-                       Engagement Metrics
-                     </h3>
-                     <div className="space-y-4">
-                       <div className="flex items-center justify-between">
-                         <span className="text-sm text-gray-600 dark:text-gray-400">Total Logins</span>
-                         <span className="text-sm font-medium text-gray-900 dark:text-white">{engagement_metrics.total_logins}</span>
-                       </div>
-                       <div className="flex items-center justify-between">
-                         <span className="text-sm text-gray-600 dark:text-gray-400">Session Time</span>
-                         <span className="text-sm font-medium text-gray-900 dark:text-white">{formatDuration(engagement_metrics.total_session_time)}</span>
-                       </div>
-                       <div className="flex items-center justify-between">
-                         <span className="text-sm text-gray-600 dark:text-gray-400">Avg Session</span>
-                         <span className="text-sm font-medium text-gray-900 dark:text-white">{formatDuration(engagement_metrics.avg_session_duration)}</span>
-                       </div>
-                       <div className="flex items-center justify-between">
-                         <span className="text-sm text-gray-600 dark:text-gray-400">Active Days</span>
-                         <span className="text-sm font-medium text-gray-900 dark:text-white">{engagement_metrics.consecutive_active_days}</span>
-                       </div>
-                       <div className="flex items-center justify-between">
-                         <span className="text-sm text-gray-600 dark:text-gray-400">Page Views</span>
-                         <span className="text-sm font-medium text-gray-900 dark:text-white">{engagement_metrics.page_views}</span>
-                       </div>
-                     </div>
-                   </div>
+                {/* Mobile-Optimized Engagement & Performance */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
+                      <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" />
+                      Engagement
+                    </h3>
+                    <div className="space-y-3 sm:space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Total Logins</span>
+                        <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
+                          {engagement_metrics.total_logins}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Session Time</span>
+                        <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
+                          {formatDuration(engagement_metrics.total_session_time)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Avg Session</span>
+                        <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
+                          {formatDuration(engagement_metrics.avg_session_duration)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Active Days</span>
+                        <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
+                          {engagement_metrics.consecutive_active_days}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Page Views</span>
+                        <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
+                          {engagement_metrics.page_views}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-                   <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-                       <Target className="h-5 w-5 mr-2 text-orange-600" />
-                       Performance Indicators
-                     </h3>
-                     <div className="space-y-4">
-                       <div className="flex items-center justify-between">
-                         <span className="text-sm text-gray-600 dark:text-gray-400">Learning Consistency</span>
-                         <span className="text-sm font-medium text-gray-900 dark:text-white">{performance_indicators.learning_consistency}%</span>
-                       </div>
-                       <div className="flex items-center justify-between">
-                         <span className="text-sm text-gray-600 dark:text-gray-400">Engagement Level</span>
-                         <span className={`text-sm font-medium capitalize ${
-                           performance_indicators.engagement_level === 'high' 
-                             ? 'text-green-600' 
-                             : performance_indicators.engagement_level === 'medium'
-                             ? 'text-yellow-600'
-                             : 'text-red-600'
-                         }`}>
-                           {performance_indicators.engagement_level}
-                         </span>
-                       </div>
-                       <div className="flex items-center justify-between">
-                         <span className="text-sm text-gray-600 dark:text-gray-400">Progress Rate</span>
-                         <span className="text-sm font-medium text-gray-900 dark:text-white">{performance_indicators.progress_rate}%</span>
-                       </div>
-                       <div className="flex items-center justify-between">
-                         <span className="text-sm text-gray-600 dark:text-gray-400">Community Involvement</span>
-                         <span className="text-sm font-medium text-gray-900 dark:text-white">{performance_indicators.community_involvement}%</span>
-                       </div>
-                       <div className="flex items-center justify-between">
-                         <span className="text-sm text-gray-600 dark:text-gray-400">Payment Health</span>
-                         <span className="text-sm font-medium text-green-600">{performance_indicators.payment_health}%</span>
-                       </div>
-                     </div>
-                   </div>
-                 </div>
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
+                      <Target className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-orange-600" />
+                      Performance Indicators
+                    </h3>
+                    <div className="space-y-3 sm:space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Learning Consistency</span>
+                        <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
+                          {performance_indicators.learning_consistency}%
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Engagement Level</span>
+                        <span className={`text-xs sm:text-sm font-medium ${
+                          performance_indicators.engagement_level === 'high' 
+                            ? 'text-green-600' 
+                            : performance_indicators.engagement_level === 'medium'
+                            ? 'text-yellow-600'
+                            : 'text-red-600'
+                        }`}>
+                          {performance_indicators.engagement_level}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Progress Rate</span>
+                        <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
+                          {performance_indicators.progress_rate}%
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Community Involvement</span>
+                        <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
+                          {performance_indicators.community_involvement}%
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Payment Health</span>
+                        <span className="text-xs sm:text-sm font-medium text-green-600">
+                          {performance_indicators.payment_health}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             )}
 

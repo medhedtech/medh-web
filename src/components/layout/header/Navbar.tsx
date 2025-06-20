@@ -1,22 +1,27 @@
 "use client";
 import { usePathname } from "next/navigation";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { Search, ShoppingCart, Video } from "lucide-react";
 import NavItems from "./NavItems";
 import NavbarLogo from "./NavbarLogo";
 import DashboardProfileComponent from "./DashboardProfileComponent";
 import NavItems2 from "./NavItems2";
 import useIsTrue from "@/hooks/useIsTrue";
 import NavbarTop from "./NavbarTop";
-import { useState, useEffect, useRef, useCallback } from "react";
 import NavbarSearch from "@/components/shared/search/NavbarSearch";
-import { Search, ShoppingCart, Video, Calendar, Zap, Play, User } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+
+interface NavbarProps {
+  onMobileMenuOpen?: () => void;
+  viewportWidth?: number;
+  scrollProgress?: number;
+}
 
 /**
  * Modern navigation component with enhanced styling and interactions
  * Supports multiple layout variants and responsive behavior
  */
-const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => {
+const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }: NavbarProps) => {
   // Path and page detection
   const pathname = usePathname();
   const isHome1 = useIsTrue("/");
@@ -29,20 +34,20 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
   const isHome5Dark = useIsTrue("/home-5-dark");
   
   // UI state
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
-  const [hideNavbar, setHideNavbar] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [isSearchActive, setIsSearchActive] = useState(false);
-  const [isDemoDropdownOpen, setIsDemoDropdownOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userName, setUserName] = useState("");
+  const [isScrolled, setIsScrolled] = useState<boolean>(false);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [hideNavbar, setHideNavbar] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [isSearchActive, setIsSearchActive] = useState<boolean>(false);
+  const [isDemoDropdownOpen, setIsDemoDropdownOpen] = useState<boolean>(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [userName, setUserName] = useState<string>("");
   
   // Refs
-  const lastScrollY = useRef(0);
-  const navbarRef = useRef(null);
-  const searchRef = useRef(null);
-  const demoDropdownRef = useRef(null);
+  const lastScrollY = useRef<number>(0);
+  const navbarRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const demoDropdownRef = useRef<HTMLDivElement>(null);
   
   // Router for navigation
   const router = useRouter();
@@ -126,11 +131,11 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
 
   // Handle clicks outside search and demo dropdown to close them
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsSearchActive(false);
       }
-      if (demoDropdownRef.current && !demoDropdownRef.current.contains(event.target)) {
+      if (demoDropdownRef.current && !demoDropdownRef.current.contains(event.target as Node)) {
         setIsDemoDropdownOpen(false);
       }
     };
@@ -144,8 +149,8 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }) => 
   // Handle schedule demo action
   const handleScheduleDemo = useCallback(() => {
     if (isLoggedIn) {
-      // Redirect to demo scheduling page for logged-in users
-      router.push("/dashboards/student/schedule-demo");
+      // Redirect to demo classes page for logged-in users
+      router.push("/dashboards/student/demo-classes/");
     } else {
       // Show login modal with demo context
       router.push("/login?action=schedule-demo");

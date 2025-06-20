@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Crown, Gift, Clock, CreditCard, Star, Shield, Zap } from "lucide-react";
 import Link from "next/link";
 import StudentDashboardLayout from "./StudentDashboardLayout";
+import PremiumMembershipCard from "./PremiumMembershipCard";
 
 interface MembershipPlan {
   id: string;
@@ -52,6 +53,7 @@ const StudentMembership: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPlan, setCurrentPlan] = useState<MembershipPlan | null>(null);
   const [availablePlans, setAvailablePlans] = useState<MembershipPlan[]>([]);
+  const [membershipType, setMembershipType] = useState<'Silver' | 'Gold' | null>(null);
 
   useEffect(() => {
     const fetchMembershipData = async () => {
@@ -64,6 +66,12 @@ const StudentMembership: React.FC = () => {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Mock data - will be replaced with real API data
+        // For demo purposes, let's simulate a Gold membership
+        // In production, this should come from your API
+        const mockMembership = Math.random() > 0.5 ? 'Gold' : 'Silver'; // Random for demo
+        setMembershipType(mockMembership); // Set to mockMembership for demo
+        // setMembershipType(null); // Set to null for no membership state
+        
         setCurrentPlan(null);
         setAvailablePlans([]);
         
@@ -160,6 +168,28 @@ const StudentMembership: React.FC = () => {
           </div>
         </div>
 
+        {/* Demo Toggle - Remove in production */}
+        <div className="text-center mb-6">
+          <button
+            onClick={() => {
+              if (membershipType === null) {
+                setMembershipType('Silver');
+              } else if (membershipType === 'Silver') {
+                setMembershipType('Gold');
+              } else {
+                setMembershipType(null);
+              }
+            }}
+            className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm"
+          >
+            Demo: Switch to {
+              membershipType === null ? 'Silver' : 
+              membershipType === 'Silver' ? 'Gold' : 
+              'No Membership'
+            }
+          </button>
+        </div>
+
         {/* Content */}
         <AnimatePresence mode="wait">
           <motion.div
@@ -171,22 +201,21 @@ const StudentMembership: React.FC = () => {
           >
             {currentTab === 0 && (
               // Enrolled Membership
-              <>
-                <Crown className="w-16 h-16 text-gray-400 mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  No Enrolled Membership
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 max-w-md mb-6">
-                  You don't have an enrolled membership plan yet. Choose from our available plans to unlock premium features and benefits.
-                </p>
-                <Link
-                  href="/medh-membership/"
-                  className="inline-flex items-center px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors font-medium"
-                >
-                  <Crown className="w-5 h-5 mr-2" />
-                  Browse Membership Plans
-                </Link>
-              </>
+              <div className="w-full max-w-4xl mx-auto">
+                <PremiumMembershipCard
+                  membershipType={membershipType}
+                  expiryDate={membershipType ? "March 15, 2025" : undefined}
+                  plan={membershipType ? "QUARTERLY" : undefined}
+                  onUpgrade={() => {
+                    // Navigate to membership plans
+                    window.location.href = "/medh-membership/";
+                  }}
+                  onRenew={() => {
+                    // Handle renewal logic
+                    console.log("Renewing membership...");
+                  }}
+                />
+              </div>
             )}
 
             {currentTab === 1 && (

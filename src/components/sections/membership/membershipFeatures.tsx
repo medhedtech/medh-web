@@ -12,7 +12,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import { 
-  ds
+  getEnhancedSemanticColor
 } from "@/utils/designSystem";
 
 // TypeScript interfaces
@@ -78,9 +78,9 @@ const MembershipFeatures: React.FC = () => {
     },
   ];
 
-  // Get semantic colors directly from design system
+  // Get semantic colors using design system utility
   const getSemanticColorValue = (category: IFeature['category'], variant: 'light' | 'dark' = 'light') => {
-    return ds.colors.semantic[category][variant];
+    return getEnhancedSemanticColor(category, variant);
   };
 
   const fadeInUp = {
