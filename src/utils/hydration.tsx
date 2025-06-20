@@ -70,7 +70,7 @@ export const useIsMobile = (breakpoint: number = 640) => {
 /**
  * Hook to safely access localStorage without hydration mismatches
  */
-export const useLocalStorage = <T>(key: string, initialValue: T) => {
+export const useLocalStorage = <T,>(key: string, initialValue: T) => {
   const [storedValue, setStoredValue] = useState<T>(initialValue);
   const isClient = useIsClient();
 
@@ -198,7 +198,7 @@ export const safeRandom = {
 /**
  * Hook to safely access window properties without hydration mismatches
  */
-export const useWindowProperty = <T>(property: keyof Window, defaultValue: T): T => {
+export const useWindowProperty = <T,>(property: keyof Window, defaultValue: T): T => {
   const [value, setValue] = useState<T>(defaultValue);
   const isClient = useIsClient();
 

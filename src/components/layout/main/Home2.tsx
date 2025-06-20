@@ -100,8 +100,10 @@ const Home2: React.FC = () => {
     try {
       setVideoAttempted(true);
       
-      // Use the iOS-optimized video starter
-      const success = await iosVideoConfig.startBackgroundVideo(videoRef.current);
+      // Use the iOS-optimized video starter with safety checks
+      const success = iosVideoConfig?.startBackgroundVideo 
+        ? await iosVideoConfig.startBackgroundVideo(videoRef.current)
+        : false;
       
       if (success) {
         setIsPlaying(true);
@@ -172,9 +174,13 @@ const Home2: React.FC = () => {
     // Initialize iOS optimizations with safety checks
     const cleanupIOS = initializeIOSOptimizations?.() || (() => {});
     
-    // Run iOS tests in development
-    if (process.env.NODE_ENV === 'development' && iosDevice) {
-      iosTest.runAllTests();
+    // Run iOS tests in development with safety checks
+    if (process.env.NODE_ENV === 'development' && iosDevice && iosTest?.runAllTests) {
+      try {
+        iosTest.runAllTests();
+      } catch (testError) {
+        console.warn('iOS tests failed:', testError);
+      }
     }
     
     // Only disable video for very low-end devices or extreme low memory
@@ -190,16 +196,20 @@ const Home2: React.FC = () => {
       window.addEventListener('scroll', handleUserInteraction, { passive: true, once: false });
     }
     
-    // Start memory monitoring for iOS devices
+    // Start memory monitoring for iOS devices with safety checks
     let memoryCleanup = () => {};
-    if (iosDevice) {
-      memoryCleanup = memoryManager.monitorMemoryUsage((shouldCleanup) => {
-        if (shouldCleanup) {
-          console.warn('High memory usage detected, disabling video');
-          setShouldShowVideo(false);
-          setHasVideoError(true);
-        }
-      });
+    if (iosDevice && memoryManager?.monitorMemoryUsage) {
+      try {
+        memoryCleanup = memoryManager.monitorMemoryUsage((shouldCleanup) => {
+          if (shouldCleanup) {
+            console.warn('High memory usage detected, disabling video');
+            setShouldShowVideo(false);
+            setHasVideoError(true);
+          }
+        });
+      } catch (memoryError) {
+        console.warn('Memory monitoring failed:', memoryError);
+      }
     }
     
     setIsClient(true);
@@ -207,14 +217,18 @@ const Home2: React.FC = () => {
     mountedRef.current = true;
     
     return () => {
-      if (cleanupIOS) cleanupIOS();
-      if (memoryCleanup) memoryCleanup();
-      
-      // Clean up interaction listeners
-      if (iosDevice) {
-        window.removeEventListener('touchstart', handleUserInteraction);
-        window.removeEventListener('click', handleUserInteraction);
-        window.removeEventListener('scroll', handleUserInteraction);
+      try {
+        if (cleanupIOS && typeof cleanupIOS === 'function') cleanupIOS();
+        if (memoryCleanup && typeof memoryCleanup === 'function') memoryCleanup();
+        
+        // Clean up interaction listeners
+        if (iosDevice && typeof window !== 'undefined') {
+          window.removeEventListener('touchstart', handleUserInteraction);
+          window.removeEventListener('click', handleUserInteraction);
+          window.removeEventListener('scroll', handleUserInteraction);
+        }
+      } catch (cleanupError) {
+        console.warn('Cleanup failed:', cleanupError);
       }
     };
   }, [handleUserInteraction]);
