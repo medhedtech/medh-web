@@ -1244,33 +1244,57 @@ export const batchAPI = {
     limit?: number;
     days_ahead?: number;
   } = {}): Promise<IApiResponse<{
-    sessions: Array<{
+    success: boolean;
+    count: number;
+    total_upcoming: number;
+    active_batches: number;
+    upcoming_batches: number;
+    total_batches: number;
+    days_ahead: number;
+    search_period: {
+      from: string;
+      to: string;
+    };
+    student: {
       id: string;
-      day: string;
+      name: string;
+      email: string;
+    };
+    data: Array<{
+      session_id: string;
+      session_date: string;
+      session_end_date: string;
       date: string;
       start_time: string;
       end_time: string;
+      title: string;
+      description: string;
       batch: {
         id: string;
         name: string;
         code: string;
-        course: {
-          id: string;
-          name: string;
-          code: string;
-        };
+        status: string;
+        start_date: string;
+        end_date: string;
       };
+      course: {
+        id: string;
+        title: string;
+      };
+      instructor: {
+        _id: string;
+        full_name: string;
+        email: string;
+      };
+      has_recorded_lessons: boolean;
+      enrollment_status: string;
+      is_upcoming: boolean;
       zoom_meeting?: {
         id: string;
         join_url: string;
         password?: string;
       };
-      recorded_lessons_count: number;
     }>;
-    search_params: {
-      limit: number;
-      days_ahead: number;
-    };
   }>> => {
     if (!studentId) throw new Error('Student ID is required');
     

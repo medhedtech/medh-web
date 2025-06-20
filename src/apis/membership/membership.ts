@@ -24,6 +24,28 @@ export interface IMembershipPricing {
   savings_text?: string;
 }
 
+export interface IMembershipPlan {
+  amount: number;
+  currency: string;
+  duration: string;
+  features: string[];
+}
+
+export interface IMembershipPricingData {
+  silver: {
+    monthly: IMembershipPlan;
+    quarterly: IMembershipPlan;
+    half_yearly: IMembershipPlan;
+    annual: IMembershipPlan;
+  };
+  gold: {
+    monthly: IMembershipPlan;
+    quarterly: IMembershipPlan;
+    half_yearly: IMembershipPlan;
+    annual: IMembershipPlan;
+  };
+}
+
 export interface IMembershipBenefits {
   membership_type: TMembershipType;
   tier_name: string;
@@ -279,7 +301,7 @@ export interface IMembershipPricingResponse {
   success: boolean;
   message: string;
   data: {
-    pricing_plans: IMembershipPricing[];
+    pricing: IMembershipPricingData;
     special_offers?: Array<{
       title: string;
       description: string;
@@ -329,7 +351,7 @@ const apiBaseUrl = getApiBaseUrl();
  * Get membership pricing plans
  */
 export const getMembershipPricing = async (): Promise<IApiResponse<IMembershipPricingResponse['data']>> => {
-  return await apiClient.get<IMembershipPricingResponse['data']>('/v1/memberships/pricing');
+  return await apiClient.get<IMembershipPricingResponse['data']>('/memberships/pricing');
 };
 
 /**
@@ -338,7 +360,7 @@ export const getMembershipPricing = async (): Promise<IApiResponse<IMembershipPr
 export const getMembershipBenefits = async (
   membershipType: TMembershipType
 ): Promise<IApiResponse<IMembershipBenefitsResponse['data']>> => {
-  return await apiClient.get<IMembershipBenefitsResponse['data']>(`/v1/memberships/benefits/${membershipType}`);
+  return await apiClient.get<IMembershipBenefitsResponse['data']>(`/memberships/benefits/${membershipType}`);
 };
 
 /**
@@ -349,7 +371,7 @@ export const getAllMembershipBenefits = async (): Promise<IApiResponse<{
   gold: IMembershipBenefits;
   comparison: any;
 }>> => {
-  return await apiClient.get('/v1/memberships/benefits');
+  return await apiClient.get('/memberships/benefits');
 };
 
 // ==================== AUTHENTICATED API FUNCTIONS (STUDENT) ====================
@@ -360,14 +382,14 @@ export const getAllMembershipBenefits = async (): Promise<IApiResponse<{
 export const createMembershipEnrollment = async (
   enrollmentData: IMembershipEnrollmentInput
 ): Promise<IApiResponse<IMembershipEnrollmentResponse['data']>> => {
-  return await apiClient.post<IMembershipEnrollmentResponse['data']>('/v1/memberships/enroll', enrollmentData);
+  return await apiClient.post<IMembershipEnrollmentResponse['data']>('/memberships/enroll', enrollmentData);
 };
 
 /**
  * Get current user's membership status
  */
 export const getMembershipStatus = async (): Promise<IApiResponse<IMembershipStatusResponse['data']>> => {
-  return await apiClient.get<IMembershipStatusResponse['data']>('/v1/memberships/status');
+  return await apiClient.get<IMembershipStatusResponse['data']>('/memberships/status');
 };
 
 /**
@@ -378,7 +400,7 @@ export const upgradeMembership = async (
   upgradeData: IMembershipUpgradeInput
 ): Promise<IApiResponse<IMembershipEnrollmentResponse['data']>> => {
   return await apiClient.patch<IMembershipEnrollmentResponse['data']>(
-    `/v1/memberships/${enrollmentId}/upgrade`,
+    `/memberships/${enrollmentId}/upgrade`,
     upgradeData
   );
 };
@@ -391,7 +413,7 @@ export const renewMembership = async (
   renewalData: IMembershipRenewalInput
 ): Promise<IApiResponse<IMembershipEnrollmentResponse['data']>> => {
   return await apiClient.patch<IMembershipEnrollmentResponse['data']>(
-    `/v1/memberships/${enrollmentId}/renew`,
+    `/memberships/${enrollmentId}/renew`,
     renewalData
   );
 };
@@ -415,7 +437,7 @@ export const getMembershipPayments = async (
   if (params?.page) queryParams.append('page', params.page.toString());
   if (params?.limit) queryParams.append('limit', params.limit.toString());
   
-  const url = `/v1/memberships/${enrollmentId}/payments${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const url = `/memberships/${enrollmentId}/payments${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
   return await apiClient.get(url);
 };
 
@@ -433,9 +455,7 @@ export const cancelMembership = async (
     refund_method: string;
   };
 }>> => {
-  return await apiClient.delete(`/v1/memberships/${enrollmentId}/cancel`, {
-    data: cancellationData
-  });
+  return await apiClient.post(`/memberships/${enrollmentId}/cancel`, cancellationData);
 };
 
 /**
@@ -445,7 +465,7 @@ export const toggleAutoRenewal = async (
   enrollmentId: string,
   enabled: boolean
 ): Promise<IApiResponse<{ auto_renewal_status: TAutoRenewalStatus }>> => {
-  return await apiClient.patch(`/v1/memberships/${enrollmentId}/auto-renewal`, {
+  return await apiClient.patch(`/memberships/${enrollmentId}/auto-renewal`, {
     enabled
   });
 };
@@ -457,7 +477,7 @@ export const updateSelectedCategories = async (
   enrollmentId: string,
   categories: string[]
 ): Promise<IApiResponse<{ updated_categories: string[] }>> => {
-  return await apiClient.patch(`/v1/memberships/${enrollmentId}/categories`, {
+  return await apiClient.patch(`/memberships/${enrollmentId}/categories`, {
     selected_categories: categories
   });
 };
@@ -481,7 +501,7 @@ export const getMembershipUsage = async (
     }>;
   };
 }>> => {
-  return await apiClient.get(`/v1/memberships/${enrollmentId}/usage`);
+  return await apiClient.get(`/memberships/${enrollmentId}/usage`);
 };
 
 // ==================== ADMIN API FUNCTIONS ====================
@@ -499,7 +519,7 @@ export const getAllMemberships = async (
     }
   });
 
-  const url = `/v1/memberships/admin/all${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const url = `/memberships/admin/all${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
   return await apiClient.get<IMembershipListResponse['data']>(url);
 };
 
@@ -515,7 +535,7 @@ export const getMembershipStatistics = async (
     queryParams.append('end_date', dateRange.end_date);
   }
 
-  const url = `/v1/memberships/admin/stats${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const url = `/memberships/admin/stats${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
   return await apiClient.get<IMembershipStatsResponse['data']>(url);
 };
 
@@ -525,7 +545,7 @@ export const getMembershipStatistics = async (
 export const getMembershipById = async (
   enrollmentId: string
 ): Promise<IApiResponse<{ enrollment: IMembershipEnrollment }>> => {
-  return await apiClient.get(`/v1/memberships/admin/${enrollmentId}`);
+  return await apiClient.get(`/memberships/admin/${enrollmentId}`);
 };
 
 /**
@@ -536,7 +556,7 @@ export const updateMembershipStatus = async (
   status: TMembershipStatus,
   reason?: string
 ): Promise<IApiResponse<{ updated_enrollment: IMembershipEnrollment }>> => {
-  return await apiClient.patch(`/v1/memberships/admin/${enrollmentId}/status`, {
+  return await apiClient.patch(`/memberships/admin/${enrollmentId}/status`, {
     status,
     reason
   });
@@ -554,7 +574,7 @@ export const processMembershipRenewal = async (
     notes?: string;
   }
 ): Promise<IApiResponse<{ renewed_enrollment: IMembershipEnrollment }>> => {
-  return await apiClient.post(`/v1/memberships/admin/${enrollmentId}/renew`, renewalData);
+  return await apiClient.post(`/memberships/admin/${enrollmentId}/renew`, renewalData);
 };
 
 /**
@@ -577,7 +597,7 @@ export const getUpcomingRenewals = async (
   const queryParams = new URLSearchParams();
   if (days) queryParams.append('days', days.toString());
 
-  const url = `/v1/memberships/admin/upcoming-renewals${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const url = `/memberships/admin/upcoming-renewals${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
   return await apiClient.get(url);
 };
 
@@ -600,7 +620,7 @@ export const processBulkRenewal = async (
     error?: string;
   }>;
 }>> => {
-  return await apiClient.post('/v1/memberships/admin/bulk-renewal', {
+  return await apiClient.post('/memberships/admin/bulk-renewal', {
     enrollment_ids: enrollmentIds,
     ...renewalData
   });
@@ -626,7 +646,7 @@ export const exportMembershipsData = async (
     }
   });
 
-  const url = `/v1/memberships/admin/export${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const url = `/memberships/admin/export${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
   return await apiClient.get(url);
 };
 
@@ -637,7 +657,8 @@ export const exportMembershipsData = async (
  */
 export const calculateMembershipPricing = (
   membershipType: TMembershipType,
-  durationMonths: number,
+  billingCycle: TBillingCycle,
+  pricingData?: IMembershipPricingData,
   promoCode?: string
 ): {
   original_price: number;
@@ -646,23 +667,38 @@ export const calculateMembershipPricing = (
   discount_percentage: number;
   savings_compared_to_monthly: number;
 } => {
-  const basePrices = {
+  // Fallback pricing if API data not available
+  const fallbackPrices = {
     silver: {
-      1: 999,    // Monthly
-      3: 2499,   // Quarterly
-      6: 3999,   // Half-yearly
-      12: 4999   // Annually
+      monthly: 999,
+      quarterly: 2499,
+      half_yearly: 3999,
+      annually: 4999
     },
     gold: {
-      1: 1999,   // Monthly
-      3: 3999,   // Quarterly
-      6: 5999,   // Half-yearly
-      12: 6999   // Annually
+      monthly: 1999,
+      quarterly: 3999,
+      half_yearly: 5999,
+      annually: 6999
     }
   };
 
-  const originalPrice = basePrices[membershipType][durationMonths as keyof typeof basePrices[TMembershipType]] || 0;
-  const monthlyPrice = basePrices[membershipType][1];
+  const cycleKey = billingCycle === 'annually' ? 'annual' : billingCycle;
+  
+  // Get pricing from API data or fallback
+  const originalPrice = pricingData 
+    ? pricingData[membershipType][cycleKey as keyof typeof pricingData[TMembershipType]].amount
+    : fallbackPrices[membershipType][billingCycle];
+    
+  const monthlyPrice = pricingData
+    ? pricingData[membershipType].monthly.amount
+    : fallbackPrices[membershipType].monthly;
+
+  // Calculate duration months
+  const durationMonths = billingCycle === 'monthly' ? 1 : 
+                        billingCycle === 'quarterly' ? 3 :
+                        billingCycle === 'half_yearly' ? 6 : 12;
+  
   const monthlyTotal = monthlyPrice * durationMonths;
   
   // Calculate savings compared to monthly
