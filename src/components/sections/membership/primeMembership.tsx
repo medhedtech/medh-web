@@ -1,82 +1,55 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Crown, Star, ArrowRight, CheckCircle, AlertCircle, X } from "lucide-react";
+import { Crown, Star, ArrowRight, CheckCircle, AlertCircle, X, Loader2 } from "lucide-react";
 import SelectCourseModal from "@/components/layout/main/dashboards/SelectCourseModal";
 import LoginForm from "@/components/shared/login/LoginForm";
 import MembershipBanner from "./membershipBanner";
+
+// Import membership APIs
+import {
+  getMembershipPricing,
+  getMembershipBenefits,
+  createMembershipEnrollment,
+  calculateMembershipPricing,
+  formatMembershipDuration,
+  getBillingCycleFromDuration,
+  validateMembershipEnrollmentData,
+  type TMembershipType,
+  type IMembershipPricing,
+  type IMembershipBenefits,
+  type IMembershipEnrollmentInput
+} from "@/apis/membership";
 
 // TypeScript interfaces
 interface IPlan {
   duration: string;
   price: string;
   period: string;
+  duration_months: number;
+  billing_cycle: string;
+  original_price?: string;
+  savings?: string;
 }
 
 interface IMembershipData {
-  type: string;
+  type: TMembershipType;
   icon: React.ReactNode;
   color: 'primary' | 'amber';
   plans: IPlan[];
   description: string;
   features: string[];
+  benefits?: IMembershipBenefits;
 }
-
-interface IPlans {
-  [key: string]: {
-    silver: string;
-    gold: string;
-    period: string;
-  };
-}
-
-const membershipData: IMembershipData[] = [
-  {
-    type: "Silver",
-    icon: <Star className="w-6 h-6" />,
-    color: "primary",
-    plans: [
-      { duration: "MONTHLY", price: "INR 999.00", period: "per month" },
-      { duration: "QUARTERLY", price: "INR 2,499.00", period: "per 3 months" },
-      { duration: "HALF-YEARLY", price: "INR 3,999.00", period: "per 6 months" },
-      { duration: "ANNUALLY", price: "INR 4,999.00", period: "per annum" },
-    ],
-    description:
-      "Ideal for focused skill development. Explore and learn all self-paced blended courses within any 'Single-Category' of your preference.",
-    features: [
-      "Access to LIVE Q&A Doubt Clearing Sessions",
-      "Special discount on all live courses",
-      "Community access",
-      "Access to free courses",
-      "Placement Assistance"
-    ]
-  },
-  {
-    type: "Gold",
-    icon: <Crown className="w-6 h-6" />,
-    color: "amber",
-    plans: [
-      { duration: "MONTHLY", price: "INR 1,999.00", period: "per month" },
-      { duration: "QUARTERLY", price: "INR 3,999.00", period: "per 3 months" },
-      { duration: "HALF-YEARLY", price: "INR 5,999.00", period: "per 6 months" },
-      { duration: "ANNUALLY", price: "INR 6,999.00", period: "per annum" },
-    ],
-    description:
-      "Perfect for diverse skill acquisition. Explore and learn all self-paced blended courses within any '03-Categories' of your preference.",
-    features: [
-      "Access to LIVE Q&A Doubt Clearing Sessions",
-      "Minimum 15% discount on all live courses",
-      "Community access",
-      "Access to free courses",
-      "Career Counselling",
-      "Placement Assistance"
-    ]
-  },
-];
 
 const PrimeMembership: React.FC = () => {
-  const [selectedPlan, setSelectedPlan] = useState<string>("Monthly");
-  const [selectedMembershipType, setSelectedMembershipType] = useState<string>(""); // "Silver" or "Gold" or ""
+  // State management
+  const [membershipData, setMembershipData] = useState<IMembershipData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [enrollmentLoading, setEnrollmentLoading] = useState(false);
+  
+  const [selectedMembershipType, setSelectedMembershipType] = useState<string>("");
   const [selectedSilverPlan, setSelectedSilverPlan] = useState<string>("MONTHLY");
   const [selectedGoldPlan, setSelectedGoldPlan] = useState<string>("MONTHLY");
   const [isSelectCourseModalOpen, setSelectCourseModalOpen] = useState<boolean>(false);
@@ -85,12 +58,159 @@ const PrimeMembership: React.FC = () => {
   const [isLoginModalOpen, setLoginModalOpen] = useState<boolean>(false);
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
-  const plans: IPlans = {
-    Monthly: { silver: "$49", gold: "$59", period: "per month" },
-    Quarterly: { silver: "$129", gold: "$149", period: "per 3 months" },
-    "Half-Yearly": { silver: "$249", gold: "$299", period: "per 6 months" },
-    Yearly: { silver: "$499", gold: "$599", period: "per year" },
+  // Fetch membership data on component mount
+  useEffect(() => {
+    const fetchMembershipData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch pricing and benefits in parallel
+        const [pricingResponse, silverBenefitsResponse, goldBenefitsResponse] = await Promise.all([
+          getMembershipPricing(),
+          getMembershipBenefits('silver'),
+          getMembershipBenefits('gold')
+        ]);
+
+        if (pricingResponse.status !== 'success') {
+          throw new Error(pricingResponse.error || 'Failed to fetch pricing');
+        }
+
+        if (silverBenefitsResponse.status !== 'success' || goldBenefitsResponse.status !== 'success') {
+          throw new Error('Failed to fetch membership benefits');
+        }
+
+        const pricingPlans = pricingResponse.data?.pricing_plans || [];
+        const silverBenefits = silverBenefitsResponse.data?.benefits;
+        const goldBenefits = goldBenefitsResponse.data?.benefits;
+
+        // Transform API data to component format
+        const transformedData: IMembershipData[] = [
+          {
+            type: "silver" as TMembershipType,
+            icon: <Star className="w-6 h-6" />,
+            color: "primary",
+            plans: transformPlansData(pricingPlans.filter(p => p.membership_type === 'silver')),
+            description: silverBenefits?.description || "Ideal for focused skill development. Access to 1 course category with premium features.",
+            features: silverBenefits?.features.additional_benefits || [
+              "Access to LIVE Q&A Doubt Clearing Sessions",
+              "Special discount on all live courses",
+              "Community access",
+              "Access to free courses",
+              "Placement Assistance"
+            ],
+            benefits: silverBenefits
+          },
+          {
+            type: "gold" as TMembershipType,
+            icon: <Crown className="w-6 h-6" />,
+            color: "amber",
+            plans: transformPlansData(pricingPlans.filter(p => p.membership_type === 'gold')),
+            description: goldBenefits?.description || "Perfect for diverse skill acquisition. Access to 3 course categories with exclusive benefits.",
+            features: goldBenefits?.features.additional_benefits || [
+              "Access to LIVE Q&A Doubt Clearing Sessions",
+              "Minimum 15% discount on all live courses",
+              "Community access",
+              "Access to free courses",
+              "Career Counselling",
+              "Placement Assistance"
+            ],
+            benefits: goldBenefits
+          }
+        ];
+
+        setMembershipData(transformedData);
+      } catch (err) {
+        console.error('Error fetching membership data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load membership data');
+        
+        // Fallback to static data
+        setMembershipData(getStaticMembershipData());
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMembershipData();
+  }, []);
+
+  // Transform pricing data from API to component format
+  const transformPlansData = (pricingPlans: IMembershipPricing[]): IPlan[] => {
+    const durationMap: { [key: number]: string } = {
+      1: "MONTHLY",
+      3: "QUARTERLY", 
+      6: "HALF-YEARLY",
+      12: "ANNUALLY"
+    };
+
+    return pricingPlans.map(plan => {
+      const pricing = calculateMembershipPricing(plan.membership_type, plan.duration_months);
+      
+      return {
+        duration: durationMap[plan.duration_months] || `${plan.duration_months}-MONTH`,
+        price: `INR ${plan.price_inr.toLocaleString()}.00`,
+        period: getPeriodText(plan.duration_months),
+        duration_months: plan.duration_months,
+        billing_cycle: plan.billing_cycle,
+        original_price: plan.original_price_inr ? `INR ${plan.original_price_inr.toLocaleString()}.00` : undefined,
+        savings: pricing.savings_compared_to_monthly > 0 ? `Save INR ${pricing.savings_compared_to_monthly}` : undefined
+      };
+    });
   };
+
+  // Get period text for display
+  const getPeriodText = (durationMonths: number): string => {
+    switch (durationMonths) {
+      case 1: return "per month";
+      case 3: return "per 3 months";
+      case 6: return "per 6 months";
+      case 12: return "per annum";
+      default: return `per ${durationMonths} months`;
+    }
+  };
+
+  // Fallback static data in case API fails
+  const getStaticMembershipData = (): IMembershipData[] => [
+    {
+      type: "silver" as TMembershipType,
+      icon: <Star className="w-6 h-6" />,
+      color: "primary",
+      plans: [
+        { duration: "MONTHLY", price: "INR 999.00", period: "per month", duration_months: 1, billing_cycle: "monthly" },
+        { duration: "QUARTERLY", price: "INR 2,499.00", period: "per 3 months", duration_months: 3, billing_cycle: "quarterly" },
+        { duration: "HALF-YEARLY", price: "INR 3,999.00", period: "per 6 months", duration_months: 6, billing_cycle: "half_yearly" },
+        { duration: "ANNUALLY", price: "INR 4,999.00", period: "per annum", duration_months: 12, billing_cycle: "annually" },
+      ],
+      description: "Ideal for focused skill development. Explore and learn all self-paced blended courses within any 'Single-Category' of your preference.",
+      features: [
+        "Access to LIVE Q&A Doubt Clearing Sessions",
+        "Special discount on all live courses", 
+        "Community access",
+        "Access to free courses",
+        "Placement Assistance"
+      ]
+    },
+    {
+      type: "gold" as TMembershipType,
+      icon: <Crown className="w-6 h-6" />,
+      color: "amber",
+      plans: [
+        { duration: "MONTHLY", price: "INR 1,999.00", period: "per month", duration_months: 1, billing_cycle: "monthly" },
+        { duration: "QUARTERLY", price: "INR 3,999.00", period: "per 3 months", duration_months: 3, billing_cycle: "quarterly" },
+        { duration: "HALF-YEARLY", price: "INR 5,999.00", period: "per 6 months", duration_months: 6, billing_cycle: "half_yearly" },
+        { duration: "ANNUALLY", price: "INR 6,999.00", period: "per annum", duration_months: 12, billing_cycle: "annually" },
+      ],
+      description: "Perfect for diverse skill acquisition. Explore and learn all self-paced blended courses within any '03-Categories' of your preference.",
+      features: [
+        "Access to LIVE Q&A Doubt Clearing Sessions",
+        "Minimum 15% discount on all live courses",
+        "Community access", 
+        "Access to free courses",
+        "Career Counselling",
+        "Placement Assistance"
+      ]
+    }
+  ];
 
   const checkUserLogin = (): boolean => {
     const userId = localStorage.getItem("userId");
@@ -116,15 +236,100 @@ const PrimeMembership: React.FC = () => {
   };
 
   const handlePlanSelection = (membershipType: string, planDuration: string): void => {
-    // Set the selected membership type (this will deselect the other one)
     setSelectedMembershipType(membershipType);
     
-    if (membershipType === "Silver") {
+    if (membershipType === "silver") {
       setSelectedSilverPlan(planDuration);
-    } else if (membershipType === "Gold") {
+    } else if (membershipType === "gold") {
       setSelectedGoldPlan(planDuration);
     }
   };
+
+  // Handle membership enrollment
+  const handleEnrollment = async (membershipType: TMembershipType, selectedCategories: string[] = []) => {
+    try {
+      setEnrollmentLoading(true);
+
+      // Get selected plan details
+      const membership = membershipData.find(m => m.type === membershipType);
+      if (!membership) throw new Error('Membership type not found');
+
+      const selectedPlanDuration = membershipType === 'silver' ? selectedSilverPlan : selectedGoldPlan;
+      const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
+      if (!selectedPlan) throw new Error('Selected plan not found');
+
+      // Create enrollment data
+      const enrollmentData: IMembershipEnrollmentInput = {
+        membership_type: membershipType,
+        duration_months: selectedPlan.duration_months,
+        billing_cycle: getBillingCycleFromDuration(selectedPlan.duration_months),
+        auto_renewal: true,
+        selected_categories: selectedCategories,
+        payment_info: {
+          amount: parseInt(selectedPlan.price.replace(/[^\d]/g, '')),
+          currency: 'INR',
+          payment_method: 'upi',
+          transaction_id: `TXN${Date.now()}`
+        }
+      };
+
+      // Validate enrollment data
+      const validation = validateMembershipEnrollmentData(enrollmentData);
+      if (!validation.isValid) {
+        throw new Error(validation.errors.join(', '));
+      }
+
+      // Create enrollment
+      const response = await createMembershipEnrollment(enrollmentData);
+      
+      if (response.status === 'success') {
+        // Success - redirect to success page or show success message
+        alert('Membership enrolled successfully!');
+        setSelectCourseModalOpen(false);
+        
+        // Optionally redirect to dashboard or membership page
+        window.location.href = '/dashboard/membership';
+      } else {
+        throw new Error(response.error || 'Enrollment failed');
+      }
+    } catch (error) {
+      console.error('Enrollment error:', error);
+      alert(error instanceof Error ? error.message : 'Failed to enroll in membership');
+    } finally {
+      setEnrollmentLoading(false);
+    }
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto" />
+          <p className="text-lg text-slate-600 dark:text-slate-400">Loading membership plans...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error && membershipData.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4 max-w-md mx-auto p-6">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Failed to Load Membership Plans</h2>
+          <p className="text-slate-600 dark:text-slate-400">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -159,6 +364,14 @@ const PrimeMembership: React.FC = () => {
               <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 max-w-3xl mx-auto leading-relaxed">
                 Select the perfect membership plan that aligns with your learning goals and unlock premium features.
               </p>
+              {error && (
+                <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                    <AlertCircle className="w-4 h-4 inline mr-2" />
+                    Using cached data due to connection issues. Some features may be limited.
+                  </p>
+                </div>
+              )}
             </motion.div>
           </div>
 
@@ -196,7 +409,7 @@ const PrimeMembership: React.FC = () => {
                     </div>
                     <div>
                       <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-slate-50 transition-colors duration-300 group-hover:text-slate-700 dark:group-hover:text-slate-200">
-                        {membership.type}
+                        {membership.type.charAt(0).toUpperCase() + membership.type.slice(1)}
                       </h2>
                       <p className="text-sm text-slate-500 dark:text-slate-400">
                         Membership
@@ -213,7 +426,7 @@ const PrimeMembership: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4">
                     {membership.plans.map((plan: IPlan, idx: number) => {
                       const isSelected = selectedMembershipType === membership.type && (
-                        membership.type === "Silver" 
+                        membership.type === "silver" 
                           ? selectedSilverPlan === plan.duration 
                           : selectedGoldPlan === plan.duration
                       );
@@ -237,16 +450,28 @@ const PrimeMembership: React.FC = () => {
                           <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
                             {plan.duration}
                           </p>
-                          <p className={`text-lg md:text-xl font-bold ${
-                            membership.color === 'amber'
-                              ? 'text-amber-600 dark:text-amber-400'
-                              : 'text-blue-600 dark:text-blue-400'
-                          }`}>
-                            {plan.price}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className={`text-lg md:text-xl font-bold ${
+                              membership.color === 'amber'
+                                ? 'text-amber-600 dark:text-amber-400'
+                                : 'text-blue-600 dark:text-blue-400'
+                            }`}>
+                              {plan.price}
+                            </p>
+                            {plan.original_price && (
+                              <span className="text-xs text-slate-500 line-through">
+                                {plan.original_price}
+                              </span>
+                            )}
+                          </div>
                           <p className="text-xs text-slate-500 dark:text-slate-400">
                             {plan.period}
                           </p>
+                          {plan.savings && (
+                            <p className="text-xs text-green-600 dark:text-green-400 font-medium mt-1">
+                              {plan.savings}
+                            </p>
+                          )}
                           {isSelected && (
                             <CheckCircle className={`w-5 h-5 mt-2 ${
                               membership.color === 'amber'
@@ -280,14 +505,24 @@ const PrimeMembership: React.FC = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleSelectCourseModal(membership.type)}
-                    className={`mt-6 w-full py-3 md:py-4 px-6 rounded-lg flex items-center justify-center gap-2 font-semibold shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 min-h-[44px] ${
+                    disabled={enrollmentLoading}
+                    className={`mt-6 w-full py-3 md:py-4 px-6 rounded-lg flex items-center justify-center gap-2 font-semibold shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed ${
                       membership.color === 'amber'
                         ? 'bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 text-white'
                         : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white'
                     }`}
                   >
-                    Select {membership.type} Plan
-                    <ArrowRight className="w-4 h-4 md:w-5 md:h-5 transition-transform duration-200 group-hover:translate-x-1" />
+                    {enrollmentLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        Select {membership.type.charAt(0).toUpperCase() + membership.type.slice(1)} Plan
+                        <ArrowRight className="w-4 h-4 md:w-5 md:h-5 transition-transform duration-200 group-hover:translate-x-1" />
+                      </>
+                    )}
                   </motion.button>
                 </div>
               </motion.div>
@@ -331,8 +566,6 @@ const PrimeMembership: React.FC = () => {
               </div>
             </div>
           </motion.div>
-
-
         </div>
 
         {/* Modals */}
@@ -341,8 +574,8 @@ const PrimeMembership: React.FC = () => {
             isOpen={isSelectCourseModalOpen}
             onClose={() => setSelectCourseModalOpen(false)}
             planType={planType}
-            amount={plans[selectedPlan][planType as keyof typeof plans[string]]}
-            selectedPlan={selectedPlan}
+            amount={getSelectedPlanPrice()}
+            selectedPlan={getSelectedPlanName()}
             closeParent={() => setSelectCourseModalOpen(false)}
           />
         )}
@@ -375,6 +608,23 @@ const PrimeMembership: React.FC = () => {
       </section>
     </>
   );
+
+  // Helper function to get selected plan price
+  function getSelectedPlanPrice(): string {
+    const membership = membershipData.find(m => m.type === planType);
+    if (!membership) return "0";
+    
+    const selectedPlanDuration = planType === 'silver' ? selectedSilverPlan : selectedGoldPlan;
+    const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
+    
+    return selectedPlan?.price.replace(/[^\d]/g, '') || "0";
+  }
+
+  // Helper function to get selected plan name
+  function getSelectedPlanName(): string {
+    const selectedPlanDuration = planType === 'silver' ? selectedSilverPlan : selectedGoldPlan;
+    return selectedPlanDuration;
+  }
 };
 
 export default PrimeMembership;

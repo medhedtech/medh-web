@@ -43,19 +43,19 @@ export default function Providers({ children }: ProvidersProps) {
               <CartContextProvider>
                 <PlacementFormProvider>
                   {children}
-                <ToastContainer
-                  position="top-right"
-                  autoClose={5000}
-                  hideProgressBar={false}
-                  newestOnTop
-                  closeOnClick
-                  rtl={false}
-                  pauseOnFocusLoss
-                  draggable
-                  pauseOnHover
-                  theme="light"
-                />
-                              </PlacementFormProvider>
+                  <ToastContainer
+                    position="top-right"
+                    autoClose={5000}
+                    hideProgressBar={false}
+                    newestOnTop
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    theme="light"
+                  />
+                </PlacementFormProvider>
               </CartContextProvider>
             </ServerLoadingProvider>
           </LoadingProvider>

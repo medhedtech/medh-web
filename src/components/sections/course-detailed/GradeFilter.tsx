@@ -43,6 +43,7 @@ interface GradeFilterProps {
   categoryInfo?: CategoryInfo;
   setSelectedGrade: (grade: string) => void;
   hideGradeSelector?: boolean;
+  showOnlyGradeFilter?: boolean;
 }
 
 // Error Boundary Component
@@ -98,7 +99,8 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
   handleCourseSelection,
   categoryInfo = {},
   setSelectedGrade,
-  hideGradeSelector = false
+  hideGradeSelector = false,
+  showOnlyGradeFilter = false
 }) => {
   const [dropdownVisible, setDropdownVisible] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -196,6 +198,63 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
         error={error} 
         resetErrorBoundary={resetErrorState} 
       />
+    );
+  }
+
+  // If showOnlyGradeFilter is true, only show the grade filter
+  if (showOnlyGradeFilter) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+          <Filter className="w-4 h-4 mr-2" />
+          Filter by Grade Level
+        </label>
+        <div className="relative group">
+          <select
+            value={selectedGrade}
+            onChange={(e) => {
+              try {
+                const formattedGrade = formatGradeForApi(e.target.value);
+                handleGradeChange(formattedGrade);
+              } catch (err) {
+                console.error('Grade change error:', err);
+                toast.error('Unable to change grade');
+              }
+            }}
+            className="appearance-none block w-full px-4 py-3 text-base transition-all duration-200 ease-in-out
+            border-2 dark:border-gray-600 rounded-xl
+            bg-white dark:bg-gray-700 
+            text-gray-900 dark:text-white
+            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900
+            focus:border-primary-500 dark:focus:border-primary-400
+            hover:border-gray-400 dark:hover:border-gray-500
+            shadow-sm hover:shadow-md
+            cursor-pointer
+            group-hover:border-gray-400 dark:group-hover:border-gray-500"
+            aria-label="Select grade level"
+          >
+            <option value="all">All Grades</option>
+            {availableGrades.map((option) => (
+              <option 
+                key={option.id} 
+                value={option.id}
+                className="py-2"
+              >
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
+            <div className="border-l border-gray-200 dark:border-gray-600 pl-3 py-2">
+              <ChevronDown className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
+            </div>
+          </div>
+        </div>
+        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center">
+          <Info className="w-3 h-3 mr-1" />
+          {filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'} available
+        </p>
+      </div>
     );
   }
 

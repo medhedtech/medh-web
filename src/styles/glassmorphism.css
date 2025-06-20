@@ -62,6 +62,13 @@
   animation-play-state: paused;
 }
 
+/* Faster animation for mobile devices */
+@media (max-width: 768px) {
+  .animate-scroll-infinite {
+    animation: scroll-infinite 20s linear infinite;
+  }
+}
+
 .animate-shimmer {
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
   background-size: 200% 100%;
@@ -69,7 +76,7 @@
 }
 
 [data-theme="light"] .animate-shimmer {
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
 }
 
 .animate-theme-transition {
@@ -449,4 +456,255 @@
     font-size: 1rem;
     border-radius: 0.75rem;
   }
+}
+
+/* Enhanced Glassmorphism Design System CSS */
+
+/* Gradient Radial Utility */
+.bg-gradient-radial {
+  background-image: radial-gradient(ellipse at center, var(--tw-gradient-stops));
+}
+
+/* Enhanced Glassmorphism Variants */
+.glass-minimal {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.glass-elegant {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.glass-premium {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 1.25rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.glass-floating {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 1.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.glass-hero {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 1.5rem;
+  box-shadow: 0 20px 60px 0 rgba(31, 38, 135, 0.4);
+}
+
+/* Enhanced Animation Keyframes */
+@keyframes glassShimmer {
+  0% { 
+    background-position: -200% 0; 
+  }
+  100% { 
+    background-position: 200% 0; 
+  }
+}
+
+@keyframes float {
+  0%, 100% { 
+    transform: translateY(0px); 
+  }
+  50% { 
+    transform: translateY(-10px); 
+  }
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes blob {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+}
+
+/* Animation Utilities */
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animate-blob.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animate-blob.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: glassShimmer 2s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  background-size: 200% 100%;
+}
+
+/* Performance Optimizations */
+.glass-optimized {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Responsive Glassmorphism */
+@media (max-width: 768px) {
+  .glass-minimal,
+  .glass-elegant,
+  .glass-premium,
+  .glass-floating,
+  .glass-hero {
+    backdrop-filter: blur(8px); /* Reduced blur for better mobile performance */
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .glass-minimal,
+  .glass-elegant,
+  .glass-premium,
+  .glass-floating,
+  .glass-hero {
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(0, 0, 0, 0.8);
+    backdrop-filter: none;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-blob,
+  .animate-pulse-slow,
+  .animate-float,
+  .animate-shimmer {
+    animation: none;
+  }
+  
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+  .glass-minimal {
+    background: rgba(15, 23, 42, 0.3);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+  }
+  
+  .glass-elegant {
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+  }
+  
+  .glass-premium {
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+  }
+  
+  .glass-floating {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+  }
+  
+  .glass-hero {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.4));
+    border: 1px solid rgba(148, 163, 184, 0.3);
+  }
+}
+
+/* Fallback for browsers without backdrop-filter support */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass-minimal,
+  .glass-elegant,
+  .glass-premium,
+  .glass-floating,
+  .glass-hero {
+    background: rgba(255, 255, 255, 0.9);
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    .glass-minimal,
+    .glass-elegant,
+    .glass-premium,
+    .glass-floating,
+    .glass-hero {
+      background: rgba(15, 23, 42, 0.9);
+    }
+  }
+}
+
+/* Enhanced Focus States for Accessibility */
+.glass-focus {
+  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
+  transition: outline-color 150ms ease;
+}
+
+/* Semantic Color Glassmorphism Variants */
+.glass-courses {
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.glass-pricing {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.glass-certification {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.glass-support {
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.glass-enrollment {
+  background: rgba(236, 72, 153, 0.08);
+  border: 1px solid rgba(236, 72, 153, 0.2);
 } 
