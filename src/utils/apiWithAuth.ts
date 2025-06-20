@@ -97,14 +97,7 @@ const refreshTokenIfNeeded = async (token: string): Promise<string | null> => {
       return token; // Return original token if refresh failed
     } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error('Error refreshing token (Axios):', {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data,
-        url: error.config?.url,
-        method: error.config?.method,
-        code: error.code,
-      });
+      console.error('Error refreshing token (Axios):', error);
       
       // If it's a 401 or 403, the refresh token is invalid
       if (error.response?.status === 401 || error.response?.status === 403) {
@@ -165,7 +158,40 @@ export const createAuthClient = (): AxiosInstance => {
   axiosInstance.interceptors.request.use(
     async (config) => {
       try {
+        // More robust token retrieval with multiple fallbacks
         let token = getAuthToken();
+        
+        // Additional fallbacks if getAuthToken() returns null
+        if (!token && typeof window !== 'undefined') {
+          // Try direct localStorage access
+          token = localStorage.getItem('token');
+          
+          // Try sessionStorage
+          if (!token) {
+            token = sessionStorage.getItem('token');
+          }
+          
+          // Try cookies as last resort
+          if (!token && document.cookie) {
+            const cookieMatch = document.cookie.match(/token=([^;]+)/);
+            if (cookieMatch) {
+              token = cookieMatch[1];
+            }
+          }
+        }
+        
+        console.log('🔐 apiWithAuth interceptor debug:', {
+          hasToken: !!token,
+          tokenLength: token?.length,
+          tokenStart: token?.substring(0, 10),
+          url: config.url,
+          method: config.method?.toUpperCase(),
+          storageCheck: {
+            localStorage: typeof window !== 'undefined' ? !!localStorage.getItem('token') : false,
+            sessionStorage: typeof window !== 'undefined' ? !!sessionStorage.getItem('token') : false,
+            cookies: typeof window !== 'undefined' && document.cookie.includes('token=')
+          }
+        });
         
         if (token) {
           // Try to refresh token if it's expired or close to expiring
@@ -175,24 +201,30 @@ export const createAuthClient = (): AxiosInstance => {
             // Only use the refreshed token if it's valid
             if (refreshedToken) {
               token = refreshedToken;
-              // Add both authorization header formats
-              config.headers['Authorization'] = `Bearer ${token}`;
-              config.headers['x-access-token'] = token;
+              console.log('✅ Using refreshed token');
             } else {
-              // If refresh failed and returned null, don't add auth headers
-              console.warn('Token refresh failed, proceeding without auth headers');
-              // Remove any existing auth headers
-              delete config.headers['Authorization'];
-              delete config.headers['x-access-token'];
+              console.warn('⚠️ Token refresh returned null, using original token');
+              // Use original token if refresh returned null but we had a token
             }
           } catch (refreshError) {
             console.warn('Token refresh attempt failed:', refreshError instanceof Error ? refreshError.message : 'Unknown error');
-            // If we have an existing token that isn't expired according to our check, use it
-            if (!isTokenExpired(token)) {
-              config.headers['Authorization'] = `Bearer ${token}`;
-              config.headers['x-access-token'] = token;
-            }
+            console.log('🔄 Using original token after refresh failure');
+            // Use original token even if refresh failed
           }
+          
+          // Always add headers if we have a token
+          config.headers['Authorization'] = `Bearer ${token}`;
+          config.headers['x-access-token'] = token;
+          
+          console.log('📤 Added auth headers:', {
+            hasAuthHeader: !!config.headers['Authorization'],
+            hasAccessTokenHeader: !!config.headers['x-access-token'],
+            authHeaderStart: config.headers['Authorization']?.substring(0, 20)
+          });
+        } else {
+          console.warn('❌ No auth token found - request will fail with 401');
+          // Could optionally reject the request here:
+          // return Promise.reject(new Error('No authentication token available'));
         }
         
         return config;
@@ -262,7 +294,33 @@ const apiWithAuth = {
   put: authPut,
   patch: authPatch,
   delete: authDelete,
-  createClient: createAuthClient
+  createClient: createAuthClient,
+  
+  // Manual token injection for debugging
+  setDebugToken: (token: string) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('token', token);
+      sessionStorage.setItem('token', token);
+      console.log('🔧 Debug token set:', { tokenLength: token.length, tokenStart: token.substring(0, 10) });
+    }
+  },
+  
+  // Check current token status
+  checkTokenStatus: () => {
+    if (typeof window === 'undefined') return { error: 'Not in browser environment' };
+    
+    const localToken = localStorage.getItem('token');
+    const sessionToken = sessionStorage.getItem('token');
+    const authUtilToken = getAuthToken();
+    
+    return {
+      localStorage: !!localToken,
+      sessionStorage: !!sessionToken,
+      authUtil: !!authUtilToken,
+      tokensMatch: localToken === sessionToken && localToken === authUtilToken,
+      tokenLength: authUtilToken?.length || 0
+    };
+  }
 };
 
 export default apiWithAuth; 

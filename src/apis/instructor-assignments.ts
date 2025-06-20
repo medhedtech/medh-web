@@ -277,7 +277,7 @@ export const enrollmentAPI = {
   enrollStudent: async (studentId: string, enrollmentData: IEnrollmentInput) => {
     if (!studentId) throw new Error('Student ID cannot be empty');
     return apiClient.post<IApiResponse<IEnrollmentWithDetails>>(
-      `${apiBaseUrl}/enrolled/student/${studentId}/enroll`,
+      `${apiBaseUrl}/enrollments/students/${studentId}/enroll`,
       enrollmentData
     );
   },

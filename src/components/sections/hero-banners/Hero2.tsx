@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { VideoBackgroundContext } from "@/components/layout/main/Home2";
 import medhLogo from "@/assets/images/logo/medh.png";
-import "@/styles/glassmorphism.css";
 
 // Mobile-specific tagline styling - 10% bigger
 const mobileTaglineStyles = `
@@ -280,6 +279,8 @@ const HeroMobile = memo<{
                     alt="Medh Logo" 
                     width={24} 
                     height={24} 
+                    priority 
+                    sizes="24px" 
                     className="inline-block h-6 sm:h-8 w-auto align-baseline"
                     style={{ 
                       filter: 'brightness(1.1) contrast(1.2)',
@@ -558,6 +559,8 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
                     alt="Medh Logo" 
                     width={24} 
                     height={24} 
+                    priority 
+                    sizes="24px" 
                     className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline"
                     style={{ 
                       filter: 'brightness(1.1) contrast(1.2)',
