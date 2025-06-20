@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { defaultMetadata } from "@/app/metadata";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { generateBlogListingSEO, generateBlogListingStructuredData } from '@/utils/blog-seo';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
 
@@ -106,53 +107,13 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   const params = await searchParams;
   const { category, tag, featured, search, page } = params;
   
-  let title = "Educational Blog & Articles | Medh - Expert Insights & Career Guidance";
-  let description = "Discover expert insights on technology, career growth, education, and industry trends. Stay ahead with Medh's comprehensive blog covering professional development, tutorials, and latest updates.";
-  let keywords = "education blog, career guidance, technology insights, professional development, skill development, industry trends, learning resources, tutorials";
-  
-  if (search) {
-    title = `"${search}" - Search Results | Medh Blog`;
-    description = `Find educational content about "${search}" on Medh Blog. Expert insights, tutorials, and resources related to your search.`;
-    keywords = `${search}, education, learning, ${keywords}`;
-  } else if (category && category !== 'all') {
-    const categoryData = BLOG_CATEGORIES.find(cat => cat.id === category);
-    const categoryTitle = categoryData?.name || category.charAt(0).toUpperCase() + category.slice(1);
-    title = `${categoryTitle} | Medh Blog - Expert Insights & Articles`;
-    description = `Explore ${categoryTitle.toLowerCase()} articles and expert insights on Medh Blog. ${categoryData?.description || 'Stay updated with the latest trends and developments.'} `;
-    keywords = `${categoryTitle.toLowerCase()}, ${keywords}`;
-  } else if (tag) {
-    const tagTitle = tag.charAt(0).toUpperCase() + tag.slice(1);
-    title = `${tagTitle} Articles | Medh Blog`;
-    description = `Discover ${tagTitle.toLowerCase()} content and expert insights on Medh Blog. Learn from industry professionals and accelerate your growth.`;
-    keywords = `${tagTitle.toLowerCase()}, ${keywords}`;
-  } else if (featured === 'true') {
-    title = "Featured Articles | Medh Blog - Must-Read Content";
-    description = "Explore our handpicked selection of must-read articles featuring the most valuable educational insights, career guidance, and industry expertise from Medh.";
-    keywords = `featured articles, must-read content, ${keywords}`;
-  }
-  
-  if (page && parseInt(page) > 1) {
-    title = `${title} - Page ${page}`;
-    description = `${description} Browse page ${page} of our educational content.`;
-  }
-  
-  return {
-    ...defaultMetadata,
-    title,
-    description,
-    keywords,
-    openGraph: {
-      ...defaultMetadata.openGraph,
-      title,
-      description,
-      type: 'website',
-    },
-    twitter: {
-      ...defaultMetadata.twitter,
-      title,
-      description,
-    }
-  };
+  return generateBlogListingSEO({
+    category,
+    tag,
+    search,
+    page: page ? parseInt(page) : undefined,
+    featured: featured === 'true'
+  });
 }
 
 // Modern Hero Section Component
@@ -298,50 +259,17 @@ const BlogsPage = async ({ searchParams }: { searchParams: Promise<SearchParams>
     page: currentPage
   };
 
+  // Generate structured data for the listing
+  const structuredData = generateBlogListingStructuredData(blogs);
+  
   return (
     <PageWrapper>
       <main className="min-h-screen bg-white dark:bg-gray-900">
-        {/* Structured Data for SEO */}
+        {/* Enhanced Structured Data for Blog Listing */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Blog",
-              "name": "Medh Educational Blog",
-              "description": "Expert insights on technology, career growth, education, and industry trends",
-              "url": `${process.env.NEXT_PUBLIC_SITE_URL || 'https://medh.co'}/blogs`,
-              "publisher": {
-                "@type": "Organization",
-                "name": "Medh",
-                "url": process.env.NEXT_PUBLIC_SITE_URL || 'https://medh.co',
-                "logo": {
-                  "@type": "ImageObject",
-                  "url": `${process.env.NEXT_PUBLIC_SITE_URL || 'https://medh.co'}/images/logo.png`
-                }
-              },
-              "blogPost": blogs.slice(0, 5).map((blog: IBlog) => ({
-                "@type": "BlogPosting",
-                "headline": blog.title,
-                "description": blog.description || blog.meta_description,
-                "url": `${process.env.NEXT_PUBLIC_SITE_URL || 'https://medh.co'}/blogs/${blog.slug}`,
-                "datePublished": blog.createdAt,
-                "dateModified": blog.updatedAt,
-                "author": {
-                  "@type": "Person",
-                  "name": blog.author?.name || "Medh Editorial Team"
-                },
-                "image": blog.upload_image,
-                "publisher": {
-                  "@type": "Organization",
-                  "name": "Medh"
-                },
-                "mainEntityOfPage": {
-                  "@type": "WebPage",
-                  "@id": `${process.env.NEXT_PUBLIC_SITE_URL || 'https://medh.co'}/blogs/${blog.slug}`
-                }
-              }))
-            })
+            __html: JSON.stringify(structuredData)
           }}
         />
         
