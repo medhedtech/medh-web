@@ -668,7 +668,8 @@ const ProgressOverview: React.FC = () => {
         className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
       >
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
+          {/* Desktop Layout - heading and tabs side by side */}
+          <div className="hidden md:flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/20">
                 <BookMarked className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
@@ -689,6 +690,35 @@ const ProgressOverview: React.FC = () => {
                       ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
                       : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Mobile Layout - heading on top, tabs below */}
+          <div className="md:hidden">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/20">
+                <BookMarked className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Activity</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Continue where you left off</p>
+              </div>
+            </div>
+            
+            <div className="flex justify-between bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+              {(['all', 'active', 'completed'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`${
+                    activeTab === tab
+                      ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  } px-3 py-1.5 text-sm font-medium rounded-md transition-colors capitalize whitespace-nowrap mx-0.5`}
                 >
                   {tab}
                 </button>
