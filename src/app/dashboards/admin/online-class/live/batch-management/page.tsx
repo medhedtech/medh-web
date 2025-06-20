@@ -56,6 +56,8 @@ import { individualAssignmentAPI } from '@/apis/instructor-assignments';
 import { apiClient } from '@/apis/apiClient';
 import { apiUrls, apiBaseUrl } from '@/apis/index';
 import InstructorAssignmentModal from '@/components/shared/modals/InstructorAssignmentModal';
+import apiWithAuth from '@/utils/apiWithAuth';
+import { getAuthToken } from '@/utils/auth';
 
 // Updated interface to match live course structure
 interface ICourse {
@@ -706,12 +708,20 @@ const BatchManagementPage: React.FC = () => {
       return;
     }
 
+    // Debug: Check auth token
+    const token = getAuthToken();
+    if (!token) {
+      showToast.error('Authentication required. Please log in again.');
+      return;
+    }
+
     // Optimistic update
     const originalBatches = [...batches];
     setBatches(prev => prev.filter(b => b._id !== batchId));
 
     try {
-      const response = await batchAPI.deleteBatch(batchId);
+      // Use apiWithAuth for proper authentication
+      const response = await apiWithAuth.delete(`/batches/${batchId}`);
       
       if (response?.data?.success) {
         showToast.success('Batch deleted successfully');
@@ -720,11 +730,16 @@ const BatchManagementPage: React.FC = () => {
       } else {
         throw new Error('Failed to delete batch');
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error deleting batch:', error);
       // Rollback optimistic update
       setBatches(originalBatches);
-      showToast.error('Failed to delete batch');
+      if (errorMessage.includes('Authentication required') || errorMessage.includes('NO_TOKEN_PROVIDED')) {
+        showToast.error('Authentication required. Please log in again.');
+      } else {
+        showToast.error('Failed to delete batch');
+      }
     }
   };
 
@@ -801,6 +816,13 @@ const BatchManagementPage: React.FC = () => {
   };
 
   const handleStatusUpdate = async (batchId: string, newStatus: TBatchStatus) => {
+    // Debug: Check auth token
+    const token = getAuthToken();
+    if (!token) {
+      showToast.error('Authentication required. Please log in again.');
+      return;
+    }
+
     // Optimistic update
     const originalBatches = [...batches];
     setBatches(prev => prev.map(batch =>
@@ -809,7 +831,8 @@ const BatchManagementPage: React.FC = () => {
 
     try {
       setStatusUpdateLoading(batchId);
-      const response = await batchAPI.updateBatchStatus(batchId, newStatus);
+      // Use apiWithAuth for proper authentication
+      const response = await apiWithAuth.put(`/batches/${batchId}/status`, { status: newStatus });
       
       if ((response as any)?.data) {
         showToast.success('Batch status updated successfully');
@@ -819,11 +842,16 @@ const BatchManagementPage: React.FC = () => {
       } else {
         throw new Error('Failed to update batch status');
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error updating batch status:', error);
       // Rollback optimistic update
       setBatches(originalBatches);
-      showToast.error('Failed to update batch status');
+      if (errorMessage.includes('Authentication required') || errorMessage.includes('NO_TOKEN_PROVIDED')) {
+        showToast.error('Authentication required. Please log in again.');
+      } else {
+        showToast.error('Failed to update batch status');
+      }
     } finally {
       setStatusUpdateLoading(null);
     }
@@ -898,6 +926,21 @@ const BatchManagementPage: React.FC = () => {
     try {
       setLoading(true);
       
+      // Debug: Check if we have a valid auth token
+      const token = getAuthToken();
+      console.log('🔐 Auth Debug:', {
+        hasToken: !!token,
+        tokenLength: token?.length,
+        tokenStart: token?.substring(0, 10),
+        localStorage: !!localStorage.getItem('token'),
+        sessionStorage: !!sessionStorage.getItem('token')
+      });
+      
+      if (!token) {
+        showToast.error('Authentication required. Please log in again.');
+        return;
+      }
+      
       // Validate individual batch requirements
       if (formData.capacity && formData.capacity !== 1) {
         showToast.error('Individual batch type can only have capacity of 1');
@@ -917,7 +960,21 @@ const BatchManagementPage: React.FC = () => {
         batch_notes: formData.batch_notes
       };
 
-      const response = await batchAPI.createIndividualBatch(individualBatchData);
+      // Use apiWithAuth for proper authentication with auto token refresh
+      const response = await apiWithAuth.post(
+        `/batches/courses/${individualBatchData.course_id}/batches`,
+        {
+          batch_name: individualBatchData.batch_name,
+          batch_type: 'individual',
+          capacity: 1,
+          start_date: individualBatchData.start_date.toISOString(),
+          end_date: individualBatchData.end_date.toISOString(),
+          assigned_instructor: individualBatchData.instructor_id,
+          schedule: individualBatchData.schedule,
+          ...(individualBatchData.student_id && { student_id: individualBatchData.student_id }),
+          ...(individualBatchData.batch_notes && { batch_notes: individualBatchData.batch_notes })
+        }
+      );
       
       // Handle the enhanced response format with both batch and enrollment data
       if (response?.data?.success) {
@@ -944,20 +1001,23 @@ const BatchManagementPage: React.FC = () => {
       } else {
         throw new Error(response?.data?.message || 'Failed to create individual batch');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error creating individual batch:', error);
       
       // Handle specific error messages from the API
-      if (error.message.includes('capacity')) {
+      if (errorMessage.includes('capacity')) {
         showToast.error('Individual batch type can only have capacity of 1');
-      } else if (error.message.includes('batch_type')) {
+      } else if (errorMessage.includes('batch_type')) {
         showToast.error('Invalid batch_type. Must be "individual" for individual batches');
-      } else if (error.message.includes('Course ID')) {
+      } else if (errorMessage.includes('Course ID')) {
         showToast.error('Course selection is required for individual batch creation');
-      } else if (error.message.includes('student_id') || error.message.includes('student')) {
+      } else if (errorMessage.includes('student_id') || errorMessage.includes('student')) {
         showToast.error('Student selection is required for individual batch with auto-enrollment');
+      } else if (errorMessage.includes('Authentication required') || errorMessage.includes('NO_TOKEN_PROVIDED')) {
+        showToast.error('Authentication required. Please log in again.');
       } else {
-        showToast.error(error.message || 'Failed to create individual batch');
+        showToast.error(errorMessage || 'Failed to create individual batch');
       }
     } finally {
       setLoading(false);
