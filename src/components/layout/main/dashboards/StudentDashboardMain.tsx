@@ -647,6 +647,13 @@ const StudentDashboardMain: React.FC = () => {
   // Use a ref instead of state for pausing to avoid re-renders
   const isPausedRef = useRef(false);
   const sliderRef = useRef<HTMLDivElement>(null);
+  
+  // Touch gesture state
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const minSwipeDistance = 50; // Minimum distance for a swipe to register
+  
   const isClient = useIsClient();
   const searchParams = useSearchParams();
   const router = useRouter();
