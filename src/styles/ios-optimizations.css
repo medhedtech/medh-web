@@ -1,0 +1,296 @@
+/**
+ * iOS Optimizations CSS
+ * 
+ * This file contains iOS-specific CSS optimizations to prevent crashes
+ * and improve performance on Safari and Chrome for iOS devices.
+ */
+
+/* iOS Device Detection and Base Optimizations */
+@supports (-webkit-touch-callout: none) {
+  /* iOS-specific styles */
+  
+  /* Disable hardware acceleration on problematic elements */
+  .ios-safe-transforms {
+    transform: none !important;
+    will-change: auto !important;
+    -webkit-transform: none !important;
+    -webkit-backface-visibility: hidden;
+  }
+  
+  /* Optimize video elements for iOS */
+  video {
+    -webkit-transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    -webkit-perspective: 1000;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+  
+  /* Reduce animation complexity on iOS */
+  .ios-reduce-animations * {
+    animation-duration: 0.1s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.1s !important;
+    -webkit-animation-duration: 0.1s !important;
+    -webkit-transition-duration: 0.1s !important;
+  }
+  
+  /* Disable problematic CSS features on iOS */
+  .ios-safe-glass {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+  }
+  
+  .ios-safe-glass.dark {
+    background: rgba(0, 0, 0, 0.95) !important;
+  }
+  
+  /* Memory-friendly scrolling */
+  .ios-scroll-optimization {
+    -webkit-overflow-scrolling: touch;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
+}
+
+/* Low Power Mode Detection and Optimizations */
+@media (prefers-reduced-motion: reduce) {
+  /* Disable all animations and transitions for low power mode */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+    -webkit-animation-duration: 0.01ms !important;
+    -webkit-transition-duration: 0.01ms !important;
+  }
+  
+  /* Disable video transforms and filters */
+  video {
+    filter: none !important;
+    transform: none !important;
+    will-change: auto !important;
+    -webkit-filter: none !important;
+    -webkit-transform: none !important;
+  }
+  
+  /* Simplify glass effects */
+  .glass-container,
+  .glass-card,
+  .glass-light,
+  .glass-dark {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: none !important;
+  }
+  
+  .dark .glass-container,
+  .dark .glass-card,
+  .dark .glass-light,
+  .dark .glass-dark {
+    background: rgba(0, 0, 0, 0.95) !important;
+  }
+}
+
+/* iOS Safari Specific Fixes */
+@supports (-webkit-appearance: none) and (not (-moz-appearance: none)) {
+  /* Fix video rendering issues in Safari */
+  video {
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    -webkit-transform-style: preserve-3d;
+    -webkit-transform: translate3d(0, 0, 0);
+  }
+  
+  /* Prevent Safari crashes with complex layouts */
+  .complex-layout {
+    -webkit-transform: translateZ(0);
+    isolation: isolate;
+  }
+  
+  /* Fix backdrop-filter performance issues */
+  .backdrop-filter-safe {
+    -webkit-backdrop-filter: blur(10px) saturate(100%);
+    backdrop-filter: blur(10px) saturate(100%);
+  }
+  
+  /* Fallback for older Safari versions */
+  @supports not (backdrop-filter: blur(1px)) {
+    .backdrop-filter-safe {
+      background: rgba(255, 255, 255, 0.9) !important;
+    }
+    
+    .dark .backdrop-filter-safe {
+      background: rgba(0, 0, 0, 0.9) !important;
+    }
+  }
+}
+
+/* Memory Management Classes */
+.memory-optimized {
+  contain: layout style paint;
+  content-visibility: auto;
+}
+
+.memory-optimized-strict {
+  contain: strict;
+  content-visibility: auto;
+  contain-intrinsic-size: 300px;
+}
+
+/* iOS Chrome Specific Fixes */
+@supports (-webkit-appearance: none) and (-webkit-touch-callout: none) {
+  /* Fix Chrome on iOS video issues */
+  video[autoplay] {
+    -webkit-playsinline: true;
+    playsinline: true;
+  }
+  
+  /* Optimize touch interactions */
+  .touch-optimized {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  
+  /* Fix scroll performance */
+  .ios-chrome-scroll {
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Device-Specific Optimizations */
+
+/* iPhone SE and older devices */
+@media only screen 
+  and (device-width: 320px) 
+  and (device-height: 568px) 
+  and (-webkit-device-pixel-ratio: 2) {
+  
+  .old-device-optimizations {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  
+  video {
+    display: none !important;
+  }
+}
+
+/* iPhone 6/7/8 */
+@media only screen 
+  and (device-width: 375px) 
+  and (device-height: 667px) 
+  and (-webkit-device-pixel-ratio: 2) {
+  
+  .medium-device-optimizations video {
+    max-width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+}
+
+/* iPhone X and newer */
+@media only screen 
+  and (device-width: 375px) 
+  and (device-height: 812px) 
+  and (-webkit-device-pixel-ratio: 3) {
+  
+  .modern-device-optimizations {
+    /* Modern devices can handle more effects */
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+  }
+}
+
+/* Utility Classes for Manual Application */
+
+/* Apply to video containers on iOS */
+.ios-video-container {
+  position: relative;
+  overflow: hidden;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+}
+
+.ios-video-container video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Apply to reduce animations */
+.ios-performance-mode {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+  will-change: auto !important;
+  -webkit-animation: none !important;
+  -webkit-transition: none !important;
+  -webkit-transform: none !important;
+}
+
+/* Apply to glass elements on iOS */
+.ios-glass-fallback {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ios-glass-fallback.dark {
+  background: rgba(0, 0, 0, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Emergency fallback for crashes */
+.ios-emergency-fallback * {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  will-change: auto !important;
+}
+
+.ios-emergency-fallback video {
+  display: none !important;
+}
+
+/* High contrast mode for accessibility */
+@media (prefers-contrast: high) {
+  .glass-container,
+  .glass-card,
+  .glass-light,
+  .glass-dark {
+    background: rgba(255, 255, 255, 1) !important;
+    border: 2px solid #000 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  
+  .dark .glass-container,
+  .dark .glass-card,
+  .dark .glass-light,
+  .dark .glass-dark {
+    background: rgba(0, 0, 0, 1) !important;
+    border: 2px solid #fff !important;
+  }
+}
