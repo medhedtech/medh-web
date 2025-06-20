@@ -305,18 +305,7 @@ const Home2: React.FC = () => {
     setIsPlaying(false);
   }, []);
 
-  // Fast loading state with better iOS support
-  if (!isClient || !mounted) {
-    return (
-      <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary-500" />
-        </div>
-      </main>
-    );
-  }
-
-  // Create stable context value
+  // Create stable context value - MUST be before any conditional returns
   const contextValue = useMemo((): VideoBackgroundContextType => ({
     videoRef,
     isLoaded,
@@ -327,6 +316,17 @@ const Home2: React.FC = () => {
     isPlaying,
     startVideo
   }), [isLoaded, isDark, isMobile, isIOSDevice, hasVideoError, isPlaying, startVideo]);
+
+  // Fast loading state with better iOS support
+  if (!isClient || !mounted) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary-500" />
+        </div>
+      </main>
+    );
+  }
 
   return (
     <VideoBackgroundContext.Provider value={contextValue}>
