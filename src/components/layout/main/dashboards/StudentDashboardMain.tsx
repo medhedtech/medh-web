@@ -993,7 +993,7 @@ const StudentDashboardMain: React.FC = () => {
                         {/* Left side - Welcome information */}
                         <div className="lg:col-span-2 flex flex-col justify-center space-y-4">
                           {/* Welcome badge */}
-                          <div className="flex flex-wrap items-center gap-2">
+                          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
                             <span className="text-xs bg-white/20 text-white px-3 py-1 rounded-full backdrop-blur-sm">
                               Welcome to MEDH
                             </span>
@@ -1138,7 +1138,7 @@ const StudentDashboardMain: React.FC = () => {
                 {/* Navigation arrows - Optimized for mobile touch targets */}
                 <button 
                   onClick={() => navigateToCourse(activeCourseIndex === 0 ? courseCards.length - 1 : activeCourseIndex - 1)}
-                  className="absolute left-1 sm:left-2 md:left-4 lg:left-6 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 active:bg-black/70 text-white rounded-full p-2 sm:p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 shadow-md z-20 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                  className="hidden sm:block absolute left-1 sm:left-2 md:left-4 lg:left-6 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 active:bg-black/70 text-white rounded-full p-2 sm:p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 shadow-md z-20 min-w-[44px] min-h-[44px] flex items-center justify-center"
                   aria-label="Previous course"
                   style={{ touchAction: 'manipulation' }}
                 >
@@ -1149,7 +1149,7 @@ const StudentDashboardMain: React.FC = () => {
                 
                 <button 
                   onClick={() => navigateToCourse(activeCourseIndex === courseCards.length - 1 ? 0 : activeCourseIndex + 1)}
-                  className="absolute right-1 sm:right-2 md:right-4 lg:right-6 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 active:bg-black/70 text-white rounded-full p-2 sm:p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 shadow-md z-20 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                  className="hidden sm:block absolute right-1 sm:right-2 md:right-4 lg:right-6 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 active:bg-black/70 text-white rounded-full p-2 sm:p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 shadow-md z-20 min-w-[44px] min-h-[44px] flex items-center justify-center"
                   aria-label="Next course"
                   style={{ touchAction: 'manipulation' }}
                 >
@@ -1158,16 +1158,16 @@ const StudentDashboardMain: React.FC = () => {
                   </svg>
                 </button>
                 
-                {/* Navigation dots - Optimized for mobile touch */}
-                <div className="absolute bottom-3 sm:bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2 sm:space-x-1 bg-black/20 backdrop-blur-sm px-3 py-2 sm:px-2 sm:py-1 rounded-full">
+                {/* Navigation capsules - Optimized for mobile touch */}
+                <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2 sm:space-x-1">
                   {courseCards.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => navigateToCourse(index)}
-                      className={`w-3 h-3 sm:w-2 sm:h-2 rounded-full transition-all duration-300 min-w-[12px] min-h-[12px] ${
+                      className={`transition-all duration-300 rounded-full min-w-[24px] min-h-[4px] ${
                         activeCourseIndex === index 
-                          ? 'bg-white scale-110' 
-                          : 'bg-white/40 hover:bg-white/60 active:bg-white/80'
+                          ? 'w-6 h-1 bg-white scale-110' 
+                          : 'w-3 h-1 bg-white/40 hover:bg-white/60 active:bg-white/80'
                       } focus:outline-none focus:ring-1 focus:ring-white/50`}
                       aria-label={`Go to slide ${index + 1}`}
                       style={{ touchAction: 'manipulation' }}
