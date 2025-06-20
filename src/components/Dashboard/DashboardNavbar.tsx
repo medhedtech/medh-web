@@ -549,20 +549,21 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
         }`}>
           {/* Logo and hamburger menu */}
           <div className="flex items-center">
-            {/* Mobile menu button */}
+            {/* Mobile menu button - Enhanced visibility */}
             {onMobileMenuToggle && (
               <button
                 type="button"
                 className={`${
                   isMobileDevice || isTabletDevice ? 'inline-flex' : 'lg:hidden inline-flex'
-                } items-center justify-center rounded-md text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 ${
-                  isMobileDevice ? 'p-2 mr-2' : 'p-2 mr-3'
-                }`}
+                } items-center justify-center rounded-lg text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all duration-200 ${
+                  isMobileDevice ? 'p-2.5 mr-2 min-w-[44px] min-h-[44px]' : 'p-3 mr-3 min-w-[48px] min-h-[48px]'
+                } shadow-sm`}
                 onClick={onMobileMenuToggle}
                 aria-expanded="false"
+                aria-label="Toggle navigation menu"
               >
                 <span className="sr-only">Open main menu</span>
-                <Menu size={isMobileDevice ? 22 : 24} />
+                <Menu size={isMobileDevice ? 22 : 24} className="text-gray-600 dark:text-gray-300" />
               </button>
             )}
             

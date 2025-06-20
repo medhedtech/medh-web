@@ -270,7 +270,7 @@ const StudentUpcomingClasses: React.FC = () => {
         </div>
         
         {/* Tab navigation */}
-        <div className="flex bg-gray-100 dark:bg-gray-800/50 rounded-lg p-1">
+        <div className="flex sm:inline-flex bg-gray-100 dark:bg-gray-800/50 rounded-lg p-1 w-full sm:w-auto">
           {[
             { id: 'upcoming', label: 'Upcoming' }, 
             { id: 'today', label: 'Today' },
@@ -279,7 +279,7 @@ const StudentUpcomingClasses: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setSelectedTab(tab.id as 'upcoming' | 'today' | 'recent')}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+              className={`flex-1 sm:flex-initial px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
                 selectedTab === tab.id 
                   ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm' 
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
