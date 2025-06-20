@@ -183,6 +183,30 @@ export const useRazorpay = (): UseRazorpayReturn => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [razorpayKey, setRazorpayKey] = useState<string>('');
+  
+  // ---------------------------------------------------------------------------
+  // ENV-BASED & USER-BASED TEST KEY OVERRIDE
+  // ---------------------------------------------------------------------------
+  const RAZORPAY_TEST_KEY = process.env.NEXT_PUBLIC_RAZORPAY_TEST_KEY || 'rzp_test_REPLACE_ME';
+  const RAZORPAY_ENV = process.env.NEXT_PUBLIC_RAZORPAY_ENV || 'live'; // 'live' | 'test'
+  
+  /**
+   * Determines whether we should force the Razorpay sandbox key.
+   */
+  const shouldUseTestKey = useCallback((): boolean => {
+    if (RAZORPAY_ENV.toLowerCase() === 'test') return true;
+
+    try {
+      if (typeof window !== 'undefined') {
+        const uid = localStorage.getItem('userId');
+        return uid === '67cfe3a9a50dbb995b4d94da';
+      }
+    } catch (err) {
+      // ignore storage errors
+    }
+    return false;
+  }, []);
+  
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     // Check if user is authenticated on initialization
     if (typeof window !== 'undefined') {
@@ -320,10 +344,22 @@ export const useRazorpay = (): UseRazorpayReturn => {
    * @returns The Razorpay key
    */
   const fetchRazorpayKey = useCallback(async (): Promise<string> => {
+    // 1. Instant return if test key is forced
+    if (shouldUseTestKey()) {
+      if (!RAZORPAY_TEST_KEY || RAZORPAY_TEST_KEY.includes('REPLACE_ME')) {
+        console.warn('[Razorpay] Test mode requested but NEXT_PUBLIC_RAZORPAY_TEST_KEY is missing. Falling back to live key from backend.');
+      } else {
+        setRazorpayKey(RAZORPAY_TEST_KEY);
+        return RAZORPAY_TEST_KEY;
+      }
+    }
+
+    // 2. Return cached key if we already have it
     if (razorpayKey) {
       return razorpayKey;
     }
 
+    // 3. Otherwise fetch from backend (live key in most cases)
     try {
       const response = await axios.get(`${apiBaseUrl}/payments/key`, {
         headers: {

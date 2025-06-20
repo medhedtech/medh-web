@@ -1,9 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Crown, Star, Shield, Calendar, Users, ArrowRight, Sparkles, CheckCircle, Zap, Gift, Download, Share2, QrCode, RotateCcw, Phone, Mail, Globe, MapPin, Award, BookOpen, Lock, Unlock, MessageCircle, Percent, Sun } from "lucide-react";
-import { getEnhancedSemanticColor, buildAdvancedComponent, getResponsive, getAnimations } from "@/utils/designSystem";
-import Image from "next/image";
+import { Crown, Star, Shield, Calendar, Users, ArrowRight, Sparkles, CheckCircle, Zap, Gift, Download, Share2, QrCode, RotateCcw, Phone, Mail, Globe, MapPin, Award, BookOpen, Lock, Unlock, MessageCircle, Percent, Sun, X, Loader2, Clock, Target } from "lucide-react";
 
 // TypeScript interfaces based on the JSON structure
 interface MembershipUser {
@@ -210,7 +208,7 @@ const PremiumMembershipCard: React.FC<MembershipCardProps> = ({
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="max-w-md mx-auto"
       >
-        <div className={buildAdvancedComponent.glassCard({ variant: 'secondary', padding: 'tablet' })}>
+        <div className={`${isDemo ? 'bg-gray-200' : 'bg-white'} p-6 rounded-3xl shadow-2xl`}>
           <div className="text-center space-y-6">
             <div className="space-y-3">
               <div className="w-16 h-16 mx-auto bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-2xl flex items-center justify-center">
@@ -361,7 +359,7 @@ const PremiumMembershipCard: React.FC<MembershipCardProps> = ({
                     >
                       <div className="w-16 h-16 rounded-full overflow-hidden border-3 border-white/40 shadow-xl">
                         {currentData.user.photo ? (
-                          <Image
+                          <img
                             src={currentData.user.photo}
                             alt={currentData.user.name}
                             width={64}
