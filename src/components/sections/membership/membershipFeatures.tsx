@@ -11,9 +11,6 @@ import {
   LucideIcon,
   ArrowRight
 } from "lucide-react";
-import { 
-  getEnhancedSemanticColor
-} from "@/utils/designSystem";
 
 // TypeScript interfaces
 interface IFeature {
@@ -78,9 +75,16 @@ const MembershipFeatures: React.FC = () => {
     },
   ];
 
-  // Get semantic colors using design system utility
-  const getSemanticColorValue = (category: IFeature['category'], variant: 'light' | 'dark' = 'light') => {
-    return getEnhancedSemanticColor(category, variant);
+  // Standard color mapping instead of design system utility
+  const getSemanticColorValue = (category: IFeature['category']): string => {
+    const colorMap = {
+      courses: '#3b82f6', // blue-500
+      support: '#8b5cf6', // violet-500
+      certification: '#f59e0b', // amber-500
+      pricing: '#10b981', // emerald-500
+      enrollment: '#ec4899' // pink-500
+    };
+    return colorMap[category] || '#6b7280'; // gray-500 fallback
   };
 
   const fadeInUp = {
@@ -124,7 +128,7 @@ const MembershipFeatures: React.FC = () => {
         {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
           {features.map((feature: IFeature, index: number) => {
-            const semanticColor = getSemanticColorValue(feature.category, 'light');
+            const semanticColor = getSemanticColorValue(feature.category);
 
             return (
               <motion.div

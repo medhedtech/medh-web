@@ -201,6 +201,71 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, isSelected, onCli
   );
 };
 
+// ----------------------------------------------------------------------------------
+// Razorpay Test Key Handling
+// ----------------------------------------------------------------------------------
+// In test mode OR for the dedicated test user (ID: 67cfe3a9a50dbb995b4d94da), we want
+// to ensure that we ALWAYS hit the Razorpay sandbox with the test credentials.
+// Define the test key via env var for security; fall back to a hard-coded placeholder
+// that should be REPLACED with the actual sandbox key when deploying.
+// ----------------------------------------------------------------------------------
+
+const RAZORPAY_TEST_KEY = process.env.NEXT_PUBLIC_RAZORPAY_TEST_KEY || "rzp_test_REPLACE_ME";
+const RAZORPAY_ENV     = process.env.NEXT_PUBLIC_RAZORPAY_ENV || "live"; // 'live' | 'test'
+
+/**
+ * Returns the correct Razorpay key depending on environment or the logged-in user.
+ */
+const getRazorpayKey = (userId?: string): string => {
+  // Explicit test env variable wins first
+  if (RAZORPAY_ENV.toLowerCase() === "test") {
+    if (!RAZORPAY_TEST_KEY || RAZORPAY_TEST_KEY.includes("REPLACE_ME")) {
+      console.warn(
+        "[Razorpay] Test mode requested but NEXT_PUBLIC_RAZORPAY_TEST_KEY is not set. Falling back to live key."
+      );
+      return RAZORPAY_CONFIG.key;
+    }
+    return RAZORPAY_TEST_KEY;
+  }
+
+  // Fallback: use test key when the special test user is logged in
+  if (userId === "67cfe3a9a50dbb995b4d94da") {
+    if (!RAZORPAY_TEST_KEY || RAZORPAY_TEST_KEY.includes("REPLACE_ME")) {
+      console.warn(
+        "[Razorpay] Test user detected but NEXT_PUBLIC_RAZORPAY_TEST_KEY is not set. Falling back to live key."
+      );
+      return RAZORPAY_CONFIG.key;
+    }
+    return RAZORPAY_TEST_KEY;
+  }
+
+  // Otherwise default to whatever is configured in RAZORPAY_CONFIG
+  return RAZORPAY_CONFIG.key;
+};
+
+// ----------------------------------------------------------------------------------
+// Razorpay Error Human-Readable Mapping
+// ----------------------------------------------------------------------------------
+
+const getFriendlyRazorpayError = (err: any): string => {
+  const raw = err?.error?.description || err?.description || "";
+  const lower = typeof raw === "string" ? raw.toLowerCase() : "";
+
+  if (lower.includes("3dsecure")) {
+    return "Your card is not enrolled for 3-D Secure authentication. Please use a card that supports 3-D Secure or contact your bank to enable it.";
+  }
+
+  if (lower.includes("network")) {
+    return "Network error while processing the payment. Please check your connection and try again.";
+  }
+
+  if (lower.includes("expired")) {
+    return "The card has expired. Please use a valid card.";
+  }
+
+  return `Payment failed: ${raw || "Unknown error"}`;
+};
+
 export default function SelectCourseModal({
   isOpen,
   onClose,
@@ -219,7 +284,11 @@ export default function SelectCourseModal({
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const { getQuery } = useGetQuery();
   const { postQuery, loading: postLoading } = usePostQuery();
-  const [planAmount, setPlanAmount] = useState<number>(Number(amount.replace("$", "")) || 0);
+  const [planAmount, setPlanAmount] = useState<number>(() => {
+    // Remove any non-digit/period characters (handles ₹, $, commas, etc.)
+    const numeric = parseFloat(amount.replace(/[^0-9.]/g, ""));
+    return isNaN(numeric) ? 0 : numeric;
+  });
   const router = useRouter();
   const { openRazorpayCheckout } = useRazorpay();
 
@@ -385,13 +454,17 @@ export default function SelectCourseModal({
       // Calculate total courses across selected categories
       const totalCourses = selectedCategories.reduce((sum, category) => sum + (category.courseCount || 0), 0);
       
-      // Enhanced Razorpay configuration
+      // Enhanced Razorpay configuration (with automatic test-mode detection)
       const razorpayOptions = {
         ...RAZORPAY_CONFIG,
-        amount: Math.round(planAmount * 100 * USD_TO_INR_RATE), // Ensure integer amount
+        // Override the key based on environment / user
+        key: getRazorpayKey(studentId || undefined),
+        amount: Math.round(planAmount * 100), // amount in paise for INR
         currency: "INR",
-        name: "MEDH - Online Learning Platform",
-        description: `${capitalize(planType)} Membership - Access to ${selectedCategories.length} categor${selectedCategories.length > 1 ? 'ies' : 'y'} (${totalCourses} courses)`,
+        name: isTestUser
+          ? "MEDH - Online Learning Platform (TEST MODE)"
+          : "MEDH - Online Learning Platform",
+        description: `${isTestUser ? '[TEST] ' : ''}${capitalize(planType)} Membership - Access to ${selectedCategories.length} categor${selectedCategories.length > 1 ? 'ies' : 'y'} (${totalCourses} courses)`,
         image: Education,
         order_id: "", // This should be generated from your backend
         
@@ -442,7 +515,7 @@ export default function SelectCourseModal({
         // Enhanced error handling
         error: function(error: any) {
           console.error("Razorpay error:", error);
-          showToast.error(`Payment failed: ${error.description || 'Unknown error occurred'}`);
+          showToast.error(getFriendlyRazorpayError(error));
           setIsProcessing(false);
         },
         
@@ -469,6 +542,11 @@ export default function SelectCourseModal({
           membership_type: "blended_courses"
         }
       };
+
+      // Flag note for testing if applicable
+      if (isTestUser) {
+        razorpayOptions.notes!.test_mode = 'true';
+      }
 
       // Show loading state with better UX
       showToast.info("Initializing secure payment...");
@@ -582,6 +660,11 @@ export default function SelectCourseModal({
     onClose();
     closeParent();
   };
+
+  // ---------------------------------------------------------------------------
+  // TEST MODE DETECTION (mirrors EnrollmentDetails.tsx)
+  // ---------------------------------------------------------------------------
+  const isTestUser = studentId === '67cfe3a9a50dbb995b4d94da';
 
   if (!isOpen) return null;
 
@@ -719,6 +802,18 @@ export default function SelectCourseModal({
                       </motion.button>
                     )}
                   </motion.div>
+
+                  {isTestUser && (
+                    <div className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white p-3 rounded-lg mb-6 shadow-lg">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                        <span className="text-sm font-semibold">🧪 TEST MODE ACTIVE</span>
+                      </div>
+                      <p className="text-xs mt-1 opacity-90">
+                        You are using test Razorpay credentials. Use test cards for payment (e.g. 4111 1111 1111 1111, CVV 123, any future expiry).
+                      </p>
+                    </div>
+                  )}
                 </div>
               {loading ? (
                 <div className="flex justify-center items-center h-64">
