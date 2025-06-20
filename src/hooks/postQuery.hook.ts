@@ -26,7 +26,7 @@ export interface PostQueryParams<T = any> {
   /** Optional request configuration */
   config?: AxiosRequestConfig;
   /** Whether to show toast messages */
-  showToast?: boolean;
+  enableToast?: boolean;
   /** Custom headers (merged with defaults) */
   headers?: Record<string, string>;
   /** Custom success message for toast */
@@ -86,7 +86,7 @@ export const usePostQuery = <T = any>(): UsePostQueryResult<T> => {
     onFail = () => {},
     requireAuth = true,
     config = {},
-    showToast = false,
+    enableToast = false,
     headers = {},
     successMessage,
     errorMessage = "Operation failed",
@@ -139,8 +139,8 @@ export const usePostQuery = <T = any>(): UsePostQueryResult<T> => {
       setData(apiData);
 
       // Show success toast if configured
-      if (showToast && successMessage) {
-        showshowToast.success(successMessage, { groupKey: params.groupKey || 'api' });
+      if (enableToast && successMessage) {
+        showToast.success(successMessage);
       }
 
       // Debug logging
@@ -179,8 +179,8 @@ export const usePostQuery = <T = any>(): UsePostQueryResult<T> => {
         errorMessage;
 
       // Show error toast if configured
-      if (showToast) {
-        showshowToast.error(message, { groupKey: params.groupKey || 'api' });
+      if (enableToast) {
+        showToast.error(message);
       }
 
       // Call onFail callback

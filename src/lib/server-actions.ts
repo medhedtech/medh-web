@@ -110,7 +110,7 @@ export async function fetchCoursesAction(
       if (!value) queryParams.delete(key);
     });
 
-    const response = await fetch(`${apiBaseUrl}${apiUrls.course.getAllCourses}?${queryParams}`, {
+    const response = await fetch(`${apiBaseUrl}${apiUrls.courses.getAllCourses}?${queryParams}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -161,13 +161,13 @@ export async function fetchCourseDetailsAction(
 
     // Parallel fetching for better performance
     const [courseResponse, relatedCoursesResponse] = await Promise.all([
-      fetch(`${apiBaseUrl}${apiUrls.course.getCourseById}/${courseId}`, {
+      fetch(`${apiBaseUrl}${apiUrls.courses.getCourseById}/${courseId}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         cache: 'force-cache',
         next: { revalidate: 600 } // Revalidate every 10 minutes
       }),
-      fetch(`${apiBaseUrl}${apiUrls.course.getAllCourses}?limit=4&exclude=${courseId}`, {
+      fetch(`${apiBaseUrl}${apiUrls.courses.getAllCourses}?limit=4&exclude=${courseId}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         cache: 'force-cache',
@@ -276,13 +276,13 @@ export async function fetchBlogsAction(
 
     // Parallel fetching for blogs and categories
     const [blogsResponse, categoriesResponse] = await Promise.all([
-      fetch(`${apiBaseUrl}${apiUrls.blog.getAllBlogs}?${queryParams}`, {
+      fetch(`${apiBaseUrl}${apiUrls.Blogs.getAllBlogs}?${queryParams}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         cache: 'force-cache',
         next: { revalidate: 180 } // Revalidate every 3 minutes
       }),
-      fetch(`${apiBaseUrl}${apiUrls.blog.getCategories}`, {
+      fetch(`${apiBaseUrl}${apiUrls.Blogs.getCategories}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         cache: 'force-cache',

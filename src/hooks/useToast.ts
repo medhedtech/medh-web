@@ -7,19 +7,19 @@ import { showToast, toastManager, ToastManagerOptions } from '@/utils/toastManag
  */
 export const useToast = () => {
   const success = useCallback((message: string, options?: ToastManagerOptions) => {
-    return showshowToast.success(message, options);
+    return showToast.success(message, options);
   }, []);
 
   const error = useCallback((message: string, options?: ToastManagerOptions) => {
-    return showshowToast.error(message, options);
+    return showToast.error(message, options);
   }, []);
 
   const warning = useCallback((message: string, options?: ToastManagerOptions) => {
-    return showshowToast.warning(message, options);
+    return showToast.warning(message, options);
   }, []);
 
   const info = useCallback((message: string, options?: ToastManagerOptions) => {
-    return showshowToast.info(message, options);
+    return showToast.info(message, options);
   }, []);
 
   const dismiss = useCallback(() => {

@@ -213,15 +213,18 @@ const StatCard = memo<{
 
 StatCard.displayName = 'StatCard';
 
-// HIGHLY OPTIMIZED HeroMobile with React.memo and memoized values
+// IMPROVED Mobile Hero with better loading and error handling
 const HeroMobile = memo<{
   isLoaded: boolean;
   isDark: boolean;
 }>(({ isLoaded, isDark }) => {
+  // Always show mobile content, don't wait for isLoaded
+  const showContent = true;
+  
   // Memoize static class names
   const containerClasses = useMemo(() => {
-    return `flex-1 flex flex-col justify-center transition-all duration-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`;
-  }, [isLoaded]);
+    return `flex-1 flex flex-col justify-center transition-all duration-500 ${showContent ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-70'}`;
+  }, [showContent]);
   
   const headingClasses = useMemo(() => {
     return `text-2xl sm:text-3xl font-bold mb-2 sm:mb-3 leading-tight tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`;
@@ -400,46 +403,84 @@ const HeroMobile = memo<{
 
 HeroMobile.displayName = 'HeroMobile';
 
-// SUPER OPTIMIZED Main Hero component with maximum performance optimizations
-const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) => {
-  const { theme } = useTheme();
+// Improved mobile detection hook with better SSR handling
+const useMobileDetection = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const videoContext = useContext(VideoBackgroundContext);
-  
-  // Memoize computed values for maximum performance
-  const isDark = useMemo(() => mounted ? theme === 'dark' : true, [mounted, theme]);
-  const isLoaded = useMemo(() => videoContext?.isLoaded ?? false, [videoContext?.isLoaded]);
 
-  // Single optimized effect for initialization with passive listeners
   useEffect(() => {
     setMounted(true);
     
     const checkMobile = () => {
-      const isMobileView = window.innerWidth < 768;
-      setIsMobile(prev => prev !== isMobileView ? isMobileView : prev);
+      if (typeof window === 'undefined') return false;
+      
+      // Multiple checks for better mobile detection
+      const userAgent = navigator.userAgent.toLowerCase();
+      const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+      const isMobileScreen = window.innerWidth < 768;
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      
+      return isMobileUA || isMobileScreen || isTouchDevice;
     };
     
-    checkMobile();
+    const updateMobile = () => {
+      const newIsMobile = checkMobile();
+      setIsMobile(prev => prev !== newIsMobile ? newIsMobile : prev);
+    };
     
-    // Use passive listener and throttle for better performance
+    updateMobile();
+    
+    // Throttled resize listener
     let timeoutId: NodeJS.Timeout;
     const handleResize = () => {
       clearTimeout(timeoutId);
-      timeoutId = setTimeout(checkMobile, 100);
+      timeoutId = setTimeout(updateMobile, 100);
     };
     
     window.addEventListener('resize', handleResize, { passive: true });
+    window.addEventListener('orientationchange', updateMobile, { passive: true });
     
     return () => {
       clearTimeout(timeoutId);
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', updateMobile);
     };
   }, []);
 
+  return { isMobile, mounted };
+};
+
+// IMPROVED Main Hero component with better mobile handling and error boundaries
+const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) => {
+  const { theme } = useTheme();
+  const { isMobile, mounted } = useMobileDetection();
+  const videoContext = useContext(VideoBackgroundContext);
+  
+  // Improved state management with fallbacks
+  const [contextReady, setContextReady] = useState(false);
+  
+  // Check if context is ready
+  useEffect(() => {
+    if (videoContext) {
+      setContextReady(true);
+    }
+  }, [videoContext]);
+  
+  // Memoize computed values with fallbacks
+  const isDark = useMemo(() => {
+    if (!mounted) return true; // Default to dark during SSR
+    return theme === 'dark';
+  }, [mounted, theme]);
+  
+  // Provide fallback for video context
+  const isLoaded = useMemo(() => {
+    if (!contextReady) return true; // Show content immediately if no context
+    return videoContext?.isLoaded ?? true;
+  }, [contextReady, videoContext?.isLoaded]);
+
   // Memoized class names for desktop version
   const desktopContainerClasses = useMemo(() => {
-    return `flex-1 flex flex-col justify-center transition-all duration-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`;
+    return `flex-1 flex flex-col justify-center transition-all duration-500 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-90'}`;
   }, [isLoaded]);
   
   const desktopHeadingClasses = useMemo(() => {
@@ -466,28 +507,37 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
     }`;
   }, [isDark]);
 
-  // Fast loading state with minimal DOM
+  // Simplified loading state - show basic content immediately
   if (!mounted) {
     return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary-500" />
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="text-center">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-300 dark:bg-gray-600 rounded w-64 mx-auto mb-4"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48 mx-auto"></div>
+          </div>
+        </div>
       </div>
     );
   }
 
-  // Mobile version with optimizations
+  // Mobile version with improved error handling
   if (isMobile) {
-    return <HeroMobile isLoaded={isLoaded} isDark={isDark} />;
+    return (
+      <div className="min-h-screen">
+        <HeroMobile isLoaded={isLoaded} isDark={isDark} />
+      </div>
+    );
   }
 
-  // Desktop version - memory optimized with memoized elements
+  // Desktop version - improved with better fallbacks
   return (
     <section className="relative min-h-screen overflow-hidden">
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
         <div className="flex flex-col items-center justify-center min-h-screen text-center py-4 md:py-6 lg:py-8">
           
           {/* Hero Text Section */}
-          <div className={`mb-2 md:mb-3 transition-all duration-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+          <div className={`mb-2 md:mb-3 transition-all duration-500 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-90'}`}>
             <div className="glass-container rounded-3xl p-8 md:p-12 mb-1" style={{ transform: 'scale(0.9)' }}>
               <div className="flex flex-wrap justify-center gap-3 mb-3 sm:mb-4">
                 <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
@@ -580,12 +630,12 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
           </div>
           
           {/* Infinite Scroller Section */}
-          <div className={`w-full mb-2 sm:mb-3 md:mb-4 transition-all duration-300 delay-100 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+          <div className={`w-full mb-2 sm:mb-3 md:mb-4 transition-all duration-500 delay-100 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-90'}`}>
             <InfiniteScrollerCards isDark={isDark} />
           </div>
                   
           {/* Enhanced Stats Grid */}
-          <div className={`mb-6 sm:mb-8 md:mb-12 transition-all duration-300 delay-200 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+          <div className={`mb-6 sm:mb-8 md:mb-12 transition-all duration-500 delay-200 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-90'}`}>
             <div className="grid grid-cols-4 gap-2 sm:gap-3 md:gap-4 lg:gap-6 max-w-5xl lg:max-w-6xl mx-auto">
               <div className="glass-stats rounded-xl p-2 sm:p-3 md:p-4 lg:p-6 text-center hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden">
                 <div className="relative z-10">
