@@ -260,9 +260,8 @@ const Home2: React.FC = () => {
       }
     }, isIOSDevice ? 100 : 50);
     
-    // Resize listener with passive for better performance
-    const handleResizePassive = (event: Event) => {
-      event.preventDefault();
+    // Resize listener with passive for better performance (avoid preventDefault in passive listener)
+    const handleResizePassive = () => {
       handleResize();
     };
     
@@ -384,7 +383,6 @@ const Home2: React.FC = () => {
             onCanPlay={handleVideoLoad}
             onPlay={handleVideoPlay}
             onPause={handleVideoPause}
-            webkit-playsinline="true"
             data-testid="background-video"
           />
           
