@@ -25,7 +25,7 @@ const mobileTaglineStyles = `
 // Essential icons only - moved outside component for performance
 import { 
   ArrowRight, GraduationCap, Users, Star, Clock, BookOpen, TrendingUp,
-  Brain, Calculator, Rocket, Briefcase, Target, MessageCircle, BarChart3, 
+  Database, Calculator, Rocket, Briefcase, Target, MessageCircle, BarChart3, 
   DollarSign, Code, PenTool, Zap, Shield, Award, Laptop, Heart, Settings, 
   Globe, Scale, Smile, ShoppingCart, Leaf, CheckCircle, Camera, Music, 
   Activity, Lightbulb
@@ -34,7 +34,7 @@ import {
 // Complete course categories - all available courses - MOVED OUTSIDE AND FROZEN FOR PERFORMANCE
 const COURSE_CATEGORIES = Object.freeze([
   // Live courses (4 items)
-  { name: "AI & Data Science", icon: Brain, type: "live", url: "/courses?category=AI%20and%20Data%20Science&classType=live" },
+  { name: "AI & Data Science", icon: Database, type: "live", url: "/courses?category=AI%20and%20Data%20Science&classType=live" },
   { name: "Digital Marketing", icon: TrendingUp, type: "live", url: "/courses?category=Digital%20Marketing%20with%20Data%20Analytics&classType=live" },
   { name: "Personality Development", icon: Users, type: "live", url: "/courses?category=Personality%20Development&classType=live" },
   { name: "Vedic Mathematics", icon: Calculator, type: "live", url: "/courses?category=Vedic%20Mathematics&classType=live" },
