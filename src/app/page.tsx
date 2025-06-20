@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import Home2 from '@/components/layout/main/Home2';
 import advancedSEOStrategy from '@/utils/advanced-seo-strategy';
+import PageWrapper from '@/components/shared/wrappers/PageWrapper';
 
 // Enhanced metadata with real company details from AboutContent and ContactMain
 export const metadata: Metadata = {
@@ -420,7 +421,9 @@ export default function HomePage() {
 
       {/* Main Content */}
       <Suspense fallback={<div>Loading...</div>}>
-        <Home2 />
+        <PageWrapper>
+          <Home2 />
+        </PageWrapper>
       </Suspense>
     </>
   );
