@@ -12,6 +12,16 @@ Disallow: /unauthorized/
 Disallow: /error/
 Disallow: /error-dark/
 Disallow: /maintenance/
+Disallow: /api/
+
+# Allow important SEO pages
+Allow: /blogs/
+Allow: /courses/
+Allow: /about-us/
+Allow: /contact-us/
+
+# Crawl delay for polite crawling
+Crawl-delay: 1
 
 # Sitemap location
-Sitemap: https://https://www.medh.co/sitemap.xml 
+Sitemap: https://medh.co/sitemap.xml 
