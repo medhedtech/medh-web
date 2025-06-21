@@ -690,8 +690,12 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                   onMouseLeave={() => handleDropdownLeave('notifications')}
                   className="dropdown-container"
                 >
-                  <div className={`absolute right-0 mt-2 bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 z-50 transform origin-top-right transition-all duration-200 ${
-                    isMobileDevice ? 'w-80 max-w-[90vw]' : isTabletDevice ? 'w-76' : 'w-72'
+                  <div className={`absolute mt-2 bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 z-50 transform transition-all duration-200 ${
+                    isMobileDevice 
+                      ? 'w-80 max-w-[90vw] -right-16 origin-top-right' 
+                      : isTabletDevice 
+                        ? 'w-76 right-0 origin-top-right' 
+                        : 'w-72 right-0 origin-top-right'
                   }`}>
                     {/* Notification Summary Header */}
                     <div className={`border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/90 ${
