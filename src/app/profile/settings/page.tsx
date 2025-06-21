@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Lock, ShieldCheck, Mail, Bell, User, Camera } from "lucide-react";
+import MFAManagement from "@/components/shared/security/MFAManagement";
 
 export default function ProfileSettingsPage() {
   // Mock state
@@ -84,26 +85,11 @@ export default function ProfileSettingsPage() {
             <CardTitle>Account Security</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="mb-3">
-              <p className="font-medium">Multi-Factor Authentication</p>
-              <p className="text-sm text-gray-500 mb-3">Add an extra layer of security to your account.</p>
-              <Button
-                variant={mfaEnabled ? "success" : "default"}
-                onClick={() => {
-                  setMfaEnabled((prev) => {
-                    const next = !prev;
-                    showToast.success(next ? "Multi-Factor Authentication enabled" : "Multi-Factor Authentication disabled");
-                    return next;
-                  });
-                }}
-                className={`flex items-center gap-2 rounded-full px-5 py-2 font-semibold shadow-sm transition-all duration-200 mt-1
-                  ${mfaEnabled ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-primary-600 hover:bg-primary-700 text-white'}
-                `}
-              >
-                {mfaEnabled ? <ShieldCheck className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                {mfaEnabled ? "Disable Multi-Factor Authentication" : "Enable Multi-Factor Authentication"}
-              </Button>
-            </div>
+            <MFAManagement 
+              onStatusChange={(enabled) => {
+                setMfaEnabled(enabled);
+              }}
+            />
           </CardContent>
         </Card>
       </div>
