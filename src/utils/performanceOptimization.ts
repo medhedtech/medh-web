@@ -3,6 +3,10 @@
  * Provides tools to prevent forced reflows and optimize DOM operations
  */
 
+"use client";
+
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+
 // Cache for computed styles to avoid repeated getComputedStyle calls
 const styleCache = new Map<string, { value: CSSStyleDeclaration; timestamp: number }>();
 const STYLE_CACHE_DURATION = 1000; // Cache for 1 second
@@ -385,4 +389,417 @@ export const usePerformanceOptimization = () => {
     preloadCriticalResources,
     optimizeFontLoading
   };
+};
+
+// ============================================================================
+// BUNDLE SPLITTING & CODE SPLITTING UTILITIES
+// ============================================================================
+
+// Advanced dynamic import with retry mechanism and error boundary
+export const createOptimizedDynamicImport = <T extends React.ComponentType<any>>(
+  importFn: () => Promise<{ default: T }>,
+  options: {
+    retries?: number;
+    retryDelay?: number;
+    chunkName?: string;
+    preload?: boolean;
+    priority?: 'high' | 'low' | 'auto';
+  } = {}
+) => {
+  const { retries = 3, retryDelay = 1000, chunkName, preload = false } = options;
+
+  const dynamicImport = async (attempt = 1): Promise<{ default: T }> => {
+    try {
+      const module = await importFn();
+      return module;
+    } catch (error) {
+      if (attempt < retries) {
+        await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
+        return dynamicImport(attempt + 1);
+      }
+      throw new Error(`Failed to load component after ${retries} attempts: ${error}`);
+    }
+  };
+
+  // Preload if requested
+  if (preload && typeof window !== 'undefined') {
+    // Use requestIdleCallback for non-critical preloading
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => {
+        dynamicImport().catch(() => {
+          // Silent fail for preloading
+        });
+      });
+    } else {
+      setTimeout(() => {
+        dynamicImport().catch(() => {
+          // Silent fail for preloading
+        });
+      }, 2000);
+    }
+  }
+
+  return dynamicImport;
+};
+
+// ============================================================================
+// MAIN-THREAD WORK SCHEDULING
+// ============================================================================
+
+// Task scheduler to break up heavy work into smaller chunks
+export class TaskScheduler {
+  private queue: Array<() => void> = [];
+  private isRunning = false;
+  private frameDeadline = 5; // 5ms per frame to maintain 60fps
+
+  public schedule(task: () => void, priority: 'high' | 'normal' | 'low' = 'normal'): void {
+    if (priority === 'high') {
+      this.queue.unshift(task);
+    } else {
+      this.queue.push(task);
+    }
+    
+    if (!this.isRunning) {
+      this.processQueue();
+    }
+  }
+
+  private processQueue = (): void => {
+    this.isRunning = true;
+    
+    const processChunk = (deadline: IdleDeadline) => {
+      while (deadline.timeRemaining() > this.frameDeadline && this.queue.length > 0) {
+        const task = this.queue.shift();
+        if (task) {
+          try {
+            task();
+          } catch (error) {
+            console.warn('Task execution failed:', error);
+          }
+        }
+      }
+
+      if (this.queue.length > 0) {
+        this.scheduleNextChunk();
+      } else {
+        this.isRunning = false;
+      }
+    };
+
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(processChunk, { timeout: 1000 });
+    } else {
+      // Fallback for browsers without requestIdleCallback
+      setTimeout(() => {
+        processChunk({ timeRemaining: () => 5, didTimeout: false });
+      }, 0);
+    }
+  };
+
+  private scheduleNextChunk(): void {
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(this.processQueue, { timeout: 1000 });
+    } else {
+      setTimeout(this.processQueue, 16); // ~60fps
+    }
+  }
+}
+
+// Global task scheduler instance
+export const taskScheduler = new TaskScheduler();
+
+// ============================================================================
+// COMPONENT OPTIMIZATION HOOKS
+// ============================================================================
+
+// Hook for deferring non-critical renders
+export const useDeferredRender = (delay: number = 100) => {
+  const [shouldRender, setShouldRender] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShouldRender(true);
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [delay]);
+
+  return shouldRender;
+};
+
+// Hook for progressive loading of list items
+export const useProgressiveLoading = <T>(
+  items: T[],
+  batchSize: number = 10,
+  delay: number = 50
+) => {
+  const [visibleCount, setVisibleCount] = useState(batchSize);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const loadMore = useCallback(() => {
+    if (visibleCount < items.length && !isLoading) {
+      setIsLoading(true);
+      
+      taskScheduler.schedule(() => {
+        setVisibleCount(prev => Math.min(prev + batchSize, items.length));
+        setIsLoading(false);
+      }, 'normal');
+    }
+  }, [visibleCount, items.length, batchSize, isLoading]);
+
+  const visibleItems = items.slice(0, visibleCount);
+  const hasMore = visibleCount < items.length;
+
+  return { visibleItems, hasMore, loadMore, isLoading };
+};
+
+// ============================================================================
+// SCRIPT OPTIMIZATION
+// ============================================================================
+
+// Lazy script loader for third-party libraries
+export const loadScript = (
+  src: string,
+  options: {
+    async?: boolean;
+    defer?: boolean;
+    module?: boolean;
+    priority?: 'high' | 'low';
+    onLoad?: () => void;
+    onError?: (error: Error) => void;
+  } = {}
+): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    // Check if script already exists
+    const existingScript = document.querySelector(`script[src="${src}"]`);
+    if (existingScript) {
+      resolve();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = options.async ?? true;
+    script.defer = options.defer ?? false;
+    
+    if (options.module) {
+      script.type = 'module';
+    }
+
+    if (options.priority === 'high') {
+      script.fetchPriority = 'high';
+    } else if (options.priority === 'low') {
+      script.fetchPriority = 'low';
+    }
+
+    script.onload = () => {
+      options.onLoad?.();
+      resolve();
+    };
+
+    script.onerror = () => {
+      const error = new Error(`Failed to load script: ${src}`);
+      options.onError?.(error);
+      reject(error);
+    };
+
+    document.head.appendChild(script);
+  });
+};
+
+// ============================================================================
+// MEMORY MANAGEMENT
+// ============================================================================
+
+// Memory-efficient cache with LRU eviction
+class LRUCache<K, V> {
+  private cache = new Map<K, V>();
+  private maxSize: number;
+
+  constructor(maxSize: number = 100) {
+    this.maxSize = maxSize;
+  }
+
+  get(key: K): V | undefined {
+    const value = this.cache.get(key);
+    if (value !== undefined) {
+      // Move to end (most recently used)
+      this.cache.delete(key);
+      this.cache.set(key, value);
+    }
+    return value;
+  }
+
+  set(key: K, value: V): void {
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
+    } else if (this.cache.size >= this.maxSize) {
+      // Remove least recently used (first item)
+      const firstKey = this.cache.keys().next().value;
+      if (firstKey !== undefined) {
+        this.cache.delete(firstKey);
+      }
+    }
+    this.cache.set(key, value);
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+
+  size(): number {
+    return this.cache.size;
+  }
+}
+
+// Global component cache
+export const componentCache = new LRUCache(50);
+
+// ============================================================================
+// PERFORMANCE MONITORING
+// ============================================================================
+
+// Performance metrics collector
+export class PerformanceMonitor {
+  private metrics: Map<string, number[]> = new Map();
+
+  public measure<T>(name: string, fn: () => T): T {
+    const start = performance.now();
+    const result = fn();
+    const end = performance.now();
+    const duration = end - start;
+
+    if (!this.metrics.has(name)) {
+      this.metrics.set(name, []);
+    }
+    this.metrics.get(name)!.push(duration);
+
+    // Keep only last 100 measurements
+    const measurements = this.metrics.get(name)!;
+    if (measurements.length > 100) {
+      measurements.shift();
+    }
+
+    return result;
+  }
+
+  public async measureAsync<T>(name: string, fn: () => Promise<T>): Promise<T> {
+    const start = performance.now();
+    const result = await fn();
+    const end = performance.now();
+    const duration = end - start;
+
+    if (!this.metrics.has(name)) {
+      this.metrics.set(name, []);
+    }
+    this.metrics.get(name)!.push(duration);
+
+    return result;
+  }
+
+  public getStats(name: string) {
+    const measurements = this.metrics.get(name) || [];
+    if (measurements.length === 0) return null;
+
+    const avg = measurements.reduce((a, b) => a + b, 0) / measurements.length;
+    const min = Math.min(...measurements);
+    const max = Math.max(...measurements);
+
+    return { avg, min, max, count: measurements.length };
+  }
+
+  public getAllStats() {
+    const stats: Record<string, any> = {};
+    for (const [name] of this.metrics) {
+      stats[name] = this.getStats(name);
+    }
+    return stats;
+  }
+}
+
+// Global performance monitor
+export const performanceMonitor = new PerformanceMonitor();
+
+// ============================================================================
+// BUNDLE ANALYSIS UTILITIES
+// ============================================================================
+
+// Analyze bundle size impact
+export const analyzeBundleImpact = () => {
+  if (typeof window === 'undefined') return null;
+
+  const navigation = (performance as any).getEntriesByType?.('navigation')?.[0];
+  if (!navigation) return null;
+
+  return {
+    domContentLoaded: navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
+    loadComplete: navigation.loadEventEnd - navigation.loadEventStart,
+    firstPaint: (performance as any).getEntriesByName?.('first-paint')?.[0]?.startTime || 0,
+    firstContentfulPaint: (performance as any).getEntriesByName?.('first-contentful-paint')?.[0]?.startTime || 0,
+    largestContentfulPaint: (performance as any).getEntriesByType?.('largest-contentful-paint')?.[0]?.startTime || 0,
+  };
+};
+
+// ============================================================================
+// EXPORT OPTIMIZED UTILITIES
+// ============================================================================
+
+// React component wrapper for performance monitoring
+export const withPerformanceMonitoring = <P extends object>(
+  Component: React.ComponentType<P>,
+  componentName: string
+) => {
+  return React.memo((props: P) => {
+    const renderStart = useRef<number>(0);
+
+    useEffect(() => {
+      renderStart.current = performance.now();
+    });
+
+    useEffect(() => {
+      const renderEnd = performance.now();
+      const renderTime = renderEnd - renderStart.current;
+      performanceMonitor.measure(`${componentName}-render`, () => renderTime);
+    }, []);
+
+    return React.createElement(Component, props);
+  });
+};
+
+// Optimized intersection observer for lazy loading
+export const useOptimizedIntersectionObserver = (
+  options: IntersectionObserverInit = {}
+) => {
+  const [entries, setEntries] = useState<IntersectionObserverEntry[]>([]);
+  const observer = useRef<IntersectionObserver>();
+
+  const observe = useCallback((element: Element) => {
+    if (observer.current) {
+      observer.current.observe(element);
+    }
+  }, []);
+
+  const unobserve = useCallback((element: Element) => {
+    if (observer.current) {
+      observer.current.unobserve(element);
+    }
+  }, []);
+
+  useEffect(() => {
+    observer.current = new IntersectionObserver((entries) => {
+      setEntries(entries);
+    }, {
+      rootMargin: '50px',
+      threshold: 0.1,
+      ...options,
+    });
+
+    return () => {
+      if (observer.current) {
+        observer.current.disconnect();
+      }
+    };
+  }, [options]);
+
+  return { entries, observe, unobserve };
 }; 

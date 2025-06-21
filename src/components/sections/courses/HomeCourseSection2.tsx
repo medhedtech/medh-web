@@ -212,7 +212,9 @@ const FALLBACK_LIVE_COURSES: readonly ICourse[] = Object.freeze([
     course_image: "/images/courses/ai-data-science.png",
     duration_range: "4-18 months",
     effort_hours: "4-6",
-    no_of_Sessions: "24-120",
+    no_of_Sessions: 76, // Midpoint of 32-120
+    session_display: "32 - 120 live sessions",
+    session_range: "32 - 120 live sessions",
     learning_points: [
       "Python for Data Science",
       "Machine Learning Algorithms",
@@ -246,13 +248,15 @@ const FALLBACK_LIVE_COURSES: readonly ICourse[] = Object.freeze([
   Object.freeze({
     _id: "digital_marketing",
     id: "digital_marketing",
-    course_title: "Digital Marketing",
+    course_title: "Digital Marketing with Data Analytics",
     course_description: "Learn comprehensive digital marketing strategies including SEO, SEM, social media marketing, and analytics.",
     url: "/digital-marketing-course",
     course_image: "/images/courses/digital-marketing.png",
     duration_range: "3-12 months",
     effort_hours: "3-5",
-    no_of_Sessions: "18-96",
+    no_of_Sessions: 76, // Midpoint of 32-120
+    session_display: "32 - 120 live sessions",
+    session_range: "32 - 120 live sessions",
     learning_points: [
       "SEO & SEM Strategies",
       "Social Media Marketing",
@@ -280,6 +284,90 @@ const FALLBACK_LIVE_COURSES: readonly ICourse[] = Object.freeze([
       }
     ],
     course_duration: "3-12 months",
+    updatedAt: new Date().toISOString(),
+    status: "Published"
+  } as ICourse),
+  Object.freeze({
+    _id: "personality_development",
+    id: "personality_development",
+    course_title: "Personality Development",
+    course_description: "Enhance your communication skills, confidence, and overall personality with expert guidance and practical exercises.",
+    url: "/personality-development-course",
+    course_image: "/images/courses/pd.jpg",
+    duration_range: "3-9 months",
+    effort_hours: "2-4",
+    no_of_Sessions: 48, // Midpoint of 24-72
+    session_display: "24 - 72 live sessions",
+    session_range: "24 - 72 live sessions",
+    learning_points: [
+      "Communication Skills",
+      "Confidence Building",
+      "Body Language",
+      "Public Speaking"
+    ],
+    prerequisites: ["Basic communication skills", "Willingness to learn"],
+    highlights: ["Interactive sessions", "Personality assessments", "Expert mentorship", "Practical exercises"],
+    instructor: {
+      name: "Ms. Anita Verma",
+      title: "Personality Development Coach",
+      image: "/instructors/anita-verma.jpg"
+    },
+    prices: [
+      {
+        currency: "INR",
+        individual: 18000,
+        batch: 12600,
+        min_batch_size: 2,
+        max_batch_size: 8,
+        early_bird_discount: 0,
+        group_discount: 0,
+        is_active: true,
+        _id: "personality_development_inr"
+      }
+    ],
+    course_duration: "3-9 months",
+    updatedAt: new Date().toISOString(),
+    status: "Published"
+  } as ICourse),
+  Object.freeze({
+    _id: "vedic_mathematics",
+    id: "vedic_mathematics",
+    course_title: "Vedic Mathematics",
+    course_description: "Master ancient Indian mathematical techniques for faster calculations and enhanced problem-solving skills.",
+    url: "/vedic-mathematics-course",
+    course_image: "/images/courses/vd.jpg",
+    duration_range: "2-8 months",
+    effort_hours: "2-3",
+    no_of_Sessions: 48, // Midpoint of 24-72
+    session_display: "24 - 72 live sessions",
+    session_range: "24 - 72 live sessions",
+    learning_points: [
+      "Mental Math Techniques",
+      "Speed Calculation Methods",
+      "Problem Solving Strategies",
+      "Mathematical Shortcuts"
+    ],
+    prerequisites: ["Basic arithmetic knowledge", "Interest in mathematics"],
+    highlights: ["Ancient techniques", "Speed enhancement", "Interactive practice", "Expert guidance"],
+    instructor: {
+      name: "Prof. Ramesh Gupta",
+      title: "Mathematics Expert",
+      image: "/instructors/ramesh-gupta.jpg"
+    },
+    prices: [
+      {
+        currency: "INR",
+        individual: 15000,
+        batch: 10500,
+        min_batch_size: 2,
+        max_batch_size: 10,
+        early_bird_discount: 0,
+        group_discount: 0,
+        is_active: true,
+        _id: "vedic_mathematics_inr"
+      }
+    ],
+    course_duration: "2-8 months",
     updatedAt: new Date().toISOString(),
     status: "Published"
   } as ICourse)
@@ -705,7 +793,7 @@ const HomeCourseSection2 = memo<{
                                      processedCourses = [...FALLBACK_LIVE_COURSES];
                 }
                 
-                // Process each course with proper type checking
+                // Process each course with proper type checking and session range formatting
                 const formattedCourses = processedCourses.map((course, index) => {
                   const courseId = course._id || course.id || `live-course-${index}`;
                   const courseTitle = course.course_title || course.title || 'Untitled Course';
@@ -722,6 +810,58 @@ const HomeCourseSection2 = memo<{
                   } else if (courseId === 'vedic_mathematics' || courseTitle.toLowerCase().includes('vedic mathematics')) {
                     courseImage = '/images/courses/vd.jpg';
                   }
+                  
+                  // Format session range based on course type and API data
+                  const getSessionRange = (course: any, courseTitle: string) => {
+                    // First check if API provides session range data
+                    if (course.session_range_min && course.session_range_max) {
+                      return `${course.session_range_min} - ${course.session_range_max} live sessions`;
+                    }
+                    
+                    // If API provides a session range string, use it
+                    if (course.session_range && typeof course.session_range === 'string') {
+                      return course.session_range.toLowerCase().includes('sessions') 
+                        ? course.session_range 
+                        : `${course.session_range} live sessions`;
+                    }
+                    
+                    // Course-specific session ranges based on course title/id
+                    const title = courseTitle.toLowerCase();
+                    if (title.includes('ai') || title.includes('data science') || courseId === 'ai_data_science') {
+                      return '32 - 120 live sessions';
+                    } else if (title.includes('digital') && title.includes('marketing')) {
+                      return '32 - 120 live sessions';
+                    } else if (title.includes('personality') && title.includes('development')) {
+                      return '24 - 72 live sessions';
+                    } else if (title.includes('vedic') && title.includes('mathematics')) {
+                      return '24 - 72 live sessions';
+                    }
+                    
+                    // Default range for other courses
+                    return '24 - 120 live sessions';
+                  };
+                  
+                  const sessionDisplay = getSessionRange(course, courseTitle);
+                  
+                  // Extract numeric session count for compatibility (use midpoint of range)
+                  const sessionCount = (() => {
+                    if (course.no_of_Sessions) {
+                      const parsed = typeof course.no_of_Sessions === 'string' 
+                        ? parseInt(course.no_of_Sessions, 10) 
+                        : course.no_of_Sessions;
+                      if (!isNaN(parsed) && parsed > 0) return parsed;
+                    }
+                    
+                    // Extract from session display range for consistency
+                    const match = sessionDisplay.match(/(\d+)\s*-\s*(\d+)/);
+                    if (match) {
+                      const min = parseInt(match[1], 10);
+                      const max = parseInt(match[2], 10);
+                      return Math.round((min + max) / 2); // Use midpoint
+                    }
+                    
+                    return 76; // Default midpoint
+                  })();
                   
                   return {
                     ...course,
@@ -740,10 +880,9 @@ const HomeCourseSection2 = memo<{
                     createdAt: course.createdAt || new Date().toISOString(),
                     url: course.url,
                     effort_hours: course.effort_hours,
-                    no_of_Sessions: typeof course.no_of_Sessions === 'string' 
-                      ? parseInt(course.no_of_Sessions, 10) || 120
-                      : (typeof course.no_of_Sessions === 'number' ? course.no_of_Sessions : 120),
-                    session_display: course.no_of_Sessions ? `${course.no_of_Sessions} Live Sessions` : "24-120 Live Sessions",
+                    no_of_Sessions: sessionCount,
+                    session_display: sessionDisplay,
+                    session_range: sessionDisplay, // Add for easy access
                     instructor: course.instructor,
                     price_suffix: course.price_suffix
                   } as ICourse;

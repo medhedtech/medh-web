@@ -59,7 +59,8 @@ interface Course {
   batchPrice?: number;
   original_fee?: number;
   fee_note?: string;
-  no_of_Sessions?: number;
+  no_of_Sessions?: number | string;
+  session_range?: string;
   video_count?: number;
   class_type?: string;
   is_live_course?: boolean;
@@ -927,15 +928,16 @@ const CourseCard: React.FC<CourseCardProps> = ({
 
   // Get the session display text based on class type
   const getSessionDisplay = () => {
+    const displayValue = (course as any)?.session_range || (course as any)?.session_display || course?.no_of_Sessions;
     if (classType === 'blended_courses') {
       return {
         label: "Classes",
-        value: course?.no_of_Sessions || "N/A"
+        value: displayValue || "N/A"
       };
     }
     return {
       label: "Sessions",
-      value: course?.no_of_Sessions || "N/A"
+      value: displayValue || "N/A"
     };
   };
 
@@ -1347,7 +1349,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                   <div className="flex items-center gap-1">
                     {content.sessionIcon}
                     <span className="font-semibold">
-                      {course?.no_of_Sessions || "0"} {content.sessionLabel}
+                      { (course as any)?.session_range || `${course?.no_of_Sessions || "0"} ${content.sessionLabel}` }
                     </span>
                   </div>
                   <button 
@@ -1423,7 +1425,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                             : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
                         }`}>
                           {content.sessionIcon}
-                          <span className="ml-1">{course.no_of_Sessions} {content.sessionLabel}</span>
+                          <span className="ml-1">{ (course as any)?.session_range || `${course?.no_of_Sessions || 0} ${content.sessionLabel}` }</span>
                         </div>
                       )}
                     </div>
@@ -1588,7 +1590,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                           : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
                       }`}>
                         {content.sessionIcon}
-                        <span className="ml-1">{course.no_of_Sessions} {content.sessionLabel}</span>
+                        <span className="ml-1">{ (course as any)?.session_range || `${course?.no_of_Sessions || 0} ${content.sessionLabel}` }</span>
                       </div>
                     )}
                   </div>

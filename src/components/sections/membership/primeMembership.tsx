@@ -1,10 +1,24 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { motion } from "framer-motion";
 import { Crown, Star, ArrowRight, CheckCircle, AlertCircle, X, Loader2, Sparkles, Gift, Shield } from "lucide-react";
-import SelectCourseModal from "@/components/layout/main/dashboards/SelectCourseModal";
-import LoginForm from "@/components/shared/login/LoginForm";
-import MembershipBanner from "./membershipBanner";
+import dynamic from "next/dynamic";
+
+// Lazy load heavy components to reduce initial bundle size
+const SelectCourseModal = dynamic(() => import("@/components/layout/main/dashboards/SelectCourseModal"), {
+  loading: () => <div className="fixed inset-0 bg-black/50 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-white" /></div>,
+  ssr: false
+});
+
+const LoginForm = dynamic(() => import("@/components/shared/login/LoginForm"), {
+  loading: () => <div className="p-8 bg-white rounded-lg"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>,
+  ssr: false
+});
+
+const MembershipBanner = dynamic(() => import("./membershipBanner"), {
+  loading: () => <div className="h-64 bg-gradient-to-r from-blue-50 to-violet-50 animate-pulse" />,
+  ssr: true
+});
 // Note: Design system utilities may not be available, using fallback styling
 
 // Import membership APIs
@@ -43,6 +57,49 @@ interface IMembershipData {
   benefits?: IMembershipBenefits;
 }
 
+// Fallback static data in case API fails
+const getStaticMembershipData = (): IMembershipData[] => [
+  {
+    type: "silver" as TMembershipType,
+    icon: <Star className="w-6 h-6" />,
+    color: "primary",
+    plans: [
+      { duration: "MONTHLY", price: "INR 999.00", period: "per month", duration_months: 1, billing_cycle: "monthly" },
+      { duration: "QUARTERLY", price: "INR 2,499.00", period: "per 3 months", duration_months: 3, billing_cycle: "quarterly" },
+      { duration: "HALF-YEARLY", price: "INR 3,999.00", period: "per 6 months", duration_months: 6, billing_cycle: "half_yearly" },
+      { duration: "ANNUALLY", price: "INR 4,999.00", period: "per annum", duration_months: 12, billing_cycle: "annually" },
+    ],
+    description: "Ideal for focused skill development. Explore and learn all self-paced blended courses within any 'Single-Category' of your preference.",
+    features: [
+      "Access to LIVE Q&A Doubt Clearing Sessions",
+      "Special discount on all live courses", 
+      "Community access",
+      "Access to free courses",
+      "Placement Assistance"
+    ]
+  },
+  {
+    type: "gold" as TMembershipType,
+    icon: <Crown className="w-6 h-6" />,
+    color: "amber",
+    plans: [
+      { duration: "MONTHLY", price: "INR 1,999.00", period: "per month", duration_months: 1, billing_cycle: "monthly" },
+      { duration: "QUARTERLY", price: "INR 3,999.00", period: "per 3 months", duration_months: 3, billing_cycle: "quarterly" },
+      { duration: "HALF-YEARLY", price: "INR 5,999.00", period: "per 6 months", duration_months: 6, billing_cycle: "half_yearly" },
+      { duration: "ANNUALLY", price: "INR 6,999.00", period: "per annum", duration_months: 12, billing_cycle: "annually" },
+    ],
+    description: "Perfect for diverse skill acquisition. Explore and learn all self-paced blended courses within any '03-Categories' of your preference.",
+    features: [
+      "Access to LIVE Q&A Doubt Clearing Sessions",
+      "Minimum 15% discount on all live courses",
+      "Community access", 
+      "Access to free courses",
+      "Career Counselling",
+      "Placement Assistance"
+    ]
+  }
+];
+
 const PrimeMembership: React.FC = () => {
   // State management
   const [membershipData, setMembershipData] = useState<IMembershipData[]>([]);
@@ -58,6 +115,9 @@ const PrimeMembership: React.FC = () => {
   const [selectedMembership, setSelectedMembership] = useState<string>("");
   const [isLoginModalOpen, setLoginModalOpen] = useState<boolean>(false);
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+
+  // Memoize static data to prevent unnecessary recalculations
+  const staticMembershipData = useMemo(() => getStaticMembershipData(), []);
 
   // Fetch membership data on component mount
   useEffect(() => {
@@ -79,7 +139,7 @@ const PrimeMembership: React.FC = () => {
         if (!pricingData) {
           console.warn('No pricing data available from API, using fallback data');
           // Use fallback data instead of throwing error
-          setMembershipData(getStaticMembershipData());
+          setMembershipData(staticMembershipData);
           return;
         }
 
@@ -115,14 +175,14 @@ const PrimeMembership: React.FC = () => {
         setError(err instanceof Error ? err.message : 'Failed to load membership data');
         
         // Fallback to static data
-        setMembershipData(getStaticMembershipData());
+        setMembershipData(staticMembershipData);
       } finally {
         setLoading(false);
       }
     };
 
     fetchMembershipData();
-  }, []);
+  }, [staticMembershipData]);
 
   // Transform pricing data from API to component format
   const transformPlansData = (membershipType: TMembershipType, pricingData: any): IPlan[] => {
@@ -171,55 +231,15 @@ const PrimeMembership: React.FC = () => {
     }
   };
 
-  // Fallback static data in case API fails
-  const getStaticMembershipData = (): IMembershipData[] => [
-    {
-      type: "silver" as TMembershipType,
-      icon: <Star className="w-6 h-6" />,
-      color: "primary",
-      plans: [
-        { duration: "MONTHLY", price: "INR 999.00", period: "per month", duration_months: 1, billing_cycle: "monthly" },
-        { duration: "QUARTERLY", price: "INR 2,499.00", period: "per 3 months", duration_months: 3, billing_cycle: "quarterly" },
-        { duration: "HALF-YEARLY", price: "INR 3,999.00", period: "per 6 months", duration_months: 6, billing_cycle: "half_yearly" },
-        { duration: "ANNUALLY", price: "INR 4,999.00", period: "per annum", duration_months: 12, billing_cycle: "annually" },
-      ],
-      description: "Ideal for focused skill development. Explore and learn all self-paced blended courses within any 'Single-Category' of your preference.",
-      features: [
-        "Access to LIVE Q&A Doubt Clearing Sessions",
-        "Special discount on all live courses", 
-        "Community access",
-        "Access to free courses",
-        "Placement Assistance"
-      ]
-    },
-    {
-      type: "gold" as TMembershipType,
-      icon: <Crown className="w-6 h-6" />,
-      color: "amber",
-      plans: [
-        { duration: "MONTHLY", price: "INR 1,999.00", period: "per month", duration_months: 1, billing_cycle: "monthly" },
-        { duration: "QUARTERLY", price: "INR 3,999.00", period: "per 3 months", duration_months: 3, billing_cycle: "quarterly" },
-        { duration: "HALF-YEARLY", price: "INR 5,999.00", period: "per 6 months", duration_months: 6, billing_cycle: "half_yearly" },
-        { duration: "ANNUALLY", price: "INR 6,999.00", period: "per annum", duration_months: 12, billing_cycle: "annually" },
-      ],
-      description: "Perfect for diverse skill acquisition. Explore and learn all self-paced blended courses within any '03-Categories' of your preference.",
-      features: [
-        "Access to LIVE Q&A Doubt Clearing Sessions",
-        "Minimum 15% discount on all live courses",
-        "Community access", 
-        "Access to free courses",
-        "Career Counselling",
-        "Placement Assistance"
-      ]
-    }
-  ];
 
-  const checkUserLogin = (): boolean => {
+
+  // Memoize functions to prevent unnecessary re-renders
+  const checkUserLogin = useCallback((): boolean => {
     const userId = localStorage.getItem("userId");
     return userId !== null;
-  };
+  }, []);
 
-  const handleSelectCourseModal = (membershipType: string): void => {
+  const handleSelectCourseModal = useCallback((membershipType: string): void => {
     if (!checkUserLogin()) {
       setLoginModalOpen(true);
       return;
@@ -227,17 +247,17 @@ const PrimeMembership: React.FC = () => {
     if (!membershipType) return;
     setPlanType(membershipType.toLowerCase());
     setSelectCourseModalOpen(true);
-  };
+  }, [checkUserLogin]);
 
-  const handleMembershipChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
+  const handleMembershipChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>): void => {
     const membership = e.target.value;
     setSelectedMembership(membership);
     if (membership) {
       handleSelectCourseModal(membership);
     }
-  };
+  }, [handleSelectCourseModal]);
 
-  const handlePlanSelection = (membershipType: string, planDuration: string): void => {
+  const handlePlanSelection = useCallback((membershipType: string, planDuration: string): void => {
     setSelectedMembershipType(membershipType);
     
     if (membershipType === "silver") {
@@ -245,7 +265,7 @@ const PrimeMembership: React.FC = () => {
     } else if (membershipType === "gold") {
       setSelectedGoldPlan(planDuration);
     }
-  };
+  }, []);
 
   // Handle membership enrollment
   const handleEnrollment = async (membershipType: TMembershipType, selectedCategories: string[] = []) => {

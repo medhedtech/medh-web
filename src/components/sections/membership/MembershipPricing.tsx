@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Star, Zap, Crown, Users, BookOpen, MessageCircle, Award, TrendingUp, ChevronDown } from 'lucide-react';
 import { getMembershipPricing, calculateMembershipPricing, formatMembershipDuration, getBillingCycleFromDuration } from '@/apis/membership/membership';
@@ -18,9 +18,9 @@ interface BillingOption {
   popular?: boolean;
 }
 
-const MembershipPricing: React.FC<MembershipPricingProps> = ({ onSelectPlan, className = "" }) => {
+const MembershipPricing: React.FC<MembershipPricingProps> = ({ onSelectPlan, className = "" }): React.ReactElement => {
   const [pricingData, setPricingData] = useState<IMembershipPricingData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [selectedBilling, setSelectedBilling] = useState<TBillingCycle>('quarterly');
   const [error, setError] = useState<string | null>(null);
 
@@ -221,9 +221,9 @@ const MembershipPricing: React.FC<MembershipPricingProps> = ({ onSelectPlan, cla
 
   if (loading) {
     return (
-      <div className={`flex items-center justify-center py-16 ${className}`}>
+      <div className={`flex items-center justify-center py-16 ${className}`} role="status">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" aria-hidden="true"></div>
           <p className="text-gray-600 dark:text-gray-400">Loading membership plans...</p>
         </div>
       </div>
@@ -238,6 +238,8 @@ const MembershipPricing: React.FC<MembershipPricingProps> = ({ onSelectPlan, cla
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
+          role="region"
+          aria-label="Membership Header"
         >
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
             Choose Your MEDH Membership
@@ -290,11 +292,11 @@ const MembershipPricing: React.FC<MembershipPricingProps> = ({ onSelectPlan, cla
                 </span>
               )}
               {/* Show savings on longer plans */}
-              {(() => {
+              {(function renderSavings(): React.ReactNode {
                 const savings = calculateSavings('silver', option.cycle);
                 return savings && savings.percentage > 0 ? (
                   <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full whitespace-nowrap">
-                    Save {savings.percentage}%
+                    Save {savings.percentage.toString()}%
                   </span>
                 ) : null;
               })()}
@@ -346,7 +348,7 @@ const MembershipPricing: React.FC<MembershipPricingProps> = ({ onSelectPlan, cla
             </div>
             
             {/* Savings Badge */}
-            {(() => {
+            {(function renderSavingsBadge(): React.ReactNode {
               const savings = calculateSavings('silver', selectedBilling);
               return savings && savings.percentage > 0 ? (
                 <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 text-green-700 dark:text-green-300 rounded-full text-sm font-semibold shadow-sm">
@@ -354,14 +356,14 @@ const MembershipPricing: React.FC<MembershipPricingProps> = ({ onSelectPlan, cla
                 </div>
               ) : (
                 <div className="h-8"></div> // Placeholder to maintain spacing
-              )}
+              );
             })()}
           </div>
 
           {/* Features */}
           <div className="space-y-4 mb-8">
-            {getPlanData('silver', selectedBilling).features.map((feature, index) => (
-              <div key={index} className="flex items-start gap-3">
+            {getPlanData('silver', selectedBilling).features.map((feature: string, index: number) => (
+              <div key={`silver-feature-${index}`} className="flex items-start gap-3">
                 <div className="flex-shrink-0 w-5 h-5 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mt-0.5">
                   <Check className="w-3 h-3 text-green-600 dark:text-green-400" />
                 </div>
@@ -440,7 +442,7 @@ const MembershipPricing: React.FC<MembershipPricingProps> = ({ onSelectPlan, cla
             </div>
             
             {/* Savings Badge */}
-            {(() => {
+            {(function renderSavingsBadge(): React.ReactNode {
               const savings = calculateSavings('gold', selectedBilling);
               return savings && savings.percentage > 0 ? (
                 <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 text-green-700 dark:text-green-300 rounded-full text-sm font-semibold shadow-sm">
@@ -448,14 +450,14 @@ const MembershipPricing: React.FC<MembershipPricingProps> = ({ onSelectPlan, cla
                 </div>
               ) : (
                 <div className="h-8"></div> // Placeholder to maintain spacing
-              )}
+              );
             })()}
           </div>
 
           {/* Features */}
           <div className="space-y-4 mb-8">
-            {getPlanData('gold', selectedBilling).features.map((feature, index) => (
-              <div key={index} className="flex items-start gap-3">
+            {getPlanData('gold', selectedBilling).features.map((feature: string, index: number) => (
+              <div key={`gold-feature-${index}`} className="flex items-start gap-3">
                 <div className="flex-shrink-0 w-5 h-5 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mt-0.5">
                   <Check className="w-3 h-3 text-amber-600 dark:text-amber-400" />
                 </div>
