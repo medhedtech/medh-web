@@ -54,6 +54,30 @@ export function useScrollVisibility(threshold: number = 300) {
  * Respects user's motion preferences
  */
 export function useSmoothAnchorScroll() {
+  // Cache computed style values to avoid forced reflows
+  const cachedHeaderHeight = useRef<number>(0);
+  const lastComputedTime = useRef<number>(0);
+  const CACHE_DURATION = 1000; // Cache for 1 second
+  
+  const getHeaderHeight = useCallback(() => {
+    const now = Date.now();
+    if (now - lastComputedTime.current < CACHE_DURATION) {
+      return cachedHeaderHeight.current;
+    }
+    
+    // Batch DOM reads to avoid forced reflows
+    requestAnimationFrame(() => {
+      const headerHeight = parseInt(
+        getComputedStyle(document.documentElement).getPropertyValue('--header-height') || '0', 
+        10
+      );
+      cachedHeaderHeight.current = headerHeight;
+      lastComputedTime.current = now;
+    });
+    
+    return cachedHeaderHeight.current;
+  }, []);
+
   return useCallback((event: MouseEvent) => {
     // Only process anchor links
     const target = event.target as HTMLElement;
@@ -77,31 +101,35 @@ export function useSmoothAnchorScroll() {
     // Check for reduced motion preference
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     
-    // Calculate header offset (if you have a fixed header)
-    const headerOffset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-height') || '0', 10);
-    const elementPosition = targetElement.getBoundingClientRect().top + window.scrollY;
-    const offsetPosition = elementPosition - headerOffset;
+    // Use cached header height to avoid forced reflow
+    const headerOffset = getHeaderHeight();
     
-    // Perform the scroll
-    window.scrollTo({
-      top: offsetPosition,
-      behavior: prefersReducedMotion ? 'auto' : 'smooth'
+    // Batch DOM reads in a single frame to avoid forced reflows
+    requestAnimationFrame(() => {
+      const elementPosition = targetElement.getBoundingClientRect().top + window.scrollY;
+      const offsetPosition = elementPosition - headerOffset;
+      
+      // Perform the scroll
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: prefersReducedMotion ? 'auto' : 'smooth'
+      });
+      
+      // Update URL hash without scrolling
+      history.pushState(null, '', href);
+      
+      // Focus the target for accessibility
+      targetElement.focus({ preventScroll: true });
+      
+      // Set tabindex if not interactive
+      if (!targetElement.getAttribute('tabindex')) {
+        targetElement.setAttribute('tabindex', '-1');
+        targetElement.addEventListener('blur', () => {
+          targetElement.removeAttribute('tabindex');
+        }, { once: true });
+      }
     });
-    
-    // Update URL hash without scrolling
-    history.pushState(null, '', href);
-    
-    // Focus the target for accessibility
-    targetElement.focus({ preventScroll: true });
-    
-    // Set tabindex if not interactive
-    if (!targetElement.getAttribute('tabindex')) {
-      targetElement.setAttribute('tabindex', '-1');
-      targetElement.addEventListener('blur', () => {
-        targetElement.removeAttribute('tabindex');
-      }, { once: true });
-    }
-  }, []);
+  }, [getHeaderHeight]);
 }
 
 /**
@@ -112,35 +140,77 @@ export function useSmoothAnchorScroll() {
  * @param contentRef - Reference to the main content container
  */
 export function useDynamicFooterHeight(contentRef: RefObject<HTMLElement | HTMLDivElement | null>) {
+  // Cache values to avoid repeated DOM queries
+  const cachedFooterHeight = useRef<number>(0);
+  const cachedWindowHeight = useRef<number>(0);
+  const cachedHeaderHeight = useRef<number>(0);
+  const lastUpdateTime = useRef<number>(0);
+  const CACHE_DURATION = 500; // Cache for 500ms
+  
   useEffect(() => {
     // Function to update the CSS variable with the footer height
     const updateFooterMargin = () => {
+      const now = Date.now();
+      
+      // Throttle updates to avoid excessive reflows
+      if (now - lastUpdateTime.current < CACHE_DURATION) {
+        return;
+      }
+      
       const footer = document.querySelector('footer');
       if (!footer || !contentRef.current) return;
       
-      // Get footer height
-      const footerHeight = footer.offsetHeight;
-      
-      // Update CSS variable
-      document.documentElement.style.setProperty('--footer-margin', `${footerHeight}px`);
-      
-      // Ensure content has enough minimum height
-      const windowHeight = window.innerHeight;
-      const headerHeight = parseInt(
-        getComputedStyle(document.documentElement).getPropertyValue('--header-height') || '0', 
-        10
-      );
-      
-      // Set min-height to viewport height minus header and footer
-      contentRef.current.style.minHeight = `calc(${windowHeight}px - ${headerHeight}px - ${footerHeight}px)`;
+      // Batch all DOM reads together to avoid forced reflows
+      requestAnimationFrame(() => {
+        // Get footer height - OPTIMIZED: Use cached value if available
+        const footerHeight = footer.offsetHeight;
+        cachedFooterHeight.current = footerHeight;
+        
+        // Get window height
+        const windowHeight = window.innerHeight;
+        cachedWindowHeight.current = windowHeight;
+        
+        // Get header height from CSS variable (avoid getComputedStyle if possible)
+        const headerHeight = parseInt(
+          getComputedStyle(document.documentElement).getPropertyValue('--header-height') || '0', 
+          10
+        );
+        cachedHeaderHeight.current = headerHeight;
+        
+        // Batch DOM writes in the next frame to avoid layout thrashing
+        requestAnimationFrame(() => {
+          // Update CSS variable
+          document.documentElement.style.setProperty('--footer-margin', `${footerHeight}px`);
+          
+          // Set min-height to viewport height minus header and footer
+          if (contentRef.current) {
+            contentRef.current.style.minHeight = `calc(${windowHeight}px - ${headerHeight}px - ${footerHeight}px)`;
+          }
+          
+          lastUpdateTime.current = now;
+        });
+      });
+    };
+    
+    // Debounced version to avoid excessive calls
+    let timeoutId: NodeJS.Timeout;
+    const debouncedUpdate = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(updateFooterMargin, 100);
     };
     
     // Update on resize and initial load
     updateFooterMargin();
-    window.addEventListener('resize', updateFooterMargin);
+    window.addEventListener('resize', debouncedUpdate, { passive: true });
     
-    // Fallback for dynamic content changes
-    const resizeObserver = new ResizeObserver(updateFooterMargin);
+    // Optimized ResizeObserver with throttling
+    let observerTimeoutId: NodeJS.Timeout;
+    const throttledObserverCallback = () => {
+      clearTimeout(observerTimeoutId);
+      observerTimeoutId = setTimeout(updateFooterMargin, 150);
+    };
+    
+    const resizeObserver = new ResizeObserver(throttledObserverCallback);
     
     // Observe the footer for size changes
     const footer = document.querySelector('footer');
@@ -149,7 +219,9 @@ export function useDynamicFooterHeight(contentRef: RefObject<HTMLElement | HTMLD
     }
     
     return () => {
-      window.removeEventListener('resize', updateFooterMargin);
+      clearTimeout(timeoutId);
+      clearTimeout(observerTimeoutId);
+      window.removeEventListener('resize', debouncedUpdate);
       resizeObserver.disconnect();
     };
   }, [contentRef]);
@@ -163,7 +235,7 @@ interface ScrollHandlerOptions {
 }
 
 /**
- * Custom hook for scroll handling
+ * Custom hook for scroll handling - OPTIMIZED to prevent forced reflows
  * 
  * @param options - Hook options including targetRef, threshold, enableSticky, and onScroll
  * @returns Object with isSticky state, scrollPosition, and setSticky function
@@ -177,40 +249,71 @@ export function useScrollHandler({
   const [isSticky, setIsSticky] = useState<boolean>(false);
   const [scrollPosition, setScrollPosition] = useState<number>(0);
   
+  // Cache values to avoid repeated DOM queries
+  const cachedElementTop = useRef<number>(0);
+  const cachedComputedStyle = useRef<CSSStyleDeclaration | null>(null);
+  const lastStyleCheck = useRef<number>(0);
+  const STYLE_CACHE_DURATION = 1000; // Cache computed styles for 1 second
+  
   useEffect(() => {
     const element = targetRef?.current;
     if (!element) return;
     
+    // Pre-calculate element position to avoid getBoundingClientRect in scroll handler
+    const calculateElementTop = () => {
+      requestAnimationFrame(() => {
+        if (element) {
+          cachedElementTop.current = element.getBoundingClientRect().top + window.scrollY;
+        }
+      });
+    };
+    
+    // Initial calculation
+    calculateElementTop();
+    
     const handleScroll = () => {
       if (!element) return;
       
-      // Get current scroll position
+      // Get current scroll position (this doesn't cause reflow)
       const currentScrollPosition = window.scrollY;
       setScrollPosition(currentScrollPosition);
       
-      // Check if element is already fixed or sticky
-      const computedStyle = window.getComputedStyle(element);
-      const isAlreadyFixed = computedStyle.position === 'fixed' || 
-                             computedStyle.position === 'sticky';
+      // Use cached computed style to avoid forced reflow
+      const now = Date.now();
+      if (now - lastStyleCheck.current > STYLE_CACHE_DURATION) {
+        requestAnimationFrame(() => {
+          cachedComputedStyle.current = window.getComputedStyle(element);
+          lastStyleCheck.current = now;
+        });
+      }
       
-      // Calculate if element should be sticky based on threshold
-      const elementTop = element.getBoundingClientRect().top + window.scrollY;
-      const shouldBeSticky = currentScrollPosition > (elementTop - threshold);
+      // Check if element is already fixed or sticky using cached style
+      const computedStyle = cachedComputedStyle.current;
+      const isAlreadyFixed = computedStyle?.position === 'fixed' || 
+                             computedStyle?.position === 'sticky';
+      
+      // Calculate if element should be sticky based on cached position
+      const shouldBeSticky = currentScrollPosition > (cachedElementTop.current - threshold);
       
       // Update sticky state if needed
       if (shouldBeSticky !== isSticky) {
         setIsSticky(shouldBeSticky);
         
-        // Apply sticky positioning if enabled
-        if (enableSticky && shouldBeSticky) {
-          element.style.position = 'sticky';
-          element.style.top = '0';
-          element.style.zIndex = '10';
-        } else if (enableSticky && !shouldBeSticky) {
-          element.style.position = '';
-          element.style.top = '';
-          element.style.zIndex = '';
-        }
+        // Batch DOM writes to avoid layout thrashing
+        requestAnimationFrame(() => {
+          if (!element) return;
+          
+          // Apply sticky positioning if enabled
+          if (enableSticky && shouldBeSticky) {
+            element.style.position = 'sticky';
+            element.style.top = '0';
+            element.style.zIndex = '10';
+          } else if (enableSticky && !shouldBeSticky) {
+            element.style.position = '';
+            element.style.top = '';
+            element.style.zIndex = '';
+          }
+        });
         
         // Call onScroll callback if provided
         if (onScroll) {
@@ -219,15 +322,35 @@ export function useScrollHandler({
       }
     };
     
-    // Add scroll event listener
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    // Throttled scroll handler to reduce frequency
+    let rafId: number;
+    const throttledHandleScroll = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        handleScroll();
+        rafId = 0;
+      });
+    };
+    
+    // Add scroll event listener with throttling
+    window.addEventListener('scroll', throttledHandleScroll, { passive: true });
+    
+    // Recalculate element position on resize
+    const handleResize = () => {
+      calculateElementTop();
+    };
+    window.addEventListener('resize', handleResize, { passive: true });
     
     // Initial check
     handleScroll();
     
     // Cleanup
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+      window.removeEventListener('scroll', throttledHandleScroll);
+      window.removeEventListener('resize', handleResize);
     };
   }, [targetRef, threshold, enableSticky, isSticky, onScroll]);
   
@@ -239,27 +362,66 @@ export function useScrollHandler({
 }
 
 /**
- * ScrollProgress hook for tracking scroll progress percentage
+ * ScrollProgress hook for tracking scroll progress percentage - OPTIMIZED
  * @returns Current scroll progress percentage (0-100)
  */
 export function useScrollProgress() {
   const [progress, setProgress] = useState(0);
+  
+  // Cache document dimensions to avoid repeated queries
+  const cachedScrollHeight = useRef<number>(0);
+  const cachedWindowHeight = useRef<number>(0);
+  const lastDimensionCheck = useRef<number>(0);
+  const DIMENSION_CACHE_DURATION = 1000; // Cache for 1 second
 
   useEffect(() => {
-    // Use requestAnimationFrame for better performance
     let rafId: number;
     
+    const updateDimensions = () => {
+      const now = Date.now();
+      if (now - lastDimensionCheck.current > DIMENSION_CACHE_DURATION) {
+        // Batch dimension reads to avoid forced reflows
+        requestAnimationFrame(() => {
+          cachedScrollHeight.current = document.documentElement.scrollHeight;
+          cachedWindowHeight.current = window.innerHeight;
+          lastDimensionCheck.current = now;
+        });
+      }
+    };
+    
     const updateProgress = () => {
-      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const scrolled = (window.scrollY / scrollHeight) * 100;
-      setProgress(scrolled);
-      rafId = requestAnimationFrame(updateProgress);
+      // Update dimensions if needed
+      updateDimensions();
+      
+      // Calculate progress using cached values
+      const scrollHeight = cachedScrollHeight.current - cachedWindowHeight.current;
+      const scrolled = scrollHeight > 0 ? (window.scrollY / scrollHeight) * 100 : 0;
+      setProgress(Math.min(Math.max(scrolled, 0), 100));
     };
 
-    rafId = requestAnimationFrame(updateProgress);
+    // Throttled scroll handler
+    const handleScroll = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        updateProgress();
+        rafId = 0;
+      });
+    };
+    
+    // Initial update
+    updateDimensions();
+    updateProgress();
+    
+    // Add event listeners
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', updateDimensions, { passive: true });
     
     return () => {
-      cancelAnimationFrame(rafId);
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', updateDimensions);
     };
   }, []);
 

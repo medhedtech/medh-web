@@ -34,6 +34,9 @@ import {
 } from "lucide-react";
 import { isFreePrice } from '@/utils/priceUtils';
 import { shimmer, toBase64 } from '@/utils/imageUtils';
+import { optimizeCourseImage, preloadCriticalImage, getCourseCardSizes } from '@/utils/imageOptimization';
+import OptimizedImage from '@/components/shared/OptimizedImage';
+import { batchDOMOperations, throttleRAF } from '@/utils/performanceOptimization';
 
 // Type definitions
 interface CoursePrice {
@@ -84,6 +87,8 @@ interface CourseCardProps {
   showDuration?: boolean;
   hidePrice?: boolean;
   hideDescription?: boolean;
+  index?: number;
+  isLCP?: boolean;
 }
 
 interface ImageWrapperProps {
@@ -92,6 +97,8 @@ interface ImageWrapperProps {
   onLoad?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
   onError?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
   priority?: boolean;
+  isLCP?: boolean;
+  index?: number;
 }
 
 interface ResponsiveTextOptions {
@@ -101,20 +108,28 @@ interface ResponsiveTextOptions {
   lg: number;
 }
 
-// Text adaptation hook for responsive text
+// Text adaptation hook for responsive text - OPTIMIZED to prevent forced reflows
 const useResponsiveText = (text: string | undefined, maxLength: ResponsiveTextOptions = {xs: 60, sm: 80, md: 120, lg: 180}) => {
   const [windowWidth, setWindowWidth] = useState(0);
+  const lastWidthRef = useRef(0);
+  const RESIZE_THRESHOLD = 50; // Only update if width changes by more than 50px
   
   useEffect(() => {
     // Only run on client side
     if (typeof window !== 'undefined') {
       setWindowWidth(window.innerWidth);
+      lastWidthRef.current = window.innerWidth;
       
-      const handleResize = () => {
-        setWindowWidth(window.innerWidth);
-      };
+      // Optimized resize handler with throttling and threshold
+      const handleResize = throttleRAF(() => {
+        const currentWidth = window.innerWidth;
+        if (Math.abs(currentWidth - lastWidthRef.current) > RESIZE_THRESHOLD) {
+          setWindowWidth(currentWidth);
+          lastWidthRef.current = currentWidth;
+        }
+      });
       
-      window.addEventListener('resize', handleResize);
+      window.addEventListener('resize', handleResize, { passive: true });
       return () => window.removeEventListener('resize', handleResize);
     }
   }, []);
@@ -197,51 +212,59 @@ const animationStyles = `
 }
 `;
 
-// Add new ImageWrapper component for consistent image handling
-const ImageWrapper: React.FC<ImageWrapperProps> = ({ src, alt, onLoad, onError, priority = false }) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
+// Simple ImageWrapper component using OptimizedImage
+const ImageWrapper: React.FC<ImageWrapperProps> = ({ 
+  src, 
+  alt, 
+  onLoad, 
+  onError, 
+  priority = false, 
+  isLCP = false,
+  index = 0 
+}) => {
+  // Determine if this is an LCP candidate (first 2 images above the fold)
+  const shouldBeLCP = isLCP || index < 2;
 
-  const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    setIsLoading(false);
-    onLoad?.(e);
+  // Fallback image source - use imported image6 as reliable fallback
+  const fallbackSrc = typeof image6 === 'string' ? image6 : image6.src;
+  const imageSrc = src || fallbackSrc;
+
+  const handleLoadWrapper = () => {
+    if (onLoad) {
+      onLoad({} as React.SyntheticEvent<HTMLImageElement>);
+    }
   };
 
-  const handleError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    setIsLoading(false);
-    setHasError(true);
-    onError?.(e);
+  const handleErrorWrapper = () => {
+    if (onError) {
+      onError({} as React.SyntheticEvent<HTMLImageElement>);
+    }
   };
 
   return (
-    <div className="relative w-full aspect-[3/2] min-h-[160px] sm:min-h-[140px] md:min-h-[150px] bg-gray-100 dark:bg-gray-800/50 overflow-hidden rounded-t-xl group">
-      {/* Skeleton loader */}
-      {isLoading && (
-        <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800" />
-      )}
-
-      {/* Actual image */}
-      <Image
-        src={hasError ? image6 : src}
+    <div className="relative w-full aspect-[3/2] min-h-[160px] sm:min-h-[140px] md:min-h-[150px] bg-gray-100 dark:bg-gray-800/50 overflow-hidden rounded-t-xl group gpu-accelerated">
+      <OptimizedImage
+        src={imageSrc}
         alt={alt}
-        fill
-        className={`object-cover transition-all duration-300 group-hover:scale-105 ${
-          isLoading ? 'opacity-0' : 'opacity-100'
-        }`}
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-        quality={90}
-        priority={priority}
+        width={400}
+        height={250}
+        fill={true}
+        className="object-cover transition-opacity duration-300 gpu-accelerated"
+        quality={shouldBeLCP ? 95 : 85}
+        priority={shouldBeLCP}
         placeholder="blur"
-        blurDataURL={`data:image/svg+xml;base64,${toBase64(shimmer(700, 475))}`}
-        onLoad={handleLoad}
-        onError={handleError}
+        onLoad={handleLoadWrapper}
+        onError={handleErrorWrapper}
+        loading={shouldBeLCP ? 'eager' : 'lazy'}
+        decoding={shouldBeLCP ? 'sync' : 'async'}
+        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
       />
 
-      {/* Enhanced gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/30 dark:from-black/20 dark:to-black/40 transition-opacity duration-300 group-hover:opacity-70" />
+      {/* Enhanced gradient overlay with GPU acceleration */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/30 dark:from-black/20 dark:to-black/40 transition-gpu group-hover:opacity-70 gpu-accelerated" />
       
-      {/* Optional shine effect on hover */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-tr from-transparent via-white/10 to-transparent transform translate-x-full animate-shine" />
+      {/* GPU-optimized shine effect on hover */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-tr from-transparent via-white/10 to-transparent transition-gpu gpu-accelerated" />
     </div>
   );
 };
@@ -257,7 +280,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
   preserveClassType = false,
   showDuration = true,
   hidePrice = false,
-  hideDescription = true
+  hideDescription = true,
+  index = 0,
+  isLCP = false
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -413,7 +438,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
   }, []);
 
   // Helper function to get description text safely
-  const getDescriptionText = (description) => {
+  const getDescriptionText = (description: any) => {
     if (!description) return '';
     if (typeof description === 'string') return description;
     if (typeof description === 'object') {
@@ -1344,7 +1369,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 alt={course?.course_title || "Course Image"}
                 onLoad={handleImageLoad}
                 onError={handleImageError}
-                priority={true}
+                priority={isLCP}
+                isLCP={isLCP}
+                index={index}
               />
 
               {/* Course info */}
@@ -1507,7 +1534,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
               alt={course?.course_title || "Course Image"}
               onLoad={handleImageLoad}
               onError={handleImageError}
-              priority={true}
+              priority={isLCP}
+              isLCP={isLCP}
+              index={index}
             />
 
             {/* Course info - consistent style for both Live and Blended */}

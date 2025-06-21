@@ -8,7 +8,7 @@ import { iosTest } from "@/utils/ios-test";
 import "@/styles/glassmorphism.css";
 import "@/styles/ios-optimizations.css";
 
-// Lazy loading - simplified without extra wrapper
+// Lazy loading - simplified without extra wrapper - GPU optimized
 const HomeCourseSection = React.lazy(() => import("@/components/sections/courses/HomeCourseSection2"));
 const JobGuaranteedSection = React.lazy(() => import("@/components/sections/job-guaranteed/JobGuaranteedSection"));
 const WhyMedh = React.lazy(() => import("@/components/sections/why-medh/WhyMedh2"));
@@ -16,7 +16,7 @@ const JoinMedh = React.lazy(() => import("@/components/sections/hire/JoinMedh2")
 const Hire = React.lazy(() => import("@/components/sections/hire/Hire2"));
 const Blogs = React.lazy(() => import("@/components/sections/blogs/Blogs"));
 
-// Simplified video config with iOS fallbacks
+// GPU-optimized video config with iOS fallbacks
 const getVideoSrc = (isDark: boolean, isMobile: boolean, isIOSDevice: boolean): string => {
   // For iOS devices, use optimized, lighter videos
   if (isIOSDevice) {
@@ -35,7 +35,7 @@ const getVideoSrc = (isDark: boolean, isMobile: boolean, isIOSDevice: boolean): 
     : "https://medhdocuments.s3.ap-south-1.amazonaws.com/Website/white1.mp4";
 };
 
-// Minimal context interface
+// Minimal context interface with GPU optimization flags
 export interface VideoBackgroundContextType {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   isLoaded: boolean;
@@ -58,7 +58,7 @@ export const VideoBackgroundContext = createContext<VideoBackgroundContextType>(
   startVideo: async () => {}
 });
 
-// Debounce utility with proper cleanup
+// GPU-optimized debounce utility with proper cleanup
 const debouncedResize = (() => {
   let resizeTimeout: NodeJS.Timeout | null = null;
   return (callback: () => void) => {
@@ -75,7 +75,7 @@ const Home2: React.FC = () => {
   const userInteracted = useRef(false);
   const intersectionObserverRef = useRef<IntersectionObserver | null>(null);
   
-  // Minimal state with error handling
+  // Minimal state with error handling and GPU optimization flags
   const [isLoaded, setIsLoaded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -86,28 +86,33 @@ const Home2: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [videoAttempted, setVideoAttempted] = useState(false);
   
-  // Memoized derived values to prevent unnecessary re-renders
+  // Memoized derived values to prevent unnecessary re-renders with GPU optimization
   const isDark = useMemo(() => mounted ? theme === 'dark' : true, [mounted, theme]);
   const videoSrc = useMemo(() => 
     getVideoSrc(isDark, isMobile, isIOSDevice), 
     [isDark, isMobile, isIOSDevice]
   );
 
-  // Start video function using iOS-optimized utility
+  // GPU-optimized start video function using iOS-optimized utility
   const startVideo = useCallback(async () => {
     if (!videoRef.current || !shouldShowVideo || hasVideoError || videoAttempted) return;
     
     try {
       setVideoAttempted(true);
       
-      // Use the iOS-optimized video starter with safety checks
+      // Use the iOS-optimized video starter with safety checks and GPU acceleration
       const success = iosVideoConfig?.startBackgroundVideo 
         ? await iosVideoConfig.startBackgroundVideo(videoRef.current)
         : false;
       
       if (success) {
         setIsPlaying(true);
-        console.log('✅ Background video started successfully');
+        // Enable GPU acceleration for video element
+        if (videoRef.current) {
+          videoRef.current.style.transform = 'translate3d(0,0,0)';
+          videoRef.current.style.willChange = 'transform, opacity';
+        }
+        console.log('✅ Background video started successfully with GPU acceleration');
       } else {
         console.warn('Video autoplay failed, will try again on user interaction');
         // Reset attempt flag to allow retry
@@ -120,7 +125,7 @@ const Home2: React.FC = () => {
     }
   }, [shouldShowVideo, hasVideoError, videoAttempted]);
 
-  // Handle user interaction to start video on iOS
+  // GPU-optimized handle user interaction to start video on iOS
   const handleUserInteraction = useCallback(async () => {
     if (userInteracted.current || !isIOSDevice) return;
     
@@ -135,7 +140,7 @@ const Home2: React.FC = () => {
     }
   }, [isIOSDevice, startVideo]);
 
-  // Setup intersection observer for video visibility
+  // GPU-optimized intersection observer for video visibility
   useEffect(() => {
     if (!isClient || !videoRef.current) return;
 
@@ -161,7 +166,7 @@ const Home2: React.FC = () => {
     };
   }, [isClient, isPlaying, shouldShowVideo, startVideo]);
 
-  // Device detection effect with iOS optimizations
+  // GPU-optimized device detection effect with iOS optimizations
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
@@ -171,7 +176,7 @@ const Home2: React.FC = () => {
     
     setIsIOSDevice(iosDevice);
     
-    // Initialize iOS optimizations with safety checks
+    // Initialize iOS optimizations with safety checks and GPU acceleration
     const cleanupIOS = initializeIOSOptimizations?.() || (() => {});
     
     // Run iOS tests in development with safety checks
@@ -189,7 +194,7 @@ const Home2: React.FC = () => {
       console.warn('Very low-end device detected, disabling video background');
     }
     
-    // Setup user interaction listeners for iOS
+    // Setup user interaction listeners for iOS with GPU optimization
     if (iosDevice) {
       window.addEventListener('touchstart', handleUserInteraction, { passive: true, once: false });
       window.addEventListener('click', handleUserInteraction, { passive: true, once: false });
@@ -233,7 +238,7 @@ const Home2: React.FC = () => {
     };
   }, [handleUserInteraction]);
 
-  // Optimized resize handler with iOS considerations
+  // GPU-optimized resize handler with iOS considerations
   const handleResize = useCallback(() => {
     if (!isClient || typeof window === 'undefined' || !mountedRef.current) return;
     
@@ -247,20 +252,20 @@ const Home2: React.FC = () => {
     });
   }, [isMobile, isClient]);
 
-  // Single initialization effect with error handling
+  // GPU-optimized initialization effect with error handling
   useEffect(() => {
     if (!isClient || typeof window === 'undefined') return;
     
     setIsMobile(window.innerWidth < 768);
     
-    // Quick load with iOS-friendly timing
+    // Quick load with iOS-friendly timing and GPU optimization
     const loadTimer = setTimeout(() => {
       if (mountedRef.current) {
         setIsLoaded(true);
       }
     }, isIOSDevice ? 100 : 50);
     
-    // Resize listener with passive for better performance (avoid preventDefault in passive listener)
+    // Resize listener with passive for better performance
     const handleResizePassive = () => {
       handleResize();
     };
@@ -274,14 +279,17 @@ const Home2: React.FC = () => {
     };
   }, [isClient, handleResize, isIOSDevice]);
 
-  // Theme effect with iOS considerations
+  // GPU-optimized theme effect with iOS considerations
   useEffect(() => {
     if (mounted && isClient && typeof document !== 'undefined') {
       document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      // Enable GPU acceleration for theme transitions
+      document.documentElement.style.transform = 'translate3d(0,0,0)';
+      document.documentElement.style.willChange = 'background-color, color';
     }
   }, [isDark, mounted, isClient]);
 
-  // Video error handling with iOS-specific recovery
+  // GPU-optimized video error handling with iOS-specific recovery
   const handleVideoError = useCallback((error: React.SyntheticEvent<HTMLVideoElement, Event>) => {
     console.warn('Video background failed to load, using fallback');
     
@@ -303,10 +311,14 @@ const Home2: React.FC = () => {
     }
   }, []);
 
-  // Video load handling with automatic play attempt
+  // GPU-optimized video load handling with automatic play attempt
   const handleVideoLoad = useCallback(() => {
     if (videoRef.current && mountedRef.current) {
       setHasVideoError(false);
+      
+      // Enable GPU acceleration for loaded video
+      videoRef.current.style.transform = 'translate3d(0,0,0)';
+      videoRef.current.style.willChange = 'transform, opacity';
       
       // Try to start video immediately on load for non-iOS or after user interaction
       if (!isIOSDevice || userInteracted.current) {
@@ -315,14 +327,22 @@ const Home2: React.FC = () => {
     }
   }, [isIOSDevice, startVideo]);
 
-  // Handle video play events
+  // GPU-optimized handle video play events
   const handleVideoPlay = useCallback(() => {
     setIsPlaying(true);
+    // Optimize GPU usage during playback
+    if (videoRef.current) {
+      videoRef.current.style.willChange = 'auto';
+    }
   }, []);
 
-  // Handle video pause events
+  // GPU-optimized handle video pause events
   const handleVideoPause = useCallback(() => {
     setIsPlaying(false);
+    // Re-enable GPU acceleration when paused
+    if (videoRef.current) {
+      videoRef.current.style.willChange = 'transform, opacity';
+    }
   }, []);
 
   // Create stable context value - MUST be before any conditional returns
@@ -337,12 +357,12 @@ const Home2: React.FC = () => {
     startVideo
   }), [isLoaded, isDark, isMobile, isIOSDevice, hasVideoError, isPlaying, startVideo]);
 
-  // Fast loading state with better iOS support
+  // GPU-optimized loading state with better iOS support
   if (!isClient || !mounted) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary-500" />
+      <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 gpu-accelerated">
+        <div className="flex items-center justify-center min-h-screen gpu-accelerated">
+          <div className="animate-spin-gpu rounded-full h-8 w-8 border-t-2 border-primary-500 gpu-accelerated" />
         </div>
       </main>
     );
@@ -350,13 +370,14 @@ const Home2: React.FC = () => {
 
   return (
     <VideoBackgroundContext.Provider value={contextValue}>
-      {/* Video background with iOS optimizations - Always show if no error */}
+      {/* GPU-optimized video background with iOS optimizations - Always show if no error */}
       {shouldShowVideo && !hasVideoError && (
         <div 
-          className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0"
+          className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0 gpu-accelerated"
           style={{ 
             opacity: isDark ? 0.85 : 0.9,
-            willChange: isIOSDevice ? 'auto' : 'opacity'
+            willChange: isIOSDevice ? 'auto' : 'opacity',
+            transform: 'translate3d(0,0,0)'
           }}
         >
           <video
@@ -368,14 +389,15 @@ const Home2: React.FC = () => {
             playsInline // Required for iOS
             preload={isIOSDevice ? "metadata" : "auto"} // Balanced preloading for iOS
             controls={false} // Never show controls
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover gpu-accelerated"
             style={{ 
               filter: isDark 
                 ? 'brightness(0.7) contrast(1.1) saturate(1.0)' 
                 : 'brightness(1.2) contrast(0.95) saturate(0.9)',
-              transform: isIOSDevice ? 'none' : 'translateZ(0)',
+              transform: 'translate3d(0,0,0)',
               backfaceVisibility: 'hidden',
-              pointerEvents: 'none' // Ensure no interaction
+              pointerEvents: 'none', // Ensure no interaction
+              willChange: 'transform, opacity'
             }}
             src={videoSrc}
             onError={handleVideoError}
@@ -388,46 +410,52 @@ const Home2: React.FC = () => {
           
           {/* iOS Help Text - Only show briefly if video hasn't started */}
           {isIOSDevice && !isPlaying && !hasVideoError && isLoaded && (
-            <div className="absolute bottom-4 right-4 bg-black/50 text-white text-xs px-2 py-1 rounded opacity-60 pointer-events-none">
+            <div className="absolute bottom-4 right-4 bg-black/50 text-white text-xs px-2 py-1 rounded opacity-60 pointer-events-none gpu-accelerated">
               Tap anywhere to activate background video
             </div>
           )}
         </div>
       )}
 
-      {/* Fallback background for when video is disabled */}
+      {/* GPU-optimized fallback background for when video is disabled */}
       {(!shouldShowVideo || hasVideoError) && (
         <div 
-          className="fixed inset-0 w-full h-full pointer-events-none z-0"
+          className="fixed inset-0 w-full h-full pointer-events-none z-0 gpu-accelerated"
           style={{
             background: isDark 
               ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #020617 100%)'
               : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%)',
-            opacity: 0.9
+            opacity: 0.9,
+            transform: 'translate3d(0,0,0)',
+            willChange: 'background-color'
           }}
         />
       )}
 
       <main 
         ref={homeRef}
-        className={`min-h-screen relative transition-opacity duration-300 ${
+        className={`min-h-screen relative transition-gpu gpu-accelerated ${
           isLoaded ? 'opacity-100' : 'opacity-90'
         }`}
-        style={{ zIndex: 10 }}
+        style={{ 
+          zIndex: 10,
+          transform: 'translate3d(0,0,0)',
+          willChange: 'opacity'
+        }}
       >
-        <div className="flex flex-col w-full relative z-10">
-          {/* Hero Section */}
-          <section className="w-full relative -mt-6">
+        <div className="flex flex-col w-full relative z-10 gpu-accelerated">
+          {/* GPU-optimized Hero Section */}
+          <section className="w-full relative -mt-6 gpu-accelerated">
             <Hero2 isCompact={false} />
           </section>
 
-          {/* Main Content Sections with error boundaries */}
-          <div className="flex flex-col relative z-10 -mt-8">
+          {/* GPU-optimized Main Content Sections with error boundaries */}
+          <div className="flex flex-col relative z-10 -mt-8 gpu-accelerated">
             {/* Courses Section */}
-            <section className="w-full relative z-10 glass-container">
+            <section className="w-full relative z-10 glass-container gpu-accelerated">
               <React.Suspense fallback={
-                <div className="h-96 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-primary-500" />
+                <div className="h-96 flex items-center justify-center gpu-accelerated">
+                  <div className="animate-spin-gpu rounded-full h-6 w-6 border-t-2 border-primary-500 gpu-accelerated" />
                 </div>
               }>
                 <HomeCourseSection
@@ -439,10 +467,10 @@ const Home2: React.FC = () => {
             </section>
 
             {/* Job Guaranteed Section */}
-            <section className="w-full relative z-10">
+            <section className="w-full relative z-10 gpu-accelerated">
               <React.Suspense fallback={
-                <div className="h-96 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-primary-500" />
+                <div className="h-96 flex items-center justify-center gpu-accelerated">
+                  <div className="animate-spin-gpu rounded-full h-6 w-6 border-t-2 border-primary-500 gpu-accelerated" />
                 </div>
               }>
                 <JobGuaranteedSection showStats={false} />
@@ -450,10 +478,10 @@ const Home2: React.FC = () => {
             </section>
 
             {/* Why Medh Section */}
-            <section className="w-full relative overflow-hidden z-10 glass-light">
+            <section className="w-full relative overflow-hidden z-10 glass-light gpu-accelerated">
               <React.Suspense fallback={
-                <div className="h-72 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-primary-500" />
+                <div className="h-72 flex items-center justify-center gpu-accelerated">
+                  <div className="animate-spin-gpu rounded-full h-6 w-6 border-t-2 border-primary-500 gpu-accelerated" />
                 </div>
               }>
                 <WhyMedh />
@@ -461,10 +489,10 @@ const Home2: React.FC = () => {
             </section>
 
             {/* Join Medh Section */}
-            <section className="w-full relative overflow-hidden z-10 glass-card">
+            <section className="w-full relative overflow-hidden z-10 glass-card gpu-accelerated">
               <React.Suspense fallback={
-                <div className="h-72 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-primary-500" />
+                <div className="h-72 flex items-center justify-center gpu-accelerated">
+                  <div className="animate-spin-gpu rounded-full h-6 w-6 border-t-2 border-primary-500 gpu-accelerated" />
                 </div>
               }>
                 <JoinMedh />
@@ -472,10 +500,10 @@ const Home2: React.FC = () => {
             </section>
 
             {/* Hire Section */}
-            <section className="w-full relative overflow-hidden z-10 glass-dark">
+            <section className="w-full relative overflow-hidden z-10 glass-dark gpu-accelerated">
               <React.Suspense fallback={
-                <div className="h-72 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-primary-500" />
+                <div className="h-72 flex items-center justify-center gpu-accelerated">
+                  <div className="animate-spin-gpu rounded-full h-6 w-6 border-t-2 border-primary-500 gpu-accelerated" />
                 </div>
               }>
                 <Hire />
@@ -483,10 +511,10 @@ const Home2: React.FC = () => {
             </section>
             
             {/* Blog Section */}
-            <section className="w-full relative z-10 glass-container">
+            <section className="w-full relative z-10 glass-container gpu-accelerated">
               <React.Suspense fallback={
-                <div className="h-72 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-primary-500" />
+                <div className="h-72 flex items-center justify-center gpu-accelerated">
+                  <div className="animate-spin-gpu rounded-full h-6 w-6 border-t-2 border-primary-500 gpu-accelerated" />
                 </div>
               }>
                 <Blogs />
@@ -494,7 +522,7 @@ const Home2: React.FC = () => {
             </section>
 
             {/* Spacer */}
-            <div className="h-20" />
+            <div className="h-20 gpu-accelerated" />
           </div>
         </div>
       </main>

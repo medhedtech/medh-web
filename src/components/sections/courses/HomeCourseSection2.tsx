@@ -10,11 +10,12 @@ import { apiUrls } from '@/apis/index';
 
 import { VideoBackgroundContext } from '@/components/layout/main/Home2';
 import { useTheme } from "next-themes";
+import { useCourseImagePreloader } from '@/components/shared/ImagePreloader';
 
-// PERFORMANCE OPTIMIZATION: Move constants outside component to prevent recreation
+// PERFORMANCE OPTIMIZATION: Move constants outside component to prevent recreation - GPU optimized
 const GLASSMORPHISM_STYLES_CACHE = new Map<boolean, string>();
 
-// PERFORMANCE OPTIMIZATION: Memoized glassmorphism styles with caching
+// PERFORMANCE OPTIMIZATION: GPU-optimized glassmorphism styles with caching
 const getGlassmorphismStyles = (isDark: boolean): string => {
   if (GLASSMORPHISM_STYLES_CACHE.has(isDark)) {
     return GLASSMORPHISM_STYLES_CACHE.get(isDark)!;
@@ -24,34 +25,50 @@ const getGlassmorphismStyles = (isDark: boolean): string => {
     .glass-container {
       background: ${isDark ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.08)'};
       backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
       border: 1px solid ${isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.25)'};
       border-radius: 1.5rem;
       box-shadow: ${isDark ? '0 8px 32px rgba(0, 0, 0, 0.15)' : '0 8px 32px rgba(0, 0, 0, 0.06)'};
       position: relative;
+      transform: translate3d(0, 0, 0);
+      will-change: transform, opacity;
+      backface-visibility: hidden;
     }
     
     .glass-stats {
       background: ${isDark ? 'rgba(15, 23, 42, 0.12)' : 'rgba(255, 255, 255, 0.15)'};
       backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border: 1px solid ${isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.3)'};
       border-radius: 1rem;
       box-shadow: ${isDark ? '0 4px 20px rgba(0, 0, 0, 0.12)' : '0 4px 20px rgba(0, 0, 0, 0.04)'};
       position: relative;
+      transform: translate3d(0, 0, 0);
+      will-change: transform;
+      backface-visibility: hidden;
     }
     
     .filter-button-active {
       background: ${isDark ? 'rgba(55, 147, 146, 0.20)' : 'rgba(55, 147, 146, 0.85)'};
       border-color: ${isDark ? 'rgba(55, 147, 146, 0.30)' : 'rgba(55, 147, 146, 0.60)'};
       color: ${isDark ? 'rgba(55, 147, 146, 1)' : 'rgba(255, 255, 255, 0.95)'};
+      transform: translate3d(0, 0, 0);
+      will-change: transform, background-color;
     }
     
     .glass-transition {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                  opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                  background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: translate3d(0, 0, 0);
+      will-change: transform, opacity, background-color;
     }
     
     .course-grid {
       display: grid;
       gap: 1.5rem;
+      transform: translate3d(0, 0, 0);
+      will-change: transform;
     }
     
     @media (min-width: 640px) {
@@ -65,6 +82,27 @@ const getGlassmorphismStyles = (isDark: boolean): string => {
       .course-grid {
         grid-template-columns: repeat(4, 1fr);
         gap: 2rem;
+      }
+    }
+    
+    /* GPU optimizations for mobile */
+    @media (max-width: 768px) {
+      .glass-container,
+      .glass-stats {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+    }
+    
+    /* iOS-specific optimizations */
+    @supports (-webkit-touch-callout: none) {
+      .glass-container,
+      .glass-stats,
+      .filter-button-active,
+      .glass-transition,
+      .course-grid {
+        -webkit-transform: translate3d(0, 0, 0);
+        -webkit-backface-visibility: hidden;
       }
     }
     
@@ -279,10 +317,10 @@ const getBlendedCourseSessions = (course: ICourse) => {
   return { videoCount, qnaSessions };
 };
 
-// PERFORMANCE OPTIMIZATION: Memoized ViewAllButton component
+// PERFORMANCE OPTIMIZATION: GPU-optimized ViewAllButton component
 const ViewAllButton = memo<{ href: string; text: string; isDark: boolean }>(({ href, text, isDark }) => {
   const buttonClasses = useMemo(() => {
-    return `inline-flex items-center px-4 py-2 glass-stats rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 ${
+    return `inline-flex items-center px-4 py-2 glass-stats rounded-lg text-sm font-medium glass-transition hover-scale-gpu gpu-accelerated min-h-[44px] touch-manipulation ${
       isDark 
         ? 'text-white hover:bg-white/10' 
         : 'text-gray-900 hover:bg-black/5'
@@ -292,14 +330,14 @@ const ViewAllButton = memo<{ href: string; text: string; isDark: boolean }>(({ h
   return (
     <Link href={href} className={buttonClasses}>
       <span>{text}</span>
-      <ChevronRight size={16} className="ml-1" />
+      <ChevronRight size={16} className="ml-1 transition-gpu" />
     </Link>
   );
 });
 
 ViewAllButton.displayName = 'ViewAllButton';
 
-// PERFORMANCE OPTIMIZATION: Memoized FilterButton component
+// PERFORMANCE OPTIMIZATION: GPU-optimized FilterButton component
 const FilterButton = memo<{
   active: boolean;
   icon: React.ReactNode;
@@ -308,7 +346,7 @@ const FilterButton = memo<{
   isDark: boolean;
 }>(({ active, icon, label, onClick, isDark }) => {
   const buttonClasses = useMemo(() => {
-    return `inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 glass-transition ${
+    return `inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium glass-transition hover-scale-gpu gpu-accelerated min-h-[44px] touch-manipulation ${
       active 
         ? 'filter-button-active' 
         : `glass-stats ${isDark ? 'text-white hover:bg-white/10' : 'text-gray-900 hover:bg-black/5'}`
@@ -317,7 +355,7 @@ const FilterButton = memo<{
 
   return (
     <button onClick={onClick} className={buttonClasses}>
-      {icon}
+      <div className="transition-gpu">{icon}</div>
       <span className="ml-2">{label}</span>
     </button>
   );
@@ -325,22 +363,22 @@ const FilterButton = memo<{
 
 FilterButton.displayName = 'FilterButton';
 
-// PERFORMANCE OPTIMIZATION: Memoized EmptyState component
+// PERFORMANCE OPTIMIZATION: GPU-optimized EmptyState component
 const EmptyState = memo<{ type: 'live' | 'blended'; isDark: boolean }>(({ type, isDark }) => {
   const iconClasses = useMemo(() => {
-    return `w-16 h-16 mx-auto mb-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`;
+    return `w-16 h-16 mx-auto mb-4 transition-gpu gpu-accelerated ${isDark ? 'text-gray-400' : 'text-gray-500'}`;
   }, [isDark]);
 
   const textClasses = useMemo(() => {
-    return `text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`;
+    return `text-lg font-semibold mb-2 transition-gpu ${isDark ? 'text-white' : 'text-gray-900'}`;
   }, [isDark]);
 
   const descriptionClasses = useMemo(() => {
-    return `text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`;
+    return `text-sm transition-gpu ${isDark ? 'text-gray-400' : 'text-gray-600'}`;
   }, [isDark]);
 
   return (
-    <div className="text-center py-12">
+    <div className="text-center py-12 gpu-accelerated">
       <BookOpen className={iconClasses} />
       <h3 className={textClasses}>
         No {type} courses available
@@ -357,7 +395,7 @@ const EmptyState = memo<{ type: 'live' | 'blended'; isDark: boolean }>(({ type, 
 
 EmptyState.displayName = 'EmptyState';
 
-// PERFORMANCE OPTIMIZATION: Memoized CourseCardWrapper component
+// PERFORMANCE OPTIMIZATION: GPU-optimized CourseCardWrapper component
 const CourseCardWrapper = memo<{
   course: ICourse;
   courseType: 'live' | 'blended';
@@ -380,9 +418,22 @@ const CourseCardWrapper = memo<{
         course_category: course.course_category || course.category || 'Uncategorized',
         prices: course.prices || [],
         course_fee: Number(displayPrice) || 1499,
-        no_of_Sessions: typeof course.no_of_Sessions === 'string' 
-          ? parseInt(course.no_of_Sessions, 10) || 120
-          : (typeof course.no_of_Sessions === 'number' ? course.no_of_Sessions : 120),
+        no_of_Sessions: (() => {
+          // Priority 1: value from API if present and valid
+          const rawSessions = course.no_of_Sessions as any;
+          const parsedSessions = typeof rawSessions === 'string' ? parseInt(rawSessions, 10) : rawSessions;
+          if (!isNaN(parsedSessions) && parsedSessions > 0) {
+            return parsedSessions;
+          }
+
+          // Priority 2: derive from individual price tiers when session info is missing
+          const individualPrice = course.prices?.[0]?.individual || 0;
+          if (individualPrice <= 1500) return 10; // e.g., ₹1499 plan
+          if (individualPrice <= 3000) return 20; // e.g., ₹2499 / 2999 plan
+
+          // Priority 3: fallback to computed totals
+          return videoCount + qnaSessions;
+        })(),
         effort_hours: typeof course.effort_hours === 'string' 
           ? parseInt(course.effort_hours, 10) || 8
           : (course.effort_hours || course.efforts_per_Week ? 
@@ -404,7 +455,22 @@ const CourseCardWrapper = memo<{
         course_duration: "Self Paced",
         prices: course.prices || [],
         course_fee: course.prices?.[0]?.individual || 1499,
-        no_of_Sessions: videoCount + qnaSessions,
+        no_of_Sessions: (() => {
+          // Priority 1: value from API if present and valid
+          const rawSessions = course.no_of_Sessions as any;
+          const parsedSessions = typeof rawSessions === 'string' ? parseInt(rawSessions, 10) : rawSessions;
+          if (!isNaN(parsedSessions) && parsedSessions > 0) {
+            return parsedSessions;
+          }
+
+          // Priority 2: derive from individual price tiers when session info is missing
+          const individualPrice = course.prices?.[0]?.individual || 0;
+          if (individualPrice <= 1500) return 10; // e.g., ₹1499 plan
+          if (individualPrice <= 3000) return 20; // e.g., ₹2499 / 2999 plan
+
+          // Priority 3: fallback to computed totals
+          return videoCount + qnaSessions;
+        })(),
         effort_hours: typeof course.effort_hours === 'string' 
           ? parseInt(course.effort_hours, 10) || 5
           : (course.effort_hours || course.efforts_per_Week ? 
@@ -419,13 +485,15 @@ const CourseCardWrapper = memo<{
   }, [course, courseType, index]);
 
   return (
-    <div className="flex flex-col h-full w-full min-w-0">
+    <div className="flex flex-col h-full w-full min-w-0 gpu-accelerated hover-lift-gpu">
       <CourseCard 
         course={enhancedCourse}
         classType={courseType === 'live' ? "Live Courses" : "blended"}
         preserveClassType={courseType === 'live'}
         showDuration={true}
         isCompact={true}
+        index={index}
+        isLCP={index < 2}
       />
     </div>
   );
@@ -439,7 +507,7 @@ const CourseCardWrapper = memo<{
 
 CourseCardWrapper.displayName = 'CourseCardWrapper';
 
-// PERFORMANCE OPTIMIZATION: Main component with comprehensive memoization
+// PERFORMANCE OPTIMIZATION: GPU-optimized main component with comprehensive memoization
 const HomeCourseSection2 = memo<{
   CustomText?: string;
   CustomDescription?: string;
@@ -470,6 +538,9 @@ const HomeCourseSection2 = memo<{
   // PERFORMANCE OPTIMIZATION: Memoized computed values
   const isDark = useMemo(() => mounted ? theme === 'dark' : true, [mounted, theme]);
   const isLoaded = useMemo(() => videoContext?.isLoaded ?? false, [videoContext?.isLoaded]);
+
+  // PERFORMANCE OPTIMIZATION: Preload critical course images for LCP
+  useCourseImagePreloader([...blendedCourses, ...liveCourses]);
 
   // PERFORMANCE OPTIMIZATION: Enhanced currency detection with caching and fallbacks
   const getLocationCurrency = useCallback(async () => {
@@ -871,36 +942,36 @@ const HomeCourseSection2 = memo<{
     });
   }, [blendedCourses, activeBlendedFilters]);
 
-  // PERFORMANCE OPTIMIZATION: Memoized class names
+  // PERFORMANCE OPTIMIZATION: GPU-optimized memoized class names
   const containerClasses = useMemo(() => {
-    return `w-full py-4 sm:py-6 md:py-8 relative overflow-hidden ${
+    return `w-full py-4 sm:py-6 md:py-8 relative overflow-hidden gpu-accelerated ${
       !isDark ? 'bg-gradient-to-br from-gray-50/30 via-white/20 to-gray-100/40' : ''
     }`;
   }, [isDark]);
 
   const headerClasses = useMemo(() => {
-    return "flex flex-col md:flex-row md:items-center justify-between mb-8 sm:mb-10 md:mb-16 lg:mb-20 px-3 sm:px-4 md:px-8 lg:px-10 relative z-10";
+    return "flex flex-col md:flex-row md:items-center justify-between mb-8 sm:mb-10 md:mb-16 lg:mb-20 px-3 sm:px-4 md:px-8 lg:px-10 relative z-10 gpu-accelerated";
   }, []);
 
   const titleClasses = useMemo(() => {
-    return "text-sm md:text-2xl lg:text-base font-extrabold mb-3 sm:mb-4 md:mb-6 dark:text-gray-300 max-w-2xl font-medium";
+    return "text-sm md:text-2xl lg:text-base font-extrabold mb-3 sm:mb-4 md:mb-6 dark:text-gray-300 max-w-2xl font-medium transition-gpu";
   }, []);
 
   const descriptionClasses = useMemo(() => {
-    return "text-2xl md:text-base lg:text-3xl text-gray-600 text-gray-800 dark:text-white font-bold";
+    return "text-2xl md:text-base lg:text-3xl text-gray-600 text-gray-800 dark:text-white font-bold transition-gpu";
   }, []);
 
-  // Fast loading state
+  // GPU-optimized loading state
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-white dark:bg-gray-900 rounded-2xl shadow-sm">
-        <div className="w-20 h-20 mb-6 text-primary-500 animate-spin">
+      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-white dark:bg-gray-900 rounded-2xl shadow-sm gpu-accelerated">
+        <div className="w-20 h-20 mb-6 text-primary-500 animate-spin-gpu gpu-accelerated">
           <Loader2 size={80} />
         </div>
-        <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2">
+        <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2 transition-gpu">
           Loading Courses
         </h2>
-        <p className="text-gray-600 dark:text-gray-400 max-w-md text-center">
+        <p className="text-gray-600 dark:text-gray-400 max-w-md text-center transition-gpu">
           Please wait while we fetch the latest courses for you.
         </p>
       </div>
@@ -928,16 +999,16 @@ const HomeCourseSection2 = memo<{
         </div>
       </div>
 
-      {/* Live Courses Section */}
-      <div className="mb-8 sm:mb-10 md:mb-16 lg:mb-20 px-3 sm:px-4 md:px-8 lg:px-10">
-        <div className="flex items-center justify-between mb-6 sm:mb-8">
-          <h3 className={`text-xl sm:text-2xl md:text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+      {/* GPU-optimized Live Courses Section */}
+      <div className="mb-8 sm:mb-10 md:mb-16 lg:mb-20 px-3 sm:px-4 md:px-8 lg:px-10 gpu-accelerated">
+        <div className="flex items-center justify-between mb-6 sm:mb-8 gpu-accelerated">
+          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#3bac63] dark:text-[#3bac63] transition-gpu">
             Live Interactive Courses
           </h3>
         </div>
 
         {liveCourses.length > 0 ? (
-          <div className="course-grid">
+          <div className="course-grid gpu-accelerated">
             {liveCourses.map((course, index) => (
               <CourseCardWrapper 
                 key={course._id}
@@ -952,41 +1023,27 @@ const HomeCourseSection2 = memo<{
         )}
       </div>
 
-      {/* Blended Courses Section */}
+      {/* GPU-optimized Blended Courses Section */}
       {!showOnlyLive && (
-        <div className="mb-8 sm:mb-10 md:mb-16 lg:mb-20 px-3 sm:px-4 md:px-8 lg:px-10">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
-            <h3 className={`text-xl sm:text-2xl md:text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Self-Paced Courses
-            </h3>
-            
-            <div className="flex flex-wrap gap-2">
-              <FilterButton
-                active={activeBlendedFilters.popular}
-                icon={<Sparkles size={16} />}
-                label="Popular"
-                onClick={() => toggleBlendedFilter('popular')}
-                isDark={isDark}
-              />
-              <FilterButton
-                active={activeBlendedFilters.latest}
-                icon={<Clock size={16} />}
-                label="Latest"
-                onClick={() => toggleBlendedFilter('latest')}
-                isDark={isDark}
-              />
-              <FilterButton
-                active={activeBlendedFilters.beginner}
-                icon={<Users size={16} />}
-                label="Beginner"
-                onClick={() => toggleBlendedFilter('beginner')}
-                isDark={isDark}
-              />
+        <div className="mb-8 sm:mb-10 md:mb-16 lg:mb-20 px-3 sm:px-4 md:px-8 lg:px-10 gpu-accelerated">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4 gpu-accelerated">
+            <div className="gpu-accelerated">
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#3bac63] dark:text-[#3bac63] transition-gpu">
+                Self-Paced Blended Courses
+              </h3>
+              <p className="text-xs mt-1 text-black dark:text-[#3bac63] transition-gpu">
+                (Interactive Video Courses with live doubt-clearing sessions)
+              </p>
             </div>
+            
+            {/* Filter tags hidden as per user request */}
+            {/* <div className="flex flex-wrap gap-2">
+              <FilterButton ... />
+            </div> */}
           </div>
 
           {filteredBlendedCourses.length > 0 ? (
-            <div className="course-grid">
+            <div className="course-grid gpu-accelerated">
               {filteredBlendedCourses.map((course, index) => (
                 <CourseCardWrapper 
                   key={course._id}
@@ -1002,8 +1059,8 @@ const HomeCourseSection2 = memo<{
         </div>
       )}
 
-      {/* Mobile View All Button */}
-      <div className="block md:hidden px-3 sm:px-4 md:px-8 lg:px-10">
+      {/* GPU-optimized Mobile View All Button */}
+      <div className="block md:hidden px-3 sm:px-4 md:px-8 lg:px-10 gpu-accelerated">
         <ViewAllButton 
           href="/courses" 
           text="View All Courses"

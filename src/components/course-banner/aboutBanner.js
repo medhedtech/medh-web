@@ -119,7 +119,14 @@ export default function AboutBanner({
                 {isoText}
               </span>
               {isoImage && (
-                <Image src={isoImage} alt="ISO Certification" className="h-6 w-auto" />
+                <Image 
+                  src={isoImage} 
+                  alt="ISO Certification" 
+                  width={24}
+                  height={24}
+                  className="h-6 w-auto" 
+                  style={{ width: 'auto' }}
+                />
               )}
             </div>
 

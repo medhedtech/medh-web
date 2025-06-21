@@ -7,16 +7,20 @@ import { useTheme } from "next-themes";
 import { VideoBackgroundContext } from "@/components/layout/main/Home2";
 import medhLogo from "@/assets/images/logo/medh.png";
 
-// Mobile-specific tagline styling - 10% bigger
+// Mobile-specific tagline styling - 10% bigger with GPU acceleration
 const mobileTaglineStyles = `
   @media (max-width: 767px) {
     .mobile-tagline-large {
       font-size: 2.2rem !important;
+      transform: translate3d(0, 0, 0);
+      will-change: transform;
     }
   }
   @media (min-width: 640px) and (max-width: 767px) {
     .mobile-tagline-large {
       font-size: 2.75rem !important;
+      transform: translate3d(0, 0, 0);
+      will-change: transform;
     }
   }
 `;
@@ -75,7 +79,7 @@ interface ICourseCategory {
   url: string;
 }
 
-// HIGHLY OPTIMIZED CategoryCard with React.memo and stable references
+// GPU-OPTIMIZED CategoryCard with React.memo and stable references
 const CategoryCard = memo<{
   category: ICourseCategory;
   isDark: boolean;
@@ -84,13 +88,13 @@ const CategoryCard = memo<{
   const IconComponent = category.icon;
   const isLive = category.type === 'live';
   
-  // Memoized class names for better performance
+  // Memoized class names for better performance with GPU acceleration
   const containerClasses = useMemo(() => {
-    return `relative ${isLive ? 'glass-primary' : 'glass-stats'} rounded-xl p-3 md:p-4 hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden flex-shrink-0 w-40 md:w-52 h-28 md:h-36 flex flex-col items-center justify-center`;
+    return `relative ${isLive ? 'glass-primary' : 'glass-stats'} rounded-xl p-3 md:p-4 hover:scale-105 transition-gpu group cursor-pointer overflow-hidden flex-shrink-0 w-40 md:w-52 h-28 md:h-36 flex flex-col items-center justify-center gpu-accelerated`;
   }, [isLive]);
   
   const badgeClasses = useMemo(() => {
-    return `absolute top-2 right-2 px-1.5 py-0.5 rounded-full text-xs font-medium ${
+    return `absolute top-2 right-2 px-1.5 py-0.5 rounded-full text-xs font-medium gpu-accelerated ${
       isLive 
         ? (isDark ? 'bg-primary-500/20 text-primary-300' : 'bg-primary-100 text-primary-700')
         : (isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700')
@@ -98,7 +102,7 @@ const CategoryCard = memo<{
   }, [isLive, isDark]);
   
   const iconClasses = useMemo(() => {
-    return `w-6 h-6 md:w-7 md:h-7 ${
+    return `w-6 h-6 md:w-7 md:h-7 gpu-accelerated ${
       isLive 
         ? (isDark ? 'text-primary-300' : 'text-primary-600')
         : (isDark ? 'text-blue-300' : 'text-blue-600')
@@ -106,7 +110,7 @@ const CategoryCard = memo<{
   }, [isLive, isDark]);
   
   const titleClasses = useMemo(() => {
-    return `font-semibold text-xs md:text-sm transition-colors text-center px-1 ${
+    return `font-semibold text-xs md:text-sm transition-gpu text-center px-1 gpu-accelerated ${
       isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-500'
     } line-clamp-2`;
   }, [isDark]);
@@ -117,8 +121,8 @@ const CategoryCard = memo<{
         {isLive ? 'Live' : 'Blended'}
       </div>
       
-      <div className="relative z-10 text-center flex flex-col items-center justify-center h-full">
-        <div className="mb-2 group-hover:scale-110 transition-all duration-300">
+      <div className="relative z-10 text-center flex flex-col items-center justify-center h-full gpu-accelerated">
+        <div className="mb-2 group-hover:scale-110 transition-gpu gpu-accelerated">
           <IconComponent className={iconClasses} />
         </div>
         <h3 className={titleClasses}>
@@ -138,7 +142,7 @@ const CategoryCard = memo<{
 
 CategoryCard.displayName = 'CategoryCard';
 
-// HIGHLY OPTIMIZED InfiniteScrollerCards with React.memo and stable callbacks
+// GPU-OPTIMIZED InfiniteScrollerCards with React.memo and stable callbacks
 const InfiniteScrollerCards = memo<{ isDark: boolean }>(({ isDark }) => {
   const router = useRouter();
   
@@ -151,8 +155,8 @@ const InfiniteScrollerCards = memo<{ isDark: boolean }>(({ isDark }) => {
   const ringCategories = CATEGORY_RINGS;
 
   return (
-    <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] overflow-hidden">
-      <div className="animate-scroll-infinite flex gap-2 md:gap-3 pl-2 md:pl-4 pr-2 md:pr-4" style={{ width: '300%' }}>
+    <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] overflow-hidden gpu-accelerated">
+      <div className="animate-scroll-infinite-gpu flex gap-2 md:gap-3 pl-2 md:pl-4 pr-2 md:pr-4 gpu-accelerated" style={{ width: '300%' }}>
         {ringCategories.map((category, index) => (
           <CategoryCard
             key={`${category.name}-${index}`}
@@ -170,7 +174,7 @@ const InfiniteScrollerCards = memo<{ isDark: boolean }>(({ isDark }) => {
 
 InfiniteScrollerCards.displayName = 'InfiniteScrollerCards';
 
-// HIGHLY OPTIMIZED StatCard with React.memo and memoized classes
+// GPU-OPTIMIZED StatCard with React.memo and memoized classes
 const StatCard = memo<{
   icon: React.ReactNode;
   value: string;
@@ -179,20 +183,20 @@ const StatCard = memo<{
   isDark: boolean;
 }>(({ icon, value, label, color, isDark }) => {
   const valueClasses = useMemo(() => {
-    return `text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`;
+    return `text-sm font-bold gpu-accelerated ${isDark ? 'text-white' : 'text-gray-900'}`;
   }, [isDark]);
   
   const labelClasses = useMemo(() => {
-    return `text-xs ${isDark ? 'text-white' : 'text-gray-800'} font-medium`;
+    return `text-xs gpu-accelerated ${isDark ? 'text-white' : 'text-gray-800'} font-medium`;
   }, [isDark]);
   
   const colorClasses = useMemo(() => {
-    return `mb-1 p-1 ${color.replace('from-', 'bg-').replace('/10', '/20').split(' ')[0]} rounded-md w-fit`;
+    return `mb-1 p-1 gpu-accelerated ${color.replace('from-', 'bg-').replace('/10', '/20').split(' ')[0]} rounded-md w-fit`;
   }, [color]);
 
   return (
-    <div className="glass-stats rounded-lg p-2 text-center hover:scale-105 transition-all duration-300 group relative overflow-hidden min-h-[60px] flex flex-col justify-center">
-      <div className="relative z-10 flex flex-col items-center">
+    <div className="glass-stats rounded-lg p-2 text-center hover:scale-105 transition-gpu group relative overflow-hidden min-h-[60px] flex flex-col justify-center gpu-accelerated">
+      <div className="relative z-10 flex flex-col items-center gpu-accelerated">
         <div className={colorClasses}>
           {icon}
         </div>
@@ -212,7 +216,7 @@ const StatCard = memo<{
 
 StatCard.displayName = 'StatCard';
 
-// IMPROVED Mobile Hero with better loading and error handling
+// GPU-OPTIMIZED Mobile Hero with better loading and error handling
 const HeroMobile = memo<{
   isLoaded: boolean;
   isDark: boolean;
@@ -220,21 +224,21 @@ const HeroMobile = memo<{
   // Always show mobile content, don't wait for isLoaded
   const showContent = true;
   
-  // Memoize static class names
+  // Memoize static class names with GPU acceleration
   const containerClasses = useMemo(() => {
-    return `flex-1 flex flex-col justify-center transition-all duration-500 ${showContent ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-70'}`;
+    return `flex-1 flex flex-col justify-center transition-gpu gpu-accelerated ${showContent ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-70'}`;
   }, [showContent]);
   
   const headingClasses = useMemo(() => {
-    return `text-2xl sm:text-3xl font-bold mb-2 sm:mb-3 leading-tight tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`;
+    return `text-2xl sm:text-3xl font-bold mb-2 sm:mb-3 leading-tight tracking-tight gpu-accelerated ${isDark ? 'text-white' : 'text-gray-900'}`;
   }, [isDark]);
   
   const descriptionClasses = useMemo(() => {
-    return `text-sm leading-relaxed mb-3 sm:mb-4 max-w-sm mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`;
+    return `text-sm leading-relaxed mb-3 sm:mb-4 max-w-sm mx-auto gpu-accelerated ${isDark ? 'text-white' : 'text-gray-800'} font-medium`;
   }, [isDark]);
   
   const ctaClasses = useMemo(() => {
-    return `inline-flex items-center justify-center py-2.5 px-5 font-semibold rounded-xl transition-all duration-300 hover:scale-105 group text-sm relative overflow-hidden ${
+    return `inline-flex items-center justify-center py-2.5 px-5 font-semibold rounded-xl transition-gpu hover:scale-105 group text-sm relative overflow-hidden gpu-accelerated ${
       isDark 
         ? 'bg-gradient-to-r from-primary-500 to-purple-500 text-white hover:shadow-lg hover:shadow-primary-500/25 glass-stats' 
         : 'bg-white/90 backdrop-blur-md text-gray-900 border-2 border-primary-500/30 hover:border-primary-500/60 hover:bg-white/95 shadow-lg hover:shadow-xl'
@@ -242,7 +246,7 @@ const HeroMobile = memo<{
   }, [isDark]);
   
   const taglineClasses = useMemo(() => {
-    return `mumkinMedh font-extrabold leading-tight ${
+    return `mumkinMedh font-extrabold leading-tight gpu-accelerated ${
       isDark 
         ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
         : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
@@ -250,30 +254,30 @@ const HeroMobile = memo<{
   }, [isDark]);
 
   return (
-    <div className="mobile-hero-wrapper h-screen max-h-[100vh] relative overflow-hidden">
+    <div className="mobile-hero-wrapper h-screen max-h-[100vh] relative overflow-hidden gpu-accelerated">
       <style jsx>{mobileTaglineStyles}</style>
-      <div className="relative z-10 px-4 py-2 flex flex-col h-full justify-center text-center">
+      <div className="relative z-10 px-4 py-2 flex flex-col h-full justify-center text-center gpu-accelerated">
         <div className={containerClasses}>
 
           {/* Main Hero Card */}
-          <div className="mx-auto mb-4 glass-container rounded-2xl p-4 shadow-2xl max-w-md">
-            <div className="text-center">
+          <div className="mx-auto mb-4 glass-container rounded-2xl p-4 shadow-2xl max-w-md gpu-accelerated">
+            <div className="text-center gpu-accelerated">
               {/* Certification Badges */}
-              <div className="flex flex-wrap justify-center gap-2 mb-3">
-                <div className={`inline-flex items-center px-2 py-1 glass-stats rounded-full text-xs font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
-                  <Shield size={10} className="mr-1" />
+              <div className="flex flex-wrap justify-center gap-2 mb-3 gpu-accelerated">
+                <div className={`inline-flex items-center px-2 py-1 glass-stats rounded-full text-xs font-medium opacity-95 gpu-accelerated ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                  <Shield size={10} className="mr-1 gpu-accelerated" />
                   ISO Certified
                 </div>
-                <div className={`inline-flex items-center px-2 py-1 glass-stats rounded-full text-xs font-medium opacity-95 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
-                  <Award size={10} className="mr-1" />
+                <div className={`inline-flex items-center px-2 py-1 glass-stats rounded-full text-xs font-medium opacity-95 gpu-accelerated ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
+                  <Award size={10} className="mr-1 gpu-accelerated" />
                   STEM Certified
                 </div>
               </div>
               
               {/* Main Heading */}
               <h1 className={headingClasses}>
-                Unlock Your Potential Journey <em className="font-normal inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9)' }}>with</em>
-                <span className="inline-flex items-baseline align-baseline">
+                Unlock Your Potential Journey <em className="font-normal inline-flex items-baseline mr-1 gpu-accelerated" style={{ transform: 'scale(0.9) translate3d(0,0,0)' }}>with</em>
+                <span className="inline-flex items-baseline align-baseline gpu-accelerated">
                   <Image 
                     src={medhLogo} 
                     alt="Medh Logo" 
@@ -281,11 +285,12 @@ const HeroMobile = memo<{
                     height={24} 
                     priority 
                     sizes="24px" 
-                    className="inline-block h-6 sm:h-8 w-auto align-baseline"
+                    className="inline-block h-6 sm:h-8 w-auto align-baseline gpu-accelerated"
                     style={{ 
                       filter: 'brightness(1.1) contrast(1.2)',
-                      transform: 'scale(0.9) translateY(2px)',
-                      verticalAlign: 'baseline'
+                      transform: 'scale(0.9) translateY(2px) translate3d(0,0,0)',
+                      verticalAlign: 'baseline',
+                      width: 'auto'
                     }}
                   />
                 </span>
@@ -297,51 +302,51 @@ const HeroMobile = memo<{
               </p>
               
               {/* Category Chips - Simplified */}
-              <div className="mt-3 mb-3">
-                <div className="grid grid-cols-2 gap-2 max-w-sm mx-auto">
-                  <div className="glass-stats rounded-lg p-2 text-center hover:scale-105 transition-all duration-300">
-                    <div className="flex items-center justify-center space-x-1">
-                      <BookOpen className={`w-3 h-3 ${isDark ? 'text-primary-300' : 'text-primary-600'}`} />
-                      <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Children & Teens</span>
+              <div className="mt-3 mb-3 gpu-accelerated">
+                <div className="grid grid-cols-2 gap-2 max-w-sm mx-auto gpu-accelerated">
+                  <div className="glass-stats rounded-lg p-2 text-center hover:scale-105 transition-gpu gpu-accelerated">
+                    <div className="flex items-center justify-center space-x-1 gpu-accelerated">
+                      <BookOpen className={`w-3 h-3 gpu-accelerated ${isDark ? 'text-primary-300' : 'text-primary-600'}`} />
+                      <span className={`text-xs font-medium gpu-accelerated ${isDark ? 'text-white' : 'text-gray-900'}`}>Children & Teens</span>
                     </div>
                   </div>
 
-                  <div className="glass-stats rounded-lg p-2 text-center hover:scale-105 transition-all duration-300">
-                    <div className="flex items-center justify-center space-x-1">
-                      <Users className={`w-3 h-3 ${isDark ? 'text-secondary-300' : 'text-secondary-600'}`} />
-                      <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Professionals</span>
+                  <div className="glass-stats rounded-lg p-2 text-center hover:scale-105 transition-gpu gpu-accelerated">
+                    <div className="flex items-center justify-center space-x-1 gpu-accelerated">
+                      <Users className={`w-3 h-3 gpu-accelerated ${isDark ? 'text-secondary-300' : 'text-secondary-600'}`} />
+                      <span className={`text-xs font-medium gpu-accelerated ${isDark ? 'text-white' : 'text-gray-900'}`}>Professionals</span>
                     </div>
                   </div>
 
-                  <div className="glass-stats rounded-lg p-2 text-center hover:scale-105 transition-all duration-300">
-                    <div className="flex items-center justify-center space-x-1">
-                      <Star className={`w-3 h-3 ${isDark ? 'text-purple-300' : 'text-purple-600'}`} />
-                      <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Homemakers</span>
+                  <div className="glass-stats rounded-lg p-2 text-center hover:scale-105 transition-gpu gpu-accelerated">
+                    <div className="flex items-center justify-center space-x-1 gpu-accelerated">
+                      <Star className={`w-3 h-3 gpu-accelerated ${isDark ? 'text-purple-300' : 'text-purple-600'}`} />
+                      <span className={`text-xs font-medium gpu-accelerated ${isDark ? 'text-white' : 'text-gray-900'}`}>Homemakers</span>
                     </div>
                   </div>
 
-                  <div className="glass-stats rounded-lg p-2 text-center hover:scale-105 transition-all duration-300">
-                    <div className="flex items-center justify-center space-x-1">
-                      <TrendingUp className={`w-3 h-3 ${isDark ? 'text-blue-300' : 'text-blue-600'}`} />
-                      <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Lifelong Learners</span>
+                  <div className="glass-stats rounded-lg p-2 text-center hover:scale-105 transition-gpu gpu-accelerated">
+                    <div className="flex items-center justify-center space-x-1 gpu-accelerated">
+                      <TrendingUp className={`w-3 h-3 gpu-accelerated ${isDark ? 'text-blue-300' : 'text-blue-600'}`} />
+                      <span className={`text-xs font-medium gpu-accelerated ${isDark ? 'text-white' : 'text-gray-900'}`}>Lifelong Learners</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* CTA Button */}
-              <div className="mt-3 sm:mt-4">
+              <div className="mt-3 sm:mt-4 gpu-accelerated">
                 <Link href="/courses" className={ctaClasses}>
-                  <span className="relative z-10 font-bold">Explore Courses</span>
-                  <ArrowRight size={14} className="relative z-10 ml-2 group-hover:translate-x-1 transition-transform" />
+                  <span className="relative z-10 font-bold gpu-accelerated">Explore Courses</span>
+                  <ArrowRight size={14} className="relative z-10 ml-2 group-hover:translate-x-1 transition-gpu gpu-accelerated" />
                 </Link>
               </div>
 
               {/* Tagline */}
-              <div className="mt-3 mb-4 sm:mb-5 w-full overflow-hidden" style={{ marginTop: 'calc(0.75rem + 2vh)' }}>
+              <div className="mt-3 mb-4 sm:mb-5 w-full overflow-hidden gpu-accelerated" style={{ marginTop: 'calc(0.75rem + 2vh)' }}>
                 <div className={taglineClasses} style={{ 
                   fontSize: 'clamp(1.5rem, 6vw, 2.5rem)',
-                  transform: 'scaleX(1.1)', 
+                  transform: 'scaleX(1.1) translate3d(0,0,0)', 
                   letterSpacing: '0.05em',
                   whiteSpace: 'nowrap',
                   textAlign: 'center',
@@ -354,31 +359,31 @@ const HeroMobile = memo<{
           </div>
 
           {/* Mobile Stats */}
-          <div className="flex justify-center px-1 mb-3 sm:mb-4">
-            <div className="grid grid-cols-4 gap-1.5 w-full max-w-xs">
+          <div className="flex justify-center px-1 mb-3 sm:mb-4 gpu-accelerated">
+            <div className="grid grid-cols-4 gap-1.5 w-full max-w-xs gpu-accelerated">
               <StatCard
-                icon={<GraduationCap className={`w-3 h-3 ${isDark ? 'text-primary-300' : 'text-primary-700'}`} />}
+                icon={<GraduationCap className={`w-3 h-3 gpu-accelerated ${isDark ? 'text-primary-300' : 'text-primary-700'}`} />}
                 value="100+"
                 label="Courses"
                 color="from-primary-500/10"
                 isDark={isDark}
               />
               <StatCard
-                icon={<Users className={`w-3 h-3 ${isDark ? 'text-purple-300' : 'text-purple-700'}`} />}
+                icon={<Users className={`w-3 h-3 gpu-accelerated ${isDark ? 'text-purple-300' : 'text-purple-700'}`} />}
                 value="All"
                 label="Ages"
                 color="from-purple-500/10"
                 isDark={isDark}
               />
               <StatCard
-                icon={<Clock className={`w-3 h-3 ${isDark ? 'text-secondary-300' : 'text-secondary-700'}`} />}
+                icon={<Clock className={`w-3 h-3 gpu-accelerated ${isDark ? 'text-secondary-300' : 'text-secondary-700'}`} />}
                 value="Live"
                 label="Classes"
                 color="from-secondary-500/10"
                 isDark={isDark}
               />
               <StatCard
-                icon={<Star className={`w-3 h-3 ${isDark ? 'text-blue-300' : 'text-blue-700'}`} />}
+                icon={<Star className={`w-3 h-3 gpu-accelerated ${isDark ? 'text-blue-300' : 'text-blue-700'}`} />}
                 value="Global"
                 label="Access"
                 color="from-blue-500/10"
@@ -388,7 +393,7 @@ const HeroMobile = memo<{
           </div>
 
           {/* Infinite Scroller */}
-          <div className="mb-3 sm:mb-4">
+          <div className="mb-3 sm:mb-4 gpu-accelerated">
             <InfiniteScrollerCards isDark={isDark} />
           </div>
         </div>
@@ -451,7 +456,7 @@ const useMobileDetection = () => {
   return { isMobile, mounted };
 };
 
-// IMPROVED Main Hero component with better mobile handling and error boundaries
+// GPU-OPTIMIZED Main Hero component with better mobile handling and error boundaries
 const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) => {
   const { theme } = useTheme();
   const { isMobile, mounted } = useMobileDetection();
@@ -479,21 +484,21 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
     return videoContext?.isLoaded ?? true;
   }, [contextReady, videoContext?.isLoaded]);
 
-  // Memoized class names for desktop version
+  // Memoized class names for desktop version with GPU acceleration
   const desktopContainerClasses = useMemo(() => {
-    return `flex-1 flex flex-col justify-center transition-all duration-500 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-90'}`;
+    return `flex-1 flex flex-col justify-center transition-gpu gpu-accelerated ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-90'}`;
   }, [isLoaded]);
   
   const desktopHeadingClasses = useMemo(() => {
-    return `text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-4 md:mb-6 tracking-tight max-w-4xl mx-auto ${isDark ? 'text-white' : 'text-gray-900'}`;
+    return `text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-4 md:mb-6 tracking-tight max-w-4xl mx-auto gpu-accelerated ${isDark ? 'text-white' : 'text-gray-900'}`;
   }, [isDark]);
   
   const desktopDescriptionClasses = useMemo(() => {
-    return `text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`;
+    return `text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto gpu-accelerated ${isDark ? 'text-white' : 'text-gray-800'} font-medium`;
   }, [isDark]);
   
   const desktopCtaClasses = useMemo(() => {
-    return `inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-all duration-300 hover:scale-105 group text-sm sm:text-base md:text-lg relative overflow-hidden ${
+    return `inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-gpu hover:scale-105 group text-sm sm:text-base md:text-lg relative overflow-hidden gpu-accelerated ${
       isDark 
         ? 'bg-gradient-to-r from-primary-500 to-purple-500 text-white hover:shadow-2xl hover:shadow-primary-500/30 glass-stats' 
         : 'bg-white/95 backdrop-blur-lg text-gray-900 border-2 border-primary-500/40 hover:border-primary-500/70 hover:bg-white shadow-2xl hover:shadow-3xl'
@@ -501,7 +506,7 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
   }, [isDark]);
   
   const desktopTaglineClasses = useMemo(() => {
-    return `mumkinMedh font-extrabold leading-tight ${
+    return `mumkinMedh font-extrabold leading-tight gpu-accelerated ${
       isDark 
         ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
         : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
@@ -511,11 +516,11 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
   // Simplified loading state - show basic content immediately
   if (!mounted) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-        <div className="text-center">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-300 dark:bg-gray-600 rounded w-64 mx-auto mb-4"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48 mx-auto"></div>
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 gpu-accelerated">
+        <div className="text-center gpu-accelerated">
+          <div className="animate-pulse-gpu gpu-accelerated">
+            <div className="h-8 bg-gray-300 dark:bg-gray-600 rounded w-64 mx-auto mb-4 gpu-accelerated"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48 mx-auto gpu-accelerated"></div>
           </div>
         </div>
       </div>
@@ -525,35 +530,35 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
   // Mobile version with improved error handling
   if (isMobile) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen gpu-accelerated">
         <HeroMobile isLoaded={isLoaded} isDark={isDark} />
       </div>
     );
   }
 
-  // Desktop version - improved with better fallbacks
+  // Desktop version - improved with better fallbacks and GPU acceleration
   return (
-    <section className="relative min-h-screen overflow-hidden">
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
-        <div className="flex flex-col items-center justify-center min-h-screen text-center py-4 md:py-6 lg:py-8">
+    <section className="relative min-h-screen overflow-hidden gpu-accelerated">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8 gpu-accelerated">
+        <div className="flex flex-col items-center justify-center min-h-screen text-center py-4 md:py-6 lg:py-8 gpu-accelerated">
           
           {/* Hero Text Section */}
-          <div className={`mb-2 md:mb-3 transition-all duration-500 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-90'}`}>
-            <div className="glass-container rounded-3xl p-8 md:p-12 mb-1" style={{ transform: 'scale(0.9)' }}>
-              <div className="flex flex-wrap justify-center gap-3 mb-3 sm:mb-4">
-                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
-                  <Shield size={10} className="mr-1 sm:w-3 sm:h-3" />
+          <div className={`mb-2 md:mb-3 transition-gpu gpu-accelerated ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-90'}`}>
+            <div className="glass-container rounded-3xl p-8 md:p-12 mb-1 gpu-accelerated" style={{ transform: 'scale(0.9) translate3d(0,0,0)' }}>
+              <div className="flex flex-wrap justify-center gap-3 mb-3 sm:mb-4 gpu-accelerated">
+                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 gpu-accelerated ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                  <Shield size={10} className="mr-1 sm:w-3 sm:h-3 gpu-accelerated" />
                   ISO Certified
                 </div>
-                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
-                  <Award size={10} className="mr-1 sm:w-3 sm:h-3" />
+                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 gpu-accelerated ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
+                  <Award size={10} className="mr-1 sm:w-3 sm:h-3 gpu-accelerated" />
                   STEM Certified
                 </div>
               </div>
                
               <h1 className={desktopHeadingClasses}>
-                Unlock Your Potential Journey <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9)' }}>with</em>
-                <span className="inline-flex items-baseline align-baseline">
+                Unlock Your Potential Journey <em className="font-semibold inline-flex items-baseline mr-1 gpu-accelerated" style={{ transform: 'scale(0.9) translate3d(0,0,0)' }}>with</em>
+                <span className="inline-flex items-baseline align-baseline gpu-accelerated">
                   <Image 
                     src={medhLogo} 
                     alt="Medh Logo" 
@@ -561,11 +566,12 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
                     height={24} 
                     priority 
                     sizes="24px" 
-                    className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline"
+                    className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline gpu-accelerated"
                     style={{ 
                       filter: 'brightness(1.1) contrast(1.2)',
-                      transform: 'scale(0.9) translateY(2px)',
-                      verticalAlign: 'baseline'
+                      transform: 'scale(0.9) translateY(2px) translate3d(0,0,0)',
+                      verticalAlign: 'baseline',
+                      width: 'auto'
                     }}
                   />
                 </span>
@@ -576,51 +582,51 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
               </p>
 
               {/* Category Chips - Desktop - Simplified */}
-              <div className="mt-4 mb-4 sm:mt-6 sm:mb-6">
-                <div className="grid grid-cols-4 gap-3 max-w-4xl mx-auto">
-                  <div className="glass-stats rounded-xl p-3 sm:p-4 text-center hover:scale-105 transition-all duration-300">
-                    <div className="flex flex-col items-center space-y-2">
-                      <BookOpen className={`w-5 h-5 sm:w-6 sm:h-6 ${isDark ? 'text-primary-300' : 'text-primary-600'} group-hover:scale-110 transition-transform`} />
-                      <span className={`text-sm md:text-base lg:text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} text-center leading-tight`}>Children & Teens</span>
+              <div className="mt-4 mb-4 sm:mt-6 sm:mb-6 gpu-accelerated">
+                <div className="grid grid-cols-4 gap-3 max-w-4xl mx-auto gpu-accelerated">
+                  <div className="glass-stats rounded-xl p-3 sm:p-4 text-center hover:scale-105 transition-gpu gpu-accelerated">
+                    <div className="flex flex-col items-center space-y-2 gpu-accelerated">
+                      <BookOpen className={`w-5 h-5 sm:w-6 sm:h-6 gpu-accelerated ${isDark ? 'text-primary-300' : 'text-primary-600'} group-hover:scale-110 transition-gpu`} />
+                      <span className={`text-sm md:text-base lg:text-lg font-semibold gpu-accelerated ${isDark ? 'text-white' : 'text-gray-900'} text-center leading-tight`}>Children & Teens</span>
                     </div>
                   </div>
 
-                  <div className="glass-stats rounded-xl p-3 sm:p-4 text-center hover:scale-105 transition-all duration-300">
-                    <div className="flex flex-col items-center space-y-2">
-                      <Users className={`w-5 h-5 sm:w-6 sm:h-6 ${isDark ? 'text-secondary-300' : 'text-secondary-600'} group-hover:scale-110 transition-transform`} />
-                      <span className={`text-sm md:text-base lg:text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} text-center leading-tight`}>Professionals</span>
+                  <div className="glass-stats rounded-xl p-3 sm:p-4 text-center hover:scale-105 transition-gpu gpu-accelerated">
+                    <div className="flex flex-col items-center space-y-2 gpu-accelerated">
+                      <Users className={`w-5 h-5 sm:w-6 sm:h-6 gpu-accelerated ${isDark ? 'text-secondary-300' : 'text-secondary-600'} group-hover:scale-110 transition-gpu`} />
+                      <span className={`text-sm md:text-base lg:text-lg font-semibold gpu-accelerated ${isDark ? 'text-white' : 'text-gray-900'} text-center leading-tight`}>Professionals</span>
                     </div>
                   </div>
 
-                  <div className="glass-stats rounded-xl p-3 sm:p-4 text-center hover:scale-105 transition-all duration-300">
-                    <div className="flex flex-col items-center space-y-2">
-                      <Star className={`w-5 h-5 sm:w-6 sm:h-6 ${isDark ? 'text-purple-300' : 'text-purple-600'} group-hover:scale-110 transition-transform`} />
-                      <span className={`text-sm md:text-base lg:text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} text-center leading-tight`}>Homemakers</span>
+                  <div className="glass-stats rounded-xl p-3 sm:p-4 text-center hover:scale-105 transition-gpu gpu-accelerated">
+                    <div className="flex flex-col items-center space-y-2 gpu-accelerated">
+                      <Star className={`w-5 h-5 sm:w-6 sm:h-6 gpu-accelerated ${isDark ? 'text-purple-300' : 'text-purple-600'} group-hover:scale-110 transition-gpu`} />
+                      <span className={`text-sm md:text-base lg:text-lg font-semibold gpu-accelerated ${isDark ? 'text-white' : 'text-gray-900'} text-center leading-tight`}>Homemakers</span>
                     </div>
                   </div>
 
-                  <div className="glass-stats rounded-xl p-3 sm:p-4 text-center hover:scale-105 transition-all duration-300">
-                    <div className="flex flex-col items-center space-y-2">
-                      <TrendingUp className={`w-5 h-5 sm:w-6 sm:h-6 ${isDark ? 'text-blue-300' : 'text-blue-600'} group-hover:scale-110 transition-transform`} />
-                      <span className={`text-sm md:text-base lg:text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} text-center leading-tight`}>Lifelong Learners</span>
+                  <div className="glass-stats rounded-xl p-3 sm:p-4 text-center hover:scale-105 transition-gpu gpu-accelerated">
+                    <div className="flex flex-col items-center space-y-2 gpu-accelerated">
+                      <TrendingUp className={`w-5 h-5 sm:w-6 sm:h-6 gpu-accelerated ${isDark ? 'text-blue-300' : 'text-blue-600'} group-hover:scale-110 transition-gpu`} />
+                      <span className={`text-sm md:text-base lg:text-lg font-semibold gpu-accelerated ${isDark ? 'text-white' : 'text-gray-900'} text-center leading-tight`}>Lifelong Learners</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* CTA Button */}
-              <div className="mt-4 sm:mt-6 md:mt-8">
+              <div className="mt-4 sm:mt-6 md:mt-8 gpu-accelerated">
                 <Link href="/courses" className={desktopCtaClasses}>
-                  <span className="relative z-10 font-extrabold tracking-wide">Explore Courses</span>
-                  <ArrowRight size={16} className="relative z-10 ml-3 group-hover:translate-x-1 transition-transform sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                  <span className="relative z-10 font-extrabold tracking-wide gpu-accelerated">Explore Courses</span>
+                  <ArrowRight size={16} className="relative z-10 ml-3 group-hover:translate-x-1 transition-gpu sm:w-4 sm:h-4 md:w-5 md:h-5 gpu-accelerated" />
                 </Link>
               </div>
 
               {/* Tagline */}
-              <div className="pt-4 mb-2 w-full overflow-hidden" style={{ paddingTop: 'calc(1rem + 2vh)' }}>
+              <div className="pt-4 mb-2 w-full overflow-hidden gpu-accelerated" style={{ paddingTop: 'calc(1rem + 2vh)' }}>
                 <div className={desktopTaglineClasses} style={{ 
                   fontSize: 'clamp(2rem, 8vw, 5rem)',
-                  transform: 'scaleX(1.1)', 
+                  transform: 'scaleX(1.1) translate3d(0,0,0)', 
                   letterSpacing: '0.05em', 
                   whiteSpace: 'nowrap',
                   textAlign: 'center',
@@ -633,42 +639,42 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
           </div>
           
           {/* Infinite Scroller Section */}
-          <div className={`w-full mb-2 sm:mb-3 md:mb-4 transition-all duration-500 delay-100 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-90'}`}>
+          <div className={`w-full mb-2 sm:mb-3 md:mb-4 transition-gpu delay-100 gpu-accelerated ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-90'}`}>
             <InfiniteScrollerCards isDark={isDark} />
           </div>
                   
           {/* Enhanced Stats Grid */}
-          <div className={`mb-6 sm:mb-8 md:mb-12 transition-all duration-500 delay-200 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-90'}`}>
-            <div className="grid grid-cols-4 gap-2 sm:gap-3 md:gap-4 lg:gap-6 max-w-5xl lg:max-w-6xl mx-auto">
-              <div className="glass-stats rounded-xl p-2 sm:p-3 md:p-4 lg:p-6 text-center hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden">
-                <div className="relative z-10">
-                  <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-white' : 'text-gray-900'}`}>100+</div>
-                  <div className={`font-semibold text-xs sm:text-sm md:text-base group-hover:text-primary-300 transition-colors ${isDark ? 'text-white' : 'text-gray-800'}`}>Expert Courses</div>
-                  <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 ${isDark ? 'text-white' : 'text-gray-700'} font-medium`}>All Skill Levels</div>
+          <div className={`mb-6 sm:mb-8 md:mb-12 transition-gpu delay-200 gpu-accelerated ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-90'}`}>
+            <div className="grid grid-cols-4 gap-2 sm:gap-3 md:gap-4 lg:gap-6 max-w-5xl lg:max-w-6xl mx-auto gpu-accelerated">
+              <div className="glass-stats rounded-xl p-2 sm:p-3 md:p-4 lg:p-6 text-center hover:scale-105 transition-gpu group cursor-pointer overflow-hidden gpu-accelerated">
+                <div className="relative z-10 gpu-accelerated">
+                  <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-gpu gpu-accelerated ${isDark ? 'text-white' : 'text-gray-900'}`}>100+</div>
+                  <div className={`font-semibold text-xs sm:text-sm md:text-base group-hover:text-primary-300 transition-gpu gpu-accelerated ${isDark ? 'text-white' : 'text-gray-800'}`}>Expert Courses</div>
+                  <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 gpu-accelerated ${isDark ? 'text-white' : 'text-gray-700'} font-medium`}>All Skill Levels</div>
                 </div>
               </div>
               
-              <div className="glass-stats rounded-xl p-2 sm:p-3 md:p-4 lg:p-6 text-center hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden">
-                <div className="relative z-10">
-                  <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-white' : 'text-gray-900'}`}>Every</div>
-                  <div className={`font-semibold text-xs sm:text-sm md:text-base group-hover:text-purple-300 transition-colors ${isDark ? 'text-white' : 'text-gray-800'}`}>Age Group</div>
-                  <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 ${isDark ? 'text-white' : 'text-gray-700'} font-medium`}>8 to 80+ Years</div>
+              <div className="glass-stats rounded-xl p-2 sm:p-3 md:p-4 lg:p-6 text-center hover:scale-105 transition-gpu group cursor-pointer overflow-hidden gpu-accelerated">
+                <div className="relative z-10 gpu-accelerated">
+                  <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-gpu gpu-accelerated ${isDark ? 'text-white' : 'text-gray-900'}`}>Every</div>
+                  <div className={`font-semibold text-xs sm:text-sm md:text-base group-hover:text-purple-300 transition-gpu gpu-accelerated ${isDark ? 'text-white' : 'text-gray-800'}`}>Age Group</div>
+                  <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 gpu-accelerated ${isDark ? 'text-white' : 'text-gray-700'} font-medium`}>8 to 80+ Years</div>
                 </div>
               </div>
               
-              <div className="glass-stats rounded-xl p-2 sm:p-3 md:p-4 lg:p-6 text-center hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden">
-                <div className="relative z-10">
-                  <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-white' : 'text-gray-900'}`}>Live</div>
-                  <div className={`font-semibold text-xs sm:text-sm md:text-base group-hover:text-secondary-300 transition-colors ${isDark ? 'text-white' : 'text-gray-800'}`}>Interactive</div>
-                  <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 ${isDark ? 'text-white' : 'text-gray-700'} font-medium`}>Real-time Classes</div>
+              <div className="glass-stats rounded-xl p-2 sm:p-3 md:p-4 lg:p-6 text-center hover:scale-105 transition-gpu group cursor-pointer overflow-hidden gpu-accelerated">
+                <div className="relative z-10 gpu-accelerated">
+                  <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-gpu gpu-accelerated ${isDark ? 'text-white' : 'text-gray-900'}`}>Live</div>
+                  <div className={`font-semibold text-xs sm:text-sm md:text-base group-hover:text-secondary-300 transition-gpu gpu-accelerated ${isDark ? 'text-white' : 'text-gray-800'}`}>Interactive</div>
+                  <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 gpu-accelerated ${isDark ? 'text-white' : 'text-gray-700'} font-medium`}>Real-time Classes</div>
                 </div>
               </div>
               
-              <div className="glass-stats rounded-xl p-2 sm:p-3 md:p-4 lg:p-6 text-center hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden">
-                <div className="relative z-10">
-                  <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-white' : 'text-gray-900'}`}>Global</div>
-                  <div className={`font-semibold text-xs sm:text-sm md:text-base group-hover:text-blue-300 transition-colors ${isDark ? 'text-white' : 'text-gray-800'}`}>Learning</div>
-                  <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 ${isDark ? 'text-white' : 'text-gray-700'} font-medium`}>Worldwide Access</div>
+              <div className="glass-stats rounded-xl p-2 sm:p-3 md:p-4 lg:p-6 text-center hover:scale-105 transition-gpu group cursor-pointer overflow-hidden gpu-accelerated">
+                <div className="relative z-10 gpu-accelerated">
+                  <div className={`text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 group-hover:scale-110 transition-gpu gpu-accelerated ${isDark ? 'text-white' : 'text-gray-900'}`}>Global</div>
+                  <div className={`font-semibold text-xs sm:text-sm md:text-base group-hover:text-blue-300 transition-gpu gpu-accelerated ${isDark ? 'text-white' : 'text-gray-800'}`}>Learning</div>
+                  <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 gpu-accelerated ${isDark ? 'text-white' : 'text-gray-700'} font-medium`}>Worldwide Access</div>
                 </div>
               </div>
             </div>

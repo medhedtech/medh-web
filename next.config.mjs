@@ -42,15 +42,25 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'cdn.jsdelivr.net',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3000',
       }
     ],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    formats: ['image/webp', 'image/avif'],
-    minimumCacheTTL: 60 * 60 * 24 * 7, // 1 week
+    // Optimized device sizes for course cards and LCP
+    deviceSizes: [400, 600, 800, 1200, 1600, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 400, 600, 800],
+    // Prioritize modern formats for better compression
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days for better caching
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    unoptimized: true,
+    // Enable optimization for better LCP
+    unoptimized: false,
+    // Enable responsive images by default
+    loader: 'default',
   },
   // Removed experimental features that might cause issues
   webpack: (config, { dev, isServer }) => {

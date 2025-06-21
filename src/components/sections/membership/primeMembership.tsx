@@ -366,7 +366,7 @@ const PrimeMembership: React.FC = () => {
                 </div>
                 <div className="text-left">
                   <h1 id="choose-membership" className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-slate-100 leading-tight">
-                Choose Your <span className="text-blue-600 dark:text-blue-400">MEDH</span> Membership
+                Choose Your <span className="text-medhgreen dark:text-medhgreen">MEDH</span> Membership
               </h1>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                     Professional Learning Plans
@@ -414,7 +414,7 @@ const PrimeMembership: React.FC = () => {
                 transition={{ delay: index * 0.2 }}
                 onHoverStart={() => setHoveredCard(index)}
                 onHoverEnd={() => setHoveredCard(null)}
-                className="group bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-slate-200/50 dark:border-slate-600/50 shadow-xl hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] transition-all duration-300 cursor-pointer overflow-hidden min-h-[44px] touch-manipulation"
+                className="group bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-slate-200/50 dark:border-slate-600/50 shadow-xl hover:shadow-2xl hover-lift-gpu hover-scale-gpu transition-gpu cursor-pointer overflow-hidden min-h-[44px] touch-manipulation gpu-accelerated"
               >
                 {/* Professional Header */}
                 <div className={`p-4 sm:p-6 lg:p-8 ${
@@ -618,7 +618,7 @@ const PrimeMembership: React.FC = () => {
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleSelectCourseModal(membership.type)}
                     disabled={enrollmentLoading}
-                    className={`mt-6 w-full py-4 px-6 rounded-xl font-semibold text-base flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:-translate-y-1 hover:shadow-lg min-h-[44px] touch-manipulation ${
+                    className={`mt-6 w-full py-4 px-6 rounded-xl font-semibold text-base flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed transition-gpu hover-lift-gpu hover:shadow-lg min-h-[44px] touch-manipulation gpu-accelerated ${
                       membership.type === 'gold'
                         ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-amber-500/25'
                         : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-blue-500/25'
