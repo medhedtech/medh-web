@@ -466,18 +466,31 @@ const SortDropdown = React.memo<ISortDropdownProps>(({ sortOrder, handleSortChan
 
       {showSortDropdown && (
         <>
-          {/* Mobile backdrop */}
+          {/* Mobile backdrop - always visible when dropdown is open */}
           <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" 
+            className="fixed inset-0 bg-black/50 z-[999] block" 
             onClick={() => setShowSortDropdown(false)}
-            onTouchMove={(e) => e.preventDefault()}
-            style={{ touchAction: 'none' }}
+            style={{ 
+              touchAction: 'none',
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)'
+            }}
           />
+          {/* Sort dropdown content - force visible on mobile */}
           <div 
-            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-2rem)] max-w-xs bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-50 overflow-hidden md:absolute md:right-0 md:top-full md:left-auto md:transform-none md:translate-x-0 md:translate-y-0 md:mt-2 md:w-48 md:z-10" 
+            className="fixed top-[20vh] left-1/2 transform -translate-x-1/2 w-[90vw] max-w-sm bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[1000] md:absolute md:right-0 md:top-full md:left-auto md:transform-none md:translate-x-0 md:translate-y-0 md:mt-2 md:w-48 md:z-10" 
             role="menu"
             onClick={(e) => e.stopPropagation()}
-            style={{ touchAction: 'auto' }}
+            style={{ 
+              touchAction: 'auto',
+              display: 'block',
+              visibility: 'visible',
+              opacity: 1
+            }}
           >
           <div className="py-2">
             {[
@@ -2272,54 +2285,88 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
 
         {isMobileCategoriesOpen && (
           <>
-            {/* Mobile backdrop */}
+            {/* Mobile backdrop - always visible when dropdown is open */}
             <div 
-              className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" 
+              className="fixed inset-0 bg-black/50 z-[999] block" 
               onClick={() => setIsMobileCategoriesOpen(false)}
-              onTouchMove={(e) => e.preventDefault()}
-              style={{ touchAction: 'none' }}
+              style={{ 
+                touchAction: 'none',
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.5)'
+              }}
             />
+            {/* Categories dropdown content - force visible on mobile */}
             <div 
-              className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-2rem)] max-w-sm bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-50 max-h-[70vh] flex flex-col md:absolute md:top-full md:left-0 md:transform-none md:translate-x-0 md:translate-y-0 md:mt-2 md:max-h-[400px] md:overflow-y-auto"
+              className="fixed top-[5vh] bottom-[5vh] left-1/2 transform -translate-x-1/2 w-[90vw] max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[1000] flex flex-col overflow-hidden md:absolute md:top-full md:left-0 md:transform-none md:translate-x-0 md:translate-y-0 md:mt-2 md:max-h-[400px] md:h-auto md:bottom-auto md:overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
-              style={{ touchAction: 'auto' }}
+              style={{ 
+                touchAction: 'auto',
+                display: 'block',
+                visibility: 'visible',
+                opacity: 1
+              }}
             >
-            <div className="flex-1 overflow-y-auto p-3 md:p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Categories</h3>
+            {/* Fixed Header - Enhanced UX */}
+            <div className="flex-shrink-0 px-5 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-gray-100/50 dark:from-gray-900 dark:to-gray-800/50 rounded-t-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 tracking-tight">Filter Categories</h3>
+                </div>
                 <button
                   onClick={handleClearFilters}
-                  className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors md:block hidden"
+                  className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-200 px-3 py-2 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 font-medium active:scale-95"
                 >
                   Clear All
                 </button>
               </div>
-              
-              <div className="space-y-2 md:space-y-3">
+            </div>
+            
+            {/* Scrollable Content Area - Enhanced UX with better spacing */}
+            <div 
+              className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 px-5 py-6 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 dark:hover:scrollbar-thumb-gray-500"
+              style={{ 
+                maxHeight: 'calc(90vh - 200px)',
+                overflowY: 'auto',
+                overflowX: 'hidden'
+              }}
+            >
+              <div className="space-y-4">
                 {/* Live Courses */}
                 <div className="bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-900/30 overflow-hidden">
-                                      <div 
-                      className="flex items-center justify-between cursor-pointer p-2 md:p-3 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-300 ease-in-out" 
-                      onClick={() => setIsLiveCoursesDropdownOpen(!isLiveCoursesDropdownOpen)}
-                    >
-                    <div className="flex items-center space-x-2">
-                      <div className="w-6 h-6 bg-red-100 dark:bg-red-900/40 rounded-md flex items-center justify-center">
-                        <Zap className="w-3 h-3 text-red-600 dark:text-red-400" />
+                                                        <div 
+                    className="flex items-center justify-between cursor-pointer p-4 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-300 ease-in-out active:scale-[0.98]" 
+                    onClick={() => setIsLiveCoursesDropdownOpen(!isLiveCoursesDropdownOpen)}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-red-100 dark:bg-red-900/40 rounded-lg flex items-center justify-center shadow-sm">
+                        <Zap className="w-4 h-4 text-red-600 dark:text-red-400" />
                       </div>
                       <div>
-                        <h5 className="text-sm font-medium text-red-900 dark:text-red-100">Live Courses</h5>
-                        <p className="text-xs text-red-600 dark:text-red-400">Interactive live sessions</p>
+                        <h5 className="text-sm font-semibold text-red-900 dark:text-red-100">Live Courses</h5>
+                        <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">Interactive live sessions</p>
                       </div>
                     </div>
-                    <ChevronDown className={`w-3 h-3 text-red-600 dark:text-red-400 transition-all duration-300 ease-in-out ${isLiveCoursesDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
+                    <div className="flex items-center space-x-2">
+                      {selectedLiveCourses.length > 0 && (
+                        <span className="text-xs bg-red-500 text-white px-2 py-1 rounded-full font-medium">
+                          {selectedLiveCourses.length}
+                        </span>
+                      )}
+                      <ChevronDown className={`w-5 h-5 text-red-600 dark:text-red-400 transition-all duration-300 ease-in-out ${isLiveCoursesDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
+                    </div>
                   </div>
                   
                   {isLiveCoursesDropdownOpen && (
-                    <div className="px-2 md:px-3 pb-2 md:pb-3 space-y-1 border-t border-red-100 dark:border-red-900/30 bg-white dark:bg-gray-800">
+                    <div className="px-4 pb-4 pt-2 space-y-2 border-t border-red-100 dark:border-red-900/30 bg-white dark:bg-gray-800">
                       {liveCoursesOptions.map((option) => (
                         <div
                           key={option}
-                          className="flex items-center justify-between p-4 md:p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 min-h-[48px]"
+                          className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 min-h-[48px] group"
                           onClick={(e) => {
                             e.stopPropagation();
                             const isChecked = selectedLiveCourses.includes(option);
@@ -2337,16 +2384,16 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                                 type="checkbox"
                                 checked={selectedLiveCourses.includes(option)}
                                 onChange={() => {}} // Controlled by parent div onClick
-                                className="w-5 h-5 md:w-4 md:h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 dark:focus:ring-red-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 pointer-events-none"
+                                className="w-5 h-5 text-red-600 bg-gray-100 border-gray-300 rounded-md focus:ring-red-500 dark:focus:ring-red-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 pointer-events-none transition-colors"
                                 readOnly
                               />
                             </div>
-                            <span className="text-sm md:text-xs text-gray-700 dark:text-gray-300 font-medium">
+                            <span className="text-sm text-gray-700 dark:text-gray-300 font-medium group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
                               {option}
                             </span>
                           </div>
                           {selectedLiveCourses.includes(option) && (
-                            <span className="text-xs text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/40 px-1 py-0.5 rounded-full">
+                            <span className="text-xs text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/40 px-3 py-1.5 rounded-full font-semibold shadow-sm">
                               ✓
                             </span>
                           )}
@@ -2359,7 +2406,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                 {/* Blended Learning */}
                 <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-900/30 overflow-hidden">
                                       <div 
-                      className="flex items-center justify-between cursor-pointer p-2 md:p-3 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all duration-300 ease-in-out" 
+                      className="flex items-center justify-between cursor-pointer p-3 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all duration-300 ease-in-out" 
                       onClick={() => setIsBlendedLearningDropdownOpen(!isBlendedLearningDropdownOpen)}
                     >
                     <div className="flex items-center space-x-2">
@@ -2371,15 +2418,15 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                         <p className="text-xs text-blue-600 dark:text-blue-400">Live + self-paced</p>
                       </div>
                     </div>
-                    <ChevronDown className={`w-3 h-3 text-blue-600 dark:text-blue-400 transition-all duration-300 ease-in-out ${isBlendedLearningDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
+                    <ChevronDown className={`w-4 h-4 text-blue-600 dark:text-blue-400 transition-all duration-300 ease-in-out ${isBlendedLearningDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
                   </div>
                   
                   {isBlendedLearningDropdownOpen && (
-                    <div className="px-2 md:px-3 pb-2 md:pb-3 space-y-1 border-t border-blue-100 dark:border-blue-900/30 bg-white dark:bg-gray-800">
+                    <div className="px-3 pb-3 space-y-1 border-t border-blue-100 dark:border-blue-900/30 bg-white dark:bg-gray-800">
                       {blendedLearningOptions.map((option) => (
                         <div
                           key={option}
-                          className="flex items-center justify-between p-4 md:p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 min-h-[48px]"
+                          className="flex items-center justify-between p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 min-h-[44px]"
                           onClick={(e) => {
                             e.stopPropagation();
                             const isChecked = selectedBlendedLearning.includes(option);
@@ -2397,16 +2444,16 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                                 type="checkbox"
                                 checked={selectedBlendedLearning.includes(option)}
                                 onChange={() => {}} // Controlled by parent div onClick
-                                className="w-5 h-5 md:w-4 md:h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 pointer-events-none"
+                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 pointer-events-none"
                                 readOnly
                               />
                             </div>
-                            <span className="text-sm md:text-xs text-gray-700 dark:text-gray-300 font-medium">
+                            <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                               {option}
                             </span>
                           </div>
                           {selectedBlendedLearning.includes(option) && (
-                            <span className="text-xs text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 px-1 py-0.5 rounded-full">
+                            <span className="text-xs text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 px-2 py-1 rounded-full font-medium">
                               ✓
                             </span>
                           )}
@@ -2419,7 +2466,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                 {/* Free Courses */}
                 <div className="bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-900/30 overflow-hidden">
                                       <div 
-                      className="flex items-center justify-between cursor-pointer p-2 md:p-3 hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-300 ease-in-out" 
+                      className="flex items-center justify-between cursor-pointer p-3 hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-300 ease-in-out" 
                       onClick={() => setIsFreeCoursesDropdownOpen(!isFreeCoursesDropdownOpen)}
                     >
                     <div className="flex items-center space-x-2">
@@ -2431,15 +2478,15 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                         <p className="text-xs text-green-600 dark:text-green-400">Free to get started</p>
                       </div>
                     </div>
-                    <ChevronDown className={`w-3 h-3 text-green-600 dark:text-green-400 transition-all duration-300 ease-in-out ${isFreeCoursesDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
+                    <ChevronDown className={`w-4 h-4 text-green-600 dark:text-green-400 transition-all duration-300 ease-in-out ${isFreeCoursesDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
                   </div>
                   
                   {isFreeCoursesDropdownOpen && (
-                    <div className="px-2 md:px-3 pb-2 md:pb-3 space-y-1 border-t border-green-100 dark:border-green-900/30 bg-white dark:bg-gray-800">
+                    <div className="px-3 pb-3 space-y-1 border-t border-green-100 dark:border-green-900/30 bg-white dark:bg-gray-800">
                       {freeCoursesOptions.map((option) => (
                         <div
                           key={option}
-                          className="flex items-center justify-between p-4 md:p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 min-h-[48px]"
+                          className="flex items-center justify-between p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 min-h-[44px]"
                           onClick={(e) => {
                             e.stopPropagation();
                             const isChecked = selectedFreeCourses.includes(option);
@@ -2457,16 +2504,16 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                                 type="checkbox"
                                 checked={selectedFreeCourses.includes(option)}
                                 onChange={() => {}} // Controlled by parent div onClick
-                                className="w-5 h-5 md:w-4 md:h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 pointer-events-none"
+                                className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 pointer-events-none"
                                 readOnly
                               />
                             </div>
-                            <span className="text-sm md:text-xs text-gray-700 dark:text-gray-300 font-medium">
+                            <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                               {option}
                             </span>
                           </div>
                           {selectedFreeCourses.includes(option) && (
-                            <span className="text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/40 px-1 py-0.5 rounded-full">
+                            <span className="text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/40 px-2 py-1 rounded-full font-medium">
                               ✓
                             </span>
                           )}
@@ -2476,23 +2523,22 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                   )}
                 </div>
 
-                {/* Grade Level */}
-                {!hideGradeFilter && (
+                {(!hideGradeFilter && gradeOptions.length > 0) && (
                   <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-100 dark:border-purple-900/30 overflow-hidden">
-                    <div 
-                      className="flex items-center justify-between cursor-pointer p-3 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-all duration-300 ease-in-out" 
-                      onClick={() => setIsGradeDropdownOpen(!isGradeDropdownOpen)}
-                    >
+                                        <div 
+                        className="flex items-center justify-between cursor-pointer p-3 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-all duration-300 ease-in-out" 
+                        onClick={() => setIsGradeDropdownOpen(!isGradeDropdownOpen)}
+                      >
                       <div className="flex items-center space-x-2">
                         <div className="w-6 h-6 bg-purple-100 dark:bg-purple-900/40 rounded-md flex items-center justify-center">
                           <GraduationCap className="w-3 h-3 text-purple-600 dark:text-purple-400" />
                         </div>
                         <div>
                           <h5 className="text-sm font-medium text-purple-900 dark:text-purple-100">Grade Level</h5>
-                          <p className="text-xs text-purple-600 dark:text-purple-400">Educational grade</p>
+                          <p className="text-xs text-purple-600 dark:text-purple-400">Select grade level</p>
                         </div>
                       </div>
-                      <ChevronDown className={`w-3 h-3 text-purple-600 dark:text-purple-400 transition-all duration-300 ease-in-out ${isGradeDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
+                      <ChevronDown className={`w-4 h-4 text-purple-600 dark:text-purple-400 transition-all duration-300 ease-in-out ${isGradeDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
                     </div>
                     
                     {isGradeDropdownOpen && (
@@ -2500,7 +2546,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                         {gradeOptions.map((grade) => (
                           <div
                             key={grade}
-                            className="flex items-center justify-between p-4 md:p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 min-h-[48px]"
+                            className="flex items-center justify-between p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 min-h-[44px]"
                             onClick={(e) => {
                               e.stopPropagation();
                               const isChecked = selectedGrade.includes(grade);
@@ -2518,16 +2564,16 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                                   type="checkbox"
                                   checked={selectedGrade.includes(grade)}
                                   onChange={() => {}} // Controlled by parent div onClick
-                                  className="w-5 h-5 md:w-4 md:h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 pointer-events-none"
+                                  className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 pointer-events-none"
                                   readOnly
                                 />
                               </div>
-                              <span className="text-sm md:text-xs text-gray-700 dark:text-gray-300 font-medium">
+                              <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                                 {grade}
                               </span>
                             </div>
                             {selectedGrade.includes(grade) && (
-                              <span className="text-xs text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/40 px-1 py-0.5 rounded-full">
+                              <span className="text-xs text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/40 px-2 py-1 rounded-full font-medium">
                                 ✓
                               </span>
                             )}
@@ -2538,33 +2584,34 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                   </div>
                 )}
               
-              {/* Mobile Confirmation Buttons - Moved to end of filter block (mobile only) */}
-              <div className="mt-6 md:hidden">
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => {
-                      // Clear all selections
-                      setSelectedLiveCourses([]);
-                      setSelectedBlendedLearning([]);
-                      setSelectedFreeCourses([]);
-                      setSelectedGrade([]);
-                      setCurrentPage(1);
-                    }}
-                    className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
-                  >
-                    Clear All
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsMobileCategoriesOpen(false);
-                      setCurrentPage(1);
-                    }}
-                    className="flex-1 px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
-                  >
-                    Apply Filters
-                  </button>
-                </div>
               </div>
+            </div>
+            
+            {/* Fixed Footer with Action Buttons - Enhanced UX */}
+            <div className="flex-shrink-0 px-5 py-5 border-t border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-gray-100/50 dark:from-gray-900 dark:to-gray-800/50 rounded-b-xl backdrop-blur-sm">
+              <div className="flex gap-4">
+                <button
+                  onClick={() => {
+                    // Clear all selections
+                    setSelectedLiveCourses([]);
+                    setSelectedBlendedLearning([]);
+                    setSelectedFreeCourses([]);
+                    setSelectedGrade([]);
+                    setCurrentPage(1);
+                  }}
+                  className="flex-1 px-5 py-3.5 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-all duration-200 active:scale-95 shadow-sm"
+                >
+                  Clear All
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileCategoriesOpen(false);
+                    setCurrentPage(1);
+                  }}
+                  className="flex-1 px-5 py-3.5 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white text-sm font-semibold rounded-xl transition-all duration-200 active:scale-95 shadow-lg hover:shadow-xl"
+                >
+                  Apply Filters
+                </button>
               </div>
             </div>
           </div>
