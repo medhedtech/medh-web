@@ -1,10 +1,11 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Search, Calendar, Clock, Star, Eye, Play, Users, User, FileText, Video, MapPin, Globe, Loader2, Bell, Timer, CalendarDays, ChevronRight, AlarmClock, Check, Trash2 } from "lucide-react";
+import { X, Search, Calendar, Clock, Star, Eye, Play, Users, User, FileText, Video, MapPin, Globe, Loader2, Bell, Timer, CalendarDays, ChevronRight, AlarmClock, Check, Trash2, CalendarPlus, Download } from "lucide-react";
 import StudentDashboardLayout from "./StudentDashboardLayout";
 import { batchAPI } from '@/apis/batch';
 import { toast } from 'react-hot-toast';
+import { openGoogleCalendar, downloadICSFile, type SessionData } from '@/utils/googleCalendar';
 
 interface UpcomingClass {
   id: string;
@@ -44,6 +45,7 @@ interface UpcomingClass {
   timeUntilStart?: number; // minutes
   hasReminder?: boolean;
   reminderTime?: number; // minutes before class
+  sessionData?: any; // Store original session data for Google Calendar
 }
 
 interface Reminder {
@@ -324,6 +326,23 @@ const UpcomingClassCard = ({
       )}
       </div>
 
+      {/* Reminder Status */}
+      {upcomingClass?.hasReminder && (
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="flex items-start gap-2">
+            <Bell className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">
+                Multiple Reminders Set
+              </p>
+              <p className="text-xs text-blue-600 dark:text-blue-300">
+                You'll be notified 1 week, 1 day, 2 hours, and 30 minutes before class
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Quick Actions */}
       <div className="flex gap-2">
         <button 
@@ -332,6 +351,19 @@ const UpcomingClassCard = ({
         >
           <Eye className="w-4 h-4 mr-2" />
           Details
+        </button>
+        
+        {/* Google Calendar Button */}
+        <button 
+          onClick={() => handleAddToGoogleCalendar(upcomingClass)}
+          className="flex items-center justify-center px-3 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-colors text-sm font-medium group relative"
+          title="Add to Google Calendar"
+        >
+          <CalendarPlus className="w-4 h-4" />
+          {/* Tooltip */}
+          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+            Add to Calendar
+          </span>
         </button>
         
         {statusInfo.text === 'Live Now' && upcomingClass?.zoomMeeting?.join_url ? (
@@ -355,20 +387,62 @@ const UpcomingClassCard = ({
             className="flex-1 flex items-center justify-center px-3 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors text-sm font-medium"
           >
             <Trash2 className="w-4 h-4 mr-2" />
-            Remove Reminder
+            Remove Reminders
           </button>
         ) : (
           <button 
             onClick={() => onSetReminder(upcomingClass)}
             className="flex-1 flex items-center justify-center px-3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors text-sm font-medium"
           >
-              <Calendar className="w-4 h-4 mr-2" />
-              Set Reminder
-        </button>
+            <Bell className="w-4 h-4 mr-2" />
+            Set Multiple Reminders
+          </button>
         )}
       </div>
     </motion.div>
   );
+};
+
+const handleAddToGoogleCalendar = (upcomingClass: UpcomingClass) => {
+  if (!upcomingClass.sessionData) {
+    toast.error('Session data not available');
+    return;
+  }
+
+  try {
+    openGoogleCalendar(upcomingClass.sessionData as SessionData);
+    toast.success('🗓️ Opening Google Calendar...', {
+      duration: 3000,
+      style: {
+        background: '#10B981',
+        color: 'white',
+      },
+    });
+  } catch (error) {
+    console.error('Error opening Google Calendar:', error);
+    toast.error('Failed to open Google Calendar');
+  }
+};
+
+const handleDownloadICS = (upcomingClass: UpcomingClass) => {
+  if (!upcomingClass.sessionData) {
+    toast.error('Session data not available');
+    return;
+  }
+
+  try {
+    downloadICSFile(upcomingClass.sessionData as SessionData);
+    toast.success('📥 Calendar file downloaded!', {
+      duration: 3000,
+      style: {
+        background: '#10B981',
+        color: 'white',
+      },
+    });
+  } catch (error) {
+    console.error('Error downloading ICS file:', error);
+    toast.error('Failed to download calendar file');
+  }
 };
 
 const StudentUpcomingClasses: React.FC = () => {
@@ -417,27 +491,51 @@ const StudentUpcomingClasses: React.FC = () => {
     setReminders(newReminders);
   };
 
-  const createReminder = (upcomingClass: UpcomingClass, reminderMinutes: number) => {
+  const createMultipleReminders = (upcomingClass: UpcomingClass) => {
     if (!upcomingClass.scheduledDate) return;
 
+    // Multiple reminder intervals: 1 week, 1 day, 2 hours, 30 minutes
+    const reminderIntervals = [
+      { minutes: 10080, label: '1 week' },    // 7 days
+      { minutes: 1440, label: '1 day' },     // 24 hours
+      { minutes: 120, label: '2 hours' },    // 2 hours
+      { minutes: 30, label: '30 minutes' }   // 30 minutes
+    ];
+
     const classDateTime = new Date(upcomingClass.scheduledDate);
-    const reminderDateTime = new Date(classDateTime.getTime() - (reminderMinutes * 60 * 1000));
+    const newReminders: Reminder[] = [];
 
-    const newReminder: Reminder = {
-      classId: upcomingClass.id,
-      classTitle: upcomingClass.title,
-      scheduledDate: upcomingClass.scheduledDate,
-      reminderTime: reminderMinutes,
-      reminderDateTime: reminderDateTime.toISOString(),
-      isActive: true
-    };
+    reminderIntervals.forEach(({ minutes, label }) => {
+      const reminderDateTime = new Date(classDateTime.getTime() - (minutes * 60 * 1000));
+      
+      // Only create reminder if it's in the future
+      if (reminderDateTime > new Date()) {
+        const newReminder: Reminder = {
+          classId: upcomingClass.id,
+          classTitle: upcomingClass.title,
+          scheduledDate: upcomingClass.scheduledDate || '',
+          reminderTime: minutes,
+          reminderDateTime: reminderDateTime.toISOString(),
+          isActive: true
+        };
+        newReminders.push(newReminder);
+      }
+    });
 
-    const updatedReminders = [...reminders, newReminder];
-    saveReminders(updatedReminders);
-    
-    toast.success(`Reminder set for ${reminderMinutes} minutes before class`);
-    setShowReminderModal(false);
-    setClassForReminder(null);
+    if (newReminders.length > 0) {
+      const updatedReminders = [...reminders, ...newReminders];
+      saveReminders(updatedReminders);
+      
+      toast.success(`🔔 Multiple reminders set! You'll be notified 1 week, 1 day, 2 hours, and 30 minutes before class`, {
+        duration: 4000,
+        style: {
+          background: '#3B82F6',
+          color: 'white',
+        },
+      });
+    } else {
+      toast.error('Class is too soon to set all reminder intervals');
+    }
   };
 
   const removeReminder = (classId: string) => {
@@ -490,9 +588,8 @@ const StudentUpcomingClasses: React.FC = () => {
   };
 
   const handleSetReminder = (upcomingClass: UpcomingClass) => {
-    setClassForReminder(upcomingClass);
-    setShowReminderModal(true);
     requestNotificationPermission();
+    createMultipleReminders(upcomingClass);
   };
 
   // Enhanced mapping function for upcoming classes
@@ -553,11 +650,16 @@ const StudentUpcomingClasses: React.FC = () => {
         name: session.course?.title,
         code: session.course?.code
       },
-      zoomMeeting: session.zoom_meeting,
+      zoomMeeting: session.zoom_meeting ? {
+        id: session.zoom_meeting.meeting_id,
+        join_url: session.zoom_meeting.join_url,
+        password: session.zoom_meeting.password
+      } : undefined,
       recordedLessonsCount: session.has_recorded_lessons ? 1 : 0,
       timeUntilStart: minutesUntil > 0 ? minutesUntil : 0,
       hasReminder: hasActiveReminder,
-      reminderTime: activeReminder?.reminderTime
+      reminderTime: activeReminder?.reminderTime,
+      sessionData: session // Store original session data for Google Calendar
     };
   };
 
@@ -1031,6 +1133,24 @@ const StudentUpcomingClasses: React.FC = () => {
 
                 {/* Modal Action Buttons */}
                 <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  {/* Calendar Options */}
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <button 
+                      onClick={() => selectedClass && handleAddToGoogleCalendar(selectedClass)}
+                      className="flex items-center justify-center px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-colors font-medium"
+                    >
+                      <CalendarPlus className="w-5 h-5 mr-2" />
+                      Google Calendar
+                    </button>
+                    <button 
+                      onClick={() => selectedClass && handleDownloadICS(selectedClass)}
+                      className="flex items-center justify-center px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-xl transition-colors font-medium"
+                    >
+                      <Download className="w-5 h-5 mr-2" />
+                      Download ICS
+                    </button>
+                  </div>
+
                   {selectedClass?.status === 'live' && selectedClass?.zoomMeeting?.join_url ? (
                     <a
                       href={selectedClass.zoomMeeting.join_url}
@@ -1047,20 +1167,33 @@ const StudentUpcomingClasses: React.FC = () => {
                       Class Starting Soon
                     </button>
                   ) : selectedClass?.hasReminder ? (
-                    <button 
-                      onClick={() => removeReminder(selectedClass.id)}
-                      className="w-full flex items-center justify-center px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors font-medium"
-                    >
-                      <Trash2 className="w-5 h-5 mr-2" />
-                      Remove Reminder
-                    </button>
+                    <div className="space-y-3">
+                      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                        <div className="flex items-center gap-2">
+                          <Bell className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                          <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                            Multiple Reminders Active
+                          </p>
+                        </div>
+                        <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                          Set for 1 week, 1 day, 2 hours, and 30 minutes before class
+                        </p>
+                      </div>
+                      <button 
+                        onClick={() => removeReminder(selectedClass.id)}
+                        className="w-full flex items-center justify-center px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors font-medium"
+                      >
+                        <Trash2 className="w-5 h-5 mr-2" />
+                        Remove All Reminders
+                      </button>
+                    </div>
                   ) : (
                     <button 
                       onClick={() => handleSetReminder(selectedClass)}
                       className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors font-medium"
                     >
                       <Bell className="w-5 h-5 mr-2" />
-                      Set Reminder
+                      Set Multiple Reminders
                     </button>
                   )}
                 </div>
@@ -1121,40 +1254,41 @@ const StudentUpcomingClasses: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="space-y-3 mb-6">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white mb-3">
-                    Remind me before class starts:
-                  </p>
-                  
-                  {[5, 15, 30, 60, 120, 1440].map((minutes) => (
-                    <motion.button
-                      key={minutes}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => createReminder(classForReminder, minutes)}
-                      className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-colors border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-700"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                          <Timer className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <span className="text-gray-900 dark:text-white font-medium">
-                          {minutes < 60 
-                            ? `${minutes} minutes before`
-                            : minutes < 1440
-                            ? `${minutes / 60} hour${minutes / 60 > 1 ? 's' : ''} before`
-                            : '1 day before'
-                          }
-                        </span>
+                <div className="space-y-4 mb-6">
+                  <div className="text-center">
+                    <div className="inline-flex items-center px-4 py-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                      <Bell className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-3" />
+                      <div className="text-left">
+                        <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                          Multiple reminders will be set
+                        </p>
+                        <p className="text-xs text-blue-600 dark:text-blue-300">
+                          1 week, 1 day, 2 hours, and 30 minutes before class
+                        </p>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-gray-400" />
-                    </motion.button>
-                  ))}
+                    </div>
+                  </div>
+
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      if (classForReminder) {
+                        createMultipleReminders(classForReminder);
+                        setShowReminderModal(false);
+                        setClassForReminder(null);
+                      }
+                    }}
+                    className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors font-medium"
+                  >
+                    <Bell className="w-5 h-5 mr-2" />
+                    Set Multiple Reminders
+                  </motion.button>
                 </div>
 
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                   <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                    You'll receive a notification when it's time for your class
+                    You'll receive notifications at each reminder interval
                   </p>
                 </div>
               </motion.div>

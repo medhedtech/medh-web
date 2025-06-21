@@ -1061,7 +1061,7 @@ const DemoBookingComponent: React.FC<{ onBookingSuccess?: () => void }> = ({ onB
         const selectedTime = new Date(timeSlotValue);
         timeSlotValue = selectedTime.toISOString();
       }
-f      
+      
       // Validate the time slot is within business hours before sending to API
       const slotDateTime = new Date(timeSlotValue);
       const utcHour = slotDateTime.getUTCHours();

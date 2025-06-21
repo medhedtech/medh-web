@@ -1,4 +1,5 @@
 import { apiBaseUrl } from './config';
+import { PUBLIC_ENDPOINTS } from './index';
 import { getRefreshToken } from '@/utils/auth';
 
 /**
@@ -68,7 +69,7 @@ export class ApiClient {
     try {
       // Only run in browser environment
       if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        const token = localStorage.getItem('authToken') || localStorage.getItem('token') || sessionStorage.getItem('token');
         if (token) {
           this.setAuthToken(token);
         }
@@ -107,6 +108,32 @@ export class ApiClient {
   }
 
   /**
+   * Ensure authentication token is available for requests
+   */
+  private ensureAuthToken(endpoint?: string): void {
+    // Skip authentication for public endpoints
+    if (endpoint && this.isPublicEndpoint(endpoint)) {
+      return;
+    }
+    
+    if (!this.getAuthToken() && typeof window !== 'undefined') {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (token) {
+        this.setAuthToken(token);
+      }
+    }
+  }
+
+  /**
+   * Check if an endpoint is public and doesn't require authentication
+   */
+  private isPublicEndpoint(endpoint: string): boolean {
+    return PUBLIC_ENDPOINTS.some(publicEndpoint => 
+      endpoint.includes(publicEndpoint) || endpoint.startsWith(publicEndpoint)
+    );
+  }
+
+  /**
    * Make a GET request
    * @param endpoint - API endpoint
    * @param params - Query parameters
@@ -114,6 +141,9 @@ export class ApiClient {
    * @returns Promise with response data
    */
   async get<T = any>(endpoint: string, params: Record<string, any> = {}, options: RequestInit = {}): Promise<IApiResponse<T>> {
+    // Ensure authentication token is set before making request
+    this.ensureAuthToken(endpoint);
+    
     // Handle cancelToken special parameter
     if (params.cancelToken) {
       // Remove cancelToken from params to avoid serialization issues
@@ -136,6 +166,9 @@ export class ApiClient {
    * @returns Promise with response data
    */
   async post<T = any>(endpoint: string, data: any = {}, options: RequestInit = {}): Promise<IApiResponse<T>> {
+    // Ensure authentication token is set before making request
+    this.ensureAuthToken(endpoint);
+    
     const url = this.buildUrl(endpoint);
     return this.request<T>(url, {
       method: 'POST',
@@ -152,6 +185,9 @@ export class ApiClient {
    * @returns Promise with response data
    */
   async put<T = any>(endpoint: string, data: any = {}, options: RequestInit = {}): Promise<IApiResponse<T>> {
+    // Ensure authentication token is set before making request
+    this.ensureAuthToken(endpoint);
+    
     const url = this.buildUrl(endpoint);
     return this.request<T>(url, {
       method: 'PUT',
@@ -168,6 +204,9 @@ export class ApiClient {
    * @returns Promise with response data
    */
   async patch<T = any>(endpoint: string, data: any = {}, options: RequestInit = {}): Promise<IApiResponse<T>> {
+    // Ensure authentication token is set before making request
+    this.ensureAuthToken(endpoint);
+    
     const url = this.buildUrl(endpoint);
     return this.request<T>(url, {
       method: 'PATCH',
@@ -183,6 +222,9 @@ export class ApiClient {
    * @returns Promise with response data
    */
   async delete<T = any>(endpoint: string, options: RequestInit = {}): Promise<IApiResponse<T>> {
+    // Ensure authentication token is set before making request
+    this.ensureAuthToken(endpoint);
+    
     const url = this.buildUrl(endpoint);
     return this.request<T>(url, {
       method: 'DELETE',
@@ -198,6 +240,9 @@ export class ApiClient {
    * @returns Promise with response data
    */
   async upload<T = any>(endpoint: string, formData: FormData, options: RequestInit = {}): Promise<IApiResponse<T>> {
+    // Ensure authentication token is set before making request
+    this.ensureAuthToken(endpoint);
+    
     const url = this.buildUrl(endpoint);
     // Don't set Content-Type header for FormData, browser will set it with boundary
     const { 'Content-Type': _, ...headers } = this.defaultHeaders;

@@ -219,7 +219,7 @@ export function useGetQuery<T = any>(
     skipCache = false,
     pagination,
     retry,
-    requireAuth = false,
+    requireAuth = true, // Default to requiring auth for all API calls
     showToast = false,
     successMessage,
     errorMessage = "Failed to fetch data",
