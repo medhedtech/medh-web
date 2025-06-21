@@ -1425,7 +1425,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                             : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
                         }`}>
                           {content.sessionIcon}
-                          <span className="ml-1">{ (course as any)?.session_range || `${course?.no_of_Sessions || 0} ${content.sessionLabel}` }</span>
+                          <span className="ml-1">{ ` ${course.no_of_Sessions} sessions` }</span>
                         </div>
                       )}
                     </div>
@@ -1590,7 +1590,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                           : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
                       }`}>
                         {content.sessionIcon}
-                        <span className="ml-1">{ (course as any)?.session_range || `${course?.no_of_Sessions || 0} ${content.sessionLabel}` }</span>
+                        <span className="ml-1">{ ` ${course.no_of_Sessions} sessions` }</span>
                       </div>
                     )}
                   </div>
