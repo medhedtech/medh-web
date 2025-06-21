@@ -281,16 +281,20 @@ const HeroMobile = memo<{
                   <Image 
                     src={medhLogo} 
                     alt="Medh Logo" 
-                    width={24} 
-                    height={24} 
+                    width={128} 
+                    height={128} 
                     priority 
-                    sizes="24px" 
-                    className="inline-block h-6 sm:h-8 w-auto align-baseline gpu-accelerated"
+                    quality={100}
+                    unoptimized={true}
+                    sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, (max-width: 1024px) 96px, 112px"
+                    className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline gpu-accelerated"
                     style={{ 
-                      filter: 'brightness(1.1) contrast(1.2)',
-                      transform: 'scale(0.9) translateY(2px) translate3d(0,0,0)',
+                      transform: 'translateY(2px) translate3d(0,0,0)',
                       verticalAlign: 'baseline',
-                      width: 'auto'
+                      objectFit: 'contain',
+                      imageRendering: '-webkit-optimize-contrast',
+                      backfaceVisibility: 'hidden',
+                      WebkitFontSmoothing: 'antialiased'
                     }}
                   />
                 </span>
@@ -562,16 +566,20 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
                   <Image 
                     src={medhLogo} 
                     alt="Medh Logo" 
-                    width={24} 
-                    height={24} 
+                    width={96} 
+                    height={96} 
                     priority 
-                    sizes="24px" 
+                    quality={100}
+                    unoptimized={true}
+                    sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, (max-width: 1024px) 96px, 112px"
                     className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline gpu-accelerated"
                     style={{ 
-                      filter: 'brightness(1.1) contrast(1.2)',
-                      transform: 'scale(0.9) translateY(2px) translate3d(0,0,0)',
+                      transform: 'translateY(2px) translate3d(0,0,0)',
                       verticalAlign: 'baseline',
-                      width: 'auto'
+                      objectFit: 'contain',
+                      imageRendering: '-webkit-optimize-contrast',
+                      backfaceVisibility: 'hidden',
+                      WebkitFontSmoothing: 'antialiased'
                     }}
                   />
                 </span>

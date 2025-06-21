@@ -400,8 +400,9 @@ const WhyMedh = memo(() => {
                 <Image 
                   src={medhLogo} 
                   alt="Medh Logo" 
-                  width={32} 
-                  height={32} 
+                  width={128} 
+                  height={128} 
+                  unoptimized={true}
                   className="inline-block h-6 sm:h-7 md:h-8 w-auto align-baseline mx-1"
                   style={logoStyles}
                 />

@@ -259,8 +259,9 @@ const BannerNews: React.FC = () => {
                   <Image 
                      src={medhLogo} 
                      alt="Medh Logo" 
-                     width={24} 
-                     height={24} 
+                     width={128} 
+                     height={128} 
+                     unoptimized={true}
                      className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline"
                      style={{ 
                          filter: 'brightness(1.1) contrast(1.2)',

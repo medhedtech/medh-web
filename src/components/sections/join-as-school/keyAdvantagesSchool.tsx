@@ -211,8 +211,9 @@ const KeyAdvantages: React.FC = () => {
                 <Image
                   src={medhLogo}
                   alt="MEDH Logo"
-                  width={80}
-                  height={28}
+                  width={128}
+                  height={128}
+                  unoptimized={true}
                   className="h-6 sm:h-7 md:h-8 lg:h-9 w-auto object-contain ml-1 transition-transform duration-300 hover:scale-105"
                   priority
                 />
