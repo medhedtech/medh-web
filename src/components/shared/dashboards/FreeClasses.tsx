@@ -101,23 +101,6 @@ const FreeClasses: React.FC = () => {
 
   return (
     <div id="free-courses-section" className="p-6">
-      {/* Header Section */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/20">
-            <Sparkles className="w-5 h-5 text-green-600 dark:text-green-400" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Featured Free Courses</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Start your learning journey with no cost</p>
-          </div>
-        </div>
-        
-        <button onClick={() => router.push('/courses?filter=free')} className="text-sm font-medium text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1">
-          View All <ArrowRight className="w-3 h-3" />
-        </button>
-      </div>
-
       {/* Course Cards */}
       <motion.div 
         initial="hidden"
