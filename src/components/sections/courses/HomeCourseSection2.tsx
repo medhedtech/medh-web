@@ -813,32 +813,8 @@ const HomeCourseSection2 = memo<{
                   
                   // Format session range based on course type and API data
                   const getSessionRange = (course: any, courseTitle: string) => {
-                    // First check if API provides session range data
-                    if (course.session_range_min && course.session_range_max) {
-                      return `${course.session_range_min} - ${course.session_range_max} live sessions`;
-                    }
-                    
-                    // If API provides a session range string, use it
-                    if (course.session_range && typeof course.session_range === 'string') {
-                      return course.session_range.toLowerCase().includes('sessions') 
-                        ? course.session_range 
-                        : `${course.session_range} live sessions`;
-                    }
-                    
-                    // Course-specific session ranges based on course title/id
-                    const title = courseTitle.toLowerCase();
-                    if (title.includes('ai') || title.includes('data science') || courseId === 'ai_data_science') {
-                      return '32 - 120 live sessions';
-                    } else if (title.includes('digital') && title.includes('marketing')) {
-                      return '32 - 120 live sessions';
-                    } else if (title.includes('personality') && title.includes('development')) {
-                      return '24 - 72 live sessions';
-                    } else if (title.includes('vedic') && title.includes('mathematics')) {
-                      return '24 - 72 live sessions';
-                    }
-                    
-                    // Default range for other courses
-                    return '24 - 120 live sessions';
+                    // Return the exact string from API with sessions text
+                    return course.no_of_Sessions ? `${String(course.no_of_Sessions)} sessions` : '24-120 sessions';
                   };
                   
                   const sessionDisplay = getSessionRange(course, courseTitle);
@@ -846,20 +822,14 @@ const HomeCourseSection2 = memo<{
                   // Extract numeric session count for compatibility (use midpoint of range)
                   const sessionCount = (() => {
                     if (course.no_of_Sessions) {
-                      const parsed = typeof course.no_of_Sessions === 'string' 
-                        ? parseInt(course.no_of_Sessions, 10) 
-                        : course.no_of_Sessions;
-                      if (!isNaN(parsed) && parsed > 0) return parsed;
+                      const rangeStr = String(course.no_of_Sessions);
+                      const parts = rangeStr.split('-');
+                      if (parts.length === 2) {
+                        const min = parseInt(parts[0], 10);
+                        const max = parseInt(parts[1], 10);
+                        return Math.round((min + max) / 2);
+                      }
                     }
-                    
-                    // Extract from session display range for consistency
-                    const match = sessionDisplay.match(/(\d+)\s*-\s*(\d+)/);
-                    if (match) {
-                      const min = parseInt(match[1], 10);
-                      const max = parseInt(match[2], 10);
-                      return Math.round((min + max) / 2); // Use midpoint
-                    }
-                    
                     return 76; // Default midpoint
                   })();
                   
