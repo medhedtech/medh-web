@@ -9,6 +9,22 @@ export * from './auth.api';
 // Import profile management interfaces and functions
 export * from './profile.api';
 
+// Define public endpoints that don't require authentication
+export const PUBLIC_ENDPOINTS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/verify-email',
+  '/auth/resend-verification',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+  '/auth/oauth',
+  '/courses/public',
+  '/blogs/public',
+  '/health',
+  '/faq/public',
+  '/announcements/public'
+];
+
 // Import demo booking interfaces and functions
 export * from './demo-booking.api';
 
@@ -3849,5 +3865,56 @@ export const lockoutManagementUtils = {
       console.error('Error generating lockout dashboard data:', error);
       throw error;
     }
+  }
+};
+
+/**
+ * Utility function to check if an endpoint requires authentication
+ * @param endpoint - The API endpoint to check
+ * @returns boolean indicating if authentication is required
+ */
+export const requiresAuthentication = (endpoint: string): boolean => {
+  return !PUBLIC_ENDPOINTS.some(publicEndpoint => 
+    endpoint.includes(publicEndpoint) || endpoint.startsWith(publicEndpoint)
+  );
+};
+
+/**
+ * Utility function to get authentication headers if available
+ * @returns object with authorization headers or empty object
+ */
+export const getAuthHeaders = (): Record<string, string> => {
+  if (typeof window === 'undefined') return {};
+  
+  const token = localStorage.getItem('authToken') || localStorage.getItem('token') || sessionStorage.getItem('token');
+  
+  if (!token) return {};
+  
+  return {
+    'Authorization': `Bearer ${token}`,
+    'x-access-token': token
+  };
+};
+
+/**
+ * Enhanced API configuration with automatic authentication
+ */
+export const apiConfig = {
+  baseUrl: apiBaseUrl,
+  publicEndpoints: PUBLIC_ENDPOINTS,
+  requiresAuth: requiresAuthentication,
+  getAuthHeaders: getAuthHeaders,
+  
+  /**
+   * Create request configuration with authentication if required
+   */
+  createRequestConfig: (endpoint: string, additionalHeaders: Record<string, string> = {}): Record<string, string> => {
+    const headers = { ...additionalHeaders };
+    
+    if (requiresAuthentication(endpoint)) {
+      Object.assign(headers, getAuthHeaders());
+    }
+    
+    return headers;
   }
 };

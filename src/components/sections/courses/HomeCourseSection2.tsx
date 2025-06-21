@@ -623,8 +623,7 @@ const HomeCourseSection2 = memo<{
     latest: false,
     beginner: false
   });
-  const [userCurrency, setUserCurrency] = useState("INR"); // Default to INR like in HeroSectionContant
-  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  const [userCurrency] = useState("INR"); // Fixed to INR to prevent state changes
   const [isInitialized, setIsInitialized] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { getQuery, loading, error } = useGetQuery();
@@ -633,112 +632,7 @@ const HomeCourseSection2 = memo<{
   const isDark = useMemo(() => mounted ? theme === 'dark' : true, [mounted, theme]);
   const isLoaded = useMemo(() => videoContext?.isLoaded ?? false, [videoContext?.isLoaded]);
 
-  // Simplified: Remove heavy image preloading to save RAM
-
-  // PERFORMANCE OPTIMIZATION: Enhanced currency detection with caching and fallbacks
-  const getLocationCurrency = useCallback(async () => {
-    if (isDetectingLocation) return;
-    
-    setIsDetectingLocation(true);
-    try {
-      // Check cache first (24 hour expiry)
-      const cachedCurrency = localStorage.getItem('userCurrency');
-      const cachedTimestamp = localStorage.getItem('userCurrencyTimestamp');
-      
-      if (cachedCurrency && cachedTimestamp) {
-        const timestamp = parseInt(cachedTimestamp);
-        if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
-          console.log(`Using cached currency: ${cachedCurrency}`);
-          setUserCurrency(cachedCurrency);
-          return;
-        }
-      }
-
-      // Enhanced IP-based detection with multiple fallbacks
-      let detectedCurrency = 'INR'; // Default to INR for better Indian user experience
-      
-      try {
-        const response = await axios.get('https://ipapi.co/json/', { timeout: 5000 });
-        console.log('IP API Response:', response.data);
-        
-        const countryCode = response.data?.country_code || response.data?.country;
-        const currencyFromAPI = response.data?.currency;
-        
-        // Simplified currency mapping for common countries only
-        const currencyMap: { [key: string]: string } = {
-          'IN': 'INR', 'US': 'USD', 'GB': 'GBP', 'CA': 'CAD', 'AU': 'AUD'
-        };
-        
-        // Use API currency first, then country mapping, then fallback
-        if (currencyFromAPI && currencyFromAPI.length === 3) {
-          detectedCurrency = currencyFromAPI.toUpperCase();
-          console.log(`Currency detected from API: ${detectedCurrency}`);
-        } else if (countryCode && currencyMap[countryCode]) {
-          detectedCurrency = currencyMap[countryCode];
-          console.log(`Currency detected from country code ${countryCode}: ${detectedCurrency}`);
-        }
-        
-      } catch (ipError) {
-        console.log('IP API failed, trying browser-based detection...');
-        
-        // Fallback 1: Browser timezone detection
-        try {
-          const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-          console.log('Detected timezone:', timeZone);
-          
-          const timezoneMap: { [key: string]: string } = {
-            'Asia/Kolkata': 'INR', 'America/New_York': 'USD', 'Europe/London': 'GBP'
-          };
-          
-          if (timezoneMap[timeZone]) {
-            detectedCurrency = timezoneMap[timeZone];
-            console.log(`Currency detected from timezone: ${detectedCurrency}`);
-          }
-        } catch (timezoneError) {
-          console.log('Timezone detection failed');
-        }
-        
-        // Fallback 2: Browser language detection
-        try {
-          const language = navigator.language || (navigator as any).userLanguage || 'en-US';
-          console.log('Detected language:', language);
-          
-          const languageMap: { [key: string]: string } = {
-            'hi': 'INR', 'hi-IN': 'INR', 'en-IN': 'INR', 'bn-IN': 'INR',
-            'te-IN': 'INR', 'mr-IN': 'INR', 'ta-IN': 'INR', 'gu-IN': 'INR',
-            'en-US': 'USD', 'en-CA': 'CAD', 'en-GB': 'GBP', 'en-AU': 'AUD',
-            'ja': 'JPY', 'ja-JP': 'JPY', 'ko': 'KRW', 'ko-KR': 'KRW',
-            'zh': 'CNY', 'zh-CN': 'CNY', 'zh-HK': 'HKD', 'zh-TW': 'TWD',
-            'ar': 'AED', 'ar-AE': 'AED', 'ar-SA': 'SAR'
-          };
-          
-          if (languageMap[language] || languageMap[language.split('-')[0]]) {
-            detectedCurrency = languageMap[language] || languageMap[language.split('-')[0]];
-            console.log(`Currency detected from language: ${detectedCurrency}`);
-          }
-        } catch (languageError) {
-          console.log('Language detection failed');
-        }
-      }
-      
-             console.log(`Final detected currency: ${detectedCurrency}`);
-       
-       // Cache the result
-       localStorage.setItem('userCurrency', detectedCurrency);
-       localStorage.setItem('userCurrencyTimestamp', Date.now().toString());
-       
-       setUserCurrency(detectedCurrency);
-       console.log(`Currency state updated to: ${detectedCurrency}`);
-      
-    } catch (error) {
-      console.error('Currency detection failed completely, using INR as default:', error);
-      setUserCurrency('INR'); // Default to INR instead of USD for better Indian user experience
-    } finally {
-      setIsDetectingLocation(false);
-    }
-  }, [isDetectingLocation]);
-
-  // PERFORMANCE OPTIMIZATION: Memoized course fetching
+  // PERFORMANCE OPTIMIZATION: Stable course fetching with minimal dependencies
   const fetchCourses = useCallback(async () => {
     try {
       const promises = [];
@@ -754,7 +648,6 @@ const HomeCourseSection2 = memo<{
           });
           
           console.log(`Making live courses API call with URL: ${apiUrl}`);
-          console.log(`Currency being used: INR (forced for Indian users)`);
           
           getQuery({
             url: apiUrl,
@@ -778,14 +671,13 @@ const HomeCourseSection2 = memo<{
                   processedCourses = response.courses;
                 } else {
                   console.log("No valid live courses found in the API response, using fallback data");
-                                     processedCourses = [...FALLBACK_LIVE_COURSES];
+                  processedCourses = [...FALLBACK_LIVE_COURSES];
                 }
                 
                 // Process each course with proper type checking and session range formatting
                 const formattedCourses = processedCourses.map((course, index) => {
                   const courseId = course._id || course.id || `live-course-${index}`;
                   const courseTitle = course.course_title || course.title || 'Untitled Course';
-                  console.log("Processing live course:", courseId, courseTitle);
                   
                   // Set specific images for known courses
                   let courseImage = course.course_image || course.thumbnail || '/fallback-course-image.jpg';
@@ -894,12 +786,11 @@ const HomeCourseSection2 = memo<{
             fields: ['card'],
             filters: {
               class_type: "Blended Courses",
-              currency: 'inr'  // Force INR for Indian users
+              currency: 'inr'
             }
           });
           
           console.log(`Making blended courses API call with URL: ${blendedApiUrl}`);
-          console.log(`Currency being used for blended: INR (forced for Indian users)`);
           
           getQuery({
             url: blendedApiUrl,
@@ -966,7 +857,7 @@ const HomeCourseSection2 = memo<{
     } catch (error) {
       console.error('Error in fetchCourses:', error);
     }
-  }, [showOnlyLive, getQuery, userCurrency]);
+  }, [showOnlyLive, getQuery]);
 
   // PERFORMANCE OPTIMIZATION: Mount and theme effects (like HeroSectionContant.tsx)
   useEffect(() => {
@@ -981,18 +872,23 @@ const HomeCourseSection2 = memo<{
     
     const checkMobile = () => {
       const isMobileNow = window.innerWidth < 768; // md breakpoint
-      setIsMobile(prev => prev !== isMobileNow ? isMobileNow : prev);
+      setIsMobile(prev => {
+        if (prev !== isMobileNow) {
+          return isMobileNow;
+        }
+        return prev;
+      });
     };
     
     const debouncedCheckMobile = () => {
       clearTimeout(timeoutId);
-      timeoutId = setTimeout(checkMobile, 100);
+      timeoutId = setTimeout(checkMobile, 150); // Increased debounce time
     };
     
     // Initial check
     checkMobile();
     
-    window.addEventListener('resize', debouncedCheckMobile);
+    window.addEventListener('resize', debouncedCheckMobile, { passive: true });
     
     return () => {
       clearTimeout(timeoutId);
@@ -1022,29 +918,63 @@ const HomeCourseSection2 = memo<{
     };
   }, [mounted, isDark]);
 
-  // PERFORMANCE OPTIMIZATION: Simple initialization like HeroSectionContant.tsx
+  // PERFORMANCE OPTIMIZATION: Single initialization effect
   useEffect(() => {
-    if (mounted && !isInitialized) {
-      setIsInitialized(true);
-      console.log('Component mounted, initializing with INR currency...');
+    if (!mounted) return;
+    
+    let isStale = false;
+    
+    const initializeComponent = async () => {
+      if (isStale) return;
       
-      // Set INR as default for Indian users
-      setUserCurrency('INR');
+      console.log('Component initializing...');
+      
+      // Set INR in localStorage for consistency
       localStorage.setItem('userCurrency', 'INR');
       localStorage.setItem('userCurrencyTimestamp', Date.now().toString());
       
-      // Fetch courses with INR
-      console.log('Fetching courses with INR currency...');
-      fetchCourses();
+      if (!isStale) {
+        setIsInitialized(true);
+        // Fetch courses after initialization
+        try {
+          await fetchCourses();
+        } catch (error) {
+          console.error('Error in fetchCourses during initialization:', error);
+        }
+      }
+    };
+    
+    if (!isInitialized) {
+      initializeComponent();
     }
-  }, [mounted, isInitialized]);
+    
+    return () => {
+      isStale = true;
+    };
+  }, [mounted, isInitialized, fetchCourses]);
 
-  // PERFORMANCE OPTIMIZATION: Effect for handling showOnlyLive changes
+  // PERFORMANCE OPTIMIZATION: Separate effect for showOnlyLive changes
   useEffect(() => {
-    if (mounted && isInitialized) {
-      console.log(`Fetching courses with INR currency`);
-      fetchCourses();
-    }
+    if (!mounted || !isInitialized) return;
+    
+    let isStale = false;
+    
+    const refetchCourses = async () => {
+      if (isStale) return;
+      
+      console.log('Refetching courses due to showOnlyLive change...');
+      try {
+        await fetchCourses();
+      } catch (error) {
+        console.error('Error in fetchCourses during refetch:', error);
+      }
+    };
+    
+    refetchCourses();
+    
+    return () => {
+      isStale = true;
+    };
   }, [showOnlyLive]);
 
   // PERFORMANCE OPTIMIZATION: Memoized filter handlers
