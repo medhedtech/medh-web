@@ -243,7 +243,9 @@ const WhyChooseMEDH: React.FC = () => {
                   src="/images/medhlogo.svg"
                   alt="MEDH Logo"
                   width={120}
-                  height={40}
+                  height={120}
+                  unoptimized={true}
+                  sizes="(max-width: 640px) 32px, (max-width: 768px) 40px, (max-width: 1024px) 48px, 56px"
                   className="h-8 sm:h-10 md:h-12 lg:h-14 w-auto object-contain"
                   priority
                 />

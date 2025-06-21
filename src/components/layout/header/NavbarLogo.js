@@ -203,14 +203,22 @@ const NavbarLogo = ({ isScrolled }) => {
               src={logo0}
               alt="Medh Logo Light"
               fill
-              sizes="(max-width: 640px) 100px, (max-width: 768px) 120px, (max-width: 1024px) 140px, (max-width: 1280px) 160px, 180px"
+              sizes="(max-width: 640px) 120px, (max-width: 768px) 140px, (max-width: 1024px) 160px, (max-width: 1280px) 180px, 200px"
+              quality={100}
+              unoptimized={true}
               className={`
-                object-contain transition-all duration-500 ease-in-out absolute top-0 left-0
+                object-contain transition-all duration-500 ease-in-out absolute top-0 left-0 gpu-accelerated
                 ${!isDarkMode ? 'opacity-100 visible' : 'opacity-0 invisible'}
               `}
+              style={{ 
+                objectFit: 'contain',
+                imageRendering: '-webkit-optimize-contrast',
+                backfaceVisibility: 'hidden',
+                WebkitFontSmoothing: 'antialiased',
+                transform: 'translate3d(0,0,0)'
+              }}
               onLoad={handleLogoLoad}
               onError={handleLogoLoad}
-              style={{ objectFit: 'contain' }}
             />
           </div>
         </Link>

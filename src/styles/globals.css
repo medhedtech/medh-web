@@ -171,6 +171,103 @@ html {
   body {
     @apply bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-white;
   }
+
+  /* Enable GPU acceleration for all transformable elements */
+  *,
+  *::before,
+  *::after {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    perspective: 1000;
+    transform-style: preserve-3d;
+    will-change: transform, opacity;
+  }
+
+  /* Specific optimizations for common components */
+  .fixed,
+  .absolute,
+  .sticky,
+  .transform,
+  [class*="transition"],
+  [class*="animate"],
+  [class*="motion"],
+  [class*="hover"],
+  [class*="focus"],
+  [class*="active"] {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    perspective: 1000;
+    will-change: transform, opacity;
+  }
+
+  /* Optimize animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translate3d(0, 0, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+  }
+
+  @keyframes slideIn {
+    from { transform: translate3d(0, 20px, 0); opacity: 0; }
+    to { transform: translate3d(0, 0, 0); opacity: 1; }
+  }
+
+  @keyframes scaleIn {
+    from { transform: scale3d(0.95, 0.95, 1) translate3d(0, 0, 0); opacity: 0; }
+    to { transform: scale3d(1, 1, 1) translate3d(0, 0, 0); opacity: 1; }
+  }
+
+  /* Optimize transitions */
+  [class*="transition"] {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Optimize fixed position elements */
+  .fixed {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+  }
+
+  /* Optimize sticky elements */
+  .sticky {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+  }
+
+  /* Optimize modal and dialog elements */
+  dialog,
+  [role="dialog"],
+  [class*="modal"] {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+  }
+
+  /* Optimize scrollable containers */
+  [class*="overflow-"],
+  [class*="scroll"] {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    will-change: transform;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Optimize flex and grid containers */
+  .flex,
+  .grid {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    will-change: transform;
+  }
+
+  /* Optimize images and media */
+  img,
+  video,
+  canvas,
+  svg {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    will-change: transform;
+  }
 }
 
 @layer components {
@@ -286,6 +383,33 @@ html {
       linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
     background-size: 32px 32px;
   }
+
+  .gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000;
+    will-change: transform;
+  }
+
+  .glass-container {
+    min-height: 100px;
+    contain: content;
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  .prevent-shift {
+    contain: layout style paint;
+    content-visibility: auto;
+    contain-intrinsic-size: 0 500px;
+  }
+
+  /* Prevent layout shifts for flex containers */
+  .flex-no-shift {
+    min-height: fit-content;
+    contain: layout style;
+    content-visibility: auto;
+  }
 }
 
 /* === MEDIA QUERIES === */
@@ -369,4 +493,69 @@ html {
 
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Ensure images don't cause layout shifts */
+img {
+  aspect-ratio: attr(width) / attr(height);
+}
+
+/* Prevent layout shifts for dynamic content */
+.dynamic-content {
+  min-height: 100px;
+  contain: layout style;
+}
+
+/* Optimize animations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
+  will-change: transform;
+}
+
+/* Prevent layout shifts for grid containers */
+.grid-no-shift {
+  grid-template-rows: auto 1fr;
+  contain: layout style;
+}
+
+/* Prevent layout shifts for absolute positioned elements */
+.absolute-no-shift {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Performance optimizations for mobile */
+@media (max-width: 768px) {
+  *,
+  *::before,
+  *::after {
+    -webkit-transform: translate3d(0, 0, 0);
+    -webkit-backface-visibility: hidden;
+    -webkit-perspective: 1000;
+  }
+}
+
+/* Reduce motion when requested */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    will-change: auto !important;
+  }
+}
+
+/* iOS-specific optimizations */
+@supports (-webkit-touch-callout: none) {
+  *,
+  *::before,
+  *::after {
+    -webkit-transform: translate3d(0, 0, 0);
+    -webkit-backface-visibility: hidden;
+    -webkit-perspective: 1000;
+  }
 } 

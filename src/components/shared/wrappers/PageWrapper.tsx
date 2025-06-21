@@ -75,12 +75,13 @@ const PageWrapper: React.FC<PageWrapperProps> = ({
 
 
   return (
-    <div className="flex flex-col min-h-screen w-full bg-white dark:bg-gray-950 overflow-x-hidden">
+    <div className="flex flex-col min-h-screen w-full bg-white dark:bg-gray-950 overflow-x-hidden prevent-shift">
       {/* CSS Variables for layout measurements */}
       <style jsx global>{`
         :root {
           --header-height: 64px;
           --footer-margin: 0px;
+          --content-min-height: calc(100vh - var(--header-height) - var(--footer-margin));
         }
         
         @media (min-width: 768px) {
@@ -89,22 +90,26 @@ const PageWrapper: React.FC<PageWrapperProps> = ({
           }
         }
 
-        /* Ensure proper stacking context */
+        /* Ensure proper stacking context and prevent layout shifts */
         #__next {
           display: flex;
           flex-direction: column;
           min-height: 100vh;
+          contain: layout style paint;
         }
         
         /* Optimize scrolling performance */
         html {
           scroll-behavior: smooth;
+          overflow-y: scroll; /* Always show scrollbar to prevent layout shifts */
         }
         
         /* Hide scrollbar but keep functionality */
         body {
           overflow-y: auto;
           scrollbar-width: thin;
+          min-height: 100vh;
+          contain: layout paint style;
         }
         
         /* Custom scrollbar for webkit browsers */
@@ -132,6 +137,7 @@ const PageWrapper: React.FC<PageWrapperProps> = ({
             max-height: 300px;
             overflow: hidden;
             position: relative;
+            contain: layout paint style;
           }
           
           .collapse-mobile.expanded {
@@ -164,7 +170,7 @@ const PageWrapper: React.FC<PageWrapperProps> = ({
       </a>
       
       {/* Header - Fixed height */}
-      <Header className="h-[var(--header-height)]" />
+      <Header className="h-[var(--header-height)] prevent-shift" />
 
 
 
@@ -174,21 +180,21 @@ const PageWrapper: React.FC<PageWrapperProps> = ({
         id={skipToContentId}
         role="main"
         tabIndex={-1}
-        className={`flex-grow w-full transition-opacity duration-700 pt-[var(--header-height)] will-change-opacity ${hasPageLoaded ? 'opacity-100' : 'opacity-0'}`}
+        className={`flex-grow w-full transition-opacity duration-700 pt-[var(--header-height)] min-h-[var(--content-min-height)] prevent-shift will-change-opacity ${hasPageLoaded ? 'opacity-100' : 'opacity-0'}`}
       >
-        <div className="animate-fadeIn">
+        <div className="animate-fadeIn prevent-shift">
           {children}
         </div>
       </main>
       
       {/* Footer with theme prop */}
-              <Footer />
+      <Footer className="prevent-shift" />
 
       {/* Enhanced scroll to top button */}
       <AnimatePresence>
         {showScrollTop && (
           <motion.button
-            className="fixed bottom-6 right-6 p-3 rounded-full bg-primary-500 hover:bg-primary-600 text-white shadow-lg z-40 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 transition-all duration-300 transform hover:scale-110 dark:focus:ring-primary-600 dark:focus:ring-offset-gray-900"
+            className="fixed bottom-6 right-6 p-3 rounded-full bg-primary-500 hover:bg-primary-600 text-white shadow-lg z-40 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 transition-all duration-300 transform hover:scale-110 dark:focus:ring-primary-600 dark:focus:ring-offset-gray-900 gpu-accelerated"
             onClick={scrollToTop}
             onKeyDown={(e) => e.key === 'Enter' && scrollToTop()}
             aria-label="Scroll to top"
