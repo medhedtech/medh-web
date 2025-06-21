@@ -742,58 +742,117 @@ const ProgressOverview: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    className="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   >
-                    <div className="flex items-center space-x-4 flex-1">
-                      <div className="relative">
-                        <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                          {course.course_title.charAt(0).toUpperCase()}
+                    {/* Mobile Layout - Stacked */}
+                    <div className="md:hidden">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <div className="relative">
+                          <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">
+                            {course.course_title.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center">
+                            {statusInfo.icon}
+                          </div>
                         </div>
-                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center">
-                          {statusInfo.icon}
+                        
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-900 dark:text-white text-sm truncate">
+                            {course.course_title}
+                          </h4>
+                          <div className="flex flex-wrap items-center gap-2 mt-1">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo.bgColor} ${statusInfo.color}`}>
+                              {statusInfo.text}
+                            </span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {course.class_type}
+                            </span>
+                          </div>
                         </div>
                       </div>
                       
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900 dark:text-white truncate">
-                          {course.course_title}
-                        </h4>
-                        <div className="flex items-center space-x-3 mt-1">
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusInfo.bgColor} ${statusInfo.color}`}>
-                            {statusInfo.text}
-                          </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {course.class_type}
-                          </span>
+                      <div className="mb-3">
+                        <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
+                          <span>Progress</span>
+                          <span>{course.progress}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
+                          <div 
+                            className="bg-gradient-to-r from-primary-500 to-purple-600 h-1.5 rounded-full transition-all duration-300"
+                            style={{ width: `${course.progress}%` }}
+                          />
+                        </div>
+                        {timeRemaining > 0 && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            ~{formatTimeRemaining(timeRemaining)} remaining
+                          </p>
+                        )}
+                      </div>
+                      
+                      <button
+                        onClick={() => handleContinueLearning(course.course_id)}
+                        className="w-full px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm flex items-center justify-center space-x-2"
+                      >
+                        <PlayCircle className="w-4 h-4" />
+                        <span>Continue</span>
+                      </button>
+                    </div>
+
+                    {/* Desktop Layout - Horizontal */}
+                    <div className="hidden md:flex items-center justify-between">
+                      <div className="flex items-center space-x-4 flex-1 min-w-0">
+                        <div className="relative flex-shrink-0">
+                          <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                            {course.course_title.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center">
+                            {statusInfo.icon}
+                          </div>
                         </div>
                         
-                        <div className="mt-2">
-                          <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
-                            <span>Progress</span>
-                            <span>{course.progress}%</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="font-medium text-gray-900 dark:text-white truncate">
+                              {course.course_title}
+                            </h4>
+                            <span className="text-xs text-gray-600 dark:text-gray-400 ml-4">
+                              {course.progress}%
+                            </span>
                           </div>
-                          <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
-                            <div 
-                              className="bg-gradient-to-r from-primary-500 to-purple-600 h-1.5 rounded-full transition-all duration-300"
-                              style={{ width: `${course.progress}%` }}
-                            />
+                          
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusInfo.bgColor} ${statusInfo.color}`}>
+                                {statusInfo.text}
+                              </span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {course.class_type}
+                              </span>
+                              {timeRemaining > 0 && (
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  ~{formatTimeRemaining(timeRemaining)} remaining
+                                </span>
+                              )}
+                            </div>
+                            
+                            <div className="w-32 bg-gray-200 dark:bg-gray-600 rounded-full h-1.5 ml-4">
+                              <div 
+                                className="bg-gradient-to-r from-primary-500 to-purple-600 h-1.5 rounded-full transition-all duration-300"
+                                style={{ width: `${course.progress}%` }}
+                              />
+                            </div>
                           </div>
-                          {timeRemaining > 0 && (
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                              ~{formatTimeRemaining(timeRemaining)} remaining
-                            </p>
-                          )}
                         </div>
                       </div>
+                      
+                      <button
+                        onClick={() => handleContinueLearning(course.course_id)}
+                        className="ml-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm flex items-center space-x-2 flex-shrink-0"
+                      >
+                        <PlayCircle className="w-4 h-4" />
+                        <span>Continue</span>
+                      </button>
                     </div>
-                    
-                    <button
-                      onClick={() => handleContinueLearning(course.course_id)}
-                      className="ml-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm flex items-center space-x-2"
-                    >
-                      <PlayCircle className="w-4 h-4" />
-                      <span>Continue</span>
-                    </button>
                   </motion.div>
                 );
               })}
