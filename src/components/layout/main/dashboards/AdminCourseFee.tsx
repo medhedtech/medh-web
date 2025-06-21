@@ -17,7 +17,8 @@ import {
   Check,
   Edit,
   DollarSign,
-  LucideIcon
+  LucideIcon,
+  Users
 } from 'lucide-react';
 import { 
   bulkUpdateCoursePrices,
@@ -495,6 +496,183 @@ interface ExpandedRows {
   [key: string]: boolean;
 }
 
+// Add custom checkbox component after imports
+const CustomCheckbox: React.FC<{
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  disabled?: boolean;
+  indeterminate?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
+}> = ({ 
+  checked, 
+  onChange, 
+  disabled = false, 
+  indeterminate = false, 
+  size = 'md',
+  className = '' 
+}) => {
+  const sizeClasses = {
+    sm: 'h-4 w-4',
+    md: 'h-5 w-5', 
+    lg: 'h-6 w-6'
+  };
+
+  const handleClick = () => {
+    if (!disabled) {
+      onChange(!checked);
+    }
+  };
+
+  return (
+    <div className={`relative inline-flex items-center justify-center ${className}`}>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={() => {}}
+        disabled={disabled}
+        className="sr-only"
+        aria-label={checked ? 'Unselect' : 'Select'}
+      />
+      <div
+        onClick={handleClick}
+        className={`
+          ${sizeClasses[size]} 
+          border-2 rounded-md cursor-pointer transition-all duration-200 ease-in-out
+          flex items-center justify-center
+          ${disabled 
+            ? 'border-gray-300 bg-gray-100 cursor-not-allowed' 
+            : checked 
+              ? 'border-blue-500 bg-blue-500 shadow-lg transform scale-105' 
+              : indeterminate
+                ? 'border-blue-400 bg-blue-100'
+                : 'border-gray-300 bg-white hover:border-blue-400 hover:bg-blue-50'
+          }
+          ${!disabled && (checked || indeterminate) ? 'hover:bg-blue-600 hover:border-blue-600' : ''}
+        `}
+      >
+        {checked && (
+          <Check className="h-3 w-3 text-white animate-in zoom-in-75 duration-200" />
+        )}
+        {indeterminate && !checked && (
+          <div className="h-0.5 w-3 bg-blue-500 rounded-full animate-in zoom-in-75 duration-200" />
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Enhanced Bulk Selection Toolbar Component
+const BulkSelectionToolbar: React.FC<{
+  selectedCount: number;
+  totalCount: number;
+  onSelectAll: () => void;
+  onSelectNone: () => void;
+  onSelectVisible: () => void;
+  onInvertSelection: () => void;
+  loading?: boolean;
+}> = ({
+  selectedCount,
+  totalCount,
+  onSelectAll,
+  onSelectNone,
+  onSelectVisible,
+  onInvertSelection,
+  loading = false
+}) => {
+  if (totalCount === 0) return null;
+
+  return (
+    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mb-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <Info className="h-5 w-5 text-blue-600" />
+            <span className="text-sm font-medium text-blue-900">
+              {selectedCount} of {totalCount} courses selected
+            </span>
+          </div>
+          
+          {selectedCount > 0 && (
+            <div className="flex items-center space-x-2">
+              <span className="text-xs text-blue-700 bg-blue-100 px-2 py-1 rounded-full">
+                Bulk operations available
+              </span>
+            </div>
+          )}
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Button
+            onClick={onSelectAll}
+            variant="outline"
+            size="sm"
+            disabled={loading || selectedCount === totalCount}
+            className="text-blue-700 border-blue-300 hover:bg-blue-100"
+          >
+            <CheckCircle className="h-4 w-4 mr-1" />
+            All
+          </Button>
+          
+          <Button
+            onClick={onSelectVisible}
+            variant="outline"
+            size="sm"
+            disabled={loading}
+            className="text-blue-700 border-blue-300 hover:bg-blue-100"
+          >
+            <Users className="h-4 w-4 mr-1" />
+            Visible
+          </Button>
+          
+          <Button
+            onClick={onInvertSelection}
+            variant="outline"
+            size="sm"
+            disabled={loading || totalCount === 0}
+            className="text-purple-700 border-purple-300 hover:bg-purple-100"
+          >
+            <RefreshCcw className="h-4 w-4 mr-1" />
+            Invert
+          </Button>
+          
+          <Button
+            onClick={onSelectNone}
+            variant="outline"
+            size="sm"
+            disabled={loading || selectedCount === 0}
+            className="text-red-700 border-red-300 hover:bg-red-100"
+          >
+            <XIcon className="h-4 w-4 mr-1" />
+            None
+          </Button>
+        </div>
+      </div>
+      
+      {selectedCount > 0 && (
+        <div className="mt-3 pt-3 border-t border-blue-200">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-blue-600">
+              Ready for bulk operations: Pricing updates, currency conversion, psychology pricing
+            </span>
+            <div className="flex items-center space-x-1">
+              <div className="h-2 bg-blue-200 rounded-full w-32 overflow-hidden">
+                <div 
+                  className="h-full bg-blue-500 transition-all duration-300 ease-out"
+                  style={{ width: `${(selectedCount / totalCount) * 100}%` }}
+                />
+              </div>
+              <span className="text-xs text-blue-600 ml-2">
+                {Math.round((selectedCount / totalCount) * 100)}%
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const AdminCourseFee: React.FC = () => {
   const [filters, setFilters] = useState<Filters>({
     status: 'all',
@@ -502,7 +680,7 @@ const AdminCourseFee: React.FC = () => {
     search: ''
   });
   const [loading, setLoading] = useState<boolean>(false);
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [expandedRows, setExpandedRows] = useState<ExpandedRows>({});
   const [selectedCourses, setSelectedCourses] = useState<Set<string>>(new Set());
   const [categories, setCategories] = useState<string[]>([]);
   const [currencies, setCurrencies] = useState<ICurrency[]>([]);
@@ -672,16 +850,18 @@ const AdminCourseFee: React.FC = () => {
           const validPrices: PriceDetails[] = course.pricing
             .filter(price => price.currency !== 'Not specified' && price.prices.individual !== 'N/A')
             .map(price => ({
-            currency: price.currency,
-            individual: parsePriceString(price.prices.individual),
-            batch: parsePriceString(price.prices.batch),
-              min_batch_size: typeof price.batchSize.min === 'string' ? 2 : price.batchSize.min,
-              max_batch_size: typeof price.batchSize.max === 'string' ? 10 : price.batchSize.max,
-            early_bird_discount: price.discounts.earlyBird === "N/A" ? 0 : parseFloat(price.discounts.earlyBird),
-            group_discount: price.discounts.group === "N/A" ? 0 : parseFloat(price.discounts.group),
-            is_active: price.status === "Active"
-          }));
-          
+              currency: price.currency,
+              individual: parsePriceString(price.prices.individual),
+              batch: parsePriceString(price.prices.batch),
+              batchSize: price.batchSize && typeof price.batchSize.min === 'number' && typeof price.batchSize.max === 'number'
+                ? { min: price.batchSize.min, max: price.batchSize.max }
+                : { min: 2, max: 10 },
+              discounts: price.discounts && typeof price.discounts.earlyBird === 'string' && typeof price.discounts.group === 'string'
+                ? { earlyBird: price.discounts.earlyBird, group: price.discounts.group }
+                : { earlyBird: '0', group: '0' },
+              is_active: price.status === "Active"
+            }));
+            
           return {
             id: course.courseId,
             title: course.courseTitle,
@@ -704,14 +884,30 @@ const AdminCourseFee: React.FC = () => {
     }
   };
   
-  const handleSelectAll = (checked: boolean) => {
-    setSelectedCourses(prev => {
-      const newSet = new Set(prev);
-      if (checked) {
-        courses.forEach(course => newSet.add(course.id));
+  const handleSelectAll = () => {
+    setSelectedCourses(new Set(sortedCourses.map(course => course.id)));
+    setSelectAll(true);
+  };
+  
+  const handleSelectNone = () => {
+    setSelectedCourses(new Set());
+    setSelectAll(false);
+  };
+  
+  const handleSelectVisible = () => {
+    setSelectedCourses(new Set(sortedCourses.map(course => course.id)));
+    setSelectAll(sortedCourses.length === courses.length);
+  };
+  
+  const handleInvertSelection = () => {
+    const newSelection = new Set<string>();
+    sortedCourses.forEach(course => {
+      if (!selectedCourses.has(course.id)) {
+        newSelection.add(course.id);
       }
-      return newSet;
     });
+    setSelectedCourses(newSelection);
+    setSelectAll(newSelection.size === courses.length);
   };
   
   const handleSelectCourse = (id: string, checked: boolean) => {
@@ -722,20 +918,19 @@ const AdminCourseFee: React.FC = () => {
       } else {
         newSet.delete(id);
       }
+      
+      // Update selectAll state based on current selection
+      setSelectAll(newSet.size === courses.length && courses.length > 0);
+      
       return newSet;
     });
   };
   
   const toggleRowExpansion = (courseId: string) => {
-    setExpandedRows(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(courseId)) {
-        newSet.delete(courseId);
-      } else {
-        newSet.add(courseId);
-      }
-      return newSet;
-    });
+    setExpandedRows(prev => ({
+      ...prev,
+      [courseId]: !prev[courseId]
+    }));
   };
   
   const toggleEditMode = (courseId: string) => {
@@ -757,11 +952,10 @@ const AdminCourseFee: React.FC = () => {
 
     // Auto-expand the row when entering edit mode
     if (!courses.find(c => c.id === courseId)?.isEditing) {
-      setExpandedRows(prev => {
-        const newSet = new Set(prev);
-        newSet.add(courseId);
-        return newSet;
-      });
+      setExpandedRows(prev => ({
+        ...prev,
+        [courseId]: true
+      }));
     }
   };
   
@@ -799,9 +993,11 @@ const AdminCourseFee: React.FC = () => {
             individual: 0,
             batch: 0,
             currency: selectedCurrency,
-            prices: [],
-            batchSize: 0,
-            discounts: []
+            min_batch_size: 2,
+            max_batch_size: 10,
+            early_bird_discount: 0,
+            group_discount: 0,
+            is_active: true
           });
           return { ...course, editedPrices: newEditedPrices };
         }
@@ -913,6 +1109,24 @@ const AdminCourseFee: React.FC = () => {
     }));
   };
   
+  // Helper function for price updates
+  const applyPriceUpdate = (currentPrice: number, updateType: string, value: number): number => {
+    switch (updateType) {
+      case 'fixed':
+        return value;
+      case 'increase_percent':
+        return currentPrice * (1 + value / 100);
+      case 'decrease_percent':
+        return currentPrice * (1 - value / 100);
+      case 'increase_amount':
+        return currentPrice + value;
+      case 'decrease_amount':
+        return Math.max(0, currentPrice - value);
+      default:
+        return currentPrice;
+    }
+  };
+
   const applyBulkUpdate = async () => {
     if (!bulkConfig.type || !bulkConfig.value || Number(bulkConfig.value) <= 0) {
       showToast('Please specify a valid update type and value', 'error');
@@ -920,8 +1134,8 @@ const AdminCourseFee: React.FC = () => {
     }
     
     // Get selected courses
-    const selectedCourses = courses.filter(course => selectedCourses.has(course.id));
-    if (selectedCourses.length === 0) {
+    const selectedCoursesList = courses.filter(course => selectedCourses.has(course.id));
+    if (selectedCoursesList.length === 0) {
       showToast('No courses selected', 'error');
       return;
     }
@@ -930,7 +1144,7 @@ const AdminCourseFee: React.FC = () => {
     
     try {
       // Create update payloads for each course
-      const bulkUpdates = selectedCourses.map(course => {
+      const bulkUpdates = selectedCoursesList.map(course => {
         // Apply the bulk update to each price option
         const updatedPrices = course.prices.map(price => {
           // Skip if currency filter is set and doesn't match
@@ -1032,7 +1246,9 @@ const AdminCourseFee: React.FC = () => {
     }
   };
   
-  const selectedCount = courses.filter(course => course.selected).length;
+  const selectedCount = selectedCourses.size;
+  const isPartiallySelected = selectedCount > 0 && selectedCount < courses.length;
+  const isAllSelected = selectedCount === courses.length && courses.length > 0;
   
   const handleAddFirstPriceOption = (courseId: string) => {
     setCourses(courses.map(course => {
@@ -1262,19 +1478,19 @@ const AdminCourseFee: React.FC = () => {
           
           // Round individual price to end with 9
           if (updatedPrice.individual) {
-            const numValue = parseFloat(updatedPrice.individual);
+            const numValue = Number(updatedPrice.individual);
             if (numValue > 0) {
               const rounded = Math.floor(numValue) - 0.01;
-              updatedPrice.individual = rounded.toFixed(2);
+              updatedPrice.individual = Number(rounded.toFixed(2));
             }
           }
           
           // Round batch price to end with 9
           if (updatedPrice.batch) {
-            const numValue = parseFloat(updatedPrice.batch);
+            const numValue = Number(updatedPrice.batch);
             if (numValue > 0) {
               const rounded = Math.floor(numValue) - 0.01;
-              updatedPrice.batch = rounded.toFixed(2);
+              updatedPrice.batch = Number(rounded.toFixed(2));
             }
           }
           
@@ -1289,12 +1505,12 @@ const AdminCourseFee: React.FC = () => {
             batch: price.batch
           },
           discounts: {
-            earlyBird: price.earlyBird || "0",
-            group: price.groupDiscount || "0"
+            earlyBird: price.early_bird_discount?.toString() || "0",
+            group: price.group_discount?.toString() || "0"
           },
           batchSize: {
-            min: price.minBatchSize || 0,
-            max: price.maxBatchSize || 0
+            min: price.min_batch_size || 0,
+            max: price.max_batch_size || 0
           },
           status: "active"
         }));
@@ -1353,29 +1569,37 @@ const AdminCourseFee: React.FC = () => {
       </div>
       
       <CourseFeeFilter 
-        onFilterChange={setFilters} 
+        onFilterChange={(newFilters) => setFilters(prev => ({ ...prev, ...newFilters }))} 
         categories={categories} 
         currencies={Object.keys(currencyRates)}
         classTypes={["Live Courses", "Blended Courses", "Pre-Recorded"]}
         loading={loading || saving !== ''}
       />
       
-      <BulkUpdateSection 
+      {/* Enhanced Bulk Selection Toolbar */}
+      <BulkSelectionToolbar
         selectedCount={selectedCount}
-        onBulkUpdateConfig={handleBulkUpdateConfig}
-        onApplyBulkUpdate={applyBulkUpdate}
-        bulkConfig={bulkConfig}
-        currencies={Object.keys(currencyRates)}
-        currencyRates={currencyRates}
+        totalCount={courses.length}
+        onSelectAll={handleSelectAll}
+        onSelectNone={handleSelectNone}
+        onSelectVisible={handleSelectVisible}
+        onInvertSelection={handleInvertSelection}
+        loading={loading}
       />
       
-      {/* Add Psychology Pricing Button */}
+      <BulkUpdateSection 
+        onUpdate={handleBulkUpdateConfig}
+        isLoading={loading}
+        currencies={Object.keys(currencyRates)}
+      />
+      
+      {/* Psychology Pricing Section */}
       <div className="mb-6">
         <Card>
-          <CardHeader
-            title="Psychology Pricing"
-            subtitle="Apply psychology pricing (rounding to nearest 9) to selected courses"
-          />
+          <CardHeader>
+            <h3 className="text-lg font-semibold">Psychology Pricing</h3>
+            <p className="text-sm text-gray-500">Apply psychology pricing (rounding to nearest 9) to selected courses</p>
+          </CardHeader>
           <div className="p-6">
             <Button
               onClick={applyPsychologyPricingToSelected}
@@ -1399,131 +1623,185 @@ const AdminCourseFee: React.FC = () => {
         </Card>
       </div>
       
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Course Pricing</h3>
-          <p className="text-sm text-gray-500">Manage individual and batch pricing for all courses</p>
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        {/* Enhanced Header */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 flex items-center">
+                <DollarSign className="h-6 w-6 mr-2 text-blue-600" />
+                Course Pricing Management
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Manage individual and batch pricing for all courses with bulk operations
+              </p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
+                <span className="text-sm font-medium text-gray-700">
+                  {courses.length} courses
+                </span>
+              </div>
+              {selectedCount > 0 && (
+                <div className="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg border border-blue-200 animate-in slide-in-from-right duration-300">
+                  <span className="text-sm font-medium flex items-center">
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    {selectedCount} selected
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
+
+        {/* Enhanced Table */}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
               <tr>
-                <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
-                  <input 
-                    type="checkbox" 
-                    className="focus:ring-customGreen h-5 w-5 text-customGreen border-gray-300 rounded"
-                    checked={selectAll} 
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                    disabled={loading || courses.length === 0}
-                  />
+                <th scope="col" className="px-6 py-4 text-left w-16">
+                  <div className="flex items-center">
+                    <CustomCheckbox
+                      checked={isAllSelected}
+                      indeterminate={isPartiallySelected}
+                      onChange={isAllSelected ? handleSelectNone : handleSelectAll}
+                      disabled={loading || courses.length === 0}
+                      className="mr-2"
+                    />
+                    <span className="text-xs text-gray-500">
+                      {isPartiallySelected ? 'Partial' : isAllSelected ? 'All' : 'None'}
+                    </span>
+                  </div>
                 </th>
                 <th 
                   scope="col" 
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors duration-200"
                   onClick={() => handleSort('title')}
                 >
-                  <div className="flex items-center space-x-1">
+                  <div className="flex items-center space-x-2">
                     <span>Course Title</span>
                     {sortState.field === 'title' && (
-                      <span className="text-gray-400">
+                      <span className="text-blue-500 text-sm">
                         {sortState.direction === 'asc' ? '↑' : '↓'}
                       </span>
                     )}
+                    <ChevronDown className="h-4 w-4 text-gray-400" />
                   </div>
                 </th>
                 <th 
                   scope="col" 
-                  className="hidden md:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  className="hidden lg:table-cell px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors duration-200"
                   onClick={() => handleSort('category')}
                 >
-                  <div className="flex items-center space-x-1">
+                  <div className="flex items-center space-x-2">
                     <span>Category</span>
                     {sortState.field === 'category' && (
-                      <span className="text-gray-400">
+                      <span className="text-blue-500 text-sm">
                         {sortState.direction === 'asc' ? '↑' : '↓'}
                       </span>
                     )}
+                    <ChevronDown className="h-4 w-4 text-gray-400" />
                   </div>
                 </th>
-                <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Pricing Options
+                <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <div className="flex items-center space-x-2">
+                    <DollarSign className="h-4 w-4" />
+                    <span>Pricing Options</span>
+                  </div>
                 </th>
-                <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
-                  Actions
+                <th scope="col" className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-48">
+                  <div className="flex items-center justify-center space-x-2">
+                    <Edit className="h-4 w-4" />
+                    <span>Actions</span>
+                  </div>
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-12">
+                  <td colSpan={5} className="text-center py-16">
                     <div className="flex flex-col items-center">
-                      <RefreshCcw className="animate-spin h-10 w-10 text-customGreen mb-3" />
-                      <span className="text-base">Loading courses...</span>
+                      <div className="relative">
+                        <RefreshCcw className="animate-spin h-12 w-12 text-blue-500 mb-4" />
+                        <div className="absolute inset-0 rounded-full border-2 border-blue-100"></div>
+                      </div>
+                      <span className="text-lg font-medium text-gray-700">Loading courses...</span>
+                      <span className="text-sm text-gray-500 mt-1">Please wait while we fetch the data</span>
                     </div>
                   </td>
                 </tr>
               ) : courses.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-12 text-gray-500">
+                  <td colSpan={5} className="text-center py-16">
                     <div className="flex flex-col items-center">
-                      <AlertCircle className="h-10 w-10 text-amber-500 mb-3" />
-                      <span className="text-base">No courses found. Try changing your filters.</span>
+                      <div className="bg-amber-100 rounded-full p-4 mb-4">
+                        <AlertCircle className="h-12 w-12 text-amber-600" />
+                      </div>
+                      <span className="text-lg font-medium text-gray-700 mb-2">No courses found</span>
+                      <span className="text-sm text-gray-500">Try adjusting your search filters or add new courses</span>
                     </div>
                   </td>
                 </tr>
               ) : (
                 sortedCourses.map(course => (
                   <Fragment key={course.id}>
-                    <tr className={`${expandedRows[course.id] ? 'bg-gray-50' : 'hover:bg-gray-50'}`}>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <input 
-                          type="checkbox" 
-                          className="focus:ring-customGreen h-5 w-5 text-customGreen border-gray-300 rounded"
-                          checked={course.selected} 
-                          onChange={(e) => handleSelectCourse(course.id, e.target.checked)}
+                    <tr className={`transition-all duration-200 ${
+                      expandedRows[course.id] 
+                        ? 'bg-blue-50 border-l-4 border-blue-400' 
+                        : selectedCourses.has(course.id)
+                          ? 'bg-blue-25 border-l-2 border-blue-300'
+                          : 'hover:bg-gray-50 hover:shadow-sm'
+                    }`}>
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <CustomCheckbox
+                          checked={selectedCourses.has(course.id)}
+                          onChange={(checked) => handleSelectCourse(course.id, checked)}
                           disabled={course.isEditing}
                         />
                       </td>
-                      <td className="px-4 py-4 text-sm font-medium text-gray-900">
-                        <div className="space-y-1.5">
-                          <div className="font-semibold text-gray-900 line-clamp-1">
+                      <td className="px-6 py-5">
+                        <div className="space-y-2">
+                          <div className="font-semibold text-gray-900 text-base leading-tight">
                             {course.title.split('|')[0].trim()}
                           </div>
-                          <div className="flex flex-wrap gap-2 text-xs">
+                          <div className="flex flex-wrap gap-2">
                             {course.title.split('|').slice(1).map((detail, index) => {
                               const [label, value] = detail.split(':').map(s => s.trim());
-                              let badgeColor = 'bg-gray-100 text-gray-800';
+                              let badgeColor = 'bg-gray-100 text-gray-700 border-gray-200';
                               
-                              // Determine badge color based on label
+                              // Enhanced badge colors with borders
                               if (label.toLowerCase().includes('grade')) {
                                 if (value.toLowerCase().includes('preschool')) {
-                                  badgeColor = 'bg-pink-100 text-pink-800';
+                                  badgeColor = 'bg-pink-50 text-pink-700 border-pink-200';
                                 } else if (value.toLowerCase().includes('executive') || value.toLowerCase().includes('professional')) {
-                                  badgeColor = 'bg-purple-100 text-purple-800';
+                                  badgeColor = 'bg-purple-50 text-purple-700 border-purple-200';
                                 } else if (value.toLowerCase().includes('all grade')) {
-                                  badgeColor = 'bg-indigo-100 text-indigo-800';
+                                  badgeColor = 'bg-indigo-50 text-indigo-700 border-indigo-200';
                                 } else {
-                                  badgeColor = 'bg-blue-100 text-blue-800';
+                                  badgeColor = 'bg-blue-50 text-blue-700 border-blue-200';
                                 }
                               } else if (label.toLowerCase().includes('duration')) {
-                                badgeColor = 'bg-green-100 text-green-800';
+                                badgeColor = 'bg-green-50 text-green-700 border-green-200';
                               }
 
                               return (
                                 <span 
                                   key={index}
-                                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${badgeColor}`}
+                                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${badgeColor}`}
                                 >
-                                  {label}: {value}
+                                  <span className="font-semibold">{label}:</span>
+                                  <span className="ml-1">{value}</span>
                                 </span>
                               );
                             })}
                           </div>
                         </div>
                       </td>
-                      <td className="hidden md:table-cell px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {course.category || 'N/A'}
+                      <td className="hidden lg:table-cell px-6 py-5 whitespace-nowrap">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                          {course.category || 'Uncategorized'}
+                        </span>
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-500">
                         <div className="flex flex-wrap gap-2">
@@ -1705,28 +1983,49 @@ const AdminCourseFee: React.FC = () => {
             </tbody>
           </table>
         </div>
+        
+        {/* Enhanced Footer */}
         <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
-          <p className="text-sm text-gray-500">
-            Showing {courses.length} courses
-          </p>
-          {saving === 'bulk' && (
-            <div className="flex items-center text-sm text-customGreen">
-              <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
-              Applying bulk updates...
-            </div>
-          )}
-          {saving === 'bulk-currency' && (
-            <div className="flex items-center text-sm text-customGreen">
-              <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
-              Adding currency pricing to courses...
-            </div>
-          )}
-          {saving === 'psychology-pricing' && (
-            <div className="flex items-center text-sm text-customGreen">
-              <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
-              Applying psychology pricing...
-            </div>
-          )}
+          <div className="flex items-center space-x-4">
+            <p className="text-sm text-gray-500">
+              Showing {courses.length} courses
+            </p>
+            {selectedCount > 0 && (
+              <div className="flex items-center space-x-2">
+                <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-blue-700">
+                  {selectedCount} selected for bulk operations
+                </span>
+              </div>
+            )}
+          </div>
+          
+          <div className="flex items-center space-x-3">
+            {saving === 'bulk' && (
+              <div className="flex items-center text-sm text-blue-600">
+                <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
+                Applying bulk updates...
+              </div>
+            )}
+            {saving === 'bulk-currency' && (
+              <div className="flex items-center text-sm text-green-600">
+                <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
+                Adding currency pricing to courses...
+              </div>
+            )}
+            {saving === 'psychology-pricing' && (
+              <div className="flex items-center text-sm text-purple-600">
+                <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
+                Applying psychology pricing...
+              </div>
+            )}
+            
+            {selectedCount > 0 && !saving && (
+              <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                Ready for bulk operations
+              </div>
+            )}
+          </div>
         </div>
       </div>
       
@@ -1833,15 +2132,18 @@ const ExpandedRowContent: React.FC<ExpandedRowContentProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Currency
                 </label>
-                <Select
+                <select
                   value={price.currency}
-                  onChange={(value) => onPriceChange(index, { ...price, currency: value }, item.id)}
-                  options={Object.entries(currencyRates).map(([code, currency]) => ({
-                    value: code,
-                    label: `${code} (${currency.symbol})`
-                  }))}
+                  onChange={(e) => onPriceChange(index, { ...price, currency: e.target.value }, item.id)}
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                   disabled={!item.isEditing}
-                />
+                >
+                  {Object.entries(currencyRates).map(([code, currency]) => (
+                    <option key={code} value={code}>
+                      {code} ({currency.symbol})
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -1850,9 +2152,9 @@ const ExpandedRowContent: React.FC<ExpandedRowContentProps> = ({
                 </label>
                 <Input
                   value={price.prices.individual}
-                  onChange={(value) => onPriceChange(index, { 
+                  onChange={(e) => onPriceChange(index, { 
                     ...price, 
-                    prices: { ...price.prices, individual: value }
+                    prices: { ...price.prices, individual: e.target.value }
                   }, item.id)}
                   placeholder="Enter individual price"
                   type="number"
@@ -1866,9 +2168,9 @@ const ExpandedRowContent: React.FC<ExpandedRowContentProps> = ({
                 </label>
                 <Input
                   value={price.prices.batch}
-                  onChange={(value) => onPriceChange(index, { 
+                  onChange={(e) => onPriceChange(index, { 
                     ...price, 
-                    prices: { ...price.prices, batch: value }
+                    prices: { ...price.prices, batch: e.target.value }
                   }, item.id)}
                   placeholder="Enter batch price"
                   type="number"
@@ -1883,9 +2185,9 @@ const ExpandedRowContent: React.FC<ExpandedRowContentProps> = ({
                 <div className="flex space-x-2">
                   <Input
                     value={price.batchSize.min.toString()}
-                    onChange={(value) => onPriceChange(index, { 
+                    onChange={(e) => onPriceChange(index, { 
                       ...price, 
-                      batchSize: { ...price.batchSize, min: parseInt(value) || 0 }
+                      batchSize: { ...price.batchSize, min: parseInt(e.target.value) || 0 }
                     }, item.id)}
                     placeholder="Min"
                     type="number"
@@ -1893,9 +2195,9 @@ const ExpandedRowContent: React.FC<ExpandedRowContentProps> = ({
                   />
                   <Input
                     value={price.batchSize.max.toString()}
-                    onChange={(value) => onPriceChange(index, { 
+                    onChange={(e) => onPriceChange(index, { 
                       ...price, 
-                      batchSize: { ...price.batchSize, max: parseInt(value) || 0 }
+                      batchSize: { ...price.batchSize, max: parseInt(e.target.value) || 0 }
                     }, item.id)}
                     placeholder="Max"
                     type="number"
@@ -1910,9 +2212,9 @@ const ExpandedRowContent: React.FC<ExpandedRowContentProps> = ({
                 </label>
                 <Input
                   value={price.discounts.earlyBird}
-                  onChange={(value) => onPriceChange(index, { 
+                  onChange={(e) => onPriceChange(index, { 
                     ...price, 
-                    discounts: { ...price.discounts, earlyBird: value }
+                    discounts: { ...price.discounts, earlyBird: e.target.value }
                   }, item.id)}
                   placeholder="Enter early bird discount"
                   type="number"
@@ -1926,9 +2228,9 @@ const ExpandedRowContent: React.FC<ExpandedRowContentProps> = ({
                 </label>
                 <Input
                   value={price.discounts.group}
-                  onChange={(value) => onPriceChange(index, { 
+                  onChange={(e) => onPriceChange(index, { 
                     ...price, 
-                    discounts: { ...price.discounts, group: value }
+                    discounts: { ...price.discounts, group: e.target.value }
                   }, item.id)}
                   placeholder="Enter group discount"
                   type="number"
@@ -1940,9 +2242,9 @@ const ExpandedRowContent: React.FC<ExpandedRowContentProps> = ({
                 <div className="flex items-end">
                   <Button
                     onClick={() => onRemovePrice(index, item.id)}
-                    variant="danger"
-                    icon={Trash2}
+                    variant="destructive"
                   >
+                    <Trash2 className="h-4 w-4 mr-2" />
                     Remove
                   </Button>
                 </div>
@@ -1953,8 +2255,8 @@ const ExpandedRowContent: React.FC<ExpandedRowContentProps> = ({
             <Button
               onClick={onAddPrice}
               variant="default"
-              icon={Plus}
             >
+              <Plus className="h-4 w-4 mr-2" />
               Add Price Option
             </Button>
           </div>
@@ -2007,6 +2309,7 @@ const ExpandedRowContent: React.FC<ExpandedRowContentProps> = ({
 
 const HomeDisplayPricing = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [saving, setSaving] = useState<string | null>(null); // Add missing setSaving state
   const [displayItems, setDisplayItems] = useState<HomeDisplayPrice[]>([]);
   const [filteredDisplayItems, setFilteredDisplayItems] = useState<HomeDisplayPrice[]>([]);
   const [displayTypes, setDisplayTypes] = useState<string[]>([]);
@@ -2496,10 +2799,11 @@ const HomeDisplayPricing = () => {
           const currencyCodes = data.data.currencies.map((curr: any) => curr.countryCode);
           setCurrencies(currencyCodes);
           
-          // Update exchange rates
+          // Update exchange rates with proper structure
           const rates: CurrencyRates = {};
           data.data.currencies.forEach((curr: any) => {
             rates[curr.countryCode] = {
+              valueWrtUSD: curr.valueWrtUSD || 1,
               symbol: curr.symbol || curr.countryCode,
               name: curr.country || curr.countryCode,
               rate: curr.valueWrtUSD || 1
@@ -2672,10 +2976,10 @@ const HomeDisplayPricing = () => {
 
       {/* Currency Rate Editor */}
       <Card>
-        <CardHeader
-          title="Bulk Add Course Pricing with Currency"
-          subtitle="Update exchange rates and add new currencies"
-        />
+        <CardHeader>
+          <h3 className="text-lg font-semibold">Bulk Add Course Pricing with Currency</h3>
+          <p className="text-sm text-gray-500">Update exchange rates and add new currencies</p>
+        </CardHeader>
         <div className="p-6">
           <div className="space-y-4">
             {Object.entries(currencyRates).map(([code, rate]) => (
@@ -2686,9 +2990,9 @@ const HomeDisplayPricing = () => {
                 <div className="flex-1">
                   <Input
                     value={rate.rate.toString()}
-                    onChange={(value) => {
+                    onChange={(e) => {
                       const newRates = { ...currencyRates };
-                      newRates[code] = { ...rate, rate: parseFloat(value) };
+                      newRates[code] = { ...rate, rate: parseFloat(e.target.value) };
                       handleCurrencyRateUpdate(newRates);
                     }}
                     type="number"
@@ -2708,12 +3012,18 @@ const HomeDisplayPricing = () => {
             <div className="flex items-end gap-4">
               <div className="flex-grow">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Select Currency</label>
-                <Select
+                <select
                   value={selectedCurrencyForBulk}
-                  onChange={(value) => setSelectedCurrencyForBulk(value)}
-                  options={Object.entries(currencyRates).map(([code, currency]) => ({ value: code, label: `${code} (${currency.symbol})` }))}
-                  placeholder="Select currency"
-                />
+                  onChange={(e) => setSelectedCurrencyForBulk(e.target.value)}
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                >
+                  <option value="">Select currency</option>
+                  {Object.entries(currencyRates).map(([code, currency]) => (
+                    <option key={code} value={code}>
+                      {code} ({currency.symbol})
+                    </option>
+                  ))}
+                </select>
                 <p className="mt-1 text-xs text-gray-500">
                   This will add pricing based on USD prices converted to the selected currency
                 </p>
