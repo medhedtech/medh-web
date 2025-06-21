@@ -263,7 +263,12 @@ const StudentUpcomingClasses: React.FC = () => {
       {/* Header with tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">Live Sessions</h2>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="p-1.5 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
+              <Video className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">Live Sessions</h2>
+          </div>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Join your scheduled classes and stay engaged
           </p>

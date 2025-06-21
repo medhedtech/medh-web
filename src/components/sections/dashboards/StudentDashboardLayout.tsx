@@ -399,8 +399,6 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
   const [subItems, setSubItems] = useState<SubItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [contentPadding, setContentPadding] = useState<string>("0px");
-  const [showMobileBottomNav, setShowMobileBottomNav] = useState<boolean>(true);
-  const [lastScrollY, setLastScrollY] = useState<number>(0);
   
   // Handle URL parameters and adjust sidebar based on screen size
   useEffect(() => {
@@ -461,39 +459,6 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
       setIsSidebarExpanded(false);
     }
   }, [searchParams, isMobile, isTablet]);
-
-  // Handle scroll for mobile bottom navigation
-  useEffect(() => {
-    if (!isMobile) return;
-
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        // Scrolling down - hide bottom nav
-        setShowMobileBottomNav(false);
-      } else {
-        // Scrolling up - show bottom nav
-        setShowMobileBottomNav(true);
-      }
-      
-      setLastScrollY(currentScrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY, isMobile]);
-
-  // Handle content padding adjustment based on sidebar state
-  useEffect(() => {
-    if (isMobile || isTablet) {
-      setContentPadding("0px"); // No padding on mobile/tablet
-    } else {
-      // Desktop behavior remains the same
-      const basePadding = isSidebarExpanded ? "245px" : "68px";
-      setContentPadding(basePadding);
-    }
-  }, [isSidebarExpanded, isSidebarOpen, isMobile, isTablet]);
 
   // Context value memo for performance
   const contextValue = useMemo(() => ({
@@ -766,28 +731,6 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     }
   };
 
-  // Mobile bottom navigation items
-  const mobileBottomNavItems = [
-    { 
-      name: "Dashboard", 
-      icon: <Home size={20} />, 
-      onClick: () => handleMenuClick("overview", []),
-      active: currentView === "overview"
-    },
-    { 
-      name: "Courses", 
-      icon: <Menu size={20} />, 
-      onClick: () => setIsSidebarOpen(true),
-      active: false
-    },
-    { 
-      name: "Profile", 
-      icon: <LogOut size={20} />, 
-      onClick: () => router.push("/dashboards/student/profile"),
-      active: currentView === "profile"
-    }
-  ];
-
   // Memoize the DashboardComponent to prevent re-renders
   const MemoizedDashboardComponent = useMemo(() => (
     <div className="bg-white dark:bg-gray-800 rounded-none md:rounded-xl shadow-none md:shadow-sm overflow-hidden md:elevation-2">
@@ -950,38 +893,6 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
             </div>
           </motion.div>
         </div>
-
-        {/* Mobile Bottom Navigation */}
-        {isMobile && (
-          <motion.div
-            initial={{ y: 100 }}
-            animate={{ y: showMobileBottomNav ? 0 : 100 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg"
-          >
-            <div className="flex items-center justify-around py-2 px-4 safe-area-bottom">
-              {mobileBottomNavItems.map((item, index) => (
-                <button
-                  key={index}
-                  onClick={item.onClick}
-                  className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-200 min-w-[60px] ${
-                    item.active 
-                      ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' 
-                      : 'text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-800'
-                  }`}
-                  aria-label={item.name}
-                >
-                  <div className={`transition-transform duration-200 ${item.active ? 'scale-110' : 'scale-100'}`}>
-                    {item.icon}
-                  </div>
-                  <span className="text-xs font-medium mt-1 leading-none">
-                    {item.name}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
 
         {/* Desktop logout button - only show on desktop */}
         {isDesktop && (
