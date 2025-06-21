@@ -618,6 +618,7 @@ export const authAPI = {
     },
     revokeAllSessions: `${apiBaseUrl}/auth/sessions/revoke-all`,
     revokeOtherSessions: `${apiBaseUrl}/auth/sessions/revoke-others`,
+    logoutAllDevices: `${apiBaseUrl}/auth/logout-all-devices`,
   },
   
   // 6. Security & Audit
@@ -1041,6 +1042,35 @@ export const authUtils = {
     };
     
     return colorMap[severity];
+  },
+
+  /**
+   * Logout from all devices/sessions
+   */
+  logoutAllDevices: async (): Promise<{ success: boolean; message: string; data?: any }> => {
+    try {
+      const response = await fetch(authAPI.sessions.logoutAllDevices, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        }
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Clear local tokens since we're logging out from all devices
+        authUtils.clearTokens();
+      }
+      
+      return result;
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error)
+      };
+    }
   }
 };
 

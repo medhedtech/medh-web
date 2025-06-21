@@ -31,6 +31,7 @@ import {
   getBillingCycleFromDuration,
   validateMembershipEnrollmentData,
   type TMembershipType,
+  type TBillingCycle,
   type IMembershipPricing,
   type IMembershipBenefits,
   type IMembershipEnrollmentInput
@@ -55,6 +56,32 @@ interface IMembershipData {
   description: string;
   features: string[];
   benefits?: IMembershipBenefits;
+}
+
+// Enhanced modal state interface
+interface IModalState {
+  isSelectCourseModalOpen: boolean;
+  isLoginModalOpen: boolean;
+  selectedMembershipType: TMembershipType | "";
+  selectedSilverPlan: string;
+  selectedGoldPlan: string;
+  enrollmentLoading: boolean;
+  modalError: string | null;
+}
+
+// Enhanced props for SelectCourseModal
+interface IEnhancedSelectCourseModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  planType: TMembershipType;
+  amount: string;
+  selectedPlan: string;
+  closeParent: () => void;
+  membershipData: IMembershipData;
+  onEnrollmentSuccess: (enrollmentData: any) => void;
+  onEnrollmentError: (error: string) => void;
+  maxSelections: number;
+  isLoading?: boolean;
 }
 
 // Fallback static data in case API fails
@@ -101,19 +128,22 @@ const getStaticMembershipData = (): IMembershipData[] => [
 ];
 
 const PrimeMembership: React.FC = () => {
-  // State management
+  // State management - Consolidated modal state
   const [membershipData, setMembershipData] = useState<IMembershipData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [enrollmentLoading, setEnrollmentLoading] = useState(false);
   
-  const [selectedMembershipType, setSelectedMembershipType] = useState<string>("");
-  const [selectedSilverPlan, setSelectedSilverPlan] = useState<string>("MONTHLY");
-  const [selectedGoldPlan, setSelectedGoldPlan] = useState<string>("MONTHLY");
-  const [isSelectCourseModalOpen, setSelectCourseModalOpen] = useState<boolean>(false);
-  const [planType, setPlanType] = useState<string>("");
-  const [selectedMembership, setSelectedMembership] = useState<string>("");
-  const [isLoginModalOpen, setLoginModalOpen] = useState<boolean>(false);
+  // Enhanced modal state management
+  const [modalState, setModalState] = useState<IModalState>({
+    isSelectCourseModalOpen: false,
+    isLoginModalOpen: false,
+    selectedMembershipType: "",
+    selectedSilverPlan: "MONTHLY",
+    selectedGoldPlan: "MONTHLY",
+    enrollmentLoading: false,
+    modalError: null
+  });
+
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
   // Memoize static data to prevent unnecessary recalculations
@@ -231,7 +261,42 @@ const PrimeMembership: React.FC = () => {
     }
   };
 
+  // Enhanced helper functions with better error handling
+  const getSelectedPlanPrice = useCallback((): string => {
+    try {
+      const membership = membershipData.find(m => m.type === modalState.selectedMembershipType);
+      if (!membership) return "0";
+      
+      const selectedPlanDuration = modalState.selectedMembershipType === 'silver' ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
+      const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
+      
+      if (!selectedPlan) return "0";
+      const numeric = parseFloat(selectedPlan.price.replace(/[^0-9.]/g, ''));
+      return isNaN(numeric) ? "0" : numeric.toString();
+    } catch (error) {
+      console.error('Error getting selected plan price:', error);
+      return "0";
+    }
+  }, [membershipData, modalState.selectedMembershipType, modalState.selectedSilverPlan, modalState.selectedGoldPlan]);
 
+  const getSelectedPlanName = useCallback((): string => {
+    try {
+      return modalState.selectedMembershipType === 'silver' ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
+    } catch (error) {
+      console.error('Error getting selected plan name:', error);
+      return "MONTHLY";
+    }
+  }, [modalState.selectedMembershipType, modalState.selectedSilverPlan, modalState.selectedGoldPlan]);
+
+  // Validate modal state before opening
+  const canOpenSelectCourseModal = useCallback((membershipType: string): boolean => {
+    if (!membershipType) return false;
+    if (modalState.enrollmentLoading) return false;
+    if (loading) return false;
+    
+    const membership = membershipData.find(m => m.type === membershipType);
+    return membership !== undefined && membership.plans.length > 0;
+  }, [membershipData, modalState.enrollmentLoading, loading]);
 
   // Memoize functions to prevent unnecessary re-renders
   const checkUserLogin = useCallback((): boolean => {
@@ -240,87 +305,132 @@ const PrimeMembership: React.FC = () => {
   }, []);
 
   const handleSelectCourseModal = useCallback((membershipType: string): void => {
+    // Enhanced validation before opening modal
     if (!checkUserLogin()) {
-      setLoginModalOpen(true);
+      setModalState(prev => ({ ...prev, isLoginModalOpen: true }));
       return;
     }
-    if (!membershipType) return;
-    setPlanType(membershipType.toLowerCase());
-    setSelectCourseModalOpen(true);
-  }, [checkUserLogin]);
+    
+    if (!canOpenSelectCourseModal(membershipType)) {
+      const errorMsg = loading 
+        ? 'Please wait for plans to load' 
+        : modalState.enrollmentLoading 
+        ? 'Please wait for current enrollment to complete'
+        : 'Invalid membership type selected';
+      
+      setModalState(prev => ({ ...prev, modalError: errorMsg }));
+      return;
+    }
+    
+    setModalState(prev => ({ 
+      ...prev, 
+      selectedMembershipType: membershipType as TMembershipType,
+      isSelectCourseModalOpen: true,
+      modalError: null
+    }));
+  }, [checkUserLogin, canOpenSelectCourseModal, loading, modalState.enrollmentLoading]);
 
   const handleMembershipChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>): void => {
     const membership = e.target.value;
-    setSelectedMembership(membership);
     if (membership) {
       handleSelectCourseModal(membership);
     }
   }, [handleSelectCourseModal]);
 
   const handlePlanSelection = useCallback((membershipType: string, planDuration: string): void => {
-    setSelectedMembershipType(membershipType);
+    setModalState(prev => ({ ...prev, selectedMembershipType: membershipType as TMembershipType }));
     
     if (membershipType === "silver") {
-      setSelectedSilverPlan(planDuration);
+      setModalState(prev => ({ ...prev, selectedSilverPlan: planDuration }));
     } else if (membershipType === "gold") {
-      setSelectedGoldPlan(planDuration);
+      setModalState(prev => ({ ...prev, selectedGoldPlan: planDuration }));
     }
   }, []);
 
-  // Handle membership enrollment
-  const handleEnrollment = async (membershipType: TMembershipType, selectedCategories: string[] = []) => {
+  // Enhanced enrollment handler with better error handling
+  const handleEnrollment = useCallback(async (membershipType: TMembershipType, selectedCategories: string[] = []) => {
     try {
-      setEnrollmentLoading(true);
+      setModalState(prev => ({ ...prev, enrollmentLoading: true, modalError: null }));
+
+      // Validate user authentication
+      const userId = localStorage.getItem("userId");
+      const token = localStorage.getItem("token");
+      
+      if (!userId || !token) {
+        throw new Error('Please log in to continue with enrollment');
+      }
 
       // Get selected plan details
       const membership = membershipData.find(m => m.type === membershipType);
       if (!membership) throw new Error('Membership type not found');
 
-      const selectedPlanDuration = membershipType === 'silver' ? selectedSilverPlan : selectedGoldPlan;
+      const selectedPlanDuration = membershipType === 'silver' ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
       const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
       if (!selectedPlan) throw new Error('Selected plan not found');
 
-      // Create enrollment data
+      // Validate category selection
+      const maxCategories = membershipType === 'silver' ? 1 : 3;
+      if (selectedCategories.length === 0) {
+        throw new Error('Please select at least one category');
+      }
+      if (selectedCategories.length > maxCategories) {
+        throw new Error(`${membershipType === 'silver' ? 'Silver' : 'Gold'} membership allows up to ${maxCategories} categories`);
+      }
+
+      // Create enrollment data with proper validation
       const enrollmentData: IMembershipEnrollmentInput = {
         membership_type: membershipType,
         duration_months: selectedPlan.duration_months,
-        billing_cycle: selectedPlan.billing_cycle as any,
+        billing_cycle: selectedPlan.billing_cycle as TBillingCycle,
         auto_renewal: true,
         selected_categories: selectedCategories,
         payment_info: {
           amount: parseInt(selectedPlan.price.replace(/[^\d]/g, '')),
           currency: 'INR',
           payment_method: 'upi',
-          transaction_id: `TXN${Date.now()}`
+          transaction_id: `TXN${Date.now()}_${userId}`
         }
       };
 
       // Validate enrollment data
       const validation = validateMembershipEnrollmentData(enrollmentData);
       if (!validation.isValid) {
-        throw new Error(validation.errors.join(', '));
+        throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
       }
 
       // Create enrollment
       const response = await createMembershipEnrollment(enrollmentData);
       
       if (response.status === 'success') {
-        // Success - redirect to success page or show success message
-        alert('Membership enrolled successfully!');
-        setSelectCourseModalOpen(false);
+        // Show success message with details
+        const enrollmentDetails = response.data?.enrollment;
+        const successMessage = `Successfully enrolled in ${membershipType.toUpperCase()} membership for ${selectedPlan.duration_months} months!`;
         
-        // Optionally redirect to dashboard or membership page
-        window.location.href = '/dashboard/membership';
+        alert(successMessage);
+        
+        // Close modal and reset state
+        setModalState(prev => ({ 
+          ...prev, 
+          isSelectCourseModalOpen: false,
+          modalError: null,
+          enrollmentLoading: false
+        }));
+        
+        // Redirect to membership dashboard
+        window.location.href = '/dashboards/student-membership';
       } else {
-        throw new Error(response.error || 'Enrollment failed');
+        throw new Error(response.error || 'Enrollment failed. Please try again.');
       }
     } catch (error) {
       console.error('Enrollment error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to enroll in membership');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to enroll in membership. Please try again.';
+      
+      setModalState(prev => ({ ...prev, modalError: errorMessage }));
+      alert(errorMessage);
     } finally {
-      setEnrollmentLoading(false);
+      setModalState(prev => ({ ...prev, enrollmentLoading: false }));
     }
-  };
+  }, [membershipData, modalState.selectedSilverPlan, modalState.selectedGoldPlan]);
 
   // Loading state
   if (loading) {
@@ -484,7 +594,7 @@ const PrimeMembership: React.FC = () => {
                               : 'text-blue-600 dark:text-blue-400'
                           }`}>
                             {(() => {
-                              const selectedPlanDuration = membership.type === "silver" ? selectedSilverPlan : selectedGoldPlan;
+                              const selectedPlanDuration = membership.type === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
                               const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
                               if (!selectedPlan) return "0";
                               const numeric = parseFloat(selectedPlan.price.replace(/[^0-9.]/g, ''));
@@ -493,7 +603,7 @@ const PrimeMembership: React.FC = () => {
                           </span>
                           <span className="text-sm md:text-base text-slate-600 dark:text-slate-400 whitespace-nowrap">
                             /{(() => {
-                              const selectedPlanDuration = membership.type === "silver" ? selectedSilverPlan : selectedGoldPlan;
+                              const selectedPlanDuration = membership.type === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
                               const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
                               return selectedPlan?.period || membership.plans[0]?.period || "month";
                             })()}
@@ -502,7 +612,7 @@ const PrimeMembership: React.FC = () => {
                       
                       {/* Per month breakdown for longer plans */}
                       {(() => {
-                        const selectedPlanDuration = membership.type === "silver" ? selectedSilverPlan : selectedGoldPlan;
+                        const selectedPlanDuration = membership.type === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
                         const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
                         if (selectedPlan && selectedPlan.duration_months > 1) {
                           const monthlyAmount = Math.round(parseFloat(selectedPlan.price.replace(/[^0-9.]/g, '')) / selectedPlan.duration_months);
@@ -517,7 +627,7 @@ const PrimeMembership: React.FC = () => {
                       
                       {/* Savings Badge */}
                       {(() => {
-                        const selectedPlanDuration = membership.type === "silver" ? selectedSilverPlan : selectedGoldPlan;
+                        const selectedPlanDuration = membership.type === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
                         const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
                         if (selectedPlan && selectedPlan.savings) {
                           return (
@@ -538,10 +648,10 @@ const PrimeMembership: React.FC = () => {
                     </h3>
                     <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     {membership.plans.map((plan: IPlan, idx: number) => {
-                      const isSelected = selectedMembershipType === membership.type && (
+                      const isSelected = modalState.selectedMembershipType === membership.type && (
                         membership.type === "silver" 
-                          ? selectedSilverPlan === plan.duration 
-                          : selectedGoldPlan === plan.duration
+                          ? modalState.selectedSilverPlan === plan.duration 
+                          : modalState.selectedGoldPlan === plan.duration
                       );
                       
                       // Calculate savings percentage
@@ -632,22 +742,27 @@ const PrimeMembership: React.FC = () => {
                     ))}
                   </div>
 
-                  {/* Professional Action Button */}
+                  {/* Enhanced Professional Action Button */}
                   <motion.button
                     whileHover={{ scale: 1.02, y: -2 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleSelectCourseModal(membership.type)}
-                    disabled={enrollmentLoading}
+                    disabled={modalState.enrollmentLoading || loading}
                     className={`mt-6 w-full py-4 px-6 rounded-xl font-semibold text-base flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed transition-gpu hover-lift-gpu hover:shadow-lg min-h-[44px] touch-manipulation gpu-accelerated ${
                       membership.type === 'gold'
                         ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-amber-500/25'
                         : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-blue-500/25'
                     }`}
                   >
-                    {enrollmentLoading ? (
+                    {modalState.enrollmentLoading ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        <span>Processing...</span>
+                        <span>Processing Enrollment...</span>
+                      </>
+                    ) : loading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <span>Loading Plans...</span>
                       </>
                     ) : (
                       <>
@@ -758,25 +873,81 @@ const PrimeMembership: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* Modals */}
-        {isSelectCourseModalOpen && (
+        {/* Enhanced Modals with Better Integration */}
+        {modalState.isSelectCourseModalOpen && modalState.selectedMembershipType && (
           <SelectCourseModal
-            isOpen={isSelectCourseModalOpen}
-            onClose={() => setSelectCourseModalOpen(false)}
-            planType={planType}
+            isOpen={modalState.isSelectCourseModalOpen}
+            onClose={() => setModalState(prev => ({ 
+              ...prev, 
+              isSelectCourseModalOpen: false,
+              modalError: null 
+            }))}
+            planType={modalState.selectedMembershipType}
             amount={getSelectedPlanPrice()}
             selectedPlan={getSelectedPlanName()}
-            closeParent={() => setSelectCourseModalOpen(false)}
+            closeParent={() => setModalState(prev => ({ 
+              ...prev, 
+              isSelectCourseModalOpen: false,
+              modalError: null 
+            }))}
           />
+        )}
+
+        {/* Error Display Modal */}
+        {modalState.modalError && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div 
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setModalState(prev => ({ ...prev, modalError: null }))}
+            ></div>
+            
+            <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md mx-4 z-50 overflow-hidden">
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-xl">
+                    <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-red-800 dark:text-red-200">
+                    Enrollment Error
+                  </h3>
+                </div>
+                
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  {modalState.modalError}
+                </p>
+                
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setModalState(prev => ({ ...prev, modalError: null }))}
+                    className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={() => {
+                      setModalState(prev => ({ 
+                        ...prev, 
+                        modalError: null,
+                        isSelectCourseModalOpen: true 
+                      }));
+                    }}
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
         
         {/* Login Modal */}
-        {isLoginModalOpen && (
+        {modalState.isLoginModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             {/* Backdrop */}
             <div 
               className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => setLoginModalOpen(false)}
+              onClick={() => setModalState(prev => ({ ...prev, isLoginModalOpen: false }))}
             ></div>
             
             {/* Modal Container */}
@@ -784,7 +955,7 @@ const PrimeMembership: React.FC = () => {
               {/* Close Button */}
               <button 
                 className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors z-10"
-                onClick={() => setLoginModalOpen(false)}
+                onClick={() => setModalState(prev => ({ ...prev, isLoginModalOpen: false }))}
                 aria-label="Close login form"
               >
                 <X className="w-5 h-5" />
@@ -797,26 +968,7 @@ const PrimeMembership: React.FC = () => {
         )}
       </section>
     </>
-  );
-
-  // Helper function to get selected plan price
-  function getSelectedPlanPrice(): string {
-    const membership = membershipData.find(m => m.type === planType);
-    if (!membership) return "0";
-    
-    const selectedPlanDuration = planType === 'silver' ? selectedSilverPlan : selectedGoldPlan;
-    const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
-    
-    if (!selectedPlan) return "0";
-    const numeric = parseFloat(selectedPlan.price.replace(/[^0-9.]/g, ''));
-    return numeric.toString();
-  }
-
-  // Helper function to get selected plan name
-  function getSelectedPlanName(): string {
-    const selectedPlanDuration = planType === 'silver' ? selectedSilverPlan : selectedGoldPlan;
-    return selectedPlanDuration;
-  }
+      );
 };
 
 export default PrimeMembership;

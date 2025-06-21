@@ -97,10 +97,9 @@ const FeatureCard = memo<{
     return "text-sm text-gray-600 dark:text-gray-300 leading-relaxed";
   }, []);
 
+  // Icons already have correct styling, no need to clone
   const iconWithClasses = useMemo(() => {
-    return React.cloneElement(feature.icon as React.ReactElement, {
-      className: "w-8 h-8"
-    });
+    return feature.icon;
   }, [feature.icon]);
 
   return (
