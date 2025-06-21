@@ -240,6 +240,7 @@ const JobGuaranteedSection = memo<IJobGuaranteedProps>(({
                   width={240}
                   height={160}
                   className="rounded-lg object-contain max-w-full h-auto"
+                  style={{ width: 'auto' }}
                   priority
                 />
               </div>
@@ -255,7 +256,11 @@ const JobGuaranteedSection = memo<IJobGuaranteedProps>(({
                   width={28} 
                   height={28} 
                   className="inline-block h-6 sm:h-7 md:h-8 lg:h-10 w-auto align-baseline mx-1"
-                  style={logoStyles}
+                  style={{
+                    filter: 'brightness(1.1) contrast(1.2)',
+                    verticalAlign: 'baseline',
+                    width: 'auto'
+                  }}
                 />
               </span>.
             </h2>

@@ -81,7 +81,14 @@ function CourseAiBanner() {
               <span className="bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
                 New Course
               </span>
-              <Image src={Iso} alt="ISO Certification" className="h-6 w-auto" />
+              <Image 
+                src={Iso} 
+                alt="ISO Certification" 
+                width={24}
+                height={24}
+                className="h-6 w-auto" 
+                style={{ width: 'auto' }}
+              />
             </div>
 
             {/* Heading */}

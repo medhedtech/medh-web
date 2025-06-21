@@ -445,6 +445,7 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                         className={`object-contain transition-all duration-500 ease-in-out ${
                           theme === 'dark' ? 'opacity-100 visible' : 'opacity-0 invisible'
                         }`}
+                        style={{ width: 'auto' }}
                         priority
                       />
                       <Image 
@@ -455,6 +456,7 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                         className={`object-contain transition-all duration-500 ease-in-out absolute top-0 left-0 ${
                           theme === 'light' ? 'opacity-100 visible' : 'opacity-0 invisible'
                         }`}
+                        style={{ width: 'auto' }}
                         priority
                       />
                     </div>
