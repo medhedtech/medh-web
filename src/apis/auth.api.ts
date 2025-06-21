@@ -92,6 +92,159 @@ export interface IUpdateProfileData {
   user_image?: string;
 }
 
+// 🔐 Multi-Factor Authentication (MFA) Interfaces
+
+export interface IMFASetupTOTPData {
+  // No data required for initial setup
+}
+
+export interface IMFASetupTOTPVerifyData {
+  code: string;
+}
+
+export interface IMFASetupSMSData {
+  phone_number: string;
+}
+
+export interface IMFASetupSMSVerifyData {
+  code: string;
+}
+
+export interface IMFAVerifyData {
+  user_id: string;
+  code?: string;
+  backup_code?: string;
+}
+
+export interface IMFADisableData {
+  password: string;
+  code: string;
+}
+
+export interface IMFARegenerateBackupCodesData {
+  password: string;
+}
+
+export interface IMFARecoveryRequestData {
+  email: string;
+  reason: string;
+}
+
+export interface IMFASendSMSData {
+  user_id: string;
+}
+
+export interface IMFACompleteMFALoginData {
+  user_id: string;
+  verified: boolean;
+}
+
+// MFA Response Interfaces
+export interface IMFASetupTOTPResponse {
+  success: boolean;
+  message: string;
+  data: {
+    secret: string;
+    manual_entry_key: string;
+    qr_code_url?: string;
+    backup_codes: string[] | null;
+    instructions: string[];
+  };
+}
+
+export interface IMFASetupVerifyResponse {
+  success: boolean;
+  message: string;
+  data: {
+    backup_codes: string[];
+    setup_date: string;
+    phone_number?: string;
+    warning: string;
+  };
+}
+
+export interface IMFAStatusResponse {
+  success: boolean;
+  message: string;
+  data: {
+    enabled: boolean;
+    method: 'totp' | 'sms' | null;
+    setup_date?: string;
+    phone_number?: string;
+    backup_codes_count: number;
+    last_regenerated?: string;
+  };
+}
+
+export interface IMFAVerifyResponse {
+  success: boolean;
+  message: string;
+  data: {
+    verified: boolean;
+    backup_code_used: boolean;
+    remaining_backup_codes: number;
+    warning?: string;
+  };
+}
+
+export interface IMFADisableResponse {
+  success: boolean;
+  message: string;
+  data: {
+    disabled_date: string;
+  };
+}
+
+export interface IMFABackupCodesResponse {
+  success: boolean;
+  message: string;
+  data: {
+    backup_codes: string[];
+    regenerated_date: string;
+    warning: string;
+  };
+}
+
+export interface IMFABackupCodesCountResponse {
+  success: boolean;
+  message: string;
+  data: {
+    count: number;
+    mfa_enabled: boolean;
+    warning?: string;
+  };
+}
+
+export interface IMFARecoveryResponse {
+  success: boolean;
+  message: string;
+  data: {
+    dev_recovery_token?: string;
+  };
+}
+
+export interface IMFASendSMSResponse {
+  success: boolean;
+  message: string;
+  data: {
+    phone_number: string;
+    expires_in_minutes: number;
+    dev_code?: string;
+  };
+}
+
+export interface IMFALoginRequiredResponse {
+  success: boolean;
+  message: string;
+  requires_mfa: true;
+  mfa_method: 'totp' | 'sms';
+  data: {
+    user_id: string;
+    temp_session: boolean;
+    phone_hint?: string;
+  };
+}
+
 // Response Interfaces
 export interface IAuthResponse {
   success: boolean;
@@ -492,8 +645,39 @@ export const authAPI = {
     // OAuth statistics (Admin only)
     stats: `${apiBaseUrl}/auth/oauth/stats`,
   },
+
+  // 🔐 3. Multi-Factor Authentication (MFA)
+  mfa: {
+    // MFA Status & Management
+    status: `${apiBaseUrl}/auth/mfa/status`,
+    disable: `${apiBaseUrl}/auth/mfa/disable`,
+    
+    // TOTP Setup
+    setupTOTP: `${apiBaseUrl}/auth/mfa/setup/totp`,
+    verifyTOTPSetup: `${apiBaseUrl}/auth/mfa/setup/totp/verify`,
+    
+    // SMS Setup
+    setupSMS: `${apiBaseUrl}/auth/mfa/setup/sms`,
+    verifySMSSetup: `${apiBaseUrl}/auth/mfa/setup/sms/verify`,
+    
+    // MFA Login Flow
+    verify: `${apiBaseUrl}/auth/mfa/verify`,
+    sendSMS: `${apiBaseUrl}/auth/mfa/send-sms`,
+    completeMFALogin: `${apiBaseUrl}/auth/complete-mfa-login`,
+    
+    // Backup Codes
+    backupCodes: {
+      regenerate: `${apiBaseUrl}/auth/mfa/backup-codes/regenerate`,
+      count: `${apiBaseUrl}/auth/mfa/backup-codes/count`,
+    },
+    
+    // MFA Recovery
+    recovery: {
+      request: `${apiBaseUrl}/auth/mfa/recovery/request`,
+    },
+  },
   
-  // 3. User Profile Management
+  // 4. User Profile Management
   profile: {
     get: `${apiBaseUrl}/auth/profile`,
     update: `${apiBaseUrl}/auth/profile/update`,
@@ -517,7 +701,7 @@ export const authAPI = {
     },
   },
   
-  // 4. User Management (Admin)
+  // 5. User Management (Admin)
   admin: {
     getAllUsers: (options: {
       page?: number;
@@ -608,7 +792,7 @@ export const authAPI = {
     getLockoutStats: `${apiBaseUrl}/auth/lockout-stats`,
   },
   
-  // 5. Session Management
+  // 6. Session Management
   sessions: {
     getCurrentSession: `${apiBaseUrl}/auth/sessions/current`,
     getAllSessions: `${apiBaseUrl}/auth/sessions/all`,
@@ -621,7 +805,7 @@ export const authAPI = {
     logoutAllDevices: `${apiBaseUrl}/auth/logout-all-devices`,
   },
   
-  // 6. Security & Audit
+  // 7. Security & Audit
   security: {
     enable2FA: `${apiBaseUrl}/auth/security/2fa/enable`,
     disable2FA: `${apiBaseUrl}/auth/security/2fa/disable`,
@@ -650,7 +834,7 @@ export const authAPI = {
     unlockAccount: `${apiBaseUrl}/auth/security/unlock-account`,
   },
   
-  // 7. Email & Notifications
+  // 8. Email & Notifications
   notifications: {
     getPreferences: `${apiBaseUrl}/auth/notifications/preferences`,
     updatePreferences: `${apiBaseUrl}/auth/notifications/preferences/update`,
@@ -884,6 +1068,365 @@ export const authUtils = {
     }
     
     return 'An authentication error occurred. Please try again.';
+  },
+
+  // 🔐 Multi-Factor Authentication (MFA) Utility Functions
+  
+  /**
+   * Get MFA status for current user
+   */
+  getMFAStatus: async (): Promise<IMFAStatusResponse> => {
+    try {
+      const response = await fetch(authAPI.mfa.status, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        }
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error),
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Setup TOTP (Time-based One-Time Password) authentication
+   */
+  setupTOTP: async (): Promise<IMFASetupTOTPResponse> => {
+    try {
+      const response = await fetch(authAPI.mfa.setupTOTP, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        }
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error),
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Verify TOTP setup with authenticator app code
+   */
+  verifyTOTPSetup: async (code: string): Promise<IMFASetupVerifyResponse> => {
+    try {
+      const response = await fetch(authAPI.mfa.verifyTOTPSetup, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        },
+        body: JSON.stringify({ code })
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error),
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Setup SMS-based MFA
+   */
+  setupSMS: async (phoneNumber: string): Promise<IMFASendSMSResponse> => {
+    try {
+      const response = await fetch(authAPI.mfa.setupSMS, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        },
+        body: JSON.stringify({ phone_number: phoneNumber })
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error),
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Verify SMS setup with received code
+   */
+  verifySMSSetup: async (code: string): Promise<IMFASetupVerifyResponse> => {
+    try {
+      const response = await fetch(authAPI.mfa.verifySMSSetup, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        },
+        body: JSON.stringify({ code })
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error),
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Send SMS code for MFA login
+   */
+  sendMFASMS: async (userId: string): Promise<IMFASendSMSResponse> => {
+    try {
+      const response = await fetch(authAPI.mfa.sendSMS, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_id: userId })
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error),
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Verify MFA code during login (TOTP or SMS)
+   */
+  verifyMFA: async (userId: string, code?: string, backupCode?: string): Promise<IMFAVerifyResponse> => {
+    try {
+      const response = await fetch(authAPI.mfa.verify, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          code,
+          backup_code: backupCode
+        })
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error),
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Complete MFA login after verification
+   */
+  completeMFALogin: async (userId: string, verified: boolean): Promise<ILoginResponse> => {
+    try {
+      const response = await fetch(authAPI.mfa.completeMFALogin, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          verified
+        })
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error),
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Disable MFA for current user
+   */
+  disableMFA: async (password: string, code: string): Promise<IMFADisableResponse> => {
+    try {
+      const response = await fetch(authAPI.mfa.disable, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        },
+        body: JSON.stringify({ password, code })
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error),
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Regenerate backup codes
+   */
+  regenerateBackupCodes: async (password: string): Promise<IMFABackupCodesResponse> => {
+    try {
+      const response = await fetch(authAPI.mfa.backupCodes.regenerate, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        },
+        body: JSON.stringify({ password })
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error),
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Get backup codes count
+   */
+  getBackupCodesCount: async (): Promise<IMFABackupCodesCountResponse> => {
+    try {
+      const response = await fetch(authAPI.mfa.backupCodes.count, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        }
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error),
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Request MFA recovery
+   */
+  requestMFARecovery: async (email: string, reason: string): Promise<IMFARecoveryResponse> => {
+    try {
+      const response = await fetch(authAPI.mfa.recovery.request, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, reason })
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error),
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Validate MFA code format (6 digits)
+   */
+  isValidMFACode: (code: string): boolean => {
+    return /^\d{6}$/.test(code);
+  },
+
+  /**
+   * Validate backup code format
+   */
+  isValidBackupCode: (code: string): boolean => {
+    return /^[A-Z0-9]{16}$/.test(code);
+  },
+
+  /**
+   * Format backup codes for display
+   */
+  formatBackupCodes: (codes: string[]): string[] => {
+    return codes.map(code => {
+      // Insert spaces every 4 characters for readability
+      return code.replace(/(.{4})/g, '$1 ').trim();
+    });
+  },
+
+  /**
+   * Generate QR code URL for TOTP setup
+   */
+  generateTOTPQRCodeUrl: (secret: string, email: string, issuer: string = 'Medh'): string => {
+    const label = encodeURIComponent(`${issuer}:${email}`);
+    const params = new URLSearchParams({
+      secret,
+      issuer,
+    });
+    return `otpauth://totp/${label}?${params.toString()}`;
+  },
+
+  /**
+   * Check if MFA is required for login response
+   */
+  isMFARequired: (response: any): response is IMFALoginRequiredResponse => {
+    return response && response.requires_mfa === true;
+  },
+
+  /**
+   * Get MFA method display name
+   */
+  getMFAMethodDisplayName: (method: 'totp' | 'sms' | null): string => {
+    switch (method) {
+      case 'totp':
+        return 'Authenticator App (TOTP)';
+      case 'sms':
+        return 'SMS Text Message';
+      default:
+        return 'Not Enabled';
+    }
+  },
+
+  /**
+   * Get MFA setup instructions
+   */
+  getMFASetupInstructions: (method: 'totp' | 'sms'): string[] => {
+    switch (method) {
+      case 'totp':
+        return [
+          'Install an authenticator app (Google Authenticator, Authy, etc.)',
+          'Scan the QR code or manually enter the secret key',
+          'Enter the 6-digit code from your app to complete setup',
+          'Save your backup codes in a secure location'
+        ];
+      case 'sms':
+        return [
+          'Enter your phone number',
+          'Wait for the SMS verification code',
+          'Enter the 6-digit code to complete setup',
+          'Save your backup codes in a secure location'
+        ];
+      default:
+        return [];
+    }
   },
 
   // 🔒 Account Lockout Management Utilities
