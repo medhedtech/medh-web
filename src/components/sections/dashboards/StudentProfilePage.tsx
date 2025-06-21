@@ -6,12 +6,13 @@ import {
   CreditCard, Smartphone, Tablet, Laptop, Globe, Eye, MousePointer, Timer, Brain, 
   Heart, Zap, FileText, Settings, Edit, UserCircle, GraduationCap, Link2,
   Facebook, Instagram, Linkedin, Twitter, Youtube, Github, Lock, EyeOff, ChevronLeft, ChevronRight,
-  Menu, X, ChevronDown
+  Menu, X, ChevronDown, AlertTriangle, RefreshCw
 } from 'lucide-react';
 import { getComprehensiveUserProfile, updateCurrentUserComprehensiveProfile } from '@/apis/profile.api';
 import { authAPI, IChangePasswordData } from '@/apis/auth.api';
 import { apiClient } from '@/apis/apiClient';
 import { showToast } from '@/utils/toastManager';
+import MFAManagement from '@/components/shared/security/MFAManagement';
 
 // Interfaces
 interface ComprehensiveProfile {
@@ -2498,6 +2499,149 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                       </div>
                     </motion.div>
                   )}
+                </div>
+
+                {/* Multi-Factor Authentication Section */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                          <Shield className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="ml-4">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Multi-Factor Authentication
+                          </h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Add an extra layer of security to your account
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        {account_status.two_factor_enabled ? (
+                          <div className="flex items-center text-green-600">
+                            <CheckCircle className="w-5 h-5 mr-2" />
+                            <span className="text-sm font-medium">Enabled</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center text-red-600">
+                            <XCircle className="w-5 h-5 mr-2" />
+                            <span className="text-sm font-medium">Disabled</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* MFA Management Component */}
+                  <div className="p-0">
+                    <MFAManagement 
+                      onStatusChange={(enabled: boolean) => {
+                        // Update the local state when MFA status changes
+                        if (profile) {
+                          setProfile({
+                            ...profile,
+                            account_status: {
+                              ...profile.account_status,
+                              two_factor_enabled: enabled
+                            }
+                          });
+                        }
+                      }}
+                      className="border-0 rounded-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Advanced Security Settings */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                    <Settings className="h-5 w-5 mr-2 text-gray-600" />
+                    Advanced Security Settings
+                  </h3>
+                  
+                  <div className="space-y-6">
+                    {/* Security Recommendations */}
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-3 flex items-center">
+                        <Shield className="h-4 w-4 mr-2" />
+                        Security Recommendations
+                      </h4>
+                      <div className="space-y-2">
+                        {!account_status.two_factor_enabled && (
+                          <div className="flex items-center text-sm text-blue-700 dark:text-blue-300">
+                            <AlertTriangle className="h-4 w-4 mr-2 text-orange-500" />
+                            <span>Enable two-factor authentication for enhanced security</span>
+                          </div>
+                        )}
+                        <div className="flex items-center text-sm text-blue-700 dark:text-blue-300">
+                          <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                          <span>Use strong, unique passwords for your account</span>
+                        </div>
+                        <div className="flex items-center text-sm text-blue-700 dark:text-blue-300">
+                          <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                          <span>Regularly review your active sessions and trusted devices</span>
+                        </div>
+                        <div className="flex items-center text-sm text-blue-700 dark:text-blue-300">
+                          <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                          <span>Keep your contact information up to date for account recovery</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Account Recovery */}
+                    <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2 flex items-center">
+                        <RefreshCw className="h-4 w-4 mr-2 text-gray-600" />
+                        Account Recovery
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                        Ensure you can recover your account if you lose access to your authentication methods.
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm">
+                          <span className="text-gray-700 dark:text-gray-300">Recovery Email: </span>
+                          <span className="font-medium text-gray-900 dark:text-white">{basic_info?.email}</span>
+                          {account_status.email_verified ? (
+                            <CheckCircle className="h-4 w-4 text-green-500 inline ml-2" />
+                          ) : (
+                            <XCircle className="h-4 w-4 text-red-500 inline ml-2" />
+                          )}
+                        </div>
+                        {!account_status.email_verified && (
+                          <button className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium">
+                            Verify Email
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Security Activity */}
+                    <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2 flex items-center">
+                        <Activity className="h-4 w-4 mr-2 text-gray-600" />
+                        Recent Security Activity
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                        Monitor recent security-related activities on your account.
+                      </p>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600 dark:text-gray-400">Last password change:</span>
+                          <span className="text-gray-900 dark:text-white">30 days ago</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600 dark:text-gray-400">Failed login attempts:</span>
+                          <span className="text-gray-900 dark:text-white">{account_status.failed_login_attempts}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600 dark:text-gray-400">Active sessions:</span>
+                          <span className="text-gray-900 dark:text-white">{device_info.active_sessions}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             )}

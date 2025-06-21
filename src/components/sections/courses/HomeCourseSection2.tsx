@@ -12,14 +12,8 @@ import { VideoBackgroundContext } from '@/components/layout/main/Home2';
 import { useTheme } from "next-themes";
 import { useCourseImagePreloader } from '@/components/shared/ImagePreloader';
 
-// PERFORMANCE OPTIMIZATION: Move constants outside component to prevent recreation - GPU optimized
-const GLASSMORPHISM_STYLES_CACHE = new Map<boolean, string>();
-
-// PERFORMANCE OPTIMIZATION: GPU-optimized glassmorphism styles with caching
+// PERFORMANCE OPTIMIZATION: Simplified styles without heavy caching
 const getGlassmorphismStyles = (isDark: boolean): string => {
-  if (GLASSMORPHISM_STYLES_CACHE.has(isDark)) {
-    return GLASSMORPHISM_STYLES_CACHE.get(isDark)!;
-  }
   
   const styles = `
     .glass-container {
@@ -144,7 +138,6 @@ const getGlassmorphismStyles = (isDark: boolean): string => {
     }
   `;
   
-  GLASSMORPHISM_STYLES_CACHE.set(isDark, styles);
   return styles;
 };
 
@@ -212,7 +205,7 @@ const FALLBACK_LIVE_COURSES: readonly ICourse[] = Object.freeze([
     course_image: "/images/courses/ai-data-science.png",
     duration_range: "4-18 months",
     effort_hours: "4-6",
-    no_of_Sessions: 76, // Midpoint of 32-120
+    no_of_Sessions: "32-120",
     session_display: "32 - 120 live sessions",
     session_range: "32 - 120 live sessions",
     learning_points: [
@@ -254,7 +247,7 @@ const FALLBACK_LIVE_COURSES: readonly ICourse[] = Object.freeze([
     course_image: "/images/courses/digital-marketing.png",
     duration_range: "3-12 months",
     effort_hours: "3-5",
-    no_of_Sessions: 76, // Midpoint of 32-120
+    no_of_Sessions: "32-120",
     session_display: "32 - 120 live sessions",
     session_range: "32 - 120 live sessions",
     learning_points: [
@@ -296,7 +289,7 @@ const FALLBACK_LIVE_COURSES: readonly ICourse[] = Object.freeze([
     course_image: "/images/courses/pd.jpg",
     duration_range: "3-9 months",
     effort_hours: "2-4",
-    no_of_Sessions: 48, // Midpoint of 24-72
+    no_of_Sessions: "24-72",
     session_display: "24 - 72 live sessions",
     session_range: "24 - 72 live sessions",
     learning_points: [
@@ -338,7 +331,7 @@ const FALLBACK_LIVE_COURSES: readonly ICourse[] = Object.freeze([
     course_image: "/images/courses/vd.jpg",
     duration_range: "2-8 months",
     effort_hours: "2-3",
-    no_of_Sessions: 48, // Midpoint of 24-72
+    no_of_Sessions: "24-72",
     session_display: "24 - 72 live sessions",
     session_range: "24 - 72 live sessions",
     learning_points: [
@@ -507,20 +500,32 @@ const CourseCardWrapper = memo<{
         prices: course.prices || [],
         course_fee: Number(displayPrice) || 1499,
         no_of_Sessions: (() => {
-          // Priority 1: value from API if present and valid
-          const rawSessions = course.no_of_Sessions as any;
-          const parsedSessions = typeof rawSessions === 'string' ? parseInt(rawSessions, 10) : rawSessions;
-          if (!isNaN(parsedSessions) && parsedSessions > 0) {
-            return parsedSessions;
+          // Priority 1: Use session_display if it exists and already formatted
+          if (course.session_display && course.session_display.includes('sessions')) {
+            return course.session_display;
           }
-
-          // Priority 2: derive from individual price tiers when session info is missing
+          
+          // Priority 2: If we have the session range string from API, format it properly
+          if (course.no_of_Sessions && typeof course.no_of_Sessions === 'string') {
+            const sessionsStr = String(course.no_of_Sessions).trim();
+            if (sessionsStr.includes('-')) {
+              const parts = sessionsStr.split('-');
+              if (parts.length === 2) {
+                const min = parts[0].trim();
+                const max = parts[1].trim();
+                return `${min} - ${max} live sessions`;
+              }
+            }
+            return `${sessionsStr} live sessions`;
+          }
+          
+          // Priority 3: derive from individual price tiers when session info is missing
           const individualPrice = course.prices?.[0]?.individual || 0;
-          if (individualPrice <= 1500) return 10; // e.g., ₹1499 plan
-          if (individualPrice <= 3000) return 20; // e.g., ₹2499 / 2999 plan
+          if (individualPrice <= 1500) return "10 live sessions"; // e.g., ₹1499 plan
+          if (individualPrice <= 3000) return "20 live sessions"; // e.g., ₹2499 / 2999 plan
 
-          // Priority 3: fallback to computed totals
-          return videoCount + qnaSessions;
+          // Priority 4: fallback to computed totals
+          return `${videoCount + qnaSessions} live sessions`;
         })(),
         effort_hours: typeof course.effort_hours === 'string' 
           ? parseInt(course.effort_hours, 10) || 8
@@ -621,14 +626,14 @@ const HomeCourseSection2 = memo<{
   const [userCurrency, setUserCurrency] = useState("INR"); // Default to INR like in HeroSectionContant
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const { getQuery, loading, error } = useGetQuery();
   
   // PERFORMANCE OPTIMIZATION: Memoized computed values
   const isDark = useMemo(() => mounted ? theme === 'dark' : true, [mounted, theme]);
   const isLoaded = useMemo(() => videoContext?.isLoaded ?? false, [videoContext?.isLoaded]);
 
-  // PERFORMANCE OPTIMIZATION: Preload critical course images for LCP
-  useCourseImagePreloader([...blendedCourses, ...liveCourses]);
+  // Simplified: Remove heavy image preloading to save RAM
 
   // PERFORMANCE OPTIMIZATION: Enhanced currency detection with caching and fallbacks
   const getLocationCurrency = useCallback(async () => {
@@ -659,17 +664,9 @@ const HomeCourseSection2 = memo<{
         const countryCode = response.data?.country_code || response.data?.country;
         const currencyFromAPI = response.data?.currency;
         
-        // Enhanced currency mapping with more countries
+        // Simplified currency mapping for common countries only
         const currencyMap: { [key: string]: string } = {
-          'IN': 'INR', 'US': 'USD', 'GB': 'GBP', 'CA': 'CAD', 'AU': 'AUD',
-          'SG': 'SGD', 'AE': 'AED', 'SA': 'SAR', 'QA': 'QAR', 'KW': 'KWD',
-          'BH': 'BHD', 'OM': 'OMR', 'JO': 'JOD', 'LB': 'LBP', 'EG': 'EGP',
-          'PK': 'PKR', 'BD': 'BDT', 'LK': 'LKR', 'NP': 'NPR', 'MY': 'MYR',
-          'TH': 'THB', 'ID': 'IDR', 'PH': 'PHP', 'VN': 'VND', 'JP': 'JPY',
-          'KR': 'KRW', 'CN': 'CNY', 'HK': 'HKD', 'TW': 'TWD', 'EU': 'EUR',
-          'DE': 'EUR', 'FR': 'EUR', 'IT': 'EUR', 'ES': 'EUR', 'NL': 'EUR',
-          'BR': 'BRL', 'MX': 'MXN', 'AR': 'ARS', 'CL': 'CLP', 'CO': 'COP',
-          'ZA': 'ZAR', 'NG': 'NGN', 'KE': 'KES', 'GH': 'GHS', 'UG': 'UGX'
+          'IN': 'INR', 'US': 'USD', 'GB': 'GBP', 'CA': 'CAD', 'AU': 'AUD'
         };
         
         // Use API currency first, then country mapping, then fallback
@@ -690,16 +687,7 @@ const HomeCourseSection2 = memo<{
           console.log('Detected timezone:', timeZone);
           
           const timezoneMap: { [key: string]: string } = {
-            'Asia/Kolkata': 'INR', 'Asia/Calcutta': 'INR', 'Asia/Mumbai': 'INR',
-            'Asia/Delhi': 'INR', 'Asia/Chennai': 'INR', 'Asia/Bangalore': 'INR',
-            'America/New_York': 'USD', 'America/Los_Angeles': 'USD', 'America/Chicago': 'USD',
-            'America/Toronto': 'CAD', 'America/Vancouver': 'CAD',
-            'Europe/London': 'GBP', 'Europe/Dublin': 'EUR', 'Europe/Paris': 'EUR',
-            'Europe/Berlin': 'EUR', 'Europe/Rome': 'EUR', 'Europe/Madrid': 'EUR',
-            'Asia/Tokyo': 'JPY', 'Asia/Seoul': 'KRW', 'Asia/Shanghai': 'CNY',
-            'Asia/Hong_Kong': 'HKD', 'Asia/Singapore': 'SGD', 'Asia/Bangkok': 'THB',
-            'Asia/Dubai': 'AED', 'Asia/Riyadh': 'SAR', 'Asia/Qatar': 'QAR',
-            'Australia/Sydney': 'AUD', 'Australia/Melbourne': 'AUD'
+            'Asia/Kolkata': 'INR', 'America/New_York': 'USD', 'Europe/London': 'GBP'
           };
           
           if (timezoneMap[timeZone]) {
@@ -812,12 +800,25 @@ const HomeCourseSection2 = memo<{
                   }
                   
                   // Format session range based on course type and API data
-                  const getSessionRange = (course: any, courseTitle: string) => {
-                    // Return the exact string from API with sessions text
-                    return course.no_of_Sessions ? `${String(course.no_of_Sessions)} sessions` : '24-120 sessions';
+                  const getSessionRange = (course: any) => {
+                    if (course.no_of_Sessions) {
+                      const sessionsStr = String(course.no_of_Sessions).trim();
+                      // Handle range format like "24-120" or "32-120"
+                      if (sessionsStr.includes('-')) {
+                        const parts = sessionsStr.split('-');
+                        if (parts.length === 2) {
+                          const min = parts[0].trim();
+                          const max = parts[1].trim();
+                          return `${min} - ${max} live sessions`;
+                        }
+                      }
+                      // Handle single number format
+                      return `${sessionsStr} live sessions`;
+                    }
+                    return '24 - 120 live sessions'; // Default fallback
                   };
                   
-                  const sessionDisplay = getSessionRange(course, courseTitle);
+                  const sessionDisplay = getSessionRange(course);
                   
                   // Extract numeric session count for compatibility (use midpoint of range)
                   const sessionCount = (() => {
@@ -828,6 +829,11 @@ const HomeCourseSection2 = memo<{
                         const min = parseInt(parts[0], 10);
                         const max = parseInt(parts[1], 10);
                         return Math.round((min + max) / 2);
+                      }
+                      // If it's a single number, use it directly
+                      const singleNumber = parseInt(rangeStr, 10);
+                      if (!isNaN(singleNumber)) {
+                        return singleNumber;
                       }
                     }
                     return 76; // Default midpoint
@@ -967,6 +973,33 @@ const HomeCourseSection2 = memo<{
     setMounted(true);
   }, []);
 
+  // Track screen size for mobile responsiveness
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    let timeoutId: NodeJS.Timeout;
+    
+    const checkMobile = () => {
+      const isMobileNow = window.innerWidth < 768; // md breakpoint
+      setIsMobile(prev => prev !== isMobileNow ? isMobileNow : prev);
+    };
+    
+    const debouncedCheckMobile = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(checkMobile, 100);
+    };
+    
+    // Initial check
+    checkMobile();
+    
+    window.addEventListener('resize', debouncedCheckMobile);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', debouncedCheckMobile);
+    };
+  }, []);
+
   // PERFORMANCE OPTIMIZATION: Theme-aware style injection
   useEffect(() => {
     if (!mounted) return;
@@ -1024,7 +1057,7 @@ const HomeCourseSection2 = memo<{
 
   // PERFORMANCE OPTIMIZATION: Memoized filtered courses
   const filteredBlendedCourses = useMemo(() => {
-    return blendedCourses.filter(course => {
+    const filtered = blendedCourses.filter(course => {
       if (!activeBlendedFilters.popular && !activeBlendedFilters.latest && !activeBlendedFilters.beginner) {
         return true;
       }
@@ -1049,7 +1082,10 @@ const HomeCourseSection2 = memo<{
       
       return matches;
     });
-  }, [blendedCourses, activeBlendedFilters]);
+
+    // Limit to 4 courses on mobile view
+    return isMobile ? filtered.slice(0, 4) : filtered;
+  }, [blendedCourses, activeBlendedFilters, isMobile]);
 
   // PERFORMANCE OPTIMIZATION: GPU-optimized memoized class names
   const containerClasses = useMemo(() => {

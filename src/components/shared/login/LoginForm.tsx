@@ -30,7 +30,15 @@ import {
   getRememberedEmail,
   setRememberMe
 } from "@/utils/auth";
-import { authAPI, authUtils, ILoginData, ILoginResponse } from "@/apis/auth.api";
+import { 
+  authAPI, 
+  authUtils, 
+  ILoginData, 
+  ILoginResponse,
+  IMFALoginRequiredResponse,
+  IMFAVerifyResponse,
+  IMFASendSMSResponse
+} from "@/apis/auth.api";
 import { useCurrentYear } from "@/utils/hydration";
 import { showToast } from "@/utils/toastManager";
 
@@ -112,6 +120,22 @@ interface StorageManagerLoginData {
   rememberMe?: boolean;
 }
 
+// Add MFA-specific interfaces
+interface MFAVerificationState {
+  isRequired: boolean;
+  method: 'totp' | 'sms' | null;
+  userId: string;
+  phoneHint?: string;
+  tempSession: boolean;
+}
+
+interface MFAStepProps {
+  mfaState: MFAVerificationState;
+  onVerificationSuccess: (loginData: ILoginResponse) => void;
+  onBack: () => void;
+  onResendSMS?: () => void;
+}
+
 const schema = yup
   .object({
     email: yup.string().trim().email("Please enter a valid email").required("Email is required"),
@@ -163,6 +187,22 @@ const LoginForm = () => {
     message?: string;
   }>({ isLocked: false });
   
+  // Add MFA-specific state
+  const [mfaVerificationState, setMFAVerificationState] = useState<MFAVerificationState>({
+    isRequired: false,
+    method: null,
+    userId: '',
+    phoneHint: '',
+    tempSession: false
+  });
+  const [showMFAVerification, setShowMFAVerification] = useState<boolean>(false);
+  const [mfaCode, setMfaCode] = useState<string>('');
+  const [mfaError, setMfaError] = useState<string>('');
+  const [mfaLoading, setMfaLoading] = useState<boolean>(false);
+  const [useBackupCode, setUseBackupCode] = useState<boolean>(false);
+  const [backupCode, setBackupCode] = useState<string>('');
+  const [smsResendCooldown, setSmsResendCooldown] = useState<number>(0);
+
   const {
     register,
     handleSubmit,
@@ -862,7 +902,259 @@ const LoginForm = () => {
     }
   };
 
-  // Updated submit handler to use new auth API
+  // MFA Verification Component
+  const MFAVerificationStep: React.FC<MFAStepProps> = ({ 
+    mfaState, 
+    onVerificationSuccess, 
+    onBack, 
+    onResendSMS 
+  }) => {
+    const [code, setCode] = useState<string>('');
+    const [backupCodeValue, setBackupCodeValue] = useState<string>('');
+    const [isUsingBackupCode, setIsUsingBackupCode] = useState<boolean>(false);
+    const [verificationError, setVerificationError] = useState<string>('');
+    const [isVerifying, setIsVerifying] = useState<boolean>(false);
+    const [resendCooldown, setResendCooldown] = useState<number>(0);
+
+    // Cooldown timer for SMS resend
+    useEffect(() => {
+      if (resendCooldown > 0) {
+        const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+        return () => clearTimeout(timer);
+      }
+    }, [resendCooldown]);
+
+    const handleVerification = async (): Promise<void> => {
+      const verificationCode = isUsingBackupCode ? backupCodeValue : code;
+      
+      if (!verificationCode.trim()) {
+        setVerificationError(`Please enter a ${isUsingBackupCode ? 'backup code' : 'verification code'}`);
+        return;
+      }
+
+      // Validate code format
+      if (!isUsingBackupCode && !authUtils.isValidMFACode(verificationCode)) {
+        setVerificationError('Please enter a valid 6-digit code');
+        return;
+      }
+
+      if (isUsingBackupCode && !authUtils.isValidBackupCode(verificationCode.replace(/\s/g, ''))) {
+        setVerificationError('Please enter a valid backup code (16 characters)');
+        return;
+      }
+
+      setIsVerifying(true);
+      setVerificationError('');
+
+      try {
+        const verifyResponse: IMFAVerifyResponse = await authUtils.verifyMFA(
+          mfaState.userId,
+          isUsingBackupCode ? undefined : verificationCode,
+          isUsingBackupCode ? verificationCode.replace(/\s/g, '') : undefined
+        );
+
+        if (verifyResponse.success && verifyResponse.data.verified) {
+          // Complete MFA login
+          const loginResponse: ILoginResponse = await authUtils.completeMFALogin(
+            mfaState.userId, 
+            true
+          );
+
+          if (loginResponse.success) {
+            showToast.success("✅ Authentication successful!", { duration: 3000 });
+            onVerificationSuccess(loginResponse);
+          } else {
+            throw new Error(loginResponse.message || 'Failed to complete login');
+          }
+        } else {
+          setVerificationError(verifyResponse.message || 'Invalid verification code');
+        }
+      } catch (error: any) {
+        console.error('MFA verification error:', error);
+        setVerificationError(error.message || 'Verification failed. Please try again.');
+      } finally {
+        setIsVerifying(false);
+      }
+    };
+
+    const handleResendSMS = async (): Promise<void> => {
+      if (mfaState.method !== 'sms' || resendCooldown > 0) return;
+
+      try {
+        const smsResponse: IMFASendSMSResponse = await authUtils.sendMFASMS(mfaState.userId);
+        if (smsResponse.success) {
+          showToast.success("📱 New verification code sent to your phone", { duration: 3000 });
+          setResendCooldown(60); // 60 second cooldown
+        } else {
+          showToast.error(smsResponse.message || 'Failed to send SMS code');
+        }
+      } catch (error: any) {
+        showToast.error('Failed to resend SMS code');
+      }
+    };
+
+    const handleKeyPress = (e: React.KeyboardEvent): void => {
+      if (e.key === 'Enter') {
+        handleVerification();
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Shield className="w-8 h-8 text-white" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Two-Factor Authentication
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {mfaState.method === 'totp' 
+              ? 'Enter the 6-digit code from your authenticator app'
+              : `Enter the 6-digit code sent to ${mfaState.phoneHint || 'your phone'}`
+            }
+          </p>
+        </div>
+
+        {/* Verification Code Input */}
+        <div className="space-y-4">
+          {!isUsingBackupCode ? (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Verification Code
+              </label>
+              <input
+                type="text"
+                value={code}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                  setCode(value);
+                  setVerificationError('');
+                }}
+                onKeyPress={handleKeyPress}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center text-lg font-mono tracking-widest focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="000000"
+                maxLength={6}
+                autoComplete="one-time-code"
+                autoFocus
+              />
+            </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Backup Code
+              </label>
+              <input
+                type="text"
+                value={backupCodeValue}
+                onChange={(e) => {
+                  const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                  // Format with spaces every 4 characters
+                  const formatted = value.replace(/(.{4})/g, '$1 ').trim();
+                  setBackupCodeValue(formatted);
+                  setVerificationError('');
+                }}
+                onKeyPress={handleKeyPress}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center text-sm font-mono tracking-wider focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="XXXX XXXX XXXX XXXX"
+                maxLength={19} // 16 characters + 3 spaces
+                autoComplete="one-time-code"
+                autoFocus
+              />
+            </div>
+          )}
+
+          {/* Error Message */}
+          {verificationError && (
+            <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm">
+              <AlertCircle className="w-4 h-4" />
+              <span>{verificationError}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="space-y-3">
+          <button
+            onClick={handleVerification}
+            disabled={isVerifying || (!code && !backupCodeValue)}
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-medium py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+          >
+            {isVerifying ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Verifying...</span>
+              </>
+            ) : (
+              <>
+                <Shield className="w-4 h-4" />
+                <span>Verify & Continue</span>
+              </>
+            )}
+          </button>
+
+          {/* SMS Resend Button */}
+          {mfaState.method === 'sms' && !isUsingBackupCode && (
+            <button
+              onClick={handleResendSMS}
+              disabled={resendCooldown > 0}
+              className="w-full text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium py-2 px-4 rounded-xl border border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {resendCooldown > 0 
+                ? `Resend code in ${resendCooldown}s`
+                : 'Resend SMS Code'
+              }
+            </button>
+          )}
+
+          {/* Backup Code Toggle */}
+          <button
+            onClick={() => {
+              setIsUsingBackupCode(!isUsingBackupCode);
+              setCode('');
+              setBackupCodeValue('');
+              setVerificationError('');
+            }}
+            className="w-full text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 font-medium py-2 px-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200"
+          >
+            {isUsingBackupCode 
+              ? 'Use verification code instead'
+              : 'Use backup code instead'
+            }
+          </button>
+
+          {/* Back Button */}
+          <button
+            onClick={onBack}
+            className="w-full text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 font-medium py-2 px-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 flex items-center justify-center gap-2"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Back to Login</span>
+          </button>
+        </div>
+
+        {/* Help Text */}
+        <div className="text-center text-xs text-gray-500 dark:text-gray-400 space-y-1">
+          <p>Lost access to your {mfaState.method === 'totp' ? 'authenticator app' : 'phone'}?</p>
+          <button
+            onClick={() => {
+              // Handle MFA recovery
+              const email = getValues('email');
+              if (email) {
+                router.push(`/forgot-password?email=${encodeURIComponent(email)}&reason=mfa_recovery`);
+              }
+            }}
+            className="text-blue-600 dark:text-blue-400 hover:underline"
+          >
+            Request account recovery
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // Updated submit handler to handle MFA responses
   const onSubmit = async (data: FormInputs): Promise<void> => {
     if (!recaptchaValue) {
       setRecaptchaError(true);
@@ -883,10 +1175,28 @@ const LoginForm = () => {
       await postQuery({
         url: authAPI.local.login,
         postData: loginData,
-        onSuccess: (res: any) => { // Use any to handle both response structures
+        onSuccess: (res: any) => {
           console.log('Login response:', res);
           
-          // Add safety checks for response structure
+          // Check if MFA is required
+          if (authUtils.isMFARequired(res)) {
+            const mfaResponse = res as IMFALoginRequiredResponse;
+            showToast.dismiss(loadingToastId);
+            showToast.info("🔐 Multi-factor authentication required", { duration: 3000 });
+            
+            setMFAVerificationState({
+              isRequired: true,
+              method: mfaResponse.mfa_method,
+              userId: mfaResponse.data.user_id,
+              phoneHint: mfaResponse.data.phone_hint,
+              tempSession: mfaResponse.data.temp_session
+            });
+            setShowMFAVerification(true);
+            setCurrentStep(3); // Add MFA as step 3
+            return;
+          }
+          
+          // Handle normal login success (existing code)
           if (!res || !res.data) {
             console.error('Invalid response structure:', res);
             showToast.dismiss(loadingToastId);
@@ -1041,16 +1351,52 @@ const LoginForm = () => {
           const enhancedError = getEnhancedErrorMessage(error);
           showToast.error(enhancedError, { duration: 6000 });
           setTimeout(() => emailInputRef.current?.focus(), 100);
-        },
+        }
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Login submission error:', error);
       showToast.dismiss(loadingToastId);
-      const errorMsg = getEnhancedErrorMessage(error);
-      showToast.error(`❌ ${errorMsg}`, { duration: 6000 });
-      if (process.env.NODE_ENV !== 'production') {
-        console.error("Unexpected login error:", error);
-      }
+      showToast.error("❌ An unexpected error occurred. Please try again.", { duration: 5000 });
     }
+  };
+
+  // Handle MFA verification success
+  const handleMFASuccess = (loginResponse: ILoginResponse): void => {
+    if (loginResponse.success && loginResponse.data) {
+      const loginResponseData: LoginResponseData = {
+        id: loginResponse.data.user.id,
+        email: loginResponse.data.user.email,
+        full_name: loginResponse.data.user.full_name,
+        role: Array.isArray(loginResponse.data.user.role) ? loginResponse.data.user.role : [],
+        permissions: [],
+        access_token: loginResponse.data.token,
+        refresh_token: loginResponse.data.session_id,
+        emailVerified: loginResponse.data.user.email_verified
+      };
+
+      completeLoginProcess(loginResponseData);
+      setShowMFAVerification(false);
+      setMFAVerificationState({
+        isRequired: false,
+        method: null,
+        userId: '',
+        phoneHint: '',
+        tempSession: false
+      });
+    }
+  };
+
+  // Handle back from MFA
+  const handleMFABack = (): void => {
+    setShowMFAVerification(false);
+    setMFAVerificationState({
+      isRequired: false,
+      method: null,
+      userId: '',
+      phoneHint: '',
+      tempSession: false
+    });
+    setCurrentStep(1);
   };
 
   // Account Lockout Warning Component
@@ -1207,6 +1553,67 @@ const LoginForm = () => {
   // Show account lockout warning if account is locked
   if (accountLockInfo.isLocked) {
     return <AccountLockoutWarning />;
+  }
+
+  // Show MFA verification if needed
+  if (showMFAVerification) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-4 px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md relative">
+          {/* Decorative elements */}
+          <div className="absolute -top-10 -left-10 w-20 h-20 bg-primary-300/30 dark:bg-primary-600/20 rounded-full blur-xl hidden sm:block"></div>
+          <div className="absolute -bottom-12 -right-12 w-24 h-24 bg-indigo-300/30 dark:bg-indigo-600/20 rounded-full blur-xl hidden sm:block"></div>
+          
+          {/* Card container */}
+          <div className="login-card bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300">
+            
+            {/* Header */}
+            <div className="px-4 sm:px-8 pt-4 sm:pt-8 pb-2 sm:pb-4 text-center relative">
+              <Link href="/" className="inline-block mb-2 sm:mb-4">
+                <Image 
+                  src={theme === 'dark' ? logo1 : logo2} 
+                  alt="Medh Logo" 
+                  width={100} 
+                  height={32} 
+                  className="mx-auto w-24 sm:w-32"
+                  priority
+                />
+              </Link>
+            </div>
+
+            {/* Stepper UI for MFA */}
+            <div className="px-4 sm:px-8 mb-4">
+              <div className="flex items-center justify-between max-w-md mx-auto">
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex items-center justify-center">
+                    <Check className="w-4 h-4" />
+                  </div>
+                  <span className="text-xs mt-1 text-primary-600 dark:text-primary-400 font-medium">Login</span>
+                </div>
+                <div className="flex-1 mx-2">
+                  <div className="h-0.5 bg-primary-500"></div>
+                </div>
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center">
+                    <Shield className="w-4 h-4" />
+                  </div>
+                  <span className="text-xs mt-1 text-primary-600 dark:text-primary-400 font-medium">2FA</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* MFA Form */}
+            <div className="px-4 sm:px-8 pb-4 sm:pb-8">
+              <MFAVerificationStep
+                mfaState={mfaVerificationState}
+                onVerificationSuccess={handleMFASuccess}
+                onBack={handleMFABack}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Show OTP verification if needed
@@ -1574,65 +1981,6 @@ const LoginForm = () => {
                   </button>
                 </div>
 
-                {/* OAuth Divider - HIDDEN */}
-                {/* 
-                <div className="relative my-4">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
-                  </div>
-                  <div className="relative flex justify-center text-xs">
-                    <span className="bg-white dark:bg-gray-800 px-3 text-gray-500 dark:text-gray-400">
-                      Or continue with
-                    </span>
-                  </div>
-                </div>
-
-                {/* OAuth Buttons - HIDDEN */}
-                {/* 
-                <div className="grid grid-cols-2 gap-3">
-                  {/* Google OAuth */}
-                {/*
-                  <button
-                    type="button"
-                    onClick={() => handleOAuthLogin('google')}
-                    disabled={isOAuthLoading.google}
-                    className="flex items-center justify-center px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                  >
-                    {isOAuthLoading.google ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <>
-                        <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
-                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                        </svg>
-                        Google
-                      </>
-                    )}
-                  </button>
-
-                  {/* GitHub OAuth */}
-                {/*
-                  <button
-                    type="button"
-                    onClick={() => handleOAuthLogin('github')}
-                    disabled={isOAuthLoading.github}
-                    className="flex items-center justify-center px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                  >
-                    {isOAuthLoading.github ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <>
-                        <Github className="w-4 h-4 mr-2 text-gray-700 dark:text-gray-300" />
-                        GitHub
-                      </>
-                    )}
-                  </button>
-                </div>
-                */}
-                
                 {/* Sign Up Link */}
                 <div className="text-center mt-2 sm:mt-4">
                   <p className="text-xs text-gray-600 dark:text-gray-400">
@@ -1656,7 +2004,7 @@ const LoginForm = () => {
           
           {/* Copyright notice */}
           <div className="text-center mt-2 text-xs text-gray-400 dark:text-gray-500">
-                            <p>© {currentYear} Medh. All rights reserved.</p>
+            <p>© {currentYear} Medh. All rights reserved.</p>
           </div>
         </div>
       </div>
@@ -1665,3 +2013,4 @@ const LoginForm = () => {
 };
 
 export default LoginForm;
+
