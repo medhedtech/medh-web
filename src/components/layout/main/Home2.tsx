@@ -373,11 +373,17 @@ const Home2: React.FC = () => {
       {/* GPU-optimized video background with iOS optimizations - Always show if no error */}
       {shouldShowVideo && !hasVideoError && (
         <div 
-          className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0 gpu-accelerated"
+          className="fixed inset-0 w-screen h-screen overflow-hidden pointer-events-none z-0 gpu-accelerated"
           style={{ 
             opacity: isDark ? 0.85 : 0.9,
             willChange: isIOSDevice ? 'auto' : 'opacity',
-            transform: 'translate3d(0,0,0)'
+            transform: 'translate3d(0,0,0)',
+            margin: 0,
+            padding: 0,
+            left: 0,
+            top: 0,
+            right: 0,
+            bottom: 0
           }}
         >
           <video
@@ -389,7 +395,7 @@ const Home2: React.FC = () => {
             playsInline // Required for iOS
             preload={isIOSDevice ? "metadata" : "auto"} // Balanced preloading for iOS
             controls={false} // Never show controls
-            className="absolute inset-0 w-full h-full object-cover gpu-accelerated"
+            className="fixed inset-0 w-screen h-screen min-w-full min-h-full max-w-none max-h-none object-cover gpu-accelerated video-background-hq"
             style={{ 
               filter: isDark 
                 ? 'brightness(0.7) contrast(1.1) saturate(1.0)' 
@@ -397,7 +403,13 @@ const Home2: React.FC = () => {
               transform: 'translate3d(0,0,0)',
               backfaceVisibility: 'hidden',
               pointerEvents: 'none', // Ensure no interaction
-              willChange: 'transform, opacity'
+              willChange: 'transform, opacity',
+              margin: 0,
+              padding: 0,
+              left: 0,
+              top: 0,
+              right: 0,
+              bottom: 0
             }}
             src={videoSrc}
             onError={handleVideoError}
