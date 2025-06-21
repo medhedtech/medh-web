@@ -1263,7 +1263,7 @@ const StudentDashboardMain: React.FC = () => {
                     </div>
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Free Courses</h2>
                   </div>
-                  <Link href="/courses/free" className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center">
+                  <Link href="/courses?category=free" className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center">
                     View All <ArrowRight className="w-4 h-4 ml-1" />
                   </Link>
                 </div>

@@ -318,9 +318,8 @@ const mobileSidebarVariants = {
 // Mobile content variants
 const mobileContentVariants = {
   sidebarOpen: {
-    scale: 0.95,
-    x: 20,
-    borderRadius: "12px",
+    scale: 1,
+    x: 0,
     transition: {
       type: "spring",
       stiffness: 300,
@@ -331,7 +330,6 @@ const mobileContentVariants = {
   sidebarClosed: {
     scale: 1,
     x: 0,
-    borderRadius: "0px",
     transition: {
       type: "spring",
       stiffness: 300,
@@ -846,13 +844,18 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
           {/* Main Content Area */}
           <motion.div 
             className={`flex-1 overflow-y-auto scroll-smooth transition-all duration-300 ease-in-out ${
-              isMobile || isTablet ? 'w-full' : ''
+              isMobile || isTablet ? 'w-full fixed-content' : ''
             }`}
             variants={isMobile || isTablet ? mobileContentVariants : {}}
             animate={isMobile || isTablet ? (isSidebarOpen ? "sidebarOpen" : "sidebarClosed") : {}}
             style={{
               marginLeft: isDesktop ? (isSidebarExpanded ? "270px" : "88px") : "0px",
               width: isDesktop ? (isSidebarExpanded ? "calc(100% - 270px)" : "calc(100% - 88px)") : "100%",
+              position: isMobile || isTablet ? 'fixed' : 'relative',
+              top: isMobile || isTablet ? '64px' : 'auto',
+              left: 0,
+              right: 0,
+              bottom: 0,
             }}
           >
             {/* Content with responsive padding */}
