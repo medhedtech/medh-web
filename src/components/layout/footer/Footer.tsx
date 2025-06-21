@@ -59,7 +59,7 @@ const Footer: React.FC<FooterProps> = ({ className = "" }) => {
 
   return (
     <footer 
-      className={`relative w-full overflow-hidden ${className}`}
+      className={`relative w-full min-h-[400px] overflow-hidden ${className}`}
       role="contentinfo"
       aria-label="Site footer"
       {...getHydrationSafeProps()}
@@ -67,9 +67,9 @@ const Footer: React.FC<FooterProps> = ({ className = "" }) => {
       {/* Enhanced Glassmorphic Background with Atmospheric Elements */}
       <div className="absolute inset-0 bg-gradient-to-b from-slate-100/95 via-slate-200/90 to-slate-300/95 dark:from-slate-950/95 dark:via-slate-900/90 dark:to-slate-800/95">
         
-        {/* Multiple Layered Floating Orbs for Depth */}
-        <div className="absolute -top-32 -left-32 w-64 h-64 sm:w-80 sm:h-80 bg-gradient-radial from-blue-400/30 via-indigo-500/20 to-transparent rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -top-20 -right-20 w-56 h-56 sm:w-72 sm:h-72 bg-gradient-radial from-violet-400/25 via-purple-500/15 to-transparent rounded-full blur-3xl animate-pulse delay-1000"></div>
+        {/* Multiple Layered Floating Orbs for Depth - Fixed dimensions */}
+        <div className="absolute -top-32 -left-32 w-64 h-64 bg-gradient-radial from-blue-400/30 via-indigo-500/20 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute -top-20 -right-20 w-56 h-56 bg-gradient-radial from-violet-400/25 via-purple-500/15 to-transparent rounded-full blur-3xl"></div>
         <div className="absolute top-1/4 -left-16 w-48 h-48 sm:w-60 sm:h-60 bg-gradient-radial from-emerald-400/20 via-teal-500/10 to-transparent rounded-full blur-2xl animate-pulse delay-700"></div>
         <div className="absolute top-1/2 -right-16 w-40 h-40 sm:w-52 sm:h-52 bg-gradient-radial from-rose-400/20 via-pink-500/10 to-transparent rounded-full blur-2xl animate-pulse delay-300"></div>
         <div className="absolute bottom-1/4 left-1/4 w-36 h-36 sm:w-48 sm:h-48 bg-gradient-radial from-amber-400/18 via-yellow-500/8 to-transparent rounded-full blur-2xl animate-pulse delay-500"></div>

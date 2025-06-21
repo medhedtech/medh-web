@@ -286,49 +286,30 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
   }
 
   return (
-    <div className={`relative ${currentTheme.container}`}>
+    <div className={`relative ${currentTheme.container} prevent-shift`}>
       {/* Additional floating elements specific to footer */}
-      <div className="absolute -top-16 left-1/4 w-20 h-20 bg-gradient-radial from-blue-300/20 via-indigo-400/10 to-transparent rounded-full blur-xl animate-pulse delay-100"></div>
-      <div className="absolute -bottom-8 right-1/3 w-24 h-24 bg-gradient-radial from-violet-300/18 via-purple-400/9 to-transparent rounded-full blur-xl animate-pulse delay-900"></div>
+      <div className="absolute -top-16 left-1/4 w-20 h-20 bg-gradient-radial from-blue-300/20 via-indigo-400/10 to-transparent rounded-full blur-xl animate-pulse delay-100 gpu-accelerated"></div>
+      <div className="absolute -bottom-8 right-1/3 w-24 h-24 bg-gradient-radial from-violet-300/18 via-purple-400/9 to-transparent rounded-full blur-xl animate-pulse delay-900 gpu-accelerated"></div>
       
       {/* Navigation Sections - Original 3 Column Layout */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 prevent-shift">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 grid-no-shift">
           {navigationSections.map((section, index) => {
-            // Skip Learning section in main grid - it will be rendered separately
             if (section.title === "Learning") return null;
             
             return (
-              <div key={index} className="space-y-6">
-                <h3 className={`text-xl font-bold ${currentTheme.titleText} border-b ${currentTheme.navBorder} pb-3`}>
-                  {section.title}
-                </h3>
-                <ul className="space-y-3">
+              <div key={index} className="flex-no-shift">
+                <h2 className={`text-xl font-bold ${currentTheme.titleText} mb-6`}>{section.title}</h2>
+                <ul className="space-y-4">
                   {section.items.map((item, itemIndex) => (
-                    <li key={itemIndex}>
+                    <li key={itemIndex} className="flex-no-shift">
                       <Link 
                         href={item.path}
-                        className={`${currentTheme.linkText} transition-colors text-base flex items-center gap-2 py-1`}
+                        className={`text-base ${currentTheme.bodyText} ${currentTheme.contactText} transition-colors flex items-center gap-3`}
                       >
                         {item.name}
-                        <ExternalLink className="w-3 h-3 opacity-0 hover:opacity-100 transition-opacity" />
+                        <ExternalLink className="w-4 h-4 opacity-0 hover:opacity-100 transition-opacity" />
                       </Link>
-                      
-                      {item.children && (
-                        <ul className="ml-4 mt-3 space-y-2">
-                          {item.children.map((child, childIndex) => (
-                            <li key={childIndex}>
-                              <Link 
-                                href={child.path}
-                                className={`${theme === 'light' ? 'text-gray-500 hover:text-gray-700' : 'text-gray-500 hover:text-gray-300'} transition-colors text-sm flex items-center gap-2 py-1`}
-                              >
-                                <span className={`w-1.5 h-1.5 ${theme === 'light' ? 'bg-gray-400' : 'bg-gray-600'} rounded-full`}></span>
-                                {child.name}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
                     </li>
                   ))}
                 </ul>

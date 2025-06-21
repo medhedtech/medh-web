@@ -253,9 +253,11 @@ const JobGuaranteedSection = memo<IJobGuaranteedProps>(({
                 <Image 
                   src={medhLogo} 
                   alt="Medh Logo" 
-                  width={28} 
-                  height={28} 
+                  width={128} 
+                  height={128} 
+                  unoptimized={true}
                   className="inline-block h-6 sm:h-7 md:h-8 lg:h-10 w-auto align-baseline mx-1"
+                  sizes="(max-width: 640px) 32px, (max-width: 768px) 40px, (max-width: 1024px) 48px, 56px"
                   style={{
                     filter: 'brightness(1.1) contrast(1.2)',
                     verticalAlign: 'baseline',
