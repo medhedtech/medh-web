@@ -73,9 +73,29 @@ frontend:
         - npm config set audit-level moderate
         - npm config set fund false
         - npm config set update-notifier false
-        - npm config set progress false
-        - echo "Installing dependencies..."
-        - npm ci --no-audit --prefer-offline --no-fund --silent
+        - npm config set progress true
+        
+        # Debug package.json and package-lock.json
+        - echo ""
+        - echo "=== Dependency Analysis ==="
+        - echo "Checking package.json..."
+        - ls -la package.json
+        - echo "Checking package-lock.json..."
+        - ls -la package-lock.json || echo "⚠️ No package-lock.json found"
+        - echo "Node modules before install:"
+        - ls -la node_modules/ 2>/dev/null || echo "No node_modules directory"
+        
+        - echo ""
+        - echo "Installing dependencies with verbose output..."
+        - npm ci --no-audit --prefer-offline --no-fund --verbose
+        
+        # Verify installation
+        - echo ""
+        - echo "=== Post-Install Verification ==="
+        - echo "Node modules after install:"
+        - ls -la node_modules/ | head -10
+        - echo "Checking critical dependencies..."
+        - npm list next react react-dom --depth=0 || echo "⚠️ Some critical dependencies missing"
     build:
       commands:
         - echo ""

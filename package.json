@@ -15,7 +15,7 @@
     "install-deps": "npm config set legacy-peer-deps true && npm ci --no-audit --prefer-offline"
   },
   "engines": {
-    "node": ">=20.19.0 <21.0.0"
+    "node": ">=20.19.0"
   },
   "resolutions": {
     "puppeteer-core": "24.6.0",
