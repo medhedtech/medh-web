@@ -62,40 +62,11 @@ const nextConfig = {
     // Enable responsive images by default
     loader: 'default',
   },
-  // Removed experimental features that might cause issues
+  // Simplified webpack configuration to avoid loader conflicts
   webpack: (config, { dev, isServer }) => {
-    // Exclude problematic CSS files from regular CSS processing
-    // Add a rule to handle the CSS files specially
-    config.module.rules.push({
-      test: /node_modules[\/\\](rc-time-picker|react-datepicker|react-phone-input-2|react-quill|react-toastify|slick-carousel)[\/\\].+\.css$/,
-      // Use null loader for server-side
-      use: isServer 
-        ? ['null-loader'] 
-        : ['style-loader', 'css-loader'],
-      type: 'javascript/auto',
-    });
-
-    // For Next.js app dir, these CSS files need to be excluded from default CSS handling
-    if (config.module.rules) {
-      const cssRule = config.module.rules.find(
-        (rule) => rule.oneOf && rule.oneOf.find((r) => r.test && r.test.toString().includes('\\.css'))
-      );
-
-      if (cssRule) {
-        const cssRules = cssRule.oneOf;
-        if (cssRules) {
-          for (const rule of cssRules) {
-            if (rule.test && rule.test.toString().includes('\\.css')) {
-              if (!rule.exclude) rule.exclude = [];
-              if (Array.isArray(rule.exclude)) {
-                rule.exclude.push(/node_modules[\/\\](rc-time-picker|react-datepicker|react-phone-input-2|react-quill|react-toastify|slick-carousel)[\/\\].+\.css$/);
-              }
-            }
-          }
-        }
-      }
-    }
-
+    // Only add custom rules if absolutely necessary
+    // Remove problematic CSS loader rules that cause conflicts
+    
     if (!dev && !isServer) {
       // Optimize production builds
       config.optimization = {
@@ -125,7 +96,7 @@ const nextConfig = {
     return config;
   },
   // Enable production source maps for better debugging
-  productionBrowserSourceMaps: true,
+  productionBrowserSourceMaps: false, // Disable for faster builds
   // Add headers for better caching, security, and video optimization
   async headers() {
     return [

@@ -7,7 +7,6 @@ import useDeleteQuery from "@/hooks/deleteQuery.hook";
 import { FaTimes, FaSearch, FaFilter, FaCalendarAlt } from "react-icons/fa";
 import { Loader } from "lucide-react";
 import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 
 const formatDate = (date) => {
   if (!date) return "";
