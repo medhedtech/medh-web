@@ -118,6 +118,14 @@ export function generateSEOMetadata(props: SEOProps): Metadata {
         follow: !noIndex,
         'max-video-preview': -1,
         'max-image-preview': 'large',
+        'max-snippet': -1,
+        'max-image-preview': 'large'
+      },
+      bingBot: {
+        index: !noIndex,
+        follow: !noIndex,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
         'max-snippet': -1
       }
     },

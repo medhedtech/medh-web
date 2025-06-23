@@ -1,94 +1,84 @@
 #!/bin/bash
 
-# Fast Git Push Script for Medh Web
-# Optimizes git operations for faster pushes
+# Fast Git Push Script
+# Optimized for large repositories with better performance
 
 set -e
 
-echo "🚀 Starting fast git push process..."
+# Colors for output
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
 
-# Check if we're in a git repository
-if ! git rev-parse --git-dir > /dev/null 2>&1; then
-    echo "❌ Error: Not in a git repository"
-    exit 1
-fi
-
-# Function to optimize git config for speed
-optimize_git_config() {
-    echo "⚡ Optimizing git configuration..."
-    git config --local core.preloadindex true
-    git config --local core.fscache true
-    git config --local core.autocrlf false
-    git config --local pack.threads 0
-    git config --local core.compression 9
-    git config --local gc.auto 256
-    git config --local push.default simple
-    git config --local http.postBuffer 524288000
-    git config --local http.version HTTP/2
-    echo "✅ Git configuration optimized"
+print_status() {
+    echo -e "${GREEN}✅ $1${NC}"
 }
 
-# Function to stage files efficiently
-stage_files() {
-    echo "📦 Staging files efficiently..."
-    
-    # Add only specific file types to avoid large files
-    git add "*.ts" "*.tsx" "*.js" "*.jsx" "*.json" "*.md" "*.css" "*.scss" "*.html" "*.yml" "*.yaml" 2>/dev/null || true
-    git add ".gitattributes" ".gitignore" 2>/dev/null || true
-    git add "src/" "scripts/" 2>/dev/null || true
-    
-    # Add other important files
-    git add "package.json" "package-lock.json" "tsconfig.json" "next.config.js" "tailwind.config.js" 2>/dev/null || true
-    
-    echo "✅ Files staged efficiently"
+print_warning() {
+    echo -e "${YELLOW}⚠️  $1${NC}"
 }
 
-# Function to commit with optimized message
-commit_changes() {
-    local commit_msg="${1:-feat: optimize codebase and improve performance}"
+print_error() {
+    echo -e "${RED}❌ $1${NC}"
+}
+
+# Get current branch
+CURRENT_BRANCH=$(git branch --show-current)
+
+# Check if there are changes to commit
+if [ -n "$(git status --porcelain)" ]; then
+    print_status "Staging changes..."
+    git add .
     
-    echo "💾 Committing changes..."
-    
-    # Check if there are changes to commit
-    if git diff --cached --quiet; then
-        echo "ℹ️  No changes to commit"
-        return 0
+    # Get commit message from user or use default
+    if [ -z "$1" ]; then
+        COMMIT_MSG="chore: auto-commit changes $(date '+%Y-%m-%d %H:%M')"
+    else
+        COMMIT_MSG="$1"
     fi
     
-    git commit -m "$commit_msg" --quiet
-    echo "✅ Changes committed successfully"
-}
+    print_status "Committing changes: $COMMIT_MSG"
+    git commit -m "$COMMIT_MSG"
+fi
 
-# Function to push with optimizations
-push_changes() {
-    echo "🌐 Pushing to remote repository..."
-    
-    # Get current branch
-    local current_branch=$(git rev-parse --abbrev-ref HEAD)
-    
-    # Push with optimizations
-    git push origin "$current_branch" --no-verify --quiet
-    
-    echo "✅ Successfully pushed to origin/$current_branch"
-}
+# Optimize git configuration for large pushes
+print_status "Optimizing git configuration for large pushes..."
+git config http.postBuffer 524288000  # 500MB buffer
+git config http.maxRequestBuffer 100M
+git config core.compression 0         # Disable compression for speed
+git config pack.compression 0
+git config pack.deltaCacheSize 2047m
+git config pack.packSizeLimit 2047m
+git config pack.windowMemory 2047m
 
-# Main execution
-main() {
-    local commit_message="$1"
-    
-    echo "Starting fast push for branch: $(git rev-parse --abbrev-ref HEAD)"
-    
-    # Run optimizations
-    optimize_git_config
-    stage_files
-    commit_changes "$commit_message"
-    push_changes
-    
-    echo "🎉 Fast push completed successfully!"
-    echo "📊 Repository status:"
-    git status --porcelain | wc -l | xargs echo "   Untracked files:"
-    git log --oneline -1 | xargs echo "   Latest commit:"
-}
+# Check if we're ahead of remote
+AHEAD=$(git rev-list --count HEAD ^origin/$CURRENT_BRANCH 2>/dev/null || echo "0")
 
-# Run the script
-main "$@" 
+if [ "$AHEAD" -gt 0 ]; then
+    print_status "Pushing $AHEAD commits to origin/$CURRENT_BRANCH..."
+    
+    # Use parallel processing for faster push
+    git -c push.default=current push origin $CURRENT_BRANCH --progress
+    
+    if [ $? -eq 0 ]; then
+        print_status "Successfully pushed to origin/$CURRENT_BRANCH"
+    else
+        print_error "Push failed. Trying with force-with-lease..."
+        git push --force-with-lease origin $CURRENT_BRANCH --progress
+    fi
+else
+    print_warning "No commits to push. Already up to date with origin/$CURRENT_BRANCH"
+fi
+
+# Reset git configuration to defaults
+print_status "Resetting git configuration..."
+git config --unset http.postBuffer || true
+git config --unset http.maxRequestBuffer || true
+git config core.compression 1
+git config --unset pack.compression || true
+git config --unset pack.deltaCacheSize || true
+git config --unset pack.packSizeLimit || true
+git config --unset pack.windowMemory || true
+
+print_status "Push completed successfully! 🚀" 
