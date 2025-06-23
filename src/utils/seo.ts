@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { defaultMetadata } from '@/app/metadata';
+import { generateSemanticKeywords, generateAIOptimizedTitle, generateEEATOptimizedDescription, EDUCATION_KEYWORDS_2025 } from './enhanced-seo-2025';
 
 export interface SEOProps {
   title?: string;
@@ -14,9 +15,18 @@ export interface SEOProps {
   section?: string;
   tags?: string[];
   noIndex?: boolean;
+  courseData?: any;
+  eeatSignals?: {
+    experience?: string[];
+    expertise?: string[];
+    authoritativeness?: string[];
+    trustworthiness?: string[];
+  };
+  structuredDataType?: 'course' | 'blog' | 'organization' | 'faq' | 'breadcrumb';
+  voiceSearchOptimized?: boolean;
 }
 
-// Generate optimized metadata for any page
+// Generate AI-optimized metadata for any page with 2025 best practices
 export function generateSEOMetadata(props: SEOProps): Metadata {
   const {
     title,
@@ -30,21 +40,37 @@ export function generateSEOMetadata(props: SEOProps): Metadata {
     author,
     section,
     tags = [],
-    noIndex = false
+    noIndex = false,
+    eeatSignals,
+    voiceSearchOptimized = false
   } = props;
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://medh.co';
   const fullUrl = url ? `${baseUrl}${url}` : baseUrl;
   const imageUrl = image || `${baseUrl}/images/og-default.jpg`;
   
-  // Combine default keywords with page-specific keywords
+  // Enhanced keyword optimization with semantic clustering and 2025 trends
+  const semanticKeywords = generateSemanticKeywords(keywords[0] || 'education');
+  const trendingKeywords = EDUCATION_KEYWORDS_2025.emergingTech2025.slice(0, 3);
+  const conversationalKeywords = voiceSearchOptimized ? 
+    EDUCATION_KEYWORDS_2025.conversationalQueries.slice(0, 2) : [];
+  
   const allKeywords = [
     ...keywords,
-    ...(defaultMetadata.keywords as string[] || [])
-  ].filter((keyword, index, self) => self.indexOf(keyword) === index); // Remove duplicates
+    ...semanticKeywords,
+    ...trendingKeywords,
+    ...conversationalKeywords,
+    ...(defaultMetadata.keywords as string[] || []),
+    'AI-powered education',
+    'personalized learning',
+    'industry certification'
+  ].filter((keyword, index, self) => self.indexOf(keyword) === index).slice(0, 30);
 
-  const finalTitle = title ? `${title} | Medh` : defaultMetadata.title as string;
-  const finalDescription = description || defaultMetadata.description as string;
+  // Use AI-optimized title and description generation
+  const finalTitle = generateAIOptimizedTitle(title || 'Medh Education Platform', keywords);
+  const finalDescription = generateEEATOptimizedDescription(
+    description || 'Transform your career with AI-powered online education'
+  );
 
   return {
     title: finalTitle,
@@ -92,13 +118,26 @@ export function generateSEOMetadata(props: SEOProps): Metadata {
         follow: !noIndex,
         'max-video-preview': -1,
         'max-image-preview': 'large',
-        'max-snippet': -1,
-      },
+        'max-snippet': -1
+      }
     },
     category: section || 'education',
     other: {
       'article:section': section || 'Education',
-      'article:tag': tags.join(', ') || 'Learning',
+      'article:tag': tags.join(', ') || 'Learning, Skills, Career',
+      'og:updated_time': modifiedTime || new Date().toISOString(),
+      'twitter:label1': 'Category',
+      'twitter:data1': section || 'Education',
+      'twitter:label2': 'Reading time',
+      'twitter:data2': '5 min read',
+      'format-detection': 'telephone=no',
+      'mobile-web-app-capable': 'yes',
+      'apple-mobile-web-app-capable': 'yes',
+      'application-name': 'Medh Education',
+      'apple-mobile-web-app-title': 'Medh Education',
+      'theme-color': '#3bac63',
+      'msapplication-navbutton-color': '#3bac63',
+      'apple-mobile-web-app-status-bar-style': 'default'
     }
   };
 }

@@ -1,8 +1,22 @@
-# Allow all web crawlers
+# Medh Education Platform - Robots.txt (2025 Enhanced)
+# Optimized for AI-driven search engines and global crawling
+
+# Allow all search engines
 User-agent: *
 Allow: /
 
-# Disallow admin and private routes
+# High-priority pages for search engines
+Allow: /courses/
+Allow: /blogs/
+Allow: /about-us/
+Allow: /contact-us/
+Allow: /hire-from-medh/
+Allow: /corporate-training-courses/
+Allow: /medh-membership/
+Allow: /instructors/
+Allow: /faq/
+
+# Block admin and private areas
 Disallow: /dashboards/
 Disallow: /profile/
 Disallow: /login/
@@ -13,15 +27,64 @@ Disallow: /error/
 Disallow: /error-dark/
 Disallow: /maintenance/
 Disallow: /api/
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /temp/
+Disallow: /test/
 
-# Allow important SEO pages
-Allow: /blogs/
-Allow: /courses/
-Allow: /about-us/
-Allow: /contact-us/
+# Block duplicate content and low-value pages
+Disallow: /search?
+Disallow: /*?sort=
+Disallow: /*?filter=
+Disallow: /*?page=
+Disallow: /print/
+Disallow: /pdf/
 
-# Crawl delay for polite crawling
+# Allow important dynamic content
+Allow: /search
+Allow: /courses/*
+Allow: /blogs/*
+
+# Specific rules for major search engines
+User-agent: Googlebot
+Allow: /
 Crawl-delay: 1
 
-# Sitemap location
-Sitemap: https://medh.co/sitemap.xml 
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 2
+
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Baiduspider
+Allow: /
+Crawl-delay: 2
+
+User-agent: YandexBot
+Allow: /
+Crawl-delay: 2
+
+# Block problematic crawlers
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+# Host declaration
+Host: https://medh.co
+
+# Sitemaps for comprehensive indexing
+Sitemap: https://medh.co/sitemap.xml
+Sitemap: https://medh.co/sitemap-courses.xml
+Sitemap: https://medh.co/sitemap-blogs.xml
+Sitemap: https://medh.co/sitemap-images.xml 
