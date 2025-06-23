@@ -284,8 +284,8 @@ const HeroMobile = memo<{
                     width={128} 
                     height={128} 
                     priority 
-                    quality={100}
-                    unoptimized={true}
+                    quality={95}
+                    fetchPriority="high"
                     sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, (max-width: 1024px) 96px, 112px"
                     className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline gpu-accelerated"
                     style={{ 
@@ -295,6 +295,12 @@ const HeroMobile = memo<{
                       imageRendering: '-webkit-optimize-contrast',
                       backfaceVisibility: 'hidden',
                       WebkitFontSmoothing: 'antialiased'
+                    }}
+                    onLoad={() => {
+                      // Mark LCP element as loaded for performance tracking
+                      if (typeof window !== 'undefined' && 'performance' in window) {
+                        performance.mark('hero-logo-loaded');
+                      }
                     }}
                   />
                 </span>
@@ -569,8 +575,8 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
                     width={96} 
                     height={96} 
                     priority 
-                    quality={100}
-                    unoptimized={true}
+                    quality={95}
+                    fetchPriority="high"
                     sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, (max-width: 1024px) 96px, 112px"
                     className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline gpu-accelerated"
                     style={{ 
@@ -580,6 +586,12 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
                       imageRendering: '-webkit-optimize-contrast',
                       backfaceVisibility: 'hidden',
                       WebkitFontSmoothing: 'antialiased'
+                    }}
+                    onLoad={() => {
+                      // Mark LCP element as loaded for performance tracking
+                      if (typeof window !== 'undefined' && 'performance' in window) {
+                        performance.mark('hero-logo-loaded');
+                      }
                     }}
                   />
                 </span>

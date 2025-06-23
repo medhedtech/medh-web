@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { generateSemanticKeywords, generateAIOptimizedTitle, generateEEATOptimizedDescription } from './enhanced-seo-2025';
 
 export interface CourseData {
   _id: string;
@@ -62,30 +63,30 @@ export class CourseSEO {
   }
 
   /**
-   * Generate SEO-optimized title with character limit
+   * Generate AI-optimized title with 2025 best practices
    */
   generateTitle(): string {
     const title = this.course.course_title;
     const category = this.course.category;
     const level = this.course.level || this.course.grade;
+    const keywords = this.extractKeywords();
     
-    // Create compelling title variations
-    const titleVariations = [
-      `${title} - ${category} Course | Medh`,
-      `Learn ${title} Online | ${category} Training | Medh`,
-      `${title} Course - ${level} Level | Medh`,
-      `${category}: ${title} | Online Learning | Medh`
-    ];
+    // Create enhanced title with category and level context
+    let enhancedTitle = title;
+    if (category && !title.toLowerCase().includes(category.toLowerCase())) {
+      enhancedTitle = `${title} - ${category} Course`;
+    }
     
-    // Find the best title under 60 characters
-    const optimalTitle = titleVariations.find(t => t.length <= 60) || 
-                        `${title} | Medh`.substring(0, 57) + '...';
+    if (level && !enhancedTitle.toLowerCase().includes(level.toLowerCase())) {
+      enhancedTitle = `${enhancedTitle} (${level} Level)`;
+    }
     
-    return optimalTitle;
+    // Use AI-optimized title generation
+    return generateAIOptimizedTitle(enhancedTitle, keywords);
   }
 
   /**
-   * Generate SEO-optimized description
+   * Generate E-E-A-T optimized description with 2025 best practices
    */
   generateDescription(): string {
     const description = this.course.course_description || this.course.long_description || '';
@@ -93,7 +94,7 @@ export class CourseSEO {
     const duration = this.course.course_duration;
     const features = this.getKeyFeatures().slice(0, 3);
     
-    // Create compelling description
+    // Create compelling description with E-E-A-T signals
     let desc = '';
     
     if (description.length > 0) {
@@ -101,25 +102,21 @@ export class CourseSEO {
       const firstSentence = description.split('.')[0];
       desc = firstSentence.length > 30 ? firstSentence : description.substring(0, 80);
     } else {
-      desc = `Master ${this.course.course_title} with our comprehensive ${category.toLowerCase()} course`;
+      desc = `Master ${this.course.course_title} with expert-led ${category.toLowerCase()} training`;
     }
     
-    // Add key features and details
+    // Add key features with authority signals
     const additionalInfo = [];
-    if (duration) additionalInfo.push(`${duration} duration`);
-    if (this.course.is_Certification) additionalInfo.push('certificate included');
+    if (duration) additionalInfo.push(`${duration} comprehensive training`);
+    if (this.course.is_Certification) additionalInfo.push('industry-recognized certificate');
     if (features.length > 0) additionalInfo.push(features.join(', '));
     
     if (additionalInfo.length > 0) {
       desc += `. ${additionalInfo.join(', ')}.`;
     }
     
-    // Ensure description is within 160 characters
-    if (desc.length > 160) {
-      desc = desc.substring(0, 157) + '...';
-    }
-    
-    return desc;
+    // Use E-E-A-T optimized description generation
+    return generateEEATOptimizedDescription(desc);
   }
 
   /**
@@ -164,13 +161,27 @@ export class CourseSEO {
       });
     });
     
-    // Add educational keywords
-    keywords.add('online course');
-    keywords.add('online learning');
-    keywords.add('skill development');
-    keywords.add('professional training');
+    // Add 2025 AI-optimized educational keywords
+    const educationalKeywords = [
+      'online course',
+      'online learning',
+      'skill development',
+      'professional training',
+      'AI-powered education',
+      'personalized learning',
+      'career advancement',
+      'industry certification',
+      'expert instruction',
+      'hands-on training'
+    ];
     
-    return Array.from(keywords).slice(0, 20);
+    educationalKeywords.forEach(keyword => keywords.add(keyword));
+    
+    // Generate semantic keywords for course title
+    const semanticKeywords = generateSemanticKeywords(this.course.course_title);
+    semanticKeywords.forEach(keyword => keywords.add(keyword));
+    
+    return Array.from(keywords).slice(0, 25); // Increased for better coverage
   }
 
   /**

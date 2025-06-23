@@ -1,5 +1,6 @@
 import { IBlog } from '@/types/blog.types';
 import { Metadata } from 'next';
+import { generateSemanticKeywords, generateAIOptimizedTitle, generateEEATOptimizedDescription } from './enhanced-seo-2025';
 
 interface BlogSEOData {
   blog: IBlog;
@@ -18,10 +19,10 @@ export class BlogSEO {
     this.isIndex = data.isIndex || false;
   }
 
-  // Generate optimized title with length limits
+  // Generate AI-optimized title with 2025 best practices
   generateTitle(): string {
-    const maxLength = 60;
     let title = this.blog.meta_title || this.blog.title;
+    const keywords = this.generateKeywords();
     
     // Add category context for better SEO
     if (this.blog.categories && this.blog.categories.length > 0) {
@@ -30,28 +31,20 @@ export class BlogSEO {
         : this.blog.categories[0]?.category_name;
       
       if (category && !title.toLowerCase().includes(category.toLowerCase())) {
-        const categoryTitle = `${title} - ${category}`;
-        if (categoryTitle.length <= maxLength - 7) { // Reserve space for " | Medh"
-          title = categoryTitle;
-        }
+        title = `${title} - ${category}`;
       }
     }
     
-    const suffix = ' | Medh';
-    if ((title + suffix).length > maxLength) {
-      title = title.substring(0, maxLength - suffix.length - 3) + '...';
-    }
-    
-    return title + suffix;
+    // Use AI-optimized title generation with semantic keywords
+    return generateAIOptimizedTitle(title, keywords);
   }
 
-  // Generate optimized description with keyword focus
+  // Generate E-E-A-T optimized description with 2025 best practices
   generateDescription(): string {
-    const maxLength = 160;
     let description = this.blog.meta_description || this.blog.description;
     
     if (!description) {
-      // Generate description from content
+      // Generate description from content with better extraction
       const content = this.blog.content || '';
       const cleanContent = content.replace(/<[^>]*>/g, '').trim();
       const sentences = cleanContent.split(/[.!?]+/).filter(s => s.length > 20);
@@ -61,11 +54,8 @@ export class BlogSEO {
     // Remove HTML tags and extra whitespace
     description = description.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
     
-    if (description.length > maxLength) {
-      description = description.substring(0, maxLength - 3) + '...';
-    }
-    
-    return description;
+    // Use E-E-A-T optimized description generation
+    return generateEEATOptimizedDescription(description);
   }
 
   // Extract and optimize keywords
@@ -93,7 +83,7 @@ export class BlogSEO {
     const contentKeywords = this.extractKeywordsFromContent();
     contentKeywords.forEach(keyword => keywords.add(keyword));
     
-    // Add contextual keywords
+    // Add 2025 AI-optimized contextual keywords
     const contextualKeywords = [
       'education',
       'learning',
@@ -101,12 +91,20 @@ export class BlogSEO {
       'skill development',
       'professional growth',
       'career advancement',
-      'medh education'
+      'medh education',
+      'AI-powered learning',
+      'personalized education',
+      'future skills'
     ];
     
     contextualKeywords.forEach(keyword => keywords.add(keyword));
     
-    return Array.from(keywords).slice(0, 15); // Limit to 15 keywords
+    // Generate semantic keywords for primary topic
+    const primaryTopic = this.blog.title.split(' ').slice(0, 2).join(' ');
+    const semanticKeywords = generateSemanticKeywords(primaryTopic);
+    semanticKeywords.forEach(keyword => keywords.add(keyword));
+    
+    return Array.from(keywords).slice(0, 20); // Increased limit for better coverage
   }
 
   // Extract keywords from content using NLP-like approach
