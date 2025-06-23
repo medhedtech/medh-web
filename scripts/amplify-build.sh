@@ -1,48 +1,152 @@
 #!/bin/bash
-# Amplify build script
+# Amplify build script with enhanced error handling
+
+set -e  # Exit on any error
 
 # Print Node.js and npm versions
+echo "=== Build Environment Info ==="
 echo "Build script starting..."
 echo "Node version: $(node -v)"
 echo "NPM version: $(npm -v)"
 echo "Expected Node version from .nvmrc: $(cat .nvmrc 2>/dev/null || echo 'No .nvmrc found')"
+echo "AWS Branch: ${AWS_BRANCH:-'not-set'}"
+echo "Build ID: ${AWS_BUILD_ID:-'not-set'}"
 
 # Print environment variables (without sensitive values)
-echo "Environment variables:"
-env | grep -v "SECRET\|KEY\|PASSWORD\|TOKEN" | sort
+echo ""
+echo "=== Environment Variables Check ==="
+env | grep -v "SECRET\|KEY\|PASSWORD\|TOKEN\|URI" | sort
 
-# Check if .env.production exists
+# Set default environment variables if not provided
+echo ""
+echo "=== Setting Default Environment Variables ==="
+export NODE_ENV="${NODE_ENV:-production}"
+export NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL:-https://api.medh.co/api/v1}"
+
+echo "NODE_ENV: $NODE_ENV"
+echo "NEXT_PUBLIC_API_URL: $NEXT_PUBLIC_API_URL"
+
+# Check for environment file
+echo ""
+echo "=== Environment File Configuration ==="
 if [ -f .env.production ]; then
-  echo "Using .env.production file"
+  echo "✅ Found .env.production file"
   cp .env.production .env
+elif [ -f .env.local ]; then
+  echo "✅ Found .env.local file"
+  cp .env.local .env
 else
-  echo "No .env.production file found, using .env.local if available"
-  if [ -f .env.local ]; then
-    cp .env.local .env
-  fi
+  echo "⚠️  No environment file found, using environment variables"
+  # Create a minimal .env file for build
+  cat > .env << EOF
+NODE_ENV=production
+NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+EOF
 fi
 
 # Verify Node.js version compatibility
-echo "Verifying Node.js version compatibility..."
+echo ""
+echo "=== Node.js Version Verification ==="
 REQUIRED_VERSION=$(cat .nvmrc 2>/dev/null || echo "20.19.2")
 CURRENT_VERSION=$(node -v | sed 's/v//')
 echo "Required Node.js version: $REQUIRED_VERSION"
 echo "Current Node.js version: $CURRENT_VERSION"
 
+# Check Node.js major version
+CURRENT_MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
+if [ "$CURRENT_MAJOR" -ge "18" ]; then
+  echo "✅ Node.js version compatible (v$CURRENT_MAJOR >= v18)"
+else
+  echo "❌ Node.js version too old (v$CURRENT_MAJOR < v18)"
+  exit 1
+fi
+
 # Configure npm to suppress certain warnings and use legacy-peer-deps
-echo "Configuring npm settings..."
+echo ""
+echo "=== NPM Configuration ==="
 npm config set legacy-peer-deps true
 npm config set loglevel warn
+npm config set audit-level moderate
+npm config set fund false
+npm config set update-notifier false
 
-# Build the application with increased memory
-echo "Building the application..."
-echo "Setting Node.js max-old-space-size to 4096MB..."
-NODE_OPTIONS="--max-old-space-size=4096" npm run build
-
-# Check if build was successful
-if [ $? -eq 0 ]; then
-  echo "Build completed successfully!"
-else
-  echo "Build failed!"
+# Check package.json and dependencies
+echo ""
+echo "=== Dependency Check ==="
+if [ ! -f package.json ]; then
+  echo "❌ package.json not found!"
   exit 1
-fi 
+fi
+
+echo "✅ package.json found"
+echo "Checking build script..."
+if grep -q '"build"' package.json; then
+  echo "✅ Build script found in package.json"
+else
+  echo "❌ No build script found in package.json"
+  exit 1
+fi
+
+# Build the application with increased memory and error handling
+echo ""
+echo "=== Building Application ==="
+echo "Setting Node.js max-old-space-size to 4096MB..."
+
+# Set Node.js options for memory management
+export NODE_OPTIONS="--max-old-space-size=4096 --no-warnings"
+
+# Run the build with proper error handling
+echo "Starting Next.js build..."
+if NODE_OPTIONS="$NODE_OPTIONS" npm run build; then
+  echo "✅ Build completed successfully!"
+else
+  echo "❌ Build failed!"
+  echo ""
+  echo "=== Build Error Diagnosis ==="
+  echo "Checking common issues..."
+  
+  # Check if .next directory exists
+  if [ -d .next ]; then
+    echo "• .next directory exists"
+    ls -la .next/
+  else
+    echo "• No .next directory found"
+  fi
+  
+  # Check for common Next.js issues
+  if [ -f next.config.js ]; then
+    echo "• next.config.js found"
+  else
+    echo "• No next.config.js found"
+  fi
+  
+  # Check disk space
+  echo "• Disk usage:"
+  df -h .
+  
+  # Check memory usage
+  echo "• Memory info:"
+  free -h 2>/dev/null || echo "Memory info not available"
+  
+  exit 1
+fi
+
+# Verify build output
+echo ""
+echo "=== Build Verification ==="
+if [ -d .next ]; then
+  echo "✅ .next directory created successfully"
+  echo "Build artifacts:"
+  find .next -name "*.js" -o -name "*.html" | head -10
+  
+  # Check build size
+  BUILD_SIZE=$(du -sh .next 2>/dev/null | cut -f1 || echo "unknown")
+  echo "Build size: $BUILD_SIZE"
+else
+  echo "❌ .next directory not found after build"
+  exit 1
+fi
+
+echo ""
+echo "=== Build Complete ==="
+echo "✅ All build steps completed successfully!" 

@@ -7,6 +7,8 @@ frontend:
         - echo "Available Node.js$(node -v)"
         - echo "Available npm$(npm -v)"
         - echo "Target Node.js$(cat .nvmrc 2>/dev/null || echo 'Not specified')"
+        - echo "AWS Branch $AWS_BRANCH"
+        - echo "Build ID $AWS_BUILD_ID"
         - echo ""
         
         # Flexible Node.js version handling
@@ -33,14 +35,38 @@ frontend:
             }
           fi
         
+        # Environment variable defaults (fallback if SSM fails)
+        - |
+          echo ""
+          echo "=== Environment Variable Setup ==="
+          export NODE_ENV="${NODE_ENV:-production}"
+          export NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL:-https://api.medh.co/api/v1}"
+          echo "NODE_ENV set to $NODE_ENV"
+          echo "NEXT_PUBLIC_API_URL set to $NEXT_PUBLIC_API_URL"
+          
+          # Check if critical environment variables are set
+          if [ -z "$MONGO_URI" ]; then
+            echo "⚠️  MONGO_URI not set - this may cause runtime issues"
+          fi
+          
+          if [ -z "$JWT_SECRET" ]; then
+            echo "⚠️  JWT_SECRET not set - this may cause authentication issues"
+          fi
+        
         - echo ""
         - echo "Final environment"
         - "echo \"Node.js $(node -v)\""
         - "echo \"npm $(npm -v)\""
         - npm config set legacy-peer-deps true
-        - npm ci --no-audit --prefer-offline
+        - npm config set audit-level moderate
+        - npm config set fund false
+        - npm config set update-notifier false
+        - echo "Installing dependencies..."
+        - npm ci --no-audit --prefer-offline --no-fund
     build:
       commands:
+        - echo ""
+        - echo "=== Starting Build Process ==="
         - ./scripts/amplify-build.sh
   artifacts:
     baseDirectory: .next
