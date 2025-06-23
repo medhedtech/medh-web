@@ -5,7 +5,7 @@ import axios, { AxiosRequestConfig, AxiosResponse, AxiosError, CancelTokenSource
 import { apiClient } from '../apis/apiClient';
 import apiWithAuth from '../utils/apiWithAuth';
 import { getAuthToken } from '../utils/auth';
-import { showToast } from '@/utils/toastManager';
+// Toast manager is imported dynamically when needed
 import { logger } from '../utils/logger';
 
 // Response cache to avoid duplicate requests
@@ -343,8 +343,8 @@ export function useGetQuery<T = any>(
           cancelToken: createCancelToken(),
         };
         
-        // Make the request - Fix typing issue with client.get
-        let response: AxiosResponse;
+        // Make the request
+        let response: any;
         if (requireAuth && authToken) {
           response = await apiWithAuth.get<T>(url, requestConfig);
         } else {
@@ -352,7 +352,7 @@ export function useGetQuery<T = any>(
         }
         
         // Process the response
-        const responseData = response.data;
+        const responseData = response.data || response;
         const extractedData = extractData(responseData) as T;
         
         // Cache the result
@@ -371,7 +371,9 @@ export function useGetQuery<T = any>(
         
         // Show success toast if configured
         if (showToast && successMessage) {
-          showToast.success(successMessage);
+          import('@/utils/toastManager').then(({ showToast: toast }) => {
+            toast.success(successMessage);
+          });
         }
         
         // Debug logging
@@ -379,7 +381,7 @@ export function useGetQuery<T = any>(
           logger.log({ 
             success: true, 
             url, 
-            status: response.status 
+            status: response.status || 200
           }, 'getQuery-success');
         }
         
@@ -461,7 +463,9 @@ export function useGetQuery<T = any>(
         
         // Show error toast if configured
         if (showToast) {
-          showToast.error(errorMsg);
+          import('@/utils/toastManager').then(({ showToast: toast }) => {
+            toast.error(errorMsg);
+          });
         }
         
         // Call onFail callback if provided
