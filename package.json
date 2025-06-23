@@ -36,11 +36,17 @@
     "**/core-js": "^3.41.0",
     "schema-utils": "^4.2.0",
     "@mui/x-date-pickers": "7.0.0",
-    "inflight": "2.0.1"
+    "inflight": "2.0.1",
+    "goober": "^2.1.14",
+    "camelcase-css": "^2.0.1",
+    "commander": "^12.1.0"
   },
   "overrides": {
     "lodash": "^4.17.21",
-    "core-js": "^3.41.0"
+    "core-js": "^3.41.0",
+    "goober": "^2.1.14",
+    "camelcase-css": "^2.0.1",
+    "commander": "^12.1.0"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.775.0",
@@ -81,8 +87,10 @@
     "axios": "^1.8.4",
     "axios-retry": "^4.5.0",
     "bcryptjs": "^3.0.2",
+    "camelcase-css": "^2.0.1",
     "canvas-confetti": "^1.9.3",
     "chart.js": "^4.4.2",
+    "commander": "^12.1.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "create-react-class": "^15.7.0",
@@ -93,6 +101,7 @@
     "express-rate-limit": "^7.5.0",
     "express-validator": "^7.2.1",
     "framer-motion": "^12.12.2",
+    "goober": "^2.1.14",
     "gsap": "^3.12.7",
     "indexof": "^0.0.1",
     "isomorphic-dompurify": "^2.22.0",

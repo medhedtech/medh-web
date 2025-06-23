@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import Home2 from '@/components/layout/main/Home2';
+import Home1 from '@/components/layout/main/Home1';
 import advancedSEOStrategy from '@/utils/advanced-seo-strategy';
 import PageWrapper from '@/components/shared/wrappers/PageWrapper';
+import '@/styles/critical.css';
 
 // Enhanced metadata with real company details from AboutContent and ContactMain
 export const metadata: Metadata = {
@@ -94,6 +95,13 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <>
+
+
+      {/* Resource hints for critical assets */}
+      <link rel="preload" href="/assets/images/logo/medh.png" as="image" type="image/png" />
+      <link rel="preconnect" href="https://medhdocuments.s3.ap-south-1.amazonaws.com" />
+      <link rel="dns-prefetch" href="https://medhdocuments.s3.ap-south-1.amazonaws.com" />
+
       {/* Enhanced Structured Data with Real Company Information */}
       <script
         type="application/ld+json"
@@ -419,10 +427,16 @@ export default function HomePage() {
         </p>
       </div>
 
-      {/* Main Content */}
-      <Suspense fallback={<div>Loading...</div>}>
+      {/* Main Content with LCP-optimized loading */}
+      <Suspense fallback={
+        <div className="critical-loading">
+          <div className="gpu-accelerated">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500"></div>
+          </div>
+        </div>
+      }>
         <PageWrapper>
-          <Home2 />
+          <Home1 />
         </PageWrapper>
       </Suspense>
     </>

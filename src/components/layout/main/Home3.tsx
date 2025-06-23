@@ -300,7 +300,7 @@ const HeroMobile: React.FC<{
     </div>
   );
 
-// Main @ component - memory optimized
+// Main Hero component - memory optimized
 const Hero1: React.FC<{ isCompact?: boolean }> = ({ isCompact = false }) => {
   const { theme } = useTheme();
   const [isMobile, setIsMobile] = useState(false);
