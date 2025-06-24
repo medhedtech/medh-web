@@ -11,6 +11,8 @@ import { apiUrls } from '@/apis/index';
 import { VideoBackgroundContext } from '@/components/layout/main/Home2';
 import { useTheme } from "next-themes";
 import { useCourseImagePreloader } from '@/components/shared/ImagePreloader';
+import { getImageProps } from '@/utils/imageOptimization';
+import OptimizedImage from '@/components/shared/OptimizedImage';
 
 // PERFORMANCE OPTIMIZATION: Simplified styles without heavy caching
 const getGlassmorphismStyles = (isDark: boolean): string => {
@@ -489,23 +491,43 @@ const CourseCardWrapper = memo<{
       const minBatchSize = course.prices?.[0]?.min_batch_size || 2;
       const displayPrice = batchPrice || course.prices?.[0]?.individual || null;
 
+      // Process course image with size constraints
+      const courseImage = (() => {
+        const defaultImage = '/fallback-course-image.jpg';
+        const rawImage = course.course_image || course.thumbnail;
+        
+        // If no image provided, use default
+        if (!rawImage) return defaultImage;
+        
+        // Handle specific course images with known good dimensions
+        if (course._id === 'ai_data_science' || course.course_title?.toLowerCase().includes('ai')) {
+          return '/images/courses/ai-data-science.png';
+        } else if (course._id === 'digital_marketing' || course.course_title?.toLowerCase().includes('digital marketing')) {
+          return '/images/courses/digital-marketing.png';
+        } else if (course._id === 'personality_development' || course.course_title?.toLowerCase().includes('personality')) {
+          return '/images/courses/pd.jpg';
+        } else if (course._id === 'vedic_mathematics' || course.course_title?.toLowerCase().includes('vedic')) {
+          return '/images/courses/vd.jpg';
+        }
+        
+        return rawImage;
+      })();
+
       return {
         _id: course._id || course.id || `live-course-${index}`,
         course_title: course.course_title || course.title || 'Untitled Course',
         course_description: course.course_description || course.description,
-        course_image: course.course_image || course.thumbnail || '/fallback-course-image.jpg',
+        course_image: courseImage,
         course_duration: getDisplayDurationRange(course.duration_range, 'live'),
         duration_range: course.duration_range || course.course_duration as string || "4-18 months",
         course_category: course.course_category || course.category || 'Uncategorized',
         prices: course.prices || [],
         course_fee: Number(displayPrice) || 1499,
         no_of_Sessions: (() => {
-          // Priority 1: Use session_display if it exists and already formatted
           if (course.session_display && course.session_display.includes('sessions')) {
             return course.session_display;
           }
           
-          // Priority 2: If we have the session range string from API, format it properly
           if (course.no_of_Sessions && typeof course.no_of_Sessions === 'string') {
             const sessionsStr = String(course.no_of_Sessions).trim();
             if (sessionsStr.includes('-')) {
@@ -519,12 +541,10 @@ const CourseCardWrapper = memo<{
             return `${sessionsStr} live sessions`;
           }
           
-          // Priority 3: derive from individual price tiers when session info is missing
           const individualPrice = course.prices?.[0]?.individual || 0;
-          if (individualPrice <= 1500) return "10 live sessions"; // e.g., ₹1499 plan
-          if (individualPrice <= 3000) return "20 live sessions"; // e.g., ₹2499 / 2999 plan
+          if (individualPrice <= 1500) return "10 live sessions";
+          if (individualPrice <= 3000) return "20 live sessions";
 
-          // Priority 4: fallback to computed totals
           return `${videoCount + qnaSessions} live sessions`;
         })(),
         effort_hours: typeof course.effort_hours === 'string' 
@@ -535,33 +555,55 @@ const CourseCardWrapper = memo<{
         class_type: 'Live Courses',
         isFree: Boolean(course.isFree) || false,
         batchPrice: batchPrice || undefined,
-        url: course.url
+        url: course.url,
+        learning_points: course.learning_points || [],
+        prerequisites: course.prerequisites || [],
+        instructor: course.instructor || null,
+        highlights: course.highlights || []
       };
     } else {
       const { videoCount, qnaSessions } = getBlendedCourseSessions(course);
+      
+      // Process course image with size constraints for blended courses
+      const courseImage = (() => {
+        const defaultImage = '/fallback-course-image.jpg';
+        const rawImage = course.course_image || course.thumbnail;
+        
+        if (!rawImage) return defaultImage;
+        
+        // Handle specific course images with known good dimensions
+        if (course._id === 'ai_data_science' || course.course_title?.toLowerCase().includes('ai')) {
+          return '/images/courses/ai-data-science.png';
+        } else if (course._id === 'digital_marketing' || course.course_title?.toLowerCase().includes('digital marketing')) {
+          return '/images/courses/digital-marketing.png';
+        } else if (course._id === 'personality_development' || course.course_title?.toLowerCase().includes('personality')) {
+          return '/images/courses/pd.jpg';
+        } else if (course._id === 'vedic_mathematics' || course.course_title?.toLowerCase().includes('vedic')) {
+          return '/images/courses/vd.jpg';
+        }
+        
+        return rawImage;
+      })();
       
       return {
         _id: course._id,
         course_title: course.course_title,
         course_description: course.course_description || course.description,
-        course_image: course.course_image || course.thumbnail || '/fallback-course-image.jpg',
+        course_image: courseImage,
         course_duration: "Self Paced",
         prices: course.prices || [],
         course_fee: course.prices?.[0]?.individual || 1499,
         no_of_Sessions: (() => {
-          // Priority 1: value from API if present and valid
           const rawSessions = course.no_of_Sessions as any;
           const parsedSessions = typeof rawSessions === 'string' ? parseInt(rawSessions, 10) : rawSessions;
           if (!isNaN(parsedSessions) && parsedSessions > 0) {
             return parsedSessions;
           }
 
-          // Priority 2: derive from individual price tiers when session info is missing
           const individualPrice = course.prices?.[0]?.individual || 0;
-          if (individualPrice <= 1500) return 10; // e.g., ₹1499 plan
-          if (individualPrice <= 3000) return 20; // e.g., ₹2499 / 2999 plan
+          if (individualPrice <= 1500) return 10;
+          if (individualPrice <= 3000) return 20;
 
-          // Priority 3: fallback to computed totals
           return videoCount + qnaSessions;
         })(),
         effort_hours: typeof course.effort_hours === 'string' 
@@ -572,7 +614,11 @@ const CourseCardWrapper = memo<{
         class_type: 'Blended Courses',
         isFree: course.isFree || false,
         batchPrice: course.prices?.[0]?.batch || undefined,
-        course_category: course.course_category || course.category || 'Uncategorized'
+        course_category: course.course_category || course.category || 'Uncategorized',
+        learning_points: course.learning_points || [],
+        prerequisites: course.prerequisites || [],
+        instructor: course.instructor || null,
+        highlights: course.highlights || []
       };
     }
   }, [course, courseType, index]);
@@ -599,6 +645,41 @@ const CourseCardWrapper = memo<{
 });
 
 CourseCardWrapper.displayName = 'CourseCardWrapper';
+
+// Simple ImageWrapper component using OptimizedImage
+const ImageWrapper: React.FC<ImageWrapperProps> = ({ 
+  src, 
+  alt, 
+  onLoad, 
+  onError, 
+  priority = false, 
+  isLCP = false,
+  index = 0 
+}) => {
+  // Determine if this is an LCP candidate (first 2 images above the fold)
+  const shouldBeLCP = isLCP || index < 2;
+
+  // Get optimized image props with fill mode
+  const { width, height, ...imageProps } = getImageProps(
+    'COURSE_CARD',
+    src || '/fallback-course-image.jpg',
+    alt,
+    shouldBeLCP,
+    true // Use fill mode
+  );
+
+  return (
+    <div className="relative w-full aspect-[3/2] min-h-[160px] sm:min-h-[140px] md:min-h-[150px] bg-gray-100 dark:bg-gray-800/50 overflow-hidden rounded-t-xl group gpu-accelerated">
+      <OptimizedImage
+        {...imageProps}
+        onLoad={onLoad}
+        onError={onError}
+      />
+      {/* Enhanced gradient overlay with GPU acceleration */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/30 dark:from-black/20 dark:to-black/40 transition-gpu group-hover:opacity-70 gpu-accelerated" />
+    </div>
+  );
+};
 
 // PERFORMANCE OPTIMIZATION: GPU-optimized main component with comprehensive memoization
 const HomeCourseSection2 = memo<{
