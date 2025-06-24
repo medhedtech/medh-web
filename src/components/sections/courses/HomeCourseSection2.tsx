@@ -721,23 +721,29 @@ const HomeCourseSection2 = memo<{
             skipCache: true,
             requireAuth: false,
             onSuccess: (response) => {
-              console.log("Live Courses API Response received");
+              console.log("Live Courses API Response received:", response);
               
               let processedCourses: ICourse[] = [];
               
               try {
-                // Check different potential response structures
-                if (response && Array.isArray(response) && response.length > 0) {
-                  console.log(`Found ${response.length} live courses from API`);
+                // Enhanced response validation - check for null/undefined first
+                if (!response) {
+                  console.log("Response is null/undefined, using fallback data");
+                  processedCourses = [...FALLBACK_LIVE_COURSES];
+                } else if (Array.isArray(response) && response.length > 0) {
+                  console.log(`Found ${response.length} live courses from API (direct array)`);
                   processedCourses = response;
-                } else if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
+                } else if (response && response.data && Array.isArray(response.data)) {
                   console.log(`Found ${response.data.length} live courses from API (in data property)`);
                   processedCourses = response.data;
-                } else if (response && response.courses && Array.isArray(response.courses) && response.courses.length > 0) {
+                } else if (response && response.courses && Array.isArray(response.courses)) {
                   console.log(`Found ${response.courses.length} live courses from API (in courses property)`);
                   processedCourses = response.courses;
+                } else if (response && response.success && response.data && Array.isArray(response.data)) {
+                  console.log(`Found ${response.data.length} live courses from API (success wrapper)`);
+                  processedCourses = response.data;
                 } else {
-                  console.log("No valid live courses found in the API response, using fallback data");
+                  console.log("No valid live courses found in the API response, using fallback data. Response structure:", typeof response, Object.keys(response || {}));
                   processedCourses = [...FALLBACK_LIVE_COURSES];
                 }
                 
@@ -862,46 +868,51 @@ const HomeCourseSection2 = memo<{
           getQuery({
             url: blendedApiUrl,
             onSuccess: (response) => {
-              console.log("Blended Courses API Response received");
+              console.log("Blended Courses API Response received:", response);
               
               // Process the blended courses with better error handling
               try {
-                // The API response data is directly in the response, not in data.data
-                if (response && Array.isArray(response) && response.length > 0) {
-                  console.log(`Found ${response.length} blended courses from API`);
-                  
-                  // Process each course
-                  const processedCourses = response.map((course: any) => {
-                    return {
-                      ...course,
-                      classType: 'blended', // Explicitly set classType
-                      course_title: course.course_title || 'Untitled Course',
-                      course_category: course.course_category || 'Uncategorized',
-                      course_image: course.course_image || course.thumbnail || '/fallback-course-image.jpg'
-                    };
-                  });
-                  
-                  console.log("Processed blended courses:", processedCourses.length);
-                  setBlendedCourses(processedCourses);
-                } else if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
-                  // Alternative structure check if the response is wrapped in a data property
+                let coursesToProcess: any[] = [];
+                
+                // Enhanced response validation - check for null/undefined first
+                if (!response) {
+                  console.log("Response is null/undefined, setting empty blended courses");
+                  setBlendedCourses([]);
+                } else if (Array.isArray(response)) {
+                  console.log(`Found ${response.length} blended courses from API (direct array)`);
+                  coursesToProcess = response;
+                } else if (response && response.data && Array.isArray(response.data)) {
                   console.log(`Found ${response.data.length} blended courses from API (in data property)`);
-                  
-                  // Process each course
-                  const processedCourses = response.data.map((course: any) => {
+                  coursesToProcess = response.data;
+                } else if (response && response.courses && Array.isArray(response.courses)) {
+                  console.log(`Found ${response.courses.length} blended courses from API (in courses property)`);
+                  coursesToProcess = response.courses;
+                } else if (response && response.success && response.data && Array.isArray(response.data)) {
+                  console.log(`Found ${response.data.length} blended courses from API (success wrapper)`);
+                  coursesToProcess = response.data;
+                } else {
+                  console.log("No blended courses found in the API response. Response structure:", typeof response, Object.keys(response || {}));
+                  setBlendedCourses([]);
+                  resolve(true);
+                  return;
+                }
+                
+                // Process the courses if we have any
+                if (coursesToProcess.length > 0) {
+                  const processedCourses = coursesToProcess.map((course: any) => {
                     return {
                       ...course,
                       classType: 'blended', // Explicitly set classType
                       course_title: course.course_title || 'Untitled Course',
                       course_category: course.course_category || 'Uncategorized',
-                      course_image: course.course_image || course.thumbnail || '/fallback-course-image.jpg'
+                      course_image: getSafeCourseImageUrl(course.course_image || course.thumbnail, course._id, course.course_title) || '/fallback-course-image.jpg'
                     };
                   });
                   
                   console.log("Processed blended courses:", processedCourses.length);
                   setBlendedCourses(processedCourses);
                 } else {
-                  console.log("No blended courses found in the API response");
+                  console.log("No courses to process, setting empty array");
                   setBlendedCourses([]);
                 }
               } catch (error) {
