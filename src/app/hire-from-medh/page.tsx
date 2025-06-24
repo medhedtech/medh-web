@@ -8,14 +8,23 @@ import HiringProcess from "@/components/sections/hire-from-medh/HiringProcess";
 import SkillsSection from "@/components/sections/hire-from-medh/SkillsSection";
 import MultiStepHireForm from "@/components/sections/hire/MultiStepHireForm";
 import Certified from "@/components/sections/why-medh/Certified";
-
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import React from "react";
+import { NextPage } from "next";
 
-function HireFromMedh() {
+/**
+ * Hire from Medh Page Component
+ * 
+ * This page showcases Medh's hiring services and talent acquisition solutions.
+ * Features a multi-step inquiry form for companies looking to hire Medh-trained
+ * professionals or request corporate training services.
+ * 
+ * @returns {JSX.Element} The complete hire from Medh page
+ */
+const HireFromMedh: NextPage = (): JSX.Element => {
   return (
     <PageWrapper>
-      <HireFromMedhBanner/>
+      <HireFromMedhBanner />
       <HireSection />
       <SkillsSection />
       <HiringProcess />
@@ -25,12 +34,10 @@ function HireFromMedh() {
         </div>
       </div>
       <Certified />
-
       <HireFromMedhFaq />
       {/* <HireFromMedhCourseBanner /> */}
-      
     </PageWrapper>
   );
-}
+};
 
-export default HireFromMedh;
+export default HireFromMedh; 

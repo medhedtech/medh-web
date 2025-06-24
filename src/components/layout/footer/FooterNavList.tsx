@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import Image, { ImageProps } from "next/image";
 import { 
   UserPlus, 
   Menu, 
@@ -21,6 +21,18 @@ import { courseTypesAPI } from "@/apis/courses";
 import LogoDark from "@/assets/images/logo/medh_logo-1.png";
 import LogoLight from "@/assets/images/logo/medh_logo-2.png";
 import QRCode from "@/assets/images/footer/qr.png";
+
+// Local ResponsiveImage component
+const ResponsiveImage = (props: ImageProps) => (
+  <Image
+    {...props}
+    style={{
+      width: 'auto',
+      height: 'auto',
+      ...props.style,
+    }}
+  />
+);
 
 // Allowed categories for blended courses
 const allowedCategories = [
@@ -418,7 +430,7 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                 <div className="relative z-10 space-y-6">
                   <Link href="/" className="inline-block group">
                     <div className="relative w-[160px] h-[50px] group-hover:scale-105 transition-transform duration-200">
-                      <Image 
+                      <ResponsiveImage 
                         src={LogoDark} 
                         alt="Medh Logo Dark" 
                         width={160}
@@ -426,10 +438,9 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                         className={`object-contain transition-all duration-500 ease-in-out ${
                           theme === 'dark' ? 'opacity-100 visible' : 'opacity-0 invisible'
                         }`}
-                        style={{ width: 'auto' }}
                         priority
                       />
-                      <Image 
+                      <ResponsiveImage 
                         src={LogoLight} 
                         alt="Medh Logo Light" 
                         width={160}
@@ -437,7 +448,6 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                         className={`object-contain transition-all duration-500 ease-in-out absolute top-0 left-0 ${
                           theme === 'light' ? 'opacity-100 visible' : 'opacity-0 invisible'
                         }`}
-                        style={{ width: 'auto' }}
                         priority
                       />
                     </div>
@@ -484,12 +494,12 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                 
                 <div className="relative z-10 flex flex-col items-center justify-center space-y-6">
                   <div className="relative bg-white rounded-2xl p-4 shadow-xl shadow-slate-900/20 dark:shadow-black/30 hover:shadow-2xl hover:shadow-slate-900/30 dark:hover:shadow-black/40 transition-all duration-300 hover:scale-105">
-                    <Image 
+                    <ResponsiveImage 
                       src={QRCode} 
                       alt="Medh QR Code" 
                       width={128}
                       height={128}
-                      className="object-contain w-32 h-32"
+                      className="object-contain"
                     />
                   </div>
                   <div className="text-center space-y-2">

@@ -11,14 +11,14 @@ import medhLogo from "@/assets/images/logo/medh.png";
 const mobileTaglineStyles = `
   @media (max-width: 767px) {
     .mobile-tagline-large {
-      font-size: 2.2rem !important;
+      font-size: 2.42rem !important;
       transform: translate3d(0, 0, 0);
       will-change: transform;
     }
   }
   @media (min-width: 640px) and (max-width: 767px) {
     .mobile-tagline-large {
-      font-size: 2.75rem !important;
+      font-size: 3.025rem !important;
       transform: translate3d(0, 0, 0);
       will-change: transform;
     }

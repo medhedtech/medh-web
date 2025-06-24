@@ -23,17 +23,17 @@ interface IHireFeature {
 
 // PERFORMANCE OPTIMIZATION: Frozen feature data to prevent mutations
 const HIRE_FEATURES: readonly IHireFeature[] = Object.freeze([
-  Object.freeze({ icon: Target, text: "Pre-screened candidates with verified skills" }),
-  Object.freeze({ icon: Clock, text: "Faster hiring process with reduced time-to-hire" }),
-  Object.freeze({ icon: Award, text: "Industry-certified professionals ready to contribute" }),
-  Object.freeze({ icon: TrendingUp, text: "Access to diverse talent pool across domains" })
+  Object.freeze({ icon: Clock, text: "Reduce hiring time by up to 60% with our pre-qualified job-ready professionals." }),
+  Object.freeze({ icon: Award, text: "Industry-certified candidates with verified technical and soft skills." }),
+  Object.freeze({ icon: Target, text: "Specialized talent pools across in-demand domains." }),
+  Object.freeze({ icon: Building, text: "Seamless integration with your existing team and processes." })
 ]);
 
 const TRAINING_FEATURES: readonly IHireFeature[] = Object.freeze([
-  Object.freeze({ icon: BookOpen, text: "Customized training modules for your team" }),
-  Object.freeze({ icon: BarChart, text: "Skill-gap analysis and performance tracking" }),
-  Object.freeze({ icon: Award, text: "Industry expert trainers with real experience" }),
-  Object.freeze({ icon: Target, text: "Hands-on practical sessions and projects" })
+  Object.freeze({ icon: BarChart, text: "Data-driven skill gap analysis to identify high-impact training areas." }),
+  Object.freeze({ icon: Award, text: "Industry practitioners delivering practical, application-focused training." }),
+  Object.freeze({ icon: BookOpen, text: "Blended learning approach combining live sessions and self-paced modules." }),
+  Object.freeze({ icon: TrendingUp, text: "Performance tracking and ROI measurement for every program." })
 ]);
 
 // PERFORMANCE OPTIMIZATION: Memoized FeatureList component
@@ -291,10 +291,10 @@ const Hire = memo(() => {
               </span>
             </div>
             <h2 className={titleClasses}>
-              Hire Top <span className="text-blue-600 dark:text-blue-400">Talent</span> from Medh
+              ELEVATE YOUR WORKFORCE
             </h2>
             <p className={descriptionClasses}>
-              Connect with skilled professionals and get customized training solutions for your organization's growth.
+              Complete Corporate Solutions from MEDH
             </p>
           </div>
 
@@ -303,10 +303,10 @@ const Hire = memo(() => {
             
             {/* Hire from Medh Card */}
             <HireCard
-              title="Hire from Medh"
-              subtitle="Access skilled professionals"
+              title="Hire from MEDH"
+              subtitle="Access Pre-Vetted Talent, Ready to Contribute"
               features={HIRE_FEATURES}
-              buttonText="Start Hiring"
+              buttonText="Start Hiring Process"
               onClick={handleHireNavigate}
               icon={hireIcon}
               colorClass={hireColorClass}
@@ -319,9 +319,9 @@ const Hire = memo(() => {
             {/* Corporate Training Card */}
             <HireCard
               title="Corporate Training"
-              subtitle="Upskill your team"
+              subtitle="Custom Training Solutions for Measurable Growth"
               features={TRAINING_FEATURES}
-              buttonText="Explore Training"
+              buttonText="Explore Training Programs"
               onClick={handleTrainingNavigate}
               icon={trainingIcon}
               colorClass={trainingColorClass}
@@ -335,7 +335,7 @@ const Hire = memo(() => {
           {/* Bottom CTA Section */}
           <div className={bottomCtaClasses}>
             <p className={bottomDescriptionClasses}>
-              Whether you need skilled professionals or want to upskill your existing team, we have the right solution for you.
+              MEDH - Your complete workforce development partner – from talent acquisition to continuous upskilling
             </p>
             <div className={bottomButtonsClasses}>
               <button

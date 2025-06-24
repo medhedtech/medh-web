@@ -17,45 +17,62 @@ import { useTheme } from "next-themes";
 import "@/styles/glassmorphism.css";
 
 // Enhanced lazy loading with preloading hints and error boundaries - React 2025 optimization
+const createLazyFallback = (componentName: string) => {
+  return { 
+    default: React.memo(() => (
+      <div 
+        className="h-72 flex flex-col items-center justify-center text-gray-500 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg"
+        role="alert"
+        aria-label={`${componentName} failed to load`}
+      >
+        <p className="text-lg font-semibold mb-2">Content Unavailable</p>
+        <p className="text-sm text-gray-400">
+          Unable to load {componentName}. Please refresh the page or check your connection.
+        </p>
+      </div>
+    )) 
+  };
+};
+
 const HomeCourseSection = React.lazy(() => 
   import("@/components/sections/courses/HomeCourseSection2").catch(error => {
-    console.warn('Failed to load HomeCourseSection:', error);
-    return { default: React.memo(() => <div className="h-96 flex items-center justify-center text-gray-500">Content temporarily unavailable</div>) };
+    console.error('Failed to load HomeCourseSection:', error);
+    return createLazyFallback('Course Section');
   })
 );
 
 const JobGuaranteedSection = React.lazy(() => 
   import("@/components/sections/job-guaranteed/JobGuaranteedSection").catch(error => {
-    console.warn('Failed to load JobGuaranteedSection:', error);
-    return { default: React.memo(() => <div className="h-96 flex items-center justify-center text-gray-500">Content temporarily unavailable</div>) };
+    console.error('Failed to load JobGuaranteedSection:', error);
+    return createLazyFallback('Job Guarantee Section');
   })
 );
 
 const WhyMedh = React.lazy(() => 
   import("@/components/sections/why-medh/WhyMedh2").catch(error => {
-    console.warn('Failed to load WhyMedh:', error);
-    return { default: React.memo(() => <div className="h-72 flex items-center justify-center text-gray-500">Content temporarily unavailable</div>) };
+    console.error('Failed to load WhyMedh:', error);
+    return createLazyFallback('Why Medh Section');
   })
 );
 
 const JoinMedh = React.lazy(() => 
   import("@/components/sections/hire/JoinMedh2").catch(error => {
-    console.warn('Failed to load JoinMedh:', error);
-    return { default: React.memo(() => <div className="h-72 flex items-center justify-center text-gray-500">Content temporarily unavailable</div>) };
+    console.error('Failed to load JoinMedh:', error);
+    return createLazyFallback('Join Medh Section');
   })
 );
 
 const Hire = React.lazy(() => 
   import("@/components/sections/hire/Hire2").catch(error => {
-    console.warn('Failed to load Hire:', error);
-    return { default: React.memo(() => <div className="h-72 flex items-center justify-center text-gray-500">Content temporarily unavailable</div>) };
+    console.error('Failed to load Hire:', error);
+    return createLazyFallback('Hire Section');
   })
 );
 
 const Blogs = React.lazy(() => 
   import("@/components/sections/blogs/Blogs").catch(error => {
-    console.warn('Failed to load Blogs:', error);
-    return { default: React.memo(() => <div className="h-72 flex items-center justify-center text-gray-500">Content temporarily unavailable</div>) };
+    console.error('Failed to load Blogs:', error);
+    return createLazyFallback('Blogs Section');
   })
 );
 
@@ -319,6 +336,15 @@ class SectionErrorBoundary extends React.Component<
   }
 }
 
+// Helper for device capability detection
+const getDeviceCapabilities = () => {
+  if (typeof window === 'undefined') return { isLowEnd: false, hasSlowConnection: false, prefersReducedMotion: false };
+  const isLowEnd = 'deviceMemory' in navigator && (navigator as any).deviceMemory < 4;
+  const hasSlowConnection = 'connection' in navigator && ['slow-2g', '2g'].includes((navigator as any).connection?.effectiveType);
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return { isLowEnd, hasSlowConnection, prefersReducedMotion };
+};
+
 const Home1: React.FC = () => {
   const { theme } = useTheme();
   const homeRef = useRef<HTMLElement>(null);
@@ -354,22 +380,6 @@ const Home1: React.FC = () => {
     [isDark, deferredIsMobile, useCompressedVideo, useLocalVideo, videoLoadTimeout]
   );
   const videoPoster = useMemo(() => getVideoPoster(isDark), [isDark]);
-
-  // Device capability detection with performance optimization
-  const deviceCapabilities = useMemo(() => {
-    if (typeof window === 'undefined') return { isLowEnd: false, hasSlowConnection: false };
-    
-    const isLowEndDevice = 'deviceMemory' in navigator && (navigator as any).deviceMemory < 4;
-    const hasSlowConnection = 'connection' in navigator && 
-      ['slow-2g', '2g'].includes((navigator as any).connection?.effectiveType);
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    
-    return { 
-      isLowEnd: isLowEndDevice, 
-      hasSlowConnection, 
-      prefersReducedMotion 
-    };
-  }, [mounted]);
 
   // Enhanced video retry mechanism with exponential backoff and compression fallback
   const retryVideo = useCallback(() => {
@@ -477,6 +487,7 @@ const Home1: React.FC = () => {
       if (!mountedRef.current || typeof window === 'undefined') return;
       
       const newIsMobile = window.innerWidth < 768;
+      const { isLowEnd, hasSlowConnection } = getDeviceCapabilities();
       const hasConnectionInfo = 'connection' in navigator;
       const isSlowConnection = hasConnectionInfo && 
         ['slow-2g', '2g'].includes((navigator as any).connection?.effectiveType);
@@ -502,11 +513,11 @@ const Home1: React.FC = () => {
       }
       
       // Disable video on very slow connections or low-end devices
-      if ((isSlowConnection || deviceCapabilities.isLowEnd) && shouldShowVideo) {
+      if ((isSlowConnection || isLowEnd) && shouldShowVideo) {
         setShouldShowVideo(false);
       }
     });
-  }, [isMobile, useCompressedVideo, shouldShowVideo, deviceCapabilities.isLowEnd]);
+  }, [isMobile, useCompressedVideo, shouldShowVideo]);
 
   // Enhanced initialization effect with performance optimizations
   useEffect(() => {
@@ -516,8 +527,8 @@ const Home1: React.FC = () => {
     setMounted(true);
     setIsMobile(window.innerWidth < 768);
     
-    // Advanced device capability detection
-    const { isLowEnd, hasSlowConnection, prefersReducedMotion } = deviceCapabilities;
+    // Advanced device capability detection (moved inside effect to avoid infinite loop)
+    const { isLowEnd, hasSlowConnection, prefersReducedMotion } = getDeviceCapabilities();
     
     // Adaptive video settings based on device capabilities with aggressive local fallback
     if (isLowEnd || prefersReducedMotion) {
@@ -571,22 +582,30 @@ const Home1: React.FC = () => {
     // Intelligent resource preloading based on device capabilities
     if (!prefersReducedMotion && !isLowEnd) {
       const preloadVideo = () => {
+        // Use standard link preload without 'as' attribute for maximum compatibility
         const linkPreload = document.createElement('link');
         linkPreload.rel = 'preload';
-        linkPreload.as = 'video';
         linkPreload.href = getOptimizedVideoSrc(
           theme === 'dark', 
           window.innerWidth < 768, 
           hasSlowConnection
         );
-        document.head.appendChild(linkPreload);
         
-        // Cleanup preload link after a delay
-        setTimeout(() => {
-          if (document.head.contains(linkPreload)) {
-            document.head.removeChild(linkPreload);
-          }
-        }, 10000);
+        // Add type attribute for better browser hints
+        linkPreload.type = 'video/mp4';
+        
+        try {
+          document.head.appendChild(linkPreload);
+          
+          // Cleanup preload link after a delay
+          setTimeout(() => {
+            if (document.head.contains(linkPreload)) {
+              document.head.removeChild(linkPreload);
+            }
+          }, 10000);
+        } catch (error) {
+          console.warn('Failed to add video preload link:', error);
+        }
       };
       
       if ('requestIdleCallback' in window) {
@@ -602,7 +621,7 @@ const Home1: React.FC = () => {
       window.removeEventListener('resize', resizeHandler);
       mountedRef.current = false;
     };
-  }, [handleResize, theme, deviceCapabilities]);
+  }, [handleResize, theme]); // Removed deviceCapabilities from dependencies
 
   // Theme effect with hardware acceleration and performance optimization
   useEffect(() => {

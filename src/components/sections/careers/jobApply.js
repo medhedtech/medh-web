@@ -1,7 +1,6 @@
 'use client'
 import React, { useState } from "react";
-import usePostQuery from "@/hooks/postQuery.hook";
-import { apiUrls } from "@/apis";
+import { submitCareerApplication } from "@/apis/jobs.api";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -11,6 +10,7 @@ import countriesData from "@/utils/countrycode.json";
 import CustomReCaptcha from '../../shared/ReCaptcha';
 import { motion, AnimatePresence } from "framer-motion";
 import { User, Mail, Phone, Globe, MessageSquare, Upload, ArrowRight, Info, Loader2 } from "lucide-react";
+import { showToast } from "@/utils/toastManager";
 
 // Animation variants
 const containerVariants = {
@@ -276,7 +276,7 @@ const FileUpload = ({ fileName, isUploading, pdfBrochure, handlePdfUpload }) => 
 );
 
 function JobApply({ activeJob, jobDetails }) {
-  const { postQuery, loading } = usePostQuery();
+  const [loading, setLoading] = useState(false);
   const [fileName, setFileName] = useState("No file chosen");
   const [showModal, setShowModal] = useState(false);
   const [recaptchaValue, setRecaptchaValue] = useState(null);
@@ -338,27 +338,20 @@ function JobApply({ activeJob, jobDetails }) {
         showToast.error("File size should not exceed 5MB");
         return;
       }
+      
+      // Validate file type
+      if (file.type !== 'application/pdf') {
+        showToast.error("Please upload a PDF file only");
+        return;
+      }
+      
       setFileName(file.name);
       setIsUploading(true);
+      
       try {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = async () => {
-          const base64 = reader.result;
-          const postData = { base64String: base64 };
-
-          await postQuery({
-            url: apiUrls?.upload?.uploadDocument,
-            postData,
-            onSuccess: (data) => {
-              showToast.success("Resume uploaded successfully!");
-              setPdfBrochure(data?.data);
-            },
-            onError: () => {
-              showToast.error("Resume upload failed. Please try again.");
-            },
-          });
-        };
+        // Store the actual File object for the new API
+        setPdfBrochure(file);
+        showToast.success("Resume uploaded successfully!");
       } catch (error) {
         showToast.error("Error uploading resume. Please try again.");
       } finally {
@@ -366,6 +359,7 @@ function JobApply({ activeJob, jobDetails }) {
       }
     } else {
       setFileName("No file chosen");
+      setPdfBrochure(null);
     }
   };
 
@@ -378,36 +372,41 @@ function JobApply({ activeJob, jobDetails }) {
       showToast.error("Please upload your resume");
       return;
     }
+    
+    setLoading(true);
     try {
       const selectedCountry = countriesData.find(
         (country) => country.name === data.country
       );
-      await postQuery({
-        url: apiUrls?.jobForm?.addJobPost,
-        postData: {
-          full_name: data?.full_name,
-          country: data?.country,
-          email: data?.email,
-          phone_number: selectedCountry.dial_code + data?.phone_number,
-          message: data?.message,
-          resume_image: pdfBrochure,
-          accept: data?.accept,
-          designation: activeJob,
-        },
-        onSuccess: () => {
-          setShowModal(true);
-          setPdfBrochure(null);
-          setFileName("No file chosen");
-          setRecaptchaError(false);
-          setRecaptchaValue(null);
-          reset();
-        },
-        onFail: () => {
-          showToast.error("Error submitting application. Please try again.");
-        },
-      });
+      
+      // For career applications, use the new API endpoint
+      const applicationData = {
+        fullName: data.full_name,
+        email: data.email,
+        country: data.country,
+        mobile: selectedCountry.dial_code + data.phone_number,
+        coverLetter: data.message || '',
+        resume: pdfBrochure // This should be a File object
+      };
+      
+      const response = await submitCareerApplication(applicationData);
+      
+      if (response.success) {
+        showToast.success("Application submitted successfully!");
+        setShowModal(true);
+        setPdfBrochure(null);
+        setFileName("No file chosen");
+        setRecaptchaError(false);
+        setRecaptchaValue(null);
+        reset();
+      } else {
+        showToast.error(response.message || "Error submitting application. Please try again.");
+      }
     } catch (error) {
+      console.error('Application submission error:', error);
       showToast.error("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 

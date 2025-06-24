@@ -1,12 +1,12 @@
 "use client";
 import React, { useRef } from "react";
 import dynamic from "next/dynamic";
+import { NextPage } from "next";
 
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import CareerBanner from "@/components/sections/careers/careersBanner";
 import Certified from "@/components/sections/why-medh/Certified";
 import Preloader from "@/components/shared/others/Preloader";
-
 
 // Dynamically import components for better performance
 const CareerCourceBanner = dynamic(() => import("@/components/sections/careers/careersCourseBanner"));
@@ -20,10 +20,10 @@ const UniqueBenefits = dynamic(() => import("@/components/sections/careers/uniqu
   ssr: false
 });
 
-export default function CareersPage() {
-  const jobOpeningRef = useRef(null);
+const CareersPage: NextPage = () => {
+  const jobOpeningRef = useRef<HTMLDivElement>(null);
 
-  const scrollToJobOpenings = () => {
+  const scrollToJobOpenings = (): void => {
     jobOpeningRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
@@ -40,8 +40,9 @@ export default function CareersPage() {
         <div className="bg-white dark:bg-screen-dark pb-16">
           <Certified />
         </div>
-        
       </main>
     </PageWrapper>
   );
-}
+};
+
+export default CareersPage; 

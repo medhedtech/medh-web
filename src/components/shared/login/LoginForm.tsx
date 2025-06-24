@@ -267,6 +267,20 @@ const LoginForm = () => {
     }
   }, [prefilledValues, setValue, errors.email, clearErrors]);
 
+  // Autofill detection for email input to update RHF state and clear validation error
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      const input = emailInputRef.current;
+      if (input && input.value) {
+        setValue("email", input.value, { shouldValidate: true });
+        clearErrors("email");
+        trigger("email");
+        clearInterval(intervalId);
+      }
+    }, 300);
+    return () => clearInterval(intervalId);
+  }, [setValue, clearErrors, trigger]);
+
   // Initialize theme to light if not set
   useEffect(() => {
     if (!theme) {

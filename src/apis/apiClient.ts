@@ -20,6 +20,7 @@ export interface IApiResponse<T = any> {
   status: string;
   data?: T;
   error?: string;
+
   message?: string;
   results?: number;
 }

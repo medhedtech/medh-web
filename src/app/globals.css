@@ -363,7 +363,7 @@ h6 {
   .mumkinMedh {
     font-family: "Bulgathi", var(--font-poppins), sans-serif;
     font-weight: 600 !important; /* Semi-bold */
-    font-size: clamp(1.65rem, 4.95vw, 2.75rem) !important; /* 10% bigger */
+    font-size: clamp(1.815rem, 5.445vw, 3.025rem) !important; /* 10% bigger than original */
     letter-spacing: 0.02em;
     padding: 0.2rem 0;
   }
@@ -371,7 +371,7 @@ h6 {
 
 @media (max-width: 480px) {
   .mumkinMedh {
-    font-size: clamp(1.375rem, 4.4vw, 2.2rem) !important; /* 10% bigger */
+    font-size: clamp(1.5125rem, 4.84vw, 2.42rem) !important; /* 10% bigger than original */
     padding: 0.15rem 0;
     letter-spacing: 0.01em;
   }

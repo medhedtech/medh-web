@@ -1927,6 +1927,78 @@ export const apiUrls = {
     bulkUpdate: `${apiBaseUrl}/demo-booking/bulk-update`,
     exportBookings: `${apiBaseUrl}/demo-booking/export`,
   },
+
+  // 💼 Job Form API - Career applications and job postings
+  jobForm: {
+    // Job application endpoints
+    addJobPost: `${apiBaseUrl}/job-application/submit`,
+    getAllJobPosts: `${apiBaseUrl}/job-posts/get`,
+    getJobPostById: (jobId: string): string => {
+      if (!jobId) throw new Error('Job ID is required');
+      return `${apiBaseUrl}/job-posts/${jobId}`;
+    },
+    updateJobPost: (jobId: string): string => {
+      if (!jobId) throw new Error('Job ID is required');
+      return `${apiBaseUrl}/job-posts/update/${jobId}`;
+    },
+    deleteJobPost: (jobId: string): string => {
+      if (!jobId) throw new Error('Job ID is required');
+      return `${apiBaseUrl}/job-posts/delete/${jobId}`;
+    },
+    
+    // Job application management
+    getAllApplications: (options: { 
+      page?: number; 
+      limit?: number; 
+      status?: string; 
+      position?: string;
+      search?: string;
+      sort_by?: string; 
+      sort_order?: 'asc' | 'desc' 
+    } = {}): string => {
+      const { page = 1, limit = 10, status = '', position = '', search = '', sort_by = 'createdAt', sort_order = 'desc' } = options;
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', String(page));
+      queryParams.append('limit', String(limit));
+      if (status) queryParams.append('status', status);
+      if (position) queryParams.append('position', position);
+      if (search) queryParams.append('search', search);
+      queryParams.append('sort_by', sort_by);
+      queryParams.append('sort_order', sort_order);
+      return `${apiBaseUrl}/job-applications?${queryParams.toString()}`;
+    },
+    getApplicationById: (applicationId: string): string => {
+      if (!applicationId) throw new Error('Application ID is required');
+      return `${apiBaseUrl}/job-applications/${applicationId}`;
+    },
+    updateApplicationStatus: (applicationId: string): string => {
+      if (!applicationId) throw new Error('Application ID is required');
+      return `${apiBaseUrl}/job-applications/${applicationId}/status`;
+    },
+    
+    // Job posting management (admin)
+    createJobPost: `${apiBaseUrl}/job-posts/create`,
+    getActiveJobPosts: `${apiBaseUrl}/job-posts/active`,
+    toggleJobPostStatus: (jobId: string): string => {
+      if (!jobId) throw new Error('Job ID is required');
+      return `${apiBaseUrl}/job-posts/${jobId}/toggle-status`;
+    },
+    
+    // Analytics and reporting
+    getApplicationStats: `${apiBaseUrl}/job-applications/stats`,
+    getJobPostStats: (jobId: string): string => {
+      if (!jobId) throw new Error('Job ID is required');
+      return `${apiBaseUrl}/job-posts/${jobId}/stats`;
+    },
+    
+    // File uploads for applications
+    uploadResume: `${apiBaseUrl}/job-applications/upload-resume`,
+    uploadCoverLetter: `${apiBaseUrl}/job-applications/upload-cover-letter`,
+    
+    // Bulk operations
+    bulkUpdateApplications: `${apiBaseUrl}/job-applications/bulk-update`,
+    exportApplications: `${apiBaseUrl}/job-applications/export`,
+  },
 };
 
 /**

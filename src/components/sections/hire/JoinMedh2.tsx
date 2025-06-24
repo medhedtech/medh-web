@@ -23,16 +23,16 @@ interface IFeature {
 
 // PERFORMANCE OPTIMIZATION: Frozen feature data to prevent mutations
 const EDUCATOR_FEATURES: readonly IFeature[] = Object.freeze([
-  Object.freeze({ icon: Globe, text: "Global teaching platform" }),
+  Object.freeze({ icon: Globe, text: "Global teaching opportunities" }),
   Object.freeze({ icon: Clock, text: "Flexible scheduling" }),
   Object.freeze({ icon: Award, text: "Competitive compensation" }),
-  Object.freeze({ icon: BookOpen, text: "Teaching resources provided" })
+  Object.freeze({ icon: BookOpen, text: "Comprehensive teaching resources" })
 ]);
 
 const PARTNER_FEATURES: readonly IFeature[] = Object.freeze([
-  Object.freeze({ icon: Target, text: "Customized training programs" }),
+  Object.freeze({ icon: Target, text: "Customized training solutions" }),
   Object.freeze({ icon: Award, text: "Industry-aligned curriculum" }),
-  Object.freeze({ icon: Trophy, text: "Cutting-edge resources" }),
+  Object.freeze({ icon: Trophy, text: "Cutting-edge technologies" }),
   Object.freeze({ icon: Building, text: "Enhanced employability" })
 ]);
 
@@ -192,11 +192,11 @@ const JoinMedh = memo(() => {
 
   // PERFORMANCE OPTIMIZATION: Memoized class names
   const sectionClasses = useMemo(() => {
-    return "relative py-12 md:py-16 lg:py-20 overflow-hidden";
+    return "w-full relative overflow-hidden z-10 glass-card gpu-accelerated py-12 md:py-16 lg:py-20";
   }, []);
 
   const backgroundClasses = useMemo(() => {
-    return "absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-blue-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900/20";
+    return "absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-blue-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900/20 gpu-accelerated";
   }, []);
 
   const containerClasses = useMemo(() => {
@@ -254,19 +254,20 @@ const JoinMedh = memo(() => {
 
   return (
     <section className={sectionClasses}>
-      {/* Background */}
-      <div className={backgroundClasses}></div>
-      
-      {/* Decorative Elements */}
-      <div className="absolute top-0 left-0 w-72 h-72 rounded-full bg-primary-100 dark:bg-primary-900/20 blur-3xl opacity-50 -translate-x-1/2 -translate-y-1/2"></div>
-      <div className="absolute bottom-0 right-0 w-72 h-72 rounded-full bg-blue-100 dark:bg-blue-900/20 blur-3xl opacity-50 translate-x-1/2 translate-y-1/2"></div>
+      {/* Background grid pattern and overlays for glassmorphism */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-violet-50/50 dark:from-blue-950/20 dark:via-transparent dark:to-violet-950/20"></div>
+      {/* Floating blurred blobs */}
+      <div className="absolute top-20 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-3xl animate-blob"></div>
+      <div className="absolute top-40 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-violet-200/20 dark:bg-violet-800/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+      <div className="absolute bottom-20 left-1/2 w-28 h-28 sm:w-36 sm:h-36 bg-amber-200/20 dark:bg-amber-800/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
 
       <div className={containerClasses}>
         {/* Header */}
         <div className={headerClasses}>
           <div className={badgeClasses}>
             <Users className="w-4 h-4" />
-            <span>Join Our Community</span>
+            <span>Transform Education Together with MEDH</span>
           </div>
           
           <h2 className={titleClasses}>
@@ -274,20 +275,19 @@ const JoinMedh = memo(() => {
           </h2>
           
           <p className={descriptionClasses}>
-            Be part of our mission to transform education and empower learners worldwide. 
-            Whether you're an educator or an institution, we have opportunities for you.
+            Be part of our global movement transforming education through innovation and accessibility. Whether you're passionate about teaching or representing an institution, MEDH offers a pathway to create meaningful impact.
           </p>
         </div>
 
         {/* Cards Grid */}
-        <div className={gridClasses}>
+        <div className={gridClasses + " relative w-full max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 overflow-hidden p-0 md:p-0"}>
           {/* Educator Card */}
           <JoinCard
             title="Join as Educator"
-            subtitle="Teach & Inspire"
-            description="Share your expertise with learners worldwide and make a meaningful impact on their educational journey."
+            subtitle="Share Your Expertise"
+            description="Inspire the next generation. Bring your knowledge to eager learners worldwide and make a lasting difference in their educational journey."
             features={EDUCATOR_FEATURES}
-            buttonText="Become an Educator"
+            buttonText="Become an Educator →"
             onClick={handleEducatorNavigate}
             icon={educatorIcon}
             isDark={isDark}
@@ -298,16 +298,24 @@ const JoinMedh = memo(() => {
           {/* Partner Card */}
           <JoinCard
             title="Partner with Us"
-            subtitle="Institutional Collaboration"
-            description="Enhance your institution's offerings with our comprehensive educational programs and resources."
+            subtitle="Institutional Excellence"
+            description="Elevate your institution's educational offerings through our collaborative programs designed to meet the evolving demands of today's learners."
             features={PARTNER_FEATURES}
-            buttonText="Become a Partner"
+            buttonText="Become a Partner →"
             onClick={handlePartnerNavigate}
             icon={partnerIcon}
             isDark={isDark}
             index={1}
             isVisible={isVisible}
           />
+        </div>
+
+        {/* Community CTA */}
+        <div className="mt-12 text-center max-w-2xl mx-auto">
+          <h3 className="text-lg md:text-xl font-semibold mb-2 text-primary-700 dark:text-primary-300">Join our growing community of educators and institutions making a global impact.</h3>
+          <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 whitespace-nowrap">
+            Whether you teach or partner with us, together we're building the future of education.
+          </p>
         </div>
       </div>
     </section>

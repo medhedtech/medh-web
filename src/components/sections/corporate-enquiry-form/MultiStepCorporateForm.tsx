@@ -23,6 +23,7 @@ import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import Link from "next/link";
+import { apiClient } from "@/apis/apiClient";
 
 // Icons
 import { 
@@ -51,18 +52,35 @@ import { apiUrls } from "@/apis";
 import countriesData from "@/utils/countrycode.json";
 
 // Phone Number Component
-import PhoneNumberInput, { phoneNumberSchema } from '../../shared/login/PhoneNumberInput';
+import PhoneNumberInput, { CountryOption } from '../../shared/login/PhoneNumberInput';
+
+// Local Yup schema for phone number validation
+const phoneNumberYupSchema = yup.object({
+  country: yup.string().required('Country code is required'),
+  number: yup.string()
+    .matches(/^[0-9]+$/, 'Phone number must consist of digits only')
+    .min(6, 'Phone number must be at least 6 digits')
+    .max(15, 'Phone number cannot exceed 15 digits')
+    .required('Phone number is required'),
+});
+
+// Hardcoded country options to resolve import issue
+const countryOptions: CountryOption[] = [
+  { name: 'India', iso2: 'in', dialCode: '91', flag: '🇮🇳', priority: 1 },
+  { name: 'United States', iso2: 'us', dialCode: '1', flag: '🇺🇸', priority: 2 },
+  { name: 'United Kingdom', iso2: 'gb', dialCode: '44', flag: '🇬🇧', priority: 2 },
+  // Add more countries as needed
+];
 
 // Toast notifications
 import { toast } from 'react-toastify';
 
-// Multi-step form data structure
+// Modify the form data interface to use a more flexible type
 interface IFormData {
-  // Step 1: Contact Info
   full_name: string;
   email: string;
   country: string;
-  phone_number: string;
+  phone_number: { country: string; number: string };
   
   // Step 2: Organization Details
   designation: string;
@@ -148,22 +166,25 @@ const UNIVERSAL_FORM_CONSTANTS = {
 interface IUniversalFormResponse {
   success: boolean;
   message: string;
+  required_fields?: string[];
   data?: {
-    form_id: string;
-    submission_date: string;
-    status: 'submitted' | 'under_review' | 'in_progress' | 'completed';
-    priority: 'low' | 'medium' | 'high' | 'urgent';
+    form_id?: string;
+    submission_date?: string;
+    status?: 'submitted' | 'under_review' | 'in_progress' | 'completed';
+    priority?: 'low' | 'medium' | 'high' | 'urgent';
   };
   errors?: Array<{
     field: string;
     message: string;
     value?: any;
   }>;
+  [key: string]: any; // Allow additional properties
 }
 
 // Universal Form Model Utilities
 const universalFormUtils = {
   transformToUniversalFormat: (data: IFormData) => {
+    const phoneNumber = `+${data.phone_number.country}${data.phone_number.number}`;
     return {
       form_type: UNIVERSAL_FORM_CONSTANTS.FORM_TYPE,
       priority: UNIVERSAL_FORM_CONSTANTS.DEFAULT_PRIORITY,
@@ -173,7 +194,7 @@ const universalFormUtils = {
       contact_info: {
         full_name: data.full_name.trim(),
         email: data.email.toLowerCase().trim(),
-        phone_number: data.phone_number.startsWith('+') ? data.phone_number : `+${data.phone_number}`,
+        phone_number: phoneNumber,
         country: data.country,
       },
       
@@ -263,9 +284,7 @@ const stepValidationSchemas = {
       .string()
       .required("Country is required"),
       
-    phone_number: yup
-      .string()
-      .required("Phone number is required"),
+    phone_number: phoneNumberYupSchema,
   }),
   
   organization_info: yup.object({
@@ -330,9 +349,7 @@ const completeFormSchema = yup.object().shape({
       .string()
       .required("Country is required"),
       
-    phone_number: yup
-      .string()
-      .required("Phone number is required"),
+    phone_number: phoneNumberYupSchema,
   
     designation: yup
       .string()
@@ -701,6 +718,7 @@ const MultiStepCorporateForm: React.FC<{
     setMounted(true);
   }, []);
 
+  // Use a more flexible type for useForm
   const {
     register,
     handleSubmit,
@@ -709,14 +727,15 @@ const MultiStepCorporateForm: React.FC<{
     watch,
     control,
     trigger,
-    getValues
+    getValues,
+    setError
   } = useForm<IFormData>({
     resolver: yupResolver(completeFormSchema),
     defaultValues: {
       full_name: '',
       email: '',
       country: 'in',
-      phone_number: '',
+      phone_number: { country: 'in', number: '' },
       designation: '',
       company_name: '',
       company_website: '',
@@ -816,45 +835,78 @@ const MultiStepCorporateForm: React.FC<{
     }
   };
 
+  // Modify the form submission to handle the phone number structure
   const onSubmit = async (data: IFormData): Promise<void> => {
     try {
-      const transformedData = universalFormUtils.transformToUniversalFormat(data);
+      // Normalize phone number
+      const phoneNumber = typeof data.phone_number === 'string' 
+        ? data.phone_number 
+        : `+${data.phone_number.country}${data.phone_number.number}`;
 
-      console.log('Submitting corporate training inquiry:', {
-        form_type: transformedData.form_type,
-        company: transformedData.professional_info.company_name,
-        priority: transformedData.priority
-      });
+      // Validate form data before submission
+      const formattedData = {
+        full_name: data.full_name,
+        email: data.email,
+        country: data.country,
+        phone_number: phoneNumber,
+        designation: data.designation,
+        company_name: data.company_name,
+        company_website: data.company_website || null,
+        training_requirements: data.training_requirements,
+        terms_accepted: data.terms_accepted
+      };
 
-      await postQuery({
-        url: apiUrls?.CorporateTraining?.addCorporate,
-        postData: transformedData,
-        onSuccess: (response: any) => {
-          console.log('Corporate training inquiry submitted successfully:', response);
-          
-          if (universalFormUtils.isUniversalFormResponse(response)) {
-            universalFormUtils.storeSubmissionDetails(response, data.company_name);
-            console.log('Form submission tracking stored:', response.data?.form_id);
-          }
-          
-          setShowSuccessModal(true);
-          reset();
-          setCurrentStep(0);
-          setCompletedSteps(new Set());
-          // Clear saved draft
-          localStorage.removeItem('corporateFormDraft');
-        },
-        onFail: (error: any) => {
-          console.error("Corporate training inquiry submission failed:", error);
-          const errorMessages = universalFormUtils.extractErrorMessages(error);
-          errorMessages.forEach(message => {
-            toast.error(message);
+      // Submit form data to the corporate training API
+      const apiResponse = await apiClient.post<IUniversalFormResponse>('/corporate-training', formattedData);
+
+      // Determine success based on API response
+      const isSuccessful = 
+        apiResponse.status === 'success' || 
+        (apiResponse.data as any)?.success === true;
+
+      if (isSuccessful) {
+        // Handle successful submission: show modal and reset form for resubmit
+        toast.success(apiResponse.message || 'Corporate training inquiry submitted successfully!');
+        setShowSuccessModal(true);
+        // Reset form and step state
+        reset();
+        setCurrentStep(0);
+        setCompletedSteps(new Set());
+        return;
+      } else {
+        // Handle submission error with detailed field validation
+        const response = apiResponse.data as IUniversalFormResponse;
+
+        // If backend returned specific field errors, highlight them
+        if (response.errors && response.errors.length > 0) {
+          response.errors.forEach(err => {
+            setError(err.field as keyof IFormData, {
+              type: 'manual',
+              message: err.message,
+            });
           });
-        },
-      });
+          toast.error(response.message || 'Validation failed');
+          return;
+        }
+
+        // Fallback: handle required_fields array if present
+        const requiredFields = response.required_fields || [];
+        if (requiredFields.length > 0) {
+          requiredFields.forEach(field => {
+            setError(field as keyof IFormData, {
+              type: 'manual',
+              message: 'This field is required',
+            });
+          });
+          toast.error(response.message || 'Please fill in all required fields');
+        } else {
+          // Generic error handling
+          toast.error(response.message || apiResponse.error || 'Failed to submit corporate training inquiry');
+        }
+      }
     } catch (error) {
-      console.error("Unexpected error during corporate training form submission:", error);
-      toast.error("An unexpected error occurred. Please try again.");
+      console.error('Corporate Training Form Submission Error:', error);
+      toast.error('An unexpected error occurred. Please try again.');
     }
   };
 
@@ -921,9 +973,9 @@ const MultiStepCorporateForm: React.FC<{
                     <PhoneNumberInput
                       value={{ 
                         country: watchedFields.country || 'in', 
-                        number: field.value || '' 
+                        number: typeof field.value === 'string' ? field.value : field.value.number || '' 
                       }}
-                      onChange={val => field.onChange(val.number)}
+                      onChange={val => field.onChange(val)}
                       placeholder="Enter your phone number"
                       error={fieldState.error?.message}
                     />
@@ -1186,7 +1238,7 @@ const MultiStepCorporateForm: React.FC<{
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.8, y: 50 }}
@@ -1228,10 +1280,7 @@ const MultiStepCorporateForm: React.FC<{
                 </div>
                 
                 <motion.button
-                  onClick={() => {
-                    setShowSuccessModal(false);
-                    onClose();
-                  }}
+                  onClick={() => setShowSuccessModal(false)}
                   suppressHydrationWarning
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
