@@ -1066,43 +1066,77 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
         url: apiUrl,
         skipCache: true,
         requireAuth: false,
-        onSuccess: (response: IApiResponse) => {
-          if (!response || !response.success || !response.data) {
-            throw new Error('Invalid API response');
-          }
-
-          const courses = response.data.courses;
+        onSuccess: (response: any) => {
+          console.log('CoursesFilter API Response:', response);
           
-          if (!Array.isArray(courses)) {
-            throw new Error('Invalid courses data format');
+          let courses: ICourse[] = [];
+          
+          // Enhanced response validation to handle different API response structures
+          if (!response) {
+            console.log('Response is null/undefined, setting empty courses');
+            courses = [];
+          } else if (Array.isArray(response)) {
+            console.log('Response is direct array of courses');
+            courses = response;
+          } else if (response.success && response.data && Array.isArray(response.data.courses)) {
+            console.log('Response has success wrapper with data.courses');
+            courses = response.data.courses;
+          } else if (response.data && Array.isArray(response.data)) {
+            console.log('Response has data array');
+            courses = response.data;
+          } else if (response.courses && Array.isArray(response.courses)) {
+            console.log('Response has courses array');
+            courses = response.courses;
+          } else if (response.success && response.data && Array.isArray(response.data)) {
+            console.log('Response has success wrapper with data array');
+            courses = response.data;
+          } else {
+            console.log('Unrecognized response structure, setting empty courses. Response type:', typeof response, 'Keys:', Object.keys(response || {}));
+            courses = [];
           }
 
           setAllCourses(courses);
           setFilteredCourses(courses);
 
-          if (response.data.pagination) {
-            setTotalPages(response.data.pagination.totalPages || 1);
-            setTotalItems(response.data.pagination.total || 0);
+          // Handle pagination data from different response structures
+          let paginationData = null;
+          if (response && response.data && response.data.pagination) {
+            paginationData = response.data.pagination;
+          } else if (response && response.pagination) {
+            paginationData = response.pagination;
+          }
+          
+          if (paginationData) {
+            setTotalPages(paginationData.totalPages || 1);
+            setTotalItems(paginationData.total || 0);
           } else {
             setTotalPages(1);
             setTotalItems(courses.length);
           }
 
-          if (response.data.facets && process.env.NODE_ENV === 'development') {
-            if (response.data.facets.categories) {
-              console.debug('Categories facets:', response.data.facets.categories);
+          // Handle facets data from different response structures
+          let facetsData = null;
+          if (response && response.data && response.data.facets) {
+            facetsData = response.data.facets;
+          } else if (response && response.facets) {
+            facetsData = response.facets;
+          }
+          
+          if (facetsData && process.env.NODE_ENV === 'development') {
+            if (facetsData.categories) {
+              console.debug('Categories facets:', facetsData.categories);
             }
             
-            if (response.data.facets.categoryTypes) {
-              console.debug('Category types facets:', response.data.facets.categoryTypes);
+            if (facetsData.categoryTypes) {
+              console.debug('Category types facets:', facetsData.categoryTypes);
             }
             
-            if (response.data.facets.classTypes) {
-              console.debug('Class types facets:', response.data.facets.classTypes);
+            if (facetsData.classTypes) {
+              console.debug('Class types facets:', facetsData.classTypes);
             }
             
-            if (response.data.facets.priceRanges) {
-              console.debug('Price ranges facets:', response.data.facets.priceRanges);
+            if (facetsData.priceRanges) {
+              console.debug('Price ranges facets:', facetsData.priceRanges);
             }
           }
 
