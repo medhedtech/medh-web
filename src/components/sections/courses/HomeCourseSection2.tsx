@@ -644,23 +644,21 @@ const ImageWrapper: React.FC<ImageWrapperProps> = ({
   // Ensure we have valid props
   const validSrc = src || '/fallback-course-image.jpg';
   const validAlt = alt || 'Course Image';
-  
-  // Get optimized image props with fill mode for responsive scaling
-  const imageProps = getImageProps(
-    'COURSE_CARD',
-    validSrc,
-    validAlt,
-    shouldBeLCP,
-    true // Use fill mode for proper scaling
-  );
 
   return (
     <div className="relative w-full aspect-[4/3] min-h-[160px] sm:min-h-[140px] md:min-h-[150px] bg-gray-100 dark:bg-gray-800/50 overflow-hidden rounded-t-xl group">
       <OptimizedImage
-        {...imageProps}
         src={validSrc}
+        alt={validAlt}
+        fill={true}
+        className="object-cover transition-opacity duration-300"
+        quality={shouldBeLCP ? 95 : 85}
+        priority={shouldBeLCP}
+        placeholder="blur"
         onLoad={onLoad}
         onError={onError}
+        loading={shouldBeLCP ? 'eager' : 'lazy'}
+        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
         fallbackSrc="/fallback-course-image.jpg"
       />
       {/* Enhanced gradient overlay */}
