@@ -12,7 +12,9 @@ import {
   MonitorPlay,
   X,
   ArrowLeft,
-  AlertCircle
+  AlertCircle,
+  Loader2,
+  Video
 } from "lucide-react";
 
 import StudentDashboardLayout from "./StudentDashboardLayout";
@@ -589,7 +591,7 @@ const StudentRecordedSessions: React.FC = () => {
                 description: `Recorded lesson from ${batch.name} - ${session.day || 'Session'} ${session.start_time || ''}`,
                 batchName: batch.name,
                 sessionNumber: sessionIndex + 1,
-                viewCount: Math.floor(Math.random() * 50) + 10,
+                viewCount: lesson.view_count || 0,
                 url: lesson.url ? urlObfuscation.encode(lesson.url) : undefined, // Obfuscate URL
                 // Additional API fields
                 batchId: batch.id,
@@ -724,64 +726,43 @@ const StudentRecordedSessions: React.FC = () => {
     )
   );
 
-  if (loading) {
-    return <PageLoading text="Loading recorded sessions..." size="lg" />;
-  }
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4 p-6 bg-red-50 dark:bg-red-900/20 rounded-lg max-w-md">
-          <MonitorPlay className="w-12 h-12 text-red-500" />
-          <h3 className="text-xl font-semibold text-red-700 dark:text-red-400">Error Loading Recorded Sessions</h3>
-          <p className="text-red-600 dark:text-red-300 text-center">{error}</p>
-          <button 
-            onClick={() => {
-              setError(null);
-              fetchRecordedSessions();
-            }}
-            className="px-4 py-2 bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-700 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="p-8 lg:p-12 rounded-lg max-w-7xl mx-auto"
+        className="p-6 lg:p-8 rounded-lg max-w-7xl mx-auto"
       >
         <div className="flex flex-col space-y-6">
-          {/* Header */}
+          {/* Enhanced Header */}
           <div className="text-center pt-6 pb-4">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               className="flex items-center justify-center mb-4"
             >
-              <div className="p-2 bg-primary-100/80 dark:bg-primary-900/30 rounded-xl backdrop-blur-sm mr-3">
-                <MonitorPlay className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+              <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 rounded-2xl backdrop-blur-sm mr-4">
+                <Video className="w-8 h-8 text-blue-600 dark:text-blue-400" />
               </div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
-                Recorded Sessions
-              </h1>
+              <div className="text-left">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white">
+                  Recorded Sessions
+                </h1>
+                <p className="text-lg text-gray-600 dark:text-gray-400 mt-1">
+                  Access your past class recordings
+                </p>
+              </div>
             </motion.div>
-            <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed px-4 mb-6">
-              Access and watch recordings of your past classes and catch up on any missed content
-            </p>
 
             {/* Search Bar */}
             <motion.div
-              className="relative max-w-md mx-auto"
+              className="relative max-w-lg mx-auto"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
             >
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <Search className="h-5 w-5 text-gray-400" />
               </div>
               <input
@@ -789,49 +770,89 @@ const StudentRecordedSessions: React.FC = () => {
                 placeholder="Search recorded sessions..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200"
+                className="w-full pl-12 pr-4 py-3 rounded-2xl border border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
               />
             </motion.div>
           </div>
 
+          {/* Loading State */}
+          {loading && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center py-12"
+            >
+              <Loader2 className="w-8 h-8 animate-spin text-blue-500 mb-4" />
+              <p className="text-gray-600 dark:text-gray-400">Loading recorded sessions...</p>
+            </motion.div>
+          )}
+
+          {/* Error State */}
+          {error && !loading && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 text-center"
+            >
+              <div className="flex items-center justify-center mb-2">
+                <X className="w-6 h-6 text-red-500 mr-2" />
+                <h3 className="text-lg font-medium text-red-800 dark:text-red-200">Error Loading Recorded Sessions</h3>
+              </div>
+              <p className="text-red-600 dark:text-red-300 mb-4">{error}</p>
+              <button
+                onClick={() => {
+                  setError(null);
+                  fetchRecordedSessions();
+                }}
+                className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors"
+              >
+                Try Again
+              </button>
+            </motion.div>
+          )}
+
           {/* Content - Batches */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
-          >
-            {filteredBatches.length > 0 ? (
-              filteredBatches.map((batch, index) => (
+          {!loading && !error && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
+            >
+              {filteredBatches.length > 0 ? (
+                filteredBatches.map((batch, index) => (
+                  <motion.div
+                    key={batch.batchId || batch.batchName || index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <BatchCard
+                      batch={batch}
+                      onWatchNow={handleWatchNow}
+                    />
+                  </motion.div>
+                ))
+              ) : (
                 <motion.div
-                  key={batch.batchId || batch.batchName || index}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  className="text-center py-12"
                 >
-                  <BatchCard
-                    batch={batch}
-                    onWatchNow={handleWatchNow}
-                  />
+                  <div className="max-w-md mx-auto">
+                    <Video className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                      {searchTerm ? "No sessions found" : "No recorded sessions available"}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {searchTerm 
+                        ? "Try adjusting your search term to find what you're looking for."
+                        : "Recorded sessions will appear here after your classes are completed."}
+                    </p>
+                  </div>
                 </motion.div>
-              ))
-            ) : (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col items-center justify-center text-center py-12"
-              >
-                <MonitorPlay className="w-16 h-16 text-gray-400 mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  {searchTerm ? "No batches found" : "No recorded sessions available"}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  {searchTerm 
-                    ? "Try adjusting your search term to find what you're looking for."
-                    : "Recorded sessions will appear here organized by batches after your classes are completed."}
-                </p>
-              </motion.div>
-            )}
-          </motion.div>
+              )}
+            </motion.div>
+          )}
         </div>
       </motion.div>
 

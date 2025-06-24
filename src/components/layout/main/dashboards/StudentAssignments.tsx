@@ -147,124 +147,23 @@ const StudentAssignments: React.FC = () => {
     
     const fetchAssignments = async () => {
       try {
-        // Mock data for development - replace with actual API call when available
-        // This simulates the API response structure
-        
-        const mockData = {
-          assignments: [
-            {
-              _id: "1",
-              title: "React Component Architecture",
-              description: "Create a complex React component following best practices",
-              instructions: "Your task is to create a reusable React component that demonstrates proper architecture. Include:\n\n1. Proper state management\n2. Good prop typing\n3. Component composition\n4. Error handling\n\nSubmit your code as a single file or upload to a GitHub repository.",
-              deadline: "2023-09-15T23:59:59Z",
-              total_marks: 100,
-              status: "pending",
-              course: {
-                _id: "course1",
-                title: "React from Zero to Hero",
-                image: "/images/courses/react.jpg"
-              },
-              instructor: "John Doe",
-              submissionType: "file"
-            },
-            {
-              _id: "2",
-              title: "JavaScript Performance Optimization",
-              description: "Analyze and optimize the provided JavaScript code for better performance",
-              instructions: "Identify performance bottlenecks in the provided code and optimize it. Document your changes and reasoning behind each optimization.",
-              deadline: "2023-08-30T23:59:59Z",
-              total_marks: 50,
-              status: "submitted",
-              course: {
-                _id: "course2",
-                title: "Advanced JavaScript"
-              },
-              instructor: "Jane Smith",
-              submissionType: "mixed",
-              submission: {
-                submittedAt: "2023-08-28T14:20:00Z",
-                content: "I've optimized the code by implementing memoization and reducing unnecessary DOM operations...",
-                fileUrl: "https://example.com/submissions/js-optimization.zip"
-              }
-            },
-            {
-              _id: "3",
-              title: "UI/UX Case Study",
-              description: "Create a detailed case study for a UI/UX redesign",
-              instructions: "Choose an existing website or app with UX issues and create a case study for your redesign approach. Include research, wireframes, and final designs.",
-              deadline: "2023-08-01T23:59:59Z",
-              total_marks: 80,
-              status: "graded",
-              course: {
-                _id: "course3",
-                title: "UI/UX Design Fundamentals"
-              },
-              instructor: "Alex Johnson",
-              submissionType: "text",
-              submission: {
-                submittedAt: "2023-07-31T09:15:00Z",
-                content: "For my case study, I selected the booking flow of AirTravel.com which had several usability issues...",
-                marks: 75,
-                feedback: "Excellent analysis of the problems and great solutions. Could have included more user testing data to validate your design decisions."
-              }
-            },
-            {
-              _id: "4",
-              title: "Node.js REST API Implementation",
-              description: "Implement a RESTful API using Node.js and Express",
-              instructions: "Build a RESTful API for a blog platform with user authentication, post creation/editing, and comments. Use MongoDB for storage.",
-              deadline: "2023-09-30T23:59:59Z",
-              total_marks: 100,
-              status: "pending",
-              course: {
-                _id: "course4",
-                title: "Node.js Backend Development"
-              },
-              instructor: "Mike Williams",
-              submissionType: "file",
-              category: "Backend Development"
-            },
-            {
-              _id: "5",
-              title: "Data Analysis with Python",
-              description: "Analyze the provided dataset and create visualizations",
-              instructions: "Using the provided e-commerce dataset, perform exploratory data analysis and create meaningful visualizations. Submit a Jupyter notebook with your code and analysis.",
-              deadline: "2023-09-05T23:59:59Z",
-              total_marks: 75,
-              status: "pending",
-              course: {
-                _id: "course5",
-                title: "Python Data Science"
-              },
-              instructor: "Sarah Miller",
-              submissionType: "file",
-              category: "Data Science"
-            }
-          ]
-        };
-        
-        // In real implementation, this would be replaced with:
-        // getQuery({
-        //   url: `${apiUrls?.assignments?.getStudentAssignments(userId)}`,
-        //   onSuccess: (res: ApiResponse) => {
-        //     setAssignments(res.assignments || []);
-        //     setErrorMessage("");
-        //   },
-        //   onFail: (err) => {
-        //     console.error("Error fetching assignments:", err);
-        //     setErrorMessage("Failed to load assignments. Please try again later.");
-        //   }
-        // });
-        
-        // Using mock data
-        setAssignments(mockData.assignments);
-        
-        // Extract unique courses for filters
-        const uniqueCourses = [...new Set(mockData.assignments.map(assignment => assignment.course))];
-        setCourses([{ id: "all", title: "All Courses" }, ...uniqueCourses]);
-        
-        setErrorMessage("");
+        // Use the real API call
+        getQuery({
+          url: `${apiUrls?.assignments?.getAllAssignments(userId)}`,
+          onSuccess: (res: ApiResponse) => {
+            setAssignments(res.assignments || []);
+            
+            // Extract unique courses for filters
+            const uniqueCourses = [...new Set((res.assignments || []).map(assignment => assignment.course))];
+            setCourses([{ id: "all", title: "All Courses" }, ...uniqueCourses]);
+            
+            setErrorMessage("");
+          },
+          onFail: (err) => {
+            console.error("Error fetching assignments:", err);
+            setErrorMessage("Failed to load assignments. Please try again later.");
+          }
+        });
       } catch (error) {
         console.error("Error in assignments fetch:", error);
         setErrorMessage("An unexpected error occurred. Please try again.");

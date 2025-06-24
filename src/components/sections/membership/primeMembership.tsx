@@ -583,63 +583,79 @@ const PrimeMembership: React.FC = () => {
 
                 {/* Plans Content */}
                 <div className="p-3 sm:p-4 md:p-6 lg:p-8">
-                                      {/* Pricing Display */}
-                    <div className="mb-4 sm:mb-6">
-                      {/* Current Selected Plan Price */}
-                      <div className="text-center mb-4 p-3 sm:p-4 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 rounded-lg sm:rounded-xl">
-                        <div className="flex items-baseline justify-center gap-1 sm:gap-2 mb-2">
-                          <span className={`text-2xl sm:text-3xl md:text-4xl font-bold ${
-                            membership.color === 'amber'
-                              ? 'text-amber-600 dark:text-amber-400'
-                              : 'text-blue-600 dark:text-blue-400'
-                          }`}>
-                            {(() => {
-                              const selectedPlanDuration = membership.type === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
-                              const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
-                              if (!selectedPlan) return "0";
-                              const numeric = parseFloat(selectedPlan.price.replace(/[^0-9.]/g, ''));
-                              return numeric.toString();
-                            })()}
-                          </span>
-                          <span className="text-sm md:text-base text-slate-600 dark:text-slate-400 whitespace-nowrap">
-                            /{(() => {
-                              const selectedPlanDuration = membership.type === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
-                              const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
-                              return selectedPlan?.period || membership.plans[0]?.period || "month";
-                            })()}
-                          </span>
+                                      {/* Pricing Display - Perfectly Aligned Layout */}
+                    <div className="mb-6 sm:mb-8">
+                      {/* Current Selected Plan Price - Perfectly Centered */}
+                      <div className="relative mx-auto max-w-sm">
+                        <div className="text-center p-6 sm:p-8 bg-gradient-to-br from-white/95 to-slate-50/95 dark:from-slate-800/95 dark:to-slate-900/95 rounded-2xl border border-slate-200/50 dark:border-slate-600/50 shadow-lg backdrop-blur-sm">
+                          {/* Main Price Display - Perfect Center Alignment */}
+                          <div className="flex flex-col items-center justify-center min-h-[120px] space-y-4">
+                            
+                            {/* Primary Price Container - Centered with Perfect Alignment */}
+                            <div className="flex flex-col items-center space-y-1">
+                              <div className="flex items-end justify-center gap-1">
+                                <span className="text-xl sm:text-2xl text-slate-600 dark:text-slate-400 font-semibold mb-1">₹</span>
+                                <span className={`text-4xl sm:text-5xl md:text-6xl font-bold leading-none tabular-nums ${
+                                  membership.color === 'amber'
+                                    ? 'text-amber-600 dark:text-amber-400'
+                                    : 'text-blue-600 dark:text-blue-400'
+                                }`}>
+                                  {(() => {
+                                    const selectedPlanDuration = membership.type === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
+                                    const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
+                                    if (!selectedPlan) return "0";
+                                    const numeric = parseFloat(selectedPlan.price.replace(/[^0-9.]/g, ''));
+                                    return numeric.toLocaleString('en-IN');
+                                  })()}
+                                </span>
+                              </div>
+                              
+                              {/* Period Text - Perfectly Aligned */}
+                              <div className="text-base md:text-lg text-slate-600 dark:text-slate-400 font-medium tracking-wide">
+                                {(() => {
+                                  const selectedPlanDuration = membership.type === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
+                                  const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
+                                  return selectedPlan?.period || membership.plans[0]?.period || "month";
+                                })()}
+                              </div>
+                            </div>
+                            
+                            {/* Additional Info - Perfectly Stacked and Centered */}
+                            <div className="flex flex-col items-center space-y-3 w-full">
+                              {/* Per month breakdown for longer plans */}
+                              {(() => {
+                                const selectedPlanDuration = membership.type === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
+                                const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
+                                if (selectedPlan && selectedPlan.duration_months > 1) {
+                                  const monthlyAmount = Math.round(parseFloat(selectedPlan.price.replace(/[^0-9.]/g, '')) / selectedPlan.duration_months);
+                                  return (
+                                    <div className="inline-flex items-center justify-center text-sm text-slate-500 dark:text-slate-400 bg-slate-100/70 dark:bg-slate-700/70 px-4 py-2 rounded-full border border-slate-200 dark:border-slate-600">
+                                      <span className="font-medium">Effective ₹{monthlyAmount.toLocaleString('en-IN')}/month</span>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })()}
+                              
+                              {/* Savings Badge - Perfectly Centered */}
+                              {(() => {
+                                const selectedPlanDuration = membership.type === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
+                                const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
+                                if (selectedPlan && selectedPlan.savings) {
+                                  return (
+                                    <div className="inline-flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/40 dark:to-emerald-900/40 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 rounded-full text-sm font-bold shadow-sm">
+                                      <span className="mr-2">🎉</span>
+                                      <span>{selectedPlan.savings}</span>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })()}
+                            </div>
+                          </div>
                         </div>
-                      
-                      {/* Per month breakdown for longer plans */}
-                      {(() => {
-                        const selectedPlanDuration = membership.type === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
-                        const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
-                        if (selectedPlan && selectedPlan.duration_months > 1) {
-                          const monthlyAmount = Math.round(parseFloat(selectedPlan.price.replace(/[^0-9.]/g, '')) / selectedPlan.duration_months);
-                          return (
-                            <div className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                              (effective ₹{monthlyAmount.toLocaleString()}/month)
-                            </div>
-                          );
-                        }
-                        return null;
-                      })()}
-                      
-                      {/* Savings Badge */}
-                      {(() => {
-                        const selectedPlanDuration = membership.type === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
-                        const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
-                        if (selectedPlan && selectedPlan.savings) {
-                          return (
-                            <div className="inline-flex items-center px-3 py-1 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 text-green-700 dark:text-green-300 rounded-full text-sm font-semibold mt-2">
-                              🎉 {selectedPlan.savings}
-                            </div>
-                          );
-                        }
-                        return <div className="h-6"></div>; // Placeholder for spacing
-                      })()}
+                      </div>
                     </div>
-                  </div>
 
                   {/* Plan Selection Grid */}
                   <div className="mb-4 sm:mb-6">
