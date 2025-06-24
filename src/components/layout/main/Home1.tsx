@@ -582,9 +582,10 @@ const Home1: React.FC = () => {
     // Intelligent resource preloading based on device capabilities
     if (!prefersReducedMotion && !isLowEnd) {
       const preloadVideo = () => {
-        // Use standard link preload without 'as' attribute for maximum compatibility
+        // Use proper link preload with 'as' attribute for video
         const linkPreload = document.createElement('link');
         linkPreload.rel = 'preload';
+        linkPreload.as = 'video'; // Add missing 'as' attribute
         linkPreload.href = getOptimizedVideoSrc(
           theme === 'dark', 
           window.innerWidth < 768, 

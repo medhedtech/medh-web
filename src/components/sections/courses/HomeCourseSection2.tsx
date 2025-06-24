@@ -11,7 +11,7 @@ import { apiUrls } from '@/apis/index';
 import { VideoBackgroundContext } from '@/components/layout/main/Home2';
 import { useTheme } from "next-themes";
 import { useCourseImagePreloader } from '@/components/shared/ImagePreloader';
-import { getImageProps } from '@/utils/imageOptimization';
+import { getImageProps, getSafeCourseImageUrl } from '@/utils/imageOptimization';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 
 // PERFORMANCE OPTIMIZATION: Simplified styles without heavy caching
@@ -491,27 +491,12 @@ const CourseCardWrapper = memo<{
       const minBatchSize = course.prices?.[0]?.min_batch_size || 2;
       const displayPrice = batchPrice || course.prices?.[0]?.individual || null;
 
-      // Process course image with size constraints
-      const courseImage = (() => {
-        const defaultImage = '/fallback-course-image.jpg';
-        const rawImage = course.course_image || course.thumbnail;
-        
-        // If no image provided, use default
-        if (!rawImage) return defaultImage;
-        
-        // Handle specific course images with known good dimensions
-        if (course._id === 'ai_data_science' || course.course_title?.toLowerCase().includes('ai')) {
-          return '/images/courses/ai-data-science.png';
-        } else if (course._id === 'digital_marketing' || course.course_title?.toLowerCase().includes('digital marketing')) {
-          return '/images/courses/digital-marketing.png';
-        } else if (course._id === 'personality_development' || course.course_title?.toLowerCase().includes('personality')) {
-          return '/images/courses/pd.jpg';
-        } else if (course._id === 'vedic_mathematics' || course.course_title?.toLowerCase().includes('vedic')) {
-          return '/images/courses/vd.jpg';
-        }
-        
-        return rawImage;
-      })();
+      // Process course image using safe image URL function
+      const courseImage = getSafeCourseImageUrl(
+        course.course_image || course.thumbnail,
+        course._id,
+        course.course_title
+      );
 
       return {
         _id: course._id || course.id || `live-course-${index}`,
@@ -564,26 +549,12 @@ const CourseCardWrapper = memo<{
     } else {
       const { videoCount, qnaSessions } = getBlendedCourseSessions(course);
       
-      // Process course image with size constraints for blended courses
-      const courseImage = (() => {
-        const defaultImage = '/fallback-course-image.jpg';
-        const rawImage = course.course_image || course.thumbnail;
-        
-        if (!rawImage) return defaultImage;
-        
-        // Handle specific course images with known good dimensions
-        if (course._id === 'ai_data_science' || course.course_title?.toLowerCase().includes('ai')) {
-          return '/images/courses/ai-data-science.png';
-        } else if (course._id === 'digital_marketing' || course.course_title?.toLowerCase().includes('digital marketing')) {
-          return '/images/courses/digital-marketing.png';
-        } else if (course._id === 'personality_development' || course.course_title?.toLowerCase().includes('personality')) {
-          return '/images/courses/pd.jpg';
-        } else if (course._id === 'vedic_mathematics' || course.course_title?.toLowerCase().includes('vedic')) {
-          return '/images/courses/vd.jpg';
-        }
-        
-        return rawImage;
-      })();
+      // Process course image using safe image URL function
+      const courseImage = getSafeCourseImageUrl(
+        course.course_image || course.thumbnail,
+        course._id,
+        course.course_title
+      );
       
       return {
         _id: course._id,
@@ -646,6 +617,17 @@ const CourseCardWrapper = memo<{
 
 CourseCardWrapper.displayName = 'CourseCardWrapper';
 
+// Define ImageWrapper props interface
+interface ImageWrapperProps {
+  src: string;
+  alt: string;
+  onLoad?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
+  onError?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
+  priority?: boolean;
+  isLCP?: boolean;
+  index?: number;
+}
+
 // Simple ImageWrapper component using OptimizedImage
 const ImageWrapper: React.FC<ImageWrapperProps> = ({ 
   src, 
@@ -659,11 +641,15 @@ const ImageWrapper: React.FC<ImageWrapperProps> = ({
   // Determine if this is an LCP candidate (first 2 images above the fold)
   const shouldBeLCP = isLCP || index < 2;
 
+  // Ensure we have valid props
+  const validSrc = src || '/fallback-course-image.jpg';
+  const validAlt = alt || 'Course Image';
+  
   // Get optimized image props with fill mode for responsive scaling
   const imageProps = getImageProps(
     'COURSE_CARD',
-    src || '/fallback-course-image.jpg',
-    alt,
+    validSrc,
+    validAlt,
     shouldBeLCP,
     true // Use fill mode for proper scaling
   );
@@ -672,8 +658,10 @@ const ImageWrapper: React.FC<ImageWrapperProps> = ({
     <div className="relative w-full aspect-[4/3] min-h-[160px] sm:min-h-[140px] md:min-h-[150px] bg-gray-100 dark:bg-gray-800/50 overflow-hidden rounded-t-xl group">
       <OptimizedImage
         {...imageProps}
+        src={validSrc}
         onLoad={onLoad}
         onError={onError}
+        fallbackSrc="/fallback-course-image.jpg"
       />
       {/* Enhanced gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/30 dark:from-black/20 dark:to-black/40 transition-opacity group-hover:opacity-70" />
