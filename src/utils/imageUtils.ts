@@ -4,12 +4,12 @@ export const shimmer = (w: number, h: number) => `
 <svg width="${w}" height="${h}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
   <defs>
     <linearGradient id="g">
-      <stop stop-color="#f3f4f6" offset="20%" />
-      <stop stop-color="#e5e7eb" offset="50%" />
-      <stop stop-color="#f3f4f6" offset="70%" />
+      <stop stop-color="#e2e8f0" offset="20%" />
+      <stop stop-color="#f1f5f9" offset="50%" />
+      <stop stop-color="#e2e8f0" offset="70%" />
     </linearGradient>
   </defs>
-  <rect width="${w}" height="${h}" fill="#f3f4f6" />
+  <rect width="${w}" height="${h}" fill="#e2e8f0" />
   <rect id="r" width="${w}" height="${h}" fill="url(#g)" />
   <animate xlink:href="#r" attributeName="x" from="-${w}" to="${w}" dur="1s" repeatCount="indefinite"  />
 </svg>`;
@@ -18,6 +18,50 @@ export const toBase64 = (str: string) =>
   typeof window === 'undefined'
     ? Buffer.from(str).toString('base64')
     : window.btoa(str);
+
+// Function to get image dimensions without loading full image
+export const getImageDimensions = (url: string): Promise<{ width: number; height: number }> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      resolve({
+        width: img.naturalWidth,
+        height: img.naturalHeight
+      });
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+};
+
+// Function to check if image dimensions are within limits
+export const validateImageDimensions = async (url: string, maxWidth = 9000, maxHeight = 7000) => {
+  try {
+    const { width, height } = await getImageDimensions(url);
+    return {
+      isValid: width <= maxWidth && height <= maxHeight,
+      dimensions: { width, height },
+      maxDimensions: { maxWidth, maxHeight }
+    };
+  } catch (error) {
+    console.error('Error validating image dimensions:', error);
+    return {
+      isValid: false,
+      error: 'Failed to load image'
+    };
+  }
+};
+
+// Function to get image aspect ratio
+export const getImageAspectRatio = async (url: string): Promise<number> => {
+  try {
+    const { width, height } = await getImageDimensions(url);
+    return width / height;
+  } catch (error) {
+    console.error('Error calculating aspect ratio:', error);
+    return 16 / 9; // Default aspect ratio
+  }
+};
 
 // Generate placeholder image data URL for course cards
 export const generateCoursePlaceholder = (width: number = 400, height: number = 250) => {
