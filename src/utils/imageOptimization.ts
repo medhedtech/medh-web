@@ -162,7 +162,7 @@ export const generateSizesAttribute = (breakpoints?: {
   return `(max-width: 640px) ${mobile}, (max-width: 1024px) ${tablet}, ${desktop}`;
 };
 
-// Constants for image optimization
+// Constants for image optimization - Updated for better handling
 export const IMAGE_OPTIMIZATION = {
   COURSE_CARD: {
     maxWidth: 400,
@@ -171,7 +171,11 @@ export const IMAGE_OPTIMIZATION = {
     quality: {
       lcp: 95,
       normal: 85
-    }
+    },
+    // Add maximum source dimensions to prevent processing issues
+    maxSourceWidth: 8000,
+    maxSourceHeight: 6000,
+    maxFileSizeMB: 10
   },
   COURSE_DETAIL: {
     maxWidth: 800,
@@ -180,7 +184,10 @@ export const IMAGE_OPTIMIZATION = {
     quality: {
       lcp: 95,
       normal: 85
-    }
+    },
+    maxSourceWidth: 8000,
+    maxSourceHeight: 6000,
+    maxFileSizeMB: 10
   }
 } as const;
 
@@ -223,32 +230,109 @@ export const getImageSizes = (type: 'card' | 'detail' | 'hero') => {
   }
 };
 
-// Function to optimize course image URL with scaling parameters
+// Enhanced function to get safe course image URL with fallback logic
+export const getSafeCourseImageUrl = (
+  courseImage: string | undefined | null,
+  courseId?: string,
+  courseTitle?: string
+): string => {
+  // Default fallback image
+  const fallbackImage = '/fallback-course-image.jpg';
+  
+  // If no image provided, use fallback
+  if (!courseImage) {
+    return fallbackImage;
+  }
+
+  // Handle specific course images with known good dimensions
+  if (courseId || courseTitle) {
+    const id = courseId?.toLowerCase() || '';
+    const title = courseTitle?.toLowerCase() || '';
+    
+    // Use optimized PNG versions for these courses (they have good dimensions)
+    if (id.includes('ai_data_science') || title.includes('ai') || title.includes('data science')) {
+      return '/images/courses/ai-data-science.png';
+    } 
+    if (id.includes('digital_marketing') || title.includes('digital marketing')) {
+      return '/images/courses/digital-marketing.png';
+    }
+    
+    // For personality development and vedic mathematics, the original images are too large
+    // We'll use the fallback and let the optimization handle it
+    if (id.includes('personality_development') || title.includes('personality')) {
+      // Try to use the large image but with heavy optimization
+      return courseImage;
+    }
+    if (id.includes('vedic_mathematics') || title.includes('vedic')) {
+      // Try to use the large image but with heavy optimization
+      return courseImage;
+    }
+  }
+
+  // For other images, return the original URL (will be processed by optimization)
+  return courseImage;
+};
+
+// Function to optimize course image URL with enhanced scaling parameters
 export const optimizeCourseImage = (src: string, width?: number, height?: number): string => {
   // If it's already an optimized URL or a data URL, return as is
-  if (src.startsWith('data:') || src.includes('?w=')) {
+  if (src.startsWith('data:') || src.includes('?w=') || src.includes('_next/image')) {
     return src;
   }
 
-  // Build optimization parameters
-  const params = new URLSearchParams();
+  // Get safe image URL first
+  const safeUrl = src;
   
-  if (width) {
-    params.append('w', width.toString());
+  // For local images that might be too large, add optimization parameters
+  if (safeUrl.startsWith('/images/courses/')) {
+    // Build optimization parameters for large local images
+    const params = new URLSearchParams();
+    
+    if (width) {
+      params.append('w', Math.min(width, 800).toString()); // Cap width at 800px
+    }
+    if (height) {
+      params.append('h', Math.min(height, 600).toString()); // Cap height at 600px
+    }
+    
+    // Add quality parameter - higher compression for large source images
+    if (safeUrl.includes('pd.jpg') || safeUrl.includes('vd.jpg')) {
+      params.append('q', '75'); // Higher compression for large images
+    } else {
+      params.append('q', '85');
+    }
+    
+    // Add fit parameter to maintain aspect ratio
+    params.append('fit', 'cover');
+    
+    // Check if the URL already has parameters
+    const separator = safeUrl.includes('?') ? '&' : '?';
+    return `${safeUrl}${separator}${params.toString()}`;
   }
-  if (height) {
-    params.append('h', height.toString());
+
+  // For external URLs, build optimization parameters
+  if (!safeUrl.startsWith('/')) {
+    const params = new URLSearchParams();
+    
+    if (width) {
+      params.append('w', width.toString());
+    }
+    if (height) {
+      params.append('h', height.toString());
+    }
+    
+    // Add quality parameter
+    params.append('q', '85');
+    
+    // Add fit parameter to maintain aspect ratio
+    params.append('fit', 'cover');
+    
+    // Check if the URL already has parameters
+    const separator = safeUrl.includes('?') ? '&' : '?';
+    return `${safeUrl}${separator}${params.toString()}`;
   }
   
-  // Add quality parameter
-  params.append('q', '85');
-  
-  // Add fit parameter to maintain aspect ratio
-  params.append('fit', 'cover');
-  
-  // Check if the URL already has parameters
-  const separator = src.includes('?') ? '&' : '?';
-  return `${src}${separator}${params.toString()}`;
+  return safeUrl;
 };
 
 // Function to generate a simple SVG blur placeholder with proper dimensions
@@ -277,10 +361,7 @@ export const getImageProps = (
   const optimization = getImageOptimization(type);
   
   // Calculate scaled dimensions if original dimensions are provided
-  let scaledDimensions = {
-    width: optimization.maxWidth,
-    height: optimization.maxHeight
-  };
+  let scaledDimensions: { width: number; height: number };
   
   if (originalDimensions) {
     scaledDimensions = calculateScaledDimensions(
@@ -291,7 +372,10 @@ export const getImageProps = (
     );
   } else {
     // Use aspect ratio to calculate height from width
-    scaledDimensions.height = Math.round(scaledDimensions.width / optimization.aspectRatio);
+    scaledDimensions = {
+      width: optimization.maxWidth,
+      height: Math.round(optimization.maxWidth / optimization.aspectRatio)
+    };
   }
 
   const baseProps = {
