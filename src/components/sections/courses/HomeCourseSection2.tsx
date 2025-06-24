@@ -11,7 +11,7 @@ import { apiUrls } from '@/apis/index';
 import { VideoBackgroundContext } from '@/components/layout/main/Home2';
 import { useTheme } from "next-themes";
 import { useCourseImagePreloader } from '@/components/shared/ImagePreloader';
-import { getImageProps } from '@/utils/imageOptimization';
+import { getImageProps, getSafeCourseImageUrl } from '@/utils/imageOptimization';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 
 // PERFORMANCE OPTIMIZATION: Simplified styles without heavy caching
@@ -491,27 +491,12 @@ const CourseCardWrapper = memo<{
       const minBatchSize = course.prices?.[0]?.min_batch_size || 2;
       const displayPrice = batchPrice || course.prices?.[0]?.individual || null;
 
-      // Process course image with size constraints
-      const courseImage = (() => {
-        const defaultImage = '/fallback-course-image.jpg';
-        const rawImage = course.course_image || course.thumbnail;
-        
-        // If no image provided, use default
-        if (!rawImage) return defaultImage;
-        
-        // Handle specific course images with known good dimensions
-        if (course._id === 'ai_data_science' || course.course_title?.toLowerCase().includes('ai')) {
-          return '/images/courses/ai-data-science.png';
-        } else if (course._id === 'digital_marketing' || course.course_title?.toLowerCase().includes('digital marketing')) {
-          return '/images/courses/digital-marketing.png';
-        } else if (course._id === 'personality_development' || course.course_title?.toLowerCase().includes('personality')) {
-          return '/images/courses/pd.jpg';
-        } else if (course._id === 'vedic_mathematics' || course.course_title?.toLowerCase().includes('vedic')) {
-          return '/images/courses/vd.jpg';
-        }
-        
-        return rawImage;
-      })();
+      // Process course image using safe image URL function
+      const courseImage = getSafeCourseImageUrl(
+        course.course_image || course.thumbnail,
+        course._id,
+        course.course_title
+      );
 
       return {
         _id: course._id || course.id || `live-course-${index}`,
@@ -564,26 +549,12 @@ const CourseCardWrapper = memo<{
     } else {
       const { videoCount, qnaSessions } = getBlendedCourseSessions(course);
       
-      // Process course image with size constraints for blended courses
-      const courseImage = (() => {
-        const defaultImage = '/fallback-course-image.jpg';
-        const rawImage = course.course_image || course.thumbnail;
-        
-        if (!rawImage) return defaultImage;
-        
-        // Handle specific course images with known good dimensions
-        if (course._id === 'ai_data_science' || course.course_title?.toLowerCase().includes('ai')) {
-          return '/images/courses/ai-data-science.png';
-        } else if (course._id === 'digital_marketing' || course.course_title?.toLowerCase().includes('digital marketing')) {
-          return '/images/courses/digital-marketing.png';
-        } else if (course._id === 'personality_development' || course.course_title?.toLowerCase().includes('personality')) {
-          return '/images/courses/pd.jpg';
-        } else if (course._id === 'vedic_mathematics' || course.course_title?.toLowerCase().includes('vedic')) {
-          return '/images/courses/vd.jpg';
-        }
-        
-        return rawImage;
-      })();
+      // Process course image using safe image URL function
+      const courseImage = getSafeCourseImageUrl(
+        course.course_image || course.thumbnail,
+        course._id,
+        course.course_title
+      );
       
       return {
         _id: course._id,
@@ -646,6 +617,17 @@ const CourseCardWrapper = memo<{
 
 CourseCardWrapper.displayName = 'CourseCardWrapper';
 
+// Define ImageWrapper props interface
+interface ImageWrapperProps {
+  src: string;
+  alt: string;
+  onLoad?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
+  onError?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
+  priority?: boolean;
+  isLCP?: boolean;
+  index?: number;
+}
+
 // Simple ImageWrapper component using OptimizedImage
 const ImageWrapper: React.FC<ImageWrapperProps> = ({ 
   src, 
@@ -659,21 +641,25 @@ const ImageWrapper: React.FC<ImageWrapperProps> = ({
   // Determine if this is an LCP candidate (first 2 images above the fold)
   const shouldBeLCP = isLCP || index < 2;
 
-  // Get optimized image props with fill mode for responsive scaling
-  const imageProps = getImageProps(
-    'COURSE_CARD',
-    src || '/fallback-course-image.jpg',
-    alt,
-    shouldBeLCP,
-    true // Use fill mode for proper scaling
-  );
+  // Ensure we have valid props
+  const validSrc = src || '/fallback-course-image.jpg';
+  const validAlt = alt || 'Course Image';
 
   return (
     <div className="relative w-full aspect-[4/3] min-h-[160px] sm:min-h-[140px] md:min-h-[150px] bg-gray-100 dark:bg-gray-800/50 overflow-hidden rounded-t-xl group">
       <OptimizedImage
-        {...imageProps}
+        src={validSrc}
+        alt={validAlt}
+        fill={true}
+        className="object-cover transition-opacity duration-300"
+        quality={shouldBeLCP ? 95 : 85}
+        priority={shouldBeLCP}
+        placeholder="blur"
         onLoad={onLoad}
         onError={onError}
+        loading={shouldBeLCP ? 'eager' : 'lazy'}
+        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+        fallbackSrc="/fallback-course-image.jpg"
       />
       {/* Enhanced gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/30 dark:from-black/20 dark:to-black/40 transition-opacity group-hover:opacity-70" />
@@ -735,23 +721,29 @@ const HomeCourseSection2 = memo<{
             skipCache: true,
             requireAuth: false,
             onSuccess: (response) => {
-              console.log("Live Courses API Response received");
+              console.log("Live Courses API Response received:", response);
               
               let processedCourses: ICourse[] = [];
               
               try {
-                // Check different potential response structures
-                if (response && Array.isArray(response) && response.length > 0) {
-                  console.log(`Found ${response.length} live courses from API`);
+                // Enhanced response validation - check for null/undefined first
+                if (!response) {
+                  console.log("Response is null/undefined, using fallback data");
+                  processedCourses = [...FALLBACK_LIVE_COURSES];
+                } else if (Array.isArray(response) && response.length > 0) {
+                  console.log(`Found ${response.length} live courses from API (direct array)`);
                   processedCourses = response;
-                } else if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
+                } else if (response && response.data && Array.isArray(response.data)) {
                   console.log(`Found ${response.data.length} live courses from API (in data property)`);
                   processedCourses = response.data;
-                } else if (response && response.courses && Array.isArray(response.courses) && response.courses.length > 0) {
+                } else if (response && response.courses && Array.isArray(response.courses)) {
                   console.log(`Found ${response.courses.length} live courses from API (in courses property)`);
                   processedCourses = response.courses;
+                } else if (response && response.success && response.data && Array.isArray(response.data)) {
+                  console.log(`Found ${response.data.length} live courses from API (success wrapper)`);
+                  processedCourses = response.data;
                 } else {
-                  console.log("No valid live courses found in the API response, using fallback data");
+                  console.log("No valid live courses found in the API response, using fallback data. Response structure:", typeof response, Object.keys(response || {}));
                   processedCourses = [...FALLBACK_LIVE_COURSES];
                 }
                 
@@ -876,46 +868,51 @@ const HomeCourseSection2 = memo<{
           getQuery({
             url: blendedApiUrl,
             onSuccess: (response) => {
-              console.log("Blended Courses API Response received");
+              console.log("Blended Courses API Response received:", response);
               
               // Process the blended courses with better error handling
               try {
-                // The API response data is directly in the response, not in data.data
-                if (response && Array.isArray(response) && response.length > 0) {
-                  console.log(`Found ${response.length} blended courses from API`);
-                  
-                  // Process each course
-                  const processedCourses = response.map((course: any) => {
-                    return {
-                      ...course,
-                      classType: 'blended', // Explicitly set classType
-                      course_title: course.course_title || 'Untitled Course',
-                      course_category: course.course_category || 'Uncategorized',
-                      course_image: course.course_image || course.thumbnail || '/fallback-course-image.jpg'
-                    };
-                  });
-                  
-                  console.log("Processed blended courses:", processedCourses.length);
-                  setBlendedCourses(processedCourses);
-                } else if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
-                  // Alternative structure check if the response is wrapped in a data property
+                let coursesToProcess: any[] = [];
+                
+                // Enhanced response validation - check for null/undefined first
+                if (!response) {
+                  console.log("Response is null/undefined, setting empty blended courses");
+                  setBlendedCourses([]);
+                } else if (Array.isArray(response)) {
+                  console.log(`Found ${response.length} blended courses from API (direct array)`);
+                  coursesToProcess = response;
+                } else if (response && response.data && Array.isArray(response.data)) {
                   console.log(`Found ${response.data.length} blended courses from API (in data property)`);
-                  
-                  // Process each course
-                  const processedCourses = response.data.map((course: any) => {
+                  coursesToProcess = response.data;
+                } else if (response && response.courses && Array.isArray(response.courses)) {
+                  console.log(`Found ${response.courses.length} blended courses from API (in courses property)`);
+                  coursesToProcess = response.courses;
+                } else if (response && response.success && response.data && Array.isArray(response.data)) {
+                  console.log(`Found ${response.data.length} blended courses from API (success wrapper)`);
+                  coursesToProcess = response.data;
+                } else {
+                  console.log("No blended courses found in the API response. Response structure:", typeof response, Object.keys(response || {}));
+                  setBlendedCourses([]);
+                  resolve(true);
+                  return;
+                }
+                
+                // Process the courses if we have any
+                if (coursesToProcess.length > 0) {
+                  const processedCourses = coursesToProcess.map((course: any) => {
                     return {
                       ...course,
                       classType: 'blended', // Explicitly set classType
                       course_title: course.course_title || 'Untitled Course',
                       course_category: course.course_category || 'Uncategorized',
-                      course_image: course.course_image || course.thumbnail || '/fallback-course-image.jpg'
+                      course_image: getSafeCourseImageUrl(course.course_image || course.thumbnail, course._id, course.course_title) || '/fallback-course-image.jpg'
                     };
                   });
                   
                   console.log("Processed blended courses:", processedCourses.length);
                   setBlendedCourses(processedCourses);
                 } else {
-                  console.log("No blended courses found in the API response");
+                  console.log("No courses to process, setting empty array");
                   setBlendedCourses([]);
                 }
               } catch (error) {

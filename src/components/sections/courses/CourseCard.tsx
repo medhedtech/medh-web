@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 import { isFreePrice } from '@/utils/priceUtils';
 import { shimmer, toBase64 } from '@/utils/imageUtils';
-import { optimizeCourseImage, preloadCriticalImage, getCourseCardSizes } from '@/utils/imageOptimization';
+import { optimizeCourseImage, preloadCriticalImage, getCourseCardSizes, getSafeCourseImageUrl } from '@/utils/imageOptimization';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import { batchDOMOperations, throttleRAF } from '@/utils/performanceOptimization';
 
@@ -226,9 +226,9 @@ const ImageWrapper: React.FC<ImageWrapperProps> = ({
   // Determine if this is an LCP candidate (first 2 images above the fold)
   const shouldBeLCP = isLCP || index < 2;
 
-  // Fallback image source - use imported image6 as reliable fallback
+  // Get safe image URL with proper fallback handling
   const fallbackSrc = typeof image6 === 'string' ? image6 : image6.src;
-  const imageSrc = src || fallbackSrc;
+  const imageSrc = getSafeCourseImageUrl(src, undefined, alt) || fallbackSrc;
 
   const handleLoadWrapper = () => {
     if (onLoad) {
@@ -247,8 +247,6 @@ const ImageWrapper: React.FC<ImageWrapperProps> = ({
       <OptimizedImage
         src={imageSrc}
         alt={alt}
-        width={400}
-        height={250}
         fill={true}
         className="object-cover transition-opacity duration-300 gpu-accelerated"
         quality={shouldBeLCP ? 95 : 85}
@@ -259,10 +257,6 @@ const ImageWrapper: React.FC<ImageWrapperProps> = ({
         loading={shouldBeLCP ? 'eager' : 'lazy'}
         decoding={shouldBeLCP ? 'sync' : 'async'}
         sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-        style={{
-          maxWidth: '9000px', // Prevent exceeding maximum dimensions
-          maxHeight: '7000px'
-        }}
       />
 
       {/* Enhanced gradient overlay with GPU acceleration */}
@@ -1371,7 +1365,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
 
               {/* Image section */}
               <ImageWrapper
-                src={course?.course_image || (image6 as any)}
+                src={getSafeCourseImageUrl(course?.course_image, course?._id, course?.course_title) || (image6 as any)}
                 alt={course?.course_title || "Course Image"}
                 onLoad={handleImageLoad}
                 onError={handleImageError}
@@ -1536,7 +1530,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
           <div className={`flex flex-col h-full transition-opacity duration-300 ${(isHovered && !isMobile) || (mobileHoverActive && isMobile) ? 'opacity-0' : 'opacity-100'}`}>
             {/* Updated Image section */}
             <ImageWrapper
-              src={course?.course_image || (image6 as any)}
+              src={getSafeCourseImageUrl(course?.course_image, course?._id, course?.course_title) || (image6 as any)}
               alt={course?.course_title || "Course Image"}
               onLoad={handleImageLoad}
               onError={handleImageError}
