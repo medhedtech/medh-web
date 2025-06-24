@@ -1,0 +1,68 @@
+/* Hide scrollbar for Chrome, Safari and Opera */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Smooth scrolling behavior */
+.smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scroll-padding: 1rem;
+}
+
+/* Snap scrolling */
+.snap-x {
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 1rem;
+  scroll-padding-right: 1rem;
+}
+
+.snap-center {
+  scroll-snap-align: center;
+}
+
+/* Touch interaction */
+.touch-pan-x {
+  touch-action: pan-x;
+}
+
+/* Gradient fade for scroll indicators */
+.scroll-fade-left {
+  background: linear-gradient(to right, var(--bg-color) 0%, transparent 100%);
+  opacity: 0.8;
+}
+
+.scroll-fade-right {
+  background: linear-gradient(to left, var(--bg-color) 0%, transparent 100%);
+  opacity: 0.8;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 767px) {
+  .scrollbar-hide {
+    padding-bottom: env(safe-area-inset-bottom);
+    margin-bottom: -env(safe-area-inset-bottom);
+  }
+  
+  .touch-pan-x {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 768px) {
+  .scrollbar-hide {
+    overflow: visible;
+  }
+  
+  .scroll-fade-left,
+  .scroll-fade-right {
+    display: none;
+  }
+} 

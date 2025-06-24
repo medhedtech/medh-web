@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Crown, Star, Shield, Calendar, Users, ArrowRight, Sparkles, CheckCircle, Zap, Gift, Download, Share2, QrCode, RotateCcw, Phone, Mail, Globe, MapPin, Award, BookOpen, Lock, Unlock, MessageCircle, Percent, Sun, X, Loader2, Clock, Target } from "lucide-react";
+import { Crown, Star, Shield, Calendar, Users, ArrowRight, Sparkles, CheckCircle, Zap, Gift, Download, Share2, QrCode, RotateCcw, Phone, Mail, Globe, MapPin, Award, BookOpen, Lock, Unlock, MessageCircle, Percent, Sun, X, Loader2, Clock, Target, Check } from "lucide-react";
 
 // TypeScript interfaces based on the JSON structure
 interface MembershipUser {
@@ -161,7 +161,7 @@ const PremiumMembershipCard: React.FC<MembershipCardProps> = ({
         type: 'Silver' as const,
         badge: { text: 'SILVER MEMBER', icon: 'star', style: 'ribbon' },
         theme: 'glass',
-        gradientColors: ['#3b82f6', '#1d4ed8', '#1e40af'],
+        gradientColors: ['#3b82f6', '#2563eb', '#1d4ed8'],
         glowColor: '#60a5fa',
         pattern: 'diagonal-stripes',
         hologramEffect: true
@@ -227,7 +227,7 @@ const PremiumMembershipCard: React.FC<MembershipCardProps> = ({
               onClick={onUpgrade}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25"
+              className="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25"
             >
               <Sparkles className="w-4 h-4" />
               Explore Plans
@@ -245,7 +245,13 @@ const PremiumMembershipCard: React.FC<MembershipCardProps> = ({
       name: userName, 
       membershipId: `${membershipType.toUpperCase()}-${Date.now().toString().slice(-6)}` 
     },
-    tier: config.tier,
+    tier: {
+      ...config.tier,
+      style: {
+        container: "pt-16 sm:pt-20", // Added top padding to shift content down
+        content: "space-y-8 sm:space-y-10" // Increased spacing between sections
+      }
+    },
     progress: config.progress,
     features: config.features,
     actions: {
@@ -279,14 +285,14 @@ const PremiumMembershipCard: React.FC<MembershipCardProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      onHoverStart={() => { setIsHovered(true); setIsFlipped(true); }}
-      onHoverEnd={() => { setIsHovered(false); setIsFlipped(false); }}
+      onHoverStart={() => { if (window.innerWidth >= 768) { setIsHovered(true); setIsFlipped(true); } }}
+      onHoverEnd={() => { if (window.innerWidth >= 768) { setIsHovered(false); setIsFlipped(false); } }}
       className="max-w-md mx-auto group"
     >
       <div className="relative overflow-hidden">
         {/* Flip Container - Portrait Mode */}
         <motion.div
-          className="relative w-full h-[580px] preserve-3d"
+          className="relative w-full h-[580px] sm:h-[580px] preserve-3d"
           animate={{ rotateY: isFlipped ? 180 : 0 }}
           transition={{ duration: 0.6, ease: "easeInOut" }}
           style={{ perspective: "1000px", transformStyle: "preserve-3d" }}
@@ -334,30 +340,18 @@ const PremiumMembershipCard: React.FC<MembershipCardProps> = ({
                 </div>
               )}
 
-              {/* Holographic Effect */}
-              {currentData.tier.hologramEffect && (
-                <motion.div
-                  className="absolute inset-0 opacity-0"
-                  animate={isHovered ? { opacity: 0.1 } : { opacity: 0 }}
-                  style={{
-                    background: `linear-gradient(45deg, rgba(255,255,255,0.3), transparent, rgba(255,255,255,0.15), transparent, rgba(255,255,255,0.3))`
-                  }}
-                  transition={{ duration: 0.4 }}
-                />
-              )}
-
               {/* Content */}
-              <div className="relative z-10 p-8 h-full flex flex-col text-white">
+              <div className={`relative z-10 p-4 sm:p-6 h-full flex flex-col text-white ${currentData.tier.style.content}`}>
                 {/* Header Section */}
-                <div className="flex items-start justify-between mb-6">
+                <div className="flex items-start justify-between mb-5 sm:mb-6">
                   {/* User Profile */}
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 sm:gap-4">
                     <motion.div 
                       className="relative"
                       animate={isHovered ? { scale: 1.05 } : { scale: 1 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <div className="w-16 h-16 rounded-full overflow-hidden border-3 border-white/40 shadow-xl">
+                      <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden border-3 border-white/40 shadow-xl">
                         {currentData.user.photo ? (
                           <img
                             src={currentData.user.photo}
@@ -368,7 +362,7 @@ const PremiumMembershipCard: React.FC<MembershipCardProps> = ({
                           />
                         ) : (
                           <div className="w-full h-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                            <span className="text-xl font-bold">
+                            <span className="text-lg sm:text-xl font-bold">
                               {currentData.user.name.charAt(0).toUpperCase()}
                             </span>
                           </div>
@@ -377,10 +371,10 @@ const PremiumMembershipCard: React.FC<MembershipCardProps> = ({
                     </motion.div>
                     
                     <div>
-                      <h2 className="text-lg font-bold drop-shadow-sm">
+                      <h2 className="text-base sm:text-lg font-bold drop-shadow-sm">
                         {currentData.user.name}
                       </h2>
-                      <p className="text-xs opacity-90 font-mono">
+                      <p className="text-[10px] sm:text-xs opacity-90 font-mono">
                         {currentData.user.membershipId}
                       </p>
                     </div>
@@ -388,38 +382,38 @@ const PremiumMembershipCard: React.FC<MembershipCardProps> = ({
                   
                   {/* Badge Ribbon */}
                   <div 
-                    className="px-3 py-2 rounded-full text-white text-xs font-bold tracking-wider shadow-lg flex items-center gap-2 border border-white/30"
+                    className="px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-white text-[10px] sm:text-xs font-bold tracking-wider shadow-lg flex items-center gap-1.5 sm:gap-2 border border-white/30"
                     style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
                   >
-                    {getIconComponent(currentData.tier.badge.icon, "w-4 h-4")}
+                    {getIconComponent(currentData.tier.badge.icon, "w-3 h-3 sm:w-4 sm:h-4")}
                     {currentData.tier.badge.text}
                   </div>
                 </div>
 
                 {/* Membership Title */}
-                <div className="mb-6">
-                  <h1 className="text-3xl font-bold tracking-wider drop-shadow-sm" style={{ color: currentData.tier.gradientColors[0] }}>
+                <div className="mb-5 sm:mb-6">
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-wider drop-shadow-sm" style={{ color: currentData.tier.gradientColors[0] }}>
                     {membershipType.toUpperCase()}
                   </h1>
-                  <h2 className="text-2xl font-bold drop-shadow-sm">
+                  <h2 className="text-xl sm:text-2xl font-bold drop-shadow-sm">
                     MEMBER
                   </h2>
                 </div>
 
                 {/* Progress Section */}
                 {currentData.progress.showBar && (
-                  <div className="space-y-3 mb-6">
+                  <div className="space-y-3 sm:space-y-4 mb-5 sm:mb-6">
                     <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold drop-shadow-sm">
+                      <span className="text-base sm:text-lg font-bold drop-shadow-sm">
                         {currentData.progress.text}
                       </span>
-                      <span className="text-sm opacity-90">
+                      <span className="text-xs sm:text-sm opacity-90">
                         {currentData.progress.level}/{currentData.progress.totalLevels}
                       </span>
                     </div>
                     
                     {/* Progress Bar */}
-                    <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden shadow-inner">
+                    <div className="w-full bg-white/20 rounded-full h-2.5 sm:h-3 overflow-hidden shadow-inner">
                       <motion.div
                         className="h-full rounded-full shadow-sm"
                         style={{ backgroundColor: currentData.tier.gradientColors[0] }}
@@ -433,7 +427,7 @@ const PremiumMembershipCard: React.FC<MembershipCardProps> = ({
 
                 {/* Key Benefits */}
                 <div className="flex-1">
-                  <div className="space-y-3">
+                  <div className="space-y-2 sm:space-y-3">
                     {currentData.features.slice(0, 3).map((feature, index) => (
                       <motion.div
                         key={index}
@@ -441,22 +435,22 @@ const PremiumMembershipCard: React.FC<MembershipCardProps> = ({
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.6 + index * 0.1 }}
                         whileHover={{ scale: 1.02, boxShadow: `0 6px 14px -4px ${currentData.tier.glowColor}66` }}
-                        className="relative flex items-center gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border-l-4"
+                        className="relative flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-white/10 backdrop-blur-sm border-l-4"
                         style={{ borderColor: currentData.tier.gradientColors[1] }}
                       >
                         <div 
-                          className="w-8 h-8 flex items-center justify-center rounded-full shadow-inner" 
+                          className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full shadow-inner" 
                           style={{ backgroundColor: `${currentData.tier.gradientColors[0]}66` }}
                         >
-                          {getIconComponent(feature.icon)}
+                          {getIconComponent(feature.icon, "w-3.5 h-3.5 sm:w-4 sm:h-4")}
                         </div>
-                        <span className="text-sm font-semibold leading-snug drop-shadow-sm">
+                        <span className="text-xs sm:text-sm font-semibold leading-snug drop-shadow-sm">
                           {feature.label}
                         </span>
                         {feature.status === 'unlocked' ? (
-                          <Unlock className="w-4 h-4 text-green-300 ml-auto" />
+                          <Unlock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-300 ml-auto" />
                         ) : (
-                          <Lock className="w-4 h-4 text-yellow-300 ml-auto" />
+                          <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-300 ml-auto" />
                         )}
                       </motion.div>
                     ))}
@@ -469,19 +463,44 @@ const PremiumMembershipCard: React.FC<MembershipCardProps> = ({
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 1.2 }}
-                    className="mt-6 flex items-center gap-2 p-3 bg-white/10 rounded-lg backdrop-blur-sm"
+                    className="mt-3 sm:mt-4 flex items-center gap-2 p-2 sm:p-3 bg-white/10 rounded-lg backdrop-blur-sm"
                   >
-                    {getIconComponent(currentData.socialProof.icon)}
-                    <span className="text-xs font-medium drop-shadow-sm">
+                    {getIconComponent(currentData.socialProof.icon, "w-3.5 h-3.5 sm:w-4 sm:h-4")}
+                    <span className="text-[10px] sm:text-xs font-medium drop-shadow-sm">
                       {currentData.socialProof.text}
                     </span>
                   </motion.div>
+                )}
+
+                {/* QR Code Button - Now at the bottom */}
+                <motion.button
+                  onClick={() => setIsFlipped(!isFlipped)}
+                  className="md:hidden mt-3 w-full py-3 px-4 bg-white/20 backdrop-blur-sm rounded-xl shadow-lg border border-white/30 flex items-center justify-center gap-2"
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <QrCode className="w-5 h-5 text-white" />
+                  <span className="text-sm font-medium text-white">View Membership QR</span>
+                </motion.button>
+
+                {/* Mobile Back Button */}
+                {isFlipped && (
+                  <motion.button
+                    onClick={() => setIsFlipped(false)}
+                    className="md:hidden absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full shadow-lg border border-white/30 flex items-center gap-2"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    <span className="text-sm font-medium">Back to Card</span>
+                  </motion.button>
                 )}
               </div>
             </div>
           </motion.div>
 
-          {/* Back Side - QR Code Only */}
+          {/* Back Side - QR Code */}
           <motion.div 
             className="absolute inset-0 w-full h-full backface-hidden"
             style={{
@@ -489,58 +508,33 @@ const PremiumMembershipCard: React.FC<MembershipCardProps> = ({
               transform: "rotateY(180deg)"
             }}
           >
-            <div 
-              className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl backdrop-blur-xl border border-white/20"
-              style={{
-                background: `linear-gradient(135deg, ${currentData.tier.gradientColors[0]}E6, ${currentData.tier.gradientColors[1]}CC, ${currentData.tier.gradientColors[2]}E6)`,
-              }}
-            >
-              {/* Pattern & Contrast Overlay */}
-              <div 
-                className="absolute inset-0 opacity-5"
-                style={{
-                  backgroundImage: currentData.tier.pattern === 'diagonal-stripes' 
-                    ? `repeating-linear-gradient(45deg, transparent, transparent 25px, rgba(255,255,255,0.1) 25px, rgba(255,255,255,0.1) 50px)`
-                    : 'none'
-                }}
-              />
-              {/* Dark overlay for improved contrast */}
-              <div className="absolute inset-0 bg-black/20" />
-
-              {/* Demo Badge */}
-              {(isDemo || !membershipData) && (
-                <div className="absolute top-4 left-4 z-20">
-                  <div className="px-3 py-1 bg-red-500/90 backdrop-blur-sm rounded-full border border-red-400/50 shadow-lg">
-                    <span className="text-white text-xs font-bold tracking-wider">DEMO</span>
+            <div className="relative w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl overflow-hidden">
+              <div className="absolute inset-0 bg-grid-white/[0.05] bg-grid-16" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+              
+              <div className="relative z-10 flex flex-col items-center space-y-4">
+                <h3 className="text-xl font-semibold text-white text-center">Membership QR Code</h3>
+                <p className="text-sm text-slate-300 text-center mb-4">Scan to verify membership</p>
+                
+                <div className="w-48 h-48 bg-white rounded-lg p-2">
+                  <div className="w-full h-full bg-slate-100 rounded flex items-center justify-center">
+                    {qrCodeDataUrl ? (
+                      <img src={qrCodeDataUrl} alt="Membership QR Code" className="w-full h-full" />
+                    ) : (
+                      <QrCode className="w-32 h-32 text-slate-800" />
+                    )}
                   </div>
                 </div>
-              )}
 
-                             {/* Content: Only QR Code */}
-              <div className="relative z-10 p-8 h-full flex flex-col items-center justify-center text-white">
-                {/* Flip Back Button */}
+                {/* Back to Card Button */}
                 <motion.button
-                  onClick={() => setIsFlipped(!isFlipped)}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="absolute top-6 right-6 w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center"
+                  onClick={() => setIsFlipped(false)}
+                  className="md:hidden mt-6 w-full py-3 px-4 bg-white/20 backdrop-blur-sm rounded-xl shadow-lg border border-white/30 flex items-center justify-center gap-2"
+                  whileTap={{ scale: 0.95 }}
                 >
-                  <RotateCcw className="w-4 h-4" />
+                  <RotateCcw className="w-5 h-5 text-white" />
+                  <span className="text-sm font-medium text-white">Back to Card</span>
                 </motion.button>
-
-                {/* QR Code */}
-                <div className="inline-block p-6 bg-white rounded-3xl shadow-2xl">
-                  {qrCodeDataUrl ? (
-                    <img src={qrCodeDataUrl} alt="Membership QR Code" className="w-40 h-40" />
-                  ) : (
-                    <div className="w-40 h-40 bg-slate-100 rounded-2xl flex items-center justify-center">
-                      <QrCode className="w-20 h-20 text-slate-400" />
-                    </div>
-                  )}
-                </div>
-                <p className="text-sm opacity-90 mt-6 drop-shadow-sm font-medium">
-                  {currentData.qrCode.tooltip}
-                </p>
               </div>
             </div>
           </motion.div>
@@ -548,7 +542,7 @@ const PremiumMembershipCard: React.FC<MembershipCardProps> = ({
 
         {/* External Action Buttons */}
         <motion.div 
-          className="mt-8 flex flex-wrap w-full justify-start gap-4"
+          className="mt-4 flex flex-wrap w-full justify-start gap-4"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
@@ -614,52 +608,6 @@ const PremiumMembershipCard: React.FC<MembershipCardProps> = ({
           </motion.button>
         </motion.div>
       </div>
-
-      {/* Enhanced QR Modal */}
-      <AnimatePresence>
-        {showQR && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setShowQR(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-sm w-full"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="text-center space-y-4">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                  Membership Verification
-                </h3>
-                <div className="p-4 bg-white dark:bg-slate-700 rounded-xl shadow-inner">
-                  {qrCodeDataUrl ? (
-                    <img src={qrCodeDataUrl} alt="Membership QR Code" className="w-48 h-48 mx-auto" />
-                  ) : (
-                    <div className="w-48 h-48 mx-auto bg-slate-100 dark:bg-slate-600 rounded-xl flex items-center justify-center">
-                      <QrCode className="w-32 h-32 text-slate-400" />
-                    </div>
-                  )}
-                </div>
-                <div className="text-sm text-slate-600 dark:text-slate-400 space-y-1">
-                  <p>Scan to verify membership status</p>
-                  <p className="text-xs">Contains encrypted member data</p>
-                </div>
-                <button
-                  onClick={() => setShowQR(false)}
-                  className="w-full py-2 px-4 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-medium"
-                >
-                  Close
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 };

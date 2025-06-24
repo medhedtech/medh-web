@@ -1,29 +1,15 @@
 export interface SessionData {
+  title: string;
+  description: string;
+  startTime: string; // ISO date string
+  duration?: number; // in minutes
+  location?: string;
+  meetingLink?: string;
+  attendees?: string[]; // email addresses
+  isOnline?: boolean;
   session_id: string;
   session_date: string;
   session_end_date: string;
-  title: string;
-  description?: string;
-  batch?: {
-    id: string;
-    name: string;
-    code: string;
-  };
-  course?: {
-    id: string;
-    title: string;
-  };
-  instructor?: {
-    _id: string;
-    full_name: string;
-    email: string;
-  };
-  zoom_meeting?: {
-    meeting_id: string;
-    join_url: string;
-    topic: string;
-    password?: string;
-  };
 }
 
 export interface GoogleCalendarEvent {

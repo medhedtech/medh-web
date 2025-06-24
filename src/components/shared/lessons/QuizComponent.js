@@ -5,84 +5,92 @@ import { showToast } from '@/utils/toastManager';
 import DOMPurify from 'isomorphic-dompurify';
 import { marked } from 'marked';
 
-// Mock API call for the quiz - Replace with actual API implementation
+// API call to fetch quiz data
 const fetchQuiz = async (quizId) => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  // Mock quiz data - This would come from your API
-  return {
-    id: quizId,
-    title: "Introduction to Quantum Computing Quiz",
-    description: "Test your understanding of basic quantum computing concepts",
-    time_limit_minutes: 20,
-    passing_score: 70,
-    questions: [
-      {
-        id: "q1",
-        question: "What is a qubit?",
-        type: "multiple_choice",
-        options: [
-          { id: "a", text: "A classical bit that can only be 0 or 1" },
-          { id: "b", text: "A quantum bit that can exist in superposition of states" },
-          { id: "c", text: "A measurement unit for quantum processors" },
-          { id: "d", text: "A unit of quantum energy" }
-        ],
-        correct_answer: "b",
-        explanation: "A qubit, or quantum bit, is the basic unit of quantum information. Unlike classical bits which can be either 0 or 1, qubits can exist in a superposition of both states simultaneously."
+  try {
+    const authToken = localStorage.getItem('authToken');
+    const studentId = localStorage.getItem('userId');
+    
+    if (!studentId) {
+      throw new Error('Student ID not found. Please log in again.');
+    }
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/quizzes/${quizId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-access-token': authToken || '',
       },
-      {
-        id: "q2",
-        question: "Which of the following is NOT a key principle of quantum mechanics?",
-        type: "multiple_choice",
-        options: [
-          { id: "a", text: "Superposition" },
-          { id: "b", text: "Entanglement" },
-          { id: "c", text: "Binary exclusivity" },
-          { id: "d", text: "Interference" }
-        ],
-        correct_answer: "c",
-        explanation: "Binary exclusivity is not a quantum principle. The key principles are superposition (existing in multiple states), entanglement (quantum correlation between particles), and interference (quantum probability waves that can amplify or cancel)."
-      },
-      {
-        id: "q3",
-        question: "Explain the concept of quantum entanglement in your own words.",
-        type: "text",
-        correct_answer: null, // No automatic checking for text answers
-        word_limit: 100,
-        explanation: "Quantum entanglement is a physical phenomenon where a pair or group of particles interact in such a way that the quantum state of each particle cannot be described independently of the others, regardless of the distance separating them."
-      }
-    ]
-  };
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.success && data.data) {
+      return {
+        id: data.data._id,
+        title: data.data.title,
+        description: data.data.description,
+        time_limit_minutes: data.data.timeLimit || 20,
+        passing_score: data.data.passingScore || 70,
+        questions: data.data.questions || []
+      };
+    } else {
+      throw new Error('Quiz data not found');
+    }
+  } catch (error) {
+    console.error('Error fetching quiz:', error);
+    throw error;
+  }
 };
 
-// Mock API call for submitting the quiz - Replace with actual API implementation
+// API call to submit quiz
 const submitQuiz = async (quizId, answers) => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1200));
-  
-  // This would be calculated on the server in a real implementation
-  const results = {
-    passed: true,
-    score: 85,
-    total_questions: answers.length,
-    correct_answers: Math.floor(answers.length * 0.85), // Mock calculation
-    feedback: "Great job! You have a solid understanding of quantum computing basics.",
-    question_results: answers.map(answer => {
-      // Mock logic - in a real app this would be determined by the server
-      const isCorrect = Math.random() > 0.3; // 70% chance of being correct
+  try {
+    const authToken = localStorage.getItem('authToken');
+    const studentId = localStorage.getItem('userId');
+    
+    if (!studentId) {
+      throw new Error('Student ID not found. Please log in again.');
+    }
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/quizzes/${quizId}/submit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-access-token': authToken || '',
+      },
+      body: JSON.stringify({
+        studentId,
+        answers: answers
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.success && data.data) {
       return {
-        question_id: answer.questionId,
-        is_correct: isCorrect,
-        points: isCorrect ? 1 : 0,
-        feedback: isCorrect 
-          ? "Correct! Well done." 
-          : "Incorrect. Review the explanation for more information."
+        passed: data.data.passed || false,
+        score: data.data.score || 0,
+        total_questions: data.data.totalQuestions || answers.length,
+        correct_answers: data.data.correctAnswers || 0,
+        feedback: data.data.feedback || 'Quiz completed.',
+        question_results: data.data.questionResults || []
       };
-    })
-  };
-  
-  return results;
+    } else {
+      throw new Error(data.message || 'Quiz submission failed');
+    }
+  } catch (error) {
+    console.error('Error submitting quiz:', error);
+    throw error;
+  }
 };
 
 const QuizComponent = ({ quizId, lessonId, courseId, meta = {}, onComplete }) => {

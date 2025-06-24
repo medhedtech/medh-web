@@ -1,27 +1,29 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Search, Calendar, Clock, Star, Eye, Play, BookOpen, Users, User, FileText, Download, Folder, Video, Globe, Loader2, ChevronRight, Check } from "lucide-react";
+import { X, Search, Calendar, Clock, Star, Eye, Play, Video, Users, User, FileText, Download, Folder, Globe, Loader2, ChevronRight, Check } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { apiUrls } from "@/apis";
+import useGetQuery from "@/hooks/getQuery.hook";
 
-interface CourseMaterial {
+interface RecordedSession {
   id: string;
-  title: string;
+  course_title: string;
   instructor?: {
     name: string;
     rating: number;
   };
   category?: string;
-  type?: 'document' | 'video' | 'assignment' | 'resource';
-  size?: string;
+  course_tag?: string;
   duration?: string;
-  uploadDate?: string;
-  course?: string;
+  date?: string;
+  created_at?: string;
   description?: string;
-  downloadUrl?: string;
-  viewUrl?: string;
-  downloads?: number;
+  views?: number;
   rating?: number;
+  thumbnail?: string;
+  video_url?: string;
+  status?: 'available' | 'processing' | 'unavailable';
 }
 
 interface TabButtonProps {
@@ -63,13 +65,15 @@ const TabButton: React.FC<TabButtonProps> = ({ active, onClick, children, count 
   </motion.button>
 );
 
-// Enhanced Material Card Component
-const MaterialCard = ({ 
-  material, 
-  onViewDetails 
+// Enhanced Recorded Session Card Component
+const RecordedSessionCard = ({ 
+  session, 
+  onViewDetails,
+  onPlay
 }: { 
-  material: CourseMaterial; 
-  onViewDetails: (material: CourseMaterial) => void;
+  session: RecordedSession; 
+  onViewDetails: (session: RecordedSession) => void;
+  onPlay: (session: RecordedSession) => void;
 }) => {
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Not available";
@@ -81,102 +85,97 @@ const MaterialCard = ({
     });
   };
 
-  const getTypeIcon = (type?: string) => {
-    switch (type) {
-      case 'document':
-        return <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />;
-      case 'video':
-        return <Video className="w-5 h-5 text-blue-600 dark:text-blue-400" />;
-      case 'assignment':
-        return <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />;
-      case 'resource':
-        return <Folder className="w-5 h-5 text-blue-600 dark:text-blue-400" />;
+  const getStatusColor = (status?: string) => {
+    switch (status) {
+      case 'available':
+        return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
+      case 'processing':
+        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
+      case 'unavailable':
+        return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
       default:
-        return <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />;
+        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
     }
   };
 
-  const getTypeColor = (type?: string) => {
-    switch (type) {
-      case 'document':
-        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
-      case 'video':
-        return 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300';
-      case 'assignment':
-        return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
-      case 'resource':
-        return 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300';
+  const getStatusStripe = (status?: string) => {
+    switch (status) {
+      case 'available':
+        return 'bg-gradient-to-r from-green-500 to-green-600';
+      case 'processing':
+        return 'bg-gradient-to-r from-yellow-500 to-yellow-600';
+      case 'unavailable':
+        return 'bg-gradient-to-r from-red-500 to-red-600';
       default:
-        return 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300';
+        return 'bg-gradient-to-r from-blue-500 to-blue-600';
     }
   };
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
       {/* Status stripe */}
-      <div className="w-full h-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-t-xl mb-4 -mt-6 -mx-6"></div>
+      <div className={`w-full h-1 ${getStatusStripe(session?.status || 'available')} rounded-t-xl mb-4 -mt-6 -mx-6`}></div>
       
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 line-clamp-1">
-            {material?.title || "No Title Available"}
+            {session?.course_title || "No Title Available"}
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-            {material?.course || "No course"}
+            {session?.category || session?.course_tag || "General"} • Recorded Session
           </p>
           <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
             <div className="flex items-center">
               <Calendar className="w-3 h-3 mr-1" />
-              {formatDate(material?.uploadDate)}
+              {formatDate(session?.date || session?.created_at)}
             </div>
             <div className="flex items-center">
               <Clock className="w-3 h-3 mr-1" />
-              {material?.duration || "Duration TBD"}
+              {session?.duration || "Duration TBD"}
             </div>
           </div>
         </div>
         <div className="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-          {getTypeIcon(material?.type)}
+          <Video className="w-5 h-5 text-blue-600 dark:text-blue-400" />
         </div>
       </div>
-      
-      {/* Type and Size */}
+        
+      {/* Category and Status */}
       <div className="mb-4">
         <div className="flex flex-wrap gap-2">
-          {material?.type && (
-            <span className={`px-3 py-1 text-xs font-medium rounded-full ${getTypeColor(material.type)}`}>
-              {material.type.charAt(0).toUpperCase() + material.type.slice(1)}
+          {(session?.category || session?.course_tag) && (
+            <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-full">
+              {session.category || session.course_tag}
             </span>
           )}
-          {material?.size && (
-            <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-full">
-              {material.size}
-            </span>
-          )}
+          <span className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(session?.status || 'available')}`}>
+            {session?.status === 'processing' && <span className="inline-block w-2 h-2 bg-yellow-500 rounded-full mr-1 animate-pulse"></span>}
+            {(session?.status || 'available').charAt(0).toUpperCase() + (session?.status || 'available').slice(1)}
+          </span>
         </div>
       </div>
 
-      {/* Rating and Downloads */}
+      {/* Rating and Views */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
           <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {material?.rating || material?.instructor?.rating || "4.5"}
+            {session?.rating || session?.instructor?.rating || "4.5"}
           </span>
         </div>
         <div className="flex items-center text-blue-600 dark:text-blue-400">
-          <Download className="w-4 h-4 mr-1" />
+          <Eye className="w-4 h-4 mr-1" />
           <span className="text-sm font-medium">
-            {material?.downloads || 0} downloads
+            {session?.views || 0} views
           </span>
         </div>
       </div>
 
       {/* Description */}
-      {material?.description && (
+      {session?.description && (
         <div className="mb-4">
           <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-            {material.description}
+            {session.description}
           </p>
         </div>
       )}
@@ -184,80 +183,157 @@ const MaterialCard = ({
       {/* Actions */}
       <div className="flex space-x-2">
         <button 
-          onClick={() => onViewDetails(material)}
+          onClick={() => onViewDetails(session)}
           className="flex-1 flex items-center justify-center px-3 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
         >
           <Eye className="w-4 h-4 mr-2" />
           View Details
         </button>
         <button
-          className="flex-1 flex items-center justify-center px-3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors text-sm font-medium"
+          onClick={() => onPlay(session)}
+          className={`flex-1 flex items-center justify-center px-3 py-2.5 rounded-xl transition-colors text-sm font-medium ${
+            session?.status === 'available' 
+              ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+              : session?.status === 'processing'
+              ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
+              : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+          }`}
+          disabled={session?.status === 'unavailable'}
         >
-          <Download className="w-4 h-4 mr-2" />
-          Download
+          <Play className="w-4 h-4 mr-2" />
+          {session?.status === 'available' ? 'Play Video' : 
+           session?.status === 'processing' ? 'Processing' : 'Unavailable'}
         </button>
       </div>
     </div>
   );
 };
 
-const LessonCourseMaterialsMain: React.FC = () => {
-  const [currentTab, setCurrentTab] = useState(0);
+const StudentRecordedSessions: React.FC = () => {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [currentTab, setCurrentTab] = useState(0);
+  const [selectedSession, setSelectedSession] = useState<RecordedSession | null>(null);
+  const [recordedSessions, setRecordedSessions] = useState<RecordedSession[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [allMaterials, setAllMaterials] = useState<CourseMaterial[]>([]);
-  const [selectedMaterial, setSelectedMaterial] = useState<CourseMaterial | null>(null);
+  const { getQuery } = useGetQuery();
+
+  // Get auth token
+  const getAuthToken = () => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('token');
+    }
+    return null;
+  };
+
+  // Fetch recorded sessions from API
+  const fetchRecordedSessions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      if (typeof window !== "undefined") {
+        const storedUserId = localStorage.getItem("userId");
+        const token = getAuthToken();
+        
+        if (!storedUserId || !token) {
+          setError("Please log in to view your recorded sessions.");
+          setLoading(false);
+          return;
+        }
+        
+        const headers = {
+          'x-access-token': token,
+          'Content-Type': 'application/json'
+        };
+        
+        await getQuery({
+          url: apiUrls?.courses?.getRecordedVideosForUser(storedUserId),
+          headers,
+          requireAuth: true,
+          onSuccess: (response) => {
+            const recordedData = response?.courses || response?.data?.courses || response;
+            
+            if (Array.isArray(recordedData)) {
+              const processedData = recordedData.map(session => ({
+                ...session,
+                date: session.date || session.created_at || new Date().toISOString(),
+                category: session.category || session.course_tag || "General",
+                status: session.status || 'available'
+              }));
+              
+              setRecordedSessions(processedData);
+            } else {
+              setRecordedSessions([]);
+            }
+            
+            setLoading(false);
+          },
+          onFail: (error) => {
+            console.error("Error fetching recorded sessions:", error);
+            
+            if (error?.response?.status === 401) {
+              setError("Your session has expired. Please log in again.");
+            } else if (error?.response?.status === 404) {
+              setRecordedSessions([]);
+            } else {
+              setError("Failed to load recorded sessions. Please try again later.");
+            }
+            
+            setLoading(false);
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error in fetchRecordedSessions:", error);
+      setError("An unexpected error occurred. Please try again later.");
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchCourseMaterials = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        // TODO: Replace with actual API calls
-        // Example API call structure:
-        // const response = await fetch('/api/student/course-materials');
-        // const data = await response.json();
-        // setAllMaterials(data.materials || []);
-        
-        // For now, set empty array until API is integrated
-        setAllMaterials([]);
-        setIsLoading(false);
-      } catch (err) {
-        console.error("Error fetching course materials:", err);
-        setError("Failed to load course materials. Please try again later.");
-        setIsLoading(false);
-      }
-    };
-
-    fetchCourseMaterials();
+    fetchRecordedSessions();
   }, []);
 
-  const handleViewDetails = (material: CourseMaterial) => {
-    setSelectedMaterial(material);
+  const handleViewDetails = (session: RecordedSession) => {
+    setSelectedSession(session);
   };
 
   const handleCloseModal = () => {
-    setSelectedMaterial(null);
+    setSelectedSession(null);
   };
 
-  const getFilteredMaterials = () => {
-    let filtered = allMaterials;
+  const handlePlayVideo = (session: RecordedSession) => {
+    if (session.video_url) {
+      window.open(session.video_url, '_blank');
+    } else {
+      router.push(`/dashboards/my-courses/${session.id}`);
+    }
+  };
+
+  const getFilteredSessions = () => {
+    let filtered = recordedSessions;
     
     // Filter by tab
     switch (currentTab) {
-      case 0: // All Materials
-        filtered = allMaterials;
+      case 0: // All Sessions
+        filtered = recordedSessions;
         break;
-      case 1: // Documents
-        filtered = allMaterials.filter(material => material.type === 'document');
+      case 1: // Available
+        filtered = recordedSessions.filter(session => session.status === 'available');
         break;
-      case 2: // Videos
-        filtered = allMaterials.filter(material => material.type === 'video');
+      case 2: // Recent
+        filtered = recordedSessions.filter(session => {
+          const sessionDate = new Date(session.date || session.created_at || '');
+          const oneWeekAgo = new Date();
+          oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+          return sessionDate >= oneWeekAgo;
+        });
         break;
-      case 3: // Assignments
-        filtered = allMaterials.filter(material => material.type === 'assignment');
+      case 3: // Favorites
+        // For now, show all. Later can be filtered by user favorites
+        filtered = recordedSessions;
         break;
       default:
         break;
@@ -265,37 +341,41 @@ const LessonCourseMaterialsMain: React.FC = () => {
 
     // Filter by search term
     if (searchTerm) {
-      filtered = filtered.filter(material =>
-        material.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        material.course?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        material.instructor?.name.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(session =>
+        session.course_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        session.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        session.course_tag?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     return filtered.sort((a, b) => {
-      // Sort by upload date, newest first
-      if (!a.uploadDate && !b.uploadDate) return 0;
-      if (!a.uploadDate) return 1;
-      if (!b.uploadDate) return -1;
-      return new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime();
+      // Sort by date, newest first
+      const dateA = new Date(a.date || a.created_at || '');
+      const dateB = new Date(b.date || b.created_at || '');
+      return dateB.getTime() - dateA.getTime();
     });
   };
 
-  const filteredContent = getFilteredMaterials();
+  const filteredContent = getFilteredSessions();
 
-  // Count materials for each tab
+  // Count sessions for each tab
   const tabCounts = {
-    all: allMaterials.length,
-    documents: allMaterials.filter(material => material.type === 'document').length,
-    videos: allMaterials.filter(material => material.type === 'video').length,
-    assignments: allMaterials.filter(material => material.type === 'assignment').length
+    all: recordedSessions.length,
+    available: recordedSessions.filter(session => session.status === 'available').length,
+    recent: recordedSessions.filter(session => {
+      const sessionDate = new Date(session.date || session.created_at || '');
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      return sessionDate >= oneWeekAgo;
+    }).length,
+    favorites: recordedSessions.length // For now, same as all
   };
 
   const tabs = [
-    { name: "All Materials", icon: BookOpen, count: tabCounts.all },
-    { name: "Documents", icon: FileText, count: tabCounts.documents },
-    { name: "Videos", icon: Video, count: tabCounts.videos },
-    { name: "Assignments", icon: Folder, count: tabCounts.assignments }
+    { name: "All Sessions", icon: Video, count: tabCounts.all },
+    { name: "Available", icon: Check, count: tabCounts.available },
+    { name: "Recent", icon: Clock, count: tabCounts.recent },
+    { name: "Favorites", icon: Star, count: tabCounts.favorites }
   ];
 
   return (
@@ -313,14 +393,14 @@ const LessonCourseMaterialsMain: React.FC = () => {
             className="flex items-center justify-center mb-4"
           >
             <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 rounded-2xl backdrop-blur-sm mr-4">
-              <BookOpen className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+              <Video className="w-8 h-8 text-blue-600 dark:text-blue-400" />
             </div>
             <div className="text-left">
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white">
-                Course Materials
+                Recorded Sessions
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-400 mt-1">
-                Access and manage your learning resources
+                Access your course recordings anytime
               </p>
             </div>
           </motion.div>
@@ -336,7 +416,7 @@ const LessonCourseMaterialsMain: React.FC = () => {
             </div>
             <input
               type="text"
-              placeholder="Search materials..."
+              placeholder="Search recorded sessions..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-4 py-3 rounded-2xl border border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
@@ -365,19 +445,19 @@ const LessonCourseMaterialsMain: React.FC = () => {
         </div>
 
         {/* Loading State */}
-        {isLoading && (
+        {loading && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="flex flex-col items-center justify-center py-12"
           >
             <Loader2 className="w-8 h-8 animate-spin text-blue-500 mb-4" />
-            <p className="text-gray-600 dark:text-gray-400">Loading course materials...</p>
+            <p className="text-gray-600 dark:text-gray-400">Loading recorded sessions...</p>
           </motion.div>
         )}
 
         {/* Error State */}
-        {error && !isLoading && (
+        {error && !loading && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -385,11 +465,11 @@ const LessonCourseMaterialsMain: React.FC = () => {
           >
             <div className="flex items-center justify-center mb-2">
               <X className="w-6 h-6 text-red-500 mr-2" />
-              <h3 className="text-lg font-medium text-red-800 dark:text-red-200">Error Loading Materials</h3>
+              <h3 className="text-lg font-medium text-red-800 dark:text-red-200">Error Loading Sessions</h3>
             </div>
             <p className="text-red-600 dark:text-red-300 mb-4">{error}</p>
             <button
-              onClick={() => window.location.reload()}
+              onClick={fetchRecordedSessions}
               className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors"
             >
               Try Again
@@ -398,7 +478,7 @@ const LessonCourseMaterialsMain: React.FC = () => {
         )}
 
         {/* Content */}
-        {!isLoading && !error && (
+        {!loading && !error && (
           <AnimatePresence mode="wait">
             <motion.div
               key={currentTab}
@@ -408,16 +488,17 @@ const LessonCourseMaterialsMain: React.FC = () => {
               className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
             >
               {filteredContent.length > 0 ? (
-                filteredContent.map((material, index) => (
+                filteredContent.map((session, index) => (
                   <motion.div
-                    key={material.id || index}
+                    key={session.id || index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <MaterialCard
-                      material={material}
+                    <RecordedSessionCard
+                      session={session}
                       onViewDetails={handleViewDetails}
+                      onPlay={handlePlayVideo}
                     />
                   </motion.div>
                 ))
@@ -428,15 +509,15 @@ const LessonCourseMaterialsMain: React.FC = () => {
                   className="col-span-full flex flex-col items-center justify-center text-center py-16"
                 >
                   <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-2xl mb-4">
-                    <BookOpen className="w-12 h-12 text-gray-400" />
+                    <Video className="w-12 h-12 text-gray-400" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                    {searchTerm ? "No matching materials found" : "No course materials available"}
+                    {searchTerm ? "No matching sessions found" : "No recorded sessions available"}
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400 max-w-md">
                     {searchTerm 
                       ? "Try adjusting your search term to find what you're looking for."
-                      : "You don't have any course materials yet. Check back later or contact your instructor."}
+                      : "You don't have any recorded sessions yet. Check back after attending some classes."}
                   </p>
                 </motion.div>
               )}
@@ -446,7 +527,7 @@ const LessonCourseMaterialsMain: React.FC = () => {
 
         {/* Enhanced Details Modal */}
         <AnimatePresence>
-          {selectedMaterial && (
+          {selectedSession && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -473,14 +554,14 @@ const LessonCourseMaterialsMain: React.FC = () => {
                 <div className="pr-12">
                   <div className="flex items-center gap-4 mb-6">
                     <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-2xl">
-                      <BookOpen className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                      <Video className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                        {selectedMaterial?.title}
+                        {selectedSession?.course_title}
                       </h2>
                       <p className="text-gray-600 dark:text-gray-400">
-                        {selectedMaterial?.course}
+                        Recorded Session
                       </p>
                     </div>
                   </div>
@@ -488,10 +569,10 @@ const LessonCourseMaterialsMain: React.FC = () => {
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="flex items-center gap-3">
-                        <User className="w-5 h-5 text-blue-500" />
+                        <Folder className="w-5 h-5 text-blue-500" />
                         <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">Instructor</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">{selectedMaterial?.instructor?.name || "Not specified"}</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">Category</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{selectedSession?.category || selectedSession?.course_tag || "General"}</p>
                         </div>
                       </div>
                       
@@ -500,7 +581,7 @@ const LessonCourseMaterialsMain: React.FC = () => {
                         <div>
                           <p className="text-sm font-medium text-gray-900 dark:text-white">Duration</p>
                           <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {selectedMaterial?.duration || "Duration TBD"}
+                            {selectedSession?.duration || "Duration TBD"}
                           </p>
                         </div>
                       </div>
@@ -509,36 +590,38 @@ const LessonCourseMaterialsMain: React.FC = () => {
                     <div className="flex items-center gap-3">
                       <Calendar className="w-5 h-5 text-blue-500" />
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">Upload Date</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">Recorded Date</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {selectedMaterial?.uploadDate ? new Date(selectedMaterial.uploadDate).toLocaleDateString() : "Not uploaded"}
+                          {selectedSession?.date || selectedSession?.created_at 
+                            ? new Date(selectedSession.date || selectedSession.created_at).toLocaleDateString() 
+                            : "Date not available"}
                         </p>
                       </div>
                     </div>
 
-                    {selectedMaterial?.size && (
-                      <div className="flex items-center gap-3">
-                        <FileText className="w-5 h-5 text-blue-500" />
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">File Size</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">{selectedMaterial.size}</p>
-                        </div>
+                    <div className="flex items-center gap-3">
+                      <Eye className="w-5 h-5 text-blue-500" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">Views</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {selectedSession?.views || 0} views
+                        </p>
                       </div>
-                    )}
+                    </div>
 
-                    {selectedMaterial?.description && (
+                    {selectedSession?.description && (
                       <div className="flex items-start gap-3">
                         <FileText className="w-5 h-5 text-blue-500 mt-0.5" />
                         <div>
                           <p className="text-sm font-medium text-gray-900 dark:text-white">Description</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">{selectedMaterial.description}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{selectedSession.description}</p>
                         </div>
                       </div>
                     )}
 
-                    {(!selectedMaterial?.description) && (
+                    {(!selectedSession?.description) && (
                       <p className="text-center text-gray-500 dark:text-gray-400 py-4">
-                        No additional details available for this material.
+                        No additional details available for this session.
                       </p>
                     )}
                   </div>
@@ -551,9 +634,15 @@ const LessonCourseMaterialsMain: React.FC = () => {
                       Close
                     </button>
                     <button
-                      className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors font-medium"
+                      onClick={() => handlePlayVideo(selectedSession)}
+                      className={`flex-1 px-4 py-2 rounded-xl font-medium transition-colors ${
+                        selectedSession?.status === 'available' 
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                          : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                      }`}
+                      disabled={selectedSession?.status !== 'available'}
                     >
-                      Download Material
+                      {selectedSession?.status === 'available' ? 'Watch Video' : 'Not Available'}
                     </button>
                   </div>
                 </div>
@@ -566,4 +655,4 @@ const LessonCourseMaterialsMain: React.FC = () => {
   );
 };
 
-export default LessonCourseMaterialsMain; 
+export default StudentRecordedSessions;
