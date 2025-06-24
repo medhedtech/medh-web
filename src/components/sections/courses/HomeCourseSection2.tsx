@@ -659,24 +659,24 @@ const ImageWrapper: React.FC<ImageWrapperProps> = ({
   // Determine if this is an LCP candidate (first 2 images above the fold)
   const shouldBeLCP = isLCP || index < 2;
 
-  // Get optimized image props with fill mode
-  const { width, height, ...imageProps } = getImageProps(
+  // Get optimized image props with fill mode for responsive scaling
+  const imageProps = getImageProps(
     'COURSE_CARD',
     src || '/fallback-course-image.jpg',
     alt,
     shouldBeLCP,
-    true // Use fill mode
+    true // Use fill mode for proper scaling
   );
 
   return (
-    <div className="relative w-full aspect-[3/2] min-h-[160px] sm:min-h-[140px] md:min-h-[150px] bg-gray-100 dark:bg-gray-800/50 overflow-hidden rounded-t-xl group gpu-accelerated">
+    <div className="relative w-full aspect-[4/3] min-h-[160px] sm:min-h-[140px] md:min-h-[150px] bg-gray-100 dark:bg-gray-800/50 overflow-hidden rounded-t-xl group">
       <OptimizedImage
         {...imageProps}
         onLoad={onLoad}
         onError={onError}
       />
-      {/* Enhanced gradient overlay with GPU acceleration */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/30 dark:from-black/20 dark:to-black/40 transition-gpu group-hover:opacity-70 gpu-accelerated" />
+      {/* Enhanced gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/30 dark:from-black/20 dark:to-black/40 transition-opacity group-hover:opacity-70" />
     </div>
   );
 };
