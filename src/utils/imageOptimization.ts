@@ -162,23 +162,21 @@ export const generateSizesAttribute = (breakpoints?: {
   return `(max-width: 640px) ${mobile}, (max-width: 1024px) ${tablet}, ${desktop}`;
 };
 
-// Constants for image dimensions
-export const IMAGE_DIMENSIONS = {
+// Constants for image optimization
+export const IMAGE_OPTIMIZATION = {
   COURSE_CARD: {
-    width: 400,
-    height: 250,
-    maxWidth: 9000,
-    maxHeight: 7000,
+    maxWidth: 400,
+    maxHeight: 300,
+    aspectRatio: 4/3, // Width/Height ratio
     quality: {
       lcp: 95,
       normal: 85
     }
   },
   COURSE_DETAIL: {
-    width: 800,
-    height: 500,
-    maxWidth: 9000,
-    maxHeight: 7000,
+    maxWidth: 800,
+    maxHeight: 600,
+    aspectRatio: 4/3, // Width/Height ratio
     quality: {
       lcp: 95,
       normal: 85
@@ -186,9 +184,29 @@ export const IMAGE_DIMENSIONS = {
   }
 } as const;
 
-// Function to get image dimensions based on type
-export const getImageDimensions = (type: keyof typeof IMAGE_DIMENSIONS) => {
-  return IMAGE_DIMENSIONS[type];
+// Function to get image optimization settings
+export const getImageOptimization = (type: keyof typeof IMAGE_OPTIMIZATION) => {
+  return IMAGE_OPTIMIZATION[type];
+};
+
+// Function to calculate scaled dimensions
+export const calculateScaledDimensions = (
+  originalWidth: number,
+  originalHeight: number,
+  maxWidth: number,
+  maxHeight: number
+): { width: number; height: number } => {
+  // Calculate scale factors
+  const scaleX = maxWidth / originalWidth;
+  const scaleY = maxHeight / originalHeight;
+  
+  // Use the smaller scale factor to ensure image fits within bounds
+  const scale = Math.min(scaleX, scaleY, 1); // Don't scale up
+  
+  return {
+    width: Math.round(originalWidth * scale),
+    height: Math.round(originalHeight * scale)
+  };
 };
 
 // Function to get responsive image sizes
@@ -205,48 +223,87 @@ export const getImageSizes = (type: 'card' | 'detail' | 'hero') => {
   }
 };
 
-// Function to optimize course image URL
-export const optimizeCourseImage = (src: string): string => {
+// Function to optimize course image URL with scaling parameters
+export const optimizeCourseImage = (src: string, width?: number, height?: number): string => {
   // If it's already an optimized URL or a data URL, return as is
   if (src.startsWith('data:') || src.includes('?w=')) {
     return src;
   }
 
-  // Add width and quality parameters for CDN optimization
-  const width = 800; // Default width for optimization
-  const quality = 85; // Default quality
+  // Build optimization parameters
+  const params = new URLSearchParams();
+  
+  if (width) {
+    params.append('w', width.toString());
+  }
+  if (height) {
+    params.append('h', height.toString());
+  }
+  
+  // Add quality parameter
+  params.append('q', '85');
+  
+  // Add fit parameter to maintain aspect ratio
+  params.append('fit', 'cover');
   
   // Check if the URL already has parameters
   const separator = src.includes('?') ? '&' : '?';
-  return `${src}${separator}w=${width}&q=${quality}`;
+  return `${src}${separator}${params.toString()}`;
 };
 
-// Function to generate a simple SVG blur placeholder
+// Function to generate a simple SVG blur placeholder with proper dimensions
 const generateBlurPlaceholder = (width: number, height: number): string => {
-  const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg"><rect width="${width}" height="${height}" fill="#e2e8f0"/></svg>`;
+  const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#e2e8f0;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#cbd5e1;stop-opacity:1" />
+      </linearGradient>
+    </defs>
+    <rect width="${width}" height="${height}" fill="url(#grad)"/>
+  </svg>`;
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
 };
 
-// Function to get image props for Next.js Image component
+// Function to get image props for Next.js Image component with proper scaling
 export const getImageProps = (
-  type: keyof typeof IMAGE_DIMENSIONS,
+  type: keyof typeof IMAGE_OPTIMIZATION,
   src: string,
   alt: string,
   isLCP: boolean = false,
-  useFill: boolean = false
+  useFill: boolean = false,
+  originalDimensions?: { width: number; height: number }
 ): Partial<ImageProps> => {
-  const dimensions = getImageDimensions(type);
+  const optimization = getImageOptimization(type);
   
+  // Calculate scaled dimensions if original dimensions are provided
+  let scaledDimensions = {
+    width: optimization.maxWidth,
+    height: optimization.maxHeight
+  };
+  
+  if (originalDimensions) {
+    scaledDimensions = calculateScaledDimensions(
+      originalDimensions.width,
+      originalDimensions.height,
+      optimization.maxWidth,
+      optimization.maxHeight
+    );
+  } else {
+    // Use aspect ratio to calculate height from width
+    scaledDimensions.height = Math.round(scaledDimensions.width / optimization.aspectRatio);
+  }
+
   const baseProps = {
-    src: optimizeCourseImage(src),
+    src: optimizeCourseImage(src, scaledDimensions.width, scaledDimensions.height),
     alt,
-    quality: isLCP ? dimensions.quality.lcp : dimensions.quality.normal,
+    quality: isLCP ? optimization.quality.lcp : optimization.quality.normal,
     loading: isLCP ? 'eager' as const : 'lazy' as const,
     priority: isLCP,
     sizes: getImageSizes(type === 'COURSE_CARD' ? 'card' : 'detail'),
-    className: "object-cover transition-opacity duration-300 gpu-accelerated",
+    className: "object-cover transition-opacity duration-300",
     placeholder: "blur" as const,
-    blurDataURL: generateBlurPlaceholder(dimensions.width, dimensions.height)
+    blurDataURL: generateBlurPlaceholder(scaledDimensions.width, scaledDimensions.height)
   };
 
   // If using fill mode, don't include width and height
@@ -255,20 +312,21 @@ export const getImageProps = (
       ...baseProps,
       fill: true,
       style: {
-        maxWidth: dimensions.maxWidth,
-        maxHeight: dimensions.maxHeight
+        objectFit: 'cover',
+        objectPosition: 'center'
       }
     };
   }
 
-  // If not using fill mode, include width and height
+  // If not using fill mode, include scaled dimensions
   return {
     ...baseProps,
-    width: dimensions.width,
-    height: dimensions.height,
+    width: scaledDimensions.width,
+    height: scaledDimensions.height,
     style: {
-      maxWidth: '100%',
-      height: 'auto'
+      width: '100%',
+      height: 'auto',
+      maxWidth: '100%'
     }
   };
 };
