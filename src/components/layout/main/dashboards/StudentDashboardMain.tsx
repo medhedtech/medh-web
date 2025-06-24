@@ -215,16 +215,34 @@ const StudyGoals: React.FC = () => {
 
   return (
     <div className="p-5">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/20">
-            <Target className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+      <div className="mb-4">
+        {/* Desktop/Tablet Layout - side by side */}
+        <div className="hidden md:flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/20">
+              <Target className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Study Goals</h2>
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Study Goals</h2>
-        </div>
-          <Link href="/dashboards/student/goals" className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center">
-          Manage <ArrowRight className="w-4 h-4 ml-1" />
+          <Link href="/dashboards/student/goals" className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm flex items-center gap-2 whitespace-nowrap">
+            <Target className="w-4 h-4" />
+            <span>Manage</span>
           </Link>
+        </div>
+
+        {/* Mobile Layout - stacked */}
+        <div className="md:hidden">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/20">
+              <Target className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Study Goals</h2>
+          </div>
+          <Link href="/dashboards/student/goals" className="w-full px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm flex items-center justify-center gap-2">
+            <Target className="w-4 h-4" />
+            <span>Manage</span>
+          </Link>
+        </div>
       </div>
 
       <div className="space-y-3">

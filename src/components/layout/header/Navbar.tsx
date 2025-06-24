@@ -245,14 +245,14 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }: Nav
         }}
       >
         <nav className="relative w-full flex justify-center">
-          <div className={`${containerClass} mx-auto px-4 sm:px-5`}>
+          <div className={`${containerClass} mx-auto px-3 sm:px-4 lg:px-5`}>
             {/* Top Navigation for specific pages */}
             {(isHome4 || isHome4Dark || isHome5 || isHome5Dark) && <NavbarTop />}
 
             {/* Main Navigation with enhanced spacing and hover effects */}
             <div className={`flex items-center justify-between transition-all duration-300 ${navbarHeightClass}`}>
               {/* Logo section with improved styling - optimized for mobile */}
-              <div className="flex-shrink-0 mr-2 sm:mr-3 lg:mr-8 transition-transform duration-300 hover:scale-105">
+              <div className="flex-shrink-0 mr-1 sm:mr-2 lg:mr-8 transition-transform duration-300 hover:scale-105">
                 <NavbarLogo isScrolled={isScrolled} />
               </div>
 
@@ -273,7 +273,7 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }: Nav
               </div>
 
               {/* Right section with search icon, store icon and profile */}
-              <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 lg:space-x-5">
+              <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 lg:space-x-5">
                 {/* Search icon with inline search bar */}
                 <div 
                   ref={searchRef}
@@ -361,13 +361,13 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }: Nav
                   <button
                     type="button"
                     suppressHydrationWarning
-                    className="lg:hidden inline-flex items-center justify-center p-2.5 sm:p-2.5 rounded-xl sm:rounded-2xl text-gray-700 hover:text-gray-900 bg-gray-100/70 hover:bg-gray-100/90 dark:bg-gray-800/70 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700/90 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200 transform hover:scale-105 active:scale-95 backdrop-blur-sm shadow-sm flex-shrink-0 min-w-[48px] min-h-[48px] ml-1"
+                    className="lg:hidden inline-flex items-center justify-center p-2 sm:p-2.5 rounded-xl sm:rounded-2xl text-gray-700 hover:text-gray-900 bg-gray-100/70 hover:bg-gray-100/90 dark:bg-gray-800/70 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700/90 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200 transform hover:scale-105 active:scale-95 backdrop-blur-sm shadow-sm flex-shrink-0 min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] -ml-1 sm:ml-1"
                     onClick={onMobileMenuOpen}
                     aria-expanded="false"
                     aria-label="Open main menu"
                   >
                     <span className="sr-only">Open main menu</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true">
                       <line x1="3" y1="12" x2="21" y2="12"></line>
                       <line x1="3" y1="6" x2="21" y2="6"></line>
                       <line x1="3" y1="18" x2="21" y2="18"></line>

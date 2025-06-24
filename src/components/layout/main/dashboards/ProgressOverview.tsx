@@ -531,24 +531,48 @@ const ProgressOverview: React.FC = () => {
       variants={containerVariants}
     >
       {/* Header with Progress Tracker Toggle */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary-100 dark:bg-primary-900/30">
-            <BarChart4 className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+      <div className="mb-6">
+        {/* Desktop Layout - side by side */}
+        <div className="hidden md:flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary-100 dark:bg-primary-900/30">
+              <BarChart4 className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Progress Overview</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Track your learning journey</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Progress Overview</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Track your learning journey</p>
-          </div>
+          
+          <button
+            onClick={() => setShowProgressTracker(!showProgressTracker)}
+            className="px-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm flex items-center gap-2 whitespace-nowrap flex-shrink-0 py-2"
+          >
+            <Brain className="w-4 h-4" />
+            <span className="whitespace-nowrap">{showProgressTracker ? 'Hide Details' : 'View Details'}</span>
+          </button>
         </div>
-        
-        <button
-          onClick={() => setShowProgressTracker(!showProgressTracker)}
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm flex items-center gap-2"
-        >
-          <Brain className="w-4 h-4" />
-          {showProgressTracker ? 'Hide Details' : 'View Details'}
-        </button>
+
+        {/* Mobile Layout - stacked */}
+        <div className="md:hidden">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 rounded-lg bg-primary-100 dark:bg-primary-900/30">
+              <BarChart4 className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Progress Overview</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Track your learning journey</p>
+            </div>
+          </div>
+          
+          <button
+            onClick={() => setShowProgressTracker(!showProgressTracker)}
+            className="w-full px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm flex items-center justify-center gap-2"
+          >
+            <Brain className="w-4 h-4" />
+            <span>{showProgressTracker ? 'Hide Details' : 'View Details'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Enhanced Progress Stats */}
@@ -685,9 +709,9 @@ const ProgressOverview: React.FC = () => {
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-3 py-1 text-xs font-medium rounded-md transition-colors capitalize ${
+                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors capitalize ${
                     activeTab === tab
-                      ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                      ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
                       : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
