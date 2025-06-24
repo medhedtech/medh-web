@@ -477,26 +477,7 @@ const WhyMedh = memo(() => {
               />
             </div>
 
-            {/* Call to Action */}
-            <div className="text-center mt-12">
-              <p className="text-gray-600 dark:text-gray-300 mb-6">
-                Ready to experience the MEDH difference?
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button
-                  onClick={handleGetStarted}
-                  className="px-8 py-3 bg-gradient-to-r from-primary-500 to-blue-600 text-white font-semibold rounded-lg hover:from-primary-600 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                >
-                  Get Started Today
-                </button>
-                <button
-                  onClick={handleLearnMore}
-                  className="px-8 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-300"
-                >
-                  Learn More
-                </button>
-              </div>
-            </div>
+
           </div>
         </div>
       </section>

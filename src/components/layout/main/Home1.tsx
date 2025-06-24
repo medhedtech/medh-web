@@ -24,6 +24,13 @@ const HomeCourseSection = React.lazy(() =>
   })
 );
 
+const JobGuaranteedSection = React.lazy(() => 
+  import("@/components/sections/job-guaranteed/JobGuaranteedSection").catch(error => {
+    console.warn('Failed to load JobGuaranteedSection:', error);
+    return { default: React.memo(() => <div className="h-96 flex items-center justify-center text-gray-500">Content temporarily unavailable</div>) };
+  })
+);
+
 const WhyMedh = React.lazy(() => 
   import("@/components/sections/why-medh/WhyMedh2").catch(error => {
     console.warn('Failed to load WhyMedh:', error);
@@ -69,6 +76,7 @@ if (typeof window !== 'undefined') {
     // Progressive preloading with requestIdleCallback for better performance
     const preloadTasks = [
       () => import("@/components/sections/courses/HomeCourseSection2"),
+      () => import("@/components/sections/job-guaranteed/JobGuaranteedSection"),
       () => import("@/components/sections/why-medh/WhyMedh2"),
       () => import("@/components/sections/hire/JoinMedh2"),
       () => import("@/components/sections/hire/Hire2"),
@@ -786,6 +794,23 @@ const Home1: React.FC = () => {
                       CustomDescription="Skill Development Courses"
                       hideGradeFilter
                     />
+                  </Suspense>
+                </SectionErrorBoundary>
+              </section>
+            )}
+
+            {/* Job Guaranteed Section */}
+            {deferredIsLoaded && (
+              <section className="w-full relative z-10">
+                <SectionErrorBoundary
+                  onError={(error, errorInfo) => {
+                    if (process.env.NODE_ENV === 'development') {
+                      console.error('JobGuaranteedSection error:', error, errorInfo);
+                    }
+                  }}
+                >
+                  <Suspense fallback={<LoadingFallback height="96" ariaLabel="Loading job guarantee section..." />}>
+                    <JobGuaranteedSection showStats={false} />
                   </Suspense>
                 </SectionErrorBoundary>
               </section>

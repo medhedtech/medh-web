@@ -4,15 +4,18 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
+  Activity,
   AlertCircle,
   AlertTriangle,
   ArrowUpDown,
   Award,
+  Banknote,
   BarChart,
   BarChart2,
   Bell,
   Book,
   BookOpen,
+  BookOpenCheck,
   Briefcase,
   Building,
   Calendar,
@@ -20,10 +23,15 @@ import {
   CalendarDays,
   CheckCircle,
   CheckSquare,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
   Clipboard,
   ClipboardList,
   Clock,
   CreditCard,
+  Crown,
   DollarSign,
   Download,
   FileCheck,
@@ -40,16 +48,23 @@ import {
   HelpCircle,
   History,
   Key,
+  KeyRound,
+  LayoutDashboard,
   LayoutGrid,
+  LifeBuoy,
   LineChart,
   ListChecks,
   Lock,
   LogOut,
+  LucideIcon,
+  LucideProps,
   Mail,
   Megaphone,
+  Menu,
   MessageCircle,
   MessageSquare,
   MonitorPlay,
+  PenSquare,
   PenSquare as Pencil,
   Play,
   Plus,
@@ -59,8 +74,12 @@ import {
   Search,
   Settings,
   Share2,
+  Shield,
+  ShieldAlert,
+  ShieldCheck,
   ShoppingCart,
   Star,
+  Tag,
   Target,
   ThumbsUp,
   TrendingUp,
@@ -71,28 +90,10 @@ import {
   UserCog,
   UserPlus,
   Users,
+  UserX,
   Video,
   Wallet,
-  Zap,
-  ChevronDown,
-  LayoutDashboard,
-  ChevronRight,
-  Menu,
-  LifeBuoy,
-  BookOpenCheck,
-  ChevronLeft,
-  LucideIcon,
-  LucideProps,
-  ShieldCheck,
-  Banknote,
-  Activity,
-  ChevronUp,
-  Crown,
-  Shield,
-  ShieldAlert,
-  UserX,
-  KeyRound,
-  Tag
+  Zap
 } from "lucide-react";
 import Cookies from 'js-cookie';
 import { motion, AnimatePresence } from "framer-motion";
@@ -164,7 +165,7 @@ interface SidebarDashboardProps {
 // Enhanced sidebar animation variants for better mobile experience
 const sidebarVariants = {
   expanded: {
-    width: '280px', // Increased to 280px to provide more space for longer text
+    width: '320px', // Increased to 320px to provide much more space for longer text without wrapping
     transition: {
       type: 'spring',
       stiffness: 190,
@@ -176,7 +177,7 @@ const sidebarVariants = {
     }
   },
   collapsed: {
-    width: '78px', // Increased from 68px to provide more space for icons
+    width: '84px', // Increased from 78px to provide more comfortable space for icons
     transition: {
       type: 'spring',
       stiffness: 160,  // Lower stiffness for slower animation
@@ -1182,100 +1183,197 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       icon: <LayoutDashboard className="w-5 h-5" />
     },
     {
-      name: "My Courses",
-      path: formatRoute("instructor", "course"),
-      icon: <BookOpen className="w-5 h-5" />
-    },
-    {
-      name: "Live Classes",
-      path: formatRoute("instructor", "class"),
-      icon: <Video className="w-5 h-5" />,
+      name: "My Demo Classes",
+      icon: <MonitorPlay className="w-5 h-5" />,
       subItems: [
         {
-          name: "My Classes",
-          path: formatRoute("instructor", "mainclass"),
+          name: "View Assigned Demo Classes",
+          path: formatRoute("instructor", "demo-classes"),
           icon: <Calendar className="w-4 h-4" />
         },
         {
-          name: "Track Students",
-          path: formatRoute("instructor", "track"),
-          icon: <LineChart className="w-4 h-4" />
-        }
-      ]
-    },
-    {
-      name: "Assignments",
-      path: formatRoute("instructor", "assignments"),
-      icon: <ClipboardList className="w-5 h-5" />,
-      subItems: [
+          name: "Accept/Reject Demo Class",
+          path: formatRoute("instructor", "demo-requests"),
+          icon: <CheckCircle className="w-4 h-4" />
+        },
         {
-          name: "View Assignments",
-          path: formatRoute("instructor", "view-assignments"),
+          name: "View Demo Presentations",
+          path: formatRoute("instructor", "demo-presentations"),
           icon: <FileText className="w-4 h-4" />
         },
         {
-          name: "Grade Assignments",
-          path: formatRoute("instructor", "assignments"),
-          icon: <CheckCircle className="w-4 h-4" />
+          name: "Start/Join Live Demo",
+          path: formatRoute("instructor", "demo-live"),
+          icon: <Video className="w-4 h-4" />
+        },
+        {
+          name: "Submit Feedback",
+          path: formatRoute("instructor", "demo-feedback"),
+          icon: <MessageSquare className="w-4 h-4" />
+        },
+        {
+          name: "Recorded Demo Sessions",
+          path: formatRoute("instructor", "demo-recordings"),
+          icon: <Play className="w-4 h-4" />
         }
       ]
     },
     {
-      name: "Quiz Management",
-      icon: <CheckSquare className="w-5 h-5" />,
+      name: "My Main Classes",
+      icon: <Video className="w-5 h-5" />,
       subItems: [
         {
-          name: "View Quizzes",
-          path: formatRoute("instructor", "view-quizes"),
+          name: "View Assigned Courses/Batches",
+          path: formatRoute("instructor", "assigned-courses"),
           icon: <BookOpen className="w-4 h-4" />
         },
         {
-          name: "Quiz Attempts",
-          path: formatRoute("instructor", "quiz-attempts"),
-          icon: <Activity className="w-4 h-4" />
+          name: "Manage Class Schedules",
+          path: formatRoute("instructor", "class-schedules"),
+          icon: <CalendarDays className="w-4 h-4" />
         },
         {
-          name: "My Quiz Attempts",
-          path: formatRoute("instructor", "my-quiz-attempts"),
-          icon: <ListChecks className="w-4 h-4" />
+          name: "Live Classes Presentations",
+          path: formatRoute("instructor", "live-presentations"),
+          icon: <FileText className="w-4 h-4" />
+        },
+        {
+          name: "Start/Join Live Classes",
+          path: formatRoute("instructor", "live-classes"),
+          icon: <Video className="w-4 h-4" />
+        },
+        {
+          name: "Recorded Live Sessions",
+          path: formatRoute("instructor", "live-recordings"),
+          icon: <Play className="w-4 h-4" />
         }
       ]
     },
     {
-      name: "Communication",
-      icon: <MessageCircle className="w-5 h-5" />,
+      name: "Student Management",
+      icon: <Users className="w-5 h-5" />,
       subItems: [
         {
-          name: "Announcements",
-          path: formatRoute("instructor", "announcments"),
-          icon: <Bell className="w-4 h-4" />
+          name: "View Student Lists",
+          path: formatRoute("instructor", "student-lists"),
+          icon: <Users className="w-4 h-4" />
         },
         {
-          name: "Messages",
-          path: formatRoute("instructor", "message"),
-          icon: <Mail className="w-4 h-4" />
+          name: "Track Student Progress",
+          path: formatRoute("instructor", "student-progress"),
+          icon: <TrendingUp className="w-4 h-4" />
         },
         {
-          name: "Reviews",
-          path: formatRoute("instructor", "reviews"),
-          icon: <Star className="w-4 h-4" />
-        },
-        {
-          name: "Feedbacks",
-          path: formatRoute("instructor", "feedbacks"),
-          icon: <MessageSquare className="w-4 h-4" />
+          name: "Communicate with Students",
+          path: formatRoute("instructor", "student-communication"),
+          icon: <MessageCircle className="w-4 h-4" />
         }
       ]
     },
     {
-      name: "Orders",
-      path: formatRoute("instructor", "order-history"),
-      icon: <ShoppingCart className="w-5 h-5" />
+      name: "Content Management",
+      icon: <FolderOpen className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Upload Course Materials",
+          path: formatRoute("instructor", "upload-materials"),
+          icon: <Upload className="w-4 h-4" />
+        },
+        {
+          name: "Create/Edit Lesson Plans",
+          path: formatRoute("instructor", "lesson-plans"),
+          icon: <PenSquare className="w-4 h-4" />
+        },
+        {
+          name: "Manage Resource Visibility",
+          path: formatRoute("instructor", "resource-visibility"),
+          icon: <Settings className="w-4 h-4" />
+        }
+      ]
     },
     {
-      name: "Wishlist",
-      path: formatRoute("instructor", "wishlist"),
-      icon: <Heart className="w-5 h-5" />
+      name: "Assessments",
+      icon: <ClipboardList className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Create Quizzes/Assignments",
+          path: formatRoute("instructor", "create-assessments"),
+          icon: <Plus className="w-4 h-4" />
+        },
+        {
+          name: "Check Submitted Work",
+          path: formatRoute("instructor", "submitted-work"),
+          icon: <CheckSquare className="w-4 h-4" />
+        },
+        {
+          name: "Provide/Reply Feedback",
+          path: formatRoute("instructor", "assessment-feedback"),
+          icon: <MessageSquare className="w-4 h-4" />
+        },
+        {
+          name: "Performance Reports",
+          path: formatRoute("instructor", "performance-reports"),
+          icon: <BarChart className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Attendance",
+      icon: <UserCheck className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Mark Class Attendance",
+          path: formatRoute("instructor", "mark-attendance"),
+          icon: <CheckCircle className="w-4 h-4" />
+        },
+        {
+          name: "View Attendance Reports",
+          path: formatRoute("instructor", "attendance-reports"),
+          icon: <FileText className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "My Revenue",
+      icon: <DollarSign className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "My Receivables (Receipts/Dues)",
+          path: formatRoute("instructor", "receivables"),
+          icon: <CreditCard className="w-4 h-4" />
+        },
+        {
+          name: "Total Demo Classes Revenue",
+          path: formatRoute("instructor", "demo-revenue"),
+          icon: <MonitorPlay className="w-4 h-4" />
+        },
+        {
+          name: "Total Live Classes Revenue",
+          path: formatRoute("instructor", "live-revenue"),
+          icon: <Video className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Reports",
+      icon: <BarChart2 className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Class Performance Reports",
+          path: formatRoute("instructor", "class-reports"),
+          icon: <LineChart className="w-4 h-4" />
+        },
+        {
+          name: "Student Engagement Reports",
+          path: formatRoute("instructor", "engagement-reports"),
+          icon: <Users className="w-4 h-4" />
+        },
+        {
+          name: "Learning Outcome Analysis",
+          path: formatRoute("instructor", "learning-outcomes"),
+          icon: <Target className="w-4 h-4" />
+        }
+      ]
     },
     {
       name: "Settings",
@@ -1514,12 +1612,12 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
                       } ${isSubMenuOpen ? "mb-1" : ""}`}
                       style={{ minHeight: isMobileDevice || isTabletDevice ? '56px' : 'auto' }}
                     >
-                      <div className="flex items-center min-w-[42px]">
+                      <div className="flex items-center min-w-[48px] flex-shrink-0 flex-1 min-w-0">
                         <motion.div 
                           variants={iconContainerVariants}
                           initial="expanded"
                           animate={(effectiveIsExpanded || isMobileDevice || isTabletDevice) ? "expanded" : "collapsed"}
-                          className={`flex items-center justify-center rounded-full transition-colors duration-200 ${
+                          className={`flex items-center justify-center rounded-full transition-colors duration-200 flex-shrink-0 ${
                             isActive 
                               ? "bg-gradient-to-br from-primary-100 to-primary-50 dark:from-primary-900/40 dark:to-primary-900/20 shadow-sm" 
                               : "bg-gray-50 dark:bg-gray-800/80"
@@ -1551,19 +1649,20 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
                             initial="collapsed"
                             animate="expanded"
                             exit="collapsed"
-                            className={`ml-3 mt-0.5 font-medium text-left leading-tight ${
+                            className={`ml-3 mt-0.5 font-medium text-left leading-snug min-w-0 ${
                               isMobileDevice || isTabletDevice 
-                                ? 'line-clamp-2' // Allow 2 lines on mobile/tablet
-                                : 'line-clamp-2' // Allow 2 lines on desktop too
+                                ? 'whitespace-normal break-words' // Allow controlled breaking on mobile/tablet
+                                : 'whitespace-nowrap overflow-hidden text-ellipsis' // Single line with ellipsis on desktop
                             }`}
                             style={{
                               fontSize: isMobileDevice 
                                 ? "16px" 
                                 : isTabletDevice 
                                   ? "15px" 
-                                  : isVeryCompact ? "12px" : isCompact ? "13px" : "14px",
-                              lineHeight: isMobileDevice || isTabletDevice ? "1.3" : "1.25"
+                                  : isVeryCompact ? "13px" : isCompact ? "14px" : "15px", // Increased base font sizes
+                              lineHeight: isMobileDevice || isTabletDevice ? "1.4" : "1.3"
                             }}
+                            title={item.name} // Tooltip for truncated text
                           >
                             {item.name}
                           </motion.span>
@@ -1575,10 +1674,10 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
                           variants={chevronVariants}
                           initial="closed"
                           animate={isSubMenuOpen ? "open" : "closed"}
-                          className={`flex items-center justify-center rounded-full ${
+                          className={`flex items-center justify-center rounded-full flex-shrink-0 ${
                             isMobileDevice || isTabletDevice 
-                              ? "w-8 h-8 mr-0" 
-                              : isVeryCompact ? "w-5 h-5 mr-0" : isCompact ? "w-6 h-6 mr-0" : "w-6 h-6 mr-1"
+                              ? "w-8 h-8 ml-2" 
+                              : isVeryCompact ? "w-5 h-5 ml-1" : isCompact ? "w-6 h-6 ml-1" : "w-6 h-6 ml-2"
                           }`}
                         >
                           <ChevronDown style={{
@@ -1653,13 +1752,22 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
                                       {subItem.icon}
                                     </div>
                                   </div>
-                                  <span className="font-medium leading-tight whitespace-nowrap" style={{
-                                    fontSize: isMobileDevice 
-                                      ? "15px" 
-                                      : isTabletDevice 
-                                        ? "14px" 
-                                        : "13px"
-                                  }}>
+                                  <span 
+                                    className={`font-medium leading-snug ${
+                                      isMobileDevice || isTabletDevice 
+                                        ? 'whitespace-normal break-words' 
+                                        : 'whitespace-nowrap overflow-hidden text-ellipsis'
+                                    }`} 
+                                    style={{
+                                      fontSize: isMobileDevice 
+                                        ? "15px" 
+                                        : isTabletDevice 
+                                          ? "14px" 
+                                          : "14px", // Increased from 13px
+                                      maxWidth: isMobileDevice || isTabletDevice ? 'none' : '180px' // Generous width for submenu text
+                                    }}
+                                    title={subItem.name} // Tooltip for truncated text
+                                  >
                                     {subItem.name}
                                   </span>
                                 </button>
@@ -1678,6 +1786,6 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       </div>
     </motion.div>
   );
-};
+  };
 
 export default SidebarDashboard;

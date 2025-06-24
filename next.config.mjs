@@ -44,6 +44,10 @@ const nextConfig = {
         hostname: 'cdn.jsdelivr.net',
       },
       {
+        protocol: 'https',
+        hostname: 'i.pravatar.cc',
+      },
+      {
         protocol: 'http',
         hostname: 'localhost',
         port: '3000',
