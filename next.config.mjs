@@ -48,6 +48,10 @@ const nextConfig = {
         hostname: 'i.pravatar.cc',
       },
       {
+        protocol: 'https',
+        hostname: 'esampark.us',
+      },
+      {
         protocol: 'http',
         hostname: 'localhost',
         port: '3000',
