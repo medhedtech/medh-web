@@ -1323,6 +1323,166 @@ export const getAvailabilityAnalytics = async (params: {
 };
 
 /* =============================================== */
+/* CORE CRUD OPERATIONS                           */
+/* =============================================== */
+
+/**
+ * Get all instructors
+ */
+export const getAllInstructors = async (params: IInstructorQueryParams = {}): Promise<IApiResponse<IInstructorsListResponse>> => {
+  const queryString = new URLSearchParams();
+  
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      queryString.append(key, value.toString());
+    }
+  });
+  
+  return apiClient.get(`${apiBaseUrl}/instructors?${queryString.toString()}`);
+};
+
+/**
+ * Get instructor by ID
+ */
+export const getInstructorById = async (instructorId: string): Promise<IApiResponse<IInstructorResponse>> => {
+  return apiClient.get(`${apiBaseUrl}/instructors/${instructorId}`);
+};
+
+/**
+ * Create new instructor
+ */
+export const createInstructor = async (data: IInstructorCreateInput): Promise<IApiResponse<IInstructorResponse>> => {
+  return apiClient.post(`${apiBaseUrl}/instructors`, data);
+};
+
+/**
+ * Update instructor
+ */
+export const updateInstructor = async (instructorId: string, data: IInstructorUpdateInput): Promise<IApiResponse<IInstructorResponse>> => {
+  return apiClient.put(`${apiBaseUrl}/instructors/${instructorId}`, data);
+};
+
+/**
+ * Delete instructor
+ */
+export const deleteInstructor = async (instructorId: string): Promise<IApiResponse<{ message: string }>> => {
+  return apiClient.delete(`${apiBaseUrl}/instructors/${instructorId}`);
+};
+
+/**
+ * Get instructors common (unified data)
+ */
+export const getInstructorsCommon = async (params: IInstructorCommonQueryParams = {}): Promise<IApiResponse<IInstructorCommonResponse>> => {
+  const queryString = new URLSearchParams();
+  
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      queryString.append(key, value.toString());
+    }
+  });
+  
+  return apiClient.get(`${apiBaseUrl}/instructors/common?${queryString.toString()}`);
+};
+
+/**
+ * Search instructors
+ */
+export const searchInstructors = async (searchTerm: string, params: IInstructorQueryParams = {}): Promise<IApiResponse<IInstructorsListResponse>> => {
+  const queryString = new URLSearchParams({ search: searchTerm });
+  
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      queryString.append(key, value.toString());
+    }
+  });
+  
+  return apiClient.get(`${apiBaseUrl}/instructors/search?${queryString.toString()}`);
+};
+
+/**
+ * Toggle instructor status
+ */
+export const toggleInstructorStatus = async (instructorId: string, status: TInstructorStatus): Promise<IApiResponse<IInstructorResponse>> => {
+  return apiClient.patch(`${apiBaseUrl}/instructors/${instructorId}/status`, { instructor_status: status });
+};
+
+/**
+ * Get instructor statistics
+ */
+export const getInstructorStatistics = async (params: IInstructorStatisticsParams = {}): Promise<IApiResponse<IInstructorStatisticsResponse>> => {
+  const queryString = new URLSearchParams();
+  
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      if (typeof value === 'object') {
+        queryString.append(key, JSON.stringify(value));
+      } else {
+        queryString.append(key, value.toString());
+      }
+    }
+  });
+  
+  return apiClient.get(`${apiBaseUrl}/instructors/statistics?${queryString.toString()}`);
+};
+
+/**
+ * Get instructor workload
+ */
+export const getInstructorWorkload = async (instructorId: string, dateRange: { start_date: string; end_date: string }): Promise<IApiResponse<any>> => {
+  return apiClient.get(`${apiBaseUrl}/instructors/${instructorId}/workload`, { params: dateRange });
+};
+
+/**
+ * Get instructor performance report
+ */
+export const getInstructorPerformanceReport = async (instructorId: string, params: any = {}): Promise<IApiResponse<any>> => {
+  return apiClient.get(`${apiBaseUrl}/instructors/${instructorId}/performance`, { params });
+};
+
+/**
+ * Assign instructor to batch
+ */
+export const assignInstructorToBatch = async (instructorId: string, data: IInstructorAssignmentInput): Promise<IApiResponse<IAssignmentResponse>> => {
+  return apiClient.post(`${apiBaseUrl}/instructors/${instructorId}/assignments`, data);
+};
+
+/**
+ * Unassign instructor from batch
+ */
+export const unassignInstructorFromBatch = async (instructorId: string, batchId: string): Promise<IApiResponse<{ message: string }>> => {
+  return apiClient.delete(`${apiBaseUrl}/instructors/${instructorId}/assignments/${batchId}`);
+};
+
+/**
+ * Create instructor payout
+ */
+export const createInstructorPayout = async (instructorId: string, data: IPayoutCreateInput): Promise<IApiResponse<IPayoutResponse>> => {
+  return apiClient.post(`${apiBaseUrl}/instructors/${instructorId}/payouts`, data);
+};
+
+/**
+ * Get instructor payouts
+ */
+export const getInstructorPayouts = async (instructorId: string, params: IPayoutQueryParams = {}): Promise<IApiResponse<IPayoutsListResponse>> => {
+  const queryString = new URLSearchParams();
+  
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      queryString.append(key, value.toString());
+    }
+  });
+  
+  return apiClient.get(`${apiBaseUrl}/instructors/${instructorId}/payouts?${queryString.toString()}`);
+};
+
+/**
+ * Update payout status
+ */
+export const updatePayoutStatus = async (payoutId: string, data: IPayoutStatusUpdateInput): Promise<IApiResponse<IPayoutResponse>> => {
+  return apiClient.patch(`${apiBaseUrl}/payouts/${payoutId}/status`, data);
+};
+
+/* =============================================== */
 /* UPDATED CONSOLIDATED API OBJECT                 */
 /* =============================================== */
 
