@@ -75,9 +75,14 @@ frontend:
         - npm config set update-notifier false
         - npm config set progress true
         
-        # Debug package.json and package-lock.json
+        # Clean up any potential lock file issues
         - echo ""
-        - echo "=== Dependency Analysis ==="
+        - echo "=== Dependency Cleanup and Installation ==="
+        - echo "Cleaning up potential dependency conflicts..."
+        - rm -rf node_modules/.staging 2>/dev/null || true
+        - rm -rf node_modules/.cache 2>/dev/null || true
+        
+        # Debug package.json and package-lock.json
         - echo "Checking package.json..."
         - ls -la package.json
         - echo "Checking package-lock.json..."
@@ -85,9 +90,22 @@ frontend:
         - echo "Node modules before install:"
         - ls -la node_modules/ 2>/dev/null || echo "No node_modules directory"
         
+        # Clean install with better error handling
         - echo ""
-        - echo "Installing dependencies with verbose output..."
-        - npm ci --no-audit --prefer-offline --no-fund --verbose
+        - echo "Installing dependencies with clean approach..."
+        - |
+          # Try npm ci first (faster and more reliable for production)
+          if [ -f package-lock.json ]; then
+            echo "Using npm ci for clean install..."
+            npm ci --no-audit --prefer-offline --no-fund --verbose || {
+              echo "npm ci failed, falling back to npm install..."
+              rm -rf node_modules
+              npm install --no-audit --prefer-offline --no-fund --verbose
+            }
+          else
+            echo "No package-lock.json found, using npm install..."
+            npm install --no-audit --prefer-offline --no-fund --verbose
+          fi
         
         # Verify installation
         - echo ""
