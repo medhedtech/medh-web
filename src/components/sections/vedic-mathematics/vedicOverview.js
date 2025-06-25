@@ -470,9 +470,34 @@ const data = {
                   </div>
                 </td>
               </tr>
-              
-              // ... existing code ...
-              
+              <tr className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
+                  <div className="font-bold">Nikhilam Navataścaramam Daśataḥ</div>
+                  <div className="text-[#727695] dark:text-gray300">
+                    All from 9 and the last from 10.
+                  </div>
+                </td>
+                <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
+                  <div className="font-bold">Anurupyena</div>
+                  <div className="text-[#727695] dark:text-gray300">
+                    Proportionally.
+                  </div>
+                </td>
+              </tr>
+              <tr className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
+                  <div className="font-bold">Urdhva-tiryagbhyam</div>
+                  <div className="text-[#727695] dark:text-gray300">
+                    Vertically and crosswise.
+                  </div>
+                </td>
+                <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
+                  <div className="font-bold">Adyamadyenantyamantyena</div>
+                  <div className="text-[#727695] dark:text-gray300">
+                    The first by the first and the last by the last.
+                  </div>
+                </td>
+              </tr>
             </tbody>
           </table>
           </motion.div>
