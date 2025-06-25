@@ -206,6 +206,25 @@ const NavbarRight = ({ isScrolled }) => {
     }
   };
 
+  // Get profile URL based on role
+  const getProfileUrl = () => {
+    const roleLower = (userRole || "").toLowerCase();
+    
+    if (roleLower === "admin" || roleLower === "super-admin") {
+      return "/dashboards/admin/profile";
+    } else if (roleLower === "instructor") {
+      return "/dashboards/instructor/profile";
+    } else if (roleLower === "student") {
+      return "/dashboards/student/profile";
+    } else if (roleLower === "coorporate") {
+      return "/dashboards/coorporate/profile";
+    } else if (roleLower === "coorporate-student") {
+      return "/dashboards/coorporate-employee/profile";
+    } else {
+      return "/dashboards/profile";
+    }
+  };
+
   // Get role icon based on user role
   const getRoleIcon = () => {
     const roleLower = (userRole || "").toLowerCase();
@@ -280,7 +299,7 @@ const NavbarRight = ({ isScrolled }) => {
               <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 z-50 transform origin-top-right transition-all duration-200 animate-fadeIn">
                 {/* User Info Section - now fully clickable */}
                 <Link
-                  href="/dashboards/student/profile"
+                  href={getProfileUrl()}
                   className="block w-full px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 cursor-pointer hover:bg-primary-50 dark:hover:bg-primary-900/10 transition"
                   onClick={() => setIsDropdownOpen(false)}
                 >
