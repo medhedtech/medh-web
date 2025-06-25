@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import DownloadBrochureModal from "@/components/shared/download-brochure";
-import image6 from "@/assets/images/courses/image6.png";
 import { 
   Clock, 
   Calendar, 
@@ -33,8 +32,7 @@ import {
   Briefcase
 } from "lucide-react";
 import { isFreePrice } from '@/utils/priceUtils';
-import { shimmer, toBase64 } from '@/utils/imageUtils';
-import { optimizeCourseImage, preloadCriticalImage, getCourseCardSizes, getSafeCourseImageUrl } from '@/utils/imageOptimization';
+import { optimizeCourseImage, preloadCriticalImage, getCourseCardSizes } from '@/utils/imageOptimization';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import { batchDOMOperations, throttleRAF } from '@/utils/performanceOptimization';
 
@@ -226,24 +224,11 @@ const ImageWrapper: React.FC<ImageWrapperProps> = ({
   // Determine if this is an LCP candidate (first 2 images above the fold)
   const shouldBeLCP = isLCP || index < 2;
 
-  // Get safe image URL with proper fallback handling
-  const fallbackSrc = typeof image6 === 'string' ? image6 : image6.src;
-  const imageSrc = getSafeCourseImageUrl(src, undefined, alt) || fallbackSrc;
-
-  const handleLoadWrapper = () => {
-    if (onLoad) {
-      onLoad({} as React.SyntheticEvent<HTMLImageElement>);
-    }
-  };
-
-  const handleErrorWrapper = () => {
-    if (onError) {
-      onError({} as React.SyntheticEvent<HTMLImageElement>);
-    }
-  };
+  // Get optimized image URL
+  const imageSrc = src;
 
   return (
-    <div className="relative w-full aspect-[3/2] min-h-[160px] sm:min-h-[140px] md:min-h-[150px] bg-gray-100 dark:bg-gray-800/50 overflow-hidden rounded-t-xl group gpu-accelerated">
+    <div className="relative w-full aspect-[4/3] min-h-[160px] sm:min-h-[140px] md:min-h-[150px] bg-gray-100 dark:bg-gray-800/50 overflow-hidden rounded-t-xl group gpu-accelerated">
       <OptimizedImage
         src={imageSrc}
         alt={alt}
@@ -251,9 +236,8 @@ const ImageWrapper: React.FC<ImageWrapperProps> = ({
         className="object-cover transition-opacity duration-300 gpu-accelerated"
         quality={shouldBeLCP ? 95 : 85}
         priority={shouldBeLCP}
-        placeholder="blur"
-        onLoad={handleLoadWrapper}
-        onError={handleErrorWrapper}
+        onLoad={onLoad}
+        onError={onError}
         loading={shouldBeLCP ? 'eager' : 'lazy'}
         decoding={shouldBeLCP ? 'sync' : 'async'}
         sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -838,62 +822,8 @@ const CourseCard: React.FC<CourseCardProps> = ({
   };
 
   const navigateToCourse = () => {
-    // For live courses, redirect to enrollment page
-    if (isLiveCourse) {
-      // Create enrollment URL slug from course title
-      let enrollmentSlug = '';
-      
-      console.log('Course data for enrollment:', { 
-        url: course?.url, 
-        title: course?.course_title,
-        course: course 
-      });
-      
-      if (course?.course_title) {
-        const title = course.course_title.toLowerCase();
-        
-        // Specific course mappings for exact URLs
-        if (title.includes('ai') && title.includes('data science')) {
-          enrollmentSlug = 'ai-and-data-science';
-        } else if (title.includes('digital marketing')) {
-          enrollmentSlug = 'digital-marketing';
-        } else if (title.includes('personality development')) {
-          enrollmentSlug = 'personality-development';
-        } else if (title.includes('vedic mathematics')) {
-          enrollmentSlug = 'vedic-mathematics';
-        } else {
-          // Generic slug generation for other courses
-          enrollmentSlug = course.course_title
-            .toLowerCase()
-            .replace(/[^a-z0-9\s&-]/g, '') // Keep & character
-            .replace(/&/g, 'and') // Replace & with "and"
-            .replace(/\s+/g, '-') // Replace spaces with hyphens
-            .replace(/-+/g, '-') // Remove multiple consecutive hyphens
-            .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
-        }
-        
-        console.log('Generated slug:', enrollmentSlug);
-      }
-      
-      // Ensure we have a valid slug before redirecting
-      if (enrollmentSlug && enrollmentSlug.length > 0) {
-        const enrollmentUrl = `/enrollment/${enrollmentSlug}/`;
-        console.log('Redirecting to:', enrollmentUrl);
-        window.location.href = enrollmentUrl;
-      } else {
-        console.log('No valid slug generated, falling back to course details');
-        // Fallback to course details if no slug can be created
-        if (course?._id) {
-          window.open(`/course-details/${course._id}`, '_blank');
-        }
-      }
-    }
-    // For courses with URL, navigate to that URL
-    else if (course?.url) {
-      window.location.href = course.url;
-    } 
-    // For other courses, we navigate to the course details page
-    else if (course?._id) {
+    // For all courses, navigate to the course details page
+    if (course?._id) {
       window.open(`/course-details/${course._id}`, '_blank');
     }
   };
@@ -1365,7 +1295,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
 
               {/* Image section */}
               <ImageWrapper
-                src={getSafeCourseImageUrl(course?.course_image, course?._id, course?.course_title) || (image6 as any)}
+                src={course?.course_image || ''}
                 alt={course?.course_title || "Course Image"}
                 onLoad={handleImageLoad}
                 onError={handleImageError}
@@ -1530,7 +1460,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
           <div className={`flex flex-col h-full transition-opacity duration-300 ${(isHovered && !isMobile) || (mobileHoverActive && isMobile) ? 'opacity-0' : 'opacity-100'}`}>
             {/* Updated Image section */}
             <ImageWrapper
-              src={getSafeCourseImageUrl(course?.course_image, course?._id, course?.course_title) || (image6 as any)}
+              src={course?.course_image || ''}
               alt={course?.course_title || "Course Image"}
               onLoad={handleImageLoad}
               onError={handleImageError}
