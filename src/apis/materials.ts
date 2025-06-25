@@ -243,16 +243,21 @@ const materialsAPI = {
         message: 'Certificates fetched successfully'
       };
     } catch (error: any) {
-      console.error('Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
+      // Safely extract error details
+      const errorDetails = {
+        message: error?.message || 'Unknown error',
+        response: {
+          data: error?.response?.data || null,
+          status: error?.response?.status || null
+        },
         url: `${apiBaseUrl}${apiUrls.certificate.getCertificatesByStudentId}/${userId}`
-      });
+      };
+      
+      console.error('Error fetching certificates:', errorDetails);
       
       return {
         status: 'error',
-        message: error.response?.data?.message || 'Failed to fetch certificates'
+        message: error?.response?.data?.message || error?.message || 'Failed to fetch certificates'
       };
     }
   }
