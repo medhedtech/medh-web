@@ -93,7 +93,8 @@ import {
   UserX,
   Video,
   Wallet,
-  Zap
+  Zap,
+  Eye
 } from "lucide-react";
 import Cookies from 'js-cookie';
 import { motion, AnimatePresence } from "framer-motion";
@@ -113,6 +114,7 @@ import {
   LogOut as LogoutIcon 
 } from 'lucide-react';
 import { jwtDecode } from "jwt-decode";
+import { easeInOut, easeOut } from "framer-motion";
 
 // Import the new sidebar components
 import {
@@ -165,26 +167,17 @@ interface SidebarDashboardProps {
 // Enhanced sidebar animation variants for better mobile experience
 const sidebarVariants = {
   expanded: {
-    width: '320px', // Increased to 320px to provide much more space for longer text without wrapping
+    width: '320px',
     transition: {
-      type: 'spring',
-      stiffness: 190,
-      damping: 20,
-      mass: 0.7,
       duration: 0.4,
-      bounce: 0.1,
-      restSpeed: 0.001
+      ease: easeInOut
     }
   },
   collapsed: {
-    width: '84px', // Increased from 78px to provide more comfortable space for icons
+    width: '84px',
     transition: {
-      type: 'spring',
-      stiffness: 160,  // Lower stiffness for slower animation
-      damping: 28,     // Higher damping for smoother motion
-      mass: 1.0,       // Balanced mass for natural movement
-      duration: 0.5,   // Slightly shorter duration for better feel
-      restSpeed: 0.001
+      duration: 0.5,
+      ease: easeInOut
     }
   }
 };
@@ -194,21 +187,15 @@ const mobileSidebarVariants = {
   expanded: {
     width: '100%',
     transition: {
-      type: 'spring',
-      stiffness: 300,
-      damping: 25,
       duration: 0.3,
-      ease: "easeOut"
+      ease: easeInOut
     }
   },
   collapsed: {
     width: '100%',
     transition: {
-      type: 'spring',
-      stiffness: 300,
-      damping: 25,
       duration: 0.3,
-      ease: "easeIn"
+      ease: easeInOut
     }
   }
 };
@@ -221,16 +208,15 @@ const itemVariants = {
     display: "block",
     transition: {
       duration: 0.22,
-      ease: [0.3, 0.0, 0.2, 1],
-      display: { delay: 0 }
+      ease: easeOut
     }
   },
   collapsed: {
     opacity: 0,
     x: -12,
     transition: {
-      duration: 0.25,  // Slightly faster fade out for better timing with sidebar
-      ease: [0.4, 0.0, 0.2, 1]
+      duration: 0.25,
+      ease: easeInOut
     },
     transitionEnd: {
       display: "none"
@@ -246,7 +232,7 @@ const mobileItemVariants = {
     display: "block",
     transition: {
       duration: 0.2,
-      ease: [0.3, 0.0, 0.2, 1]
+      ease: easeOut
     }
   }
 };
@@ -261,7 +247,7 @@ const compactItemVariants = {
     scale: 1,
     transition: {
       duration: 0.35,
-      ease: [0.2, 0.0, 0.2, 1]
+      ease: easeOut
     }
   },
   compact: {
@@ -272,7 +258,7 @@ const compactItemVariants = {
     scale: 0.95,
     transition: {
       duration: 0.35,
-      ease: [0.2, 0.0, 0.2, 1]
+      ease: easeOut
     }
   },
   veryCompact: {
@@ -283,7 +269,7 @@ const compactItemVariants = {
     scale: 0.92,
     transition: {
       duration: 0.35,
-      ease: [0.2, 0.0, 0.2, 1]
+      ease: easeOut
     }
   }
 };
@@ -295,7 +281,7 @@ const headerIconVariants = {
     scale: 1,
     transition: {
       duration: 0.4,
-      ease: "easeInOut"
+      ease: easeInOut
     }
   },
   collapsed: {
@@ -303,7 +289,7 @@ const headerIconVariants = {
     scale: 1.2,
     transition: {
       duration: 0.6,
-      ease: "easeInOut"
+      ease: easeInOut
     }
   }
 };
@@ -316,7 +302,7 @@ const iconContainerVariants = {
     scale: 1,
     transition: {
       duration: 0.3,
-      ease: "easeInOut"
+      ease: easeInOut
     }
   },
   collapsed: {
@@ -325,7 +311,7 @@ const iconContainerVariants = {
     scale: 1.05,
     transition: {
       duration: 0.3,
-      ease: "easeInOut"
+      ease: easeInOut
     }
   }
 };
@@ -338,7 +324,7 @@ const chevronVariants = {
     scale: 1.1,
     transition: {
       duration: 0.4,
-      ease: "easeInOut"
+      ease: easeInOut
     }
   },
   closed: {
@@ -347,7 +333,7 @@ const chevronVariants = {
     scale: 1,
     transition: {
       duration: 0.3,
-      ease: "easeInOut"
+      ease: easeInOut
     }
   }
 };
@@ -374,28 +360,16 @@ const submenuVariants = {
     height: 'auto',
     opacity: 1,
     transition: {
-      height: {
-        duration: 0.5,
-        ease: [0.2, 0.0, 0.2, 1]
-      },
-      opacity: {
-        duration: 0.4,
-        ease: [0.2, 0.0, 0.2, 1]
-      }
+      duration: 0.5,
+      ease: easeOut
     }
   },
   closed: {
     height: 0,
     opacity: 0,
     transition: {
-      height: {
-        duration: 0.4,  // Slower height collapse
-        ease: [0.4, 0.0, 0.2, 1]
-      },
-      opacity: {
-        duration: 0.25,
-        ease: [0.4, 0.0, 0.2, 1]
-      }
+      duration: 0.4,
+      ease: easeInOut
     }
   }
 };
@@ -406,20 +380,16 @@ const containerVariants = {
     paddingLeft: '14px',
     paddingRight: '14px',
     transition: {
-      type: 'spring',
-      stiffness: 170,
-      damping: 26,
-      duration: 0.35
+      duration: 0.35,
+      ease: easeInOut
     }
   },
   collapsed: {
     paddingLeft: '8px',
     paddingRight: '8px',
     transition: {
-      type: 'spring',
-      stiffness: 170,
-      damping: 26,
-      duration: 0.35
+      duration: 0.35,
+      ease: easeInOut
     }
   }
 };
@@ -1179,73 +1149,78 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
   const instructorMenuItems: MenuItem[] = [
     {
       name: "Dashboard",
-      path: "/dashboards",
+      path: "/dashboards/instructor",
       icon: <LayoutDashboard className="w-5 h-5" />
     },
     {
-      name: "My Demo Classes",
+      name: "Demo Classes",
       icon: <MonitorPlay className="w-5 h-5" />,
       subItems: [
         {
-          name: "View Assigned Demo Classes",
-          path: formatRoute("instructor", "demo-classes"),
-          icon: <Calendar className="w-4 h-4" />
+          name: "Demo Requests",
+          path: "/dashboards/instructor/demo-requests",
+          icon: <Bell className="w-4 h-4" />
         },
         {
-          name: "Accept/Reject Demo Class",
-          path: formatRoute("instructor", "demo-requests"),
-          icon: <CheckCircle className="w-4 h-4" />
-        },
-        {
-          name: "View Demo Presentations",
-          path: formatRoute("instructor", "demo-presentations"),
-          icon: <FileText className="w-4 h-4" />
-        },
-        {
-          name: "Start/Join Live Demo",
-          path: formatRoute("instructor", "demo-live"),
+          name: "Live Demo Classes",
+          path: "/dashboards/instructor/demo-live",
           icon: <Video className="w-4 h-4" />
         },
         {
-          name: "Submit Feedback",
-          path: formatRoute("instructor", "demo-feedback"),
+          name: "Demo Presentations",
+          path: "/dashboards/instructor/demo-presentations",
+          icon: <FileText className="w-4 h-4" />
+        },
+        {
+          name: "Demo Recordings",
+          path: "/dashboards/instructor/demo-recordings",
+          icon: <Play className="w-4 h-4" />
+        },
+        {
+          name: "Demo Feedback",
+          path: "/dashboards/instructor/demo-feedback",
           icon: <MessageSquare className="w-4 h-4" />
         },
         {
-          name: "Recorded Demo Sessions",
-          path: formatRoute("instructor", "demo-recordings"),
-          icon: <Play className="w-4 h-4" />
+          name: "Demo Revenue",
+          path: "/dashboards/instructor/demo-revenue",
+          icon: <DollarSign className="w-4 h-4" />
         }
       ]
     },
     {
-      name: "My Main Classes",
+      name: "Live Classes",
       icon: <Video className="w-5 h-5" />,
       subItems: [
         {
-          name: "View Assigned Courses/Batches",
-          path: formatRoute("instructor", "assigned-courses"),
+          name: "Assigned Courses",
+          path: "/dashboards/instructor/assigned-courses",
           icon: <BookOpen className="w-4 h-4" />
         },
         {
-          name: "Manage Class Schedules",
-          path: formatRoute("instructor", "class-schedules"),
+          name: "Class Schedules",
+          path: "/dashboards/instructor/class-schedules",
           icon: <CalendarDays className="w-4 h-4" />
         },
         {
-          name: "Live Classes Presentations",
-          path: formatRoute("instructor", "live-presentations"),
-          icon: <FileText className="w-4 h-4" />
-        },
-        {
-          name: "Start/Join Live Classes",
-          path: formatRoute("instructor", "live-classes"),
+          name: "Live Classes",
+          path: "/dashboards/instructor/live-classes",
           icon: <Video className="w-4 h-4" />
         },
         {
-          name: "Recorded Live Sessions",
-          path: formatRoute("instructor", "live-recordings"),
+          name: "Live Presentations",
+          path: "/dashboards/instructor/live-presentations",
+          icon: <FileText className="w-4 h-4" />
+        },
+        {
+          name: "Live Recordings",
+          path: "/dashboards/instructor/live-recordings",
           icon: <Play className="w-4 h-4" />
+        },
+        {
+          name: "Live Revenue",
+          path: "/dashboards/instructor/live-revenue",
+          icon: <DollarSign className="w-4 h-4" />
         }
       ]
     },
@@ -1254,19 +1229,24 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       icon: <Users className="w-5 h-5" />,
       subItems: [
         {
-          name: "View Student Lists",
-          path: formatRoute("instructor", "student-lists"),
+          name: "Student Lists",
+          path: "/dashboards/instructor/student-lists",
           icon: <Users className="w-4 h-4" />
         },
         {
-          name: "Track Student Progress",
-          path: formatRoute("instructor", "student-progress"),
+          name: "Student Progress",
+          path: "/dashboards/instructor/student-progress",
           icon: <TrendingUp className="w-4 h-4" />
         },
         {
-          name: "Communicate with Students",
-          path: formatRoute("instructor", "student-communication"),
+          name: "Student Communication",
+          path: "/dashboards/instructor/student-communication",
           icon: <MessageCircle className="w-4 h-4" />
+        },
+        {
+          name: "Mark Attendance",
+          path: "/dashboards/instructor/mark-attendance",
+          icon: <CheckCircle className="w-4 h-4" />
         }
       ]
     },
@@ -1275,19 +1255,19 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       icon: <FolderOpen className="w-5 h-5" />,
       subItems: [
         {
-          name: "Upload Course Materials",
-          path: formatRoute("instructor", "upload-materials"),
+          name: "Upload Materials",
+          path: "/dashboards/instructor/upload-materials",
           icon: <Upload className="w-4 h-4" />
         },
         {
-          name: "Create/Edit Lesson Plans",
-          path: formatRoute("instructor", "lesson-plans"),
+          name: "Lesson Plans",
+          path: "/dashboards/instructor/lesson-plans",
           icon: <PenSquare className="w-4 h-4" />
         },
         {
-          name: "Manage Resource Visibility",
-          path: formatRoute("instructor", "resource-visibility"),
-          icon: <Settings className="w-4 h-4" />
+          name: "Resource Visibility",
+          path: "/dashboards/instructor/resource-visibility",
+          icon: <Eye className="w-4 h-4" />
         }
       ]
     },
@@ -1296,61 +1276,19 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       icon: <ClipboardList className="w-5 h-5" />,
       subItems: [
         {
-          name: "Create Quizzes/Assignments",
-          path: formatRoute("instructor", "create-assessments"),
+          name: "Create Assessments",
+          path: "/dashboards/instructor/create-assessments",
           icon: <Plus className="w-4 h-4" />
         },
         {
-          name: "Check Submitted Work",
-          path: formatRoute("instructor", "submitted-work"),
+          name: "Submitted Work",
+          path: "/dashboards/instructor/submitted-work",
           icon: <CheckSquare className="w-4 h-4" />
         },
         {
-          name: "Provide/Reply Feedback",
-          path: formatRoute("instructor", "assessment-feedback"),
+          name: "Assessment Feedback",
+          path: "/dashboards/instructor/assessment-feedback",
           icon: <MessageSquare className="w-4 h-4" />
-        },
-        {
-          name: "Performance Reports",
-          path: formatRoute("instructor", "performance-reports"),
-          icon: <BarChart className="w-4 h-4" />
-        }
-      ]
-    },
-    {
-      name: "Attendance",
-      icon: <UserCheck className="w-5 h-5" />,
-      subItems: [
-        {
-          name: "Mark Class Attendance",
-          path: formatRoute("instructor", "mark-attendance"),
-          icon: <CheckCircle className="w-4 h-4" />
-        },
-        {
-          name: "View Attendance Reports",
-          path: formatRoute("instructor", "attendance-reports"),
-          icon: <FileText className="w-4 h-4" />
-        }
-      ]
-    },
-    {
-      name: "My Revenue",
-      icon: <DollarSign className="w-5 h-5" />,
-      subItems: [
-        {
-          name: "My Receivables (Receipts/Dues)",
-          path: formatRoute("instructor", "receivables"),
-          icon: <CreditCard className="w-4 h-4" />
-        },
-        {
-          name: "Total Demo Classes Revenue",
-          path: formatRoute("instructor", "demo-revenue"),
-          icon: <MonitorPlay className="w-4 h-4" />
-        },
-        {
-          name: "Total Live Classes Revenue",
-          path: formatRoute("instructor", "live-revenue"),
-          icon: <Video className="w-4 h-4" />
         }
       ]
     },
@@ -1359,30 +1297,61 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       icon: <BarChart2 className="w-5 h-5" />,
       subItems: [
         {
-          name: "Class Performance Reports",
-          path: formatRoute("instructor", "class-reports"),
+          name: "Class Reports",
+          path: "/dashboards/instructor/class-reports",
           icon: <LineChart className="w-4 h-4" />
         },
         {
-          name: "Student Engagement Reports",
-          path: formatRoute("instructor", "engagement-reports"),
-          icon: <Users className="w-4 h-4" />
+          name: "Attendance Reports",
+          path: "/dashboards/instructor/attendance-reports",
+          icon: <FileText className="w-4 h-4" />
         },
         {
-          name: "Learning Outcome Analysis",
-          path: formatRoute("instructor", "learning-outcomes"),
+          name: "Performance Reports",
+          path: "/dashboards/instructor/performance-reports",
+          icon: <BarChart className="w-4 h-4" />
+        },
+        {
+          name: "Engagement Reports",
+          path: "/dashboards/instructor/engagement-reports",
+          icon: <Activity className="w-4 h-4" />
+        },
+        {
+          name: "Learning Outcomes",
+          path: "/dashboards/instructor/learning-outcomes",
           icon: <Target className="w-4 h-4" />
         }
       ]
     },
     {
+      name: "Finance",
+      icon: <DollarSign className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Receivables",
+          path: "/dashboards/instructor/receivables",
+          icon: <CreditCard className="w-4 h-4" />
+        },
+        {
+          name: "Demo Revenue",
+          path: "/dashboards/instructor/demo-revenue",
+          icon: <MonitorPlay className="w-4 h-4" />
+        },
+        {
+          name: "Live Revenue",
+          path: "/dashboards/instructor/live-revenue",
+          icon: <Video className="w-4 h-4" />
+        }
+      ]
+    },
+    {
       name: "Settings",
-      path: formatRoute("instructor", "settings"),
+      path: "/dashboards/instructor/settings",
       icon: <Settings className="w-5 h-5" />
     },
     {
       name: "Profile",
-      path: formatRoute("instructor", "profile"),
+      path: "/dashboards/instructor/profile",
       icon: <UserCircle className="w-5 h-5" />
     }
   ];
@@ -1426,11 +1395,23 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
   // Get menu items based on user role
   const getMenuItemsByRole = (role: string): MenuItem[] => {
     if (role.includes('admin')) {
-      return adminMenuItems;
+      const items = [...adminMenuItems];
+      if (items[0]?.name === "Dashboard") {
+        items[0] = { ...items[0], path: '/dashboards/admin' };
+      }
+      return items;
     } else if (role.includes('instructor')) {
-      return instructorMenuItems;
+      const items = [...instructorMenuItems];
+      if (items[0]?.name === "Dashboard") {
+        items[0] = { ...items[0], path: '/dashboards/instructor' };
+      }
+      return items;
     } else if (role.includes('student')) {
-      return studentMenuItems;
+      const items = [...studentMenuItems];
+      if (items[0]?.name === "Dashboard") {
+        items[0] = { ...items[0], path: '/dashboards/student' };
+      }
+      return items;
     }
 
     // Default fallback for unknown roles
