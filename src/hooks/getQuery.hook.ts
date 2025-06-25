@@ -444,36 +444,36 @@ export function useGetQuery<T = any>(
             } else if (axiosError.response.status === 401 || axiosError.response.status === 403) {
               errorMsg = axiosError.response.status === 401 ? "Authentication required" : "Access denied";
 
-              // 🔒 Fallback: if the original request didn\'t require auth, try once more with auth token (mobile filters were failing with 401)
-              if (!requireAuth && !attemptedAuthRef.current) {
-                const retryToken = getAuthToken();
-                if (retryToken) {
-                  attemptedAuthRef.current = true;
-                  if (!config.headers) config.headers = {};
-                  config.headers["Authorization"] = `Bearer ${retryToken}`;
-                  config.headers["x-access-token"] = retryToken;
-                  try {
-                    const retryResp = await apiWithAuth.get<T>(url, {
-                      ...config,
-                      cancelToken: createCancelToken(),
-                    });
-                    const retryData = retryResp.data || retryResp;
-                    const extractedRetryData = extractData(retryData) as T;
-
-                    setState(prev => ({
-                      ...prev,
-                      data: extractedRetryData,
-                      loading: false,
-                      ...extractPaginationInfo(retryData),
-                    }));
-
-                    if (onSuccess) onSuccess(extractedRetryData);
-                    return extractedRetryData;
-                  } catch (retryErr) {
-                    // If retry also fails, continue to handle below
-                    if (process.env.NODE_ENV === "development") {
-                      console.warn("Retry with auth token failed", retryErr);
-                    }
+              // 🔒 If this was an authenticated call that failed, attempt ONE graceful fallback:
+              // 1. Clear the stored token (it may be expired).
+              // 2. Retry the request without auth headers so public endpoints still work.
+              if (requireAuth && !attemptedAuthRef.current) {
+                attemptedAuthRef.current = true;
+                // Remove token
+                localStorage.removeItem('token');
+                localStorage.removeItem('accessToken');
+                if (config.headers) {
+                  delete config.headers["Authorization"];
+                  delete config.headers["x-access-token"];
+                }
+                try {
+                  const retryResp = await apiClient.get<T>(url, {
+                    ...config,
+                    cancelToken: createCancelToken(),
+                  });
+                  const retryData = retryResp.data || retryResp;
+                  const extractedRetryData = extractData(retryData) as T;
+                  setState(prev => ({
+                    ...prev,
+                    data: extractedRetryData,
+                    loading: false,
+                    ...extractPaginationInfo(retryData),
+                  }));
+                  if (onSuccess) onSuccess(extractedRetryData);
+                  return extractedRetryData;
+                } catch (unauthErr) {
+                  if (process.env.NODE_ENV === 'development') {
+                    console.warn('Retry without auth also failed', unauthErr);
                   }
                 }
               }
