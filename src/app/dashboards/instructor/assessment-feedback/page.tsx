@@ -7,27 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { 
-  LucideBook,
-  LucideUsers,
-  LucideCalendar,
-  LucideBarChart,
-  LucideSettings,
-  LucideFileText,
-  LucideVideo,
-  LucideClipboardList,
-  LucideGraduationCap,
-  LucideDollarSign,
-  LucideMessageSquare,
-  LucideUpload,
-  LucideDownload,
-  LucideEye,
-  LucideEdit,
-  LucidePlus,
-  LucideRefreshCw,
-  LucideFilter,
-  LucideSearch
-} from 'lucide-react';
+import { LucideFileText } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: "Provide/Reply Feedback | Instructor Dashboard - Medh",
