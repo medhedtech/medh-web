@@ -1,6 +1,4 @@
-const {
-  default: MaintenacePrimary,
-} = require("@/components/sections/maintenace/MaintenacePrimary");
+import MaintenacePrimary from "@/components/sections/maintenace/MaintenacePrimary";
 
 const MaintenanceMain = () => {
   return (

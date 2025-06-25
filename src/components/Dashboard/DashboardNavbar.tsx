@@ -536,12 +536,8 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   );
 
   return (
-    <header 
-      className={`fixed top-0 left-0 right-0 z-50 w-full 
-        ${isScrolled 
-          ? 'bg-white/90 dark:bg-gray-900/90 shadow-md backdrop-blur-lg' 
-          : 'bg-white dark:bg-gray-900'} 
-        transition-all duration-200`}
+    <header
+      className="fixed top-0 left-0 right-0 z-50 w-full bg-white dark:bg-gray-900 shadow-md transition-all duration-200"
     >
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`flex justify-between items-center ${
