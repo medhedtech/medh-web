@@ -162,3 +162,98 @@ frontend:
 - **Current Status**: Production ready
 - **Migration Impact**: Minimal - Next.js and dependencies fully compatible
 - **Performance**: Improved over Node.js 18.x 
+
+# Amplify Build Dependency Fix Summary
+
+## Issue Description
+The Amplify build was failing with npm dependency resolution errors:
+- Missing packages: `quilljs@0.18.1`, `eventemitter2@0.4.14`, `rich-text@1.0.3`, `d3-array@1.2.4`, `fast-diff@1.0.1`
+- Version conflicts: `d3-geo@2.0.2` vs `d3-geo@1.12.1`
+- npm ci command failing due to inconsistent package-lock.json
+
+## Root Cause Analysis
+1. **Corrupted package-lock.json**: The lock file contained inconsistent dependency versions and missing packages
+2. **Outdated react-quill version**: Using `react-quill@0.0.2` which had deprecated dependencies
+3. **Missing version overrides**: No resolutions/overrides for conflicting transitive dependencies
+4. **Amplify build process**: Not handling npm ci failures gracefully
+
+## Applied Fixes
+
+### 1. Package.json Updates
+- **Updated react-quill**: Changed from `^0.0.2` to `^2.0.0` (latest stable version)
+- **Added version resolutions**: Added `d3-geo`, `d3-array`, and `fast-diff` to resolutions
+- **Added overrides**: Ensured consistent versions across all dependencies
+
+```json
+{
+  "resolutions": {
+    "d3-geo": "^2.0.2",
+    "d3-array": "^2.12.1", 
+    "fast-diff": "^1.3.0"
+  },
+  "overrides": {
+    "d3-geo": "^2.0.2",
+    "d3-array": "^2.12.1",
+    "fast-diff": "^1.3.0"
+  }
+}
+```
+
+### 2. Fresh Package-lock.json Generation
+- Removed corrupted `package-lock.json`
+- Removed `node_modules` directory
+- Generated fresh lock file with `npm install`
+- Verified `npm ci` works correctly
+
+### 3. Amplify.yml Optimization
+- **Enhanced error handling**: Added fallback from `npm ci` to `npm install`
+- **Cleanup commands**: Remove `.staging` and `.cache` directories before install
+- **Better logging**: More detailed dependency analysis and verification
+- **Graceful degradation**: Handle missing package-lock.json scenarios
+
+```yaml
+# Clean install with better error handling
+- |
+  if [ -f package-lock.json ]; then
+    echo "Using npm ci for clean install..."
+    npm ci --no-audit --prefer-offline --no-fund --verbose || {
+      echo "npm ci failed, falling back to npm install..."
+      rm -rf node_modules
+      npm install --no-audit --prefer-offline --no-fund --verbose
+    }
+  else
+    echo "No package-lock.json found, using npm install..."
+    npm install --no-audit --prefer-offline --no-fund --verbose
+  fi
+```
+
+### 4. Build Script Enhancements
+- **Memory optimization**: Set Node.js max-old-space-size to 4096MB
+- **Better error diagnostics**: Enhanced build failure analysis
+- **Version compatibility**: Improved Node.js version checking
+
+## Verification Steps Completed
+1. ✅ Local build test: `npm run build` completed successfully
+2. ✅ Clean install test: `npm ci` works without errors
+3. ✅ Dependency verification: All critical packages resolved correctly
+4. ✅ Build artifacts: `.next` directory generated properly
+
+## Next Steps for Deployment
+1. **Commit changes**: Push the updated `package.json`, `package-lock.json`, and `amplify.yml`
+2. **Trigger build**: Deploy to Amplify - the build should now succeed
+3. **Monitor build**: Check Amplify console for successful deployment
+4. **Verify application**: Test the deployed application functionality
+
+## Key Improvements
+- **Reliability**: Robust error handling prevents build failures
+- **Performance**: Optimized dependency resolution and caching
+- **Maintainability**: Better logging and diagnostics for future debugging
+- **Compatibility**: Updated to latest stable package versions
+
+## Dependencies Updated
+- `react-quill`: `0.0.2` → `2.0.0`
+- `d3-geo`: Locked to `2.0.2`
+- `d3-array`: Locked to `2.12.1` 
+- `fast-diff`: Locked to `1.3.0`
+
+The build should now deploy successfully on AWS Amplify with these fixes in place. 
