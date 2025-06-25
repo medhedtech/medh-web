@@ -120,6 +120,9 @@ export function useGetQuery<T = any>(
   // Reference to cancel token source
   const cancelTokenRef = useRef<CancelTokenSource | null>(null);
 
+  // Track if we already retried current request with auth
+  const attemptedAuthRef = useRef<boolean>(false);
+
   // Create a new cancel token
   const createCancelToken = useCallback(() => {
     // Cancel any existing requests
@@ -440,7 +443,40 @@ export function useGetQuery<T = any>(
               // You could add custom handling for 404 errors here
             } else if (axiosError.response.status === 401 || axiosError.response.status === 403) {
               errorMsg = axiosError.response.status === 401 ? "Authentication required" : "Access denied";
-              // You could trigger auth flow here
+
+              // 🔒 Fallback: if the original request didn\'t require auth, try once more with auth token (mobile filters were failing with 401)
+              if (!requireAuth && !attemptedAuthRef.current) {
+                const retryToken = getAuthToken();
+                if (retryToken) {
+                  attemptedAuthRef.current = true;
+                  if (!config.headers) config.headers = {};
+                  config.headers["Authorization"] = `Bearer ${retryToken}`;
+                  config.headers["x-access-token"] = retryToken;
+                  try {
+                    const retryResp = await apiWithAuth.get<T>(url, {
+                      ...config,
+                      cancelToken: createCancelToken(),
+                    });
+                    const retryData = retryResp.data || retryResp;
+                    const extractedRetryData = extractData(retryData) as T;
+
+                    setState(prev => ({
+                      ...prev,
+                      data: extractedRetryData,
+                      loading: false,
+                      ...extractPaginationInfo(retryData),
+                    }));
+
+                    if (onSuccess) onSuccess(extractedRetryData);
+                    return extractedRetryData;
+                  } catch (retryErr) {
+                    // If retry also fails, continue to handle below
+                    if (process.env.NODE_ENV === "development") {
+                      console.warn("Retry with auth token failed", retryErr);
+                    }
+                  }
+                }
+              }
             }
           } else if (axiosError.request) {
             // Request was made but no response received

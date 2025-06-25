@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { createAssignment } from '@/apis/instructor.api';
+import { InstructorAPI } from '@/apis/instructor.api';
 import { showToast } from '@/utils/toast';
 import Preloader from '@/components/shared/others/Preloader';
 import { 
@@ -50,8 +50,9 @@ const CreateQuizzesAssignmentsPage: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await instructorApi.createAssignment();
-        setData(response);
+        const response = await InstructorAPI.getAssignments();
+        const items = Array.isArray(response?.data ?? response) ? (response?.data ?? response) : [];
+        setData(items);
         setError(null);
       } catch (err: any) {
         console.error('Error fetching create quizzes/assignments:', err);
@@ -137,7 +138,7 @@ const CreateQuizzesAssignmentsPage: React.FC = () => {
               <CardContent>
                 {/* Add your main content here */}
                 <div className="space-y-4">
-                  {data.length > 0 ? (
+                  {Array.isArray(data) && data.length > 0 ? (
                     data.map((item, index) => (
                       <div key={index} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
                         {/* Render your data item here */}

@@ -765,6 +765,16 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   const [isBlendedLearningDropdownOpen, setIsBlendedLearningDropdownOpen] = useState<boolean>(false);
   const [isFreeCoursesDropdownOpen, setIsFreeCoursesDropdownOpen] = useState<boolean>(false);
 
+  // Automatically close nested dropdowns whenever the mobile categories panel is closed
+  useEffect(() => {
+    if (!isMobileCategoriesOpen) {
+      setIsLiveCoursesDropdownOpen(false);
+      setIsBlendedLearningDropdownOpen(false);
+      setIsFreeCoursesDropdownOpen(false);
+      setIsGradeDropdownOpen(false);
+    }
+  }, [isMobileCategoriesOpen]);
+  
   // Refs
   const sortDropdownRef = useRef<HTMLDivElement>(null);
   const didInitRef = useRef<boolean>(false);
