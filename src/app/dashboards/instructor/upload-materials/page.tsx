@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { uploadCourseMaterials } from '@/apis/instructor.api';
+import { instructorApi } from '@/apis/instructor.api';
 import { showToast } from '@/utils/toast';
 import Preloader from '@/components/shared/others/Preloader';
 import { 
@@ -50,8 +50,10 @@ const uploadCourseMaterialsPage: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await instructorApi.uploadCourseMaterials();
-        setData(response);
+        const response = await instructorApi.getCourseContent("all");
+        // Ensure we always set an array to avoid runtime errors
+        const items = Array.isArray(response) ? response : (response?.materials ?? []);
+        setData(items);
         setError(null);
       } catch (err: any) {
         console.error('Error fetching upload course materials:', err);
@@ -137,7 +139,7 @@ const uploadCourseMaterialsPage: React.FC = () => {
               <CardContent>
                 {/* Add your main content here */}
                 <div className="space-y-4">
-                  {data.length > 0 ? (
+                  {Array.isArray(data) && data.length > 0 ? (
                     data.map((item, index) => (
                       <div key={index} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
                         {/* Render your data item here */}

@@ -77,7 +77,8 @@ const MarkAttendancePage: React.FC = () => {
       try {
         setLoading(true);
         const response = await instructorApi.getActiveBatches({ status: 'active' });
-        setBatches(response);
+        // Safeguard: ensure batches is always an array
+        setBatches(Array.isArray(response) ? response : []);
         setError(null);
       } catch (err: any) {
         console.error('Error fetching batches:', err);

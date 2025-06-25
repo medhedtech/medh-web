@@ -76,8 +76,9 @@ const StudentProgressPage: React.FC = () => {
           instructorApi.getActiveBatches()
         ]);
         
-        setStudentsData(progressResponse);
-        setBatches(batchesResponse);
+        // Ensure we never store undefined to prevent runtime errors
+        setStudentsData(Array.isArray(progressResponse) ? progressResponse : []);
+        setBatches(Array.isArray(batchesResponse) ? batchesResponse : []);
         setError(null);
       } catch (err: any) {
         console.error('Error fetching student progress:', err);
