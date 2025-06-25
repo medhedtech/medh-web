@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 
 // Core components
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
-import CourseBanner from "@/components/shared/banners/CourseBanner";
+import CourseBanner from "@/components/sections/course-ai/courseAiCourseBanner";
 import ThemeController from "@/components/shared/others/ThemeController";
 
 // Section components

@@ -48,7 +48,7 @@ const DigiMarketingCourse: React.FC = () => {
       <div className="w-full">
         {customHeader}
         
-        <div className="w-full">
+        <div className="w-full max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8">
           <div className="courses-filter-4-col-override">
             <CoursesFilter
               key="digital-marketing"
@@ -72,15 +72,13 @@ const DigiMarketingCourse: React.FC = () => {
               simplePagination={true}
               scrollToTop={true}
               description="Master the art of digital marketing with our comprehensive courses combining modern marketing techniques with data analytics."
-              customGridClassName="!grid !gap-2 !grid-cols-1 sm:!grid-cols-2 md:!grid-cols-4 lg:!grid-cols-4 !px-2"
+              customGridClassName="!grid !gap-4 !grid-cols-1 sm:!grid-cols-2 md:!grid-cols-3 lg:!grid-cols-4"
               customGridStyle={{
-                display: 'grid !important',
-                gridTemplateColumns: 'repeat(4, minmax(0, 1fr)) !important',
-                gap: '0.5rem',
-                width: '100vw',
-                padding: '0 0.5rem',
-                margin: '0',
-                maxWidth: 'none'
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                gap: '1rem',
+                width: '100%',
+                margin: '0 auto'
               }}
               emptyStateContent={
                 <div className="bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 mx-2">
@@ -103,45 +101,49 @@ const DigiMarketingCourse: React.FC = () => {
           
           <style jsx>{`
             .courses-filter-4-col-override :global(.grid) {
-              grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-              width: 100vw !important;
-              padding: 0 0.5rem !important;
-              margin: 0 !important;
-              max-width: none !important;
-              gap: 0.5rem !important;
+              grid-template-columns: repeat(1, minmax(0, 1fr));
+              width: 100%;
+              padding: 1rem;
+              margin: 0 auto;
+              max-width: 1440px;
+              gap: 1rem;
             }
             
             .courses-filter-4-col-override :global(.container) {
-              max-width: none !important;
-              padding: 0 !important;
-              margin: 0 !important;
-              width: 100% !important;
+              max-width: 1440px;
+              padding: 0 1rem;
+              margin: 0 auto;
+              width: 100%;
             }
             
             .courses-filter-4-col-override :global(.max-w-full),
             .courses-filter-4-col-override :global(.max-w-6xl),
             .courses-filter-4-col-override :global(.max-w-7xl) {
-              max-width: none !important;
+              max-width: 1440px !important;
+              margin: 0 auto;
             }
             
             @media (min-width: 640px) {
               .courses-filter-4-col-override :global(.grid) {
-                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-                gap: 0.5rem !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 1rem;
+                padding: 1rem;
               }
             }
             
             @media (min-width: 768px) {
               .courses-filter-4-col-override :global(.grid) {
-                grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-                gap: 0.5rem !important;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 1rem;
+                padding: 1.5rem;
               }
             }
             
             @media (min-width: 1024px) {
               .courses-filter-4-col-override :global(.grid) {
-                grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-                gap: 0.5rem !important;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 1rem;
+                padding: 2rem;
               }
             }
           `}</style>

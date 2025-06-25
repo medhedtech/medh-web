@@ -9,7 +9,7 @@ import PersonalityCourse from "@/components/sections/personality-development/per
 import PersonalityRelatedCourse from "@/components/sections/personality-development/relatedCourses";
 import PersonalityCourseBanner from "@/components/sections/personality-development/personalityCourseBanner";
 import ExploreJourney from "@/components/sections/explore-journey/Enroll-Form";
-import CourseBanner from "@/components/shared/banners/CourseBanner";
+import CourseBanner from "@/components/sections/personality-development/personalityCourseBanner";
 import ThemeController from "@/components/shared/others/ThemeController";
 import { UserPlus, Target, Sparkles, Star, Users, Award, Presentation } from "lucide-react";
 import Banner from "@/assets/Header-Images/Personality-Development/personality-development-course-age-18-plus-years.png";
@@ -140,7 +140,7 @@ const PersonalityDevelopment: NextPage = () => {
         </header>
 
         {/* Content with Header Offset */}
-        <main className="flex-grow lg:pt-12">
+        <main className="flex-grow">
           <AnimatedContent
             components={{
               CourseBanner: () => <CourseBanner {...bannerProps} />,
