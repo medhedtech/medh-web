@@ -94,3 +94,8 @@ src/apis/index.js
 # Ignore built video assets
 /public/video/
 /public/video/
+
+# amplify
+.amplify
+amplify_outputs*
+amplifyconfiguration*
