@@ -108,12 +108,29 @@ const HeadingDashboard = () => {
   };
 
   const handleLogout = () => {
-    // Add animation before logout
-    setIsDropdownOpen(false);
-    setTimeout(() => {
-      localStorage.removeItem("userId");
-      window.location.href = "/login";
-    }, 300);
+    // Clear user data and redirect to login
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+  };
+
+  // Get profile URL based on role
+  const getProfileUrl = () => {
+    const userRole = userData?.role?.[0]?.toLowerCase();
+    
+    if (userRole === "admin" || userRole === "super-admin") {
+      return "/dashboards/admin/profile";
+    } else if (userRole === "instructor") {
+      return "/dashboards/instructor/profile";
+    } else if (userRole === "student") {
+      return "/dashboards/student/profile";
+    } else if (userRole === "coorporate") {
+      return "/dashboards/coorporate/profile";
+    } else if (userRole === "coorporate-student") {
+      return "/dashboards/coorporate-employee/profile";
+    } else {
+      return "/dashboards/profile";
+    }
   };
 
   const markNotificationAsRead = (notificationId) => {
@@ -281,7 +298,7 @@ const HeadingDashboard = () => {
                     className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 border dark:border-gray-700"
                   >
                     <Link
-                      href={`/dashboards/${userData?.role[0]}-profile`}
+                      href={getProfileUrl()}
                       className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
                     >
                       <FaUserCircle className="mr-3" />
