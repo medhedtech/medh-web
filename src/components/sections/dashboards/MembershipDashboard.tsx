@@ -5,6 +5,7 @@ import { Crown, Gift, Clock, CreditCard, Star, Shield, Zap } from "lucide-react"
 import Link from "next/link";
 import StudentDashboardLayout from "./StudentDashboardLayout";
 import PremiumMembershipCard from "./PremiumMembershipCard";
+import "@/styles/membership-dashboard.css";
 
 interface MembershipPlan {
   id: string;
@@ -23,27 +24,27 @@ interface TabButtonProps {
   children: React.ReactNode;
 }
 
-// Updated TabButton with blog-style filter button styling
+// Updated TabButton with mobile-first design
 const TabButton: React.FC<TabButtonProps> = ({ active, onClick, children }) => (
   <motion.button
-    whileHover={{ scale: 1.02 }}
-    whileTap={{ scale: 0.98 }}
     onClick={onClick}
-    className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 overflow-hidden group ${
-      active
-        ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-md hover:shadow-lg'
-        : 'glass-stats text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/20 dark:hover:bg-gray-700/20'
-    }`}
+    className={`
+      relative min-w-[120px] sm:min-w-[160px] rounded-md transition-all duration-300
+      hover:bg-white/5 dark:hover:bg-white/5 
+      focus:outline-none focus:ring-2 focus:ring-blue-500/20 
+      touch-manipulation
+      ${active ? 'text-white' : 'text-gray-600 dark:text-gray-400'}
+    `}
+    whileTap={{ scale: 0.98 }}
   >
-    {/* Animated background for active state */}
     {active && (
-      <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-emerald-600/20 animate-gradient-x"></div>
+      <motion.div
+        layoutId="activeTab"
+        className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-md shadow-lg"
+        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+      />
     )}
-    
-    {/* Shimmer effect on hover */}
-    <div className="absolute inset-0 animate-shimmer opacity-0 group-hover:opacity-100"></div>
-    
-    <span className="relative z-10 group-hover:scale-110 transition-transform">{children}</span>
+    {children}
   </motion.button>
 );
 
@@ -95,14 +96,15 @@ const StudentMembership: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-          className="flex items-center gap-3"
-        >
-          <Crown className="w-8 h-8 text-primary-500" />
-          <span className="text-gray-600 dark:text-gray-400 text-lg">Loading your membership...</span>
-        </motion.div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative w-12 h-12">
+            <div className="absolute top-0 left-0 w-full h-full border-4 border-blue-200 dark:border-blue-900 rounded-full"></div>
+            <div className="absolute top-0 left-0 w-full h-full border-4 border-blue-600 dark:border-blue-400 rounded-full animate-spin border-t-transparent"></div>
+          </div>
+          <span className="text-slate-600 dark:text-slate-400 text-lg font-medium">
+            Loading your membership...
+          </span>
+        </div>
       </div>
     );
   }
@@ -129,31 +131,33 @@ const StudentMembership: React.FC = () => {
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-8 lg:p-12 rounded-lg max-w-7xl mx-auto"
+      className="p-4 sm:p-8 lg:p-12 rounded-lg max-w-7xl mx-auto"
     >
-      <div className="flex flex-col space-y-6">
+      <div className="flex flex-col space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="text-center pt-6 pb-4">
+        <div className="text-center pt-4 sm:pt-6 pb-2 sm:pb-4">
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center justify-center mb-4"
+            className="flex items-center justify-center mb-3 sm:mb-4"
           >
-            <div className="p-2 bg-primary-100/80 dark:bg-primary-900/30 rounded-xl backdrop-blur-sm mr-3">
-              <Crown className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+            <div className="p-2 bg-blue-100/80 dark:bg-blue-900/30 rounded-xl backdrop-blur-sm mr-3">
+              <Crown className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
             </div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
               My Membership
             </h1>
           </motion.div>
-          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed px-4 mb-6">
+          <p className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed px-4 mb-4 sm:mb-6">
             Manage your membership plans and explore premium benefits
           </p>
         </div>
 
-        {/* Tabs - in a box container */}
+        {/* Tabs - in a scrollable container for mobile */}
+        <div className="relative w-full">
         <div className="flex justify-center">
-          <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+            <div className="w-full max-w-full overflow-x-auto scrollbar-hide snap-x snap-mandatory touch-pan-x smooth-scroll pb-4 px-4 sm:px-0">
+              <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 min-w-max mx-auto gap-1">
             {tabs.map((tab, idx) => {
               return (
                 <TabButton
@@ -161,11 +165,17 @@ const StudentMembership: React.FC = () => {
                   active={currentTab === idx}
                   onClick={() => setCurrentTab(idx)}
                 >
-                  <span className="relative z-10 font-medium">{tab.name}</span>
+                      <span className="relative z-10 font-medium whitespace-nowrap snap-center px-3 py-2">{tab.name}</span>
                 </TabButton>
               );
             })}
+              </div>
           </div>
+          </div>
+          
+          {/* Scroll indicators */}
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-8 scroll-fade-left pointer-events-none md:hidden" style={{"--bg-color": "var(--tw-bg-white)"} as React.CSSProperties} />
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-8 scroll-fade-right pointer-events-none md:hidden" style={{"--bg-color": "var(--tw-bg-white)"} as React.CSSProperties} />
         </div>
 
         {/* Demo Toggle - Remove in production */}

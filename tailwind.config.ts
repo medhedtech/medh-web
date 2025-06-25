@@ -65,6 +65,7 @@ const config: Config = {
         'slide-down': 'slideDown 0.5s ease-in-out',
         'slide-in-right': 'slideInRight 0.5s ease-in-out',
         floating: 'floating 3s ease-in-out infinite',
+        'spin-fast': 'spin 0.6s linear infinite',
       },
       keyframes: {
         fadeIn: {
