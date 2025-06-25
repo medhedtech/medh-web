@@ -474,6 +474,11 @@ export const apiUrls = {
     },
     unlockAllAccounts: "/auth/unlock-all-accounts",
     getLockoutStats: "/auth/lockout-stats",
+    /**
+     * Get the combined list of pending assignments and quizzes for the logged-in student
+     * Full URL example (with apiBaseUrl): `${apiBaseUrl}/student/pending-items`
+     */
+    pendingItems: `${apiBaseUrl}/student/pending-items`,
   },
   
   // 🔐 COMPREHENSIVE AUTHENTICATION API
@@ -799,7 +804,7 @@ export const apiUrls = {
       if (options?.end) queryParams.append('end', options.end);
       
       const queryString = queryParams.toString();
-      return `${apiBaseUrl}/analytics/student/${studentId}/weekly-activity${queryString ? `?${queryString}` : ''}`;
+      return `/api/v1/analytics/student/${studentId}/weekly-activity${queryString ? `?${queryString}` : ''}`;
     },
     getStudentDashboardStats: (studentId: string): string => {
       if (!studentId) throw new Error('Student ID is required');
@@ -937,7 +942,11 @@ export const apiUrls = {
     createStudent: "/students/create",
     updateStudent: (id: string): string => `/students/update/${id}`,
     deleteStudent: "/students/delete",
-    toggleStudentStatus: "/students/toggle-status"
+    toggleStudentStatus: "/students/toggle-status",
+    /**
+     * Combined list of pending quizzes & assignments for the authenticated student
+     */
+    pendingItems: `${apiBaseUrl}/student/pending-items`,
   },
   Contacts: {
     getAllContacts: "/contact/get",
@@ -3990,3 +3999,6 @@ export const apiConfig = {
     return headers;
   }
 };
+
+// Export materials API functions
+export * from './materials';
