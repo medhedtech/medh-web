@@ -71,7 +71,7 @@ const TabButton: React.FC<TabButtonProps> = ({ active, onClick, children, count,
     whileHover={{ scale: 1.02 }}
     whileTap={{ scale: 0.98 }}
     onClick={onClick}
-    className={`relative inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-300 overflow-hidden group ${
+    className={`relative inline-flex items-center justify-center w-32 sm:w-40 px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-medium rounded-xl transition-all duration-300 overflow-hidden group ${
       active
         ? isLive 
           ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg animate-pulse'
@@ -241,7 +241,7 @@ const UpcomingClassCard = ({
     <motion.div 
       whileHover={{ y: -4, scale: 1.02 }}
       transition={{ duration: 0.2 }}
-      className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 relative overflow-hidden"
+      className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-5 md:p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 relative overflow-hidden"
     >
       {/* Status indicator stripe */}
       <div className={`absolute top-0 left-0 w-full h-1 ${
@@ -840,7 +840,7 @@ const StudentUpcomingClasses: React.FC = () => {
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-6 lg:p-8 rounded-lg max-w-7xl mx-auto"
+      className="p-4 sm:p-6 lg:p-8 rounded-lg max-w-7xl mx-auto"
     >
       <div className="flex flex-col space-y-6">
         {/* Enhanced Header */}
@@ -884,7 +884,7 @@ const StudentUpcomingClasses: React.FC = () => {
 
         {/* Enhanced Tabs */}
         <div className="flex justify-center">
-          <div className="inline-flex bg-gray-100/80 dark:bg-gray-800/80 rounded-2xl p-1.5 backdrop-blur-sm">
+          <div className="flex flex-wrap justify-center gap-2 bg-gray-100/80 dark:bg-gray-800/80 rounded-2xl p-1.5 backdrop-blur-sm">
             {tabs.map((tab, idx) => {
                 const TabIcon = tab.icon;
               return (
@@ -968,7 +968,7 @@ const StudentUpcomingClasses: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-                className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+                className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6"
           >
             {filteredContent.length > 0 ? (
               filteredContent.map((upcomingClass, index) => (

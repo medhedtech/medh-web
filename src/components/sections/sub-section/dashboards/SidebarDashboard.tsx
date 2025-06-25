@@ -815,14 +815,9 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           icon: <FileText className="w-4 h-4" />
         },
         {
-          name: "Assignments",
+          name: "Quizzes & Assignments",
           path: formatRoute("student", "assignments"),
           icon: <Clipboard className="w-4 h-4" />
-        },
-        {
-          name: "Quizzes",
-          path: formatRoute("student", "quiz"),
-          icon: <CheckSquare className="w-4 h-4" />
         }
       ]
     },
@@ -1394,19 +1389,27 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
 
   // Get menu items based on user role
   const getMenuItemsByRole = (role: string): MenuItem[] => {
-    if (role.includes('admin')) {
+    // Handle undefined, null, or empty role
+    if (!role || typeof role !== 'string') {
+      role = 'student'; // Default to student role
+    }
+    
+    // Convert to lowercase for consistent comparison
+    const normalizedRole = role.toLowerCase();
+    
+    if (normalizedRole.includes('admin')) {
       const items = [...adminMenuItems];
       if (items[0]?.name === "Dashboard") {
         items[0] = { ...items[0], path: '/dashboards/admin' };
       }
       return items;
-    } else if (role.includes('instructor')) {
+    } else if (normalizedRole.includes('instructor')) {
       const items = [...instructorMenuItems];
       if (items[0]?.name === "Dashboard") {
         items[0] = { ...items[0], path: '/dashboards/instructor' };
       }
       return items;
-    } else if (role.includes('student')) {
+    } else if (normalizedRole.includes('student')) {
       const items = [...studentMenuItems];
       if (items[0]?.name === "Dashboard") {
         items[0] = { ...items[0], path: '/dashboards/student' };
@@ -1418,12 +1421,12 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     return [
       {
         name: "Dashboard",
-        path: `/dashboards/${role}`,
+        path: `/dashboards/${normalizedRole}`,
         icon: <LayoutDashboard className="w-5 h-5" />
       },
       {
         name: "Profile",
-        path: formatRoute(role, "profile"),
+        path: formatRoute(normalizedRole, "profile"),
         icon: <UserCircle className="w-5 h-5" />
       }
     ];
@@ -1431,6 +1434,11 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
 
   // Get the action items based on user role
   const getActionItemsByRole = (role: string): MenuItem[] => {
+    // Handle undefined, null, or empty role
+    if (!role || typeof role !== 'string') {
+      role = 'student'; // Default to student role
+    }
+    
     role = role.toLowerCase();
     
     if (actionItems[role]) {
@@ -1514,7 +1522,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
                         : 'text-sm font-medium'
                   } bg-gradient-to-r from-primary-500 to-violet-500 bg-clip-text text-transparent`}
                 >
-                  {userRole.charAt(0).toUpperCase() + userRole.slice(1)} Dashboard
+                  {userRole ? (userRole.charAt(0).toUpperCase() + userRole.slice(1)) : 'Student'} Dashboard
                 </motion.span>
               ) : (
                 <motion.div 

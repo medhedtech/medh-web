@@ -11,6 +11,14 @@ const nextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
+  transpilePackages: [
+    '@floating-ui/core',
+    '@floating-ui/dom',
+    '@floating-ui/react-dom',
+    '@radix-ui/react-roving-focus',
+    'react-remove-scroll',
+    '@jridgewell/resolve-uri'
+  ],
   // Don't specify output mode to use the default (which supports both static and dynamic routes)
   trailingSlash: true, // Add trailing slashes to improve compatibility
   images: {
