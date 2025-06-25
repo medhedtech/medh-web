@@ -201,6 +201,25 @@ const DashboardProfileComponent: React.FC<DashboardProfileProps> = ({ isScrolled
     }
   };
 
+  // Get profile URL based on role
+  const getProfileUrl = () => {
+    const roleLower = (userRole || "").toLowerCase();
+    
+    if (roleLower === "admin" || roleLower === "super-admin") {
+      return "/dashboards/admin/profile";
+    } else if (roleLower === "instructor") {
+      return "/dashboards/instructor/profile";
+    } else if (roleLower === "student") {
+      return "/dashboards/student/profile";
+    } else if (roleLower === "coorporate") {
+      return "/dashboards/coorporate/profile";
+    } else if (roleLower === "coorporate-student") {
+      return "/dashboards/coorporate-employee/profile";
+    } else {
+      return "/dashboards/profile";
+    }
+  };
+
   // Get role icon based on user role
   const getRoleIcon = () => {
     const roleLower = (userRole || "").toLowerCase();
@@ -301,7 +320,7 @@ const DashboardProfileComponent: React.FC<DashboardProfileProps> = ({ isScrolled
           className={`absolute right-0 mt-2 w-72 bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 z-50 transform origin-top-right transition-all duration-${PROFILE_ANIMATION_DURATION} ease-out ${isDropdownOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-2 pointer-events-none'} before:absolute before:h-4 before:w-full before:-top-4 before:left-0 before:bg-transparent`}
         >
           {/* User Info Section - clickable to go to profile */}
-          <Link href="/dashboards/student/profile" onClick={() => setIsDropdownOpen(false)} className="block w-full">
+          <Link href={getProfileUrl()} onClick={() => setIsDropdownOpen(false)} className="block w-full">
             <div className="w-full h-full px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 cursor-pointer hover:bg-primary-50 dark:hover:bg-primary-900/10 transition">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-full bg-primary-50 dark:bg-primary-900/20">
