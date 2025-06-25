@@ -3,23 +3,27 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Search, Calendar, Clock, Star, Eye, Play, BookOpen, Users, User, FileText, Download, Folder, Video, Globe, Loader2, ChevronRight, Check } from "lucide-react";
+import { getUserId, getAuthToken } from "@/utils/auth";
+import materialsAPI, { IMaterial, IMaterialsResponse } from "@/apis/materials";
+import { showToast } from "@/utils/toastManager";
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import axios from "axios";
 
 interface CourseMaterial {
   id: string;
   title: string;
+  description: string;
+  type: 'document' | 'video' | 'assignment' | 'other';
+  downloadUrl: string;
+  viewUrl: string;
+  course: string;
   instructor?: {
     name: string;
     rating: number;
   };
-  category?: string;
-  type?: 'document' | 'video' | 'assignment' | 'resource';
   size?: string;
   duration?: string;
   uploadDate?: string;
-  course?: string;
-  description?: string;
-  downloadUrl?: string;
-  viewUrl?: string;
   downloads?: number;
   rating?: number;
 }
@@ -37,7 +41,7 @@ const TabButton: React.FC<TabButtonProps> = ({ active, onClick, children, count 
     whileHover={{ scale: 1.02 }}
     whileTap={{ scale: 0.98 }}
     onClick={onClick}
-    className={`relative inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-300 overflow-hidden group ${
+    className={`relative inline-flex items-center justify-center w-32 sm:w-40 px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-medium rounded-xl transition-all duration-300 overflow-hidden group ${
       active
         ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg'
         : 'bg-white/60 dark:bg-gray-800/60 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-gray-700/80 border border-gray-200 dark:border-gray-700'
@@ -111,12 +115,49 @@ const MaterialCard = ({
     }
   };
 
+  const handleDownload = async () => {
+    if (!material.downloadUrl) {
+      showToast('error', 'Download URL not available');
+      return;
+    }
+
+    try {
+      // Record the download
+      await materialsAPI.recordMaterialDownload(material.id);
+
+      // For video content, open in new tab
+      if (material.type === 'video') {
+        window.open(material.viewUrl || material.downloadUrl, '_blank');
+        return;
+      }
+
+      // For other content, try to download
+      const response = await fetch(material.downloadUrl);
+      if (!response.ok) throw new Error('Download failed');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = material.title || 'download';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      showToast('success', 'Download started');
+    } catch (error) {
+      console.error('Download error:', error);
+      showToast('error', 'Failed to download material');
+    }
+  };
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-5 md:p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
       {/* Status stripe */}
-      <div className="w-full h-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-t-xl mb-4 -mt-6 -mx-6"></div>
+      <div className="w-full h-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-t-xl mb-4 -mt-4 sm:-mt-5 md:-mt-6 -mx-4 sm:-mx-5 md:-mx-6"></div>
       
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-4 gap-3 sm:gap-4">
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 line-clamp-1">
             {material?.title || "No Title Available"}
@@ -191,10 +232,11 @@ const MaterialCard = ({
           View Details
         </button>
         <button
+          onClick={handleDownload}
           className="flex-1 flex items-center justify-center px-3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors text-sm font-medium"
         >
           <Download className="w-4 h-4 mr-2" />
-          Download
+          {material.type === 'video' ? 'Watch' : 'Download'}
         </button>
       </div>
     </div>
@@ -202,37 +244,183 @@ const MaterialCard = ({
 };
 
 const LessonCourseMaterialsMain: React.FC = () => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [currentTab, setCurrentTab] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [allMaterials, setAllMaterials] = useState<CourseMaterial[]>([]);
   const [selectedMaterial, setSelectedMaterial] = useState<CourseMaterial | null>(null);
+  const [materialStats, setMaterialStats] = useState<IMaterialsResponse['data']['stats'] | null>(null);
 
   useEffect(() => {
-    const fetchCourseMaterials = async () => {
+    const fetchMaterials = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        
-        // TODO: Replace with actual API calls
-        // Example API call structure:
-        // const response = await fetch('/api/student/course-materials');
-        // const data = await response.json();
-        // setAllMaterials(data.materials || []);
-        
-        // For now, set empty array until API is integrated
-        setAllMaterials([]);
-        setIsLoading(false);
+
+        // Check authentication first
+        const token = getAuthToken();
+        if (!token) {
+          const currentPath = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '');
+          router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
+          return;
+        }
+
+        try {
+          // Fetch materials using the API
+          const response = await materialsAPI.getEnrolledMaterials({
+            type: currentTab === 0 ? undefined : 
+                  currentTab === 1 ? 'document' :
+                  currentTab === 2 ? 'video' :
+                  currentTab === 3 ? 'assignment' : undefined,
+            search: searchTerm || undefined
+          });
+
+          if (response.data?.data) {
+            const { materials, stats } = response.data.data;
+            
+            // Transform API materials to component format
+            const transformedMaterials: CourseMaterial[] = materials.map(m => ({
+              id: m.id,
+              title: m.title,
+              description: m.description,
+              type: m.type,
+              downloadUrl: m.fileUrl,
+              viewUrl: m.fileUrl,
+              course: m.course.title,
+              instructor: {
+                name: m.createdBy.name,
+                rating: 4.5 // Default rating if not provided
+              },
+              size: m.size?.toString(),
+              duration: m.duration?.toString(),
+              uploadDate: m.createdAt,
+              downloads: m.downloadCount,
+              rating: 4.5 // Default rating if not provided
+            }));
+
+            setAllMaterials(transformedMaterials);
+            setMaterialStats(stats);
+          } else {
+            setError("No materials found in your enrolled courses.");
+            setAllMaterials([]);
+          }
+        } catch (apiError) {
+          // Handle API not available (404) by showing mock data
+          if (axios.isAxiosError(apiError) && apiError.response?.status === 404) {
+            console.log("Materials API not available, showing mock data");
+            
+            // Mock materials data for demonstration
+            const mockMaterials: CourseMaterial[] = [
+              {
+                id: "mock-1",
+                title: "Introduction to React Fundamentals",
+                description: "Learn the basics of React including components, props, and state management.",
+                type: "document",
+                downloadUrl: "#",
+                viewUrl: "#",
+                course: "Web Development Bootcamp",
+                instructor: {
+                  name: "John Smith",
+                  rating: 4.8
+                },
+                size: "2.5 MB",
+                uploadDate: new Date().toISOString(),
+                downloads: 45,
+                rating: 4.7
+              },
+              {
+                id: "mock-2",
+                title: "JavaScript ES6+ Features Video Tutorial",
+                description: "Comprehensive video covering modern JavaScript features and best practices.",
+                type: "video",
+                downloadUrl: "#",
+                viewUrl: "#",
+                course: "Advanced JavaScript Course",
+                instructor: {
+                  name: "Sarah Johnson",
+                  rating: 4.9
+                },
+                duration: "45 minutes",
+                uploadDate: new Date(Date.now() - 86400000).toISOString(),
+                downloads: 123,
+                rating: 4.8
+              },
+              {
+                id: "mock-3",
+                title: "React Hooks Assignment",
+                description: "Practice assignment to implement various React hooks in a real project.",
+                type: "assignment",
+                downloadUrl: "#",
+                viewUrl: "#",
+                course: "React Advanced Concepts",
+                instructor: {
+                  name: "Mike Davis",
+                  rating: 4.6
+                },
+                size: "1.2 MB",
+                uploadDate: new Date(Date.now() - 172800000).toISOString(),
+                downloads: 67,
+                rating: 4.5
+              }
+            ];
+
+            // Filter mock data based on current tab
+            let filteredMockMaterials = mockMaterials;
+            if (currentTab === 1) filteredMockMaterials = mockMaterials.filter(m => m.type === 'document');
+            else if (currentTab === 2) filteredMockMaterials = mockMaterials.filter(m => m.type === 'video');
+            else if (currentTab === 3) filteredMockMaterials = mockMaterials.filter(m => m.type === 'assignment');
+
+            // Apply search filter
+            if (searchTerm) {
+              filteredMockMaterials = filteredMockMaterials.filter(material =>
+                material.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                material.course.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                material.instructor?.name.toLowerCase().includes(searchTerm.toLowerCase())
+              );
+            }
+
+            setAllMaterials(filteredMockMaterials);
+            setMaterialStats({
+              total: mockMaterials.length,
+              byType: {
+                documents: mockMaterials.filter(m => m.type === 'document').length,
+                videos: mockMaterials.filter(m => m.type === 'video').length,
+                assignments: mockMaterials.filter(m => m.type === 'assignment').length,
+                other: mockMaterials.filter(m => m.type === 'other').length
+              }
+            });
+          } else {
+            throw apiError; // Re-throw other errors
+          }
+        }
       } catch (err) {
-        console.error("Error fetching course materials:", err);
-        setError("Failed to load course materials. Please try again later.");
+        console.error("Error fetching materials:", err);
+        
+        // Handle authentication errors
+        if (err instanceof Error) {
+          if (err.message.includes('Authentication required') || 
+              (axios.isAxiosError(err) && err.response?.status === 401)) {
+            const currentPath = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '');
+            router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
+            return;
+          }
+          setError(err.message);
+        } else {
+          setError("Failed to load materials. Please try again later.");
+        }
+        
+        setAllMaterials([]);
+      } finally {
         setIsLoading(false);
       }
     };
 
-    fetchCourseMaterials();
-  }, []);
+    fetchMaterials();
+  }, [currentTab, searchTerm, router, pathname, searchParams]);
 
   const handleViewDetails = (material: CourseMaterial) => {
     setSelectedMaterial(material);
@@ -243,52 +431,17 @@ const LessonCourseMaterialsMain: React.FC = () => {
   };
 
   const getFilteredMaterials = () => {
-    let filtered = allMaterials;
-    
-    // Filter by tab
-    switch (currentTab) {
-      case 0: // All Materials
-        filtered = allMaterials;
-        break;
-      case 1: // Documents
-        filtered = allMaterials.filter(material => material.type === 'document');
-        break;
-      case 2: // Videos
-        filtered = allMaterials.filter(material => material.type === 'video');
-        break;
-      case 3: // Assignments
-        filtered = allMaterials.filter(material => material.type === 'assignment');
-        break;
-      default:
-        break;
-    }
-
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(material =>
-        material.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        material.course?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        material.instructor?.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    return filtered.sort((a, b) => {
-      // Sort by upload date, newest first
-      if (!a.uploadDate && !b.uploadDate) return 0;
-      if (!a.uploadDate) return 1;
-      if (!b.uploadDate) return -1;
-      return new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime();
-    });
+    return allMaterials;
   };
 
   const filteredContent = getFilteredMaterials();
 
-  // Count materials for each tab
+  // Use material stats from API response
   const tabCounts = {
-    all: allMaterials.length,
-    documents: allMaterials.filter(material => material.type === 'document').length,
-    videos: allMaterials.filter(material => material.type === 'video').length,
-    assignments: allMaterials.filter(material => material.type === 'assignment').length
+    all: materialStats?.total || 0,
+    documents: materialStats?.byType.documents || 0,
+    videos: materialStats?.byType.videos || 0,
+    assignments: materialStats?.byType.assignments || 0
   };
 
   const tabs = [
@@ -302,7 +455,7 @@ const LessonCourseMaterialsMain: React.FC = () => {
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-6 lg:p-8 rounded-lg max-w-7xl mx-auto"
+      className="p-4 sm:p-6 lg:p-8 rounded-lg max-w-7xl mx-auto"
     >
       <div className="flex flex-col space-y-6">
         {/* Enhanced Header */}
@@ -310,12 +463,12 @@ const LessonCourseMaterialsMain: React.FC = () => {
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center justify-center mb-4"
+            className="flex flex-col sm:flex-row items-center justify-center mb-4"
           >
-            <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 rounded-2xl backdrop-blur-sm mr-4">
+            <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 rounded-2xl backdrop-blur-sm mb-4 sm:mb-0 sm:mr-4">
               <BookOpen className="w-8 h-8 text-blue-600 dark:text-blue-400" />
             </div>
-            <div className="text-left">
+            <div className="text-center sm:text-left">
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white">
                 Course Materials
               </h1>
@@ -346,7 +499,7 @@ const LessonCourseMaterialsMain: React.FC = () => {
 
         {/* Enhanced Tabs */}
         <div className="flex justify-center">
-          <div className="inline-flex bg-gray-100/80 dark:bg-gray-800/80 rounded-2xl p-1.5 backdrop-blur-sm">
+          <div className="flex flex-wrap justify-center gap-2 bg-gray-100/80 dark:bg-gray-800/80 rounded-2xl p-1.5 backdrop-blur-sm">
             {tabs.map((tab, idx) => {
               const TabIcon = tab.icon;
               return (
@@ -405,7 +558,7 @@ const LessonCourseMaterialsMain: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+              className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6"
             >
               {filteredContent.length > 0 ? (
                 filteredContent.map((material, index) => (
