@@ -7,8 +7,9 @@ import { apiUrls } from '@/apis';
 import useGetQuery from '@/hooks/getQuery.hook';
 import { useUpload } from '@/hooks/useUpload';
 import { showToast } from '@/utils/toastManager';
-import { Loader, Upload } from 'lucide-react';
+import { Loader, Upload, BookOpen, GraduationCap, Languages, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { buildComponent, buildAdvancedComponent, getResponsive } from '@/utils/designSystem';
 
 interface CourseOverviewProps {
   register: UseFormRegister<ICourseFormData>;
@@ -249,223 +250,267 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({
   const languageOptions = languages.map(lang => ({ value: lang, label: lang }));
   
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 transition-colors">Course Overview & General Info</h2>
-      
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Course Category */}
-        <div className="md:col-span-2">
-          <Controller
-            name="course_category"
-            control={control}
-            render={({ field }) => (
-              <Select
-                label="Course Category"
-                options={categoryOptions}
-                error={errors.course_category?.message}
-                required
-                onChange={(option: any) => field.onChange(option?.value || '')}
-                value={categoryOptions.find(option => option.value === field.value)}
-                placeholder="Select a category"
-              />
-            )}
-          />
+    <div className={buildAdvancedComponent.glassCard({ variant: 'primary', padding: 'lg' })}>
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex items-center gap-3 border-b border-gray-200 dark:border-gray-800 pb-6">
+          <BookOpen className="w-6 h-6 text-primary-500 dark:text-primary-400" />
+          <h2 className={getResponsive.fluidText('heading')}>Course Overview & General Info</h2>
         </div>
-
-        {/* Course Title and Subtitle */}
-        <Input
-          label="Course Title"
-          {...register('course_title')}
-          error={errors.course_title?.message}
-          required
-          placeholder="Enter course title"
-        />
-
-        <Input
-          label="Course Subtitle"
-          {...register('course_subtitle')}
-          error={errors.course_subtitle?.message}
-          placeholder="Enter course subtitle (optional)"
-        />
-
-        {/* Course Subcategory */}
-        <Input
-          label="Course Subcategory"
-          {...register('course_subcategory')}
-          error={errors.course_subcategory?.message}
-          placeholder="Enter subcategory (optional)"
-        />
-
-        {/* Class Type */}
-        <Controller
-          name="class_type"
-          control={control}
-          render={({ field }) => (
-            <Select
-              label="Class Type"
-              options={classTypeOptions}
-              error={errors.class_type?.message}
-              required
-              onChange={(option: any) => field.onChange(option?.value || '')}
-              value={classTypeOptions.find(option => option.value === field.value)}
-              placeholder="Select class type"
-            />
-          )}
-        />
-
-        {/* Course Level & Grade */}
-        <Controller
-          name="course_level"
-          control={control}
-          render={({ field }) => (
-            <Select
-              label="Course Level"
-              options={levelOptions}
-              error={errors.course_level?.message}
-              onChange={(option: any) => field.onChange(option?.value || '')}
-              value={levelOptions.find(option => option.value === field.value)}
-              placeholder="Select course level"
-            />
-          )}
-        />
-
-        <Controller
-          name="course_grade"
-          control={control}
-          render={({ field }) => (
-            <Select
-              label="Course Grade"
-              options={gradeOptions}
-              error={errors.course_grade?.message}
-              onChange={(option: any) => field.onChange(option?.value || '')}
-              value={gradeOptions.find(option => option.value === field.value)}
-              placeholder="Select course grade"
-            />
-          )}
-        />
-
-        {/* Language Settings */}
-        <div className="md:col-span-2 grid gap-6 md:grid-cols-2">
-          <Controller
-            name="language"
-            control={control}
-            render={({ field }) => (
-              <Select
-                label="Primary Language"
-                options={languageOptions}
-                error={errors.language?.message}
-                onChange={(option: any) => field.onChange(option?.value || '')}
-                value={languageOptions.find(option => option.value === field.value)}
-                placeholder="Select primary language"
-              />
-            )}
-          />
-
-          <Controller
-            name="subtitle_languages"
-            control={control}
-            render={({ field }) => (
-              <Select
-                label="Subtitle Languages"
-                options={languageOptions}
-                isMulti
-                error={errors.subtitle_languages?.message}
-                onChange={(options: any) => field.onChange(options ? (options as any[]).map((opt: any) => opt.value) : [])}
-                value={languageOptions.filter(option => 
-                  field.value && Array.isArray(field.value) && field.value.includes(option.value)
+        
+        <div className="grid gap-6 lg:gap-8">
+          {/* Course Category */}
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="md:col-span-2">
+              <Controller
+                name="course_category"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    label="Course Category"
+                    options={categoryOptions}
+                    error={errors.course_category?.message}
+                    required
+                    onChange={(option: any) => field.onChange(option?.value || '')}
+                    value={categoryOptions.find(option => option.value === field.value)}
+                    placeholder="Select a category"
+                    className={buildComponent.select('primary')}
+                  />
                 )}
-                placeholder="Select subtitle languages (optional)"
               />
-            )}
-          />
-        </div>
+            </div>
 
-        {/* Course Image - Updated to match AddBlogs.tsx style */}
-        <div className="md:col-span-2">
-          <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
-            Course Image <span className="text-red-400">*</span>
-            <span className="text-gray-500 dark:text-gray-400 ml-2">(1200x630 pixels recommended for social sharing)</span>
-          </p>
-          <div className="relative group">
-            <div className="border-2 border-dashed border-gray-300 dark:border-white/10 rounded-xl p-8 text-center transition-all group-hover:border-primary-400/50 bg-white/5 dark:bg-white/5">
-              <input
-                type="file"
-                accept="image/*"
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                onChange={handleImageUpload}
+            {/* Course Title and Subtitle */}
+            <Input
+              label="Course Title"
+              {...register('course_title')}
+              error={errors.course_title?.message}
+              required
+              placeholder="Enter course title"
+              className={buildComponent.input('primary')}
+            />
+
+            <Input
+              label="Course Subtitle"
+              {...register('course_subtitle')}
+              error={errors.course_subtitle?.message}
+              placeholder="Enter course subtitle (optional)"
+              className={buildComponent.input('primary')}
+            />
+          </div>
+
+          {/* Course Type & Level Section */}
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                <GraduationCap className="w-5 h-5" />
+                <span className="font-medium">Course Details</span>
+              </div>
+              
+              <Controller
+                name="class_type"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    label="Class Type"
+                    options={classTypeOptions}
+                    error={errors.class_type?.message}
+                    required
+                    onChange={(option: any) => field.onChange(option?.value || '')}
+                    value={classTypeOptions.find(option => option.value === field.value)}
+                    placeholder="Select class type"
+                    className={buildComponent.select('primary')}
+                  />
+                )}
               />
-              {courseImageData ? (
-                <div className="flex flex-col items-center">
-                  <div className="relative w-full max-w-md h-48 mb-4">
-                    <img 
-                      src={courseImageData.url} 
-                      alt="Course preview" 
-                      className="w-full h-full object-cover rounded-lg"
-                    />
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Click to change image</p>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center">
-                  <Upload className="w-12 h-12 text-gray-400 mb-4 group-hover:text-primary-400 transition-colors" />
-                  <p className="text-lg font-medium text-gray-600 dark:text-gray-300 group-hover:text-primary-400 transition-colors">
-                    Drop your image here, or click to browse
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                    Supports: JPG, PNG, GIF (Max 5MB)
-                  </p>
-                </div>
-              )}
+
+              <Controller
+                name="course_level"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    label="Course Level"
+                    options={levelOptions}
+                    error={errors.course_level?.message}
+                    onChange={(option: any) => field.onChange(option?.value || '')}
+                    value={levelOptions.find(option => option.value === field.value)}
+                    placeholder="Select course level"
+                    className={buildComponent.select('primary')}
+                  />
+                )}
+              />
+            </div>
+
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                <Users className="w-5 h-5" />
+                <span className="font-medium">Target Audience</span>
+              </div>
+
+              <Input
+                label="Course Subcategory"
+                {...register('course_subcategory')}
+                error={errors.course_subcategory?.message}
+                placeholder="Enter subcategory (optional)"
+                className={buildComponent.input('primary')}
+              />
+
+              <Controller
+                name="course_grade"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    label="Course Grade"
+                    options={gradeOptions}
+                    error={errors.course_grade?.message}
+                    onChange={(option: any) => field.onChange(option?.value || '')}
+                    value={gradeOptions.find(option => option.value === field.value)}
+                    placeholder="Select course grade"
+                    className={buildComponent.select('primary')}
+                  />
+                )}
+              />
             </div>
           </div>
-          {(errors.course_image?.message || uploadError) && (
-            <motion.span 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-red-400 text-sm mt-2 block"
-            >
-              {errors.course_image?.message || uploadError}
-            </motion.span>
-          )}
-          {isUploading && (
-            <div className="absolute inset-0 bg-white/70 dark:bg-gray-900/70 flex items-center justify-center rounded-lg backdrop-blur-sm">
-              <div className="flex flex-col items-center gap-2 p-4">
-                <Loader className="w-8 h-8 text-primary-500 dark:text-primary-400 animate-spin" />
-                <p className="text-gray-700 dark:text-gray-300 text-sm font-medium">Uploading image...</p>
-              </div>
-            </div>
-          )}
-        </div>
 
-        {/* Assigned Instructor */}
-        <div className="md:col-span-2">
-          <Controller
-            name="assigned_instructor"
-            control={control}
-            render={({ field }) => (
-              <div className="relative">
-                <Select
-                  label="Assigned Instructor"
-                  options={instructorOptions}
-                  error={errors.assigned_instructor?.message}
-                  onChange={(option: any) => {
-                    // Store the MongoDB ObjectId
-                    field.onChange(option?.value || null);
-                  }}
-                  value={instructorOptions.find(option => option.value === field.value)}
-                  placeholder="Select instructor"
-                  isDisabled={isLoadingInstructors}
-                  required
+          {/* Language Settings */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+              <Languages className="w-5 h-5" />
+              <span className="font-medium">Language Settings</span>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              <Controller
+                name="language"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    label="Primary Language"
+                    options={languageOptions}
+                    error={errors.language?.message}
+                    onChange={(option: any) => field.onChange(option?.value || '')}
+                    value={languageOptions.find(option => option.value === field.value)}
+                    placeholder="Select primary language"
+                    className={buildComponent.select('primary')}
+                  />
+                )}
+              />
+
+              <Controller
+                name="subtitle_languages"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    label="Subtitle Languages"
+                    options={languageOptions}
+                    isMulti
+                    error={errors.subtitle_languages?.message}
+                    onChange={(options: any) => field.onChange(options ? (options as any[]).map((opt: any) => opt.value) : [])}
+                    value={languageOptions.filter(option => 
+                      field.value && Array.isArray(field.value) && field.value.includes(option.value)
+                    )}
+                    placeholder="Select subtitle languages (optional)"
+                    className={buildComponent.select('primary')}
+                  />
+                )}
+              />
+            </div>
+          </div>
+
+          {/* Course Image Upload */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Course Image <span className="text-red-400">*</span>
+              </p>
+              <span className="text-xs text-gray-500 dark:text-gray-400">1200x630 pixels recommended</span>
+            </div>
+            
+            <div className="relative group">
+              <div className={buildAdvancedComponent.uploadArea({ variant: 'primary', hasImage: !!courseImageData })}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  onChange={handleImageUpload}
                 />
-                
-                {isLoadingInstructors && (
-                  <div className="absolute right-3 top-10">
-                    <Loader className="w-4 h-4 text-primary-500 dark:text-primary-400 animate-spin" />
+                {courseImageData ? (
+                  <div className="flex flex-col items-center">
+                    <div className="relative w-full max-w-md h-48 mb-4">
+                      <img 
+                        src={courseImageData.url} 
+                        alt="Course preview" 
+                        className="w-full h-full object-cover rounded-lg shadow-sm"
+                      />
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">Click to change image</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center">
+                    <Upload className="w-12 h-12 text-gray-400 mb-4 group-hover:text-primary-400 transition-colors" />
+                    <p className="text-lg font-medium text-gray-600 dark:text-gray-300 group-hover:text-primary-400 transition-colors">
+                      Drop your image here, or click to browse
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                      Supports: JPG, PNG, GIF (Max 5MB)
+                    </p>
                   </div>
                 )}
               </div>
+            </div>
+            {(errors.course_image?.message || uploadError) && (
+              <motion.span 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-red-400 text-sm mt-2 block"
+              >
+                {errors.course_image?.message || uploadError}
+              </motion.span>
             )}
-          />
+            {isUploading && (
+              <div className="absolute inset-0 bg-white/70 dark:bg-gray-900/70 flex items-center justify-center rounded-lg backdrop-blur-sm">
+                <div className="flex flex-col items-center gap-2 p-4">
+                  <Loader className="w-8 h-8 text-primary-500 dark:text-primary-400 animate-spin" />
+                  <p className="text-gray-700 dark:text-gray-300 text-sm font-medium">Uploading image...</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Assigned Instructor */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+              <Users className="w-5 h-5" />
+              <span className="font-medium">Instructor Assignment</span>
+            </div>
+            
+            <Controller
+              name="assigned_instructor"
+              control={control}
+              render={({ field }) => (
+                <div className="relative">
+                  <Select
+                    label="Assigned Instructor"
+                    options={instructorOptions}
+                    error={errors.assigned_instructor?.message}
+                    onChange={(option: any) => field.onChange(option?.value || null)}
+                    value={instructorOptions.find(option => option.value === field.value)}
+                    placeholder="Select instructor"
+                    isDisabled={isLoadingInstructors}
+                    required
+                    className={buildComponent.select('primary')}
+                  />
+                  
+                  {isLoadingInstructors && (
+                    <div className="absolute right-3 top-10">
+                      <Loader className="w-4 h-4 text-primary-500 dark:text-primary-400 animate-spin" />
+                    </div>
+                  )}
+                </div>
+              )}
+            />
+          </div>
         </div>
       </div>
     </div>

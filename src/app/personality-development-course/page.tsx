@@ -52,6 +52,7 @@ interface IBannerProps {
   mainImage: string;
   studentImage: string;
   themeClasses: IThemeClasses;
+  onEnrollClick?: () => void;
 }
 
 interface IExploreJourneyProps {
@@ -143,13 +144,12 @@ const PersonalityDevelopment: NextPage = () => {
           <AnimatedContent
             components={{
               CourseBanner: () => <CourseBanner {...bannerProps} />,
-              PersonalityOvereveiw,
-              PersonalityCourse,
-              PersonalityFaq,
-              PersonalityCourseBanner,
-              PersonalityRelatedCourse,
-              ExploreJourney,
-              ThemeController
+              PersonalityOvereveiw: PersonalityOvereveiw,
+              PersonalityCourse: PersonalityCourse,
+              PersonalityFaq: PersonalityFaq,
+              PersonalityRelatedCourse: PersonalityRelatedCourse,
+              ThemeController: ThemeController,
+              ExploreJourney: ExploreJourney
             }}
             exploreJourneyProps={exploreJourneyProps}
             bannerProps={bannerProps}
