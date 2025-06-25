@@ -40,7 +40,7 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import defaultCourseImage from "@/assets/images/resources/img5.png";
 import { getUserId, sanitizeAuthData } from "@/utils/auth";
 import { useRouter } from "next/navigation";
-import { progressAPI, IProgressEntry, IProgressOverview, IProgressAnalytics, progressUtils } from "@/apis/progress.api";
+import { IProgressOverview, progressUtils } from "@/apis/progress.api";
 
 interface Resource {
   url: string;
@@ -81,11 +81,7 @@ interface ResourceDownloadButtonProps {
   onClick: () => void;
 }
 
-interface ProgressStatsProps {
-  overview: IProgressOverview;
-  analytics: IProgressAnalytics;
-  isLoading: boolean;
-}
+
 
 interface AchievementStatsProps {
   completedCourses: CompletedCourse[];
@@ -479,7 +475,7 @@ const CompletedCoursesMain: React.FC = () => {
   const [selectedCourse, setSelectedCourse] = useState<CompletedCourse | null>(null);
   const [showMaterialsModal, setShowMaterialsModal] = useState(false);
   const [progressOverview, setProgressOverview] = useState<IProgressOverview | null>(null);
-  const [progressAnalytics, setProgressAnalytics] = useState<IProgressAnalytics | null>(null);
+
   const [studentId, setStudentId] = useState<string | null>(null);
 
   const { getQuery } = useGetQuery();
@@ -493,11 +489,10 @@ const CompletedCoursesMain: React.FC = () => {
     }
   }, []);
 
-  // Fetch completed courses and progress data
+  // Fetch completed courses
   useEffect(() => {
     if (studentId) {
       fetchCompletedCourses();
-      fetchProgressData();
     }
   }, [studentId]);
 
@@ -509,48 +504,108 @@ const CompletedCoursesMain: React.FC = () => {
 
     try {
              await getQuery({
-         url: apiUrls.enrolledCourses.getCompletedCourses(studentId),
+         url: apiUrls.enrolledCourses.getEnrollmentsByStudent(studentId),
          onSuccess: (response) => {
+          // Handle different response structures
+          let enrollmentsData = [];
           if (response.success && response.data) {
-            setCompletedCourses(response.data.courses || []);
-          } else {
-            setCompletedCourses([]);
+            enrollmentsData = response.data;
+          } else if (Array.isArray(response)) {
+            enrollmentsData = response;
+          } else if (response.data && Array.isArray(response.data)) {
+            enrollmentsData = response.data;
           }
+          
+          // Filter for completed courses only and transform the data
+          const completedEnrollments = enrollmentsData.filter((enrollment: any) => 
+            enrollment.is_completed && enrollment.course_id !== null
+          );
+          
+          // Transform enrollment data to match CompletedCourse interface
+          const transformedCourses = completedEnrollments.map((enrollment: any) => ({
+            id: enrollment._id,
+            course_title: enrollment.course_id?.course_title || 'Unknown Course',
+            assigned_instructor: enrollment.course_id?.assigned_instructor || null,
+            category: enrollment.course_id?.course_category || 'General',
+            course_image: enrollment.course_id?.course_image || '',
+            resource_pdfs: [],
+            resource_videos: [],
+            class_type: enrollment.course_id?.class_type || 'Online',
+            completion_date: enrollment.completed_at || enrollment.enrollment_date,
+            enrollment_date: enrollment.enrollment_date,
+            final_score: enrollment.final_score || Math.round(enrollment.progress) || 100,
+            duration: enrollment.course_id?.course_duration || '40 hours',
+            rating: enrollment.rating || 0,
+            certificate_url: enrollment.certificate_url || '',
+            skills_gained: enrollment.skills_gained || [],
+            total_lessons: enrollment.course_id?.curriculum?.length || 0,
+            completed_lessons: enrollment.completed_lessons?.length || 0
+          }));
+          
+          setCompletedCourses(transformedCourses);
+          // Calculate progress overview from completed courses data
+          const overview = calculateProgressOverview(transformedCourses);
+          setProgressOverview(overview);
         },
         onFail: (error) => {
           console.error("Failed to fetch completed courses:", error);
           setError("Failed to load completed courses. Please try again.");
           setCompletedCourses([]);
+          setProgressOverview(null);
         }
       });
     } catch (error) {
       console.error("Error fetching completed courses:", error);
       setError("An unexpected error occurred. Please try again.");
       setCompletedCourses([]);
+      setProgressOverview(null);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fetchProgressData = async () => {
-    if (!studentId) return;
-
-    try {
-      await getQuery({
-        url: progressAPI.analytics.getByUser(studentId),
-        onSuccess: (response) => {
-          if (response.data?.analytics) {
-            setProgressAnalytics(response.data.analytics);
-            setProgressOverview(response.data.analytics.overview);
-          }
-        },
-        onFail: (error) => {
-          console.error('Failed to fetch progress analytics:', error);
-        }
-      });
-    } catch (error) {
-      console.error('Error fetching progress data:', error);
+  const calculateProgressOverview = (courses: CompletedCourse[]): IProgressOverview => {
+    if (!courses || courses.length === 0) {
+      return {
+        totalProgress: 0,
+        completionRate: 100, // 100% for completed courses
+        averageScore: 0,
+        totalTimeSpent: 0,
+        streakDays: 0,
+        activeDays: 0,
+        totalSessions: 0,
+        lastActivity: undefined
+      };
     }
+
+    const totalTimeSpent = courses.reduce((total, course) => {
+      // Estimate time spent based on course duration or use a default
+      const estimatedHours = course.duration ? parseInt(course.duration) || 40 : 40;
+      return total + (estimatedHours * 3600); // Convert hours to seconds
+    }, 0);
+
+    const averageScore = courses.length > 0 
+      ? Math.round(courses.reduce((sum, course) => sum + (course.final_score || 0), 0) / courses.length)
+      : 0;
+
+    const lastActivity = courses.length > 0 
+      ? courses.reduce((latest, course) => {
+          const courseDate = new Date(course.completion_date || '');
+          const latestDate = new Date(latest);
+          return courseDate > latestDate ? course.completion_date : latest;
+        }, courses[0].completion_date || '')
+      : undefined;
+
+    return {
+      totalProgress: 100, // All courses are completed
+      completionRate: 100,
+      averageScore,
+      totalTimeSpent,
+      streakDays: 0, // Would need more complex calculation
+      activeDays: courses.length, // Approximation
+      totalSessions: courses.length,
+      lastActivity
+    };
   };
 
   const handleViewMaterials = (course: CompletedCourse) => {

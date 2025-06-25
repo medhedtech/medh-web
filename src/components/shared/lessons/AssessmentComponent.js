@@ -13,70 +13,87 @@ const MarkdownEditor = dynamic(() => import('@/components/shared/MarkdownEditor'
   loading: () => <div className="h-64 w-full bg-gray-50 dark:bg-gray-800 animate-pulse rounded-xl"></div>
 });
 
-// Mock API call to fetch assignment details - Replace with actual API call
+// API call to fetch assignment details
 const fetchAssignment = async (assignmentId) => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  // Mock assignment data - This would come from your API
-  return {
-    id: assignmentId,
-    title: "Quantum Mechanics Assignment",
-    description: "Apply quantum principles by solving the given problems and implementing a basic quantum system.",
-    instructions: `## Assignment Instructions
+  try {
+    const studentId = localStorage.getItem('userId');
+    const authToken = localStorage.getItem('authToken');
+    
+    if (!studentId) {
+      throw new Error('Student ID not found. Please log in again.');
+    }
 
-1. **Part 1: Theoretical Questions**
-   - Explain the concept of quantum superposition in your own words
-   - Compare and contrast quantum computing with classical computing
-   - Describe how quantum entanglement works and its practical applications
-
-2. **Part 2: Practical Implementation**
-   - Implement a basic quantum circuit using Qiskit
-   - Run the circuit on a simulator and analyze the results
-   - Optimize your circuit and explain your optimization approach
-
-3. **Submission Guidelines**
-   - Submit your answers in a single PDF or Markdown file
-   - For code, include code snippets and screenshots of results
-   - Cite any references you use
-   
-**Grading Criteria:**
-- Accuracy of theoretical explanations (40%)
-- Quality of implementation (40%)
-- Clarity and organization (20%)`,
-    due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week from now
-    max_score: 100,
-    submission_type: "file", // could be "file", "link", "text", or "multiple"
-    allowed_file_types: [".pdf", ".md", ".zip", ".ipynb"],
-    max_file_size_mb: 10,
-    resources: [
-      {
-        title: "Assignment Guidelines",
-        url: "https://example.com/assignment-guide.pdf",
-        type: "pdf"
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/assignments/${assignmentId}/student/${studentId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-access-token': authToken || '',
       },
-      {
-        title: "Qiskit Documentation",
-        url: "https://qiskit.org/documentation/",
-        type: "link"
-      }
-    ]
-  };
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.success && data.data) {
+      return {
+        id: data.data._id,
+        title: data.data.title,
+        description: data.data.description,
+        instructions: data.data.instructions,
+        due_date: data.data.dueDate,
+        max_score: data.data.maxGrade || 100,
+        submission_type: data.data.type?.toLowerCase() || "file",
+        allowed_file_types: data.data.allowedFileTypes || [".pdf", ".doc", ".docx"],
+        max_file_size_mb: data.data.maxFileSize || 10,
+        resources: data.data.attachments || []
+      };
+    } else {
+      throw new Error('Assignment data not found');
+    }
+  } catch (error) {
+    console.error('Error fetching assignment:', error);
+    throw error;
+  }
 };
 
-// Mock API call to submit assignment - Replace with actual API implementation
-const submitAssignment = async (assignmentId, data) => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
-  // Mock response
-  return {
-    success: true,
-    message: "Assignment submitted successfully!",
-    submission_id: "sub_" + Math.random().toString(36).substr(2, 9),
-    submission_date: new Date().toISOString(),
-    status: "submitted"
-  };
+// API call to submit assignment
+const submitAssignment = async (assignmentId, submissionData) => {
+  try {
+    const authToken = localStorage.getItem('authToken');
+    
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/assignments/${assignmentId}/submit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-access-token': authToken || '',
+      },
+      body: JSON.stringify(submissionData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.success) {
+      return {
+        success: true,
+        message: data.message || "Assignment submitted successfully!",
+        submission_id: data.data?.submissionId || data.data?._id,
+        submission_date: data.data?.submittedAt || new Date().toISOString(),
+        status: "submitted"
+      };
+    } else {
+      throw new Error(data.message || 'Submission failed');
+    }
+  } catch (error) {
+    console.error('Error submitting assignment:', error);
+    throw error;
+  }
 };
 
 const AssessmentComponent = ({ assignmentId, lessonId, courseId, meta = {}, onSubmit }) => {
