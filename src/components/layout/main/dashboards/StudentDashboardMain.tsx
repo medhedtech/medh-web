@@ -1327,13 +1327,15 @@ const WeeklyActivityChart = memo(() => {
         const startDate = new Date();
         startDate.setDate(endDate.getDate() - 6);
         
-        const apiUrl = apiUrls.analytics.getStudentWeeklyActivity(userId, {
-          start: startDate.toISOString(),
-          end: endDate.toISOString()
-        });
-        const response = await fetch(apiUrl);
+        const response = await fetch(`/api/v1/analytics/student/${userId}/weekly-activity?start=${startDate.toISOString()}&end=${endDate.toISOString()}`);
         
         if (!response.ok) {
+          if (response.status === 404) {
+            // Handle "No certificates found" case
+            setActivityData([]);
+            setLoading(false);
+            return;
+          }
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
@@ -1376,94 +1378,73 @@ const WeeklyActivityChart = memo(() => {
     fetchActivityData();
   }, []);
 
-    return (
-      <div className="p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20">
-              <LineChart className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            </div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Weekly Activity</h2>
+  return (
+    <div className="p-5">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20">
+            <LineChart className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
-          <Link href="/dashboards/student/progress" className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center">
-            View Details <ArrowRight className="w-4 h-4 ml-1" />
-          </Link>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Weekly Activity</h2>
         </div>
+        <Link href="/dashboards/student/progress" className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center">
+          View Details <ArrowRight className="w-4 h-4 ml-1" />
+        </Link>
+      </div>
 
-        {/* Chart */}
-        <div className="mb-4">
-          {loading ? (
-            // Loading skeleton
-            <div className="space-y-2.5">
-              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
-                <div key={index} className="flex items-center animate-pulse">
-                  <span className="w-9 text-sm font-medium text-gray-500 dark:text-gray-400">{day}</span>
-                  <div className="flex-1 ml-2">
-                    <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
-                  </div>
-                  <div className="ml-2 w-10 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+      {/* Chart */}
+      <div className="mb-4">
+        {loading ? (
+          // Loading skeleton
+          <div className="space-y-2.5">
+            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
+              <div key={index} className="flex items-center animate-pulse">
+                <span className="w-9 text-sm font-medium text-gray-500 dark:text-gray-400">{day}</span>
+                <div className="flex-1 ml-2">
+                  <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
                 </div>
-              ))}
-            </div>
-          ) : error ? (
-            // Error state
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-center">
-              <div className="flex items-center justify-center mb-2">
-                <LineChart className="w-5 h-5 text-red-500 mr-2" />
-                <span className="text-red-800 dark:text-red-200 font-medium">Unable to load activity data</span>
+                <div className="ml-2 w-10 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
               </div>
-              <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
-            </div>
-          ) : activityData.length > 0 ? (
-            // Activity chart
-            <div className="space-y-2.5">
-              {activityData.map((item, index) => (
-                <div key={index} className="flex items-center">
-                  <span className="w-9 text-sm font-medium text-gray-500 dark:text-gray-400">{item.day}</span>
-                  <div className="flex-1 ml-2">
-                    <div className="h-7 flex items-center bg-gray-100 dark:bg-gray-700 rounded-md overflow-hidden">
+            ))}
+          </div>
+        ) : activityData.length === 0 ? (
+          // Empty state
+          <div className="bg-gray-50 dark:bg-gray-800/60 rounded-lg p-6 text-center">
+            <LineChart className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+            <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">No activities yet</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Your learning activities will appear here once you start taking courses.
+            </p>
+          </div>
+        ) : (
+          // Activity chart
+          <div className="space-y-2.5">
+            {activityData.map((item, index) => (
+              <div key={index} className="flex items-center">
+                <span className="w-9 text-sm font-medium text-gray-500 dark:text-gray-400">{item.day}</span>
+                <div className="flex-1 ml-2">
+                  <div className="h-7 flex items-center bg-gray-100 dark:bg-gray-700 rounded-md overflow-hidden">
+                    <div 
+                      className="h-full bg-blue-100 dark:bg-blue-900/30 flex items-center transition-all duration-300"
+                      style={{ width: `${Math.min(100, (item.hours || 0) * 20)}%` }}
+                    >
                       <div 
-                        className="h-full bg-blue-100 dark:bg-blue-900/30 flex items-center transition-all duration-300"
-                        style={{ width: `${Math.min(100, (item.hours || 0) * 20)}%` }}
-                      >
-                        <div 
-                          className="h-full bg-blue-500 dark:bg-blue-600 transition-all duration-300"
-                          style={{ width: `${Math.min(100, (item.complete || 0) * 15)}%` }}
-                        ></div>
-                      </div>
+                        className="h-full bg-blue-500 dark:bg-blue-600 transition-all duration-300"
+                        style={{ width: `${Math.min(100, (item.complete || 0) * 15)}%` }}
+                      ></div>
                     </div>
                   </div>
-                  <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300 w-10 text-right">
-                    {(item.hours || 0).toFixed(1)}h
-                  </span>
                 </div>
-              ))}
-            </div>
-          ) : (
-            // Empty state
-            <div className="bg-gray-50 dark:bg-gray-800/60 rounded-lg p-6 text-center">
-              <LineChart className="w-8 h-8 text-gray-400 mx-auto mb-3" />
-              <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">No activities yet</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Your learning activities will appear here once you start taking courses.
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Legend */}
-        <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-blue-500 dark:bg-blue-600 rounded-sm mr-2"></div>
-            <span className="text-gray-600 dark:text-gray-400">Completed Activities</span>
+                <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300 w-10 text-right">
+                  {(item.hours || 0).toFixed(1)}h
+                </span>
+              </div>
+            ))}
           </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-blue-100 dark:bg-blue-900/30 rounded-sm mr-2"></div>
-            <span className="text-gray-600 dark:text-gray-400">Study Hours</span>
-          </div>
-        </div>
+        )}
       </div>
-    );
+    </div>
+  );
 });
 
 // Quick action component - Memoized
