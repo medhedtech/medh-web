@@ -1,17 +1,17 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import "@/assets/css/Calendar.css";
 import Icon1 from "@/assets/images/dashbord/icon1.svg";
 import Icon2 from "@/assets/images/dashbord/icon2.svg";
 import Image from "next/image";
-import { apiUrls } from "@/apis";
-import useGetQuery from "@/hooks/getQuery.hook";
 import moment from "moment";
 import Preloader from "@/components/shared/others/Preloader";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { showToast } from "@/utils/toast";
 import { 
   LucideCalendar, 
   LucideBook, 
@@ -33,20 +33,24 @@ import {
   LucideDownload,
   LucideUpload,
   LucideAlertCircle,
-  LucideChevronRight
+  LucideChevronRight,
+  LucideDollarSign,
+  LucidePresentation,
+  LucideUser
 } from "lucide-react";
 
-// Types
-interface ClassItem {
-  date: string;
-  time: string;
-  meet_title: string;
-  courseDetails?: {
-    course_title: string;
-    course_image: string;
-  };
-}
+// Import the new instructor API
+import { 
+  instructorApi, 
+  InstructorDashboardData, 
+  UpcomingClass, 
+  RecentSubmission,
+  InstructorProfile,
+  InstructorStatistics,
+  QuickAction as ApiQuickAction
+} from "@/apis/instructor.api";
 
+// Enhanced Types to match new API structure and add toast functionality
 interface QuickStat {
   title: string;
   value: number;
@@ -56,30 +60,14 @@ interface QuickStat {
   trendDirection?: 'up' | 'down';
 }
 
-interface ApiResponse {
-  submittedAssignmentsCount?: number;
-  meetings?: ClassItem[];
-  courseCount?: number;
-}
-
-interface StudentSubmission {
-  id: string;
-  studentName: string;
-  studentAvatar?: string;
-  assignmentTitle: string;
-  courseName: string;
-  submittedAt: string;
-  status: 'pending' | 'reviewed' | 'graded';
-  score?: number;
-  type: 'assignment' | 'quiz' | 'project';
-}
-
 interface QuickAction {
   title: string;
   description: string;
   icon: React.ReactNode;
   href: string;
   color: string;
+  count?: number;
+  onClick?: () => void;
 }
 
 // Animation variants
@@ -103,13 +91,10 @@ const itemVariants = {
   }
 };
 
-const getTimeDifference = (meetingDate: string, meetingTime: string): string => {
+const getTimeDifference = (classDate: string, classTime: string): string => {
   const now = moment();
-  const meetingMoment = moment(
-    `${meetingDate} ${meetingTime}`,
-    "YYYY-MM-DD HH:mm"
-  );
-  const diffMinutes = meetingMoment.diff(now, "minutes");
+  const classMoment = moment(`${classDate} ${classTime}`, "YYYY-MM-DD HH:mm");
+  const diffMinutes = classMoment.diff(now, "minutes");
 
   if (diffMinutes > 1440) {
     const diffDays = Math.ceil(diffMinutes / 1440);
@@ -120,9 +105,9 @@ const getTimeDifference = (meetingDate: string, meetingTime: string): string => 
   } else if (diffMinutes > 0) {
     return `Starts in ${diffMinutes} minutes`;
   } else if (diffMinutes === 0) {
-    return "Meeting is starting now!";
+    return "Class is starting now!";
   } else {
-    return "Meeting has already started.";
+    return "Class has already started.";
   }
 };
 
@@ -156,12 +141,22 @@ const QuickStats: React.FC<{ stats: QuickStat[] }> = ({ stats }) => (
             {stat.description}
           </p>
         )}
+        {stat.trend && (
+          <div className={`flex items-center gap-1 mt-2 text-xs ${
+            stat.trendDirection === 'up' ? 'text-green-500' : 'text-red-500'
+          }`}>
+            <LucideTrendingUp className={`w-3 h-3 ${
+              stat.trendDirection === 'down' ? 'rotate-180' : ''
+            }`} />
+            <span>{stat.trend}% from last month</span>
+          </div>
+        )}
       </motion.div>
     ))}
   </motion.div>
 );
 
-const UpcomingClasses: React.FC<{ classes: ClassItem[] }> = ({ classes }) => (
+const UpcomingClasses: React.FC<{ classes: UpcomingClass[] }> = ({ classes }) => (
   <motion.div 
     variants={itemVariants}
     className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6 border dark:border-gray-700 h-full flex flex-col"
@@ -172,7 +167,7 @@ const UpcomingClasses: React.FC<{ classes: ClassItem[] }> = ({ classes }) => (
         Upcoming Classes
       </h2>
       <Link
-        href="/dashboards/instructor-mainclass/all-classess"
+        href="/dashboards/instructor/live-classes"
         className="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors duration-200 text-sm font-medium flex items-center gap-2"
       >
         View all
@@ -187,22 +182,27 @@ const UpcomingClasses: React.FC<{ classes: ClassItem[] }> = ({ classes }) => (
             whileHover={{ scale: 1.02 }}
             className="flex items-center gap-4 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-600 transition-all duration-300"
           >
-            <div className="h-16 w-16 rounded-xl overflow-hidden flex-shrink-0 shadow-lg">
-              <Image
-                src={classItem.courseDetails?.course_image || Icon1}
-                width={64}
-                height={64}
-                alt={classItem.meet_title}
-                className="h-full w-full object-cover transition-transform duration-300 hover:scale-110"
-              />
+            <div className="h-16 w-16 rounded-xl overflow-hidden flex-shrink-0 shadow-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              {classItem.type === 'live_class' ? (
+                <LucideVideo className="w-8 h-8 text-white" />
+              ) : classItem.type === 'demo' ? (
+                <LucidePresentation className="w-8 h-8 text-white" />
+              ) : (
+                <LucideGraduationCap className="w-8 h-8 text-white" />
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-gray-800 dark:text-white truncate text-sm">
-                {classItem?.courseDetails?.course_title}
+                {classItem.batchName}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                {classItem.courseTitle}
               </p>
               <div className="flex items-center gap-2 mt-1 text-gray-500 dark:text-gray-400">
                 <LucideClock className="w-3 h-3" />
                 <span className="text-xs">{classItem.time}</span>
+                <LucideUsers className="w-3 h-3 ml-2" />
+                <span className="text-xs">{classItem.studentCount} students</span>
               </div>
               <p className="text-xs text-emerald-500 font-medium mt-1">
                 {getTimeDifference(classItem.date, classItem.time)}
@@ -230,68 +230,13 @@ const UpcomingClasses: React.FC<{ classes: ClassItem[] }> = ({ classes }) => (
   </motion.div>
 );
 
-const RecentStudentSubmissions: React.FC = () => {
-  // Mock data for recent student submissions
-  const submissions: StudentSubmission[] = [
-    {
-      id: '1',
-      studentName: 'Alice Johnson',
-      studentAvatar: 'https://i.pravatar.cc/150?img=1',
-      assignmentTitle: 'Quantum Algorithm Implementation',
-      courseName: 'Quantum Computing Fundamentals',
-      submittedAt: moment().subtract(2, 'hours').toISOString(),
-      status: 'pending',
-      type: 'assignment'
-    },
-    {
-      id: '2',
-      studentName: 'Bob Smith',
-      studentAvatar: 'https://i.pravatar.cc/150?img=2',
-      assignmentTitle: 'Mid-term Quiz',
-      courseName: 'Advanced Physics',
-      submittedAt: moment().subtract(5, 'hours').toISOString(),
-      status: 'reviewed',
-      score: 87,
-      type: 'quiz'
-    },
-    {
-      id: '3',
-      studentName: 'Carol Davis',
-      studentAvatar: 'https://i.pravatar.cc/150?img=3',
-      assignmentTitle: 'Final Project Proposal',
-      courseName: 'Computer Science',
-      submittedAt: moment().subtract(1, 'day').toISOString(),
-      status: 'graded',
-      score: 92,
-      type: 'project'
-    },
-    {
-      id: '4',
-      studentName: 'David Wilson',
-      studentAvatar: 'https://i.pravatar.cc/150?img=4',
-      assignmentTitle: 'Lab Report #3',
-      courseName: 'Chemistry Lab',
-      submittedAt: moment().subtract(2, 'days').toISOString(),
-      status: 'pending',
-      type: 'assignment'
-    }
-  ];
-
+const RecentStudentSubmissions: React.FC<{ submissions: RecentSubmission[] }> = ({ submissions }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
-      case 'reviewed': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+      case 'submitted': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
       case 'graded': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+      case 'returned': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
-    }
-  };
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'assignment': return <LucideFileText className="w-4 h-4" />;
-      case 'quiz': return <LucideClipboardList className="w-4 h-4" />;
-      case 'project': return <LucideGraduationCap className="w-4 h-4" />;
-      default: return <LucideFileText className="w-4 h-4" />;
     }
   };
 
@@ -306,7 +251,7 @@ const RecentStudentSubmissions: React.FC = () => {
           Recent Student Submissions
         </h2>
         <Link
-          href="/dashboards/instructor/submissions"
+          href="/dashboards/instructor/submitted-work"
           className="px-4 py-2 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-xl hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors duration-200 text-sm font-medium flex items-center gap-2"
         >
           View all
@@ -315,96 +260,122 @@ const RecentStudentSubmissions: React.FC = () => {
       </div>
       
       <div className="space-y-4">
-        {submissions.map((submission) => (
-          <motion.div
-            key={submission.id}
-            whileHover={{ scale: 1.01 }}
-            className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-xl border border-gray-100 dark:border-gray-600 transition-all duration-300"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full overflow-hidden">
-                <Image
-                  src={submission.studentAvatar || `https://i.pravatar.cc/150?img=${submission.id}`}
-                  width={40}
-                  height={40}
-                  alt={submission.studentName}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  {getTypeIcon(submission.type)}
-                  <p className="font-semibold text-gray-800 dark:text-white text-sm">
-                    {submission.assignmentTitle}
+        {submissions.length > 0 ? (
+          submissions.map((submission, index) => (
+            <motion.div
+              key={index}
+              whileHover={{ scale: 1.01 }}
+              className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-xl border border-gray-100 dark:border-gray-600 transition-all duration-300"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                  <span className="text-white font-semibold text-sm">
+                    {submission.studentName.charAt(0)}
+                  </span>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <LucideFileText className="w-4 h-4 text-gray-400" />
+                    <p className="font-semibold text-gray-800 dark:text-white text-sm">
+                      {submission.assignmentTitle}
+                    </p>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    by {submission.studentName} • {submission.courseName}
+                  </p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                    {moment(submission.submittedAt).fromNow()}
                   </p>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  by {submission.studentName} • {submission.courseName}
-                </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                  {moment(submission.submittedAt).fromNow()}
-                </p>
               </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              {submission.score && (
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-green-600 dark:text-green-400">
-                    {submission.score}%
-                  </p>
-                </div>
-              )}
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(submission.status)}`}>
-                {submission.status.charAt(0).toUpperCase() + submission.status.slice(1)}
-              </span>
-              <button className="p-2 text-gray-400 hover:text-blue-500 transition-colors">
-                <LucideEye className="w-4 h-4" />
-              </button>
-            </div>
-          </motion.div>
-        ))}
+              
+              <div className="flex items-center gap-3">
+                {submission.grade && (
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-green-600 dark:text-green-400">
+                      {submission.grade}%
+                    </p>
+                  </div>
+                )}
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(submission.status)}`}>
+                  {submission.status.charAt(0).toUpperCase() + submission.status.slice(1)}
+                </span>
+                <button className="p-2 text-gray-400 hover:text-blue-500 transition-colors">
+                  <LucideEye className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
+          ))
+        ) : (
+          <div className="text-center py-8">
+            <LucideClipboardList className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500 dark:text-gray-400">No recent submissions</p>
+          </div>
+        )}
       </div>
     </motion.div>
   );
 };
 
-const QuickActions: React.FC = () => {
-  const actions: QuickAction[] = [
+const QuickActions: React.FC<{ quickActions: ApiQuickAction[] }> = ({ quickActions }) => {
+  const router = useRouter();
+  
+  const defaultActions: QuickAction[] = [
     {
-      title: 'Create Course',
-      description: 'Start a new course or lesson',
-      icon: <LucidePlusCircle className="w-6 h-6" />,
-      href: '/dashboards/instructor/courses/create',
+      title: 'Manage Courses',
+      description: 'View and manage your courses',
+      icon: <LucideBook className="w-6 h-6" />,
+      href: '/dashboards/instructor/courses',
       color: 'from-blue-500 to-blue-600'
     },
     {
-      title: 'Schedule Class',
-      description: 'Plan your next live session',
+      title: 'Live Classes',
+      description: 'Schedule and manage live sessions',
       icon: <LucideVideo className="w-6 h-6" />,
-      href: '/dashboards/instructor/schedule',
+      href: '/dashboards/instructor/live-classes',
       color: 'from-green-500 to-green-600'
     },
     {
-      title: 'View Analytics',
-      description: 'Check course performance',
-      icon: <LucideBarChart className="w-6 h-6" />,
-      href: '/dashboards/instructor/analytics',
+      title: 'Assignments',
+      description: 'Create and grade assignments',
+      icon: <LucideClipboardList className="w-6 h-6" />,
+      href: '/dashboards/instructor/assignments',
       color: 'from-purple-500 to-purple-600'
     },
     {
-      title: 'Message Students',
-      description: 'Communicate with your class',
-      icon: <LucideMessageSquare className="w-6 h-6" />,
-      href: '/dashboards/instructor/messages',
+      title: 'Student Progress',
+      description: 'Track student performance',
+      icon: <LucideUsers className="w-6 h-6" />,
+      href: '/dashboards/instructor/student-progress',
       color: 'from-pink-500 to-pink-600'
     },
     {
-      title: 'Grade Assignments',
-      description: 'Review pending submissions',
-      icon: <LucideAward className="w-6 h-6" />,
-      href: '/dashboards/instructor/grading',
+      title: 'Attendance',
+      description: 'Mark and track attendance',
+      icon: <LucideCheckCircle className="w-6 h-6" />,
+      href: '/dashboards/instructor/mark-attendance',
       color: 'from-orange-500 to-orange-600'
+    },
+    {
+      title: 'Demo Classes',
+      description: 'Manage demo sessions',
+      icon: <LucidePresentation className="w-6 h-6" />,
+      href: '/dashboards/instructor/demo-classes',
+      color: 'from-teal-500 to-teal-600'
+    },
+    {
+      title: 'Revenue Analytics',
+      description: 'View earnings and analytics',
+      icon: <LucideDollarSign className="w-6 h-6" />,
+      href: '/dashboards/instructor/live-revenue',
+      color: 'from-emerald-500 to-emerald-600'
+    },
+    {
+      title: 'Messages',
+      description: 'Communicate with students',
+      icon: <LucideMessageSquare className="w-6 h-6" />,
+      href: '/dashboards/instructor/message',
+      color: 'from-indigo-500 to-indigo-600'
     },
     {
       title: 'Settings',
@@ -414,6 +385,59 @@ const QuickActions: React.FC = () => {
       color: 'from-gray-500 to-gray-600'
     }
   ];
+
+  // Map API actions to match action URLs and add counts
+  const getActionHref = (actionType: string): string => {
+    switch (actionType) {
+      case 'create_assignment': return '/dashboards/instructor/assignments';
+      case 'mark_attendance': return '/dashboards/instructor/mark-attendance';
+      case 'view_submissions': return '/dashboards/instructor/submitted-work';
+      case 'schedule_class': return '/dashboards/instructor/live-classes';
+      case 'view_analytics': return '/dashboards/instructor/analytics';
+      case 'create_course': return '/dashboards/instructor/courses';
+      case 'view_demos': return '/dashboards/instructor/demo-classes';
+      case 'view_revenue': return '/dashboards/instructor/live-revenue';
+      case 'student_progress': return '/dashboards/instructor/student-progress';
+      default: return '/dashboards/instructor';
+    }
+  };
+
+  // Enhanced action handler
+  const handleActionClick = async (action: QuickAction, apiAction?: ApiQuickAction) => {
+    try {
+      // If there's an onClick handler, use it
+      if (action.onClick) {
+        action.onClick();
+        return;
+      }
+
+      // Show loading toast for navigation
+      showToast.info(`Navigating to ${action.title}...`);
+      
+      // Navigate to the page
+      router.push(action.href);
+      
+      // Optional: Track analytics or perform additional actions
+      if (apiAction) {
+        console.log(`Action performed: ${apiAction.action} - ${apiAction.label}`);
+      }
+    } catch (error) {
+      console.error('Error handling action click:', error);
+      showToast.error('Failed to navigate. Please try again.');
+    }
+  };
+
+  // Merge API quick actions with default actions
+  const actions: QuickAction[] = quickActions.length > 0 ? quickActions.map((apiAction, index) => {
+    const defaultAction = defaultActions[index] || defaultActions[0];
+    return {
+      ...defaultAction,
+      title: apiAction.label,
+      href: getActionHref(apiAction.action),
+      count: apiAction.count,
+      onClick: () => handleActionClick(defaultAction, apiAction)
+    };
+  }) : defaultActions;
 
   return (
     <motion.div 
@@ -432,20 +456,51 @@ const QuickActions: React.FC = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <Link
-              href={action.href}
-              className="block p-4 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-xl border border-gray-100 dark:border-gray-600 hover:shadow-lg transition-all duration-300 group"
-            >
-              <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${action.color} flex items-center justify-center text-white mb-3 group-hover:scale-110 transition-transform duration-300`}>
-                {action.icon}
-              </div>
-              <h3 className="font-semibold text-gray-800 dark:text-white mb-1">
-                {action.title}
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {action.description}
-              </p>
-            </Link>
+            {action.onClick ? (
+              <button
+                onClick={action.onClick}
+                className="w-full text-left p-4 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-xl border border-gray-100 dark:border-gray-600 hover:shadow-lg transition-all duration-300 group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${action.color} flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300`}>
+                    {action.icon}
+                  </div>
+                  {action.count !== undefined && action.count > 0 && (
+                    <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                      {action.count}
+                    </span>
+                  )}
+                </div>
+                <h3 className="font-semibold text-gray-800 dark:text-white mb-1">
+                  {action.title}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {action.description}
+                </p>
+              </button>
+            ) : (
+              <Link
+                href={action.href}
+                className="block p-4 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-xl border border-gray-100 dark:border-gray-600 hover:shadow-lg transition-all duration-300 group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${action.color} flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300`}>
+                    {action.icon}
+                  </div>
+                  {action.count !== undefined && action.count > 0 && (
+                    <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                      {action.count}
+                    </span>
+                  )}
+                </div>
+                <h3 className="font-semibold text-gray-800 dark:text-white mb-1">
+                  {action.title}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {action.description}
+                </p>
+              </Link>
+            )}
           </motion.div>
         ))}
       </div>
@@ -464,7 +519,11 @@ const CustomDatePicker: React.FC<{
     <div className="flex-1 flex items-center justify-center">
       <DatePicker
         selected={selectedDate}
-        onChange={onChange}
+        onChange={(date: Date | null) => {
+          if (date) {
+            onChange(date);
+          }
+        }}
         inline
         calendarClassName="!bg-transparent"
         wrapperClassName="!bg-transparent w-full"
@@ -478,92 +537,145 @@ const CustomDatePicker: React.FC<{
 );
 
 const InstructorDashboard: React.FC = () => {
+  const router = useRouter();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [upcomingClasses, setUpcomingClasses] = useState<ClassItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [dashboardData, setDashboardData] = useState<InstructorDashboardData | null>(null);
+  const [instructorProfile, setInstructorProfile] = useState<{ profile: InstructorProfile; statistics: InstructorStatistics } | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [instructorId, setInstructorId] = useState<string>("");
-  const [totalCourses, setTotalCourses] = useState<number>(0);
-  const [totalAssignments, setTotalAssignments] = useState<number>(0);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
 
-  const { getQuery } = useGetQuery();
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedUserId = localStorage.getItem("userId");
-      if (storedUserId) {
-        setInstructorId(storedUserId);
+  // Enhanced data fetching with better error handling
+  const fetchDashboardData = useCallback(async (showRefreshToast = false) => {
+    try {
+      if (showRefreshToast) {
+        setRefreshing(true);
+        showToast.info("Refreshing dashboard data...");
+      } else {
+        setLoading(true);
       }
+      setError(null);
+
+      // Fetch dashboard data and instructor profile in parallel with timeout
+      const fetchWithTimeout = (promise: Promise<any>, timeout = 10000) => {
+        return Promise.race([
+          promise,
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Request timeout')), timeout)
+          )
+        ]);
+      };
+
+      const [dashboardResponse, profileResponse] = await Promise.all([
+        fetchWithTimeout(instructorApi.getDashboardData()),
+        fetchWithTimeout(instructorApi.getInstructorProfile())
+      ]);
+
+      setDashboardData(dashboardResponse);
+      setInstructorProfile(profileResponse);
+      
+      if (showRefreshToast) {
+        showToast.success("Dashboard data refreshed successfully!");
+      }
+    } catch (err: any) {
+      console.error('Error fetching dashboard data:', err);
+      const errorMessage = err?.response?.data?.message || err?.message || "Failed to load dashboard data. Please try again.";
+      setError(errorMessage);
+      
+      if (showRefreshToast) {
+        showToast.error("Failed to refresh data. Please check your connection.");
+      }
+      
+      // Handle specific error cases
+      if (err?.response?.status === 401) {
+        showToast.error("Session expired. Please login again.");
+        // Redirect to login if needed
+        // router.push('/login');
+      } else if (err?.response?.status === 403) {
+        showToast.error("Access denied. Please contact administrator.");
+      } else if (err?.message === 'Request timeout') {
+        showToast.error("Request timed out. Please check your connection.");
+      }
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
   }, []);
 
-  const fetchSubmittedAssignments = async () => {
-    setLoading(true);
-    try {
-      const res = await getQuery({
-        url: `${apiUrls.onlineMeeting.getMeetingsByInstructorId}/${instructorId}/assignments/count`,
-      });
-      setTotalAssignments((res as ApiResponse)?.submittedAssignmentsCount || 0);
-    } catch (err) {
-      setError("Failed to load assignments count.");
-    }
-  };
+  // Refresh function for manual refresh
+  const handleRefresh = useCallback(() => {
+    fetchDashboardData(true);
+  }, [fetchDashboardData]);
 
   useEffect(() => {
-    if (instructorId) {
-      const fetchUpcomingClasses = async () => {
-        setLoading(true);
-        try {
-          const res = await getQuery({
-            url: `${apiUrls.onlineMeeting.getMeetingsByInstructorId}/${instructorId}`,
-          });
-          const apiResponse = res as ApiResponse;
-          setUpcomingClasses(apiResponse?.meetings || []);
-          setTotalCourses(apiResponse?.courseCount || 0);
-        } catch (err) {
-          setError("Failed to load upcoming classes.");
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchUpcomingClasses();
-      fetchSubmittedAssignments();
-    }
-  }, [instructorId]);
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   if (loading) return <Preloader />;
 
-  const filteredClasses = upcomingClasses.filter((classItem) => {
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6 flex items-center justify-center">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-8 text-center max-w-md">
+          <LucideAlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">
+            Error Loading Dashboard
+          </h3>
+          <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => fetchDashboardData()}
+              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Try Again
+            </button>
+            <button
+              onClick={() => router.push('/dashboards/instructor/profile')}
+              className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+            >
+              Go to Profile
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Filter classes by selected date
+  const filteredClasses = dashboardData?.upcomingClasses?.filter((classItem) => {
     const classDate = moment(classItem.date);
     const selectedMoment = moment(selectedDate);
     return classDate.isSame(selectedMoment, "day");
-  });
+  }) || [];
 
+  // Prepare quick stats from dashboard data
   const quickStats: QuickStat[] = [
     {
-      title: "Total Courses",
-      value: totalCourses,
+      title: "Active Batches",
+      value: dashboardData?.overview?.activeBatches || 0,
       icon: Icon1,
-      description: "Active courses you're currently teaching"
-    },
-    {
-      title: "Assignments to Review",
-      value: totalAssignments,
-      icon: Icon2,
-      description: "Pending assignments requiring your attention"
+      description: "Currently running batches"
     },
     {
       title: "Total Students",
-      value: 142,
-      icon: Icon1,
+      value: dashboardData?.overview?.totalStudents || 0,
+      icon: Icon2,
       description: "Students enrolled across all courses"
     },
     {
-      title: "Course Rating",
-      value: 4.8,
+      title: "Pending Demos",
+      value: dashboardData?.overview?.pendingDemos || 0,
+      icon: Icon1,
+      description: "Demo sessions awaiting your attention"
+    },
+    {
+      title: "Assignments to Review",
+      value: dashboardData?.overview?.pendingAssignments || 0,
       icon: Icon2,
-      description: "Average rating from student feedback"
+      description: "Assignments requiring grading"
     },
   ];
 
@@ -574,6 +686,114 @@ const InstructorDashboard: React.FC = () => {
       variants={containerVariants}
       className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6"
     >
+      {/* Enhanced Header Section */}
+      <motion.div 
+        variants={itemVariants}
+        className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6"
+      >
+        <div className="flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+            <LucideGraduationCap className="w-8 h-8" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Instructor Dashboard
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Manage your courses, students, and track your performance
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Refresh Button */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className={`px-4 py-2 rounded-lg border transition-all flex items-center gap-2 ${
+              refreshing
+                ? 'opacity-50 cursor-not-allowed'
+                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+            }`}
+            title="Refresh Dashboard Data"
+          >
+            <div className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </div>
+            <span className="hidden sm:inline">
+              {refreshing ? 'Refreshing...' : 'Refresh'}
+            </span>
+          </motion.button>
+
+          {/* Quick Navigation to Profile */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              showToast.info("Navigating to profile...");
+              router.push('/dashboards/instructor/profile');
+            }}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all flex items-center gap-2 shadow-lg hover:shadow-xl"
+          >
+            <LucideUser className="w-4 h-4" />
+            <span className="hidden sm:inline">Profile</span>
+          </motion.button>
+        </div>
+      </motion.div>
+
+      {/* Welcome Section */}
+      {instructorProfile && (
+        <motion.div 
+          variants={itemVariants}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 mb-6 text-white"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-3xl font-bold mb-2">
+                Welcome back, {instructorProfile.profile.full_name}!
+              </h2>
+              <p className="text-blue-100">
+                {dashboardData?.monthlyStats?.month} • {instructorProfile.profile.domain} Instructor
+              </p>
+              <div className="flex items-center gap-4 mt-3">
+                <div className="flex items-center gap-2">
+                  <LucideUsers className="w-4 h-4" />
+                  <span className="text-sm">{instructorProfile.statistics.totalStudents} Students</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <LucideBook className="w-4 h-4" />
+                  <span className="text-sm">{instructorProfile.statistics.totalBatches} Batches</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <LucidePresentation className="w-4 h-4" />
+                  <span className="text-sm">{instructorProfile.statistics.totalDemos} Demos</span>
+                </div>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-2xl font-bold">{instructorProfile.statistics.averageRating}/5.0</p>
+              <p className="text-blue-100 text-sm">Course Rating</p>
+              <div className="flex items-center justify-end gap-1 mt-2">
+                {[...Array(5)].map((_, i) => (
+                  <LucideAward 
+                    key={i} 
+                    className={`w-4 h-4 ${
+                      i < Math.floor(instructorProfile.statistics.averageRating) 
+                        ? 'text-yellow-300' 
+                        : 'text-blue-300'
+                    }`} 
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Quick Stats Section */}
       <motion.div 
         variants={itemVariants}
@@ -587,9 +807,42 @@ const InstructorDashboard: React.FC = () => {
         </div>
       </motion.div>
 
+      {/* Monthly Stats */}
+      {dashboardData?.monthlyStats && (
+        <motion.div 
+          variants={itemVariants}
+          className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6 border dark:border-gray-700 mb-6"
+        >
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent mb-4 flex items-center gap-2">
+            <LucideBarChart className="w-6 h-6 text-green-500" />
+            Monthly Progress ({dashboardData.monthlyStats.month})
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-4">
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                {dashboardData.monthlyStats.demosCompleted}
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">Demos Completed</p>
+            </div>
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4">
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                {dashboardData.monthlyStats.assignmentsCreated}
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">Assignments Created</p>
+            </div>
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-4">
+              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                {dashboardData.monthlyStats.newStudents}
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">New Students</p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Quick Access to Key Features */}
       <div className="mb-6">
-        <QuickActions />
+        <QuickActions quickActions={dashboardData?.quickActions || []} />
       </div>
 
       {/* Main Content Grid */}
@@ -613,23 +866,14 @@ const InstructorDashboard: React.FC = () => {
           className="lg:col-span-8 flex"
         >
           <div className="w-full">
-            {error ? (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-4 text-red-600 dark:text-red-400">
-                <p className="flex items-center gap-2">
-                  <LucideAlertCircle className="w-5 h-5" />
-                  {error}
-                </p>
-              </div>
-            ) : (
-              <UpcomingClasses classes={filteredClasses} />
-            )}
+            <UpcomingClasses classes={filteredClasses} />
           </div>
         </motion.div>
       </div>
 
       {/* Recent Student Submissions */}
       <div className="mt-6">
-        <RecentStudentSubmissions />
+        <RecentStudentSubmissions submissions={dashboardData?.recentSubmissions || []} />
       </div>
     </motion.div>
   );
