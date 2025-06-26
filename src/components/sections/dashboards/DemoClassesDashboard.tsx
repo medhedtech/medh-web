@@ -6,6 +6,8 @@ import StudentDashboardLayout from "./StudentDashboardLayout";
 import { toast } from 'react-hot-toast';
 import { openGoogleCalendar, downloadICSFile, type SessionData } from '@/utils/googleCalendar';
 import '@/styles/demo-classes-mobile.css';
+import { apiClient } from '@/apis/apiClient';
+import { demoBookingAPI } from '@/apis/demo-booking.api';
 
 interface DemoClass {
   id: string;
@@ -42,10 +44,8 @@ interface TabItem {
 }
 
 const tabs: TabItem[] = [
-  { id: 'all', label: 'All Classes' },
-  { id: 'today', label: 'Today' },
-  { id: 'live_soon', label: 'Live & Soon' },
-  { id: 'this_week', label: 'This Week' }
+  { id: 'upcoming', label: 'Upcoming' },
+  { id: 'completed', label: 'Completed' }
 ];
 
 const TabButton = memo(({ tab, isActive, onClick }: { tab: TabItem; isActive: boolean; onClick: () => void }) => (
@@ -396,7 +396,7 @@ const DemoClassesDashboard: React.FC = () => {
 
 const StudentDemoClasses: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTab, setSelectedTab] = useState('all');
+  const [selectedTab, setSelectedTab] = useState<'upcoming' | 'completed'>('upcoming');
   const [demoClasses, setDemoClasses] = useState<DemoClass[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -506,14 +506,74 @@ const StudentDemoClasses: React.FC = () => {
   // Load initial data
   useEffect(() => {
     loadReminders();
-    
-    // Simulate loading demo classes
-    const timer = setTimeout(() => {
-      setDemoClasses([]);
-      setLoading(false);
-    }, 1000);
 
-    return () => clearTimeout(timer);
+    const fetchDemoClasses = async () => {
+      try {
+        setLoading(true);
+        // Fetch current user's demo bookings (confirmed & upcoming)
+        const response = await apiClient.get<any>(
+          demoBookingAPI.getUserBookings({
+            includeHistory: true,
+            includeInstructor: true,
+            limit: 100,
+          })
+        );
+
+        // Extract bookings array from various possible response shapes
+        const bookings: any[] =
+          (response?.data as any)?.data?.bookings ||
+          (response?.data as any)?.bookings ||
+          (response?.data as any)?.data ||
+          [];
+
+        const mappedClasses: DemoClass[] = bookings.map((booking: any) => {
+          const scheduledDate = booking.scheduledDateTime || booking.timeSlot || new Date().toISOString();
+          const duration = booking.durationMinutes || 60;
+
+          // Determine status based on booking status and time difference
+          let status: 'live' | 'starting_soon' | 'upcoming' | 'completed' = 'upcoming';
+          if (booking.status === 'completed') {
+            status = 'completed';
+          } else {
+            const now = new Date();
+            const start = new Date(scheduledDate);
+            const diffMs = start.getTime() - now.getTime();
+            if (diffMs <= 0 && diffMs >= -duration * 60000) {
+              status = 'live';
+            } else if (diffMs <= 15 * 60 * 1000) {
+              status = 'starting_soon';
+            }
+          }
+
+          return {
+            id: booking.id || booking._id,
+            title: booking.courseInterest || booking.demoType || 'Demo Class',
+            description: booking.notes || booking.requirements || '',
+            instructor: booking.instructor ? {
+              name: booking.instructor.fullName || booking.instructor.name || '',
+              rating: booking.instructor.rating,
+            } : undefined,
+            scheduledDate,
+            duration,
+            status,
+            participants: booking.participantCount || booking.participants,
+            maxParticipants: booking.maxParticipants,
+            meetingLink: booking.meetingLink || booking.zoomMeeting?.join_url,
+            location: booking.location || 'Online',
+            hasReminder: false, // will be updated in reminder effect
+          } as DemoClass;
+        });
+
+        setDemoClasses(mappedClasses);
+      } catch (err) {
+        console.error('Error fetching demo classes:', err);
+        setError('Failed to load demo classes');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDemoClasses();
   }, [loadReminders]);
 
   // Update demo classes with reminder status
@@ -538,49 +598,20 @@ const StudentDemoClasses: React.FC = () => {
 
       if (!matchesSearch) return false;
 
-      // Tab filter
-      const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
-      const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-      const classDate = new Date(demoClass.scheduledDate);
-
-      switch (selectedTab) {
-        case 'today':
-          return classDate >= today && classDate < tomorrow;
-        case 'live_soon':
-          return demoClass.status === 'live' || demoClass.status === 'starting_soon';
-        case 'this_week':
-          return classDate >= today && classDate <= nextWeek;
-        case 'all':
-        default:
-          return true;
+      // Tab filter (two states)
+      if (selectedTab === 'completed') {
+        return demoClass.status === 'completed';
       }
+      // 'upcoming' includes live, starting soon, upcoming
+      return demoClass.status !== 'completed';
     });
   }, [demoClasses, searchQuery, selectedTab]);
 
   // Calculate counts for tabs
-  const classCounts = useMemo(() => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
-    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-
-    return {
-      all: demoClasses.length,
-      today: demoClasses.filter(cls => {
-        const classDate = new Date(cls.scheduledDate);
-        return classDate >= today && classDate < tomorrow;
-      }).length,
-      live_soon: demoClasses.filter(cls => 
-        cls.status === 'live' || cls.status === 'starting_soon'
-      ).length,
-      this_week: demoClasses.filter(cls => {
-        const classDate = new Date(cls.scheduledDate);
-        return classDate >= today && classDate <= nextWeek;
-      }).length
-    };
-  }, [demoClasses]);
+  const classCounts = useMemo(() => ({
+    upcoming: demoClasses.filter(cls => cls.status !== 'completed').length,
+    completed: demoClasses.filter(cls => cls.status === 'completed').length
+  }), [demoClasses]);
 
   const handleViewDetails = (demoClass: DemoClass) => {
     setSelectedClass(demoClass);
@@ -677,7 +708,7 @@ const StudentDemoClasses: React.FC = () => {
                     count: classCounts[tab.id as keyof typeof classCounts]
                   }}
                   isActive={selectedTab === tab.id}
-                  onClick={() => setSelectedTab(tab.id)}
+                  onClick={() => setSelectedTab(tab.id as 'upcoming' | 'completed')}
                 />
               ))}
             </div>
