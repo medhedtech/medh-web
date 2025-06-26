@@ -530,16 +530,14 @@ const Home1: React.FC = () => {
     // Advanced device capability detection (moved inside effect to avoid infinite loop)
     const { isLowEnd, hasSlowConnection, prefersReducedMotion } = getDeviceCapabilities();
     
-    // Adaptive video settings based on device capabilities with aggressive local fallback
+    // Adaptive video settings based on device capabilities
     if (isLowEnd || prefersReducedMotion) {
       setShouldShowVideo(false);
       setCompressionLevel('low');
     } else if (hasSlowConnection) {
-      // For slow connections, immediately use local video to prevent 15s+ load times
-      setUseLocalVideo(true);
       setUseCompressedVideo(true);
       setCompressionLevel('high');
-      console.log('Slow connection detected - using local video for optimal LCP');
+      console.log('Slow connection detected - using compressed video');
     }
     
     // Performance-optimized load timing with requestAnimationFrame
@@ -549,6 +547,7 @@ const Home1: React.FC = () => {
           if (mountedRef.current) {
             startTransition(() => {
               setIsLoaded(true);
+              setAllowVideoLoad(true); // Allow video load immediately with page load
             });
           }
         }, { timeout: 100 });
@@ -558,6 +557,7 @@ const Home1: React.FC = () => {
             if (mountedRef.current) {
               startTransition(() => {
                 setIsLoaded(true);
+                setAllowVideoLoad(true); // Allow video load immediately with page load
               });
             }
           }, 50);
@@ -566,14 +566,6 @@ const Home1: React.FC = () => {
     };
     
     scheduleLoad();
-    
-    // AGGRESSIVE LCP OPTIMIZATION: Delay video loading by 5 seconds to prioritize hero content
-    const videoDelayTimer = setTimeout(() => {
-      if (mountedRef.current) {
-        setAllowVideoLoad(true);
-        console.log('Hero content prioritized - now allowing video background');
-      }
-    }, 5000); // 5 second delay for maximum LCP optimization
     
     // Optimized resize listener with passive events
     const resizeHandler = () => handleResize();
@@ -618,7 +610,6 @@ const Home1: React.FC = () => {
     
     return () => {
       if (resizeTimeoutId) clearTimeout(resizeTimeoutId);
-      clearTimeout(videoDelayTimer);
       window.removeEventListener('resize', resizeHandler);
       mountedRef.current = false;
     };
@@ -693,7 +684,7 @@ const Home1: React.FC = () => {
 
   return (
     <VideoBackgroundContext.Provider value={contextValue}>
-      {/* LCP-optimized video background - HEAVILY delayed to prioritize hero content */}
+      {/* LCP-optimized video background - Load immediately on page load */}
       {shouldShowVideo && !hasVideoError && deferredIsLoaded && allowVideoLoad && (
         <div 
           className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0"
@@ -711,7 +702,7 @@ const Home1: React.FC = () => {
             muted
             loop
             playsInline
-            preload="none"
+            preload="auto"
             poster={videoPoster}
             className="absolute inset-0 w-full h-full object-cover"
             style={{ 
@@ -730,14 +721,13 @@ const Home1: React.FC = () => {
             onLoadStart={() => {
               videoLoadStartTime.current = performance.now();
               
-              // AGGRESSIVE TIMEOUT: Force local video after 3 seconds
+              // Reasonable timeout: Force fallback after 10 seconds if video doesn't load
               const timeoutId = setTimeout(() => {
                 if (!deferredIsPlaying && !hasVideoError && videoLoadStartTime.current > 0) {
-                  console.warn('Video loading timeout - switching to local fallback');
+                  console.warn('Video loading timeout - switching to fallback');
                   setVideoLoadTimeout(true);
-                  setUseLocalVideo(true);
                 }
-              }, 3000); // 3 second timeout for LCP optimization
+              }, 10000); // 10 second timeout
               
               // Clear timeout if video loads successfully
               const clearTimeoutOnLoad = () => {
@@ -765,7 +755,7 @@ const Home1: React.FC = () => {
         </div>
       )}
 
-      {/* INSTANT CSS background for optimal LCP - Always show until video loads */}
+      {/* CSS background for optimal LCP - Show until video loads */}
       {(!shouldShowVideo || hasVideoError || !allowVideoLoad) && (
         <div 
           className="fixed inset-0 w-full h-full pointer-events-none z-0"
