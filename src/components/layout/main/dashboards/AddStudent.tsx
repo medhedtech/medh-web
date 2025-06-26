@@ -328,7 +328,7 @@ const AddStudent: React.FC<AddStudentProps> = ({ onCancel, onSuccess }) => {
   const onSubmit = async (data: any) => {
     try {
       await postQuery({
-        url: apiUrls?.auth?.register,
+        url: apiUrls?.Students?.createStudent || "/students/create",
         postData: {
           full_name: data.full_name,
           email: data.email,
