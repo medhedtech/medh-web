@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import CoursesFilter from "../courses/CoursesFilter";
 import { Zap, Sparkles, Brain } from "lucide-react";
 import Link from "next/link";
+import Image from 'next/image';
 
 
 
@@ -46,7 +47,9 @@ const CourseOptions: React.FC = () => {
           
           <div className="flex items-center justify-center gap-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold">
             <span className="text-gray-900 dark:text-white">with</span>
-            <span className="text-medhgreen dark:text-medhgreen bg-gradient-to-r from-blue-50/10 to-transparent px-2 py-1 rounded">MEDH</span>
+            <span className="inline-flex items-center">
+              <Image src={require('@/assets/images/logo/medh.png')} alt="Medh Logo" height={36} style={{height:'2.25rem', width:'auto', display:'inline-block', verticalAlign:'middle'}} />
+            </span>
           </div>
         </div>
 
