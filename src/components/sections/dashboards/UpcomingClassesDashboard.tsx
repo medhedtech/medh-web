@@ -590,14 +590,24 @@ const StudentUpcomingClasses: React.FC = () => {
 
   // Enhanced mapping function for upcoming classes
   const mapSessionToUpcomingClass = (session: any, loadedReminders: Reminder[] = []): UpcomingClass => {
-    const sessionDateTime = new Date(session.session_date);
-    const sessionEndDateTime = new Date(session.session_end_date);
+    console.log('Processing session in mapSessionToUpcomingClass:', session);
+    
+    // Handle different date field names
+    const sessionDate = session.session_date || session.scheduledDate || session.date || session.start_date;
+    const sessionEndDate = session.session_end_date || session.endDate || session.end_date;
+    
+    if (!sessionDate) {
+      console.warn('No session date found for session:', session);
+    }
+    
+    const sessionDateTime = new Date(sessionDate || new Date());
+    const sessionEndDateTime = new Date(sessionEndDate || new Date(sessionDateTime.getTime() + 60 * 60 * 1000)); // Default 1 hour if no end date
     const currentTime = new Date();
     
     const duration = Math.round((sessionEndDateTime.getTime() - sessionDateTime.getTime()) / (1000 * 60));
     const minutesUntil = Math.floor((sessionDateTime.getTime() - currentTime.getTime()) / (1000 * 60));
 
-    // Enhanced status determination for upcoming and live classes
+    // Show all sessions - determine status but don't filter based on it
     let status: 'upcoming' | 'today' | 'starting_soon' | 'live' | 'ended' = 'upcoming';
     
     if (currentTime >= sessionDateTime && currentTime <= sessionEndDateTime) {
@@ -618,36 +628,36 @@ const StudentUpcomingClasses: React.FC = () => {
       reminder.classId === session.session_id && reminder.isActive
     );
 
-    return {
-      id: session.session_id,
-      title: session.title || session.batch?.name || 'Untitled Session',
+    const mappedClass = {
+      id: session.session_id || session.id || `session_${Date.now()}`,
+      title: session.title || session.batch?.name || session.name || 'Untitled Session',
       instructor: {
-        name: session.instructor?.full_name || 'Instructor',
+        name: session.instructor?.full_name || session.instructor?.name || 'Instructor',
         rating: 4.5
       },
-      category: session.course?.title || 'General',
-      duration,
+      category: session.course?.title || session.course?.name || session.category || 'General',
+      duration: duration || 60, // Default to 60 minutes if no duration
       scheduledDate: sessionDateTime.toISOString(),
       status,
       level: 'intermediate',
       participants: 1,
       maxParticipants: 1,
-      description: session.description || `${session.course?.title} session - ${session.title}`,
-      meetingLink: session.zoom_meeting?.join_url,
-      location: session.zoom_meeting ? 'Online Session' : 'TBD',
-      isOnline: !!session.zoom_meeting,
+      description: session.description || `${session.course?.title || session.course?.name || 'Course'} session - ${session.title || 'Session'}`,
+      meetingLink: session.zoom_meeting?.join_url || session.meetingLink,
+      location: session.zoom_meeting || session.meetingLink ? 'Online Session' : 'TBD',
+      isOnline: !!(session.zoom_meeting || session.meetingLink),
       batchInfo: {
-        id: session.batch?.id,
-        name: session.batch?.name,
-        code: session.batch?.code
+        id: session.batch?.id || session.batch?._id || session.batchId,
+        name: session.batch?.name || session.batchName,
+        code: session.batch?.code || session.batchCode
       },
       courseInfo: {
-        id: session.course?.id,
-        name: session.course?.title,
-        code: session.course?.code
+        id: session.course?.id || session.course?._id || session.courseId,
+        name: session.course?.title || session.course?.name || session.courseName,
+        code: session.course?.code || session.courseCode
       },
       zoomMeeting: session.zoom_meeting ? {
-        id: session.zoom_meeting.meeting_id,
+        id: session.zoom_meeting.meeting_id || session.zoom_meeting.id,
         join_url: session.zoom_meeting.join_url,
         password: session.zoom_meeting.password
       } : undefined,
@@ -657,6 +667,9 @@ const StudentUpcomingClasses: React.FC = () => {
       reminderTime: activeReminder?.reminderTime,
       sessionData: session // Store original session data for Google Calendar
     };
+    
+    console.log('Mapped class result:', mappedClass);
+    return mappedClass;
   };
 
   const fetchUpcomingClasses = async () => {
@@ -673,23 +686,46 @@ const StudentUpcomingClasses: React.FC = () => {
       
       const response = await batchAPI.getStudentUpcomingSessions(studentId);
 
-      if (response.data && response.data.data) {
+      console.log('API Response:', response);
+      console.log('Response data:', response.data);
+      
+      if (response.data) {
+        // Handle different response structures
+        let sessions = [];
+        
+        if (response.data.data && Array.isArray(response.data.data)) {
+          sessions = response.data.data;
+        } else if (Array.isArray(response.data)) {
+          sessions = response.data;
+        } else if (response.data.sessions && Array.isArray(response.data.sessions)) {
+          sessions = response.data.sessions;
+        }
+        
+        console.log('Extracted sessions:', sessions);
+        console.log('Number of sessions found:', sessions.length);
+        
         const loadedReminders = loadReminders();
-        const mappedClasses = response.data.data.map((session: any) => mapSessionToUpcomingClass(session, loadedReminders));
-        // Include all classes - upcoming, live, and recently ended (for reference)
+        const mappedClasses = sessions.map((session: any) => {
+          console.log('Mapping session:', session);
+          return mapSessionToUpcomingClass(session, loadedReminders);
+        });
+        
+        console.log('Mapped classes:', mappedClasses);
+        
+        // Show ALL classes regardless of status
         setUpcomingClasses(mappedClasses);
         
-        // Log live classes specifically
-        const liveClasses = mappedClasses.filter(cls => cls.status === 'live');
-        const startingSoonClasses = mappedClasses.filter(cls => cls.status === 'starting_soon');
+        console.log('Successfully set upcoming classes:', mappedClasses.length);
         
-        console.log('Successfully fetched classes:', mappedClasses);
-        console.log('Live classes:', liveClasses);
-        console.log('Starting soon:', startingSoonClasses);
-        console.log('Student info:', response.data.student);
-        console.log('Total sessions:', response.data.total_upcoming);
+        if (response.data.student) {
+          console.log('Student info:', response.data.student);
+        }
+        if (response.data.total_upcoming !== undefined) {
+          console.log('Total sessions from API:', response.data.total_upcoming);
+        }
       } else {
-        throw new Error('Failed to fetch classes');
+        console.error('No data in response:', response);
+        throw new Error('No data received from API');
       }
     } catch (error: any) {
       console.error('Error fetching upcoming classes:', error);
@@ -729,37 +765,13 @@ const StudentUpcomingClasses: React.FC = () => {
     setSelectedClass(null);
   };
 
-      // Enhanced filtering for upcoming and live classes
+      // Show all sessions without filtering
   const getFilteredClasses = () => {
     let filtered = upcomingClasses;
     
-      // Filter by tab - includes live classes prominently
-    switch (currentTab) {
-        case 0: // All Classes (including live)
-          filtered = upcomingClasses; // Show all including ended for reference
-        break;
-      case 1: // Today
-          filtered = upcomingClasses.filter(cls => 
-            cls.status === 'today' || cls.status === 'starting_soon' || cls.status === 'live'
-        );
-        break;
-        case 2: // Live & Starting Soon
-          filtered = upcomingClasses.filter(cls => 
-            cls.status === 'live' || cls.status === 'starting_soon'
-          );
-        break;
-        case 3: // This Week
-          const oneWeekFromNow = new Date();
-          oneWeekFromNow.setDate(oneWeekFromNow.getDate() + 7);
-          filtered = upcomingClasses.filter(cls => {
-            if (!cls.scheduledDate) return false;
-            const classDate = new Date(cls.scheduledDate);
-            return classDate <= oneWeekFromNow;
-          });
-        break;
-      default:
-        break;
-    }
+    // Show all sessions for all tabs
+    // Remove tab-based filtering to display all sessions
+    filtered = upcomingClasses;
 
     // Filter by search term
     if (searchTerm) {
@@ -971,10 +983,13 @@ const StudentUpcomingClasses: React.FC = () => {
                     <CalendarDays className="w-12 h-12 text-gray-400" />
                   </div>
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                    {searchTerm ? "No matching classes found" : "No upcoming classes"}
+                    {searchTerm ? "No matching classes found" : "No Sessions Found"}
                 </h3>
                   <p className="text-gray-600 dark:text-gray-400 max-w-md mb-4">
-                    You don't have any upcoming classes scheduled at this time.
+                    {searchTerm 
+                      ? "Try adjusting your search terms or clearing the search to see all sessions."
+                      : "No sessions are available at this time. Check back later or contact support if you expect to see sessions here."
+                    }
                   </p>
               </motion.div>
             )}
