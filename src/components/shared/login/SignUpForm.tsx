@@ -814,7 +814,7 @@ const SignUpForm: React.FC = () => {
             </div>
             
             {/* Stepper UI */}
-            <div className="mb-4">
+            <div className="mb-5">
               <div className="flex items-center justify-between">
                 <div className="flex flex-col items-center">
                   <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex items-center justify-center">
@@ -1142,7 +1142,7 @@ const SignUpForm: React.FC = () => {
             {/* Form Container */}
             <div className="p-5 md:p-8">
               {/* Logo and Header */}
-              <div className="text-center mb-4">
+              <div className="text-center mb-3">
                 <Link href="/" className="inline-block mb-2">
                   <Image 
                     src={theme === 'dark' ? logo1 : logo2} 
@@ -1162,7 +1162,7 @@ const SignUpForm: React.FC = () => {
               </div>
               
               {/* Compact Stepper UI */}
-              <div className="mb-6">
+              <div className="mb-5">
                 <div className="flex items-center justify-between max-w-md mx-auto">
                   <div className="flex flex-col items-center">
                     <div className={`w-8 h-8 rounded-full ${currentStep === 1 ? 'bg-primary-500 text-white' : 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'} flex items-center justify-center`}>
@@ -1183,9 +1183,9 @@ const SignUpForm: React.FC = () => {
               </div>
 
               {/* Form */}
-              <form className="space-y-4">
+              <form className="space-y-3">
                 {/* Two-column layout for personal info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {/* Email - First column */}
                   <div className="form-group">
                     <label className="block mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Email <span className="text-red-500">*</span></label>
@@ -1261,7 +1261,7 @@ const SignUpForm: React.FC = () => {
                 {/* Contact Info Section */}
                 <div className="form-section">
                   {/* Two-column layout for Phone and Age Group */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {/* Phone Number Field */}
                     <Controller
                       name="phone_numbers"
@@ -1356,7 +1356,7 @@ const SignUpForm: React.FC = () => {
                 </div>
 
                 {/* Two-column layout for password fields */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {/* Password with Strength Meter */}
                   <div>
                     <label className="block mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Password <span className="text-red-500">*</span></label>
@@ -1451,9 +1451,9 @@ const SignUpForm: React.FC = () => {
                 </div>
 
                 {/* Enhanced section for reCAPTCHA and Terms with centered layout */}
-                <div className="mt-6 space-y-4">
+                <div className="mt-6 space-y-3">
                   {/* Two-column layout for captcha and terms on larger screens */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
                     {/* reCAPTCHA */}
                     <div className="w-full mx-auto md:mx-0 max-w-md">
                       <CustomReCaptcha
