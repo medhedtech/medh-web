@@ -1,90 +1,76 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
-interface CorsErrorState {
-  isVisible: boolean;
-  message: string;
-  url: string | null;
+interface ICorsErrorProps {
+  error: Error;
+  endpoint?: string;
+  origin?: string;
 }
 
-/**
- * Component that listens for CORS errors and displays a user-friendly message
- */
-const CorsErrorHandler: React.FC = () => {
-  const [errorState, setErrorState] = useState<CorsErrorState>({
-    isVisible: false,
-    message: '',
-    url: null
-  });
-
-  useEffect(() => {
-    // Listen for CORS error events
-    const handleCorsError = (event: CustomEvent<{ url: string; message: string }>) => {
-      setErrorState({
-        isVisible: true,
-        message: event.detail.message,
-        url: event.detail.url
-      });
-
-      // Auto-hide the error after 10 seconds
-      setTimeout(() => {
-        setErrorState((prev) => ({ ...prev, isVisible: false }));
-      }, 10000);
-    };
-
-    // Add event listener
-    window.addEventListener('api:cors-error', handleCorsError as EventListener);
-
-    // Cleanup on unmount
-    return () => {
-      window.removeEventListener('api:cors-error', handleCorsError as EventListener);
-    };
-  }, []);
-
-  // If no error or error is hidden, don't render anything
-  if (!errorState.isVisible) {
-    return null;
-  }
-
+export default function CorsErrorHandler({ error, endpoint, origin }: ICorsErrorProps) {
   return (
-    <div className="fixed bottom-4 right-4 max-w-md bg-red-50 border-l-4 border-red-500 p-4 shadow-md rounded-md z-50">
-      <div className="flex">
-        <div className="flex-shrink-0">
-          <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-          </svg>
+    <div className="p-6 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-800">
+      <div className="flex items-start gap-4">
+        <div className="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center flex-shrink-0">
+          <span className="text-white text-2xl">⚠️</span>
         </div>
-        <div className="ml-3">
-          <h3 className="text-sm font-medium text-red-800">API Connection Error</h3>
-          <div className="mt-2 text-sm text-red-700">
-            <p>{errorState.message}</p>
-            {errorState.url && (
-              <p className="mt-1 text-xs text-red-500">
-                Failed endpoint: {errorState.url}
+        <div className="flex-1">
+          <h3 className="text-lg font-bold text-red-700 dark:text-red-300 mb-2">
+            CORS Error Detected
+          </h3>
+          <div className="space-y-4">
+            <div>
+              <p className="text-red-600 dark:text-red-400 font-medium">Error Message:</p>
+              <p className="text-red-700 dark:text-red-300 text-sm mt-1 bg-red-100 dark:bg-red-900/30 p-2 rounded">
+                {error.message}
               </p>
+            </div>
+            
+            {endpoint && (
+              <div>
+                <p className="text-red-600 dark:text-red-400 font-medium">API Endpoint:</p>
+                <code className="text-red-700 dark:text-red-300 text-sm mt-1 bg-red-100 dark:bg-red-900/30 p-2 rounded block font-mono">
+                  {endpoint}
+                </code>
+              </div>
             )}
-          </div>
-          <div className="mt-3">
-            <div className="-mx-2 -my-1.5 flex">
-              <button
-                type="button"
-                className="rounded-md bg-red-50 px-2 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100"
-                onClick={() => setErrorState((prev) => ({ ...prev, isVisible: false }))}
-              >
-                Dismiss
-              </button>
-              <button
-                type="button"
-                className="ml-3 rounded-md bg-red-50 px-2 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100"
-                onClick={() => window.location.reload()}
-              >
-                Reload Page
-              </button>
+            
+            {origin && (
+              <div>
+                <p className="text-red-600 dark:text-red-400 font-medium">Origin:</p>
+                <code className="text-red-700 dark:text-red-300 text-sm mt-1 bg-red-100 dark:bg-red-900/30 p-2 rounded block font-mono">
+                  {origin}
+                </code>
+              </div>
+            )}
+            
+            <div>
+              <p className="text-red-600 dark:text-red-400 font-medium">Troubleshooting Steps:</p>
+              <ul className="list-disc list-inside text-red-700 dark:text-red-300 text-sm mt-2 space-y-2">
+                <li>Check if the server has CORS enabled for your origin</li>
+                <li>Verify that the server accepts the HTTP methods you're using</li>
+                <li>Ensure authentication headers are being sent correctly</li>
+                <li>Check if the server allows credentials if you're using them</li>
+                <li>Verify the API endpoint URL is correct</li>
+              </ul>
+            </div>
+            
+            <div>
+              <p className="text-red-600 dark:text-red-400 font-medium">Server Configuration Example:</p>
+              <pre className="text-red-700 dark:text-red-300 text-sm mt-1 bg-red-100 dark:bg-red-900/30 p-3 rounded overflow-x-auto">
+                <code>{`
+// Node.js/Express Example
+app.use(cors({
+  origin: '${origin || 'your-frontend-origin'}',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+                `.trim()}</code>
+              </pre>
             </div>
           </div>
         </div>
       </div>
     </div>
   );
-};
-
-export default CorsErrorHandler; 
+} 
