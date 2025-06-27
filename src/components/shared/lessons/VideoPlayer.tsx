@@ -74,7 +74,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout>();
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Helper function to determine if URL is YouTube
   const isYouTubeUrl = (url: string): boolean => {
@@ -104,10 +104,56 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (videoRef.current) {
       setDuration(videoRef.current.duration);
       setLoading(false);
+      
+      console.log('Video metadata loaded:', {
+        duration: videoRef.current.duration,
+        videoWidth: videoRef.current.videoWidth,
+        videoHeight: videoRef.current.videoHeight,
+        src: videoRef.current.src
+      });
+      
       if (initialTime > 0) {
         videoRef.current.currentTime = initialTime;
       }
+      
+      // Handle autoplay
+      if (autoplay) {
+        videoRef.current.play().catch((err) => {
+          console.warn('Autoplay failed:', err);
+          // Don't treat autoplay failure as an error, just show play button
+        });
+      }
     }
+  };
+
+  const handleCanPlay = () => {
+    console.log('Video can play');
+    setLoading(false);
+  };
+
+  const handleLoadedData = () => {
+    console.log('Video data loaded');
+    setLoading(false);
+  };
+
+  const handlePlay = () => {
+    setIsPlaying(true);
+  };
+
+  const handlePause = () => {
+    setIsPlaying(false);
+  };
+
+  const handleEnded = () => {
+    setIsPlaying(false);
+    onEnded?.();
+  };
+
+  const handleError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+    const errorMessage = 'Video playback failed. Please try again.';
+    setError(errorMessage);
+    setLoading(false);
+    onError?.(errorMessage);
   };
 
   const handleTimeUpdate = () => {
@@ -357,20 +403,19 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
-  // Error handling
-  const handleError = () => {
-    setError('Failed to load video');
-    setLoading(false);
-    onError?.('Video load failed');
-  };
-
-  // Handle video events
-  const handlePlay = () => setIsPlaying(true);
-  const handlePause = () => setIsPlaying(false);
-  const handleEnded = () => {
-    setIsPlaying(false);
-    onEnded?.();
-  };
+  // Handle video source changes
+  useEffect(() => {
+    if (videoRef.current && src) {
+      setLoading(true);
+      setError(null);
+      
+      console.log('Loading video source:', src);
+      
+      // Reset video element
+      videoRef.current.src = getVideoSource();
+      videoRef.current.load();
+    }
+  }, [src, getVideoSource]);
 
   // If no source provided
   if (!src) {
@@ -416,7 +461,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   return (
     <div 
       ref={containerRef}
-      className={`relative bg-gray-900 rounded-lg overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50' : 'w-full h-0 pb-[56.25%]'}`}
+      className={`relative bg-gray-900 rounded-lg overflow-hidden ${
+        isFullscreen ? 'fixed inset-0 z-50' : 'w-full aspect-video min-h-[300px]'
+      }`}
+      style={!isFullscreen ? { minHeight: '300px' } : undefined}
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => !isPlaying && setShowControls(false)}
     >
@@ -443,9 +491,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       {/* Video element */}
       <video
         ref={videoRef}
-        className={`w-full h-full object-cover ${isFullscreen ? 'absolute inset-0' : ''}`}
+        className={`w-full h-full object-cover ${isFullscreen ? 'absolute inset-0' : 'absolute inset-0'}`}
         poster={poster}
+        src={getVideoSource()}
+        autoPlay={autoplay}
+        muted={autoplay} // Required for autoplay in most browsers
         onLoadedMetadata={handleLoadedMetadata}
+        onCanPlay={handleCanPlay}
+        onLoadedData={handleLoadedData}
         onTimeUpdate={handleTimeUpdate}
         onPlay={handlePlay}
         onPause={handlePause}
@@ -453,6 +506,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         onError={handleError}
         playsInline
         preload="metadata"
+        controls={false} // We use custom controls
+        style={{ display: 'block' }} // Ensure video is displayed
       >
         <source src={getVideoSource()} type="video/mp4" />
         Your browser does not support the video tag.

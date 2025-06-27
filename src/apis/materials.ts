@@ -210,19 +210,27 @@ const materialsAPI = {
    */
   getStudentCertificates: async (studentId?: string): Promise<ICertificatesResponse> => {
     const token = getAuthToken();
+    console.log('Token available:', !!token);
+    
     if (!token) {
-      throw new Error('Authentication required. Please log in.');
+      const error = new Error('Authentication required. Please log in.');
+      console.error('Authentication error:', error);
+      throw error;
     }
 
     const userId = studentId || localStorage.getItem('userId');
     console.log('Fetching certificates for userId:', userId);
+    console.log('studentId param:', studentId);
+    console.log('localStorage userId:', localStorage.getItem('userId'));
     
     if (!userId) {
-      throw new Error('Student ID is required');
+      const error = new Error('Student ID is required');
+      console.error('User ID error:', error);
+      throw error;
     }
 
     try {
-      const url = `${apiBaseUrl}${apiUrls.certificate.getCertificatesByStudentId}/${userId}`;
+      const url = `${apiBaseUrl}${apiUrls.certificate.getCertificatesByStudentId(userId)}`;
       console.log('Making API request to:', url);
       
       const response = await axios.get(url, {
@@ -246,17 +254,60 @@ const materialsAPI = {
       // Safely extract error details
       const errorDetails = {
         message: error?.message || 'Unknown error',
+        stack: error?.stack || 'No stack trace',
         response: {
           data: error?.response?.data || null,
-          status: error?.response?.status || null
+          status: error?.response?.status || null,
+          statusText: error?.response?.statusText || null
         },
-        url: `${apiBaseUrl}${apiUrls.certificate.getCertificatesByStudentId}/${userId}`
+        request: {
+          url: `${apiBaseUrl}${apiUrls.certificate.getCertificatesByStudentId(userId)}`,
+          method: 'GET',
+          headers: error?.config?.headers || null
+        },
+        code: error?.code || 'UNKNOWN_ERROR',
+        name: error?.name || 'Error'
       };
       
-      console.error('Error fetching certificates:', errorDetails);
+      console.error('Error fetching certificates:', error);
+      console.error('Detailed error info:', errorDetails);
+      
+      // Handle specific error cases
+      if (error?.response?.status === 404) {
+        return {
+          status: 'success',
+          data: [],
+          message: 'No certificates found for this student'
+        };
+      }
+      
+      if (error?.response?.status === 401) {
+        return {
+          status: 'error',
+          data: [],
+          message: 'Authentication failed. Please log in again.'
+        };
+      }
+      
+      if (error?.response?.status === 403) {
+        return {
+          status: 'error',
+          data: [],
+          message: 'You do not have permission to access certificates.'
+        };
+      }
+      
+      if (error?.code === 'ECONNREFUSED' || error?.message?.includes('Network Error')) {
+        return {
+          status: 'error',
+          data: [],
+          message: 'Unable to connect to the server. Please check your internet connection.'
+        };
+      }
       
       return {
         status: 'error',
+        data: [],
         message: error?.response?.data?.message || error?.message || 'Failed to fetch certificates'
       };
     }
