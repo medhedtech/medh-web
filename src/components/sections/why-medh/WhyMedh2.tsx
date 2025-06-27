@@ -277,7 +277,7 @@ const WhyMedh = memo(() => {
   }, [isVisible]);
 
   const sectionClasses = useMemo(() => {
-    return "w-full py-8 md:py-12";
+    return "w-full py-0 md:py-0";
   }, []);
 
   const headerContainerClasses = useMemo(() => {
@@ -325,7 +325,7 @@ const WhyMedh = memo(() => {
   }, []);
 
   const certificationsDescriptionClasses = useMemo(() => {
-    return "text-lg text-gray-600 dark:text-gray-300 mb-10";
+    return "text-lg text-gray-600 dark:text-gray-300 mb-2";
   }, []);
 
   const featuredCertificationsClasses = useMemo(() => {

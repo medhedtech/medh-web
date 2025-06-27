@@ -192,7 +192,7 @@ const JoinMedh = memo(() => {
 
   // PERFORMANCE OPTIMIZATION: Memoized class names
   const sectionClasses = useMemo(() => {
-    return "w-full relative overflow-hidden z-10 glass-card gpu-accelerated py-12 md:py-16 lg:py-20";
+    return "w-full py-20 md:py-20";
   }, []);
 
   const backgroundClasses = useMemo(() => {
