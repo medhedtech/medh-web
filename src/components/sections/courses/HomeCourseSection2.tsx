@@ -222,6 +222,7 @@ interface ICourse {
   url?: string;
   no_of_Sessions?: number | string;
   session_display?: string;
+  session_range?: string;
   effort_hours?: string;
   efforts_per_Week?: string;
   learning_points?: string[];
@@ -432,21 +433,54 @@ const FALLBACK_LIVE_COURSES: readonly ICourse[] = Object.freeze([
 // PERFORMANCE OPTIMIZATION: Utility functions
 const formatDurationRange = (durationRange: string | undefined): string => {
   if (!durationRange) return "Flexible Duration";
+  const trimmed = durationRange.trim();
+  // Convert numeric hyphen ranges (e.g., "4-18 months") to "4 to 18 months"
+  const hyphenMatch = trimmed.match(/^(\d+)\s*-\s*(\d+)(.*)$/);
+  if (hyphenMatch) {
+    const [, start, end, rest] = hyphenMatch;
+    return `${start} to ${end}${rest}`;
+  }
+  return trimmed;
+};
+
+// Add helper for session range formatting
+const formatSessionRange = (sessionRange: string | number | undefined): string => {
+  if (!sessionRange) return "";
+  const rangeStr = String(sessionRange).trim();
   
-  const range = durationRange.trim().toLowerCase();
-  if (range.includes('month')) return durationRange;
-  if (range.includes('week')) return durationRange;
-  if (range.includes('day')) return durationRange;
+  // Handle "X - Y live sessions" format
+  const sessionMatch = rangeStr.match(/^(\d+)\s*-\s*(\d+)\s*(.*sessions.*)$/i);
+  if (sessionMatch) {
+    const [, start, end, rest] = sessionMatch;
+    return `${start} to ${end} ${rest.trim()}`;
+  }
   
-  return durationRange;
+  // Handle "X-Y" format
+  const numericMatch = rangeStr.match(/^(\d+)\s*-\s*(\d+)$/);
+  if (numericMatch) {
+    const [, start, end] = numericMatch;
+    return `${start} to ${end} live sessions`;
+  }
+  
+  // If it's just a number, return it with "live sessions"
+  if (/^\d+$/.test(rangeStr)) {
+    return `${rangeStr} live sessions`;
+  }
+  
+  return rangeStr;
 };
 
 const getDisplayDurationRange = (durationRange: string | undefined, courseType: 'live' | 'blended' = 'live'): string => {
   if (!durationRange) {
-    return courseType === 'live' ? "4-18 months" : "Self-paced";
+    return courseType === 'live' ? "4 to 18 months" : "Self-paced";
   }
-  
-  return formatDurationRange(durationRange);
+  // Handle cases where duration is already in months format
+  if (durationRange.toLowerCase().includes('month')) {
+    return formatDurationRange(durationRange);
+  }
+  // Add 'months' suffix if not present
+  const formattedRange = formatDurationRange(durationRange);
+  return formattedRange.toLowerCase().includes('month') ? formattedRange : `${formattedRange} months`;
 };
 
 const getBlendedCourseSessions = (course: ICourse) => {
@@ -564,33 +598,29 @@ const CourseCardWrapper = memo<{
         course_title: course.course_title || course.title || 'Untitled Course',
         course_description: course.course_description || course.description,
         course_image: courseImage,
-        course_duration: getDisplayDurationRange(course.duration_range, 'live'),
-        duration_range: course.duration_range || course.course_duration as string || "4-18 months",
+        course_duration: getDisplayDurationRange(course.duration_range || course.course_duration, 'live'),
+        duration_range: course.duration_range || course.course_duration || "4-18 months",
         course_category: course.course_category || course.category || 'Uncategorized',
         prices: course.prices || [],
         course_fee: Number(displayPrice) || 1499,
         no_of_Sessions: (() => {
-          if (course.session_display && course.session_display.includes('sessions')) {
-            return course.session_display;
+          // First check session_display or session_range
+          if (course.session_display) {
+            return formatSessionRange(course.session_display);
+          }
+          if (course.session_range) {
+            return formatSessionRange(course.session_range);
           }
           
-          if (course.no_of_Sessions && typeof course.no_of_Sessions === 'string') {
-            const sessionsStr = String(course.no_of_Sessions).trim();
-            if (sessionsStr.includes('-')) {
-              const parts = sessionsStr.split('-');
-              if (parts.length === 2) {
-                const min = parts[0].trim();
-                const max = parts[1].trim();
-                return `${min} - ${max} live sessions`;
-              }
-            }
-            return `${sessionsStr} live sessions`;
+          // Then check no_of_Sessions
+          if (course.no_of_Sessions) {
+            return formatSessionRange(course.no_of_Sessions);
           }
           
+          // Fallback logic for pricing-based sessions
           const individualPrice = course.prices?.[0]?.individual || 0;
           if (individualPrice <= 1500) return "10 live sessions";
           if (individualPrice <= 3000) return "20 live sessions";
-
           return `${videoCount + qnaSessions} live sessions`;
         })(),
         effort_hours: typeof course.effort_hours === 'string' 

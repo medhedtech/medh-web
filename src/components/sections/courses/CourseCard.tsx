@@ -711,140 +711,21 @@ const CourseCard: React.FC<CourseCardProps> = ({
   const formatDuration = (duration: any) => {
     if (!duration) return "Self-paced";
     
-    // Handle special case for combined formats like "0 months 3 weeks"
-    if (typeof duration === 'string' && duration.includes(' ')) {
-      // Check if it contains combined duration parts
-      const parts = duration.toLowerCase().split(' ');
-      
-      // Extract values and units
-      const durationParts = [];
-      let totalWeeks = 0;
-      let monthValue = 0;
-      let weekValue = 0;
-      
-      // Process each part of the duration string
-      for (let i = 0; i < parts.length; i += 2) {
-        if (i + 1 >= parts.length) break;
-        
-        const value = parseFloat(parts[i]);
-        const unit = parts[i + 1].replace(/s$/, ''); // Remove plural 's' if present
-        
-        if (!isNaN(value) && value > 0) {
-          switch (unit) {
-            case 'year':
-              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Year' : 'Years'}`);
-              totalWeeks += value * 52;
-              break;
-            case 'month':
-              monthValue = value;
-              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Month' : 'Months'}`);
-              totalWeeks += value * 4;
-              break;
-            case 'week':
-              weekValue = value;
-              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Week' : 'Weeks'}`);
-              totalWeeks += value;
-              break;
-            case 'day':
-              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Day' : 'Days'}`);
-              totalWeeks += value / 7;
-              break;
-            case 'hour':
-              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Hour' : 'Hours'}`);
-              // Don't add to totalWeeks for hours
-              break;
-          }
-        }
-      }
-      
-      // Return combined duration parts
-      if (durationParts.length > 0) {
-        // If all values are zero, find the largest non-zero unit
-        if (durationParts.length === 0) {
-          return "Self-paced";
-        }
-        
-        // Special case: if we have both months and weeks, format as "X months / Y weeks"
-        if (monthValue > 0 && weekValue > 0) {
-          return `${Math.round(monthValue)} ${Math.round(monthValue) === 1 ? 'Month' : 'Months'} / ${Math.round(weekValue)} ${Math.round(weekValue) === 1 ? 'Week' : 'Weeks'}`;
-        }
-        
-        // For combined formats, display the significant parts
-        const formattedDuration = durationParts.join(' ');
-        
-        // Only show weeks equivalent if it makes sense (at least 1 week and mixed units)
-        if (totalWeeks >= 1 && durationParts.length > 1) {
-          return `${formattedDuration}`;
-        }
-        
-        return formattedDuration;
-      }
+    // If duration is already in the correct format (e.g., "4 to 18 months"), return it
+    if (typeof duration === 'string' && duration.toLowerCase().includes('month')) {
+      return duration;
     }
     
-    // Original parsing for simple formats
-    const durationLower = duration.toString().toLowerCase();
-    let formattedDuration = "";
-    let totalWeeks = 0;
-    
-    if (durationLower.includes("week")) {
-      // Extract numeric value from duration string with regex
-      const weekMatches = durationLower.match(/(\d+[\.\d]*)/);
-      const weeks = weekMatches ? parseFloat(weekMatches[0]) : 1;
-      totalWeeks = weeks;
-      
-      // Format the primary duration display
-      if (Math.round(weeks) === 1) {
-        formattedDuration = "1 Week";
-      } else if (weeks < 1) {
-        const days = Math.round(weeks * 7);
-        formattedDuration = `${days} ${days === 1 ? 'Day' : 'Days'}`;
-      } else {
-        formattedDuration = `${Math.round(weeks)} Weeks`;
-      }
-      
-      // For weeks, we don't need to show equivalent weeks
-      return formattedDuration;
-    } else if (durationLower.includes("month")) {
-      // Improved month parsing with regex
-      const monthMatches = durationLower.match(/(\d+[\.\d]*)/);
-      const months = monthMatches ? parseFloat(monthMatches[0]) : 1;
-      totalWeeks = months * 4; // Approximate weeks in months
-      
-      if (Math.round(months) === 1) {
-        formattedDuration = "1 Month";
-      } else {
-        formattedDuration = `${Math.round(months)} Months`;
-      }
-      
-      // Return only months, no weeks
-      return formattedDuration;
-    } else if (durationLower.includes("day")) {
-      // Add parsing for days
-      const dayMatches = durationLower.match(/(\d+[\.\d]*)/);
-      const days = dayMatches ? parseFloat(dayMatches[0]) : 1;
-      totalWeeks = days / 7;
-      
-      formattedDuration = `${Math.round(days)} ${Math.round(days) === 1 ? 'Day' : 'Days'}`;
-      
-      // Only show week equivalent if it's significant (more than 1 week)
-      if (totalWeeks >= 1) {
-        return `${formattedDuration} / ${Math.round(totalWeeks)} weeks`;
-      }
-      return formattedDuration;
-    } else if (durationLower.includes("hour")) {
-      // Add parsing for hours
-      const hourMatches = durationLower.match(/(\d+[\.\d]*)/);
-      const hours = hourMatches ? parseFloat(hourMatches[0]) : 1;
-      
-      formattedDuration = `${Math.round(hours)} ${Math.round(hours) === 1 ? 'Hour' : 'Hours'}`;
-      return formattedDuration; // Don't convert hours to weeks
+    // If it's a duration range (e.g., "4-18"), format it
+    const rangeMatch = String(duration).match(/^(\d+)\s*-\s*(\d+)$/);
+    if (rangeMatch) {
+      const [, start, end] = rangeMatch;
+      return `${start} to ${end} months`;
     }
     
-    // Check if duration is a pure number (assumes weeks)
-    if (/^\d+$/.test(duration)) {
-      const numValue = parseInt(duration);
-      totalWeeks = numValue;
-      return `${numValue} ${numValue === 1 ? 'Week' : 'Weeks'}`;
+    // If it's a single number, add "months"
+    if (/^\d+$/.test(String(duration))) {
+      return `${duration} months`;
     }
     
     return duration;
@@ -862,16 +743,22 @@ const CourseCard: React.FC<CourseCardProps> = ({
     } else if (React.isValidElement(duration)) {
       // Extract text from React element
       const extractTextFromElement = (element: any): string => {
-        if (typeof element === 'string' || typeof element === 'number') {
-          return String(element);
+        if (!element) {
+          return '';
         }
-        if (React.isValidElement(element)) {
-          if (typeof element.props.children === 'string') {
-            return element.props.children;
-          } else if (Array.isArray(element.props.children)) {
-            return element.props.children.map(extractTextFromElement).join(' ');
-          } else if (element.props.children) {
-            return extractTextFromElement(element.props.children);
+        if (typeof element === 'string') {
+          return element;
+        }
+        if (React.isValidElement<{ children: React.ReactNode }>(element)) {
+          const { children } = element.props;
+          if (typeof children === 'string') {
+            return children;
+          }
+          if (Array.isArray(children)) {
+            return children.map(extractTextFromElement).join(' ');
+          }
+          if (children) {
+            return extractTextFromElement(children);
           }
         }
         return '';
@@ -899,6 +786,18 @@ const CourseCard: React.FC<CourseCardProps> = ({
     
     // Otherwise use the regular formatDuration function
     return formatDuration(durationString);
+  };
+
+  // Add helper to format hyphen-based ranges to "to" format
+  const formatRangeToText = (range?: string): string => {
+    if (!range) return "";
+    const trimmed = range.trim();
+    const hyphenMatch = trimmed.match(/^(\d+)\s*-\s*(\d+)(.*)$/);
+    if (hyphenMatch) {
+      const [, start, end, rest] = hyphenMatch;
+      return `${start} to ${end}${rest}`;
+    }
+    return trimmed;
   };
 
   const formatCourseGrade = (grade: any) => {
@@ -1297,12 +1196,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                   }}
                 >
                   {content.tagIcon}
-                  <span>
-                    {isLiveCourse 
-                      ? (extractMonthsOnly(course?.duration_range || course?.course_duration) || "Live Course")
-                      : content.tag
-                    }
-                  </span>
+                  <span>{content.tag}</span>
                   <Info size={13} className="group-hover/tag:animate-pulse" />
                   
                   {/* Class Type Tooltip */}
@@ -1401,7 +1295,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                     {content.sessionIcon}
                     <span className="font-semibold">
                       {isLiveCourse 
-                        ? (course?.duration_range || extractMonthsOnly(course?.course_duration) || "Live Course")
+                        ? formatRangeToText(extractMonthsOnly(course?.duration_range || course?.course_duration) || "Live Course")
                         : ((course as any)?.session_range || `${course?.no_of_Sessions || "0"} ${content.sessionLabel}`)
                       }
                     </span>
@@ -1476,28 +1370,18 @@ const CourseCard: React.FC<CourseCardProps> = ({
                         </div>
                       ) : isLiveCourse ? (
                         <div className="flex flex-col items-center gap-1.5 w-full">
+                          {/* Live Sessions badge */}
                           <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-[#379392]/10 text-[#379392]">
                             {content.sessionIcon}
                             <span className="ml-1">{course.no_of_Sessions} Live Sessions</span>
                           </div>
-                          
+                          {/* Duration badge chip */}
+                          <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-[#379392]/10 text-[#379392] mt-1">
+                            <Calendar size={14} className="mr-1" />
+                            <span>{formatRangeToText(course?.duration_range || extractMonthsOnly(course?.course_duration))}</span>
+                          </div>
                           {/* Live Course Features - Enhanced Information Display */}
                           <div className="flex flex-col gap-2 w-full">
-                            {/* Course Duration for Live Courses */}
-                            {course?.course_duration && (
-                              <div className="bg-gradient-to-r from-[#379392]/10 to-[#379392]/5 border border-[#379392]/20 rounded-lg p-3">
-                                <div className="flex items-center justify-center gap-2 mb-2">
-                                  <Calendar size={14} className="text-[#379392]" />
-                                  <span className="text-sm font-semibold text-[#379392]">Course Duration</span>
-                                </div>
-                                <div className="text-center">
-                                  <div className="text-lg font-bold text-gray-900 dark:text-white">
-                                    {course?.duration_range || extractMonthsOnly(course?.course_duration)}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                            
                             {/* Effort Hours Display */}
                             <div className="bg-gradient-to-r from-[#379392]/10 to-[#379392]/5 border border-[#379392]/20 rounded-lg p-3">
                               <div className="flex items-center justify-center gap-2 mb-2">
@@ -1510,7 +1394,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                                 </div>
                               </div>
                             </div>
-
+                            
                             {/* Enhanced Live Course Features */}
                             <div className="flex flex-wrap gap-2 justify-center">
                               {/* Show enhanced features if available */}
@@ -1620,7 +1504,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                             {isLiveCourse ? 'Course Duration' : 'Learning Experience'}
                           </span>
                           <p className="text-gray-700 dark:text-gray-300 font-medium text-xs sm:text-sm lg:text-xs xl:text-sm mt-0.5">
-                            {isBlendedCourse ? 'Self-paced' : (course?.duration_range || extractMonthsOnly(course?.course_duration))}
+                            {isBlendedCourse ? 'Self-paced' : formatRangeToText(course?.duration_range || extractMonthsOnly(course?.course_duration))}
                           </p>
                         </div>
                       </div>
@@ -1842,7 +1726,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                           {isLiveCourse ? 'Course Duration' : 'Learning Experience'}
                         </span>
                         <p className="text-gray-700 dark:text-gray-300 font-medium text-xs sm:text-sm lg:text-xs xl:text-sm mt-0.5">
-                          {isBlendedCourse ? 'Self-paced' : (course?.duration_range || extractMonthsOnly(course?.course_duration))}
+                          {isBlendedCourse ? 'Self-paced' : formatRangeToText(course?.duration_range || extractMonthsOnly(course?.course_duration))}
                         </p>
                       </div>
                     </div>
@@ -1986,16 +1870,22 @@ const CourseCard: React.FC<CourseCardProps> = ({
                             if (React.isValidElement(duration)) {
                               // For React elements, recursively extract text content
                               const extractTextFromElement = (element: any): string => {
-                                if (typeof element === 'string' || typeof element === 'number') {
-                                  return String(element);
+                                if (!element) {
+                                  return '';
                                 }
-                                if (React.isValidElement(element)) {
-                                  if (typeof element.props.children === 'string') {
-                                    return element.props.children;
-                                  } else if (Array.isArray(element.props.children)) {
-                                    return element.props.children.map(extractTextFromElement).join(' ');
-                                  } else if (element.props.children) {
-                                    return extractTextFromElement(element.props.children);
+                                if (typeof element === 'string') {
+                                  return element;
+                                }
+                                if (React.isValidElement<{ children: React.ReactNode }>(element)) {
+                                  const { children } = element.props;
+                                  if (typeof children === 'string') {
+                                    return children;
+                                  }
+                                  if (Array.isArray(children)) {
+                                    return children.map(extractTextFromElement).join(' ');
+                                  }
+                                  if (children) {
+                                    return extractTextFromElement(children);
                                   }
                                 }
                                 return '';
@@ -2045,16 +1935,22 @@ const CourseCard: React.FC<CourseCardProps> = ({
                         if (React.isValidElement(duration)) {
                           // For React elements, recursively extract text content
                           const extractTextFromElement = (element: any): string => {
-                            if (typeof element === 'string' || typeof element === 'number') {
-                              return String(element);
+                            if (!element) {
+                              return '';
                             }
-                            if (React.isValidElement(element)) {
-                              if (typeof element.props.children === 'string') {
-                                return element.props.children;
-                              } else if (Array.isArray(element.props.children)) {
-                                return element.props.children.map(extractTextFromElement).join(' ');
-                              } else if (element.props.children) {
-                                return extractTextFromElement(element.props.children);
+                            if (typeof element === 'string') {
+                              return element;
+                            }
+                            if (React.isValidElement<{ children: React.ReactNode }>(element)) {
+                              const { children } = element.props;
+                              if (typeof children === 'string') {
+                                return children;
+                              }
+                              if (Array.isArray(children)) {
+                                return children.map(extractTextFromElement).join(' ');
+                              }
+                              if (children) {
+                                return extractTextFromElement(children);
                               }
                             }
                             return '';
