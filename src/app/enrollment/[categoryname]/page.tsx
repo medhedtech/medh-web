@@ -8,9 +8,10 @@ import {
   HelpCircle, FileBadge, BookOpen, CreditCard, CheckCircle2
 } from 'lucide-react';
 import Image from 'next/image';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { toast, Toaster } from 'react-hot-toast';
 import axios from 'axios';
+import type { LucideIcon } from 'lucide-react';
 
 // Core components
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
@@ -96,6 +97,15 @@ interface Course {
   course_type?: string;
   delivery_format?: string;
   delivery_type?: string;
+  meta?: {
+    views: number;
+    enrollments: number;
+    lastUpdated: string;
+    ratings: {
+      average: number;
+      count: number;
+    };
+  };
 }
 
 interface CategoryInfo {
@@ -135,6 +145,21 @@ interface PageParams {
 
 interface CategoryEnrollmentPageProps {
   params: Promise<PageParams>;
+}
+
+interface SectionRef {
+  overview: RefObject<HTMLDivElement>;
+  about: RefObject<HTMLDivElement>;
+  curriculum: RefObject<HTMLDivElement>;
+  reviews: RefObject<HTMLDivElement>;
+  faq: RefObject<HTMLDivElement>;
+  certificate: RefObject<HTMLDivElement>;
+}
+
+interface FeatureCardProps {
+  title: string;
+  Icon: LucideIcon;
+  description: string;
 }
 
 // Custom CSS for sticky sidebar and floating button
@@ -364,6 +389,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
   const unwrappedParams = React.use(params);
   const { categoryname } = unwrappedParams;
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const { getQuery } = useGetQuery();
   const { postQuery } = usePostQuery();
@@ -523,7 +549,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
   const [availableDurations, setAvailableDurations] = useState<DurationOption[]>([]);
   
   // Refs for section navigation
-  const sectionRefs = {
+  const sectionRefs: SectionRef = {
     overview: useRef(null),
     about: useRef(null),
     curriculum: useRef(null),
@@ -556,14 +582,16 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
   }, [normalizedCategory]);
   
   // State for courses and filters
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [courseLoading, setCourseLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
   const [selectedDuration, setSelectedDuration] = useState<string>('all');
   const [selectedGrade, setSelectedGrade] = useState<string>('all');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [lastValidCourse, setLastValidCourse] = useState<Course | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
@@ -878,14 +906,16 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
     
     // Apply grade filter for categories that use it
     if (['vedic-mathematics', 'personality-development'].includes(normalizedCategory) && selectedGrade !== 'all') {
-      filteredResults = filteredResults.filter(course => 
-        course.course_grade === availableGrades.find(g => g.id === selectedGrade)?.label
+      const selectedGradeOption = availableGrades.find(g => g.id === selectedGrade);
+      if (selectedGradeOption) {
+        filteredResults = filteredResults.filter((course: Course) => 
+          course.course_grade === selectedGradeOption.id || course.grade === selectedGradeOption.id
       );
+      }
     }
     
     // For categories with hidden grade selector, show all courses 
     if (['ai-and-data-science', 'digital-marketing'].includes(normalizedCategory)) {
-      // No grade filtering for these categories
       filteredResults = [...courses];
     }
     
@@ -901,11 +931,208 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
     
     setFilteredCourses(filteredResults);
     
+    // Store last valid course before potentially clearing selection
+    if (selectedCourse && filteredResults.length > 0) {
+      setLastValidCourse(selectedCourse);
+    }
+    
+    // If no filtered results but we have a lastValidCourse, keep it selected for details display
+    if (filteredResults.length === 0 && lastValidCourse) {
+      // Keep the last valid course selected for details display
+      return;
+    }
+    
     // Reset selected course if it's no longer in filtered results
     if (selectedCourse && !filteredResults.some(c => c._id === selectedCourse._id)) {
       setSelectedCourse(null);
     }
-  }, [selectedGrade, selectedDuration, courses, loading, normalizedCategory, availableGrades]);
+  }, [selectedGrade, selectedDuration, courses, loading, normalizedCategory, selectedCourse, lastValidCourse]);
+
+  // Component-level refresh function
+  const refreshData = useCallback(async () => {
+    if (!normalizedCategory || !userCurrency) return;
+    
+    setRefreshing(true);
+    setError(null);
+    
+    try {
+      console.log("Refreshing courses for category:", categoryInfo?.displayName);
+      
+      // Use the same API logic as the main fetch
+      let apiEndpoint;
+      if (normalizedCategory === 'digital-marketing') {
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+        apiEndpoint = `${baseUrl}/courses/search?page=${currentPage}&limit=12&sort_by=createdAt&sort_order=desc&status=Published&currency=${userCurrency.toLowerCase()}&course_category=Digital%2520Marketing%2520with%2520Data%2520Analytics`;
+      } else {
+        apiEndpoint = getAllCoursesWithLimits({
+          page: currentPage,
+          limit: itemsPerPage,
+          course_title: "",
+          course_tag: "",
+          course_category: categoryInfo?.displayName || "",
+          status: "Published",
+          search: "",
+          course_grade: selectedGrade !== 'all' ? (availableGrades.find(g => g.id === selectedGrade)?.label || selectedGrade) : "",
+          category: [],
+          filters: {
+            certification: false,
+            assignments: false,
+            projects: false,
+            quizzes: false
+          },
+          class_type: "",
+          course_duration: undefined,
+          course_fee: undefined,
+          course_type: categoryInfo?.courseType || undefined,
+          skill_level: undefined,
+          language: undefined,
+          sort_by: "createdAt",
+          sort_order: "asc",
+          category_type: categoryInfo?.categoryType || undefined,
+          currency: userCurrency
+        });
+      }
+
+      const response = await axios.get(apiEndpoint);
+      const courseData = response?.data?.courses || [];
+      const pagination = response?.data?.pagination || {};
+      
+      // Process course data (same logic as main fetch)
+      const processedCourseData = courseData.map((course: any) => {
+        const coursePrice = course.prices && course.prices.length > 0 
+          ? course.prices.find((p: any) => p.currency === userCurrency)?.individual || 
+            convertPrice(course.prices.find((p: any) => p.currency === "USD")?.individual || course.course_fee || 0)
+          : convertPrice(course.course_fee || 0);
+          
+        return {
+          _id: course._id,
+          title: course.course_title || "",
+          description: course.course_description || `A course on ${categoryInfo?.displayName}`,
+          long_description: typeof course.course_description === 'object' 
+            ? course.course_description.program_overview 
+            : course.course_description || `Comprehensive ${categoryInfo?.displayName} course designed to enhance your skills and knowledge in this field.`,
+          category: course.course_category || categoryInfo?.displayName,
+          grade: course.course_grade || "",
+          thumbnail: course.course_image || null,
+          course_duration: formatDuration(course.course_duration) || "",
+          course_duration_days: parseDuration(course.course_duration) || 30,
+          course_fee: coursePrice,
+          prices: course.prices || [],
+          original_prices: course.prices,
+          currency_code: userCurrency,
+          enrolled_students: course.meta?.enrollments || 0,
+          views: course.meta?.views || 0,
+          is_Certification: course.is_Certification === "Yes",
+          is_Assignments: course.is_Assignments === "Yes",
+          is_Projects: course.is_Projects === "Yes",
+          is_Quizes: course.is_Quizes === "Yes",
+          curriculum: Array.isArray(course.curriculum) ? course.curriculum : [],
+          highlights: course.highlights || [],
+          learning_outcomes: course.course_description?.learning_objectives || [],
+          prerequisites: course.course_description?.course_requirements || [],
+          faqs: course.final_evaluation?.final_faqs || [],
+          no_of_Sessions: course.no_of_Sessions || 0,
+          status: course.status || "Published",
+          isFree: course.isFree || false,
+          hasFullDetails: true,
+          slug: course.slug || "",
+          category_type: course.category_type || ""
+        };
+      });
+      
+      // Add fallback for digital marketing if needed
+      let finalCourseData = processedCourseData;
+      if (processedCourseData.length === 0 && normalizedCategory === 'digital-marketing') {
+        finalCourseData = [{
+          _id: 'digital-marketing-fallback',
+          title: 'Digital Marketing with Data Analytics',
+          description: 'Master the art of digital marketing combined with powerful data analytics to drive business growth and make data-driven marketing decisions.',
+          long_description: 'This comprehensive Digital Marketing with Data Analytics course combines modern marketing strategies with data-driven insights. Learn SEO, social media marketing, content marketing, paid advertising, and how to analyze marketing performance using advanced analytics tools.',
+          category: 'Digital Marketing',
+          grade: '',
+          thumbnail: '/images/courses/digital-marketing.jpg',
+          course_duration: '3-6 months',
+          course_duration_days: 120,
+          course_fee: userCurrency === 'INR' ? 35000 : 450,
+          prices: [{
+            currency: userCurrency,
+            individual: userCurrency === 'INR' ? 35000 : 450,
+            batch: userCurrency === 'INR' ? 24500 : 315,
+            min_batch_size: 2,
+            max_batch_size: 10,
+            early_bird_discount: 0,
+            group_discount: 0,
+            is_active: true,
+            _id: 'digital-marketing-price'
+          }],
+          original_prices: [],
+          currency_code: userCurrency,
+          enrolled_students: 1200,
+          views: 5400,
+          is_Certification: true,
+          is_Assignments: true,
+          is_Projects: true,
+          is_Quizes: true,
+          curriculum: [
+            { title: 'Digital Marketing Fundamentals', lessons: 8 },
+            { title: 'SEO & Content Marketing', lessons: 12 },
+            { title: 'Social Media Marketing', lessons: 10 },
+            { title: 'Paid Advertising (Google Ads, Facebook Ads)', lessons: 14 },
+            { title: 'Marketing Analytics & Data Analysis', lessons: 16 },
+            { title: 'Email Marketing & Automation', lessons: 8 },
+            { title: 'Conversion Optimization', lessons: 6 },
+            { title: 'Marketing Strategy & Planning', lessons: 6 }
+          ],
+          highlights: [
+            'SEO and content marketing strategies',
+            'Social media campaign management',
+            'Analytics and data-driven marketing',
+            'Digital advertising and conversion optimization'
+          ],
+          learning_outcomes: [
+            'Master digital marketing channels and strategies',
+            'Analyze marketing data to optimize campaigns',
+            'Create effective content and social media strategies',
+            'Run successful paid advertising campaigns'
+          ],
+          prerequisites: [
+            'Basic computer skills',
+            'Interest in marketing and business',
+            'No prior marketing experience required'
+          ],
+          faqs: [
+            {
+              question: 'What tools will I learn to use?',
+              answer: 'You will learn Google Analytics, Google Ads, Facebook Ads Manager, SEMrush, Mailchimp, and other industry-standard marketing tools.'
+            },
+            {
+              question: 'Is this course suitable for beginners?',
+              answer: 'Yes, this course is designed for beginners with no prior marketing experience. We start with fundamentals and build up to advanced strategies.'
+            }
+          ],
+          no_of_Sessions: 80,
+          status: 'Published',
+          isFree: false,
+          hasFullDetails: true,
+          slug: 'digital-marketing-with-data-analytics',
+          category_type: 'professional'
+        }];
+      }
+      
+      setCourses(finalCourseData);
+      setTotalPages(pagination.totalPages || 1);
+      setTotalItems(pagination.total || finalCourseData.length);
+      
+      toast.success('Courses refreshed successfully');
+    } catch (err) {
+      console.error('Error refreshing courses:', err);
+      const errorMessage = parseApiError(err);
+      setError(errorMessage);
+      toast.error('Failed to refresh courses');
+    } finally {
+      setRefreshing(false);
+    }
+  }, [normalizedCategory, userCurrency, categoryInfo, currentPage, itemsPerPage, selectedGrade, selectedDuration, convertPrice, formatDuration, parseDuration, parseApiError, availableGrades]);
 
   // Fetch courses useEffect
   useEffect(() => {
@@ -934,14 +1161,13 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
             course_category: categoryInfo?.displayName || "",
             status: "Published",
             search: "",
-            course_grade: selectedGrade !== 'all' ? selectedGrade : "",
+            course_grade: selectedGrade !== 'all' ? (availableGrades.find(g => g.id === selectedGrade)?.label || selectedGrade) : "",
             category: [],
             filters: {
               certification: false,
               assignments: false,
               projects: false,
-              quizzes: false,
-              course_duration: selectedDuration !== 'all' ? selectedDuration : undefined
+              quizzes: false
             },
             class_type: "",
             course_duration: undefined,
@@ -1102,14 +1328,15 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
             
             // Extract available grade options
             const gradeOptions = [
-              { id: 'preschool', label: 'Pre-school', description: 'Early learning foundation' },
-              { id: 'grade1-2', label: 'Grade 1-2', description: 'Primary education basics' },
-              { id: 'grade3-4', label: 'Grade 3-4', description: 'Elementary fundamentals' },
-              { id: 'grade5-6', label: 'Grade 5-6', description: 'Upper elementary concepts' },
-              { id: 'grade7-8', label: 'Grade 7-8', description: 'Middle school advancement' },
-              { id: 'grade9-10', label: 'Grade 9-10', description: 'High school preparation' },
-              { id: 'grade11-12', label: 'Grade 11-12', description: 'College preparation' },
-              { id: 'graduate', label: 'UG - Graduate-Professional', description: 'University level' }];
+              { id: 'Preschool', label: 'Pre-school', description: 'Early learning foundation' },
+              { id: 'Grade 1-2', label: 'Grade 1-2', description: 'Primary education basics' },
+              { id: 'Grade 3-4', label: 'Grade 3-4', description: 'Elementary fundamentals' },
+              { id: 'Grade 5-6', label: 'Grade 5-6', description: 'Upper elementary concepts' },
+              { id: 'Grade 7-8', label: 'Grade 7-8', description: 'Middle school advancement' },
+              { id: 'Grade 9-10', label: 'Grade 9-10', description: 'High school preparation' },
+              { id: 'Grade 11-12', label: 'Grade 11-12', description: 'College preparation' },
+              { id: 'UG - Graduate - Professionals', label: 'UG/Grad/Pro', description: 'University level' }
+            ];
             setAvailableGrades(gradeOptions);
             
             // Extract duration options from courses
@@ -1202,6 +1429,13 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
           is_Projects: courseData.is_Projects === "Yes" || false,
           is_Quizes: courseData.is_Quizes === "Yes" || false,
           curriculum: Array.isArray(courseData.curriculum) ? courseData.curriculum : [],
+          highlights: courseData.highlights || [],
+          learning_outcomes: courseData.learning_outcomes || [],
+          prerequisites: courseData.prerequisites || [],
+          faqs: courseData.faqs || [],
+          no_of_Sessions: courseData.no_of_Sessions || 0,
+          status: courseData.status || "Published",
+          isFree: courseData.isFree || false,
           hasFullDetails: true // Mark as having full details
         };
         
@@ -1239,12 +1473,38 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
   };
 
   // Handle course selection with progress update
-  const handleCourseSelection = (course) => {
-    setSelectedCourse(course);
-    
-    // Load additional details if not already loaded
-    if (!course.hasFullDetails) {
-      loadAdditionalCourseDetails(course._id);
+  const handleCourseSelection = (course: Course | null) => {
+    try {
+      if (!course) {
+        setSelectedCourse(null);
+        return;
+      }
+
+      // Ensure we have the full course details before setting
+      const courseWithDetails: Course = {
+        ...course,
+        hasFullDetails: true,
+        views: course.views || 0,
+        meta: course.meta || {
+          views: 0,
+          enrollments: 0,
+          lastUpdated: new Date().toISOString(),
+          ratings: {
+            average: 0,
+            count: 0
+          }
+        }
+      };
+
+      setSelectedCourse(courseWithDetails);
+      setLastValidCourse(courseWithDetails);
+      
+      // Update URL with selected course using the current URL
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.set('course', course._id);
+      router.push(currentUrl.pathname + currentUrl.search);
+    } catch (err) {
+      console.error('Error in course selection:', err);
     }
   };
 
@@ -1292,11 +1552,8 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
       const scrollPercentage = (scrollTop / (documentHeight - windowHeight)) * 100;
       setScrollProgress(Math.min(scrollPercentage, 100));
       
-      // Apply subtle parallax effect to sidebar
-      if (sidebarRef.current) {
-        const translateY = scrollTop * 0.05; // Adjust multiplier for effect intensity
-        sidebarRef.current.style.transform = `translateY(${translateY}px)`;
-      }
+      // Sidebar remains fixed; no parallax transform applied
+      // (intentionally left blank to keep the panel stable)
     };
     
     window.addEventListener('scroll', handleScroll);
@@ -1305,9 +1562,10 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
 
   // Modified scrollToSection function to just update the activeSection state
   // without scrolling behavior
-  const scrollToSection = (sectionId) => {
-    setActiveSection(sectionId);
-    // No scrolling behavior - we'll update content dynamically instead
+  const scrollToSection = (sectionId: keyof SectionRef) => {
+    if (sectionRefs[sectionId]?.current) {
+      sectionRefs[sectionId].current?.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   // Loading skeleton component
@@ -1397,7 +1655,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
     </div>
   );
 
-  // Error component - enhanced with better visual feedback
+  // Error component - enhanced with refresh functionality
   const ErrorDisplay = () => (
     <div className="max-w-3xl mx-auto px-4 py-10 text-center">
       <div className="bg-red-50 dark:bg-red-900/10 rounded-xl p-8 border border-red-200 dark:border-red-800 shadow-sm">
@@ -1412,13 +1670,23 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
         <p className="text-gray-600 dark:text-gray-300 mb-6">
           {error}
         </p>
-        <button 
-          onClick={() => window.location.reload()}
-          className="px-5 py-2.5 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors inline-flex items-center"
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Try Again
-        </button>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <button 
+            onClick={refreshData}
+            disabled={refreshing}
+            className="px-5 py-2.5 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Refreshing...' : 'Refresh Data'}
+          </button>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-5 py-2.5 rounded-lg bg-gray-600 text-white hover:bg-gray-700 transition-colors inline-flex items-center justify-center"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Reload Page
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1499,7 +1767,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
           category: courseData.course_category || "",
           grade: courseData.course_grade || "",
           thumbnail: courseData.course_image || null,
-          course_duration: formatDuration(courseData.course_duration) || "",
+          course_duration: courseData.course_duration || "",
           course_duration_days: parseDuration(courseData.course_duration) || 30,
           course_fee: courseData.course_fee || 0,
           enrolled_students: courseData.enrolled_students || 0,
@@ -1544,180 +1812,290 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
   // Display formatted price in the UI (now uses the local formatPrice function)
   // The formatPrice function is defined above with currency handling
 
+  // Handle enrollment click action
+  const handleEnrollClick = async (data: any) => {
+    try {
+      if (!selectedCourse) {
+        toast.error('Please select a course first');
+        return;
+      }
+
+      // If user is not logged in, redirect to login
+      const isLoggedIn = localStorage.getItem('token');
+      if (!isLoggedIn) {
+        router.push(`/login?redirect=${encodeURIComponent(pathname)}&course=${selectedCourse._id}`);
+        return;
+      }
+
+      // Handle enrollment logic here
+      toast.success('Proceeding to enrollment...');
+      
+    } catch (error) {
+      console.error('Enrollment error:', error);
+      toast.error('Failed to process enrollment. Please try again.');
+    }
+  };
+
   return (
     <PageWrapper>
       <Toaster position="bottom-center" />
       <style jsx global>{stickyStyles}</style>
-      <div className="flex flex-col min-h-screen w-full">
+      <div className="flex flex-col min-h-screen w-full bg-gray-50 dark:bg-gray-900">
         {/* Main Content Container with proper spacing */}
         <main className="flex-grow w-full py-4 sm:py-6 lg:py-8 mb-20 sm:mb-24 lg:mb-32">
           <div className="w-full max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
-          {loading || isDetectingLocation || !userCurrency ? (
-            <div className="flex items-center justify-center min-h-[60vh] w-full">
-              <div className="category-loader">
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-              </div>
-            </div>
-          ) : error ? (
-            <ErrorDisplay />
-                      ) : (
-              <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 w-full min-h-full" ref={mainContentRef}>
-                {/* Left Column - Dynamic Course Content */}
-                <div className={`w-full ${isCourseView ? 'lg:w-8/12' : 'lg:w-8/12'} space-y-4 lg:space-y-8`}>
-                  {/* CourseDetailsPage integration - show dynamically based on selected course */}
-                  {selectedCourse && (
-                    <div className="relative z-10 w-full">
-                      {/* We pass the activeSection to control which tab is visible */}
-                      <CourseDetailsPage 
-                        courseId={selectedCourse?._id} 
-                        initialActiveSection={activeSection !== 'overview' ? activeSection : 'about'}
-                        faqComponent={<CourseFaq courseId={selectedCourse._id} />}
-                        courseSelectionComponent={
-                          !isCourseView && (
-                            <motion.div
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ duration: 0.5 }}
-                              className="mb-6 block lg:hidden"
-                            >
-                              <CourseSelection 
-                                filteredCourses={filteredCourses}
-                                selectedCourse={selectedCourse}
-                                onCourseSelect={handleCourseSelection}
-                                categoryInfo={categoryInfo}
-                                formatPriceFunc={formatPrice}
-                                loading={loading}
-                              />
-                            </motion.div>
-                          )
-                        }
-                      />
-                    </div>
-                  )}
+            {/* Show error state if there's an error */}
+            {error ? (
+              <ErrorDisplay />
+            ) : !userCurrency || isDetectingLocation ? (
+              <div className="flex items-center justify-center min-h-[60vh] w-full">
+                <div className="category-loader">
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
                 </div>
+              </div>
+            ) : (
+              <div className="relative">
+                {/* Subtle refresh indicator */}
+                {refreshing && (
+                  <div className="absolute top-0 left-0 right-0 z-20 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
+                    <div className="flex items-center justify-center text-blue-600 dark:text-blue-400">
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      <span className="text-sm font-medium">Refreshing courses...</span>
+                    </div>
+                  </div>
+                )}
                 
-                {/* Right Column - Filters and Course Selection */}
-                <div className="w-full lg:w-4/12 mb-8 lg:mb-0 flex flex-col">
-                  <div className="flex-grow flex flex-col lg:sticky lg:top-24">
-                    {/* Remove scrolling from sidebar and fill available height */}
-                    <div className="w-full flex-grow flex flex-col" ref={sidebarRef}>
-                      {/* Course Selection Component - Show for desktop only */}
-                      {!isCourseView && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5 }}
-                          className="hidden lg:block"
-                        >
-                          <CourseSelection 
-                            filteredCourses={filteredCourses}
-                            selectedCourse={selectedCourse}
-                            onCourseSelect={handleCourseSelection}
-                            categoryInfo={categoryInfo}
-                            formatPriceFunc={formatPrice}
-                            loading={loading}
-                          />
-                        </motion.div>
-                      )}
+                <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 w-full min-h-full" ref={mainContentRef}>
+                  {/* Left Column - Dynamic Course Content */}
+                  <div className={`w-full ${isCourseView ? 'lg:w-3/4' : 'lg:w-3/4'} space-y-4 lg:space-y-6`}>
+                    {/* CourseDetailsPage integration - show dynamically based on selected course */}
+                    {(selectedCourse || (filteredCourses.length === 0 && lastValidCourse)) && (
+                      <div className="relative z-10 w-full bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+                        {/* We pass the activeSection to control which tab is visible */}
+                        <CourseDetailsPage 
+                          courseId={(selectedCourse || lastValidCourse)?._id} 
+                          initialActiveSection={activeSection !== 'overview' ? activeSection : 'about'}
+                          faqComponent={<CourseFaq courseId={(selectedCourse || lastValidCourse)?._id} />}
+                          courseSelectionComponent={
+                            !isCourseView && (
+                              <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5 }}
+                                className="mb-6 block lg:hidden"
+                              >
+                                {/* Grade filter (mobile) */}
+                                {(normalizedCategory === 'vedic-mathematics' || normalizedCategory === 'personality-development') && (
+                                  <div className="mb-4">
+                                    <GradeFilter 
+                                      selectedGrade={selectedGrade}
+                                      availableGrades={availableGrades}
+                                      filteredCourses={filteredCourses}
+                                      selectedCourse={selectedCourse}
+                                      handleGradeChange={handleGradeChange}
+                                      handleCourseSelection={handleCourseSelection}
+                                      categoryInfo={categoryInfo}
+                                      setSelectedGrade={setSelectedGrade}
+                                      showOnlyGradeFilter={true}
+                                    />
+                                  </div>
+                                )}
+                                <CourseSelection 
+                                  filteredCourses={filteredCourses}
+                                  selectedCourse={selectedCourse}
+                                  onCourseSelect={handleCourseSelection}
+                                  categoryInfo={categoryInfo}
+                                  formatPriceFunc={formatPrice}
+                                  loading={loading}
+                                  onRefresh={refreshData}
+                                  refreshing={refreshing}
+                                  selectedGrade={selectedGrade}
+                                />
+                              </motion.div>
+                            )
+                          }
+                        />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Right Column - Filters and Course Selection */}
+                  <div className="w-full lg:w-1/4 mb-8 lg:mb-0 flex flex-col">
+                    <div className="flex-grow flex flex-col lg:sticky lg:top-20">
+                      {/* Remove scrolling from sidebar and fill available height */}
+                      <div className="w-full flex-grow flex flex-col" ref={sidebarRef}>
+                        {/* Course Selection & Grade Filter for desktop (lg) */}
+                        {!isCourseView && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5 }}
+                            className="hidden lg:block"
+                          >
+                            {/* Grade filter first */}
+                            {(normalizedCategory === 'vedic-mathematics' || normalizedCategory === 'personality-development') && (
+                              <div className="mb-4">
+                                <GradeFilter 
+                                  selectedGrade={selectedGrade}
+                                  availableGrades={availableGrades}
+                                  filteredCourses={filteredCourses}
+                                  selectedCourse={selectedCourse}
+                                  handleGradeChange={handleGradeChange}
+                                  handleCourseSelection={handleCourseSelection}
+                                  categoryInfo={categoryInfo}
+                                  setSelectedGrade={setSelectedGrade}
+                                  showOnlyGradeFilter={true}
+                                />
+                              </div>
+                            )}
+                            <CourseSelection 
+                              filteredCourses={filteredCourses}
+                              selectedCourse={selectedCourse}
+                              onCourseSelect={handleCourseSelection}
+                              categoryInfo={categoryInfo}
+                              formatPriceFunc={formatPrice}
+                              loading={loading}
+                              onRefresh={refreshData}
+                              refreshing={refreshing}
+                              selectedGrade={selectedGrade}
+                            />
+                          </motion.div>
+                        )}
 
-                      {/* Grade Filter Component - Only show for categories that need grade filtering */}
-                      {!isCourseView && (normalizedCategory === 'vedic-mathematics' || 
-                       normalizedCategory === 'personality-development') && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5, delay: 0.1 }}
-                          className="mt-4"
-                        >
-                          <GradeFilter 
-                            selectedGrade={selectedGrade}
-                            availableGrades={availableGrades}
-                            filteredCourses={filteredCourses}
-                            selectedCourse={selectedCourse}
-                            handleGradeChange={handleGradeChange}
-                            handleCourseSelection={handleCourseSelection}
-                            categoryInfo={categoryInfo}
-                            setSelectedGrade={setSelectedGrade}
-                            showOnlyGradeFilter={true}
-                          />
-                        </motion.div>
-                      )}
+                        {/* Enrollment Details with full height */}
+                        {(selectedCourse || (filteredCourses.length === 0 && lastValidCourse)) && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                            className="pt-4 lg:pt-6 flex-grow"
+                          >
+                            <div className="bg-white dark:bg-gray-800 border-y border-gray-200 dark:border-gray-700">
+                            <EnrollmentDetails 
+                              courseDetails={selectedCourse || lastValidCourse}
+                              categoryInfo={isCourseView ? {
+                                displayName: (selectedCourse || lastValidCourse)?.category,
+                                  colorClass: 'blue',
+                                  bgClass: 'bg-blue-50',
+                                  borderClass: 'border-blue-200'
+                              } : categoryInfo}
+                                onEnrollClick={handleEnrollClick}
+                              currencyCode={userCurrency}
+                              formatPriceFunc={formatPrice}
+                            />
+                            </div>
+                          </motion.div>
+                        )}
+                      </div>
 
-                      {/* Enrollment Details with full height */}
-                      {selectedCourse && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5, delay: 0.2 }}
-                          className="pt-4 lg:pt-6 flex-grow"
-                        >
-                          <EnrollmentDetails 
-                            courseDetails={selectedCourse}
+
+                      
+                      {/* Enhanced Mobile Floating Action Button using EnrollButton component */}
+                      <motion.div 
+                        initial={{ y: 100, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                        className="floating-action-container bottom-0 left-0 right-0 lg:hidden"
+                        style={{ 
+                          position: 'fixed',
+                          bottom: '0px',
+                          zIndex: 9999,
+                          isolation: 'isolate'
+                        }}
+                      >
+                        {/* Clean container without extra backgrounds - stick to bottom */}
+                        <div className="relative">
+                          <EnrollButton
+                            courseDetails={selectedCourse || lastValidCourse}
                             categoryInfo={isCourseView ? {
-                              // Create a simple category info object for course view mode
-                              displayName: selectedCourse.category,
+                              displayName: (selectedCourse || lastValidCourse)?.category,
                               colorClass: 'text-emerald-700 dark:text-emerald-300',
                               bgClass: 'bg-emerald-50 dark:bg-emerald-900/30'
                             } : categoryInfo}
-                            currencyCode={userCurrency}
-                            formatPriceFunc={formatPrice}
-                            onEnrollmentTypeChange={(newType) => {
-                              setEnrollmentType(newType);
-                            }}
-                            onActivePricingChange={(newPricing) => {
-                              setActivePricing(newPricing);
-                            }}
-                            initialEnrollmentType={enrollmentType}
-                            initialActivePricing={activePricing}
+                            userCurrency={userCurrency}
+                            enrollmentType={enrollmentType}
+                            activePricing={activePricing}
+                            onEnrollmentTypeChange={setEnrollmentType}
+                            onActivePricingChange={setActivePricing}
+                            variant="floating"
+                            showCourseInfo={true}
                           />
-                        </motion.div>
-                      )}
+                        </div>
+                      </motion.div>
                     </div>
-
-
-                    
-                    {/* Enhanced Mobile Floating Action Button using EnrollButton component */}
-                    <motion.div 
-                      initial={{ y: 100, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ duration: 0.3, ease: "easeOut" }}
-                      className="floating-action-container bottom-0 left-0 right-0 lg:hidden"
-                      style={{ 
-                        position: 'fixed',
-                        bottom: '0px',
-                        zIndex: 9999,
-                        isolation: 'isolate'
-                      }}
-                    >
-                      {/* Clean container without extra backgrounds - stick to bottom */}
-                      <div className="relative">
-                        <EnrollButton
-                          courseDetails={selectedCourse}
-                          categoryInfo={isCourseView ? {
-                            displayName: selectedCourse?.category,
-                            colorClass: 'text-emerald-700 dark:text-emerald-300',
-                            bgClass: 'bg-emerald-50 dark:bg-emerald-900/30'
-                          } : categoryInfo}
-                          userCurrency={userCurrency}
-                          enrollmentType={enrollmentType}
-                          activePricing={activePricing}
-                          onEnrollmentTypeChange={setEnrollmentType}
-                          onActivePricingChange={setActivePricing}
-                          variant="floating"
-                          showCourseInfo={true}
-                        />
-                      </div>
-                    </motion.div>
                   </div>
                 </div>
+
+                {/* Traditional FAQ Section - Always visible at bottom after enrollment */}
+                {(selectedCourse || (filteredCourses.length === 0 && lastValidCourse)) && (
+                  <motion.section 
+                    className="mt-16 sm:mt-20 lg:mt-24 mb-8 sm:mb-12 lg:mb-16"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.4 }}
+                  >
+                    {/* Container with consistent max-width and padding as main content */}
+                    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                      {/* Enhanced visual separator */}
+                      <div className="relative mb-12 sm:mb-16">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
+                        </div>
+                        <div className="relative flex justify-center">
+                          <div className="bg-gray-50 dark:bg-gray-900 px-6 py-2">
+                            <div className="w-2 h-2 bg-gradient-to-r from-indigo-400 to-violet-500 rounded-full"></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.5, delay: 0.5 }}
+                          className="inline-flex items-center justify-center mb-4 sm:mb-6"
+                        >
+                          <div className="w-1.5 h-6 bg-gradient-to-b from-indigo-400 to-violet-500 rounded-sm mr-3"></div>
+                          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">
+                            Frequently Asked Questions
+                          </h2>
+                        </motion.div>
+                        <motion.p
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.5, delay: 0.6 }}
+                          className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed"
+                        >
+                          Find answers to common questions about this course and enrollment process
+                        </motion.p>
+                      </div>
+                      
+                      {/* FAQ Container with improved styling */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.7 }}
+                        className="relative"
+                      >
+                        {/* Background decoration */}
+                        <div className="absolute -inset-4 bg-gradient-to-r from-indigo-50 via-purple-50 to-indigo-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-indigo-950/30 rounded-2xl opacity-50 blur-3xl"></div>
+                        
+                        {/* Main FAQ container */}
+                        <div className="relative bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-xl backdrop-blur-sm">
+                          <CourseFaq courseId={(selectedCourse || lastValidCourse)?._id} />
+                        </div>
+                      </motion.div>
+                    </div>
+                  </motion.section>
+                )}
               </div>
             )}
           </div>

@@ -155,27 +155,10 @@ const VIDEO_CONFIG = {
   }
 } as const;
 
-// LCP-OPTIMIZED video source selector with aggressive timeout and local fallback
-const getOptimizedVideoSrc = (
-  isDark: boolean, 
-  isMobile: boolean, 
-  useCompressed = false, 
-  forceLocal = false
-): string => {
-  const config = isDark ? VIDEO_CONFIG.dark : VIDEO_CONFIG.light;
-  const deviceConfig = isMobile ? config.mobile : config.desktop;
-  
-  // Force local fallback for instant loading if network is slow
-  if (forceLocal) {
-    return deviceConfig.localFallback;
-  }
-  
-  return useCompressed ? deviceConfig.fallback : deviceConfig.primary;
-};
-
+// Keep poster logic for now – will be moved to edge later
 const getVideoPoster = (isDark: boolean): string => {
   return isDark ? VIDEO_CONFIG.dark.poster : VIDEO_CONFIG.light.poster;
-};
+}
 
 // Enhanced context interface with performance tracking and error recovery
 export interface VideoBackgroundContextType {
@@ -375,10 +358,11 @@ const Home1: React.FC = () => {
   
   // Memoized derived values with performance tracking and aggressive local fallback
   const isDark = useMemo(() => mounted ? theme === 'dark' : true, [mounted, theme]);
-  const videoSrc = useMemo(() => 
-    getOptimizedVideoSrc(isDark, deferredIsMobile, useCompressedVideo, useLocalVideo || videoLoadTimeout), 
-    [isDark, deferredIsMobile, useCompressedVideo, useLocalVideo, videoLoadTimeout]
-  );
+  // The heavy variant selection now happens server-side (/api/video).
+  // This guarantees the request is issued as early as possible and reduces client JS.
+  const videoSrc = `/api/video?theme=${isDark ? 'dark' : 'light'}`;
+
+  // Keep existing client-side dark/light poster logic for now.
   const videoPoster = useMemo(() => getVideoPoster(isDark), [isDark]);
 
   // Enhanced video retry mechanism with exponential backoff and compression fallback
@@ -574,17 +558,10 @@ const Home1: React.FC = () => {
     // Intelligent resource preloading based on device capabilities
     if (!prefersReducedMotion && !isLowEnd) {
       const preloadVideo = () => {
-        // Use proper link preload with 'as' attribute for video
         const linkPreload = document.createElement('link');
         linkPreload.rel = 'preload';
-        linkPreload.as = 'video'; // Add missing 'as' attribute
-        linkPreload.href = getOptimizedVideoSrc(
-          theme === 'dark', 
-          window.innerWidth < 768, 
-          hasSlowConnection
-        );
-        
-        // Add type attribute for better browser hints
+        linkPreload.as = 'video';
+        linkPreload.href = `/api/video?theme=${theme === 'dark' ? 'dark' : 'light'}`;
         linkPreload.type = 'video/mp4';
         
         try {

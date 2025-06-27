@@ -47,8 +47,8 @@ import CourseHeader from '@/components/sections/course-detailed/CourseHeader';
 import CourseFaq from '@/components/sections/course-detailed/courseFaq';
 import CourseCertificate from '@/components/sections/course-detailed/courseCertificate';
 import CourseRelated from '@/components/sections/course-detailed/courseRelated';
-import CourseStats from '@/components/sections/course-detailed/CourseStats';
 import DownloadBrochureModal from '@/components/shared/download-broucher';
+import CourseStats from '@/components/sections/course-detailed/CourseStats';
 
 // API and utilities
 import { apiUrls } from '@/apis';
@@ -1050,24 +1050,7 @@ const CourseDetailsPage = ({ ...props }) => {
             animate="visible"
             key="about-section"
           >
-            {/* Course Stats - Hidden on mobile since we show it above navigation */}
-            <motion.div
-              className="mb-8 hidden sm:block"
-              variants={fadeIn}
-              initial="hidden"
-              animate="visible"
-            >
-              <CourseStats 
-                duration={formatDuration(courseDetails)}
-                students="75+" // Default value as enrollment count may not be available
-                sessions={courseDetails?.no_of_Sessions || "72"}
-                hasCertificate={hasCertificate()}
-                primaryColor={getCategoryColorClasses().primaryColor}
-                fillOpacity={0.2}
-                isBlended={isBlendedCourse(courseDetails)}
-                courseDetails={courseDetails}
-              />
-            </motion.div>
+
 
             {/* Course description */}
             <div className="prose prose-emerald dark:prose-invert max-w-none mb-6 sm:mb-8">
@@ -1488,29 +1471,7 @@ const CourseDetailsPage = ({ ...props }) => {
           </motion.section>
         );
         
-      case 'faq':
-        return (
-          <motion.section 
-            ref={faqRef} 
-            id="faq" 
-            className="pb-6"
-            variants={fadeIn}
-            initial="hidden"
-            animate="visible"
-            key="faq-section"
-          >
-            <div className="flex items-center mb-6">
-              <div className="w-1.5 h-6 bg-gradient-to-b from-indigo-400 to-violet-500 rounded-sm mr-3"></div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">
-                Frequently Asked Questions
-              </h2>
-            </div>
-            
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <CourseFaq courseId={props.courseId} />
-            </div>
-          </motion.section>
-        );
+
         
       case 'certificate':
         return (
@@ -1997,10 +1958,19 @@ const CourseDetailsPage = ({ ...props }) => {
                     
                   {/* Mobile-First Feature Indicators */}
                   <div className="grid grid-cols-1 sm:flex sm:flex-wrap gap-2 sm:gap-3 md:gap-4 justify-center">
+                    {/* Duration */}
                     <div className={`flex items-center justify-center sm:justify-start px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-100/70 dark:from-${getCategoryColorClasses().primaryColor}-900/30 dark:to-${getCategoryColorClasses().primaryColor}-800/30 rounded-lg sm:rounded-xl shadow-sm sm:shadow-md border border-${getCategoryColorClasses().primaryColor}-200/50 dark:border-${getCategoryColorClasses().primaryColor}-700/50 backdrop-blur-sm`}>
                       <Clock className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400 mr-2 flex-shrink-0`} />
                       <span className={`text-xs sm:text-sm font-semibold text-${getCategoryColorClasses().primaryColor}-700 dark:text-${getCategoryColorClasses().primaryColor}-300 text-center sm:text-left`}>
                         {formatDuration(courseDetails)}
+                      </span>
+                    </div>
+
+                    {/* Sessions / Videos */}
+                    <div className="flex items-center justify-center sm:justify-start px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-purple-50 to-purple-100/70 dark:from-purple-900/30 dark:to-purple-800/30 rounded-lg sm:rounded-xl shadow-sm sm:shadow-md border border-purple-200/50 dark:border-purple-700/50 backdrop-blur-sm">
+                      <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-600 dark:text-purple-400 mr-2 flex-shrink-0" />
+                      <span className="text-xs sm:text-sm font-semibold text-purple-700 dark:text-purple-300 text-center sm:text-left">
+                        {isBlendedCourse(courseDetails) ? formatLiveSessions(courseDetails) : `${courseDetails?.no_of_Sessions || '32'} Sessions`}
                       </span>
                     </div>
                     <div className={`flex items-center justify-center sm:justify-start px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-emerald-50 to-emerald-100/70 dark:from-emerald-900/30 dark:to-emerald-800/30 rounded-lg sm:rounded-xl shadow-sm sm:shadow-md border border-emerald-200/50 dark:border-emerald-700/50 backdrop-blur-sm`}>
@@ -2050,20 +2020,6 @@ const CourseDetailsPage = ({ ...props }) => {
         <AnimatePresence mode="wait">
           {renderActiveSection()}
         </AnimatePresence>
-      </div>
-
-      {/* Mobile Stats */}
-      <div className="block sm:hidden mb-2">
-        <CourseStats 
-          duration={formatDuration(courseDetails)}
-          students="75+" 
-          sessions={courseDetails?.no_of_Sessions || "72"}
-          hasCertificate={hasCertificate()}
-          primaryColor={getCategoryColorClasses().primaryColor}
-          fillOpacity={0.2}
-          isBlended={isBlendedCourse(courseDetails)}
-          courseDetails={courseDetails}
-        />
       </div>
 
       {/* Class Type Info Modal */}

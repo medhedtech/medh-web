@@ -66,7 +66,7 @@ interface PhoneInputProps {
   countryCodes: { code: string; name: string }[];
 }
 
-// Validation Schema
+// Validation Schema (simplified)
 const schema = yup.object({
   full_name: yup.string().required("Student name is required"),
   email: yup
@@ -76,27 +76,10 @@ const schema = yup.object({
       /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|org|net|edu|gov|in)$/,
       "Please enter a valid email"
     ),
-  phone_numbers: yup.array().of(
-    yup.object().shape({
-      country: yup.string().required("Country code is required"),
-      number: yup.string()
-        .required("Phone number is required")
-        .matches(/^[6-9]\d{9}$/, "Phone number must be a valid 10-digit number")
-    })
-  ).min(1, "At least one phone number is required"),
-  confirm_password: yup
-    .string()
-    .oneOf([yup.ref("password")], "Password and confirm password must match")
-    .required("Confirm password is required"),
-  date_of_birth: yup.string().required("Date of birth is required"),
-  language: yup.string().required("Language is required"),
-  education_level: yup.string().required("Education level is required"),
   password: yup
     .string()
     .min(8, "At least 8 characters required")
     .required("Password is required"),
-  gender: yup.string().required("Gender is required"),
-  agree_terms: yup.boolean().oneOf([true], "You must accept the terms and conditions").required(),
 });
 
 // Modern Form Input Component
@@ -311,8 +294,6 @@ const AddStudent: React.FC<AddStudentProps> = ({ onCancel, onSuccess }) => {
   const { postQuery, loading } = usePostQuery();
   const { getQuery } = useGetQuery();
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [phoneNumbers, setPhoneNumbers] = useState([{ country: "IN", number: "" }]);
 
   const {
     register,
@@ -332,26 +313,12 @@ const AddStudent: React.FC<AddStudentProps> = ({ onCancel, onSuccess }) => {
         postData: {
           full_name: data.full_name,
           email: data.email,
-          phone_numbers: phoneNumbers.map(item => {
-            const countryObj = countryCodes.find(c => c.code === item.country);
-            const dialMatch = countryObj?.name.match(/\+(\d+)/);
-            const dialCode = dialMatch ? dialMatch[1] : '';
-            return { country: item.country, number: `+${dialCode}${item.number}` };
-          }),
           password: data.password,
           role: ["student"],
-          meta: {
-            gender: data.gender,
-            date_of_birth: data.date_of_birth,
-            language: data.language,
-            education_level: data.education_level,
-          },
-          agree_terms: data.agree_terms,
         },
         onSuccess: () => {
           showToast.success("Student added successfully!");
           reset();
-          setPhoneNumbers([{ country: "IN", number: "" }]);
           // Call onSuccess callback if provided
           if (onSuccess) {
             onSuccess();
@@ -473,74 +440,6 @@ const AddStudent: React.FC<AddStudentProps> = ({ onCancel, onSuccess }) => {
                   error={errors.email?.message}
                   {...register("email")}
                 />
-                
-                <PhoneInput
-                  label="Phone Number"
-                  error={errors.phone_numbers?.[0]?.number?.message || errors.phone_numbers?.[0]?.country?.message}
-                  countryValue={phoneNumbers[0]?.country}
-                  numberValue={phoneNumbers[0]?.number}
-                  onCountryChange={(e) => {
-                    const newPhoneNumbers = [...phoneNumbers];
-                    newPhoneNumbers[0].country = e.target.value;
-                    setPhoneNumbers(newPhoneNumbers);
-                    setValue("phone_numbers", newPhoneNumbers);
-                  }}
-                  onNumberChange={(e) => {
-                    const newPhoneNumbers = [...phoneNumbers];
-                    newPhoneNumbers[0].number = e.target.value;
-                    setPhoneNumbers(newPhoneNumbers);
-                    setValue("phone_numbers", newPhoneNumbers);
-                  }}
-                  countryCodes={countryCodes}
-                />
-                
-                <FormInput
-                  label="Date of Birth"
-                  icon={FaCalendarAlt}
-                  type="date"
-                  error={errors.date_of_birth?.message}
-                  {...register("date_of_birth")}
-                />
-                
-                <FormSelect
-                  label="Gender"
-                  icon={FaVenusMars}
-                  placeholder="Select gender"
-                  options={genderOptions}
-                  error={errors.gender?.message}
-                  {...register("gender")}
-                />
-              </div>
-            </motion.div>
-
-            {/* Academic Information Section */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-            >
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                <FaBook className="w-5 h-5 text-green-600 dark:text-green-400" />
-                Academic Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormSelect
-                  label="Education Level"
-                  icon={FaBook}
-                  placeholder="Select education level"
-                  options={educationOptions}
-                  error={errors.education_level?.message}
-                  {...register("education_level")}
-                />
-                
-                <FormSelect
-                  label="Preferred Language"
-                  icon={FaGlobe}
-                  placeholder="Select preferred language"
-                  options={languageOptions}
-                  error={errors.language?.message}
-                  {...register("language")}
-                />
               </div>
             </motion.div>
 
@@ -563,58 +462,6 @@ const AddStudent: React.FC<AddStudentProps> = ({ onCancel, onSuccess }) => {
                   error={errors.password?.message}
                   {...register("password")}
                 />
-                
-                <PasswordInput
-                  label="Confirm Password"
-                  placeholder="Confirm password"
-                  showPassword={showConfirmPassword}
-                  toggleVisibility={() => setShowConfirmPassword(!showConfirmPassword)}
-                  error={errors.confirm_password?.message}
-                  {...register("confirm_password")}
-                />
-              </div>
-            </motion.div>
-
-            {/* Terms and Conditions */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.6 }}
-            >
-              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-6">
-                <div className="flex items-start gap-3">
-                  <input
-                    type="checkbox"
-                    id="agree_terms"
-                    className="mt-1 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                    {...register("agree_terms")}
-                  />
-                  <div className="flex-1">
-                    <label htmlFor="agree_terms" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
-                      I agree to the{" "}
-                      <a href="#" className="text-green-600 hover:text-green-700 underline">
-                        Terms and Conditions
-                      </a>{" "}
-                      and{" "}
-                      <a href="#" className="text-green-600 hover:text-green-700 underline">
-                        Privacy Policy
-                      </a>
-                    </label>
-                    <AnimatePresence mode="wait">
-                      {errors.agree_terms && (
-                        <motion.p
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          className="text-red-500 text-xs mt-1 flex items-center gap-1"
-                        >
-                          <FaTimes className="w-3 h-3" />
-                          {errors.agree_terms.message}
-                        </motion.p>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </div>
               </div>
             </motion.div>
 

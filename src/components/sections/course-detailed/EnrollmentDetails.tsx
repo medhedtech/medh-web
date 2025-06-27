@@ -18,7 +18,7 @@ import axios from 'axios';
 import useGetQuery from "@/hooks/getQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook";
 import useRazorpay from "@/hooks/useRazorpay";
-import RAZORPAY_CONFIG from "@/config/razorpay";
+import RAZORPAY_CONFIG, { getCurrencySymbol } from "@/config/razorpay";
 
 // Local implementation of the price utility functions
 const getCoursePriceValue = (
@@ -520,6 +520,8 @@ const PaymentSummary: React.FC<{
   selectedInstallmentPlan?: InstallmentPlan | null;
   appliedCoupon?: Coupon | null;
   couponDiscount?: number;
+  duration?: string;
+  grade?: string;
 }> = ({ 
   courseTitle, 
   originalPrice, 
@@ -529,9 +531,62 @@ const PaymentSummary: React.FC<{
   enrollmentType,
   selectedInstallmentPlan,
   appliedCoupon,
-  couponDiscount = 0
+  couponDiscount = 0,
+  duration,
+  grade
 }) => {
   const formatPrice = (price: number) => `${currency} ${price.toLocaleString()}`;
+
+  // Compact view when there are no discounts/EMIs/coupons
+  const isCompact = !selectedInstallmentPlan && discountAmount <= 0 && (!appliedCoupon || couponDiscount <= 0);
+  if (isCompact) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 sm:p-5 space-y-4 text-sm sm:text-base"
+      >
+        {/* Header: Course Title & Enrollment Type */}
+        <div className="text-center space-y-2">
+          <h4 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white leading-tight truncate">
+            {courseTitle}
+          </h4>
+          <span className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs sm:text-sm font-medium mx-auto">
+            {enrollmentType === 'individual' ? 'Individual' : 'Batch'} Enrollment
+          </span>
+        </div>
+        {/* Divider */}
+        <hr className="border-gray-200 dark:border-gray-700 mt-2" />
+        {/* Price and Details */}
+        <div className="mt-4 pt-4 text-center space-y-4">
+          <div>
+            <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              Price
+            </p>
+            <p className="mt-1 text-4xl sm:text-5xl font-extrabold text-blue-600 dark:text-blue-400">
+              {formatPrice(finalPrice)}
+            </p>
+          </div>
+          {(duration || grade) && (
+            <div className="flex justify-center space-x-6">
+              {duration && (
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Duration</p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">{duration}</p>
+                </div>
+              )}
+              {grade && (
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Grade</p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">{grade}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -1065,118 +1120,6 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     const couponDiscount = calculateCouponDiscount();
     return Math.max(basePrice - couponDiscount, 0);
   }, [getFinalPrice, calculateCouponDiscount]);
-
-  // Format price for display with proper currency symbol
-  const getDisplayCurrencySymbol = useCallback(() => {
-    // Currency symbol mapping
-    const currencySymbols: { [key: string]: string } = {
-      'USD': '$',
-      'INR': '₹',
-      'EUR': '€',
-      'GBP': '£',
-      'JPY': '¥',
-      'CAD': 'C$',
-      'AUD': 'A$',
-      'SGD': 'S$',
-      'CHF': 'CHF',
-      'CNY': '¥',
-      'KRW': '₩',
-      'THB': '฿',
-      'MYR': 'RM',
-      'PHP': '₱',
-      'VND': '₫',
-      'IDR': 'Rp',
-      'BRL': 'R$',
-      'MXN': '$',
-      'ZAR': 'R',
-      'RUB': '₽',
-      'TRY': '₺',
-      'AED': 'د.إ',
-      'SAR': 'ر.س',
-      'QAR': 'ر.ق',
-      'KWD': 'د.ك',
-      'BHD': 'د.ب',
-      'OMR': 'ر.ع.',
-      'JOD': 'د.أ',
-      'LBP': 'ل.ل',
-      'EGP': 'ج.م',
-      'PKR': '₨',
-      'BDT': '৳',
-      'LKR': '₨',
-      'NPR': '₨',
-      'AFN': '؋',
-      'IRR': '﷼',
-      'IQD': 'ع.د',
-      'SYP': 'ل.س',
-      'YER': '﷼',
-      'MAD': 'د.م.',
-      'TND': 'د.ت',
-      'DZD': 'د.ج',
-      'LYD': 'ل.د',
-      'SDG': 'ج.س.',
-      'ETB': 'Br',
-      'KES': 'KSh',
-      'UGX': 'USh',
-      'TZS': 'TSh',
-      'RWF': 'RF',
-      'GHS': '₵',
-      'NGN': '₦',
-      'XOF': 'CFA',
-      'XAF': 'FCFA',
-      'ZMW': 'ZK',
-      'BWP': 'P',
-      'SZL': 'L',
-      'LSL': 'L',
-      'NAD': 'N$',
-      'MZN': 'MT',
-      'AOA': 'Kz',
-      'CDF': 'FC',
-      'MGA': 'Ar',
-      'SCR': '₨',
-      'MUR': '₨',
-      'MVR': '.ރ',
-      'KMF': 'CF',
-      'DJF': 'Fdj',
-      'SOS': 'S',
-      'ERN': 'Nfk'
-    };
-
-    // Prioritize currency from the first active price object
-    if (courseDetails?.prices && courseDetails.prices.length > 0) {
-      const activePrice = courseDetails.prices.find(p => p.is_active);
-      if (activePrice && activePrice.currency) {
-        return currencySymbols[activePrice.currency.toUpperCase()] || activePrice.currency;
-      }
-      // Fallback to the first price object's currency if no active one found
-      if (courseDetails.prices[0]?.currency) {
-        return currencySymbols[courseDetails.prices[0].currency.toUpperCase()] || courseDetails.prices[0].currency;
-      }
-    }
-    // Fallback to course_fee's currency if that exists (assuming it might be structured like { amount: 100, currency: 'USD'})
-    // This part is speculative, adjust if course_fee is just a number
-    if (typeof courseDetails?.course_fee === 'object' && courseDetails.course_fee !== null) {
-       // return courseDetails.course_fee.currency; // Example structure
-    }
-    return '₹'; // Default to INR symbol since this is primarily an Indian platform
-  }, [courseDetails]);
-  
-  const formatPriceDisplay = useCallback((price: number | undefined | null): string => {
-    // Check if course is free using multiple indicators
-    const courseIsActuallyFree = courseDetails?.isFree || 
-      courseDetails?.course_fee === 0 ||
-      (courseDetails?.prices && courseDetails.prices.every(p => p.individual === 0 && p.batch === 0));
-    
-    if (courseIsActuallyFree || price === 0) return "Free";
-    if (price === undefined || price === null || isNaN(price)) return "N/A";
-
-    const symbol = getDisplayCurrencySymbol();
-    // Ensure price is a number before calling toLocaleString
-    const numericPrice = Number(price);
-    if (isNaN(numericPrice)) return "N/A";
-
-    const formattedPrice = numericPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    return symbol.length > 1 ? `${symbol} ${formattedPrice}` : `${symbol}${formattedPrice}`;
-  }, [courseDetails, getDisplayCurrencySymbol]);
 
   // Get primary color from category or default
   const primaryColor = categoryInfo?.primaryColor || 'primary';
@@ -2088,7 +2031,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             <div className="flex items-start sm:items-center justify-between gap-3">
               <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-1 min-w-0">
                 <div className="flex-shrink-0">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
                     <Calculator className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
                 </div>
@@ -2626,6 +2569,23 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   // Check if current user is test user
   const isTestUser = userId === '67cfe3a9a50dbb995b4d94da';
 
+  // -------------------- Currency helpers (restored) --------------------
+  const getDisplayCurrencySymbol = useCallback(() => {
+    let currencyCode = 'INR';
+    if (courseDetails?.prices?.length) {
+      const active = courseDetails.prices.find((p) => p.is_active) || courseDetails.prices[0];
+      if (active?.currency) currencyCode = active.currency.toUpperCase();
+    }
+    return getCurrencySymbol(currencyCode);
+  }, [courseDetails]);
+
+  const formatPriceDisplay = useCallback((price: number | undefined | null): string => {
+    if (price === undefined || price === null || isNaN(price)) return 'N/A';
+    const symbol = getDisplayCurrencySymbol();
+    const numeric = Number(price);
+    return symbol.length > 1 ? `${symbol} ${numeric.toLocaleString()}` : `${symbol}${numeric.toLocaleString()}`;
+  }, [getDisplayCurrencySymbol]);
+
   return (
     <>
       {/* Test Mode Banner */}
@@ -2723,50 +2683,32 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             </div>
           )}
           
-          {/* Course Price - Enhanced for clarity on mobile */}
-          <AnimatePresence mode="wait">
-            <motion.div 
-              key={enrollmentType}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="flex items-center justify-between p-3 bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/80 dark:to-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm"
-            >
-              <div className="flex-1 min-w-0">
-                <p className="text-gray-600 dark:text-gray-400 text-xs font-medium mb-0.5 leading-tight">
-                  {isBlendedCourse ? 'Individual Price' : (enrollmentType === 'individual' ? 'Individual Price' : 'Batch Price (per person)')}
-                </p>
-                <div className="flex items-baseline gap-1.5 flex-wrap">
-                  <h4 className="text-lg font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent leading-tight">
-                    {courseDetails?.isFree ? "Free" : formatPriceDisplay(appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice())}
-                  </h4>
-                  
-                  {originalPrice && originalPrice > getFinalPrice() && (
-                    <span className="text-xs text-gray-500 line-through">
-                      {formatPriceDisplay(originalPrice)}
-                    </span>
-                  )}
-                  
-                  {appliedCoupon && (
-                    <span className="text-xs text-gray-500 line-through">
-                      {formatPriceDisplay(getFinalPrice())}
-                    </span>
-                  )}
-                  
-                </div>
-                {/* Only show min students for batch enrollment in non-blended courses */}
-                {enrollmentType === 'batch' && !isBlendedCourse && activePricing && (
-                  <p className="text-xs text-gray-500 mt-0.5 flex items-center leading-tight">
-                    <Users className="w-3 h-3 mr-1 flex-shrink-0" />
-                    Min {activePricing.min_batch_size} students required
+          {/* Price card: render only for FREE courses to avoid duplication with PaymentSummary */}
+          {courseDetails?.isFree && (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={enrollmentType}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="flex items-center justify-between p-3 bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/80 dark:to-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-gray-600 dark:text-gray-400 text-xs font-medium mb-0.5 leading-tight">
+                    Price
                   </p>
-                )}
-              </div>
-              <div className={`p-2 rounded-full ${bgClass} shadow-md flex-shrink-0`}>
-                <CreditCard className={`h-4 w-4 ${colorClass}`} />
-              </div>
-            </motion.div>
-          </AnimatePresence>
+                  <div className="flex items-baseline gap-1.5 flex-wrap">
+                    <h4 className="text-lg font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent leading-tight">
+                      {formatPriceDisplay(0)}
+                    </h4>
+                  </div>
+                </div>
+                <div className={`p-2 rounded-full ${bgClass} shadow-md flex-shrink-0`}>
+                  <CreditCard className={`h-4 w-4 ${colorClass}`} />
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          )}
 
           {/* Coupon Section */}
           {!courseDetails?.isFree && (
@@ -2846,40 +2788,38 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           
 
           
-          {/* Course Details List - More readable on mobile */}
-          <div className="space-y-2 border-t border-gray-200 dark:border-gray-700 pt-3">
-            <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-100 dark:border-gray-700 hover:shadow-sm transition-shadow">
-              <span className="text-gray-700 dark:text-gray-300 text-xs font-medium flex items-center leading-tight">
-                <Clock className="w-3 h-3 mr-1.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-                Duration
-              </span>
-              <span className="font-semibold text-gray-900 dark:text-white text-xs leading-tight">{formattedDuration}</span>
-            </div>
-            <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-100 dark:border-gray-700 hover:shadow-sm transition-shadow">
-              <span className="text-gray-700 dark:text-gray-300 text-xs font-medium flex items-center leading-tight">
-                <GraduationCap className="w-3 h-3 mr-1.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-                Grade
-              </span>
-              <span className="font-semibold text-gray-900 dark:text-white text-xs leading-tight">
-                {grade}
-              </span>
-            </div>
-          </div>
+          {/* Compact Payment Summary positioned above features */}
+          {!courseDetails?.isFree && (
+            <PaymentSummary
+              courseTitle={courseDetails?.course_title || 'Course'}
+              originalPrice={originalPrice || getFinalPrice()}
+              finalPrice={appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice()}
+              currency={getDisplayCurrencySymbol()}
+              discountAmount={originalPrice ? (originalPrice - getFinalPrice()) : 0}
+              enrollmentType={enrollmentType}
+              selectedInstallmentPlan={selectedInstallmentPlan}
+              appliedCoupon={appliedCoupon}
+              couponDiscount={appliedCoupon ? calculateCouponDiscount() : 0}
+              duration={formattedDuration}
+              grade={grade}
+            />
+          )}
           
           {/* Course Features - More compact and well structured */}
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
-            <h4 className="font-semibold text-gray-900 dark:text-white text-sm mb-2 flex items-center leading-tight">
-              <ThumbsUp className="w-3 h-3 mr-1.5 text-green-500 flex-shrink-0" />
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4 text-center">
+            <h4 className="inline-flex items-center justify-center gap-1.5 font-semibold text-gray-900 dark:text-white text-sm mb-3">
+              <ThumbsUp className="w-4 h-4 text-green-500" />
               What you'll get
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 justify-items-center">
               {courseFeatures.map((feature: string, index: number) => (
-                <div 
+                <div
                   key={index}
-                  className="flex items-center text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-100 dark:border-gray-700"
+                  className="flex items-center gap-1.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 px-3 py-2 text-xs font-medium text-gray-700 dark:text-gray-200"
                 >
-                  <CheckCircle2 className="w-3 h-3 mr-1.5 text-green-500 flex-shrink-0" />
-                  <span className="text-xs font-medium leading-tight">{feature}</span>
+                  <CheckCircle2 className="w-3 h-3 text-green-500" />
+                  {feature}
                 </div>
               ))}
             </div>
@@ -2887,23 +2827,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           
           {/* Enhanced Payment Button with Modern Design */}
           <motion.div className="space-y-3">
-            {/* Payment Security Features */}
-            {!courseDetails?.isFree && <PaymentSecurityFeatures />}
-            
-            {/* Payment Summary */}
-            {!courseDetails?.isFree && (
-              <PaymentSummary
-                courseTitle={courseDetails?.course_title || 'Course'}
-                originalPrice={originalPrice || getFinalPrice()}
-                finalPrice={appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice()}
-                currency={getDisplayCurrencySymbol()}
-                discountAmount={originalPrice ? (originalPrice - getFinalPrice()) : 0}
-                enrollmentType={enrollmentType}
-                selectedInstallmentPlan={selectedInstallmentPlan}
-                appliedCoupon={appliedCoupon}
-                couponDiscount={appliedCoupon ? calculateCouponDiscount() : 0}
-              />
-            )}
+            {/* Security note is merged into Razorpay info below */}
             
             {/* Modern Enroll Button */}
             <motion.button
@@ -2989,36 +2913,34 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                 transition={{ delay: 0.3 }}
                 className="bg-gradient-to-r from-gray-50 to-blue-50/30 dark:from-gray-800/50 dark:to-blue-900/10 border border-gray-200 dark:border-gray-700 rounded-lg p-3"
               >
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                    {isTestUser ? "Test Payment by Razorpay" : "Secure Payment by Razorpay"}
-                  </span>
-                </div>
-                
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                  <div className="flex items-center gap-1.5 justify-center">
-                    <CreditCard className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                    <span className="text-gray-600 dark:text-gray-300 font-medium">All Cards</span>
+                <div className="text-center space-y-3">
+                  <div className="inline-flex items-center justify-center gap-1.5">
+                    <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {isTestUser ? "Test Payment by Razorpay" : "Secure Payment by Razorpay"}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-1.5 justify-center">
-                    <Building2 className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                    <span className="text-gray-600 dark:text-gray-300 font-medium">Net Banking</span>
+
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {[
+                      { icon: CreditCard, label: 'All Cards' },
+                      { icon: Building2, label: 'Net Banking' },
+                      { icon: Smartphone, label: 'UPI' },
+                      { icon: Wallet, label: 'Wallets' }
+                    ].map(({ icon: Icon, label }) => (
+                      <div
+                        key={label}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-100/60 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium"
+                      >
+                        <Icon className="w-3 h-3" />
+                        {label}
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex items-center gap-1.5 justify-center">
-                    <Smartphone className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                    <span className="text-gray-600 dark:text-gray-300 font-medium">UPI</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 justify-center">
-                    <Wallet className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                    <span className="text-gray-600 dark:text-gray-300 font-medium">Wallets</span>
-                  </div>
-                </div>
-                
-                <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 text-center">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center justify-center gap-1.5 font-medium">
+
+                  <p className="flex items-center justify-center gap-1 text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">
                     <Lock className="w-3 h-3" />
-                    <span>Your payment information is encrypted and secure</span>
+                    Your payment information is encrypted & secure
                   </p>
                 </div>
               </motion.div>
