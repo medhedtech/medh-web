@@ -369,6 +369,23 @@ export class ApiClient {
 
     // Handle non-2xx responses
     if (!response.ok) {
+      // If still unauthorized after refresh, clear tokens and redirect to login
+      if (response.status === 401) {
+        if (typeof window !== 'undefined') {
+          // Clear stored tokens
+          this.clearAuthToken();
+          localStorage.removeItem('refreshToken');
+          sessionStorage.removeItem('refreshToken');
+          // Redirect to login page
+          window.location.href = '/login';
+        }
+        return {
+          status: 'error',
+          error: data.error || data.message || 'Unauthorized',
+          message: data.message || 'Unauthorized',
+          data
+        };
+      }
       return {
         status: 'error',
         error: data.error || data.message || 'An error occurred',
