@@ -16,7 +16,13 @@ import {
   Sparkles,
   Target,
   Globe,
-  Award
+  Award,
+  Clock,
+  BookOpen,
+  Layers,
+  Info,
+  Users,
+  ArrowUpRight
 } from "lucide-react";
 import Pagination from "@/components/shared/pagination/Pagination";
 import useGetQuery from "@/hooks/getQuery.hook";
@@ -29,6 +35,7 @@ import { IUpdateCourseData } from '@/types/course.types';
 import { apiBaseUrl, apiUtils, ICourseFilters, ICourseSearchParams } from '@/apis/index';
 import { getAllCoursesWithLimits } from '@/apis/course/course';
 import axios from 'axios';
+import CourseCard from "@/components/sections/courses/CourseCard";
 
 // TypeScript Interfaces
 interface ICourse {
@@ -42,6 +49,18 @@ interface ICourse {
   status: string;
   createdAt: string;
   updatedAt: string;
+  // Live course specific properties
+  liveFeatures?: string[];
+  additionalFeatures?: string[];
+  isLiveCourse?: boolean;
+  showFullFeatures?: boolean;
+  useStandardImageRatio?: boolean;
+  useStandardBadgeSize?: boolean;
+  preserveLiveHoverState?: boolean;
+  standardFeatures?: string[];
+  duration_range?: string;
+  course_duration?: string;
+  no_of_Sessions?: number;
 }
 
 interface IPagination {
@@ -417,10 +436,10 @@ const SimplePaginationWrapper: React.FC<ISimplePaginationWrapperProps> = ({
   );
 };
 
-// Memoized components for better performance
-const MemoizedCourseCard = React.memo(DynamicCourseCard);
+// Memoized components for better performance - temporarily disabled for duration fix
+const MemoizedCourseCard = DynamicCourseCard;
 
-// Modern sort dropdown component
+// Enhanced sort dropdown component with improved mobile UX
 const SortDropdown = React.memo<ISortDropdownProps>(({ sortOrder, handleSortChange, showSortDropdown, setShowSortDropdown }) => {
   const sortDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -447,75 +466,112 @@ const SortDropdown = React.memo<ISortDropdownProps>(({ sortOrder, handleSortChan
     return labels[value] || "Newest";
   };
 
+  const getSortIcon = (value: string) => {
+    switch (value) {
+      case "newest-first":
+        return <Sparkles className="w-4 h-4" />;
+      case "oldest-first":
+        return <Clock className="w-4 h-4" />;
+      case "A-Z":
+      case "Z-A":
+        return <BookOpen className="w-4 h-4" />;
+      case "price-low-high":
+      case "price-high-low":
+        return <Award className="w-4 h-4" />;
+      default:
+        return <Sparkles className="w-4 h-4" />;
+    }
+  };
+
   return (
-    <div className="relative" ref={sortDropdownRef}>
+    <div className="relative z-50" ref={sortDropdownRef}>
       <button
         onClick={() => setShowSortDropdown(!showSortDropdown)}
-        className="flex items-center justify-between w-full md:w-32 px-3 md:px-4 py-2 md:py-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 shadow-sm"
+        className={`flex items-center justify-between w-full md:w-40 px-4 py-3 bg-white dark:bg-gray-800 rounded-xl border transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 ${
+          showSortDropdown 
+            ? 'border-purple-300 dark:border-purple-600 ring-2 ring-purple-100 dark:ring-purple-900/50 bg-purple-50 dark:bg-purple-900/20'
+            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+        }`}
         aria-expanded={showSortDropdown}
         aria-haspopup="true"
       >
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
-          {getSortLabel(sortOrder)}
-        </span>
+        <div className="flex items-center space-x-2">
+          <div className={`transition-colors ${
+            showSortDropdown ? 'text-purple-600 dark:text-purple-400' : 'text-gray-500 dark:text-gray-400'
+          }`}>
+            {getSortIcon(sortOrder)}
+          </div>
+          <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+            {getSortLabel(sortOrder)}
+          </span>
+        </div>
         <ChevronDown 
           size={16} 
-          className={`transform transition-transform duration-200 text-gray-400 dark:text-gray-500 ${showSortDropdown ? 'rotate-180' : ''}`} 
+          className={`transform transition-all duration-300 ${
+            showSortDropdown 
+              ? 'rotate-180 text-purple-600 dark:text-purple-400' 
+              : 'text-gray-400 dark:text-gray-500'
+          }`} 
         />
       </button>
 
       {showSortDropdown && (
         <>
-          {/* Mobile backdrop - always visible when dropdown is open */}
+          {/* Enhanced mobile backdrop with smooth animation */}
           <div 
-            className="fixed inset-0 bg-black/50 z-[999] block" 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] animate-in fade-in duration-200 lg:hidden" 
             onClick={() => setShowSortDropdown(false)}
-            style={{ 
-              touchAction: 'none',
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.5)'
-            }}
           />
-          {/* Sort dropdown content - force visible on mobile */}
+          {/* Enhanced sort dropdown content with modern design and iPad support */}
           <div 
-            className="fixed top-[20vh] left-1/2 transform -translate-x-1/2 w-[90vw] max-w-sm bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[1000] md:absolute md:right-0 md:top-full md:left-auto md:transform-none md:translate-x-0 md:translate-y-0 md:mt-2 md:w-48 md:z-10" 
+            className="fixed top-[25vh] left-1/2 transform -translate-x-1/2 w-[85vw] max-w-xs bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[1000] overflow-hidden animate-in slide-in-from-top-4 duration-300 sm:w-[70vw] sm:max-w-sm lg:absolute lg:right-0 lg:top-full lg:left-auto lg:transform-none lg:translate-x-0 lg:translate-y-0 lg:mt-3 lg:w-52 lg:z-[1000] lg:animate-in lg:slide-in-from-top-2" 
             role="menu"
             onClick={(e) => e.stopPropagation()}
-            style={{ 
-              touchAction: 'auto',
-              display: 'block',
-              visibility: 'visible',
-              opacity: 1
-            }}
           >
-          <div className="py-2">
-            {[
-              { value: "newest-first", label: "Newest First" },
-              { value: "oldest-first", label: "Oldest First" },
-              { value: "A-Z", label: "Name (A-Z)" },
-              { value: "Z-A", label: "Name (Z-A)" },
-              { value: "price-low-high", label: "Price (Low→High)" },
-              { value: "price-high-low", label: "Price (High→Low)" },
-            ].map((option) => (
-              <button
-                key={option.value}
-                onClick={() => handleSortChange(option.value)}
-                className={`${
-                  sortOrder === option.value
-                    ? "bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                } block w-full text-left px-4 py-3 text-sm transition-colors duration-200`}
-                role="menuitem"
-              >
-                {option.label}
-              </button>
-            ))}
+            {/* Header */}
+            <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100/50 dark:from-gray-900 dark:to-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Sort Options</h3>
+              </div>
+            </div>
+            
+            {/* Options */}
+            <div className="py-2">
+              {[
+                { value: "newest-first", label: "Newest First", icon: <Sparkles className="w-4 h-4" />, desc: "Latest courses" },
+                { value: "oldest-first", label: "Oldest First", icon: <Clock className="w-4 h-4" />, desc: "Established courses" },
+                { value: "A-Z", label: "Name (A-Z)", icon: <BookOpen className="w-4 h-4" />, desc: "Alphabetical order" },
+                { value: "Z-A", label: "Name (Z-A)", icon: <BookOpen className="w-4 h-4" />, desc: "Reverse alphabetical" },
+                { value: "price-low-high", label: "Price (Low to High)", icon: <Award className="w-4 h-4" />, desc: "Budget friendly first" },
+                { value: "price-high-low", label: "Price (High to Low)", icon: <Award className="w-4 h-4" />, desc: "Premium courses first" },
+              ].map((option, index) => (
+                <button
+                  key={option.value}
+                  onClick={() => handleSortChange(option.value)}
+                  className={`w-full text-left px-4 py-3 transition-all duration-200 flex items-center space-x-3 group ${
+                    sortOrder === option.value
+                      ? "bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  }`}
+                  role="menuitem"
+                >
+                  <div className={`transition-colors ${
+                    sortOrder === option.value ? 'text-purple-600 dark:text-purple-400' : 'text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300'
+                  }`}>
+                    {option.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm">{option.label}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{option.desc}</div>
+                  </div>
+                  {sortOrder === option.value && (
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
         </>
       )}
     </div>
@@ -694,6 +750,40 @@ const usePerformanceMonitor = (componentName: string) => {
   return { measureAction };
 };
 
+// Add glassmorphic styles for filter components
+const addFilterGlassmorphicStyles = () => {
+  const style = document.createElement('style');
+  style.id = 'filter-glassmorphic-styles';
+  style.textContent = `
+    .filter-glassmorphic {
+      background: rgba(99, 102, 241, 0.08);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      box-shadow: 0 4px 25px rgba(99, 102, 241, 0.1);
+    }
+    
+    .dark .filter-glassmorphic {
+      background: rgba(99, 102, 241, 0.06);
+      border: 1px solid rgba(99, 102, 241, 0.15);
+      box-shadow: 0 4px 25px rgba(99, 102, 241, 0.08);
+    }
+    
+    .filter-header-glassmorphic {
+      background: rgba(168, 85, 247, 0.08);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+    }
+    
+    .dark .filter-header-glassmorphic {
+      background: rgba(168, 85, 247, 0.06);
+      border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+    }
+  `;
+  document.head.appendChild(style);
+};
+
 const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   CustomButton,
   CustomText,
@@ -713,7 +803,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   hideHeader = false,
   hideGradeFilter = false,
   gridColumns = 3,
-  itemsPerPage = 9,
+  itemsPerPage = 12,
   simplePagination = false,
   emptyStateContent = null,
   customGridClassName = "",
@@ -791,9 +881,18 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   const isTablet = width >= 768 && width < 1024;
   const [responsiveGridColumns, setResponsiveGridColumns] = useState<number>(gridColumns);
 
-  // Performance monitoring
+  // Performance monitoring and add glassmorphic styles
   useEffect(() => {
     performanceStartTime.current = performance.now();
+    
+    // Add filter glassmorphic styles
+    if (typeof window !== 'undefined') {
+      const existingStyle = document.querySelector('#filter-glassmorphic-styles');
+      if (existingStyle) {
+        existingStyle.remove();
+      }
+      addFilterGlassmorphicStyles();
+    }
   }, []);
   
   useEffect(() => {
@@ -815,8 +914,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
       } else if (isTablet) {
         setResponsiveGridColumns(2);
       } else {
-        // Always use 3 columns for desktop and larger screens
-        setResponsiveGridColumns(3);
+        // Always use 4 columns for desktop and larger screens
+        setResponsiveGridColumns(4);
       }
     };
     
@@ -1567,7 +1666,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   const renderNoResults = useCallback(() => {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-        <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-6">
+        <div className="w-20 h-20 filter-glassmorphic rounded-full flex items-center justify-center mb-6">
           <SearchX size={32} className="text-gray-400 dark:text-gray-500" />
         </div>
         <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">No courses found</h3>
@@ -1629,8 +1728,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
       return customGridClassName;
     }
     
-    // Default responsive grid - maximum 3 columns
-    let gridClass = "grid gap-6 pb-1";
+    // Default responsive grid - optimized for wider cards with minimal gap
+    let gridClass = "grid gap-1.5 lg:gap-2 pb-1";
     
     switch (responsiveGridColumns) {
       case 1:
@@ -1663,7 +1762,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   const renderCourseList = useCallback(() => {
     if (loading) {
       return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2">
+        <div className="px-4 md:px-6 lg:px-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-1.5 lg:gap-2">
           {Array.from({ length: itemsPerPage }).map((_, idx) => (
             <div 
               key={idx} 
@@ -1687,6 +1787,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
               </div>
             </div>
           ))}
+          </div>
         </div>
       );
     }
@@ -1695,17 +1796,56 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
       return emptyStateContent || renderNoResults();
     }
 
-          return (
-      <div className="relative px-1">
+    return (
+      <div className="relative px-4 md:px-6 lg:px-8">
         {/* Enhanced Course Cards Grid - Responsive for all screen sizes */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 auto-rows-fr">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-1.5 lg:gap-2 auto-rows-fr">
             {filteredCourses.map((course, index) => {
               if (!course || !course._id) {
                 console.warn('Invalid course data:', course);
                 return null;
               }
               
-              const enhancedCourse = renderCourse ? renderCourse(course) : course;
+              // Check if this is a live course
+              const isLiveCourse = liveCoursesOptions.includes(course.course_category) || 
+                                 course.class_type === 'live' ||
+                                 course.class_type === 'Live';
+              
+              // Enhance live courses with additional features
+              let enhancedCourse = renderCourse ? renderCourse(course) : course;
+              
+              if (isLiveCourse) {
+                enhancedCourse = {
+                  ...enhancedCourse,
+                  // Add live course specific features
+                  liveFeatures: [
+                    'Projects & Assignments',
+                    'Corporate Internship',
+                    'Job Guarantee',
+                    '(18 Month Course Only)'
+                  ],
+                  additionalFeatures: [
+                    'Projects',
+                    'Assignments'
+                  ],
+                  isLiveCourse: true,
+                  // Ensure live courses show full feature set like blended courses
+                  showFullFeatures: true,
+                  // Design improvements to match blended/self-paced courses
+                  useStandardImageRatio: true,
+                  useStandardBadgeSize: true,
+                  preserveLiveHoverState: true,
+                  // Add standard course features that live courses should display
+                  standardFeatures: [
+                    'Live Interactive Sessions',
+                    'Expert Mentorship',
+                    'Real-world Projects',
+                    'Industry-relevant Curriculum',
+                    'Career Support',
+                    'Certificate of Completion'
+                  ]
+                } as ICourse;
+              }
               
               return (
                 <ErrorBoundary key={`course-${enhancedCourse._id}-${index}`}>
@@ -1720,6 +1860,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                       course={enhancedCourse}
                       viewMode="grid"
                       isCompact={isMobile}
+                      coursesPageCompact={true}
                       preserveClassType={true}
                       classType={classType || enhancedCourse.class_type}
                     />
@@ -1904,7 +2045,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
           
           @media (min-width: 1536px) {
             .grid {
-              gap: 2rem;
+              gap: 1.25rem;
               grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
               max-width: none;
             }
@@ -1913,7 +2054,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
           @media (min-width: 1920px) {
             .grid {
               grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-              gap: 2.5rem;
+              gap: 1.5rem;
             }
           }
 
@@ -1925,7 +2066,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
 
           @media (min-width: 1025px) {
             .grid {
-              grid-template-columns: repeat(3, 1fr);
+              grid-template-columns: repeat(4, 1fr);
             }
           }
 
@@ -2021,18 +2162,18 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
           {/* Grade Filter Section */}
           {!hideGradeFilter && (
             <div className="mb-4">
-              <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-900/30 overflow-hidden">
+              <div className="filter-glassmorphic rounded-xl border border-indigo-100 dark:border-indigo-900/30 overflow-hidden">
                 <div 
-                  className="flex items-center justify-between cursor-pointer p-4 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all duration-300 ease-in-out" 
+                  className="flex items-center justify-between cursor-pointer p-3 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all duration-300 ease-in-out" 
                   onClick={() => setIsGradeDropdownOpen(!isGradeDropdownOpen)}
                 >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/40 rounded-lg flex items-center justify-center transition-all duration-300">
-                      <GraduationCap className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  <div className="flex items-center space-x-2">
+                    <div className="w-6 h-6 filter-glassmorphic rounded-lg flex items-center justify-center">
+                      <GraduationCap className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div>
-                      <h5 className="font-medium text-indigo-900 dark:text-indigo-100">Grade Level</h5>
-                      <p className="text-sm text-indigo-600 dark:text-indigo-400">Filter by educational level</p>
+                      <h5 className="text-sm font-medium text-indigo-900 dark:text-indigo-100 filter-glassmorphic">Grade Level</h5>
+                      <p className="text-xs text-indigo-600 dark:text-indigo-400">Educational level</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -2101,18 +2242,18 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             <div className="space-y-2">
               
               {/* Live Courses */}
-              <div className="bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/30 overflow-hidden" data-live-courses-dropdown>
+              <div className="filter-glassmorphic rounded-xl border border-red-100 dark:border-red-900/30 overflow-hidden" data-live-courses-dropdown>
                 <div 
                   className="flex items-center justify-between cursor-pointer p-4 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-300 ease-in-out" 
                   onClick={() => setIsLiveCoursesDropdownOpen(!isLiveCoursesDropdownOpen)}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-red-100 dark:bg-red-900/40 rounded-lg flex items-center justify-center transition-all duration-300">
+                    <div className="w-8 h-8 filter-glassmorphic rounded-lg flex items-center justify-center transition-all duration-300">
                       <Zap className="w-4 h-4 text-red-600 dark:text-red-400" />
                     </div>
                     <div>
-                      <h5 className="font-medium text-red-900 dark:text-red-100">Live Courses</h5>
-                      <p className="text-sm text-red-600 dark:text-red-400">Interactive live sessions with instructors</p>
+                      <h5 className="text-sm font-medium text-red-900 dark:text-red-100 filter-glassmorphic">Live Courses</h5>
+                      <p className="text-xs text-red-600 dark:text-red-400">Live sessions</p>
                     </div>
                   </div>
                   <ChevronDown className={`w-4 h-4 text-red-600 dark:text-red-400 transition-all duration-300 ease-in-out ${isLiveCoursesDropdownOpen ? 'rotate-180 scale-110' : 'rotate-0 scale-100'}`} />
@@ -2120,7 +2261,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                 
                 {/* Live Courses Dropdown Content */}
                 <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isLiveCoursesDropdownOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}`}>
-                  <div className="px-4 pb-4 space-y-2 border-t border-red-100 dark:border-red-900/30 bg-white dark:bg-gray-800">
+                  <div className="px-4 pb-4 space-y-2 border-t border-red-100 dark:border-red-900/30 filter-glassmorphic">
                     {liveCoursesOptions.map((option, index) => (
                       <label
                         key={option}
@@ -2168,18 +2309,18 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
               </div>
 
               {/* Blended Learning */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30 overflow-hidden" data-blended-learning-dropdown>
+              <div className="filter-glassmorphic rounded-xl border border-blue-100 dark:border-blue-900/30 overflow-hidden" data-blended-learning-dropdown>
                 <div 
                   className="flex items-center justify-between cursor-pointer p-4 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all duration-300 ease-in-out" 
                   onClick={() => setIsBlendedLearningDropdownOpen(!isBlendedLearningDropdownOpen)}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center transition-all duration-300">
+                    <div className="w-8 h-8 filter-glassmorphic rounded-lg flex items-center justify-center transition-all duration-300">
                       <Target className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <h5 className="font-medium text-blue-900 dark:text-blue-100">Blended Learning</h5>
-                      <p className="text-sm text-blue-600 dark:text-blue-400">Combination of live and self-paced learning</p>
+                      <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 filter-glassmorphic">Blended Learning</h5>
+                      <p className="text-xs text-blue-600 dark:text-blue-400">Live + self-paced</p>
                     </div>
                   </div>
                   <ChevronDown className={`w-4 h-4 text-blue-600 dark:text-blue-400 transition-all duration-300 ease-in-out ${isBlendedLearningDropdownOpen ? 'rotate-180 scale-110' : 'rotate-0 scale-100'}`} />
@@ -2187,7 +2328,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                 
                 {/* Blended Learning Dropdown Content */}
                 <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isBlendedLearningDropdownOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}`}>
-                  <div className="px-4 pb-4 space-y-2 border-t border-blue-100 dark:border-blue-900/30 bg-white dark:bg-gray-800">
+                  <div className="px-4 pb-4 space-y-2 border-t border-blue-100 dark:border-blue-900/30 filter-glassmorphic">
                     {blendedLearningOptions.map((option, index) => (
                       <label
                         key={option}
@@ -2235,18 +2376,18 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
               </div>
 
               {/* Free Courses */}
-              <div className="bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-900/30 overflow-hidden" data-free-courses-dropdown>
+              <div className="filter-glassmorphic rounded-xl border border-green-100 dark:border-green-900/30 overflow-hidden" data-free-courses-dropdown>
                 <div 
                   className="flex items-center justify-between cursor-pointer p-4 hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-300 ease-in-out" 
                   onClick={() => setIsFreeCoursesDropdownOpen(!isFreeCoursesDropdownOpen)}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center transition-all duration-300">
+                    <div className="w-8 h-8 filter-glassmorphic rounded-lg flex items-center justify-center transition-all duration-300">
                       <span className="text-green-600 dark:text-green-400 font-bold text-sm">$</span>
                     </div>
                     <div>
-                      <h5 className="font-medium text-green-900 dark:text-green-100">Free Courses</h5>
-                      <p className="text-sm text-green-600 dark:text-green-400">Free courses to get you started</p>
+                      <h5 className="text-sm font-medium text-green-900 dark:text-green-100 filter-glassmorphic">Free Courses</h5>
+                      <p className="text-xs text-green-600 dark:text-green-400">Get started free</p>
                     </div>
                   </div>
                   <ChevronDown className={`w-4 h-4 text-green-600 dark:text-green-400 transition-all duration-300 ease-in-out ${isFreeCoursesDropdownOpen ? 'rotate-180 scale-110' : 'rotate-0 scale-100'}`} />
@@ -2254,7 +2395,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                 
                 {/* Free Courses Dropdown Content */}
                 <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isFreeCoursesDropdownOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}`}>
-                  <div className="px-4 pb-4 space-y-2 border-t border-green-100 dark:border-green-900/30 bg-white dark:bg-gray-800">
+                  <div className="px-4 pb-4 space-y-2 border-t border-green-100 dark:border-green-900/30 filter-glassmorphic">
                     {freeCoursesOptions.map((option, index) => (
                       <label
                         key={option}
@@ -2310,63 +2451,77 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     );
   };
 
-  // Mobile Categories dropdown component - visible only on mobile
+  // Enhanced Mobile Categories dropdown component with improved UX
   const MobileCategoriesDropdown = React.memo(() => {
     const mobileCategoriesRef = useRef<HTMLDivElement>(null);
+    const [selectedCount, setSelectedCount] = useState(0);
 
-    // No auto-close behavior - only close via backdrop click or Apply Filters button
-    // This prevents the dropdown from closing when users interact with checkboxes
+    // Calculate total selected filters for badge
+    useEffect(() => {
+      const total = selectedLiveCourses.length + selectedBlendedLearning.length + selectedFreeCourses.length + selectedGrade.length;
+      setSelectedCount(total);
+    }, [selectedLiveCourses, selectedBlendedLearning, selectedFreeCourses, selectedGrade]);
 
     return (
-      <div className="lg:hidden relative" ref={mobileCategoriesRef}>
+      <div className="xl:hidden relative z-50" ref={mobileCategoriesRef}>
         <button
           onClick={() => setIsMobileCategoriesOpen(!isMobileCategoriesOpen)}
-          className="flex items-center justify-center px-3 md:px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 min-w-[100px] md:min-w-[120px]"
+          className={`flex items-center justify-center px-4 py-3 rounded-xl border transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 min-w-[120px] sm:min-w-[140px] ${
+            isMobileCategoriesOpen || selectedCount > 0
+              ? 'bg-purple-50 dark:bg-purple-900/30 border-purple-300 dark:border-purple-600 text-purple-700 dark:text-purple-400'
+              : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+          }`}
         >
-          <span className="text-sm font-medium">Categories</span>
+          <Filter className={`w-4 h-4 mr-2 transition-colors ${
+            isMobileCategoriesOpen || selectedCount > 0 ? 'text-purple-600 dark:text-purple-400' : 'text-gray-500 dark:text-gray-400'
+          }`} />
+          <span className="text-sm font-semibold">Categories</span>
+          {selectedCount > 0 && (
+            <span className="ml-2 bg-purple-500 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[20px] h-5 flex items-center justify-center">
+              {selectedCount}
+            </span>
+          )}
           <ChevronDown 
             size={16} 
-            className={`ml-2 transition-transform duration-200 ${isMobileCategoriesOpen ? 'rotate-180' : ''}`} 
+            className={`ml-2 transition-all duration-300 ${
+              isMobileCategoriesOpen 
+                ? 'rotate-180 text-purple-600 dark:text-purple-400' 
+                : 'text-gray-400 dark:text-gray-500'
+            }`} 
           />
         </button>
 
         {isMobileCategoriesOpen && (
           <>
-            {/* Mobile backdrop - always visible when dropdown is open */}
+            {/* Enhanced mobile backdrop */}
             <div 
-              className="fixed inset-0 bg-black/50 z-[999] block" 
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] animate-in fade-in duration-300" 
               onClick={() => setIsMobileCategoriesOpen(false)}
-              style={{ 
-                touchAction: 'none',
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.5)'
-              }}
             />
-            {/* Categories dropdown content - force visible on mobile */}
+            {/* Enhanced categories dropdown with modern design and iPad support */}
             <div 
-              className="fixed top-[5vh] bottom-[5vh] left-1/2 transform -translate-x-1/2 w-[90vw] max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[1000] flex flex-col overflow-hidden md:absolute md:top-full md:left-0 md:transform-none md:translate-x-0 md:translate-y-0 md:mt-2 md:max-h-[400px] md:h-auto md:bottom-auto md:overflow-y-auto"
+              className="fixed top-[8vh] bottom-[8vh] left-1/2 transform -translate-x-1/2 w-[92vw] max-w-lg bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[1000] flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 duration-300 sm:top-[12vh] sm:bottom-[12vh] sm:w-[80vw] sm:max-w-2xl md:w-[70vw] md:max-w-3xl lg:top-[10vh] lg:bottom-[10vh] lg:w-[60vw] lg:max-w-4xl xl:absolute xl:top-full xl:left-0 xl:transform-none xl:translate-x-0 xl:translate-y-0 xl:mt-3 xl:max-h-[500px] xl:h-auto xl:bottom-auto xl:overflow-y-auto xl:animate-in xl:slide-in-from-top-4 xl:w-96"
               onClick={(e) => e.stopPropagation()}
-              style={{ 
-                touchAction: 'auto',
-                display: 'block',
-                visibility: 'visible',
-                opacity: 1
-              }}
             >
-            {/* Fixed Header - Enhanced UX */}
-            <div className="flex-shrink-0 px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-gray-100/50 dark:from-gray-900 dark:to-gray-800/50 rounded-t-xl">
+            {/* Enhanced Header with statistics */}
+            <div className="flex-shrink-0 px-6 py-5 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/20 rounded-t-2xl">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 tracking-tight">Filter Categories</h3>
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/40 rounded-xl flex items-center justify-center">
+                    <Filter className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Filter Categories</h3>
+                    {selectedCount > 0 && (
+                      <p className="text-sm text-purple-600 dark:text-purple-400 font-medium">
+                        {selectedCount} filter{selectedCount !== 1 ? 's' : ''} active
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <button
                   onClick={handleClearFilters}
-                  className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-200 px-3 py-2 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 font-medium active:scale-95"
+                  className="px-4 py-2 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-200 rounded-xl hover:bg-purple-100 dark:hover:bg-purple-900/40 font-semibold active:scale-95 border border-purple-200 dark:border-purple-800"
                 >
                   Clear All
                 </button>
@@ -2384,18 +2539,18 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             >
               <div className="space-y-4">
                 {/* Live Courses */}
-                <div className="bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-900/30 overflow-hidden">
+                <div className="filter-glassmorphic rounded-lg border border-red-100 dark:border-red-900/30 overflow-hidden">
                                                         <div 
                     className="flex items-center justify-between cursor-pointer p-4 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-300 ease-in-out active:scale-[0.98]" 
                     onClick={() => setIsLiveCoursesDropdownOpen(!isLiveCoursesDropdownOpen)}
                   >
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-red-100 dark:bg-red-900/40 rounded-lg flex items-center justify-center shadow-sm">
+                      <div className="w-8 h-8 filter-glassmorphic rounded-lg flex items-center justify-center shadow-sm">
                         <Zap className="w-4 h-4 text-red-600 dark:text-red-400" />
                       </div>
                       <div>
                         <h5 className="text-sm font-semibold text-red-900 dark:text-red-100">Live Courses</h5>
-                        <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">Interactive live sessions</p>
+                        <p className="text-xs text-red-600 dark:text-red-400">Live sessions</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -2451,13 +2606,13 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                 </div>
 
                 {/* Blended Learning */}
-                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-900/30 overflow-hidden">
+                <div className="filter-glassmorphic rounded-lg border border-blue-100 dark:border-blue-900/30 overflow-hidden">
                                       <div 
                       className="flex items-center justify-between cursor-pointer p-3 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all duration-300 ease-in-out" 
                       onClick={() => setIsBlendedLearningDropdownOpen(!isBlendedLearningDropdownOpen)}
                     >
                     <div className="flex items-center space-x-2">
-                      <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/40 rounded-md flex items-center justify-center">
+                      <div className="w-6 h-6 filter-glassmorphic rounded-md flex items-center justify-center">
                         <Target className="w-3 h-3 text-blue-600 dark:text-blue-400" />
                       </div>
                       <div>
@@ -2511,13 +2666,13 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                 </div>
 
                 {/* Free Courses */}
-                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-900/30 overflow-hidden">
+                <div className="filter-glassmorphic rounded-lg border border-green-100 dark:border-green-900/30 overflow-hidden">
                                       <div 
                       className="flex items-center justify-between cursor-pointer p-3 hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-300 ease-in-out" 
                       onClick={() => setIsFreeCoursesDropdownOpen(!isFreeCoursesDropdownOpen)}
                     >
                     <div className="flex items-center space-x-2">
-                      <div className="w-6 h-6 bg-green-100 dark:bg-green-900/40 rounded-md flex items-center justify-center">
+                      <div className="w-6 h-6 filter-glassmorphic rounded-md flex items-center justify-center">
                         <span className="text-green-600 dark:text-green-400 font-bold text-xs">$</span>
                       </div>
                       <div>
@@ -2571,7 +2726,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                 </div>
 
                 {(!hideGradeFilter && gradeOptions.length > 0) && (
-                  <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-100 dark:border-purple-900/30 overflow-hidden">
+                  <div className="filter-glassmorphic rounded-lg border border-purple-100 dark:border-purple-900/30 overflow-hidden">
                                         <div 
                         className="flex items-center justify-between cursor-pointer p-3 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-all duration-300 ease-in-out" 
                         onClick={() => setIsGradeDropdownOpen(!isGradeDropdownOpen)}
@@ -2669,9 +2824,17 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
               </div>
             </div>
             
-            {/* Fixed Footer with Action Buttons - Enhanced UX */}
-            <div className="flex-shrink-0 px-4 md:px-6 py-5 border-t border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-gray-100/50 dark:from-gray-900 dark:to-gray-800/50 rounded-b-xl backdrop-blur-sm">
-              <div className="flex gap-4">
+            {/* Enhanced Footer with Action Buttons */}
+            <div className="flex-shrink-0 px-6 py-5 border-t border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/20 rounded-b-2xl backdrop-blur-sm">
+              {selectedCount > 0 && (
+                <div className="flex items-center justify-center mb-4 text-sm text-gray-600 dark:text-gray-400">
+                  <Sparkles className="w-4 h-4 mr-2 text-purple-500" />
+                  <span className="font-medium">
+                    {selectedCount} filter{selectedCount !== 1 ? 's' : ''} will be applied
+                  </span>
+                </div>
+              )}
+              <div className="flex gap-3">
                 <button
                   onClick={() => {
                     // Clear all selections
@@ -2681,18 +2844,21 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                     setSelectedGrade([]);
                     setCurrentPage(1);
                   }}
-                  className="flex-1 px-5 py-3.5 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-all duration-200 active:scale-95 shadow-sm"
+                  className="flex-1 px-5 py-3.5 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-all duration-200 active:scale-95 shadow-sm flex items-center justify-center space-x-2"
+                  disabled={selectedCount === 0}
                 >
-                  Clear All
+                  <X className="w-4 h-4" />
+                  <span>Clear All</span>
                 </button>
                 <button
                   onClick={() => {
                     setIsMobileCategoriesOpen(false);
                     setCurrentPage(1);
                   }}
-                  className="flex-1 px-5 py-3.5 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white text-sm font-semibold rounded-xl transition-all duration-200 active:scale-95 shadow-lg hover:shadow-xl"
+                  className="flex-1 px-5 py-3.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white text-sm font-bold rounded-xl transition-all duration-200 active:scale-95 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
                 >
-                  Apply Filters
+                  <Filter className="w-4 h-4" />
+                  <span>Apply Filters</span>
                 </button>
               </div>
             </div>
@@ -3010,7 +3176,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
               style={{ touchAction: 'none' }}
             />
             <div 
-              className="fixed inset-4 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-2rem)] max-w-sm bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-50 max-h-96 overflow-hidden md:absolute md:top-full md:right-0 md:left-auto md:transform-none md:translate-x-0 md:translate-y-0 md:inset-auto md:mt-2 md:w-96"
+              className="fixed inset-4 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-2rem)] max-w-sm filter-glassmorphic rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-50 max-h-96 overflow-hidden md:absolute md:top-full md:right-0 md:left-auto md:transform-none md:translate-x-0 md:translate-y-0 md:inset-auto md:mt-2 md:w-96"
               onClick={(e) => e.stopPropagation()}
               style={{ touchAction: 'auto' }}
             >
@@ -3102,12 +3268,12 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   // Modern main content renderer
   const renderMainContent = (): React.ReactNode => {
     return (
-      <div className={!hideCategoryFilter ? "w-full lg:w-[80%] px-4 md:px-6 lg:px-8 py-4" : "w-full px-4 md:px-6 lg:px-8 py-4"}>
+      <div className={!hideCategoryFilter ? "w-full lg:w-[80%] py-4" : "w-full py-4"}>
         {/* Header Section */}
-                  <div className="mb-3">
+        <div className="mb-3 px-4 md:px-6 lg:px-8">
           {/* Results count - Improved styling */}
           {!hideFilterBar && (
-                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
               <div className="flex items-center gap-2 mb-2 sm:mb-0">
                 <div className="text-gray-700 dark:text-gray-300">
                   <span className="text-xl font-semibold text-gray-900 dark:text-gray-100">
@@ -3153,8 +3319,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
         </div>
 
         {/* Pagination Section - Fixed styling */}
-                  {totalPages > 1 && (
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        {totalPages > 1 && (
+          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 px-4 md:px-6 lg:px-8">
             <nav className="flex justify-center" aria-label="Pagination">
               {simplePagination ? (
                 <SimplePaginationWrapper
@@ -3199,7 +3365,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
       document.body.style.touchAction = 'none'; // Prevent touch scrolling
       document.body.style.userSelect = 'none'; // Prevent text selection
       document.body.style.webkitUserSelect = 'none'; // Safari
-      document.body.style.msUserSelect = 'none'; // IE
+      (document.body.style as any).msUserSelect = 'none'; // IE
       
       // Also prevent scrolling on document element for iOS
       document.documentElement.style.overflow = 'hidden';
@@ -3224,7 +3390,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
       document.body.style.touchAction = '';
       document.body.style.userSelect = '';
       document.body.style.webkitUserSelect = '';
-      document.body.style.msUserSelect = '';
+      (document.body.style as any).msUserSelect = '';
       
       // Reset document element styles
       document.documentElement.style.overflow = '';
@@ -3257,7 +3423,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
         document.body.style.touchAction = '';
         document.body.style.userSelect = '';
         document.body.style.webkitUserSelect = '';
-        document.body.style.msUserSelect = '';
+        (document.body.style as any).msUserSelect = '';
         
         document.documentElement.style.overflow = '';
         document.documentElement.style.position = '';
@@ -3269,12 +3435,67 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     };
   }, [isGradeDropdownOpen, isLiveCoursesDropdownOpen, isBlendedLearningDropdownOpen, isFreeCoursesDropdownOpen, isFilterDropdownOpen, isMobileCategoriesOpen]);
 
+  // Add formatDuration helper function if not already present
+  const formatDuration = (duration: any) => {
+    if (!duration) return "Self-paced";
+    
+    if (typeof duration === 'string' && duration.includes(' ')) {
+      const parts = duration.toLowerCase().split(' ');
+      const durationParts = [];
+      let totalWeeks = 0;
+      let monthValue = 0;
+      let weekValue = 0;
+      
+      for (let i = 0; i < parts.length; i += 2) {
+        if (i + 1 >= parts.length) break;
+        
+        const value = parseFloat(parts[i]);
+        const unit = parts[i + 1].replace(/s$/, '');
+        
+        if (!isNaN(value) && value > 0) {
+          switch (unit) {
+            case 'year':
+              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Year' : 'Years'}`);
+              totalWeeks += value * 52;
+              break;
+            case 'month':
+              monthValue = value;
+              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Month' : 'Months'}`);
+              totalWeeks += value * 4;
+              break;
+            case 'week':
+              weekValue = value;
+              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Week' : 'Weeks'}`);
+              totalWeeks += value;
+              break;
+            case 'day':
+              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Day' : 'Days'}`);
+              totalWeeks += value / 7;
+              break;
+            case 'hour':
+              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Hour' : 'Hours'}`);
+              break;
+          }
+        }
+      }
+      
+      if (durationParts.length > 0) {
+        if (monthValue > 0 && weekValue > 0) {
+          return `${Math.round(monthValue)} ${Math.round(monthValue) === 1 ? 'Month' : 'Months'} / ${Math.round(weekValue)} ${Math.round(weekValue) === 1 ? 'Week' : 'Weeks'}`;
+        }
+        return durationParts.join(' ');
+      }
+    }
+    
+    return duration;
+  };
+
   return (
     <ErrorBoundary>
       <section className="w-full" role="region" aria-label="Course Filter">
         {/* Modern header */}
         {!hideHeader && (
-          <div className="text-center mb-6 bg-white dark:bg-gray-800 py-8 border-b border-gray-200 dark:border-gray-700">
+          <div className="text-center mb-6 filter-header-glassmorphic py-8 border-b border-gray-200 dark:border-gray-700">
             <div className="px-4 md:px-6 lg:px-8">
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 {typeof CustomText === 'string' ? CustomText : "Explore Courses"}
@@ -3290,7 +3511,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
         <div className="w-full">
           {/* Search and filters bar */}
           {!hideFilterBar && (
-            <div className="bg-white dark:bg-gray-800 py-3 md:py-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="filter-glassmorphic py-3 md:py-4 border-b border-gray-200 dark:border-gray-700">
               <div className="px-4 md:px-6 lg:px-8">
                               <div className="flex flex-col md:flex-row gap-2 md:gap-3 mb-4">
                 {!hideSearch && <SearchInput searchTerm={searchTerm} handleSearch={handleSearch} setSearchTerm={setSearchTerm} />}

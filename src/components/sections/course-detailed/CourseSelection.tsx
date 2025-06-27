@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  BookOpen, Clock, Award, Users, ChevronDown, ChevronUp,
+  BookOpen, Award, Users, ChevronDown, ChevronUp,
   GraduationCap, Star, CheckCircle, MapPin, CalendarDays
 } from 'lucide-react';
 import Image from 'next/image';
@@ -55,6 +55,7 @@ interface CourseSelectionProps {
   categoryInfo: CategoryInfo;
   formatPriceFunc?: (price: number) => string;
   loading?: boolean;
+  selectedGrade?: string;
 }
 
 const CourseSelection: React.FC<CourseSelectionProps> = ({
@@ -63,11 +64,20 @@ const CourseSelection: React.FC<CourseSelectionProps> = ({
   onCourseSelect,
   categoryInfo,
   formatPriceFunc = (price) => `$${price}`,
-  loading = false
+  loading = false,
+  selectedGrade = 'all'
 }) => {
+  // Auto-expand on desktop for better UX
   const [isExpanded, setIsExpanded] = useState(false);
-  
 
+  // Detect viewport width once on mount and expand if desktop
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const desktop = window.innerWidth >= 1024; // Tailwind lg breakpoint
+    if (desktop) {
+      setIsExpanded(true);
+    }
+  }, []);
 
   // Format duration to show months and weeks
   const formatDuration = (durationStr: string) => {
@@ -120,32 +130,43 @@ const CourseSelection: React.FC<CourseSelectionProps> = ({
     >
       {/* Header */}
       <div className={`${categoryInfo.bgClass} border-b ${categoryInfo.borderClass || 'border-gray-200 dark:border-gray-700'} px-4 py-3`}>
-        <button
-          onClick={toggleExpanded}
-          className="w-full flex items-center justify-between text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg"
-        >
-          <div className="flex items-center space-x-3">
-            <div className={`p-2 rounded-lg ${categoryInfo.bgClass} border ${categoryInfo.borderClass || 'border-gray-200'}`}>
-              <BookOpen className={`h-5 w-5 ${categoryInfo.colorClass}`} />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                Choose from our available courses
-              </h3>
-              <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-300">
-                <span className={`font-medium ${categoryInfo.colorClass}`}>
-                  {categoryInfo.displayName}
-                </span>
+        <div className="flex items-center justify-between">
+          <button
+            onClick={toggleExpanded}
+            className="flex-1 flex items-center text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg"
+          >
+            <div className="flex items-center space-x-3">
+              <div className={`p-2 rounded-lg ${categoryInfo.bgClass} border ${categoryInfo.borderClass || 'border-gray-200'}`}>
+                <BookOpen className={`h-5 w-5 ${categoryInfo.colorClass}`} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                  Choose Duration
+                </h3>
+                <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-300">
+                  <span className="font-medium">
+                    {selectedCourse ? formatDuration(selectedCourse.course_duration) : 'Select duration'}
+                  </span>
+                </div>
               </div>
             </div>
+          </button>
+          
+          <div className="flex items-center space-x-2">
+            {/* Dropdown Toggle */}
+            <button
+              onClick={toggleExpanded}
+              className="p-2 rounded-lg bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              <motion.div
+                animate={{ rotate: isExpanded ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              </motion.div>
+            </button>
           </div>
-          <motion.div
-            animate={{ rotate: isExpanded ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <ChevronDown className="h-5 w-5 text-gray-400" />
-          </motion.div>
-        </button>
+        </div>
       </div>
 
       {/* Course List */}
@@ -161,8 +182,11 @@ const CourseSelection: React.FC<CourseSelectionProps> = ({
             <div className="p-4 space-y-3 max-h-96 overflow-y-auto">
               {filteredCourses.length === 0 ? (
                 <div className="text-center py-8">
-                  <BookOpen className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                  <p className="text-gray-500 dark:text-gray-400">No courses available in this category</p>
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <BookOpen className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Coming Soon</h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">New courses for this grade are launching soon. Stay tuned!</p>
                 </div>
               ) : (
                 <AnimatePresence mode="wait">
@@ -187,61 +211,31 @@ const CourseSelection: React.FC<CourseSelectionProps> = ({
                         </div>
                       )}
 
-                      <div className="flex items-start space-x-3">
-                        {/* Course Thumbnail */}
-                        <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
-                          {course.thumbnail ? (
-                            <Image
-                              src={course.thumbnail}
-                              alt={course.title}
-                              width={48}
-                              height={48}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <GraduationCap className="h-6 w-6 text-gray-400" />
-                            </div>
-                          )}
-                        </div>
-
+                      <div className="flex items-start">
                         {/* Course Info */}
                         <div className="flex-1 min-w-0">
-                          <h5 className="text-sm font-semibold text-gray-900 dark:text-white truncate mb-1">
-                            {course.title}
-                          </h5>
-                          <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2 mb-2">
-                            {course.description}
-                          </p>
                           
-                          {/* Course Meta */}
-                          <div className="flex items-center space-x-3 text-xs text-gray-500 dark:text-gray-400">
-                            <div className="flex items-center space-x-1">
-                              <Clock className="h-3 w-3" />
-                              <span>{formatDuration(course.course_duration)}</span>
+                          {/* Course Duration and Grade (conditionally) */}
+                          <div className="flex flex-col gap-3">
+                            <div className="flex flex-wrap gap-2">
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                {formatDuration(course.course_duration)}
+                              </span>
+                              {selectedGrade === 'all' && course.grade && (
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border border-green-200 dark:border-green-800">
+                                  {course.grade}
+                                </span>
+                              )}
                             </div>
-                            {course.is_Certification && (
-                              <div className="flex items-center space-x-1">
-                                <Award className="h-3 w-3 text-yellow-500" />
-                                <span>Certificate</span>
-                              </div>
-                            )}
-                            <div className="flex items-center space-x-1">
-                              <Users className="h-3 w-3" />
-                              <span>{course.enrolled_students}</span>
+                            <div className="text-lg font-bold text-gray-900 dark:text-white">
+                              {course.isFree ? (
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                  Free
+                                </span>
+                              ) : (
+                                formatPriceFunc(course.course_fee)
+                              )}
                             </div>
-                          </div>
-
-                          {/* Price */}
-                          <div className="mt-2 flex items-center justify-between">
-                            <div className="text-sm font-bold text-gray-900 dark:text-white">
-                              {course.isFree ? 'Free' : formatPriceFunc(course.course_fee)}
-                            </div>
-                            {course.no_of_Sessions > 0 && (
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
-                                {course.no_of_Sessions} sessions
-                              </div>
-                            )}
                           </div>
                         </div>
                       </div>

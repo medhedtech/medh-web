@@ -62,22 +62,32 @@ const getGlassmorphismStyles = (isDark: boolean): string => {
     
     .course-grid {
       display: grid;
-      gap: 1.5rem;
-      transform: translate3d(0, 0, 0);
-      will-change: transform;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      justify-content: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
     }
     
     @media (min-width: 640px) {
       .course-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 1.75rem;
+        gap: 1rem;
       }
     }
     
     @media (min-width: 1024px) {
       .course-grid {
         grid-template-columns: repeat(4, 1fr);
-        gap: 2rem;
+        gap: 1rem;
+      }
+    }
+    
+    @media (min-width: 1280px) {
+      .course-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
       }
     }
     
@@ -102,41 +112,92 @@ const getGlassmorphismStyles = (isDark: boolean): string => {
       }
     }
     
-    .live-course-card-wrapper .course-card .flex.flex-col.items-center.justify-between {
-      padding-top: 0.75rem !important;
-      padding-bottom: 0.75rem !important;
-      min-height: 120px !important;
+    .home-course-card {
+      width: 100% !important;
+      max-width: 360px !important;
+      aspect-ratio: 5/6 !important;
+      margin: 0 auto !important;
+      display: flex !important;
+      flex-direction: column !important;
     }
     
-    .live-course-card-wrapper .course-card h3 {
-      margin-top: 0.25rem !important;
-      margin-bottom: 0.5rem !important;
+    .home-course-card .course-card {
+      height: 100% !important;
+      display: flex !important;
+      flex-direction: column !important;
+      padding: 0.75rem !important;
+      gap: 0.5rem !important;
     }
     
-    .live-course-card-wrapper .course-card .text-center.mx-auto {
+    .home-course-card .course-card > * {
+      margin: 0 !important;
+    }
+    
+    .home-course-card .course-title,
+    .home-course-card h3 {
+      text-align: center !important;
+      font-size: 1rem !important;
+      font-weight: 600 !important;
+      line-height: 1.2 !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
+      width: 100% !important;
+    }
+    
+    .home-course-card .course-info {
+      padding: 0.25rem !important;
       text-align: center !important;
-    }
-    
-    .live-course-card-wrapper .course-card .bg-indigo-50,
-    .live-course-card-wrapper .course-card .bg-\\[\\#379392\\]\\/10 {
-      margin-top: 0.5rem !important;
-      margin-bottom: 0.25rem !important;
-    }
-    
-    .live-course-card-wrapper .course-card > div > div.flex.flex-col.px-5.pt-3.pb-5 {
-      padding-top: 0.5rem !important;
-      padding-bottom: 1rem !important;
-    }
-    
-    .live-course-card-wrapper .course-card > div > div.flex.flex-col.px-5.pt-3.pb-5 > div {
-      gap: 0.5rem !important;
       display: flex !important;
       flex-direction: column !important;
       align-items: center !important;
-      justify-content: center !important;
+      gap: 0.25rem !important;
+    }
+    
+    .home-course-card .course-duration {
+      font-size: 0.75rem !important;
+      padding: 0.125rem 0.5rem !important;
+      border-radius: 0.5rem !important;
+      font-weight: 500 !important;
+      background: rgba(55, 147, 146, 0.1) !important;
+      color: rgb(55, 147, 146) !important;
+      width: fit-content !important;
+      margin: 0 auto !important;
+    }
+    
+    .home-course-card .live-badge {
+      font-size: 0.625rem !important;
+      padding: 0.125rem 0.5rem !important;
+      border-radius: 0.75rem !important;
+      font-weight: 600 !important;
+      background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+      color: white !important;
+      box-shadow: 0 1px 3px rgba(239, 68, 68, 0.4) !important;
+      position: absolute !important;
+      top: 0.5rem !important;
+      left: 0.5rem !important;
+      z-index: 10 !important;
+    }
+    
+    .home-course-card .course-price {
+      text-align: center !important;
+      font-weight: 600 !important;
+      color: rgb(55, 147, 146) !important;
+    }
+    
+    .home-course-card .course-sessions {
+      text-align: center !important;
+      font-size: 0.75rem !important;
+      color: #6b7280 !important;
+    }
+    
+    .home-course-card .course-button {
+      margin-top: auto !important;
+      width: 100% !important;
+      padding: 0.5rem !important;
+      border-radius: 0.5rem !important;
+      font-size: 0.875rem !important;
+      font-weight: 500 !important;
     }
   `;
   
@@ -540,7 +601,7 @@ const CourseCardWrapper = memo<{
         class_type: 'Live Courses',
         isFree: Boolean(course.isFree) || false,
         batchPrice: batchPrice || undefined,
-        url: course.url,
+        url: `/enrollment/${(course.course_category || course.category || course.course_title)?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`,
         learning_points: course.learning_points || [],
         prerequisites: course.prerequisites || [],
         instructor: course.instructor || null,
@@ -595,13 +656,15 @@ const CourseCardWrapper = memo<{
   }, [course, courseType, index]);
 
   return (
-    <div className="flex flex-col h-full w-full min-w-0 gpu-accelerated hover-lift-gpu">
+    <div className="home-course-card">
       <CourseCard 
         course={enhancedCourse}
         classType={courseType === 'live' ? "Live Courses" : "blended"}
         preserveClassType={courseType === 'live'}
         showDuration={true}
         isCompact={true}
+        coursesPageCompact={true}
+        viewMode="grid"
         index={index}
         isLCP={index < 2}
       />
@@ -646,7 +709,7 @@ const ImageWrapper: React.FC<ImageWrapperProps> = ({
   const validAlt = alt || 'Course Image';
 
   return (
-    <div className="relative w-full aspect-[4/3] min-h-[160px] sm:min-h-[140px] md:min-h-[150px] bg-gray-100 dark:bg-gray-800/50 overflow-hidden rounded-t-xl group">
+    <div className="relative w-full aspect-[16/9] bg-gray-100 dark:bg-gray-800/50 overflow-hidden rounded-t-xl group">
       <OptimizedImage
         src={validSrc}
         alt={validAlt}
@@ -819,7 +882,7 @@ const HomeCourseSection2 = memo<{
                     status: course.status || "Published",
                     updatedAt: course.updatedAt || new Date().toISOString(),
                     createdAt: course.createdAt || new Date().toISOString(),
-                    url: course.url,
+                    url: `/enrollment/${(course.course_category || course.category || courseTitle)?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`,
                     effort_hours: course.effort_hours,
                     no_of_Sessions: sessionCount,
                     session_display: sessionDisplay,
@@ -1097,17 +1160,17 @@ const HomeCourseSection2 = memo<{
 
   // PERFORMANCE OPTIMIZATION: GPU-optimized memoized class names
   const containerClasses = useMemo(() => {
-    return `w-full py-4 sm:py-6 md:py-8 relative overflow-hidden gpu-accelerated ${
+    return `w-full py-8 sm:py-10 md:py-12 relative overflow-hidden gpu-accelerated ${
       !isDark ? 'bg-gradient-to-br from-gray-50/30 via-white/20 to-gray-100/40' : ''
     }`;
   }, [isDark]);
 
   const headerClasses = useMemo(() => {
-    return "flex flex-col md:flex-row md:items-center justify-between mb-8 sm:mb-10 md:mb-16 lg:mb-20 px-3 sm:px-4 md:px-8 lg:px-10 relative z-10 gpu-accelerated";
+    return "flex flex-col md:flex-row md:items-center justify-center md:justify-between mb-10 sm:mb-12 md:mb-16 lg:mb-20 px-3 sm:px-4 md:px-8 lg:px-10 relative z-10 gpu-accelerated text-center md:text-left";
   }, []);
 
   const titleClasses = useMemo(() => {
-    return "text-sm md:text-2xl lg:text-base font-extrabold mb-3 sm:mb-4 md:mb-6 dark:text-gray-300 max-w-2xl font-medium transition-gpu";
+    return "text-sm md:text-2xl lg:text-base font-extrabold mb-1 sm:mb-2 md:mb-3 dark:text-gray-300 max-w-2xl font-medium transition-gpu";
   }, []);
 
   const descriptionClasses = useMemo(() => {
@@ -1143,7 +1206,7 @@ const HomeCourseSection2 = memo<{
             {CustomDescription}
           </p>
         </div>
-        <div className="mt-4 sm:mt-6 md:mt-0 hidden md:block">
+        <div className="mt-2 sm:mt-3 md:mt-0 hidden md:block">
           <ViewAllButton 
             href="/courses" 
             text="View All Courses"
@@ -1153,8 +1216,8 @@ const HomeCourseSection2 = memo<{
       </div>
 
       {/* GPU-optimized Live Courses Section */}
-      <div className="mb-8 sm:mb-10 md:mb-16 lg:mb-20 px-3 sm:px-4 md:px-8 lg:px-10 gpu-accelerated">
-        <div className="flex items-center justify-between mb-6 sm:mb-8 gpu-accelerated">
+      <div className="mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-3 sm:px-4 md:px-8 lg:px-10 gpu-accelerated">
+        <div className="flex items-center justify-center mb-3 sm:mb-4 gpu-accelerated">
           <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#3bac63] dark:text-[#3bac63] transition-gpu">
             Live Interactive Courses
           </h3>
@@ -1178,21 +1241,14 @@ const HomeCourseSection2 = memo<{
 
       {/* GPU-optimized Blended Courses Section */}
       {!showOnlyLive && (
-        <div className="mb-8 sm:mb-10 md:mb-16 lg:mb-20 px-3 sm:px-4 md:px-8 lg:px-10 gpu-accelerated">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4 gpu-accelerated">
-            <div className="gpu-accelerated">
-              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#3bac63] dark:text-[#3bac63] transition-gpu">
-                Self-Paced Blended Courses
-              </h3>
-              <p className="text-xs mt-1 text-black dark:text-[#3bac63] transition-gpu">
-                (Interactive Video Courses with live doubt-clearing sessions)
-              </p>
-            </div>
-            
-            {/* Filter tags hidden as per user request */}
-            {/* <div className="flex flex-wrap gap-2">
-              <FilterButton ... />
-            </div> */}
+        <div className="mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-3 sm:px-4 md:px-8 lg:px-10 gpu-accelerated">
+          <div className="flex flex-col items-center justify-center text-center gap-2 gpu-accelerated">
+            <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#3bac63] dark:text-[#3bac63] transition-gpu">
+              Self-Paced Blended Courses
+            </h3>
+            <p className="text-xs mt-1 text-black dark:text-[#3bac63] transition-gpu">
+              (Interactive Video Courses with live doubt-clearing sessions)
+            </p>
           </div>
 
           {filteredBlendedCourses.length > 0 ? (
@@ -1213,7 +1269,7 @@ const HomeCourseSection2 = memo<{
       )}
 
       {/* GPU-optimized Mobile View All Button */}
-      <div className="block md:hidden px-3 sm:px-4 md:px-8 lg:px-10 gpu-accelerated">
+      <div className="block md:hidden px-3 sm:px-4 md:px-8 lg:px-10 gpu-accelerated text-center">
         <ViewAllButton 
           href="/courses" 
           text="View All Courses"

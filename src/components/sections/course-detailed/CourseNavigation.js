@@ -58,15 +58,6 @@ const SECTIONS = [
     indicatorColor: 'bg-blue-500 dark:bg-blue-400'
   },
   { 
-    id: 'faq', 
-    label: 'FAQ', 
-    icon: HelpCircle, 
-    mobileLabel: 'FAQ',
-    color: 'violet',
-    lightColor: 'text-violet-500 dark:text-violet-400',
-    indicatorColor: 'bg-violet-500 dark:bg-violet-400'
-  },
-  { 
     id: 'certificate', 
     label: 'Certificate', 
     icon: FileBadge, 
@@ -126,7 +117,7 @@ const CourseNavigation = ({
       variants={fadeIn}
     >
       {/* All navigation options evenly spaced */}
-      <div className={`grid ${showDownloadBrochure ? 'grid-cols-5' : 'grid-cols-4'} sm:flex w-full justify-evenly sm:justify-between gap-1 sm:gap-2`}>
+      <div className={`grid ${showDownloadBrochure ? 'grid-cols-4' : 'grid-cols-3'} sm:flex w-full justify-evenly sm:justify-between gap-1 sm:gap-2`}>
         {visibleSections.map((section) => {
           const Icon = section.icon;
           const isActive = activeSection === section.id;

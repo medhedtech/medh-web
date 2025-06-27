@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import DownloadBrochureModal from "@/components/shared/download-brochure";
+import image6 from "@/assets/images/courses/image6.png";
 import { 
   Clock, 
   Calendar, 
@@ -32,7 +33,8 @@ import {
   Briefcase
 } from "lucide-react";
 import { isFreePrice } from '@/utils/priceUtils';
-import { optimizeCourseImage, preloadCriticalImage, getCourseCardSizes } from '@/utils/imageOptimization';
+import { shimmer, toBase64 } from '@/utils/imageUtils';
+import { optimizeCourseImage, preloadCriticalImage, getCourseCardSizes, getSafeCourseImageUrl } from '@/utils/imageOptimization';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import { batchDOMOperations, throttleRAF } from '@/utils/performanceOptimization';
 
@@ -72,16 +74,7 @@ interface Course {
   schedule?: string;
   effort_hours?: number;
   url?: string;
-  // Enhanced live course properties
-  liveFeatures?: string[];
-  additionalFeatures?: string[];
-  isLiveCourse?: boolean;
-  showFullFeatures?: boolean;
-  useStandardImageRatio?: boolean;
-  useStandardBadgeSize?: boolean;
-  preserveLiveHoverState?: boolean;
-  standardFeatures?: string[];
-}                  
+}
 
 interface CourseCardProps {
   course?: Course;
@@ -91,7 +84,6 @@ interface CourseCardProps {
   classType?: string;
   viewMode?: string;
   isCompact?: boolean;
-  coursesPageCompact?: boolean;
   preserveClassType?: boolean;
   showDuration?: boolean;
   hidePrice?: boolean;
@@ -222,28 +214,36 @@ const animationStyles = `
 `;
 
 // Simple ImageWrapper component using OptimizedImage
-const ImageWrapper: React.FC<ImageWrapperProps & { coursesPageCompact?: boolean; isLiveCourse?: boolean }> = ({ 
+const ImageWrapper: React.FC<ImageWrapperProps> = ({ 
   src, 
   alt, 
   onLoad, 
   onError, 
   priority = false, 
   isLCP = false,
-  index = 0,
-  coursesPageCompact = false,
-  isLiveCourse = false
+  index = 0 
 }) => {
   // Determine if this is an LCP candidate (first 2 images above the fold)
   const shouldBeLCP = isLCP || index < 2;
 
-  // Get optimized image URL
-  const imageSrc = src;
+  // Get safe image URL with proper fallback handling
+  const fallbackSrc = typeof image6 === 'string' ? image6 : image6.src;
+  const imageSrc = getSafeCourseImageUrl(src, undefined, alt) || fallbackSrc;
 
-  // Use consistent 3:2 aspect ratio for all images
-  const imageContainerClasses = `relative w-full aspect-[3/2] overflow-hidden rounded-t-xl group gpu-accelerated`;
+  const handleLoadWrapper = () => {
+    if (onLoad) {
+      onLoad({} as React.SyntheticEvent<HTMLImageElement>);
+    }
+  };
+
+  const handleErrorWrapper = () => {
+    if (onError) {
+      onError({} as React.SyntheticEvent<HTMLImageElement>);
+    }
+  };
 
   return (
-    <div className={imageContainerClasses}>
+    <div className="relative w-full aspect-[3/2] min-h-[160px] sm:min-h-[140px] md:min-h-[150px] bg-gray-100 dark:bg-gray-800/50 overflow-hidden rounded-t-xl group gpu-accelerated">
       <OptimizedImage
         src={imageSrc}
         alt={alt}
@@ -251,8 +251,9 @@ const ImageWrapper: React.FC<ImageWrapperProps & { coursesPageCompact?: boolean;
         className="object-cover transition-opacity duration-300 gpu-accelerated"
         quality={shouldBeLCP ? 95 : 85}
         priority={shouldBeLCP}
-        onLoad={onLoad}
-        onError={onError}
+        placeholder="blur"
+        onLoad={handleLoadWrapper}
+        onError={handleErrorWrapper}
         loading={shouldBeLCP ? 'eager' : 'lazy'}
         decoding={shouldBeLCP ? 'sync' : 'async'}
         sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -275,7 +276,6 @@ const CourseCard: React.FC<CourseCardProps> = ({
   classType = "",
   viewMode = "grid",
   isCompact = false,
-  coursesPageCompact = false,
   preserveClassType = false,
   showDuration = true,
   hidePrice = false,
@@ -285,7 +285,6 @@ const CourseCard: React.FC<CourseCardProps> = ({
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const [isHoveringCTA, setIsHoveringCTA] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [isImageError, setIsImageError] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
@@ -327,7 +326,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
   // Create a new state for mobile touch-activated "hover"
   const [mobileHoverActive, setMobileHoverActive] = useState(false);
 
-  // Check if device is mobile and add glassmorphic styles
+  // Check if device is mobile
   useEffect(() => {
     const checkIfMobile = () => {
       const userAgent = 
@@ -342,15 +341,6 @@ const CourseCard: React.FC<CourseCardProps> = ({
     
     checkIfMobile();
     window.addEventListener("resize", checkIfMobile);
-    
-    // Add glassmorphic styles
-    if (typeof window !== 'undefined') {
-      const existingGlassStyle = document.querySelector('#glassmorphic-styles');
-      if (existingGlassStyle) {
-        existingGlassStyle.remove();
-      }
-      addGlassmorphicStyles();
-    }
     
     return () => window.removeEventListener("resize", checkIfMobile);
   }, []);
@@ -517,15 +507,11 @@ const CourseCard: React.FC<CourseCardProps> = ({
     return effectiveType || 'self-paced';
   };
 
-  // Updated to use the effective class type and enhanced properties
+  // Updated to use the effective class type
   const effectiveClassType = getEffectiveClassType();
-  const isLiveCourse = course?.isLiveCourse || effectiveClassType === 'live';
+  const isLiveCourse = effectiveClassType === 'live';
   const isBlendedCourse = effectiveClassType === 'blended';
   const isSelfPacedCourse = effectiveClassType === 'self-paced' || (!isLiveCourse && !isBlendedCourse);
-  
-  // Enhanced live course features
-  const hasEnhancedFeatures = course?.liveFeatures && course.liveFeatures.length > 0;
-  const shouldPreserveLiveHover = course?.preserveLiveHoverState || isLiveCourse;
 
   const resetTilt = useCallback(() => {
     setTiltStyle({
@@ -535,54 +521,38 @@ const CourseCard: React.FC<CourseCardProps> = ({
   }, []);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!cardRef.current || !isHovered || !isLiveCourse || isHoveringCTA) return; // Only enable for live courses and not when hovering CTA
+    if (!cardRef.current || !isHovered || isBlendedCourse) return; // Disable for blended courses
     
-    // Apply different hover effects based on course type
     const card = cardRef.current as HTMLElement;
     const rect = card.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
     
-    if (isLiveCourse && shouldPreserveLiveHover) {
-      // Enhanced live course hover effect - more subtle tilt with glow
-      const tiltX = (y - 0.5) * 5;
-      const tiltY = (0.5 - x) * 5;
-      
-      setTiltStyle({
-        transform: `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) translateZ(10px)`,
-        transition: 'transform 0.2s ease',
-        boxShadow: '0 20px 40px rgba(55, 147, 146, 0.15), 0 0 0 1px rgba(55, 147, 146, 0.1)'
-      });
-    } else {
-      // Standard tilt effect for self-paced courses
-      const tiltX = (y - 0.5) * 10;
-      const tiltY = (0.5 - x) * 10;
-      
-      setTiltStyle({
-        transform: `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`,
-        transition: 'transform 0.1s ease'
-      });
-    }
+    const tiltX = (y - 0.5) * 10;
+    const tiltY = (0.5 - x) * 10;
+    
+    setTiltStyle({
+      transform: `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`,
+      transition: 'transform 0.1s ease'
+    });
 
     setTooltipPosition({
       x: rect.right,
       y: rect.top
     });
-  }, [isHovered, isLiveCourse, shouldPreserveLiveHover, isHoveringCTA]);
+  }, [isHovered, isBlendedCourse]);
 
   const handleMouseEnter = (e: React.MouseEvent) => {
-    if (!isMobile && isLiveCourse) { // Only enable hover for live courses
+    if (!isMobile && !isBlendedCourse) { // Disable hover for blended courses
       setIsHovered(true);
       setMousePosition({ x: e.clientX, y: e.clientY });
     }
   };
 
   const handleMouseLeave = () => {
-    if (!isMobile && isLiveCourse) { // Only for live courses
+    if (!isMobile && !isBlendedCourse) { // Disable hover for blended courses
       setIsHovered(false);
       setMousePosition({ x: 0, y: 0 });
-      // Reset tilt style
-      resetTilt();
     }
   };
 
@@ -816,8 +786,8 @@ const CourseCard: React.FC<CourseCardProps> = ({
         formattedDuration = `${Math.round(months)} Months`;
       }
       
-      // Return only months, no weeks
-      return formattedDuration;
+      // Add equivalent in weeks
+      return `${formattedDuration} / ${Math.round(totalWeeks)} weeks`;
     } else if (durationLower.includes("day")) {
       // Add parsing for days
       const dayMatches = durationLower.match(/(\d+[\.\d]*)/);
@@ -850,57 +820,6 @@ const CourseCard: React.FC<CourseCardProps> = ({
     return duration;
   };
 
-  // Helper function to extract only months from duration strings like "18 Months (72 Weeks)"
-  const extractMonthsOnly = (duration: any) => {
-    if (!duration) return "";
-    
-    let durationString = "";
-    
-    // Handle different duration formats (string, object, React element)
-    if (typeof duration === 'string') {
-      durationString = duration;
-    } else if (React.isValidElement(duration)) {
-      // Extract text from React element
-      const extractTextFromElement = (element: any): string => {
-        if (typeof element === 'string' || typeof element === 'number') {
-          return String(element);
-        }
-        if (React.isValidElement(element)) {
-          if (typeof element.props.children === 'string') {
-            return element.props.children;
-          } else if (Array.isArray(element.props.children)) {
-            return element.props.children.map(extractTextFromElement).join(' ');
-          } else if (element.props.children) {
-            return extractTextFromElement(element.props.children);
-          }
-        }
-        return '';
-      };
-      durationString = extractTextFromElement(duration);
-    } else if (duration && typeof duration === 'object') {
-      // For plain objects, try to extract string content
-      const objectStr = JSON.stringify(duration);
-      const quotedStrings = objectStr.match(/"[^"]*"/g) || [];
-      durationString = quotedStrings.join(' ').replace(/"/g, '');
-    } else {
-      durationString = String(duration);
-    }
-    
-    // If it contains both months and weeks in parentheses, extract only the months part
-    if (durationString.includes('(') && (durationString.includes('Weeks)') || durationString.includes('weeks)'))) {
-      const monthsPart = durationString.split('(')[0].trim();
-      return monthsPart;
-    }
-    
-    // If it contains "Months" but not in parentheses format, just return as is
-    if (durationString.includes('Month')) {
-      return durationString;
-    }
-    
-    // Otherwise use the regular formatDuration function
-    return formatDuration(durationString);
-  };
-
   const formatCourseGrade = (grade: any) => {
     if (grade === "UG - Graduate - Professionals") {
       return "UG/Grad/Pro";
@@ -918,26 +837,63 @@ const CourseCard: React.FC<CourseCardProps> = ({
     return price;
   };
 
-  // Updated navigate logic: use dynamic enrollment URLs for live courses when provided
   const navigateToCourse = () => {
-    // 1. Check if it's a live class type and redirect to enrollment page
-    if (isLiveCourse && course?._id && course?.course_category) {
-      const categoryName = course.course_category.toLowerCase().replace(/\s+/g, '-');
-      const enrollmentUrl = `/enrollment/${categoryName}?course=${course._id}`;
-      router.push(enrollmentUrl);
-      return;
+    // For live courses, redirect to enrollment page
+    if (isLiveCourse) {
+      // Create enrollment URL slug from course title
+      let enrollmentSlug = '';
+      
+      console.log('Course data for enrollment:', { 
+        url: course?.url, 
+        title: course?.course_title,
+        course: course 
+      });
+      
+      if (course?.course_title) {
+        const title = course.course_title.toLowerCase();
+        
+        // Specific course mappings for exact URLs
+        if (title.includes('ai') && title.includes('data science')) {
+          enrollmentSlug = 'ai-and-data-science';
+        } else if (title.includes('digital marketing')) {
+          enrollmentSlug = 'digital-marketing';
+        } else if (title.includes('personality development')) {
+          enrollmentSlug = 'personality-development';
+        } else if (title.includes('vedic mathematics')) {
+          enrollmentSlug = 'vedic-mathematics';
+        } else {
+          // Generic slug generation for other courses
+          enrollmentSlug = course.course_title
+            .toLowerCase()
+            .replace(/[^a-z0-9\s&-]/g, '') // Keep & character
+            .replace(/&/g, 'and') // Replace & with "and"
+            .replace(/\s+/g, '-') // Replace spaces with hyphens
+            .replace(/-+/g, '-') // Remove multiple consecutive hyphens
+            .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+        }
+        
+        console.log('Generated slug:', enrollmentSlug);
+      }
+      
+      // Ensure we have a valid slug before redirecting
+      if (enrollmentSlug && enrollmentSlug.length > 0) {
+        const enrollmentUrl = `/enrollment/${enrollmentSlug}/`;
+        console.log('Redirecting to:', enrollmentUrl);
+        window.location.href = enrollmentUrl;
+      } else {
+        console.log('No valid slug generated, falling back to course details');
+        // Fallback to course details if no slug can be created
+        if (course?._id) {
+          window.open(`/course-details/${course._id}`, '_blank');
+        }
+      }
     }
-
-    // 2. Prefer an explicit URL if supplied (e.g. enrollment link for live courses)
-    if (course?.url && typeof course.url === 'string' && course.url.trim() !== '') {
-      // Ensure the URL is properly formatted (allow both absolute and relative)
-      const targetUrl = course.url.startsWith('http') ? course.url : course.url.startsWith('/') ? course.url : `/${course.url}`;
-      window.open(targetUrl, '_blank');
-      return;
-    }
-
-    // 3. Fallback: open standard course-details page when course id is present
-    if (course?._id) {
+    // For courses with URL, navigate to that URL
+    else if (course?.url) {
+      window.location.href = course.url;
+    } 
+    // For other courses, we navigate to the course details page
+    else if (course?._id) {
       window.open(`/course-details/${course._id}`, '_blank');
     }
   };
@@ -1194,12 +1150,11 @@ const CourseCard: React.FC<CourseCardProps> = ({
     ` : ''}
   `;
 
-  // Amplified title style for stronger focus
   const mobileTitleStyles = `
     ${isMobile ? `
-      text-[18px]  /* bigger base size */
+      text-[15px]
       leading-snug
-      font-extrabold /* bolder weight */
+      font-semibold
       tracking-tight
     ` : ''}
   `;
@@ -1235,8 +1190,6 @@ const CourseCard: React.FC<CourseCardProps> = ({
         {!isLiveCourse && (
           <button
             onClick={handleBrochureClick}
-            onMouseEnter={() => setIsHoveringCTA(true)}
-            onMouseLeave={() => setIsHoveringCTA(false)}
             className="px-4 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-1.5 
               border border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400"
           >
@@ -1246,9 +1199,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
         )}
         <button
           onClick={navigateToCourse}
-          onMouseEnter={() => setIsHoveringCTA(true)}
-          onMouseLeave={() => setIsHoveringCTA(false)}
-          className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all text-white flex items-center justify-center gap-1.5
+          className={`px-4 py-2 rounded-lg font-medium transition-all text-white flex items-center justify-center gap-1.5
              ${isLiveCourse 
             ? 'bg-[#379392] hover:bg-[#2a7170] shadow-md shadow-[#379392]/20 w-full' 
             : 'bg-indigo-500 hover:bg-indigo-600 shadow-md shadow-indigo-500/20'
@@ -1276,8 +1227,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
             {/* Pass the original card content as children */}
             <div 
               ref={cardRef}
-                          className={`course-card ${mobileCardStyles} group relative flex flex-col ${coursesPageCompact ? 'h-[420px]' : 'h-full'} rounded-2xl overflow-hidden 
-            ${coursesPageCompact ? 'glassmorphic-card' : 'border border-gray-200/30 dark:border-gray-800/40 bg-white/95 dark:bg-gray-900/95 backdrop-filter backdrop-blur-sm'} 
+                          className={`course-card ${mobileCardStyles} group relative flex flex-col h-full rounded-2xl overflow-hidden 
+            border border-gray-200/30 dark:border-gray-800/40 
+            bg-white/95 dark:bg-gray-900/95 backdrop-filter backdrop-blur-sm 
             transition-all duration-300 
             ${isHovered || mobileHoverActive ? 'scale-[1.02] z-10 shadow-2xl' : 'scale-100 z-0 shadow-lg'}
             ${styles.borderHover} ${styles.shadowHover} ${isLiveCourse ? styles.borderLeft : ''}
@@ -1288,7 +1240,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
             >
               {/* Course type indicator tag - for desktop or when mobile hover is not active */}
               {(isLiveCourse || isBlendedCourse) && (!isMobile || !mobileHoverActive) && (
-                <div className={`absolute top-2 left-2 z-20 px-2.5 py-1 rounded-full text-xs font-bold 
+                <div className={`absolute top-2 right-2 z-20 px-2.5 py-1 rounded-full text-xs font-bold 
                   ${styles.tagBg} ${styles.tagText} flex items-center gap-1.5 cursor-pointer group/tag`}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1297,17 +1249,12 @@ const CourseCard: React.FC<CourseCardProps> = ({
                   }}
                 >
                   {content.tagIcon}
-                  <span>
-                    {isLiveCourse 
-                      ? (extractMonthsOnly(course?.duration_range || course?.course_duration) || "Live Course")
-                      : content.tag
-                    }
-                  </span>
+                  <span>{content.tag}</span>
                   <Info size={13} className="group-hover/tag:animate-pulse" />
                   
                   {/* Class Type Tooltip */}
                   {showTooltip && (
-                    <div className="absolute top-full left-0 mt-2 w-60 p-3 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 text-left text-gray-800 dark:text-gray-200 text-xs">
+                    <div className="absolute top-full right-0 mt-2 w-60 p-3 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 text-left text-gray-800 dark:text-gray-200 text-xs">
                       <div className="flex justify-between items-start mb-1.5">
                         <h4 className="font-bold text-sm">
                           {isLiveCourse 
@@ -1400,10 +1347,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                   <div className="flex items-center gap-1">
                     {content.sessionIcon}
                     <span className="font-semibold">
-                      {isLiveCourse 
-                        ? (course?.duration_range || extractMonthsOnly(course?.course_duration) || "Live Course")
-                        : ((course as any)?.session_range || `${course?.no_of_Sessions || "0"} ${content.sessionLabel}`)
-                      }
+                      { (course as any)?.session_range || `${course?.no_of_Sessions || "0"} ${content.sessionLabel}` }
                     </span>
                   </div>
                   <button 
@@ -1421,20 +1365,18 @@ const CourseCard: React.FC<CourseCardProps> = ({
 
               {/* Image section */}
               <ImageWrapper
-                src={course?.course_image || ''}
+                src={getSafeCourseImageUrl(course?.course_image, course?._id, course?.course_title) || (image6 as any)}
                 alt={course?.course_title || "Course Image"}
                 onLoad={handleImageLoad}
                 onError={handleImageError}
                 priority={isLCP}
                 isLCP={isLCP}
                 index={index}
-                coursesPageCompact={coursesPageCompact}
-                isLiveCourse={isLiveCourse}
               />
 
               {/* Course info */}
-              <div className={`${mobileContentStyles} flex flex-col ${coursesPageCompact ? (isLiveCourse ? 'px-3 pt-3 pb-4' : 'px-3 pt-2 pb-3') : 'px-5 pt-3 pb-5'} flex-grow justify-between`}>
-                <div className={`flex flex-col items-center justify-between flex-grow ${coursesPageCompact ? (isLiveCourse ? 'py-2 min-h-[120px]' : 'py-1 min-h-[100px]') : 'py-2 min-h-[140px]'}`}>
+              <div className={`${mobileContentStyles} flex flex-col px-5 pt-3 pb-5 flex-grow justify-between`}>
+                <div className="flex flex-col items-center justify-between flex-grow py-2 min-h-[140px]">
                   {/* Course category badge */}
                   {course?.course_grade && (
                     <div className={`inline-flex mb-2 items-center text-xs font-semibold rounded-full px-3 py-1 ${
@@ -1448,21 +1390,21 @@ const CourseCard: React.FC<CourseCardProps> = ({
                     </div>
                   )}
 
-                  {/* Course title - centered */}
-                  <h3 className={`${mobileTitleStyles} text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white line-clamp-2 text-center mx-auto max-w-[95%] leading-tight min-h-[3rem] flex items-center justify-center ${course?.course_category ? 'mt-1' : 'mt-0'}`}>
+                  {/* Course title - optimized spacing */}
+                  <h3 className={`${mobileTitleStyles} text-base font-bold text-gray-900 dark:text-white line-clamp-2 text-center mx-auto max-w-[95%] leading-tight min-h-[3rem] flex items-center justify-center ${course?.course_category ? 'mt-1' : 'mt-0'}`}>
                     {course?.course_title || "Course Title"}
                   </h3>
                   
-                                  {/* Course description - optimized spacing and responsive */}
+                                  {/* Course description - optimized spacing */}
                 {!isCompact && !hideDescription && (
-                  <p className={`text-xs sm:text-sm lg:text-xs xl:text-sm text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 max-w-[95%] h-8 sm:h-10 ${coursesPageCompact ? 'text-left w-full' : 'text-center mx-auto flex items-center justify-center'}`}>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 text-center mx-auto max-w-[95%] h-10 flex items-center justify-center">
                     {courseDescriptionText}
                   </p>
                 )}
 
-                  {/* Session Count Indicator and Features - displayed in normal card view */}
+                  {/* Session Count Indicator - displayed in normal card view */}
                   {course?.no_of_Sessions && (
-                    <div className="flex flex-col items-center mt-2 mb-1 space-y-2">
+                    <div className="flex items-center justify-center mt-2 mb-1">
                       {isBlendedCourse ? (
                         <div className="flex flex-col items-center gap-1">
                           <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
@@ -1474,131 +1416,14 @@ const CourseCard: React.FC<CourseCardProps> = ({
                             <span>02 Q&A Live Sessions</span>
                           </div>
                         </div>
-                      ) : isLiveCourse ? (
-                        <div className="flex flex-col items-center gap-1.5 w-full">
-                          <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-[#379392]/10 text-[#379392]">
-                            {content.sessionIcon}
-                            <span className="ml-1">{course.no_of_Sessions} Live Sessions</span>
-                          </div>
-                          
-                          {/* Live Course Features - Enhanced Information Display */}
-                          <div className="flex flex-col gap-2 w-full">
-                            {/* Course Duration for Live Courses */}
-                            {course?.course_duration && (
-                              <div className="bg-gradient-to-r from-[#379392]/10 to-[#379392]/5 border border-[#379392]/20 rounded-lg p-3">
-                                <div className="flex items-center justify-center gap-2 mb-2">
-                                  <Calendar size={14} className="text-[#379392]" />
-                                  <span className="text-sm font-semibold text-[#379392]">Course Duration</span>
-                                </div>
-                                <div className="text-center">
-                                  <div className="text-lg font-bold text-gray-900 dark:text-white">
-                                    {course?.duration_range || extractMonthsOnly(course?.course_duration)}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                            
-                            {/* Effort Hours Display */}
-                            <div className="bg-gradient-to-r from-[#379392]/10 to-[#379392]/5 border border-[#379392]/20 rounded-lg p-3">
-                              <div className="flex items-center justify-center gap-2 mb-2">
-                                <Clock size={14} className="text-[#379392]" />
-                                <span className="text-sm font-semibold text-[#379392]">Required Effort</span>
-                              </div>
-                              <div className="text-center">
-                                <div className="text-lg font-bold text-gray-900 dark:text-white">
-                                  {course?.effort_hours ? `${course.effort_hours}` : '6-8'} hrs/week
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Enhanced Live Course Features */}
-                            <div className="flex flex-wrap gap-2 justify-center">
-                              {/* Show enhanced features if available */}
-                              {course?.additionalFeatures?.map((feature, index) => (
-                                <span key={index} className="inline-flex items-center px-3 py-1.5 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-xs font-semibold border border-purple-200 dark:border-purple-800">
-                                  <Briefcase size={12} className="mr-1.5" />
-                                  {feature}
-                                </span>
-                              ))}
-                              
-                              {/* Fallback to default features if additionalFeatures not present */}
-                              {!course?.additionalFeatures && (
-                                <>
-                                  <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-xs font-semibold border border-purple-200 dark:border-purple-800">
-                                    <Briefcase size={12} className="mr-1.5" />
-                                    Projects
-                                  </span>
-                                  <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-xs font-semibold border border-indigo-200 dark:border-indigo-800">
-                                    <BookOpen size={12} className="mr-1.5" />
-                                    Assignments
-                                  </span>
-                                </>
-                              )}
-                            </div>
-                            
-                            {/* Enhanced Live Course Features from CoursesFilter */}
-                            {(course?.liveFeatures && course.liveFeatures.length > 0) && (
-                              <div className="flex flex-wrap gap-2 justify-center">
-                                {course.liveFeatures.map((feature, index) => {
-                                  if (feature === 'Projects & Assignments') {
-                                    return (
-                                      <span key={index} className="inline-flex items-center px-3 py-1.5 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-xs font-semibold border border-purple-200 dark:border-purple-800">
-                                        <Briefcase size={12} className="mr-1.5" />
-                                        {feature}
-                                      </span>
-                                    );
-                                  } else if (feature === 'Corporate Internship') {
-                                    return (
-                                      <span key={index} className="inline-flex items-center px-3 py-1.5 rounded-lg bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 text-xs font-semibold border border-teal-200 dark:border-teal-800">
-                                        <TrendingUp size={12} className="mr-1.5" />
-                                        {feature}
-                                      </span>
-                                    );
-                                  } else if (feature === 'Job Guarantee') {
-                                    return (
-                                      <span key={index} className="inline-flex items-center px-3 py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-semibold border border-amber-200 dark:border-amber-800">
-                                        <Award size={12} className="mr-1.5" />
-                                        {feature}
-                                      </span>
-                                    );
-                                  } else if (feature === '(18 Month Course Only)') {
-                                    return (
-                                      <span key={index} className="inline-flex items-center px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400 text-xs font-semibold border border-gray-200 dark:border-gray-700">
-                                        <CheckCircle size={12} className="mr-1.5" />
-                                        {feature}
-                                      </span>
-                                    );
-                                  } else {
-                                    return (
-                                      <span key={index} className="inline-flex items-center px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400 text-xs font-semibold border border-gray-200 dark:border-gray-700">
-                                        <CheckCircle size={12} className="mr-1.5" />
-                                        {feature}
-                                      </span>
-                                    );
-                                  }
-                                })}
-                              </div>
-                            )}
-                            
-                            {/* Additional features for longer courses - fallback */}
-                            {!course?.liveFeatures && course?.course_duration && (typeof course.course_duration === 'string' && course.course_duration.toLowerCase().includes('18')) && (
-                              <div className="flex flex-wrap gap-2 justify-center">
-                                <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 text-xs font-semibold border border-teal-200 dark:border-teal-800">
-                                  <TrendingUp size={12} className="mr-1.5" />
-                                  Internship
-                                </span>
-                                <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-semibold border border-amber-200 dark:border-amber-800">
-                                  <Award size={12} className="mr-1.5" />
-                                  Job Guarantee
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
                       ) : (
-                        <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
+                        <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs ${
+                          isLiveCourse 
+                            ? 'bg-[#379392]/10 text-[#379392]' 
+                            : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
+                        }`}>
                           {content.sessionIcon}
-                          <span className="ml-1">{course.no_of_Sessions} sessions</span>
+                          <span className="ml-1">{ ` ${course.no_of_Sessions} sessions` }</span>
                         </div>
                       )}
                     </div>
@@ -1613,14 +1438,14 @@ const CourseCard: React.FC<CourseCardProps> = ({
                         {course.course_duration}
                       </div>
                     ) : (
-                      <div className={`flex items-center ${styles.durationBoxBg} p-2 rounded-lg justify-center`}>
-                        <Clock size={16} className={`mr-2 ${styles.durationIconColor} flex-shrink-0 lg:w-4 lg:h-4`} />
+                      <div className={`flex items-center ${styles.durationBoxBg} p-3 rounded-lg justify-center`}>
+                        <Clock size={18} className={`mr-2.5 ${styles.durationIconColor} flex-shrink-0`} />
                         <div className="text-center">
-                          <span className={`${styles.durationTextColor} font-semibold text-xs sm:text-sm lg:text-xs xl:text-sm`}>
+                          <span className={`${styles.durationTextColor} font-semibold text-sm`}>
                             {isLiveCourse ? 'Course Duration' : 'Learning Experience'}
                           </span>
-                          <p className="text-gray-700 dark:text-gray-300 font-medium text-xs sm:text-sm lg:text-xs xl:text-sm mt-0.5">
-                            {isBlendedCourse ? 'Self-paced' : (course?.duration_range || extractMonthsOnly(course?.course_duration))}
+                          <p className="text-gray-700 dark:text-gray-300 font-medium text-sm mt-0.5">
+                            {isBlendedCourse ? 'Self-paced' : (course?.duration_range || formatDuration(course?.course_duration))}
                           </p>
                         </div>
                       </div>
@@ -1628,40 +1453,22 @@ const CourseCard: React.FC<CourseCardProps> = ({
                   </div>
                 )}
 
-                {/* Price section - Enhanced for Live Courses */}
+                {/* Price section */}
                 {!hidePrice && (
                   <div className={`mt-1.5 text-center`}>
-                    {isLiveCourse ? (
-                      <div className="bg-gradient-to-r from-[#379392]/5 to-[#379392]/10 border border-[#379392]/20 rounded-lg p-4 mb-2">
-                        <div className="flex flex-col items-center gap-1">
-                          <div className="flex items-baseline gap-1.5 justify-center">
-                            <span className="text-2xl font-bold text-[#379392]">
-                              INR {course?.course_fee ? Math.floor(course.course_fee / 1000) + 'K' : '119K'}
-                            </span>
-                            <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">onwards</span>
-                          </div>
-                          {course?.original_fee && (
-                            <span className="text-sm text-gray-500 line-through">
-                              INR {Math.floor(course.original_fee / 1000)}K
-                            </span>
-                          )}
-                          <span className="text-xs text-[#379392] font-semibold bg-[#379392]/10 px-2 py-1 rounded-full">
-                            Live Course Price
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-baseline gap-1.5 justify-center">
-                        <span className={`text-lg font-bold ${styles.priceColor}`}>
-                          {formatPrice(course.course_fee, course.batchPrice)}
-                        </span>
-                        {course?.original_fee && (
-                          <span className="text-sm text-gray-500 line-through">
-                            {formatCurrencyPrice(convertPrice(course.original_fee))}
-                          </span>
-                        )}
-                      </div>
+                                      <div className="flex items-baseline gap-1.5 justify-center">
+                    <span className={`text-lg font-bold ${styles.priceColor}`}>
+                      {formatPrice(course.course_fee, course.batchPrice)}
+                    </span>
+                    {isLiveCourse && (
+                      <span className="text-xs text-gray-500 font-medium">per batch</span>
                     )}
+                    {course?.original_fee && (
+                      <span className="text-sm text-gray-500 line-through">
+                        {formatCurrencyPrice(convertPrice(course.original_fee))}
+                      </span>
+                    )}
+                  </div>
                     {course?.fee_note && (
                       <span className="text-xs text-gray-500 font-medium block mt-0.5">
                         {course.fee_note}
@@ -1679,21 +1486,30 @@ const CourseCard: React.FC<CourseCardProps> = ({
       ) : (
         <div 
           ref={cardRef}
-          className={`course-card ${mobileCardStyles} group relative flex flex-col ${coursesPageCompact ? 'min-h-[420px]' : 'min-h-[480px]'} rounded-2xl overflow-hidden 
+          className={`course-card ${mobileCardStyles} group relative flex flex-col h-full rounded-2xl overflow-hidden 
             border border-gray-200/30 dark:border-gray-800/40 
             bg-white/95 dark:bg-gray-900/95 backdrop-filter backdrop-blur-sm 
-            ${isLiveCourse ? 'transition-all duration-300' : ''} 
-            ${(isHovered || mobileHoverActive) && isLiveCourse ? 'scale-[1.02] z-10 shadow-2xl' : 'scale-100 z-0 shadow-lg'}
-            ${isLiveCourse ? styles.borderHover : ''} ${isLiveCourse ? styles.shadowHover : ''}
-            ${isMobile ? (isBlendedCourse ? 'pb-8 last:mb-0' : (isLiveCourse ? 'pb-8 last:mb-0' : 'pb-20 last:mb-0')) : ''}
+            ${isBlendedCourse ? '' : 'transition-all duration-300'} 
+            ${(isHovered || mobileHoverActive) && !isBlendedCourse ? 'scale-[1.02] z-10 shadow-2xl' : 'scale-100 z-0 shadow-lg'}
+            ${!isBlendedCourse ? styles.borderHover : ''} ${!isBlendedCourse ? styles.shadowHover : ''} ${isLiveCourse ? styles.borderLeft : ''}
+            ${isMobile ? (isBlendedCourse ? 'pb-8 last:mb-0' : 'pb-20 last:mb-0') : ''}
             ${viewMode === 'grid' ? 'sm:mx-2 md:mx-3' : ''}
-            ${isLiveCourse ? 'hover:shadow-2xl' : ''}`}
+            ${!isBlendedCourse ? 'hover:shadow-2xl' : ''}`}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onMouseMove={handleMouseMove}
-          style={isLiveCourse ? tiltStyle : {}}
+          style={isBlendedCourse ? {} : tiltStyle}
         >
-          {/* View More button - Disabled for live courses (now showing all info upfront) */}
+          {/* View More button - Only for live courses on mobile, disappears when clicked */}
+          {isMobile && isLiveCourse && !mobileHoverActive && (
+            <button 
+              onClick={openMobileHover}
+              className={`${mobileButtonStyles} bg-[#379392]/90 text-white hover:bg-[#379392] transition-all duration-200`}
+            >
+              View More
+              <ArrowUpRight size={14} className="text-white" />
+            </button>
+          )}
 
           {/* Close button for mobile hover view */}
           {isMobile && mobileHoverActive && (
@@ -1710,139 +1526,91 @@ const CourseCard: React.FC<CourseCardProps> = ({
             </button>
           )}
 
-          {/* Pre-hover content - Hide when hovering live courses */}
-          <div className={`flex flex-col h-full transition-opacity duration-300 ${(isHovered && !isMobile && isLiveCourse) || (mobileHoverActive && isMobile && isLiveCourse) ? 'opacity-0' : 'opacity-100'}`}>
+          {/* Pre-hover content */}
+          <div className={`flex flex-col h-full transition-opacity duration-300 ${(isHovered && !isMobile) || (mobileHoverActive && isMobile) ? 'opacity-0' : 'opacity-100'}`}>
             {/* Updated Image section */}
             <ImageWrapper
-              src={course?.course_image || ''}
+              src={getSafeCourseImageUrl(course?.course_image, course?._id, course?.course_title) || (image6 as any)}
               alt={course?.course_title || "Course Image"}
               onLoad={handleImageLoad}
               onError={handleImageError}
               priority={isLCP}
               isLCP={isLCP}
               index={index}
-              coursesPageCompact={coursesPageCompact}
-              isLiveCourse={isLiveCourse}
             />
 
-            {/* Course info - optimized layout with better proportions */}
-            <div className={`${mobileContentStyles} flex flex-col ${coursesPageCompact ? 'px-3 pt-2 pb-3 flex-grow' : 'px-5 pt-3 pb-5'} flex-grow justify-between bg-gradient-to-b from-white/30 to-transparent dark:from-gray-900/30`}>
-              <div className={`flex flex-col ${coursesPageCompact ? 'items-start justify-start' : 'items-center justify-between'} flex-grow ${coursesPageCompact ? 'py-2 space-y-2' : 'py-2 min-h-[160px]'}`}>
-                {/* Course category badge with Self-Paced/Live indicator */}
-                <div className={`flex items-center gap-2 ${coursesPageCompact ? 'self-start' : 'mx-auto justify-center'}`}>
-                  {course?.course_grade && (
-                    <div className={`inline-flex items-center text-xs font-semibold rounded-md px-2.5 py-1 transition-all duration-200 hover:scale-105 ${
-                      isLiveCourse ? 'bg-gradient-to-r from-[#379392]/15 to-[#379392]/25 text-[#379392] border border-[#379392]/30 shadow-sm shadow-[#379392]/10' : 'bg-gradient-to-r from-indigo-100 to-indigo-200 text-indigo-700 dark:from-indigo-900/30 dark:to-indigo-900/40 dark:text-indigo-400 border border-indigo-300 dark:border-indigo-700 shadow-sm shadow-indigo-500/10'
-                    }`}>
-                      {isLiveCourse ? 
-                        <Play size={10} className="mr-1" /> : 
-                        <Layers size={10} className="mr-1" />
-                      }
-                      <span className="text-xs font-semibold">{formatCourseGrade(course?.course_grade)}</span>
-                    </div>
-                  )}
-                  
-                  {/* Course type indicator next to grade */}
-                  {coursesPageCompact && (isBlendedCourse || isLiveCourse) && (
-                    <div className="inline-flex items-center text-xs font-semibold rounded-md px-2.5 py-1 transition-all duration-200 hover:scale-105">
-                      {isBlendedCourse ? (
-                        <span className="inline-flex items-center text-blue-700 dark:text-blue-300">
-                          <Clock size={10} className="mr-1" />
-                          Self-Paced
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center text-[#379392]">
-                          <span className="w-2 h-2 bg-red-500 rounded-full mr-1 animate-pulse"></span>
-                          Live
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
+            {/* Course info - consistent style for both Live and Blended */}
+            <div className={`${mobileContentStyles} flex flex-col px-5 pt-3 pb-5 flex-grow justify-between`}>
+              <div className="flex flex-col items-center justify-between flex-grow py-2 min-h-[140px]">
+                {/* Course category badge */}
+                {course?.course_grade && (
+                  <div className={`inline-flex mb-2 items-center text-xs font-semibold rounded-full px-3 py-1 ${
+                    isLiveCourse ? 'bg-[#379392]/10 text-[#379392]' : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
+                  } mx-auto`}>
+                    {isLiveCourse ? 
+                      <Play size={14} className="mr-1.5" /> : 
+                      <Layers size={14} className="mr-1.5" />
+                    }
+                    <span>{formatCourseGrade(course?.course_grade)}</span>
+                  </div>
+                )}
 
-                {/* Course title - single-line centered, two-line at top */}
-                <h3 className={`${mobileTitleStyles} font-extrabold text-gray-900 dark:text-white leading-tight ${coursesPageCompact ? 'text-left w-full text-lg lg:text-xl tracking-normal hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200 cursor-pointer min-h-[48px] flex items-center' : 'text-center mx-auto max-w-[95%] text-base sm:text-lg lg:text-base xl:text-lg min-h-[48px] sm:min-h-[56px] flex items-center justify-center'} ${course?.course_category ? 'mt-0' : 'mt-0'}`}>
-                  {coursesPageCompact ? (
-                    // Clean title with bracket handling and smart positioning
-                    <span className="text-gray-900 dark:text-white line-clamp-2 w-full block">
-                      {(() => {
-                        const title = course?.course_title || "Course Title";
-                        // Check if title contains brackets or parentheses
-                        const bracketMatch = title.match(/^(.+?)(\s*[\(\[\{].+?[\)\]\}])(.*)$/);
-                        if (bracketMatch) {
-                          const [, mainTitle, bracket, afterBracket] = bracketMatch;
-                          return (
-                            <>
-                              <span>{mainTitle}</span>
-                              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{bracket}</span>
-                              {afterBracket && <span>{afterBracket}</span>}
-                            </>
-                          );
-                        }
-                        return title;
-                      })()}
-                    </span>
-                  ) : (
-                    <span className="line-clamp-2">{course?.course_title || "Course Title"}</span>
-                  )}
+                {/* Course title - optimized spacing */}
+                <h3 className={`${mobileTitleStyles} text-base font-bold text-gray-900 dark:text-white line-clamp-2 text-center mx-auto max-w-[95%] leading-tight min-h-[3rem] flex items-center justify-center ${course?.course_category ? 'mt-1' : 'mt-0'}`}>
+                  {course?.course_title || "Course Title"}
                 </h3>
                 
-                {/* Course description - fixed height for consistency */}
+                {/* Course description - optimized spacing */}
                 {!isCompact && !hideDescription && (
-                  <p className={`text-gray-600 dark:text-gray-400 line-clamp-2 ${coursesPageCompact ? 'text-left w-full text-sm leading-relaxed font-normal opacity-85 min-h-[40px] flex items-start' : 'text-center mx-auto flex items-center justify-center mt-1.5 max-w-[95%] min-h-[40px] sm:min-h-[48px] text-xs sm:text-sm lg:text-xs xl:text-sm'}`}>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2 text-center mx-auto max-w-[95%] h-10 flex items-center justify-center">
                     {courseDescriptionText}
                   </p>
                 )}
 
-                {/* Session Count Indicator - moved higher up */}
+                {/* Session Count Indicator - displayed in normal card view */}
                 {course?.no_of_Sessions && (
-                  <div className={`flex items-center ${coursesPageCompact ? 'justify-start min-h-[50px] items-start -mt-1' : 'justify-center mt-2 mb-1'}`}>
+                  <div className="flex items-center justify-center mt-2 mb-1">
                     {isBlendedCourse ? (
-                      <div className={`${coursesPageCompact ? 'flex flex-wrap justify-start gap-1' : 'flex flex-col items-center gap-1'}`}>
-                        <div className="inline-flex items-center px-2 py-0.5 rounded-md text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 whitespace-nowrap border border-purple-200 dark:border-purple-800">
-                          <Play size={8} className="mr-1 text-purple-600" />
-                          <span className="text-xs font-semibold">{course.no_of_Sessions} Videos</span>
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
+                          <Play size={14} className="mr-1 text-purple-500" />
+                          <span>{course.no_of_Sessions} Video Sessions</span>
                         </div>
-                        <div className="inline-flex items-center px-2 py-0.5 rounded-md text-xs bg-[#379392]/10 text-[#379392] whitespace-nowrap border border-[#379392]/20">
-                          <Users size={8} className="mr-1 text-[#379392]" />
-                          <span className="text-xs font-semibold">02 Q&A Live</span>
+                        <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-[#379392]/10 text-[#379392]">
+                          <Users size={14} className="mr-1 text-[#379392]" />
+                          <span>02 Q&A Live Sessions</span>
                         </div>
                       </div>
-                    ) : isLiveCourse ? (
-                        <div className={`flex flex-wrap items-center gap-1 ${coursesPageCompact ? 'justify-start' : 'justify-center'}`}>
-                          <div className="inline-flex items-center px-2 py-0.5 rounded-md text-xs whitespace-nowrap border bg-[#379392]/10 text-[#379392] border-[#379392]/20">
-                            <Users size={8} className="mr-1" />
-                            <span className="text-xs font-semibold">{course.no_of_Sessions} Live Sessions</span>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="inline-flex items-center px-2 py-0.5 rounded-md text-xs whitespace-nowrap border bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800">
-                          <div className="w-2 h-2 mr-1 flex items-center justify-center">
-                            {content.sessionIcon}
-                          </div>
-                          <span className="text-xs font-semibold">{course.no_of_Sessions} sessions</span>
-                        </div>
-                      )}
+                    ) : (
+                      <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs ${
+                        isLiveCourse 
+                          ? 'bg-[#379392]/10 text-[#379392]' 
+                          : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
+                      }`}>
+                        {content.sessionIcon}
+                        <span className="ml-1">{ ` ${course.no_of_Sessions} sessions` }</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
 
-              {/* Course Duration/Learning Experience - optimized for space */}
-              {showDuration && course?.course_duration && !coursesPageCompact && (
+              {/* Course Duration/Learning Experience - adjusted spacing (only in pre-hover state) */}
+              {showDuration && course?.course_duration && (
                 <div className={`mx-auto ${isMobile ? 'mb-14' : 'mb-2'} w-full mt-2`}>
                   {React.isValidElement(course.course_duration) ? (
                     <div className={`flex items-center justify-center ${styles.durationBoxBg} p-3 rounded-lg`}>
                       {course.course_duration}
                     </div>
                   ) : (
-                    <div className={`flex items-center ${styles.durationBoxBg} p-2 rounded-lg justify-center`}>
-                      <Clock size={16} className={`mr-2 ${styles.durationIconColor} flex-shrink-0 lg:w-4 lg:h-4`} />
+                    <div className={`flex items-center ${styles.durationBoxBg} p-3 rounded-lg justify-center`}>
+                      <Clock size={18} className={`mr-2.5 ${styles.durationIconColor} flex-shrink-0`} />
                       <div className="text-center">
-                        <span className={`${styles.durationTextColor} font-semibold text-xs sm:text-sm lg:text-xs xl:text-sm`}>
+                        <span className={`${styles.durationTextColor} font-semibold text-sm`}>
                           {isLiveCourse ? 'Course Duration' : 'Learning Experience'}
                         </span>
-                        <p className="text-gray-700 dark:text-gray-300 font-medium text-xs sm:text-sm lg:text-xs xl:text-sm mt-0.5">
-                          {isBlendedCourse ? 'Self-paced' : (course?.duration_range || extractMonthsOnly(course?.course_duration))}
+                        <p className="text-gray-700 dark:text-gray-300 font-medium text-sm mt-0.5">
+                          {isBlendedCourse ? 'Self-paced' : (course?.duration_range || formatDuration(course?.course_duration))}
                         </p>
                       </div>
                     </div>
@@ -1850,59 +1618,53 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 </div>
               )}
 
-              {/* Self-Paced badge and Price section - optimized for courses page */}
+              {/* Price section - Added for hover state - More compact */}
               {!hidePrice && (
-                <div className="space-y-2">
-                  
-                  {/* Price section - Enhanced highlighting for all courses */}
-                  <div className={coursesPageCompact ? 'bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-center' : `mt-2 mb-2 py-3 px-4 border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-gradient-to-r ${
-                    isLiveCourse ? 'from-[#379392]/10 to-[#379392]/5 border-[#379392]/30' : 'from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-900/10 border-indigo-200 dark:border-indigo-700'
-                  }`}>
-                    <div className="flex items-center justify-center">
-                      <div className="flex items-baseline gap-1.5 text-center">
-                        <span className={`text-lg sm:text-xl lg:text-lg xl:text-xl font-extrabold ${isLiveCourse ? 'text-[#379392]' : 'text-indigo-700 dark:text-indigo-400'}`}>
-                          {formatPrice(course.course_fee, course.batchPrice)}
+                <div className={`mt-2 mb-2 py-2 px-3 border border-gray-100 dark:border-gray-800 rounded-lg ${
+                  isLiveCourse ? 'bg-[#379392]/5' : 'bg-indigo-50 dark:bg-indigo-900/10'
+                }`}>
+                  <div className="flex items-center justify-center">
+                    <div className="flex items-baseline gap-1.5 text-center">
+                      <span className={`text-base font-bold ${styles.priceColor}`}>
+                        {formatPrice(course.course_fee, course.batchPrice)}
+                      </span>
+                      {isLiveCourse && (
+                        <span className="text-xs text-gray-500 font-medium">onwards</span>
+                      )}
+                      {course?.original_fee && (
+                        <span className="text-xs text-gray-500 line-through ml-1">
+                          {formatCurrencyPrice(convertPrice(course.original_fee))}
                         </span>
-                        {isLiveCourse && (
-                          <span className="text-xs lg:text-xs text-gray-500 font-medium">onwards</span>
-                        )}
-                        {course?.original_fee && (
-                          <span className="text-xs text-gray-500 line-through ml-1">
-                            {formatCurrencyPrice(convertPrice(course.original_fee))}
-                          </span>
-                        )}
-                      </div>
-                      {(course?.isFree === true || (course?.prices && course.prices.length > 0 && course.prices[0]?.early_bird_discount !== undefined && course.prices[0].early_bird_discount > 0)) && (
-                        <div className="ml-2">
-                          {course?.isFree === true ? (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400 text-xs font-medium">
-                              <Sparkles size={10} className="mr-1" />
-                              Free
-                            </span>
-                          ) : (
-                            course?.prices && course.prices.length > 0 && course.prices[0]?.early_bird_discount !== undefined && course.prices[0].early_bird_discount > 0 && (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-medium">
-                                <Tag size={10} className="mr-1" />
-                                {course.prices[0].early_bird_discount}% off
-                              </span>
-                            )
-                          )}
-                        </div>
                       )}
                     </div>
+                    {(course?.isFree === true || (course?.prices && course.prices.length > 0 && course.prices[0]?.early_bird_discount !== undefined && course.prices[0].early_bird_discount > 0)) && (
+                      <div className="ml-2">
+                        {course?.isFree === true ? (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400 text-xs font-medium">
+                            <Sparkles size={10} className="mr-1" />
+                            Free
+                          </span>
+                        ) : (
+                          course?.prices && course.prices.length > 0 && course.prices[0]?.early_bird_discount !== undefined && course.prices[0].early_bird_discount > 0 && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-medium">
+                              <Tag size={10} className="mr-1" />
+                              {course.prices[0].early_bird_discount}% off
+                            </span>
+                          )
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
 
-              {/* Explore Course button for blended and live courses in pre-hover state */}
-              {(isBlendedCourse || isLiveCourse) && (
+              {/* Explore Course button for blended courses in pre-hover state */}
+              {isBlendedCourse && (
                 <div className="mt-3 w-full">
                   <button
                     onClick={navigateToCourse}
-                    onMouseEnter={() => setIsHoveringCTA(true)}
-                    onMouseLeave={() => setIsHoveringCTA(false)}
-                    className="w-full px-4 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center gap-2
-                      border-2 border-[#379392] text-[#379392] bg-transparent hover:bg-[#379392] hover:text-white dark:hover:text-white"
+                    className="w-full px-4 py-2.5 rounded-lg font-medium transition-all text-white flex items-center justify-center gap-2
+                      bg-[#379392] hover:bg-[#2a7170] shadow-md shadow-[#379392]/20"
                   >
                     Explore Course
                     <ArrowUpRight size={16} className="transition-transform" />
@@ -1912,11 +1674,11 @@ const CourseCard: React.FC<CourseCardProps> = ({
             </div>
           </div>
 
-          {/* Hover content - for live courses only */}
+          {/* Hover content - similar structure for both course types */}
           <div className={`hover-content absolute inset-0 bg-white dark:bg-gray-900 ${isMobile ? 'p-6' : 'p-5'} flex flex-col transition-opacity duration-300 ${
-            isMobile ? 'overflow-y-auto' : ''
-          } h-full ${
-            (isHovered && !isMobile && isLiveCourse) || (mobileHoverActive && isMobile && isLiveCourse) ? 'opacity-100 z-20' : 'opacity-0 -z-10'
+            isMobile ? 'overflow-y-auto' : 'overflow-hidden'
+          } max-h-full ${
+            (isHovered && !isMobile) || (mobileHoverActive && isMobile) ? 'opacity-100 z-20' : 'opacity-0 -z-10'
           }`}>
             {/* Course details */}
             <div className={`${isMobile ? 'mb-3' : 'mb-2'} flex items-center justify-center py-2 md:py-3`}>
@@ -1946,9 +1708,10 @@ const CourseCard: React.FC<CourseCardProps> = ({
               )}
               
               {/* Course Features - Compact Display */}
-              <div className={`${isMobile ? 'p-3' : 'p-2.5'} border border-gray-100 dark:border-gray-800 rounded-lg w-full`}>
+              <div className={`flex items-start ${isMobile ? 'p-3' : 'p-2.5'} border border-gray-100 dark:border-gray-800 rounded-lg w-full`}>
+                <Briefcase size={isMobile ? 18 : 16} className="mt-0.5 mr-3 text-indigo-500 dark:text-indigo-400 flex-shrink-0" />
                 <div className="flex flex-col w-full">
-                  <div className="flex flex-wrap gap-1.5 justify-start">
+                  <div className="flex flex-wrap gap-1.5">
                     {/* Different features based on course type */}
                     {isBlendedCourse ? (
                       /* Blended course specific features */
@@ -1965,145 +1728,57 @@ const CourseCard: React.FC<CourseCardProps> = ({
                     ) : (
                       /* Standard features for non-blended courses */
                       <>
-                        {/* Always show Projects & Assignments for live courses */}
-                        {isLiveCourse && (
+                        {/* Check if job guarantee exists to show combined badge */}
+                        {isLiveCourse && course?.course_duration && (typeof course.course_duration === 'string' && course.course_duration.toLowerCase().includes('18')) ? (
+                          /* Show single combined badge when job guarantee is present */
                           <span className="inline-flex items-center px-2 py-1 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs font-medium">
                             <CheckCircle size={10} className="mr-1" />
                             Projects & Assignments
                           </span>
-                        )}
-                        
-                        {/* Debug and test Corporate Internship detection */}
-                        {isLiveCourse && (() => {
-                          const duration = course?.course_duration;
-                          let durationStr = '';
-                          
-                          // Handle different duration formats with enhanced object detection
-                          if (typeof duration === 'string') {
-                            durationStr = duration.toLowerCase();
-                          } else if (duration && typeof duration === 'object') {
-                            // Enhanced object handling for React elements and objects
-                            if (React.isValidElement(duration)) {
-                              // For React elements, recursively extract text content
-                              const extractTextFromElement = (element: any): string => {
-                                if (typeof element === 'string' || typeof element === 'number') {
-                                  return String(element);
-                                }
-                                if (React.isValidElement(element)) {
-                                  if (typeof element.props.children === 'string') {
-                                    return element.props.children;
-                                  } else if (Array.isArray(element.props.children)) {
-                                    return element.props.children.map(extractTextFromElement).join(' ');
-                                  } else if (element.props.children) {
-                                    return extractTextFromElement(element.props.children);
-                                  }
-                                }
-                                return '';
-                              };
-                              durationStr = extractTextFromElement(duration).toLowerCase();
-                            } else {
-                              // For plain objects, try different extraction methods
-                              const objectStr = JSON.stringify(duration);
-                              // Extract quoted strings that might contain duration info
-                              const quotedStrings = objectStr.match(/"[^"]*"/g) || [];
-                              const textContent = quotedStrings.join(' ').replace(/"/g, '');
-                              durationStr = textContent.toLowerCase() || objectStr.toLowerCase();
-                            }
-                          }
-                          
-                          const is18Month = durationStr && 
-                            (durationStr.includes('18 month') || 
-                             durationStr.includes('eighteen month') ||
-                             durationStr.includes('18month') ||
-                             durationStr.includes('18-month') ||
-                             durationStr.includes('72 week') ||
-                             durationStr.includes('72week') ||
-                             durationStr.includes('"18') ||
-                             durationStr.includes('18"') ||
-                             /18\s*months?/i.test(durationStr));
-                          
-                          return is18Month && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-md bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 text-xs font-medium">
-                              <TrendingUp size={10} className="mr-1" />
-                              Corporate Internship
+                        ) : (
+                          /* Show separate badges when no job guarantee */
+                          <>
+                            <span className="inline-flex items-center px-2 py-1 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs font-medium">
+                              <CheckCircle size={10} className="mr-1" />
+                              Projects
                             </span>
-                          );
-                        })()}
+                            <span className="inline-flex items-center px-2 py-1 rounded-md bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-medium">
+                              <CheckCircle size={10} className="mr-1" />
+                              Assignments
+                            </span>
+                          </>
+                        )}
+                        {isLiveCourse && course?.course_duration && (typeof course.course_duration === 'string' && course.course_duration.toLowerCase().includes('18')) && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-md bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 text-xs font-medium">
+                            <CheckCircle size={10} className="mr-1" />
+                            Corporate Internship
+                          </span>
+                        )}
                       </>
                     )}
                     
-                    {/* Job Guarantee for 18-month courses with same detection logic */}
-                    {isLiveCourse && (() => {
-                      const duration = course?.course_duration;
-                      let durationStr = '';
-                      
-                      // Handle different duration formats with enhanced object detection
-                      if (typeof duration === 'string') {
-                        durationStr = duration.toLowerCase();
-                      } else if (duration && typeof duration === 'object') {
-                        // Enhanced object handling for React elements and objects
-                        if (React.isValidElement(duration)) {
-                          // For React elements, recursively extract text content
-                          const extractTextFromElement = (element: any): string => {
-                            if (typeof element === 'string' || typeof element === 'number') {
-                              return String(element);
-                            }
-                            if (React.isValidElement(element)) {
-                              if (typeof element.props.children === 'string') {
-                                return element.props.children;
-                              } else if (Array.isArray(element.props.children)) {
-                                return element.props.children.map(extractTextFromElement).join(' ');
-                              } else if (element.props.children) {
-                                return extractTextFromElement(element.props.children);
-                              }
-                            }
-                            return '';
-                          };
-                          durationStr = extractTextFromElement(duration).toLowerCase();
-                        } else {
-                          // For plain objects, try different extraction methods
-                          const objectStr = JSON.stringify(duration);
-                          // Extract quoted strings that might contain duration info
-                          const quotedStrings = objectStr.match(/"[^"]*"/g) || [];
-                          const textContent = quotedStrings.join(' ').replace(/"/g, '');
-                          durationStr = textContent.toLowerCase() || objectStr.toLowerCase();
-                        }
-                      }
-                      
-                      const is18Month = durationStr && 
-                        (durationStr.includes('18 month') || 
-                         durationStr.includes('eighteen month') ||
-                         durationStr.includes('18month') ||
-                         durationStr.includes('18-month') ||
-                         durationStr.includes('72 week') ||
-                         durationStr.includes('72week') ||
-                         durationStr.includes('"18') ||
-                         durationStr.includes('18"') ||
-                         /18\s*months?/i.test(durationStr));
-                      
-                      return is18Month && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-md bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-xs font-medium">
-                          <Award size={10} className="mr-1" />
-                          <span className="text-left leading-tight">
+                    {/* Job Guarantee badge (only for eligible live courses) */}
+                    {isLiveCourse && course?.course_duration && (typeof course.course_duration === 'string' && course.course_duration.toLowerCase().includes('18')) && (
+                                              <span className="inline-flex items-center px-2 py-1 rounded-md bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-xs font-medium">
+                          <span className="text-center leading-tight">
                             Job Guarantee<br/>
                             (18 Month Course Only)
                           </span>
                         </span>
-                      );
-                    })()}
+                    )}
                   </div>
                 </div>
               </div>
             </div>
             
-            {/* Pricing section - Added for hover state - Enhanced highlighting */}
+            {/* Pricing section - Added for hover state - More compact */}
             {!hidePrice && (
-              <div className={`mt-2 mb-2 py-3 px-4 border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-gradient-to-r ${
-                isLiveCourse ? 'from-[#379392]/10 to-[#379392]/5 border-[#379392]/30' : 'from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-900/10 border-indigo-200 dark:border-indigo-700'
+              <div className={`mt-2 mb-2 py-2 px-3 border border-gray-100 dark:border-gray-800 rounded-lg ${
+                isLiveCourse ? 'bg-[#379392]/5' : 'bg-indigo-50 dark:bg-indigo-900/10'
               }`}>
                 <div className="flex items-center justify-center">
                   <div className="flex items-baseline gap-1.5 text-center">
-                    <span className={`text-lg font-extrabold ${isLiveCourse ? 'text-[#379392]' : 'text-indigo-700 dark:text-indigo-400'}`}>
+                    <span className={`text-base font-bold ${styles.priceColor}`}>
                       {formatPrice(course.course_fee, course.batchPrice)}
                     </span>
                     {isLiveCourse && (
@@ -2136,15 +1811,13 @@ const CourseCard: React.FC<CourseCardProps> = ({
               </div>
             )}
             
-            {/* Explore Course button for blended courses in hover state */}
+            {/* Explore Course button for blended courses in pre-hover state */}
             {isBlendedCourse && (
               <div className="mt-3 w-full">
                 <button
                   onClick={navigateToCourse}
-                  onMouseEnter={() => setIsHoveringCTA(true)}
-                  onMouseLeave={() => setIsHoveringCTA(false)}
-                  className="w-full px-4 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center gap-2
-                    border-2 border-[#379392] text-[#379392] bg-transparent hover:bg-[#379392] hover:text-white dark:hover:text-white"
+                  className="w-full px-4 py-2.5 rounded-lg font-medium transition-all text-white flex items-center justify-center gap-2
+                    bg-[#379392] hover:bg-[#2a7170] shadow-md shadow-[#379392]/20"
                 >
                   Explore Course
                   <ArrowUpRight size={16} className="transition-transform" />
@@ -2159,24 +1832,20 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 {!isLiveCourse && (
                   <button
                     onClick={handleBrochureClick}
-                    onMouseEnter={() => setIsHoveringCTA(true)}
-                    onMouseLeave={() => setIsHoveringCTA(false)}
                     className="px-4 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-1.5 
-                      border-2 border-indigo-500 text-indigo-600 bg-transparent hover:bg-indigo-500 hover:text-white dark:border-indigo-400 dark:text-indigo-400 dark:hover:bg-indigo-400 dark:hover:text-white"
+                      border border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400"
                   >
-                    <Download size={16} className="transition-colors" />
+                    <Download size={16} className="text-indigo-500" />
                     Brochure
                   </button>
                 )}
                 
-                {/* Different button styles based on course type - All stroke style with filled hover */}
+                {/* Different button styles based on course type */}
                 {isBlendedCourse ? (
                   <button
                     onClick={navigateToCourse}
-                    onMouseEnter={() => setIsHoveringCTA(true)}
-                    onMouseLeave={() => setIsHoveringCTA(false)}
-                    className="px-4 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-1.5
-                      border-2 border-[#379392] text-[#379392] bg-transparent hover:bg-[#379392] hover:text-white dark:hover:text-white"
+                    className="px-4 py-2 rounded-lg font-medium transition-all text-white flex items-center justify-center gap-1.5
+                      bg-[#379392] hover:bg-[#2a7170] shadow-md shadow-[#379392]/20"
                   >
                     Explore Course
                     <ArrowUpRight size={16} className="group-hover:rotate-12 transition-transform" />
@@ -2184,12 +1853,10 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 ) : (
                   <button
                     onClick={navigateToCourse}
-                    onMouseEnter={() => setIsHoveringCTA(true)}
-                    onMouseLeave={() => setIsHoveringCTA(false)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all text-white flex items-center justify-center gap-1.5
+                    className={`px-4 py-2 rounded-lg font-medium transition-all text-white flex items-center justify-center gap-1.5
                      ${isLiveCourse 
-                      ? 'border-2 border-[#379392] text-[#379392] bg-transparent hover:bg-[#379392] hover:text-white dark:hover:text-white w-full' 
-                      : 'border-2 border-indigo-500 text-indigo-600 bg-transparent hover:bg-indigo-500 hover:text-white dark:border-indigo-400 dark:text-indigo-400 dark:hover:bg-indigo-400 dark:hover:text-white'
+                      ? 'bg-[#379392] hover:bg-[#2a7170] shadow-md shadow-[#379392]/20 w-full' 
+                      : 'bg-indigo-500 hover:bg-indigo-600 shadow-md shadow-indigo-500/20'
                     }`}
                   >
                     {isLiveCourse ? 'Explore Course' : 'Details'}
@@ -2244,41 +1911,6 @@ if (typeof document !== 'undefined') {
   `;
   document.head.appendChild(style);
 }
-
-// Add glassmorphic styles
-const addGlassmorphicStyles = () => {
-  const style = document.createElement('style');
-  style.id = 'glassmorphic-styles';
-  style.textContent = `
-    .glassmorphic-card {
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-    }
-    
-    .dark .glassmorphic-card {
-      background: rgba(15, 23, 42, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    }
-    
-    .glassmorphic-card:hover {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba(255, 255, 255, 0.2);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-      transform: translateY(-2px);
-    }
-    
-    .dark .glassmorphic-card:hover {
-      background: rgba(15, 23, 42, 0.16);
-      border-color: rgba(255, 255, 255, 0.12);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
-    }
-  `;
-  document.head.appendChild(style);
-};
 
 // Add a safe rating display function
 const safeRatingDisplay = (rating: any) => {

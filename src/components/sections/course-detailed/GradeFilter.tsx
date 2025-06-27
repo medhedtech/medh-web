@@ -39,7 +39,7 @@ interface GradeFilterProps {
   filteredCourses?: Course[];
   selectedCourse: Course | null;
   handleGradeChange: (grade: string) => void;
-  handleCourseSelection: (course: Course) => void;
+  handleCourseSelection: (course: Course | null) => void;
   categoryInfo?: CategoryInfo;
   setSelectedGrade: (grade: string) => void;
   hideGradeSelector?: boolean;
@@ -113,29 +113,8 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
     const gradeOption = availableGrades.find(g => g.id === gradeId);
     if (!gradeOption) return gradeId;
     
-    // Format the grade label
-    const label = gradeOption.label;
-    
-    // Handle special cases
-    if (label.toLowerCase().includes('pre-school') || label.toLowerCase().includes('preschool')) {
-      return 'Preschool';
-    }
-    
-    if (label.toLowerCase().includes('ug') || label.toLowerCase().includes('graduate')) {
-      return 'UG - Graduate - Professionals';
-    }
-    
-    // For regular grade numbers (e.g., "grade 1-2" -> "Grade 1-2")
-    if (label.toLowerCase().includes('grade')) {
-      const parts = label.split(' ');
-      return parts.map((part, index) => {
-        if (index === 0) return 'Grade';
-        return part;
-      }).join(' ');
-    }
-    
-    // Capitalize first letter for any other cases
-    return label.charAt(0).toUpperCase() + label.slice(1);
+    // Return the ID directly since it's now in the correct format
+    return gradeOption.id;
   }, [availableGrades]);
 
   // Memoized and filtered courses
@@ -147,12 +126,22 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
   useEffect(() => {
     try {
       if (displayCourses.length > 0 && !selectedCourse) {
-        handleCourseSelection(displayCourses[0]);
+        // Only select first course if we have courses and no current selection
+        const firstCourse = displayCourses[0];
+        if (firstCourse) {
+          handleCourseSelection(firstCourse);
+        }
+      } else if (displayCourses.length === 0) {
+        // Clear selected course when no courses are available
+        handleCourseSelection(null);
+      } else if (selectedCourse && !displayCourses.some(course => course._id === selectedCourse._id)) {
+        // If selected course is not in filtered courses anymore, clear selection
+        handleCourseSelection(null);
       }
     } catch (err) {
       console.error('Error in course selection:', err);
       setError('Failed to select course');
-      showToast.error('Unable to select course automatically');
+      toast.error('Unable to select course automatically');
     }
   }, [displayCourses, selectedCourse, handleCourseSelection]);
 
@@ -214,8 +203,12 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
             value={selectedGrade}
             onChange={(e) => {
               try {
-                const formattedGrade = formatGradeForApi(e.target.value);
-                handleGradeChange(formattedGrade);
+                const gradeId = e.target.value;
+                handleGradeChange(gradeId);
+                // Reset course selection when grade changes
+                if (selectedCourse) {
+                  handleCourseSelection(null);
+                }
               } catch (err) {
                 console.error('Grade change error:', err);
                 toast.error('Unable to change grade');
@@ -291,11 +284,15 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
               value={selectedGrade}
               onChange={(e) => {
                 try {
-                  const formattedGrade = formatGradeForApi(e.target.value);
-                  handleGradeChange(formattedGrade);
+                  const gradeId = e.target.value;
+                  handleGradeChange(gradeId);
+                  // Reset course selection when grade changes
+                  if (selectedCourse) {
+                    handleCourseSelection(null);
+                  }
                 } catch (err) {
                   console.error('Grade change error:', err);
-                  showToast.error('Unable to change grade');
+                  toast.error('Unable to change grade');
                 }
               }}
               className="appearance-none block w-full px-4 py-3 text-base transition-all duration-200 ease-in-out
@@ -347,8 +344,8 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
                 {hideGradeSelector 
                   ? `Available Courses` 
                   : selectedGrade === 'all' 
-                    ? 'All Courses' 
-                    : `Courses for ${availableGrades.find(g => g.id === selectedGrade)?.label || selectedGrade}`
+                    ? 'All Grades' 
+                    : `Courses for ${availableGrades.find(g => g.id === selectedGrade)?.label || 'Selected Grade'}`
                 }
               </h3>
             </div>
@@ -369,8 +366,6 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
             </div>
           </div>
         </div>
-
-
 
         {/* Course Selection or Empty State */}
         {displayCourses.length > 0 ? (
