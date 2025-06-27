@@ -1139,7 +1139,10 @@ export const apiUrls = {
   certificate: {
     getAllCertificate: "/certificates/get",
     addCertificate: "/certificates/create",
-    getCertificatesByStudentId: "/certificates/get"
+    getCertificatesByStudentId: (studentId: string): string => {
+      if (!studentId) throw new Error('Student ID is required');
+      return `/certificates/student/${studentId}`;
+    }
   },
   Newsletter: {
     getAllNewsletter: "/newsletter/getAll",
