@@ -81,18 +81,6 @@ const ThemeSwitcher: React.FC<IThemeSwitcherProps> = ({
               <LogOut className="h-5 w-5" />
             </button>
           )}
-
-          <Link
-            href="/settings"
-            onClick={onClose}
-            className="p-2 rounded-lg
-              text-gray-700 dark:text-gray-300
-              hover:bg-gray-100 dark:hover:bg-gray-800
-              transition-colors duration-200"
-            aria-label="Go to settings"
-          >
-            <Settings className="h-5 w-5" />
-          </Link>
         </div>
       </div>
     </div>
