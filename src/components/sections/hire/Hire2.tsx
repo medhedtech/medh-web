@@ -48,7 +48,7 @@ const FeatureList = memo<{
         return (
           <div key={index} className="flex items-start gap-3 group/item">
             <div className={`w-8 h-8 rounded-lg ${colorClass} flex items-center justify-center flex-shrink-0 group-hover/item:scale-105 transition-transform duration-200`}>
-              <IconComponent className="w-4 h-4" />
+              <IconComponent className="w-4 h-4 text-white" />
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
               {feature.text}
@@ -128,8 +128,7 @@ const HireCard = memo<{
       className={cardClasses}
       style={{ transitionDelay: `${index * 200}ms` }}
     >
-      <div className={contentClasses}>
-        
+      <div className={contentClasses + " flex flex-col h-full"}>
         {/* Card Header */}
         <div className={headerClasses}>
           <div className={iconContainerClasses}>
@@ -148,14 +147,16 @@ const HireCard = memo<{
         {/* Features List */}
         <FeatureList features={features} colorClass={colorClass.replace('bg-gradient-to-br from-', 'bg-').replace(' to-indigo-600', '').replace(' to-purple-600', '')} />
 
-        {/* CTA Button */}
-        <button
-          onClick={onClick}
-          className={buttonClasses}
-        >
-          <span>{buttonText}</span>
-          <ArrowUpRight size={18} className="ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-        </button>
+        {/* CTA Button at the bottom */}
+        <div className="mt-auto pt-4">
+          <button
+            onClick={onClick}
+            className={buttonClasses}
+          >
+            <span>{buttonText}</span>
+            <ArrowUpRight size={18} className="ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+          </button>
+        </div>
       </div>
     </div>
   );
