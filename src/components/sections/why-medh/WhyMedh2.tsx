@@ -110,7 +110,7 @@ const FeatureCard = memo<{
       <div className={contentClasses}>
         
         {/* Icon */}
-        <div className={iconClasses}>
+        <div className={getColorClasses(feature.color) + " w-12 h-12 rounded-xl flex items-center justify-center mb-4 mx-auto sm:mx-0"}>
           {iconWithClasses}
         </div>
         
@@ -305,7 +305,7 @@ const WhyMedh = memo(() => {
   }, []);
 
   const featuresGridClasses = useMemo(() => {
-    return "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16";
+    return "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16 text-center items-center sm:text-left sm:items-start";
   }, []);
 
   const certificationsHeaderClasses = useMemo(() => {

@@ -108,7 +108,7 @@ const HireCard = memo<{
   }, []);
 
   const iconContainerClasses = useMemo(() => {
-    return `w-16 h-16 rounded-xl ${colorClass} flex items-center justify-center shadow-lg`;
+    return `w-20 h-14 rounded-lg ${colorClass} flex items-center justify-center shadow-lg sm:w-16 sm:h-16 sm:rounded-xl`;
   }, [colorClass]);
 
   const titleClasses = useMemo(() => {

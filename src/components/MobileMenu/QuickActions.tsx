@@ -18,9 +18,9 @@ const QuickActions: React.FC<IQuickActionsProps> = ({
     : MENU_CONFIG.quickActions.guest;
 
   return (
-    <div className="px-4 py-3">
-      <h2 className={STYLES.sectionHeading}>Quick Actions</h2>
-      <div className="grid grid-cols-4 gap-3 mt-2">
+    <div className="px-2 py-1 sm:px-4 sm:py-3">
+      <h2 className={STYLES.sectionHeading + ' mb-1 sm:mb-3'}>Quick Actions</h2>
+      <div className="grid grid-cols-4 gap-2 mt-1 sm:gap-3 sm:mt-2">
         {quickActions.map((action, index) => {
           const Icon = action.icon;
           

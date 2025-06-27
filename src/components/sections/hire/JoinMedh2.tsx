@@ -287,7 +287,7 @@ const JoinMedh = memo(() => {
             subtitle="Share Your Expertise"
             description="Inspire the next generation. Bring your knowledge to eager learners worldwide and make a lasting difference in their educational journey."
             features={EDUCATOR_FEATURES}
-            buttonText="Become an Educator →"
+            buttonText="Become an Educator"
             onClick={handleEducatorNavigate}
             icon={educatorIcon}
             isDark={isDark}
@@ -301,7 +301,7 @@ const JoinMedh = memo(() => {
             subtitle="Institutional Excellence"
             description="Elevate your institution's educational offerings through our collaborative programs designed to meet the evolving demands of today's learners."
             features={PARTNER_FEATURES}
-            buttonText="Become a Partner →"
+            buttonText="Become a Partner"
             onClick={handlePartnerNavigate}
             icon={partnerIcon}
             isDark={isDark}
