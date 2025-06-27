@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Search, Calendar, Clock, Star, Eye, Play, Users, User, FileText, Video, MapPin, Globe, Loader2, Bell, Timer, CalendarDays, ChevronRight, AlarmClock, Check, Trash2, CalendarPlus, Download } from "lucide-react";
+import { X, Search, Calendar, Clock, Star, Eye, Play, Users, User, FileText, Video, MapPin, Globe, Loader2, Bell, Timer, CalendarDays, ChevronRight, AlarmClock, Check, Trash2, CalendarPlus, Download, RefreshCw, BookOpen } from "lucide-react";
 import StudentDashboardLayout from "./StudentDashboardLayout";
 import { batchAPI } from '@/apis/batch';
 import { toast } from 'react-hot-toast';
@@ -200,15 +200,11 @@ const UpcomingClassCard = ({
     const classDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
     if (classDate.getTime() === today.getTime()) {
-      return `Today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      return "Today";      return "Today";
     } else if (classDate.getTime() === tomorrow.getTime()) {
-      return `Tomorrow at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      return "Tomorrow";
     } else {
-      return `${date.toLocaleDateString('en-US', { 
-        weekday: 'short', 
-        month: 'short', 
-        day: 'numeric' 
-      })} at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
     }
   };
 
@@ -675,10 +671,7 @@ const StudentUpcomingClasses: React.FC = () => {
 
       console.log('Fetching upcoming classes for student:', studentId);
       
-      const response = await batchAPI.getStudentUpcomingSessions(studentId, {
-        limit: 20,
-        days_ahead: 30
-      });
+      const response = await batchAPI.getStudentUpcomingSessions(studentId);
 
       if (response.data && response.data.data) {
         const loadedReminders = loadReminders();
@@ -862,24 +855,6 @@ const StudentUpcomingClasses: React.FC = () => {
           </p>
             </div>
           </motion.div>
-
-          {/* Search Bar */}
-          <motion.div 
-            className="relative max-w-lg mx-auto"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search upcoming classes..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-2xl border border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
-            />
-          </motion.div>
         </div>
 
         {/* Enhanced Tabs */}
@@ -998,11 +973,9 @@ const StudentUpcomingClasses: React.FC = () => {
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                     {searchTerm ? "No matching classes found" : "No upcoming classes"}
                 </h3>
-                  <p className="text-gray-600 dark:text-gray-400 max-w-md">
-                  {searchTerm 
-                    ? "Try adjusting your search term to find what you're looking for."
-                      : "You don't have any upcoming classes scheduled at this time. Check back later or contact your instructor."}
-                </p>
+                  <p className="text-gray-600 dark:text-gray-400 max-w-md mb-4">
+                    You don't have any upcoming classes scheduled at this time.
+                  </p>
               </motion.div>
             )}
           </motion.div>
