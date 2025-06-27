@@ -224,67 +224,6 @@ const CourseAiCourseBanner: React.FC = memo(() => {
             />
           </div>
         </div>
-
-        {/* Images Section - Enhanced Glass Effect */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 max-w-5xl mx-auto gpu-accelerated">
-          <div className={`relative group overflow-hidden rounded-xl p-3 md:p-4 gpu-accelerated backdrop-blur-xl border transition-all duration-300 ${
-            isDark 
-              ? 'bg-white/5 border-white/10 hover:bg-white/10' 
-              : 'bg-white/40 border-white/30 hover:bg-white/60 shadow-lg hover:shadow-xl'
-          }`}>
-            <div className="absolute inset-0 opacity-30 gpu-accelerated">
-              <div className={`absolute inset-0 bg-gradient-to-br animate-pulse gpu-accelerated ${
-                isDark 
-                  ? 'from-blue-500/10 to-purple-500/10' 
-                  : 'from-blue-200/30 to-purple-200/30'
-              }`}></div>
-            </div>
-            <div className="relative z-10">
-              <Image
-                src={AI_DATA_SCIENCE_IMAGES.mainBanner}
-                alt="AI and Data Science Course"
-                width={500}
-                height={300}
-                priority
-                quality={95}
-                className="w-full h-36 md:h-48 object-cover rounded-lg gpu-accelerated transition-transform duration-300 group-hover:scale-105"
-                style={{ 
-                  objectFit: 'cover',
-                  imageRendering: '-webkit-optimize-contrast',
-                  backfaceVisibility: 'hidden'
-                }}
-              />
-            </div>
-          </div>
-          <div className={`relative group overflow-hidden rounded-xl p-3 md:p-4 gpu-accelerated backdrop-blur-xl border transition-all duration-300 ${
-            isDark 
-              ? 'bg-white/5 border-white/10 hover:bg-white/10' 
-              : 'bg-white/40 border-white/30 hover:bg-white/60 shadow-lg hover:shadow-xl'
-          }`}>
-            <div className="absolute inset-0 opacity-30 gpu-accelerated">
-              <div className={`absolute inset-0 bg-gradient-to-br animate-pulse gpu-accelerated ${
-                isDark 
-                  ? 'from-purple-500/10 to-indigo-500/10' 
-                  : 'from-purple-200/30 to-indigo-200/30'
-              }`}></div>
-            </div>
-            <div className="relative z-10">
-              <Image
-                src={AI_DATA_SCIENCE_IMAGES.studentImage}
-                alt="AI and Data Science Training"
-                width={500}
-                height={300}
-                quality={95}
-                className="w-full h-36 md:h-48 object-cover rounded-lg gpu-accelerated transition-transform duration-300 group-hover:scale-105"
-                style={{ 
-                  objectFit: 'cover',
-                  imageRendering: '-webkit-optimize-contrast',
-                  backfaceVisibility: 'hidden'
-                }}
-              />
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   );
