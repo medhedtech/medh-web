@@ -574,20 +574,23 @@ const UnifiedBatchModal: React.FC<UnifiedBatchModalProps> = ({
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Student (Optional)
                 </label>
-                {formData.student_id ? (
-                  <div className="flex items-center space-x-2">
-                    <span className="text-gray-900 dark:text-white">{students.find(s => s._id === formData.student_id)?.full_name} ({students.find(s => s._id === formData.student_id)?.email})</span>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {}}
-                    className="px-3 py-2 text-sm bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
-                    disabled
-                  >
-                    Add Student
-                  </button>
-                )}
+                <select
+                  value={formData.student_id || ''}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      student_id: e.target.value || undefined,
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value="">Select Student (Optional)</option>
+                  {students.map((student) => (
+                    <option key={student._id} value={student._id}>
+                      {student.full_name} ({student.email})
+                    </option>
+                  ))}
+                </select>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   If selected, student will be automatically enrolled in the batch upon creation
                 </p>
