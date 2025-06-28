@@ -42,7 +42,7 @@ const CourseOptions: React.FC = () => {
         {/* Main Heading */}
         <div className="space-y-2 md:space-y-4">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
-            TRANSFORM TECH INSIGHTS POWERFULLY
+            Transform Tech Insights Powerfully
           </h1>
           
           <div className="flex items-center justify-center gap-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold">

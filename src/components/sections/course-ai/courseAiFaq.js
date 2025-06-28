@@ -350,7 +350,9 @@ function CourseAiFaq() {
             Still have questions? We're here to help! 
           </p>
           <a 
-            href="mailto:care@medh.co" 
+            href="https://mail.google.com/mail/?view=cm&to=care@medh.co" 
+            target="_blank" 
+            rel="noopener noreferrer" 
             className="inline-flex items-center px-6 py-3 font-semibold rounded-full bg-gradient-to-r from-violet-500 to-blue-500 text-white hover:from-violet-600 hover:to-blue-600 transition-all duration-300 transform-gpu hover:scale-105"
             style={{ 
               willChange: "transform",

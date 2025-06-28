@@ -106,7 +106,7 @@ function AnimatedContent({
           )}
 
           {CourseRelatedCourses && (
-            <section className="w-full py-3 md:py-16 relative z-10">
+            <section className="w-full py-2 md:py-8 relative z-10">
               <CourseRelatedCourses />
             </section>
           )}
@@ -207,7 +207,13 @@ function AnimatedContent({
 
         {/* Related Courses Section */}
         {CourseRelatedCourses && (
-          <motion.section {...motionSectionProps}>
+          <motion.section 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.1 }}
+            variants={fadeInUp}
+            className="w-full py-2 md:py-8 relative z-10 transform-gpu"
+          >
             <CourseRelatedCourses />
           </motion.section>
         )}

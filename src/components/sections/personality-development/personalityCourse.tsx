@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import CoursesFilter from "../courses/CoursesFilter";
 import Link from "next/link";
 import { BookOpen, Sparkles, Users } from "lucide-react";
+import MedhLogo from "@/assets/images/logo/medh.png";
 
 // TypeScript Interfaces
 interface IViewSettings {
@@ -68,6 +70,14 @@ const PersonalityCourse: React.FC<IPersonalityCourseProps> = ({
     "UG/Grad/Pro",
   ];
 
+  // Custom button component
+  const CustomButtonComponent = () => (
+    <button className="inline-flex items-center px-4 md:px-6 py-2.5 md:py-3 bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 text-white text-xs md:text-sm font-medium rounded-lg md:rounded-xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-95">
+      <BookOpen className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+      <span>Explore All Courses</span>
+    </button>
+  );
+
   const customHeader = (
     <div className="w-full text-center">
       <div className="relative space-y-4 md:space-y-6 py-6 md:py-8 lg:py-10">
@@ -87,7 +97,14 @@ const PersonalityCourse: React.FC<IPersonalityCourseProps> = ({
           
           <div className="flex items-center justify-center gap-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold">
             <span className="text-gray-900 dark:text-white">with</span>
-            <span className="text-medhgreen dark:text-medhgreen bg-gradient-to-r from-medhgreen/10 to-transparent px-2 py-1 rounded">MEDH</span>
+            <div className="flex items-center">
+              <Image
+                src={MedhLogo}
+                alt="MEDH Logo"
+                className="h-6 md:h-8 w-auto object-contain"
+                priority
+              />
+            </div>
           </div>
         </div>
 
@@ -110,17 +127,11 @@ const PersonalityCourse: React.FC<IPersonalityCourseProps> = ({
           <CoursesFilter
             key="personality-development"
             CustomText="Personality Development Courses"
-            CustomButton={
-              <button className="inline-flex items-center px-4 md:px-6 py-2.5 md:py-3 bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 text-white text-xs md:text-sm font-medium rounded-lg md:rounded-xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-95">
-                <BookOpen className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
-                <span>Explore All Courses</span>
-              </button>
-            }
+            CustomButton={CustomButtonComponent}
             fixedCategory="Personality Development"
             hideCategories={true}
             hideSearch={true}
             hideSortOptions={true}
-            hideViewModeSwitch={true}
             hideHeader={true}
             gridColumns={3}
             itemsPerPage={8}
@@ -132,20 +143,6 @@ const PersonalityCourse: React.FC<IPersonalityCourseProps> = ({
               gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
               width: '100%',
               maxWidth: '100%'
-            }}
-            customFilterStyles={{
-              container: "w-full max-w-none px-0",
-              content: "w-full",
-              gradeFilter: {
-                wrapper: "w-full border-0",
-                container: "w-full max-w-none px-0",
-                dropdown: "w-full rounded-xl shadow-lg",
-                header: "p-5 bg-purple-50 dark:bg-purple-900/20",
-                content: "p-4 space-y-3",
-                option: "p-4 hover:bg-purple-50 dark:hover:bg-purple-900/20"
-              },
-              filterSection: "w-full px-0",
-              filterBar: "w-full px-0 mx-0"
             }}
             emptyStateContent={
               <div className="flex flex-col items-center justify-center min-h-[20vh] md:min-h-[30vh] text-center p-4 md:p-8 bg-white dark:bg-gray-800/50 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">

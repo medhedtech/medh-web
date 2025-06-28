@@ -58,7 +58,9 @@ function CourseAiRelatedCourses() {
             <CourseCard key={course._id} course={course} />
           ))
         ) : (
-          <p>No related courses found for AI and Data Science.</p>
+          <p className="text-center text-black dark:text-white text-base py-2">
+            More AI and Data Science courses coming soon! Stay tuned for new programs and specializations.
+          </p>
         )}
       </div>
     </div>
