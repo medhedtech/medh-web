@@ -363,15 +363,6 @@ export default function CourseFaq({ courseId }: CourseFaqProps) {
               </div>
             )}
           </motion.div>
-
-          {/* Order notice */}
-          {filteredFaqs.length > 0 && !loading && !courseLoading && !searchQuery && (
-            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center">
-              <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1" /> 
-              <span>FAQs are displayed in the order they were uploaded.</span>
-            </div>
-          )}
-
           {/* Loading state */}
           {(courseLoading || loading) && (
             <div className="space-y-4 mt-6">
