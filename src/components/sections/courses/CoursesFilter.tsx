@@ -22,7 +22,10 @@ import {
   Layers,
   Info,
   Users,
-  ArrowUpRight
+  ArrowUpRight,
+  Check,
+  Grid3X3,
+  List
 } from "lucide-react";
 import Pagination from "@/components/shared/pagination/Pagination";
 import useGetQuery from "@/hooks/getQuery.hook";
@@ -35,7 +38,7 @@ import { IUpdateCourseData } from '@/types/course.types';
 import { apiBaseUrl, apiUtils, ICourseFilters, ICourseSearchParams } from '@/apis/index';
 import { getAllCoursesWithLimits } from '@/apis/course/course';
 import axios from 'axios';
-import CourseCard from "@/components/sections/courses/CourseCard";
+
 
 // TypeScript Interfaces
 interface ICourse {
@@ -162,7 +165,7 @@ interface IWindowSize {
 }
 
 // Dynamically import components that might cause hydration issues
-const DynamicCourseCard = dynamic(() => import("./CourseCard"), {
+const DynamicFilterCourseCard = dynamic(() => import("./FilterCourseCard"), {
   ssr: true,
   loading: () => <div className="animate-pulse bg-gray-100 dark:bg-gray-800 rounded-2xl h-80 transition-colors duration-200"></div>,
 });
@@ -347,25 +350,27 @@ const SimplePaginationWrapper: React.FC<ISimplePaginationWrapperProps> = ({
         <button
           onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
           disabled={currentPage <= 1}
-          className={`px-4 py-2 rounded-xl transition-all ${
+          className={`px-6 py-3 rounded-2xl transition-all duration-200 font-semibold ${
             currentPage <= 1
               ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-              : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 shadow-sm"
+              : "bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 shadow-lg hover:shadow-xl active:scale-95"
           }`}
           aria-label="Previous page"
         >
           Previous
         </button>
-        <span className="text-sm text-gray-600 dark:text-gray-400 px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-xl">
-          {currentPage} of {totalPages}
-        </span>
+        <div className="px-6 py-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-gray-200 dark:border-gray-600">
+          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+            Page {currentPage} of {totalPages}
+          </span>
+        </div>
         <button
           onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
           disabled={currentPage >= totalPages}
-          className={`px-4 py-2 rounded-xl transition-all ${
+          className={`px-6 py-3 rounded-2xl transition-all duration-200 font-semibold ${
             currentPage >= totalPages
               ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-              : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 shadow-sm"
+              : "bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 shadow-lg hover:shadow-xl active:scale-95"
           }`}
           aria-label="Next page"
         >
@@ -390,10 +395,10 @@ const SimplePaginationWrapper: React.FC<ISimplePaginationWrapperProps> = ({
         <button
           key={i}
           onClick={() => onPageChange(i)}
-          className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${
+          className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all duration-200 font-semibold ${
             currentPage === i
-              ? "bg-purple-500 text-white shadow-lg"
-              : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+              ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg scale-110"
+              : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 hover:scale-105 shadow-sm hover:shadow-md"
           }`}
         >
           {i}
@@ -408,10 +413,10 @@ const SimplePaginationWrapper: React.FC<ISimplePaginationWrapperProps> = ({
       <button
         onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
         disabled={currentPage <= 1}
-        className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${
+        className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all duration-200 font-bold text-lg ${
           currentPage <= 1
             ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-            : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+            : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 hover:scale-105 shadow-sm hover:shadow-md"
         }`}
         aria-label="Previous page"
       >
@@ -423,10 +428,10 @@ const SimplePaginationWrapper: React.FC<ISimplePaginationWrapperProps> = ({
       <button
         onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
         disabled={currentPage >= totalPages}
-        className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${
+        className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all duration-200 font-bold text-lg ${
           currentPage >= totalPages
             ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-            : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+            : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 hover:scale-105 shadow-sm hover:shadow-md"
         }`}
         aria-label="Next page"
       >
@@ -437,11 +442,12 @@ const SimplePaginationWrapper: React.FC<ISimplePaginationWrapperProps> = ({
 };
 
 // Memoized components for better performance - temporarily disabled for duration fix
-const MemoizedCourseCard = DynamicCourseCard;
+const MemoizedFilterCourseCard = DynamicFilterCourseCard;
 
 // Enhanced sort dropdown component with improved mobile UX
 const SortDropdown = React.memo<ISortDropdownProps>(({ sortOrder, handleSortChange, showSortDropdown, setShowSortDropdown }) => {
   const sortDropdownRef = useRef<HTMLDivElement>(null);
+  const overlayId = 'sort-dropdown-overlay';
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -484,47 +490,43 @@ const SortDropdown = React.memo<ISortDropdownProps>(({ sortOrder, handleSortChan
   };
 
   return (
-    <div className="relative z-50" ref={sortDropdownRef}>
+    <div className="sort-dropdown-container relative" ref={sortDropdownRef}>
       <button
         onClick={() => setShowSortDropdown(!showSortDropdown)}
-        className={`flex items-center justify-between w-full md:w-40 px-4 py-3 bg-white dark:bg-gray-800 rounded-xl border transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 ${
+        className={`group flex items-center justify-between min-w-[140px] px-4 py-3 rounded-2xl border-2 transition-all duration-300 shadow-sm hover:shadow-md active:scale-95 ${
           showSortDropdown 
-            ? 'border-purple-300 dark:border-purple-600 ring-2 ring-purple-100 dark:ring-purple-900/50 bg-purple-50 dark:bg-purple-900/20'
-            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+            ? 'border-indigo-300 dark:border-indigo-600 ring-4 ring-indigo-500/20 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20'
+            : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
         }`}
         aria-expanded={showSortDropdown}
         aria-haspopup="true"
       >
         <div className="flex items-center space-x-2">
-          <div className={`transition-colors ${
-            showSortDropdown ? 'text-purple-600 dark:text-purple-400' : 'text-gray-500 dark:text-gray-400'
+          <div className={`p-1 rounded-lg transition-colors duration-200 ${
+            showSortDropdown 
+              ? 'bg-indigo-100 dark:bg-indigo-800 text-indigo-600 dark:text-indigo-400'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-500 group-hover:bg-gray-200 dark:group-hover:bg-gray-600'
           }`}>
             {getSortIcon(sortOrder)}
           </div>
-          <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
             {getSortLabel(sortOrder)}
           </span>
         </div>
-        <ChevronDown 
-          size={16} 
-          className={`transform transition-all duration-300 ${
-            showSortDropdown 
-              ? 'rotate-180 text-purple-600 dark:text-purple-400' 
-              : 'text-gray-400 dark:text-gray-500'
-          }`} 
-        />
+        <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-300 ${showSortDropdown ? 'rotate-180 text-indigo-500' : ''}`} />
       </button>
 
       {showSortDropdown && (
         <>
           {/* Enhanced mobile backdrop with smooth animation */}
           <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] animate-in fade-in duration-200 lg:hidden" 
+            className="sort-dropdown-backdrop mobile-backdrop-fix enhanced-backdrop animate-in fade-in duration-200 lg:hidden" 
             onClick={() => setShowSortDropdown(false)}
           />
           {/* Enhanced sort dropdown content with modern design and iPad support */}
           <div 
-            className="fixed top-[25vh] left-1/2 transform -translate-x-1/2 w-[85vw] max-w-xs bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[1000] overflow-hidden animate-in slide-in-from-top-4 duration-300 sm:w-[70vw] sm:max-w-sm lg:absolute lg:right-0 lg:top-full lg:left-auto lg:transform-none lg:translate-x-0 lg:translate-y-0 lg:mt-3 lg:w-52 lg:z-[1000] lg:animate-in lg:slide-in-from-top-2" 
+            className="sort-dropdown-content mobile-dropdown-fix fixed top-[25vh] left-1/2 transform -translate-x-1/2 w-[85vw] max-w-xs bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-in slide-in-from-top-4 duration-300 z-transition sm:w-[70vw] sm:max-w-sm lg:absolute lg:right-0 lg:top-full lg:left-auto lg:transform-none lg:translate-x-0 lg:translate-y-0 lg:mt-3 lg:w-52 lg:animate-in lg:slide-in-from-top-2"
+            style={{ zIndex: 'var(--z-sort-dropdown)' }}
             role="menu"
             onClick={(e) => e.stopPropagation()}
           >
@@ -578,32 +580,249 @@ const SortDropdown = React.memo<ISortDropdownProps>(({ sortOrder, handleSortChan
   );
 });
 
-// Modern search input component
-const SearchInput = React.memo<ISearchInputProps>(({ searchTerm, handleSearch, setSearchTerm }) => (
-  <div className="flex-grow relative">
-    <div className="relative">
-      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" size={20} />
-      <input
-        type="text"
-        placeholder="Search courses..."
-        value={searchTerm}
-        onChange={handleSearch}
-        className="w-full py-3 pl-12 pr-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
-        aria-label="Search courses"
-      />
+// Enhanced search input component with advanced features
+const SearchInput = React.memo<ISearchInputProps>(({ searchTerm, handleSearch, setSearchTerm }) => {
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
-      {searchTerm && (
-        <button
-          onClick={() => setSearchTerm("")}
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
-          aria-label="Clear search"
+  // Enhanced search suggestions based on available courses
+  const popularSearchTerms = [
+    "AI and Data Science",
+    "Digital Marketing",
+    "Personality Development", 
+    "Vedic Mathematics",
+    "Business Management",
+    "Communication Skills",
+    "Data Analytics",
+    "Python",
+    "Machine Learning",
+    "Excel",
+    "Finance",
+    "Leadership",
+    "Project Management",
+    "Web Development"
+  ];
+
+  // Load recent searches from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('medh-recent-searches');
+      if (saved) {
+        setRecentSearches(JSON.parse(saved).slice(0, 5)); // Keep only last 5
+      }
+    } catch (error) {
+      console.warn('Failed to load recent searches:', error);
+    }
+  }, []);
+
+  // Generate search suggestions based on input
+  useEffect(() => {
+    if (searchTerm.length >= 2) {
+      const filtered = popularSearchTerms.filter(term =>
+        term.toLowerCase().includes(searchTerm.toLowerCase())
+      ).slice(0, 6);
+      setSearchSuggestions(filtered);
+      setShowSuggestions(true);
+    } else {
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, [searchTerm]);
+
+  // Handle search selection
+  const handleSearchSelect = useCallback((selectedTerm: string) => {
+    setSearchTerm(selectedTerm);
+    setShowSuggestions(false);
+    
+    // Save to recent searches
+    const updatedRecent = [selectedTerm, ...recentSearches.filter(term => term !== selectedTerm)].slice(0, 5);
+    setRecentSearches(updatedRecent);
+    
+    try {
+      localStorage.setItem('medh-recent-searches', JSON.stringify(updatedRecent));
+    } catch (error) {
+      console.warn('Failed to save recent search:', error);
+    }
+
+    // Trigger search
+    const syntheticEvent = {
+      target: { value: selectedTerm }
+    } as React.ChangeEvent<HTMLInputElement>;
+    handleSearch(syntheticEvent);
+  }, [recentSearches, setSearchTerm, handleSearch]);
+
+  // Handle click outside to close suggestions
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        suggestionsRef.current && 
+        !suggestionsRef.current.contains(event.target as Node) &&
+        searchInputRef.current &&
+        !searchInputRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+        setIsSearchFocused(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Handle keyboard navigation
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setShowSuggestions(false);
+      setIsSearchFocused(false);
+      searchInputRef.current?.blur();
+    } else if (e.key === 'Enter' && searchTerm.trim()) {
+      handleSearchSelect(searchTerm.trim());
+    }
+  };
+
+  return (
+    <div className="relative group">
+      <div className="relative">
+        {/* Search Icon */}
+        <div className={`absolute left-4 top-1/2 transform -translate-y-1/2 transition-all duration-200 ${
+          isSearchFocused ? 'text-indigo-500 scale-110' : 'text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300'
+        }`}>
+          <Search className="w-5 h-5" />
+        </div>
+        
+        {/* Search Input */}
+        <input
+          ref={searchInputRef}
+          type="text"
+          placeholder="Search for courses, topics, instructors, or skills..."
+          value={searchTerm}
+          onChange={handleSearch}
+          onFocus={() => {
+            setIsSearchFocused(true);
+            if (searchTerm.length >= 2 || recentSearches.length > 0) {
+              setShowSuggestions(true);
+            }
+          }}
+          onKeyDown={handleKeyDown}
+          className={`w-full h-12 pl-12 pr-16 text-base border-2 rounded-2xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-300 shadow-sm hover:shadow-md focus:shadow-lg ${
+            isSearchFocused 
+              ? 'border-indigo-500 dark:border-indigo-400 ring-4 ring-indigo-500/20' 
+              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+          }`}
+          aria-label="Search courses"
+          autoComplete="off"
+        />
+        
+        {/* Action Buttons */}
+        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
+          {searchTerm && (
+            <>
+              {/* Search Button */}
+              <button
+                onClick={() => handleSearchSelect(searchTerm.trim())}
+                className="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
+                aria-label="Search"
+              >
+                <ArrowUpRight className="w-3 h-3" />
+              </button>
+              
+              {/* Clear Button */}
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setShowSuggestions(false);
+                  searchInputRef.current?.focus();
+                }}
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all duration-200"
+                aria-label="Clear search"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+      
+      {/* Search Enhancement Features */}
+      <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 transition-opacity duration-300 pointer-events-none ${
+        isSearchFocused ? 'opacity-100' : 'opacity-0'
+      }`}></div>
+      
+      {/* Search Suggestions Dropdown */}
+      {showSuggestions && (isSearchFocused || searchTerm.length >= 2) && (
+        <div 
+          ref={suggestionsRef}
+          className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl z-50 max-h-80 overflow-y-auto backdrop-blur-sm"
         >
-          <X size={20} />
-        </button>
+          {/* Recent Searches */}
+          {searchTerm.length < 2 && recentSearches.length > 0 && (
+            <div className="p-4 border-b border-gray-100 dark:border-gray-700">
+              <div className="flex items-center space-x-2 mb-3">
+                <Clock className="w-4 h-4 text-gray-400" />
+                <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Recent Searches</span>
+              </div>
+              <div className="space-y-1">
+                {recentSearches.map((term, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleSearchSelect(term)}
+                    className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors duration-150 flex items-center space-x-2"
+                  >
+                    <Search className="w-3 h-3 text-gray-400" />
+                    <span>{term}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Search Suggestions */}
+          {searchSuggestions.length > 0 && (
+            <div className="p-4">
+              <div className="flex items-center space-x-2 mb-3">
+                <Sparkles className="w-4 h-4 text-indigo-500" />
+                <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Suggested Searches</span>
+              </div>
+              <div className="space-y-1">
+                {searchSuggestions.map((suggestion, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleSearchSelect(suggestion)}
+                    className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 dark:hover:from-indigo-900/20 dark:hover:to-purple-900/20 rounded-xl transition-all duration-150 flex items-center space-x-2 group"
+                  >
+                    <div className="p-1 bg-gray-100 dark:bg-gray-700 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-800 rounded-lg transition-colors">
+                      <Search className="w-3 h-3 text-gray-500 group-hover:text-indigo-500" />
+                    </div>
+                    <span className="flex-1">{suggestion}</span>
+                    <ArrowUpRight className="w-3 h-3 text-gray-400 group-hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition-all" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* No suggestions message */}
+          {searchTerm.length >= 2 && searchSuggestions.length === 0 && (
+            <div className="p-6 text-center">
+              <SearchX className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">No suggestions found</p>
+              <button
+                onClick={() => handleSearchSelect(searchTerm.trim())}
+                className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
+              >
+                Search for "{searchTerm.trim()}"
+              </button>
+            </div>
+          )}
+        </div>
       )}
     </div>
-  </div>
-));
+  );
+});
 
 // Add a custom hook for window resize handling
 const useWindowSize = (): IWindowSize => {
@@ -680,6 +899,51 @@ const useIntersectionObserver = (
   return isVisible;
 };
 
+// Z-Index management hook for proper overlay stacking
+const useZIndexManager = () => {
+  const [activeOverlays, setActiveOverlays] = useState<Set<string>>(new Set());
+  
+  const registerOverlay = useCallback((overlayId: string) => {
+    setActiveOverlays(prev => new Set([...prev, overlayId]));
+  }, []);
+  
+  const unregisterOverlay = useCallback((overlayId: string) => {
+    setActiveOverlays(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(overlayId);
+      return newSet;
+    });
+  }, []);
+  
+  const getOverlayZIndex = useCallback((overlayId: string) => {
+    const overlayArray = Array.from(activeOverlays);
+    const index = overlayArray.indexOf(overlayId);
+    
+    // Base z-index values from CSS variables
+    const baseZIndex = {
+      'sort-dropdown': 60,
+      'filter-dropdown': 50,
+      'mobile-categories': 100,
+      'course-card': 10
+    };
+    
+    const overlayType = overlayId.split('-')[0] as keyof typeof baseZIndex;
+    const base = baseZIndex[overlayType] || 50;
+    
+    return base + (index * 10);
+  }, [activeOverlays]);
+  
+  const hasActiveOverlays = activeOverlays.size > 0;
+  
+  return {
+    registerOverlay,
+    unregisterOverlay,
+    getOverlayZIndex,
+    hasActiveOverlays,
+    activeOverlays
+  };
+};
+
 // Add currency detection function
 const getLocationCurrency = async (): Promise<string> => {
   try {
@@ -750,35 +1014,21 @@ const usePerformanceMonitor = (componentName: string) => {
   return { measureAction };
 };
 
-// Add glassmorphic styles for filter components
+// Minimal CSS for z-index management - everything else converted to Tailwind
 const addFilterGlassmorphicStyles = () => {
   const style = document.createElement('style');
   style.id = 'filter-glassmorphic-styles';
   style.textContent = `
-    .filter-glassmorphic {
-      background: rgba(99, 102, 241, 0.08);
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
-      border: 1px solid rgba(99, 102, 241, 0.2);
-      box-shadow: 0 4px 25px rgba(99, 102, 241, 0.1);
-    }
-    
-    .dark .filter-glassmorphic {
-      background: rgba(99, 102, 241, 0.06);
-      border: 1px solid rgba(99, 102, 241, 0.15);
-      box-shadow: 0 4px 25px rgba(99, 102, 241, 0.08);
-    }
-    
-    .filter-header-glassmorphic {
-      background: rgba(168, 85, 247, 0.08);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(168, 85, 247, 0.2);
-    }
-    
-    .dark .filter-header-glassmorphic {
-      background: rgba(168, 85, 247, 0.06);
-      border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+    /* Z-Index Layer System - CSS Variables for Tailwind */
+    :root {
+      --z-base: 1;
+      --z-course-card: 10;
+      --z-course-card-hover: 15;
+      --z-filter-dropdown: 100;
+      --z-sort-dropdown: 150;
+      --z-mobile-categories: 200;
+      --z-mobile-backdrop: 999;
+      --z-mobile-dropdown: 1000;
     }
   `;
   document.head.appendChild(style);
@@ -875,11 +1125,42 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   const performanceStartTime = useRef<number>(0);
 
   // Other hooks
-  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  // Enhanced debounced search with improved performance and search analytics
+  const debouncedSearchTerm = useDebounce(searchTerm, 500); // Increased delay for better performance
   const { width } = useWindowSize();
   const isMobile = width < 768;
+
+  // Search analytics and tracking
+  const searchAnalytics = useRef({
+    searchCount: 0,
+    lastSearchTime: 0,
+    popularTerms: new Map<string, number>()
+  });
+
+  // Track search usage for analytics
+  const trackSearch = useCallback((term: string) => {
+    if (term.trim().length >= 2) {
+      const analytics = searchAnalytics.current;
+      analytics.searchCount++;
+      analytics.lastSearchTime = Date.now();
+      
+      // Track popular search terms
+      const trimmedTerm = term.trim().toLowerCase();
+      analytics.popularTerms.set(trimmedTerm, (analytics.popularTerms.get(trimmedTerm) || 0) + 1);
+      
+      // Log search analytics in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Search Analytics:', {
+          term: trimmedTerm,
+          searchCount: analytics.searchCount,
+          termFrequency: analytics.popularTerms.get(trimmedTerm)
+        });
+      }
+    }
+  }, []);
   const isTablet = width >= 768 && width < 1024;
   const [responsiveGridColumns, setResponsiveGridColumns] = useState<number>(gridColumns);
+  const zIndexManager = useZIndexManager();
 
   // Performance monitoring and add glassmorphic styles
   useEffect(() => {
@@ -1329,10 +1610,17 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     setCurrentPage(1);
   }, []);
 
+  // Enhanced search handler with analytics and better UX
   const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+    const value = e.target.value;
+    setSearchTerm(value);
     setCurrentPage(1);
-  }, []);
+    
+    // Track search for analytics
+    if (value.trim()) {
+      trackSearch(value);
+    }
+  }, [trackSearch]);
 
   const handleSortChange = useCallback((val: string) => {
     setSortOrder(val);
@@ -1797,7 +2085,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     }
 
     return (
-      <div className="relative px-4 md:px-6 lg:px-8">
+      <div className="course-grid-container relative px-4 md:px-6 lg:px-8">
         {/* Enhanced Course Cards Grid - Responsive for all screen sizes */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-1.5 lg:gap-2 auto-rows-fr">
             {filteredCourses.map((course, index) => {
@@ -1850,13 +2138,19 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
               return (
                 <ErrorBoundary key={`course-${enhancedCourse._id}-${index}`}>
                   <div
-                    className="h-full opacity-0"
+                    className="course-card course-card-base h-full opacity-0 z-transition"
                     style={{
                       animationDelay: `${Math.min(index * 100, 1000)}ms`, // Cap delay at 1 second
                       animation: 'fadeInUp 0.6s ease-out forwards',
                     }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.classList.add('course-card-hover');
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.classList.remove('course-card-hover');
+                    }}
                   >
-                    <MemoizedCourseCard
+                    <MemoizedFilterCourseCard
                       course={enhancedCourse}
                       viewMode="grid"
                       isCompact={isMobile}
@@ -2077,6 +2371,57 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             flex-direction: column;
           }
 
+          /* Dynamic z-index management */
+          .overlay-active {
+            z-index: var(--z-mobile-dropdown);
+          }
+
+          .overlay-backdrop-active {
+            z-index: var(--z-mobile-backdrop);
+          }
+
+          /* Prevent z-index conflicts during animations */
+          .course-card.animating {
+            z-index: var(--z-course-card);
+          }
+
+          .course-card:hover:not(.animating) {
+            z-index: var(--z-course-card-hover);
+          }
+
+          /* Ensure dropdowns always appear above course cards */
+          .dropdown-active {
+            z-index: calc(var(--z-course-card-hover) + 10);
+          }
+
+          /* Force sort dropdown above everything */
+          .sort-dropdown-content {
+            z-index: 150 !important;
+          }
+
+          /* Force mobile categories above everything except backdrops */
+          .mobile-categories-dropdown {
+            z-index: 200 !important;
+          }
+
+          /* Ensure course cards stay below dropdowns */
+          .course-grid-container .course-card {
+            z-index: 10;
+            max-z-index: 15;
+          }
+
+          /* Enhanced backdrop for better visual separation */
+          .enhanced-backdrop {
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.4);
+            transition: opacity 200ms ease-out, backdrop-filter 200ms ease-out;
+          }
+
+          .dark .enhanced-backdrop {
+            background: rgba(0, 0, 0, 0.6);
+          }
+
           /* Loading state improvements */
           .skeleton-loader {
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
@@ -2152,8 +2497,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     if (hideCategoryFilter) return null;
     
     return (
-      <div className={`hidden lg:block lg:w-[20%]`}>
-        <div className="bg-white dark:bg-gray-800 py-4 border-r border-gray-200 dark:border-gray-700 min-h-screen">
+      <div className={`hidden lg:block lg:w-[20%] flex-shrink-0`}>
+        <div className="bg-white dark:bg-gray-800 py-4 border-r border-gray-200 dark:border-gray-700 h-full overflow-y-auto custom-scrollbar">
           <div className="px-4 md:px-6">
                       <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Filters</h3>
@@ -2451,7 +2796,35 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     );
   };
 
-  // Enhanced Mobile Categories dropdown component with improved UX
+  // Main content renderer with course list and pagination
+  const renderMainContent = (): React.ReactNode => {
+    return (
+      <div className="flex-1 lg:w-[80%] flex flex-col">
+        <div className="bg-white dark:bg-gray-900 flex-1 overflow-hidden">
+          {/* Scrollable Course List Container */}
+          <div className="h-full overflow-y-auto custom-scrollbar">
+            {/* Course List */}
+            {renderCourseList()}
+            
+            {/* Pagination */}
+            {!loading && filteredCourses.length > 0 && totalPages > 1 && (
+              <div className="px-4 md:px-6 lg:px-8 py-6 border-t border-gray-100 dark:border-gray-800">
+                <SimplePaginationWrapper
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  simplified={simplePagination}
+                  className="flex justify-center"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Simplified Mobile Categories dropdown component - fixed stuck issue
   const MobileCategoriesDropdown = React.memo(() => {
     const mobileCategoriesRef = useRef<HTMLDivElement>(null);
     const [selectedCount, setSelectedCount] = useState(0);
@@ -2462,95 +2835,99 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
       setSelectedCount(total);
     }, [selectedLiveCourses, selectedBlendedLearning, selectedFreeCourses, selectedGrade]);
 
+    // Handle click outside to close dropdown
+    useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        if (mobileCategoriesRef.current && !mobileCategoriesRef.current.contains(event.target as Node)) {
+          setIsMobileCategoriesOpen(false);
+        }
+      };
+
+      if (isMobileCategoriesOpen) {
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+      }
+    }, [isMobileCategoriesOpen]);
+
     return (
-      <div className="xl:hidden relative z-50" ref={mobileCategoriesRef}>
+      <div className="mobile-categories-container xl:hidden relative" ref={mobileCategoriesRef}>
         <button
           onClick={() => setIsMobileCategoriesOpen(!isMobileCategoriesOpen)}
-          className={`flex items-center justify-center px-4 py-3 rounded-xl border transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 min-w-[120px] sm:min-w-[140px] ${
+          className={`group flex items-center justify-center px-4 py-3 rounded-2xl border-2 transition-all duration-300 shadow-sm hover:shadow-md active:scale-95 min-w-[140px] ${
             isMobileCategoriesOpen || selectedCount > 0
-              ? 'bg-purple-50 dark:bg-purple-900/30 border-purple-300 dark:border-purple-600 text-purple-700 dark:text-purple-400'
-              : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+              ? 'bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/30 dark:to-indigo-900/30 border-purple-300 dark:border-purple-600 text-purple-700 dark:text-purple-400 ring-4 ring-purple-500/20'
+              : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600'
           }`}
         >
-          <Filter className={`w-4 h-4 mr-2 transition-colors ${
-            isMobileCategoriesOpen || selectedCount > 0 ? 'text-purple-600 dark:text-purple-400' : 'text-gray-500 dark:text-gray-400'
-          }`} />
+          <div className={`p-1 rounded-lg transition-colors duration-200 mr-2 ${
+            isMobileCategoriesOpen || selectedCount > 0 
+              ? 'bg-purple-100 dark:bg-purple-800 text-purple-600 dark:text-purple-400'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-500 group-hover:bg-gray-200 dark:group-hover:bg-gray-600'
+          }`}>
+            <Filter className="w-4 h-4" />
+          </div>
           <span className="text-sm font-semibold">Categories</span>
           {selectedCount > 0 && (
-            <span className="ml-2 bg-purple-500 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[20px] h-5 flex items-center justify-center">
+            <div className="ml-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs font-bold px-2.5 py-1 rounded-full min-w-[24px] h-6 flex items-center justify-center shadow-sm">
               {selectedCount}
-            </span>
+            </div>
           )}
-          <ChevronDown 
-            size={16} 
-            className={`ml-2 transition-all duration-300 ${
-              isMobileCategoriesOpen 
-                ? 'rotate-180 text-purple-600 dark:text-purple-400' 
-                : 'text-gray-400 dark:text-gray-500'
-            }`} 
-          />
+          <ChevronDown className={`ml-2 w-4 h-4 transition-transform duration-300 ${
+            isMobileCategoriesOpen ? 'rotate-180 text-purple-500' : 'text-gray-500'
+          }`} />
         </button>
 
         {isMobileCategoriesOpen && (
           <>
-            {/* Enhanced mobile backdrop */}
+            {/* Simplified backdrop */}
             <div 
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] animate-in fade-in duration-300" 
+              className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
               onClick={() => setIsMobileCategoriesOpen(false)}
             />
-            {/* Enhanced categories dropdown with modern design and iPad support */}
+            
+            {/* Simplified dropdown */}
             <div 
-              className="fixed top-[8vh] bottom-[8vh] left-1/2 transform -translate-x-1/2 w-[92vw] max-w-lg bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[1000] flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 duration-300 sm:top-[12vh] sm:bottom-[12vh] sm:w-[80vw] sm:max-w-2xl md:w-[70vw] md:max-w-3xl lg:top-[10vh] lg:bottom-[10vh] lg:w-[60vw] lg:max-w-4xl xl:absolute xl:top-full xl:left-0 xl:transform-none xl:translate-x-0 xl:translate-y-0 xl:mt-3 xl:max-h-[500px] xl:h-auto xl:bottom-auto xl:overflow-y-auto xl:animate-in xl:slide-in-from-top-4 xl:w-96"
+              className="fixed top-[15vh] left-4 right-4 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 max-h-[70vh] overflow-hidden lg:absolute lg:top-full lg:left-0 lg:right-auto lg:w-96 lg:max-h-[500px]"
               onClick={(e) => e.stopPropagation()}
             >
-            {/* Enhanced Header with statistics */}
-            <div className="flex-shrink-0 px-6 py-5 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/20 rounded-t-2xl">
-              <div className="flex items-center justify-between">
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/20">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/40 rounded-xl flex items-center justify-center">
-                    <Filter className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center">
+                    <Filter className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Filter Categories</h3>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Categories</h3>
                     {selectedCount > 0 && (
                       <p className="text-sm text-purple-600 dark:text-purple-400 font-medium">
-                        {selectedCount} filter{selectedCount !== 1 ? 's' : ''} active
+                        {selectedCount} active
                       </p>
                     )}
                   </div>
                 </div>
                 <button
-                  onClick={handleClearFilters}
-                  className="px-4 py-2 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-200 rounded-xl hover:bg-purple-100 dark:hover:bg-purple-900/40 font-semibold active:scale-95 border border-purple-200 dark:border-purple-800"
+                  onClick={() => setIsMobileCategoriesOpen(false)}
+                  className="p-2 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg transition-colors"
                 >
-                  Clear All
+                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                 </button>
               </div>
-            </div>
-            
-            {/* Scrollable Content Area - Enhanced UX with better spacing */}
-            <div 
-              className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 px-4 md:px-6 py-6 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 dark:hover:scrollbar-thumb-gray-500"
-              style={{ 
-                maxHeight: 'calc(90vh - 200px)',
-                overflowY: 'auto',
-                overflowX: 'hidden'
-              }}
-            >
-              <div className="space-y-4">
+              
+              {/* Content */}
+              <div className="overflow-y-auto max-h-[calc(70vh-120px)] p-4 space-y-4">
                 {/* Live Courses */}
-                <div className="filter-glassmorphic rounded-lg border border-red-100 dark:border-red-900/30 overflow-hidden">
-                                                        <div 
-                    className="flex items-center justify-between cursor-pointer p-4 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-300 ease-in-out active:scale-[0.98]" 
+                <div className="border border-red-100 dark:border-red-900/30 rounded-lg overflow-hidden">
+                  <div 
+                    className="flex items-center justify-between cursor-pointer p-3 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" 
                     onClick={() => setIsLiveCoursesDropdownOpen(!isLiveCoursesDropdownOpen)}
                   >
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 filter-glassmorphic rounded-lg flex items-center justify-center shadow-sm">
-                        <Zap className="w-4 h-4 text-red-600 dark:text-red-400" />
+                      <div className="w-6 h-6 bg-red-100 dark:bg-red-900/40 rounded-lg flex items-center justify-center">
+                        <Zap className="w-3 h-3 text-red-600 dark:text-red-400" />
                       </div>
                       <div>
                         <h5 className="text-sm font-semibold text-red-900 dark:text-red-100">Live Courses</h5>
-                        <p className="text-xs text-red-600 dark:text-red-400">Live sessions</p>
+                        <p className="text-xs text-red-600 dark:text-red-400">Interactive sessions</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -2559,981 +2936,369 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                           {selectedLiveCourses.length}
                         </span>
                       )}
-                      <ChevronDown className={`w-5 h-5 text-red-600 dark:text-red-400 transition-all duration-300 ease-in-out ${isLiveCoursesDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
+                      <ChevronDown className={`w-4 h-4 text-red-600 dark:text-red-400 transition-transform duration-200 ${isLiveCoursesDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
                     </div>
                   </div>
                   
                   {isLiveCoursesDropdownOpen && (
-                    <div className="px-4 pb-4 pt-2 space-y-2 border-t border-red-100 dark:border-red-900/30 bg-white dark:bg-gray-800">
+                    <div className="px-3 pb-3 space-y-2 border-t border-red-100 dark:border-red-900/30">
                       {liveCoursesOptions.map((option) => (
-                        <div
+                        <label
                           key={option}
-                          className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 min-h-[48px] group"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const isChecked = selectedLiveCourses.includes(option);
-                            if (isChecked) {
-                              setSelectedLiveCourses(prev => prev.filter(item => item !== option));
-                            } else {
-                              setSelectedLiveCourses(prev => [...prev, option]);
-                            }
-                            setCurrentPage(1);
-                          }}
+                          className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
                         >
                           <div className="flex items-center space-x-3">
-                            <div className="relative">
-                              <input
-                                type="checkbox"
-                                checked={selectedLiveCourses.includes(option)}
-                                onChange={() => {}} // Controlled by parent div onClick
-                                className="w-5 h-5 text-red-600 bg-gray-100 border-gray-300 rounded-md focus:ring-red-500 dark:focus:ring-red-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 pointer-events-none transition-colors"
-                                readOnly
-                              />
-                            </div>
-                            <span className="text-sm text-gray-700 dark:text-gray-300 font-medium group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={selectedLiveCourses.includes(option)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedLiveCourses(prev => [...prev, option]);
+                                } else {
+                                  setSelectedLiveCourses(prev => prev.filter(item => item !== option));
+                                }
+                                setCurrentPage(1);
+                              }}
+                              className="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 dark:focus:ring-red-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                            />
+                            <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                               {option}
                             </span>
                           </div>
                           {selectedLiveCourses.includes(option) && (
-                            <span className="text-xs text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/40 px-3 py-1.5 rounded-full font-semibold shadow-sm">
+                            <span className="text-xs text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/40 px-2 py-1 rounded-full">
                               ✓
                             </span>
                           )}
-                        </div>
+                        </label>
                       ))}
                     </div>
                   )}
                 </div>
 
                 {/* Blended Learning */}
-                <div className="filter-glassmorphic rounded-lg border border-blue-100 dark:border-blue-900/30 overflow-hidden">
-                                      <div 
-                      className="flex items-center justify-between cursor-pointer p-3 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all duration-300 ease-in-out" 
-                      onClick={() => setIsBlendedLearningDropdownOpen(!isBlendedLearningDropdownOpen)}
-                    >
-                    <div className="flex items-center space-x-2">
-                      <div className="w-6 h-6 filter-glassmorphic rounded-md flex items-center justify-center">
+                <div className="border border-blue-100 dark:border-blue-900/30 rounded-lg overflow-hidden">
+                  <div 
+                    className="flex items-center justify-between cursor-pointer p-3 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors" 
+                    onClick={() => setIsBlendedLearningDropdownOpen(!isBlendedLearningDropdownOpen)}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
                         <Target className="w-3 h-3 text-blue-600 dark:text-blue-400" />
                       </div>
                       <div>
-                        <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100">Blended Learning</h5>
+                        <h5 className="text-sm font-semibold text-blue-900 dark:text-blue-100">Blended Learning</h5>
                         <p className="text-xs text-blue-600 dark:text-blue-400">Live + self-paced</p>
                       </div>
                     </div>
-                    <ChevronDown className={`w-4 h-4 text-blue-600 dark:text-blue-400 transition-all duration-300 ease-in-out ${isBlendedLearningDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
+                    <div className="flex items-center space-x-2">
+                      {selectedBlendedLearning.length > 0 && (
+                        <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded-full font-medium">
+                          {selectedBlendedLearning.length}
+                        </span>
+                      )}
+                      <ChevronDown className={`w-4 h-4 text-blue-600 dark:text-blue-400 transition-transform duration-200 ${isBlendedLearningDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
+                    </div>
                   </div>
                   
                   {isBlendedLearningDropdownOpen && (
-                    <div className="px-3 pb-3 space-y-1 border-t border-blue-100 dark:border-blue-900/30 bg-white dark:bg-gray-800">
+                    <div className="px-3 pb-3 space-y-2 border-t border-blue-100 dark:border-blue-900/30">
                       {blendedLearningOptions.map((option) => (
-                        <div
+                        <label
                           key={option}
-                          className="flex items-center justify-between p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 min-h-[44px]"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const isChecked = selectedBlendedLearning.includes(option);
-                            if (isChecked) {
-                              setSelectedBlendedLearning(prev => prev.filter(item => item !== option));
-                            } else {
-                              setSelectedBlendedLearning(prev => [...prev, option]);
-                            }
-                            setCurrentPage(1);
-                          }}
+                          className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
                         >
                           <div className="flex items-center space-x-3">
-                            <div className="relative">
-                              <input
-                                type="checkbox"
-                                checked={selectedBlendedLearning.includes(option)}
-                                onChange={() => {}} // Controlled by parent div onClick
-                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 pointer-events-none"
-                                readOnly
-                              />
-                            </div>
+                            <input
+                              type="checkbox"
+                              checked={selectedBlendedLearning.includes(option)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedBlendedLearning(prev => [...prev, option]);
+                                } else {
+                                  setSelectedBlendedLearning(prev => prev.filter(item => item !== option));
+                                }
+                                setCurrentPage(1);
+                              }}
+                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                            />
                             <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                               {option}
                             </span>
                           </div>
                           {selectedBlendedLearning.includes(option) && (
-                            <span className="text-xs text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 px-2 py-1 rounded-full font-medium">
+                            <span className="text-xs text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 px-2 py-1 rounded-full">
                               ✓
                             </span>
                           )}
-                        </div>
+                        </label>
                       ))}
                     </div>
                   )}
                 </div>
 
                 {/* Free Courses */}
-                <div className="filter-glassmorphic rounded-lg border border-green-100 dark:border-green-900/30 overflow-hidden">
-                                      <div 
-                      className="flex items-center justify-between cursor-pointer p-3 hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-300 ease-in-out" 
-                      onClick={() => setIsFreeCoursesDropdownOpen(!isFreeCoursesDropdownOpen)}
-                    >
-                    <div className="flex items-center space-x-2">
-                      <div className="w-6 h-6 filter-glassmorphic rounded-md flex items-center justify-center">
+                <div className="border border-green-100 dark:border-green-900/30 rounded-lg overflow-hidden">
+                  <div 
+                    className="flex items-center justify-between cursor-pointer p-3 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors" 
+                    onClick={() => setIsFreeCoursesDropdownOpen(!isFreeCoursesDropdownOpen)}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-6 h-6 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center">
                         <span className="text-green-600 dark:text-green-400 font-bold text-xs">$</span>
                       </div>
                       <div>
-                        <h5 className="text-sm font-medium text-green-900 dark:text-green-100">Free Courses</h5>
-                        <p className="text-xs text-green-600 dark:text-green-400">Free to get started</p>
+                        <h5 className="text-sm font-semibold text-green-900 dark:text-green-100">Free Courses</h5>
+                        <p className="text-xs text-green-600 dark:text-green-400">Get started free</p>
                       </div>
                     </div>
-                    <ChevronDown className={`w-4 h-4 text-green-600 dark:text-green-400 transition-all duration-300 ease-in-out ${isFreeCoursesDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
+                    <div className="flex items-center space-x-2">
+                      {selectedFreeCourses.length > 0 && (
+                        <span className="text-xs bg-green-500 text-white px-2 py-1 rounded-full font-medium">
+                          {selectedFreeCourses.length}
+                        </span>
+                      )}
+                      <ChevronDown className={`w-4 h-4 text-green-600 dark:text-green-400 transition-transform duration-200 ${isFreeCoursesDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
+                    </div>
                   </div>
                   
                   {isFreeCoursesDropdownOpen && (
-                    <div className="px-3 pb-3 space-y-1 border-t border-green-100 dark:border-green-900/30 bg-white dark:bg-gray-800">
+                    <div className="px-3 pb-3 space-y-2 border-t border-green-100 dark:border-green-900/30">
                       {freeCoursesOptions.map((option) => (
-                        <div
+                        <label
                           key={option}
-                          className="flex items-center justify-between p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 min-h-[44px]"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const isChecked = selectedFreeCourses.includes(option);
-                            if (isChecked) {
-                              setSelectedFreeCourses(prev => prev.filter(item => item !== option));
-                            } else {
-                              setSelectedFreeCourses(prev => [...prev, option]);
-                            }
-                            setCurrentPage(1);
-                          }}
+                          className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
                         >
                           <div className="flex items-center space-x-3">
-                            <div className="relative">
-                              <input
-                                type="checkbox"
-                                checked={selectedFreeCourses.includes(option)}
-                                onChange={() => {}} // Controlled by parent div onClick
-                                className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 pointer-events-none"
-                                readOnly
-                              />
-                            </div>
+                            <input
+                              type="checkbox"
+                              checked={selectedFreeCourses.includes(option)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedFreeCourses(prev => [...prev, option]);
+                                } else {
+                                  setSelectedFreeCourses(prev => prev.filter(item => item !== option));
+                                }
+                                setCurrentPage(1);
+                              }}
+                              className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                            />
                             <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                               {option}
                             </span>
                           </div>
                           {selectedFreeCourses.includes(option) && (
-                            <span className="text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/40 px-2 py-1 rounded-full font-medium">
+                            <span className="text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/40 px-2 py-1 rounded-full">
                               ✓
                             </span>
                           )}
-                        </div>
+                        </label>
                       ))}
                     </div>
                   )}
                 </div>
 
-                {(!hideGradeFilter && gradeOptions.length > 0) && (
-                  <div className="filter-glassmorphic rounded-lg border border-purple-100 dark:border-purple-900/30 overflow-hidden">
-                                        <div 
-                        className="flex items-center justify-between cursor-pointer p-3 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-all duration-300 ease-in-out" 
-                        onClick={() => setIsGradeDropdownOpen(!isGradeDropdownOpen)}
-                      >
-                      <div className="flex items-center space-x-2">
-                        <div className="w-6 h-6 bg-purple-100 dark:bg-purple-900/40 rounded-md flex items-center justify-center">
+                {/* Grade Level */}
+                {!hideGradeFilter && (
+                  <div className="border border-purple-100 dark:border-purple-900/30 rounded-lg overflow-hidden">
+                    <div 
+                      className="flex items-center justify-between cursor-pointer p-3 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors" 
+                      onClick={() => setIsGradeDropdownOpen(!isGradeDropdownOpen)}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-6 h-6 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center">
                           <GraduationCap className="w-3 h-3 text-purple-600 dark:text-purple-400" />
                         </div>
                         <div>
-                          <h5 className="text-sm font-medium text-purple-900 dark:text-purple-100">Grade Level</h5>
-                          <p className="text-xs text-purple-600 dark:text-purple-400">Select grade level</p>
+                          <h5 className="text-sm font-semibold text-purple-900 dark:text-purple-100">Grade Level</h5>
+                          <p className="text-xs text-purple-600 dark:text-purple-400">Educational level</p>
                         </div>
                       </div>
-                      <ChevronDown className={`w-4 h-4 text-purple-600 dark:text-purple-400 transition-all duration-300 ease-in-out ${isGradeDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
+                      <div className="flex items-center space-x-2">
+                        {selectedGrade.length > 0 && (
+                          <span className="text-xs bg-purple-500 text-white px-2 py-1 rounded-full font-medium">
+                            {selectedGrade.length}
+                          </span>
+                        )}
+                        <ChevronDown className={`w-4 h-4 text-purple-600 dark:text-purple-400 transition-transform duration-200 ${isGradeDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
+                      </div>
                     </div>
                     
                     {isGradeDropdownOpen && (
-                      <div className="px-3 pb-3 space-y-1 border-t border-purple-100 dark:border-purple-900/30 bg-white dark:bg-gray-800">
-                        {/* Select All Option for Mobile */}
-                        <div
-                          className="flex items-center justify-between p-3 rounded-md hover:bg-purple-50 dark:hover:bg-purple-900/30 cursor-pointer transition-all duration-200 min-h-[44px] border border-purple-200 dark:border-purple-700"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const isAllSelected = selectedGrade.length === gradeOptions.length;
-                            if (isAllSelected) {
-                              setSelectedGrade([]);
-                            } else {
-                              setSelectedGrade([...gradeOptions]);
-                            }
-                            setCurrentPage(1);
-                          }}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="relative">
-                              <input
-                                type="checkbox"
-                                checked={selectedGrade.length === gradeOptions.length}
-                                onChange={() => {}} // Controlled by parent div onClick
-                                className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 pointer-events-none"
-                                readOnly
-                              />
-                            </div>
-                            <span className="text-sm text-purple-700 dark:text-purple-300 font-semibold">
-                              Select All Grades
-                            </span>
-                          </div>
-                          {selectedGrade.length === gradeOptions.length && (
-                            <span className="text-xs text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/40 px-2 py-1 rounded-full font-medium">
-                              All ✓
-                            </span>
-                          )}
-                        </div>
-
+                      <div className="px-3 pb-3 space-y-2 border-t border-purple-100 dark:border-purple-900/30">
                         {gradeOptions.map((grade) => (
-                          <div
+                          <label
                             key={grade}
-                            className="flex items-center justify-between p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 min-h-[44px]"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const isChecked = selectedGrade.includes(grade);
-                              if (isChecked) {
-                                setSelectedGrade(prev => prev.filter(g => g !== grade));
-                              } else {
-                                setSelectedGrade(prev => [...prev, grade]);
-                              }
-                              setCurrentPage(1);
-                            }}
+                            className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
                           >
                             <div className="flex items-center space-x-3">
-                              <div className="relative">
-                                <input
-                                  type="checkbox"
-                                  checked={selectedGrade.includes(grade)}
-                                  onChange={() => {}} // Controlled by parent div onClick
-                                  className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 pointer-events-none"
-                                  readOnly
-                                />
-                              </div>
+                              <input
+                                type="checkbox"
+                                checked={selectedGrade.includes(grade)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedGrade(prev => [...prev, grade]);
+                                  } else {
+                                    setSelectedGrade(prev => prev.filter(g => g !== grade));
+                                  }
+                                  setCurrentPage(1);
+                                }}
+                                className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                              />
                               <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                                 {grade}
                               </span>
                             </div>
                             {selectedGrade.includes(grade) && (
-                              <span className="text-xs text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/40 px-2 py-1 rounded-full font-medium">
+                              <span className="text-xs text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/40 px-2 py-1 rounded-full">
                                 ✓
                               </span>
                             )}
-                          </div>
+                          </label>
                         ))}
                       </div>
                     )}
                   </div>
                 )}
-              
               </div>
-            </div>
-            
-            {/* Enhanced Footer with Action Buttons */}
-            <div className="flex-shrink-0 px-6 py-5 border-t border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/20 rounded-b-2xl backdrop-blur-sm">
-              {selectedCount > 0 && (
-                <div className="flex items-center justify-center mb-4 text-sm text-gray-600 dark:text-gray-400">
-                  <Sparkles className="w-4 h-4 mr-2 text-purple-500" />
-                  <span className="font-medium">
-                    {selectedCount} filter{selectedCount !== 1 ? 's' : ''} will be applied
-                  </span>
-                </div>
-              )}
-              <div className="flex gap-3">
+              
+              {/* Footer */}
+              <div className="flex items-center justify-between p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
                 <button
                   onClick={() => {
-                    // Clear all selections
                     setSelectedLiveCourses([]);
                     setSelectedBlendedLearning([]);
                     setSelectedFreeCourses([]);
                     setSelectedGrade([]);
                     setCurrentPage(1);
                   }}
-                  className="flex-1 px-5 py-3.5 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-all duration-200 active:scale-95 shadow-sm flex items-center justify-center space-x-2"
+                  className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
                   disabled={selectedCount === 0}
-                >
-                  <X className="w-4 h-4" />
-                  <span>Clear All</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setIsMobileCategoriesOpen(false);
-                    setCurrentPage(1);
-                  }}
-                  className="flex-1 px-5 py-3.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white text-sm font-bold rounded-xl transition-all duration-200 active:scale-95 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
-                >
-                  <Filter className="w-4 h-4" />
-                  <span>Apply Filters</span>
-                </button>
-              </div>
-            </div>
-          </div>
-          </>
-        )}
-      </div>
-    );
-  });
-
-  // Add display name for debugging
-  MobileCategoriesDropdown.displayName = 'MobileCategoriesDropdown';
-
-  // Filter dropdown component - memoized to prevent carousel interference
-  const FilterDropdown = React.memo(() => {
-    // Save and restore scroll position to prevent jumping to top
-    useEffect(() => {
-      if (isFilterDropdownOpen && filterScrollRef.current) {
-        // Restore scroll position after re-render
-        filterScrollRef.current.scrollTop = savedScrollPosition.current;
-      }
-    });
-
-    // Save scroll position before potential re-renders
-    const handleDropdownScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-      savedScrollPosition.current = e.currentTarget.scrollTop;
-    }, []);
-
-    // Memoize filter options to prevent recreation on every render
-    const filterOptions = useMemo(() => [
-      {
-        id: 'level',
-        label: 'Skill Level',
-        type: 'radio',
-        options: [
-          { value: 'beginner', label: 'Beginner', count: 45 },
-          { value: 'intermediate', label: 'Intermediate', count: 38 },
-          { value: 'advanced', label: 'Advanced', count: 25 },
-          { value: 'expert', label: 'Expert', count: 12 }
-        ]
-      },
-      {
-        id: 'duration',
-        label: 'Course Duration',
-        type: 'checkbox',
-        options: [
-          { value: '0-2', label: '0-2 weeks', count: 8 },
-          { value: '2-4', label: '2-4 weeks', count: 15 },
-          { value: '1-3', label: '1-3 months', count: 35 },
-          { value: '3-6', label: '3-6 months', count: 28 },
-          { value: '6+', label: '6+ months', count: 20 }
-        ]
-      },
-      {
-        id: 'price',
-        label: 'Price Range',
-        type: 'checkbox',
-        options: [
-          { value: 'free', label: 'Free', count: 12 },
-          { value: '0-5000', label: '₹0 - ₹5,000', count: 18 },
-          { value: '5000-15000', label: '₹5,000 - ₹15,000', count: 25 },
-          { value: '15000-30000', label: '₹15,000 - ₹30,000', count: 22 },
-          { value: '30000+', label: '₹30,000+', count: 15 }
-        ]
-      },
-      {
-        id: 'format',
-        label: 'Course Format',
-        type: 'checkbox',
-        options: [
-          { value: 'live', label: 'Live Classes', count: 32 },
-          { value: 'recorded', label: 'Recorded Videos', count: 58 },
-          { value: 'hybrid', label: 'Hybrid (Live + Recorded)', count: 24 },
-          { value: 'self-paced', label: 'Self-Paced Learning', count: 41 }
-        ]
-      },
-      {
-        id: 'language',
-        label: 'Language',
-        type: 'checkbox',
-        options: [
-          { value: 'english', label: 'English', count: 95 },
-          { value: 'hindi', label: 'Hindi', count: 67 },
-          { value: 'spanish', label: 'Spanish', count: 23 },
-          { value: 'french', label: 'French', count: 15 },
-          { value: 'german', label: 'German', count: 12 }
-        ]
-      },
-      {
-        id: 'features',
-        label: 'Course Features',
-        type: 'checkbox',
-        options: [
-          { value: 'certificate', label: 'Certificate Included', count: 85 },
-          { value: 'job-guarantee', label: 'Job Guarantee', count: 25 },
-          { value: 'live-sessions', label: 'Live Sessions', count: 45 },
-          { value: 'hands-on-projects', label: 'Hands-on Projects', count: 60 },
-          { value: 'mentor-support', label: 'Mentor Support', count: 40 },
-          { value: 'lifetime-access', label: 'Lifetime Access', count: 50 }
-        ]
-      },
-      {
-        id: 'rating',
-        label: 'Course Rating',
-        type: 'radio',
-        options: [
-          { value: '4.5+', label: '4.5+ Stars', count: 42 },
-          { value: '4.0+', label: '4.0+ Stars', count: 68 },
-          { value: '3.5+', label: '3.5+ Stars', count: 89 },
-          { value: '3.0+', label: '3.0+ Stars', count: 105 }
-        ]
-      },
-      {
-        id: 'instructor',
-        label: 'Instructor Type',
-        type: 'checkbox',
-        options: [
-          { value: 'industry-expert', label: 'Industry Expert', count: 45 },
-          { value: 'certified-trainer', label: 'Certified Trainer', count: 38 },
-          { value: 'university-professor', label: 'University Professor', count: 22 },
-          { value: 'freelance-professional', label: 'Freelance Professional', count: 35 }
-        ]
-      }
-    ], []);
-
-    const handleFilterOptionChange = useCallback((filterId: string, optionValue: string, checked: boolean) => {
-      // Handle category filters (removed from dropdown but keeping for sidebar)
-      if (filterId === 'categories') {
-        if (checked) {
-          setSelectedCategory(prev => [...prev, optionValue]);
-        } else {
-          setSelectedCategory(prev => prev.filter(cat => cat !== optionValue));
-        }
-      }
-      // Handle skill level (radio button - single selection)
-      else if (filterId === 'level') {
-        if (checked) {
-          setSelectedLevel(optionValue);
-        }
-      }
-      // Handle duration filters
-      else if (filterId === 'duration') {
-        if (checked) {
-          setSelectedDuration(prev => [...prev, optionValue]);
-        } else {
-          setSelectedDuration(prev => prev.filter(duration => duration !== optionValue));
-        }
-      }
-      // Handle price range filters
-      else if (filterId === 'price') {
-        if (checked) {
-          setSelectedPriceRange(prev => [...prev, optionValue]);
-        } else {
-          setSelectedPriceRange(prev => prev.filter(price => price !== optionValue));
-        }
-      }
-      // Handle course format filters
-      else if (filterId === 'format') {
-        if (checked) {
-          setSelectedFormat(prev => [...prev, optionValue]);
-        } else {
-          setSelectedFormat(prev => prev.filter(format => format !== optionValue));
-        }
-      }
-      // Handle language filters
-      else if (filterId === 'language') {
-        if (checked) {
-          setSelectedLanguage(prev => [...prev, optionValue]);
-        } else {
-          setSelectedLanguage(prev => prev.filter(language => language !== optionValue));
-        }
-      }
-      // Handle features filters
-      else if (filterId === 'features') {
-        if (checked) {
-          setSelectedFeatures(prev => [...prev, optionValue]);
-        } else {
-          setSelectedFeatures(prev => prev.filter(feature => feature !== optionValue));
-        }
-      }
-      // Handle rating filters (radio button - single selection)
-      else if (filterId === 'rating') {
-        if (checked) {
-          setSelectedRating(optionValue);
-        }
-      }
-      // Handle instructor type filters
-      else if (filterId === 'instructor') {
-        if (checked) {
-          setSelectedInstructor(prev => [...prev, optionValue]);
-        } else {
-          setSelectedInstructor(prev => prev.filter(instructor => instructor !== optionValue));
-        }
-      }
-      
-      setCurrentPage(1);
-    }, []);
-
-    const getCheckedValue = useCallback((filterId: string, optionValue: string) => {
-      switch (filterId) {
-        case 'categories':
-          return selectedCategory.includes(optionValue);
-        case 'level':
-          return selectedLevel === optionValue;
-        case 'duration':
-          return selectedDuration.includes(optionValue);
-        case 'price':
-          return selectedPriceRange.includes(optionValue);
-        case 'format':
-          return selectedFormat.includes(optionValue);
-        case 'language':
-          return selectedLanguage.includes(optionValue);
-        case 'features':
-          return selectedFeatures.includes(optionValue);
-        case 'rating':
-          return selectedRating === optionValue;
-        case 'instructor':
-          return selectedInstructor.includes(optionValue);
-        default:
-          return false;
-      }
-    }, [selectedCategory, selectedLevel, selectedDuration, selectedPriceRange, selectedFormat, selectedLanguage, selectedFeatures, selectedRating, selectedInstructor]);
-
-    const getTotalActiveFilters = useCallback(() => {
-      return selectedCategory.length + 
-             (selectedLevel ? 1 : 0) + 
-             selectedDuration.length + 
-             selectedPriceRange.length + 
-             selectedFormat.length + 
-             selectedLanguage.length + 
-             selectedFeatures.length + 
-             (selectedRating ? 1 : 0) + 
-             selectedInstructor.length;
-    }, [selectedCategory, selectedLevel, selectedDuration, selectedPriceRange, selectedFormat, selectedLanguage, selectedFeatures, selectedRating, selectedInstructor]);
-
-    const clearAllFilters = useCallback(() => {
-      setSelectedCategory([]);
-      setSelectedLevel("");
-      setSelectedDuration([]);
-      setSelectedPriceRange([]);
-      setSelectedFormat([]);
-      setSelectedLanguage([]);
-      setSelectedFeatures([]);
-      setSelectedRating("");
-      setSelectedInstructor([]);
-      handleClearFilters();
-    }, [handleClearFilters]);
-
-    // Close filter dropdown when clicking outside
-    useEffect(() => {
-      const handleClickOutside = (event: MouseEvent) => {
-        if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target as Node)) {
-          setIsFilterDropdownOpen(false);
-          // Reset scroll position when closing
-          savedScrollPosition.current = 0;
-          // Notify parent component
-          onFilterDropdownToggle?.(false);
-        }
-      };
-
-      if (isFilterDropdownOpen) {
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-          document.removeEventListener('mousedown', handleClickOutside);
-        };
-      }
-    }, [isFilterDropdownOpen, onFilterDropdownToggle]);
-
-    // Note: Individual category dropdowns (Live Courses, Blended Learning, etc.) 
-    // within the mobile categories dropdown don't auto-close to prevent interrupting user selection
-
-    return (
-      <div className="relative" ref={filterDropdownRef}>
-        {/* Filter Button */}
-        <button
-          onClick={() => {
-            const newState = !isFilterDropdownOpen;
-            setIsFilterDropdownOpen(newState);
-            // Notify parent component
-            onFilterDropdownToggle?.(newState);
-          }}
-          className={`flex items-center justify-between w-full md:w-32 px-3 md:px-4 py-2 md:py-3 rounded-xl transition-all duration-200 border shadow-sm ${
-            isFilterDropdownOpen 
-              ? 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600' 
-              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-          }`}
-        >
-          <div className="flex items-center">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
-              Filters
-            </span>
-            {getTotalActiveFilters() > 0 && (
-              <span className="ml-2 px-2 py-1 bg-primary-500 text-white text-xs font-medium rounded-full">
-                {getTotalActiveFilters()}
-              </span>
-            )}
-          </div>
-          <ChevronDown 
-            size={16} 
-            className={`transition-transform duration-200 text-gray-400 dark:text-gray-500 ${isFilterDropdownOpen ? 'rotate-180' : ''}`} 
-          />
-        </button>
-
-        {/* Dropdown Menu */}
-        {isFilterDropdownOpen && (
-          <>
-            {/* Mobile backdrop */}
-            <div 
-              className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" 
-              onClick={() => {
-                setIsFilterDropdownOpen(false);
-                onFilterDropdownToggle?.(false);
-              }}
-              onTouchMove={(e) => e.preventDefault()}
-              style={{ touchAction: 'none' }}
-            />
-            <div 
-              className="fixed inset-4 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-2rem)] max-w-sm filter-glassmorphic rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-50 max-h-96 overflow-hidden md:absolute md:top-full md:right-0 md:left-auto md:transform-none md:translate-x-0 md:translate-y-0 md:inset-auto md:mt-2 md:w-96"
-              onClick={(e) => e.stopPropagation()}
-              style={{ touchAction: 'auto' }}
-            >
-            {/* Filter Sections - Single scroll for entire content */}
-            <div 
-              ref={filterScrollRef}
-              onScroll={handleDropdownScroll}
-              className="overflow-y-auto max-h-80 p-2 md:p-3 space-y-2 md:space-y-3"
-            >
-              {/* Clear All Button - moved to top */}
-              <div className="flex justify-end">
-                <button
-                  onClick={clearAllFilters}
-                  className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
                 >
                   Clear All
                 </button>
-            </div>
-              
-              {filterOptions.map((filterGroup) => (
-                <div key={filterGroup.id} className="space-y-2">
-                  <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-                    {filterGroup.label}
-                  </h4>
-                  <div className="space-y-2">
-                    {filterGroup.options.map((option) => (
-                      <label
-                        key={option.value}
-                        className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <input
-                            type={filterGroup.type}
-                            name={filterGroup.id}
-                            value={option.value}
-                            checked={getCheckedValue(filterGroup.id, option.value)}
-                            onChange={(e) => handleFilterOptionChange(
-                              filterGroup.id, 
-                              option.value, 
-                              e.target.checked
-                            )}
-                            className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                          />
-                          <span className="text-sm text-gray-700 dark:text-gray-300">
-                            {option.label}
-                          </span>
-        </div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
-                          {option.count}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Apply Filters Button */}
-            <div className="p-3 md:p-4 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex gap-2 md:gap-3">
                 <button
-                  onClick={() => {
-                    setIsFilterDropdownOpen(false);
-                    // Notify parent component
-                    onFilterDropdownToggle?.(false);
-                  }}
-                  className="flex-1 px-3 md:px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                  onClick={() => setIsMobileCategoriesOpen(false)}
+                  className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors"
                 >
                   Apply Filters
                 </button>
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="px-3 md:px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
-                >
-                  Advanced
-                </button>
               </div>
             </div>
-          </div>
           </>
         )}
       </div>
     );
   });
-
-  // Add display name for debugging
-  FilterDropdown.displayName = 'FilterDropdown';
-
-  // Modern main content renderer
-  const renderMainContent = (): React.ReactNode => {
-    return (
-      <div className={!hideCategoryFilter ? "w-full lg:w-[80%] py-4" : "w-full py-4"}>
-        {/* Header Section */}
-        <div className="mb-3 px-4 md:px-6 lg:px-8">
-          {/* Results count - Improved styling */}
-          {!hideFilterBar && (
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
-              <div className="flex items-center gap-2 mb-2 sm:mb-0">
-                <div className="text-gray-700 dark:text-gray-300">
-                  <span className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                    {totalItems.toLocaleString()}
-                  </span>
-                  <span className="ml-1 text-base">
-                    {totalItems === 1 ? 'course found' : 'courses found'}
-                  </span>
-                </div>
-                {showingRelated && (
-                  <button
-                    onClick={clearRelated}
-                    className="px-3 py-1 text-sm bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50 rounded-lg transition-colors duration-200"
-                  >
-                    ← Back to All
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Error state */}
-          {queryError && (
-            <div className="flex flex-col items-center justify-center py-16 px-4 border border-red-200 dark:border-red-800 rounded-2xl bg-red-50 dark:bg-red-900/10 text-center mb-6">
-              <AlertCircle size={48} className="text-red-500 dark:text-red-400 mb-4" />
-              <h3 className="text-xl font-semibold text-red-700 dark:text-red-300 mb-2">Error Loading Courses</h3>
-              <p className="text-red-600 dark:text-red-400 max-w-md mb-6">
-                {queryError}
-              </p>
-              <button
-                onClick={() => window.location.reload()}
-                className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-colors"
-              >
-                Refresh Page
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Course Cards Section */}
-        <div className="relative">
-          {renderCourseList()}
-        </div>
-
-        {/* Pagination Section - Fixed styling */}
-        {totalPages > 1 && (
-          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 px-4 md:px-6 lg:px-8">
-            <nav className="flex justify-center" aria-label="Pagination">
-              {simplePagination ? (
-                <SimplePaginationWrapper
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                  simplified={true}
-                />
-              ) : (
-                <SimplePaginationWrapper
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                  simplified={false}
-                />
-              )}
-            </nav>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // Prevent body scroll when any dropdown is open (mobile-focused with enhanced prevention)
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const isAnyDropdownOpen = isGradeDropdownOpen || isLiveCoursesDropdownOpen || isBlendedLearningDropdownOpen || isFreeCoursesDropdownOpen || isFilterDropdownOpen || isMobileCategoriesOpen;
-    const isMobile = window.innerWidth < 768; // md breakpoint
-    
-    if (isAnyDropdownOpen && isMobile) {
-      // Save current scroll position
-      const scrollY = window.scrollY;
-      
-      // Enhanced mobile scroll prevention
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.left = '0';
-      document.body.style.right = '0';
-      document.body.style.width = '100%';
-      document.body.style.overflow = 'hidden';
-      document.body.style.touchAction = 'none'; // Prevent touch scrolling
-      document.body.style.userSelect = 'none'; // Prevent text selection
-      document.body.style.webkitUserSelect = 'none'; // Safari
-      (document.body.style as any).msUserSelect = 'none'; // IE
-      
-      // Also prevent scrolling on document element for iOS
-      document.documentElement.style.overflow = 'hidden';
-      document.documentElement.style.position = 'fixed';
-      document.documentElement.style.width = '100%';
-      document.documentElement.style.height = '100%';
-      
-      // Store scroll position for restoration
-      document.body.setAttribute('data-scroll-y', scrollY.toString());
-      
-    } else if (!isAnyDropdownOpen) {
-      // Restore scroll position and styles
-      const scrollY = document.body.getAttribute('data-scroll-y');
-      
-      // Reset body styles
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.left = '';
-      document.body.style.right = '';
-      document.body.style.width = '';
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
-      document.body.style.userSelect = '';
-      document.body.style.webkitUserSelect = '';
-      (document.body.style as any).msUserSelect = '';
-      
-      // Reset document element styles
-      document.documentElement.style.overflow = '';
-      document.documentElement.style.position = '';
-      document.documentElement.style.width = '';
-      document.documentElement.style.height = '';
-      
-      // Restore scroll position
-      if (scrollY && isMobile) {
-        const parsedScrollY = parseInt(scrollY, 10);
-        if (!isNaN(parsedScrollY)) {
-          window.scrollTo(0, parsedScrollY);
-        }
-      }
-      
-      // Clean up data attribute
-      document.body.removeAttribute('data-scroll-y');
-    }
-
-    // Enhanced cleanup on unmount
-    return () => {
-      if (typeof document !== 'undefined') {
-        // Reset all styles
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.left = '';
-        document.body.style.right = '';
-        document.body.style.width = '';
-        document.body.style.overflow = '';
-        document.body.style.touchAction = '';
-        document.body.style.userSelect = '';
-        document.body.style.webkitUserSelect = '';
-        (document.body.style as any).msUserSelect = '';
-        
-        document.documentElement.style.overflow = '';
-        document.documentElement.style.position = '';
-        document.documentElement.style.width = '';
-        document.documentElement.style.height = '';
-        
-        document.body.removeAttribute('data-scroll-y');
-      }
-    };
-  }, [isGradeDropdownOpen, isLiveCoursesDropdownOpen, isBlendedLearningDropdownOpen, isFreeCoursesDropdownOpen, isFilterDropdownOpen, isMobileCategoriesOpen]);
-
-  // Add formatDuration helper function if not already present
-  const formatDuration = (duration: any) => {
-    if (!duration) return "Self-paced";
-    
-    if (typeof duration === 'string' && duration.includes(' ')) {
-      const parts = duration.toLowerCase().split(' ');
-      const durationParts = [];
-      let totalWeeks = 0;
-      let monthValue = 0;
-      let weekValue = 0;
-      
-      for (let i = 0; i < parts.length; i += 2) {
-        if (i + 1 >= parts.length) break;
-        
-        const value = parseFloat(parts[i]);
-        const unit = parts[i + 1].replace(/s$/, '');
-        
-        if (!isNaN(value) && value > 0) {
-          switch (unit) {
-            case 'year':
-              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Year' : 'Years'}`);
-              totalWeeks += value * 52;
-              break;
-            case 'month':
-              monthValue = value;
-              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Month' : 'Months'}`);
-              totalWeeks += value * 4;
-              break;
-            case 'week':
-              weekValue = value;
-              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Week' : 'Weeks'}`);
-              totalWeeks += value;
-              break;
-            case 'day':
-              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Day' : 'Days'}`);
-              totalWeeks += value / 7;
-              break;
-            case 'hour':
-              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Hour' : 'Hours'}`);
-              break;
-          }
-        }
-      }
-      
-      if (durationParts.length > 0) {
-        if (monthValue > 0 && weekValue > 0) {
-          return `${Math.round(monthValue)} ${Math.round(monthValue) === 1 ? 'Month' : 'Months'} / ${Math.round(weekValue)} ${Math.round(weekValue) === 1 ? 'Week' : 'Weeks'}`;
-        }
-        return durationParts.join(' ');
-      }
-    }
-    
-    return duration;
-  };
 
   return (
     <ErrorBoundary>
       <section className="w-full" role="region" aria-label="Course Filter">
-        {/* Modern header */}
+        {/* Modern header with improved design */}
         {!hideHeader && (
-          <div className="text-center mb-6 filter-header-glassmorphic py-8 border-b border-gray-200 dark:border-gray-700">
-            <div className="px-4 md:px-6 lg:px-8">
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-                {typeof CustomText === 'string' ? CustomText : "Explore Courses"}
-              </h1>
-              <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                {description || "Discover courses to enhance your skills and advance your career."}
-              </p>
+          <div className="relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 bg-grid-slate-100 dark:bg-grid-slate-700/25 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]"></div>
+            
+            <div className="relative px-4 md:px-6 lg:px-8 py-12 md:py-16 text-center">
+              <div className="max-w-4xl mx-auto">
+                {/* Badge */}
+                <div className="inline-flex items-center px-4 py-2 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-sm font-medium mb-6 backdrop-blur-sm border border-indigo-200 dark:border-indigo-800">
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Discover Your Perfect Course
+                </div>
+                
+                {/* Title */}
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-gray-900 via-indigo-900 to-purple-900 dark:from-white dark:via-indigo-100 dark:to-purple-100 bg-clip-text text-transparent mb-6 leading-tight">
+                  {typeof CustomText === 'string' ? CustomText : "Explore Courses"}
+                </h1>
+                
+                {/* Description */}
+                <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8">
+                  {description || "Discover courses to enhance your skills and advance your career with our comprehensive learning platform."}
+                </p>
+                
+                {/* Enhanced Stats - 3 columns on mobile */}
+                <div className="grid grid-cols-3 gap-3 sm:gap-6 md:gap-8 max-w-4xl mx-auto">
+                  <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl px-3 sm:px-6 py-4 sm:py-5 border border-white/30 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                    <div className="text-lg sm:text-2xl md:text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-1">
+                      {totalItems > 0 ? `${totalItems}+` : '82+'}
+                    </div>
+                    <div className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 font-medium leading-tight">
+                      Courses Available
+                    </div>
+                  </div>
+                  <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl px-3 sm:px-6 py-4 sm:py-5 border border-white/30 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                    <div className="text-lg sm:text-2xl md:text-3xl font-bold text-purple-600 dark:text-purple-400 mb-1">
+                      24/7
+                    </div>
+                    <div className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 font-medium leading-tight">
+                      Learning Support
+                    </div>
+                  </div>
+                  <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl px-3 sm:px-6 py-4 sm:py-5 border border-white/30 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                    <div className="text-lg sm:text-2xl md:text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-1">
+                      Expert
+                    </div>
+                    <div className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 font-medium leading-tight">
+                      Instructors
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Main container - Edge to edge layout */}
-        <div className="w-full">
-          {/* Search and filters bar */}
+        {/* Main container with improved background */}
+        <div className="w-full bg-gradient-to-b from-gray-50/80 to-white dark:from-gray-900/80 dark:to-gray-900 min-h-screen flex flex-col">
+          {/* Enhanced search and filters bar */}
           {!hideFilterBar && (
-            <div className="filter-glassmorphic py-3 md:py-4 border-b border-gray-200 dark:border-gray-700">
-              <div className="px-4 md:px-6 lg:px-8">
-                              <div className="flex flex-col md:flex-row gap-2 md:gap-3 mb-4">
-                {!hideSearch && <SearchInput searchTerm={searchTerm} handleSearch={handleSearch} setSearchTerm={setSearchTerm} />}
-                
-                <div className="flex gap-2 md:gap-4 justify-center md:justify-start">
-                  {!hideSortOptions && <SortDropdown sortOrder={sortOrder} handleSortChange={handleSortChange} showSortDropdown={showSortDropdown} setShowSortDropdown={setShowSortDropdown} />}
-
-                  {/* Enhanced Filter Dropdown - replaces the simple filter button */}
-                  {/* <FilterDropdown /> - Removed as requested */}
-                  
-                  {/* Mobile Categories Dropdown - visible only on mobile */}
-                                    <MobileCategoriesDropdown />
+            <div className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm flex-shrink-0">
+              <div className="px-4 md:px-6 lg:px-8 py-4 md:py-6">
+                {/* Filter Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl text-white">
+                      <Filter className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-white">Find Your Course</h2>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Use filters to discover the perfect learning path</p>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Active filters - Removed as requested */}
-              </div>
+                {/* Search and Filter Controls */}
+                <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+                  {/* Search Section */}
+                  {!hideSearch && (
+                    <div className="flex-1 lg:max-w-2xl">
+                      <SearchInput searchTerm={searchTerm} handleSearch={handleSearch} setSearchTerm={setSearchTerm} />
+                    </div>
+                  )}
+                  
+                  {/* Filter Controls */}
+                  <div className="flex flex-wrap gap-3 lg:gap-4 items-center justify-center lg:justify-end">
+                    {!hideSortOptions && (
+                      <SortDropdown 
+                        sortOrder={sortOrder} 
+                        handleSortChange={handleSortChange} 
+                        showSortDropdown={showSortDropdown} 
+                        setShowSortDropdown={setShowSortDropdown} 
+                      />
+                    )}
+                    
+                    {/* Mobile Categories Dropdown */}
+                    <MobileCategoriesDropdown />
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
           {/* Main content area with dynamic layout - Edge to edge */}
-          <div className="flex flex-col lg:flex-row relative">
+          <div className="flex flex-col lg:flex-row relative flex-1 overflow-hidden">
             {renderSidebar()}
             {renderMainContent()}
           </div>
@@ -3546,6 +3311,6 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
 // Add display names for debugging
 SortDropdown.displayName = 'SortDropdown';
 SearchInput.displayName = 'SearchInput';
-MemoizedCourseCard.displayName = 'MemoizedCourseCard';
+MemoizedFilterCourseCard.displayName = 'MemoizedFilterCourseCard';
 
 export default CoursesFilter; 
