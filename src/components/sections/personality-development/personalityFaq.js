@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { ChevronDown, ChevronRight, UserPlus, Target, Sparkles, Users, Award, MessageCircle, Heart, Bookmark, Brain } from "lucide-react";
+import { ChevronDown, ChevronRight, BookOpen } from "lucide-react";
 import DOMPurify from "dompurify";
 
 function PersonalityFaq() {
@@ -113,27 +113,13 @@ function PersonalityFaq() {
     return themeColors.primary.medium; // Default
   };
 
-  // Custom icon mapping for different FAQ categories
+  // Custom icon mapping for different FAQ categories - using BookOpen for all with medh green color
   const getIconForQuestion = (question) => {
-    const color = getCategoryColor(question);
-    
-    if (question.includes("What is the Personality")) 
-      return <UserPlus className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("duration") || question.includes("long is")) 
-      return <Target className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("suitable")) 
-      return <Users className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("career") || question.includes("certificate")) 
-      return <Award className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("topics") || question.includes("course cover")) 
-      return <Bookmark className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("interact") || question.includes("questions") || question.includes("support")) 
-      return <MessageCircle className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("housewives") || question.includes("homemakers")) 
-      return <Heart className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("prerequisites")) 
-      return <Brain className={`w-6 h-6`} style={{ color }} />;
-    return <Sparkles className={`w-6 h-6`} style={{ color }} />;
+    return (
+      <div className="hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 dark:from-gray-700 dark:to-gray-700">
+        <BookOpen className="w-6 h-6 text-medhgreen" />
+      </div>
+    );
   };
 
   const faqs = [
@@ -380,15 +366,7 @@ function PersonalityFaq() {
                   }}
                 >
                   <div className="flex items-center gap-3">
-                    <div 
-                      className="hidden sm:flex items-center justify-center w-10 h-10 rounded-full"
-                      style={{
-                        background: `linear-gradient(135deg, ${color1}20, ${color2}30)`,
-                        boxShadow: `0 2px 10px ${categoryColor}25`
-                      }}
-                    >
-                      {getIconForQuestion(faq.question)}
-                    </div>
+                    {getIconForQuestion(faq.question)}
                     <h3 className="font-bold text-gray-800 dark:text-gray-100 text-lg">
                       {faq.question}
                     </h3>
@@ -474,11 +452,12 @@ function PersonalityFaq() {
             Still have questions? We're here to help! 
           </p>
           <a 
-            href="mailto:care@medh.co" 
+            href="https://mail.google.com/mail/?view=cm&to=care@medh.co"
+            target="_blank"
+            rel="noopener noreferrer"
             className={`inline-flex items-center px-6 py-3 font-semibold rounded-full shadow-md transition-all duration-300 transform-gpu hover:scale-105 bg-gradient-to-r ${titleGradients.light.gradient} dark:${titleGradients.dark.gradient} text-white hover:shadow-lg`}
           >
-            <span className="mr-2">Contact Support</span>
-            <span className="text-xl">✨</span>
+            <span>Contact Support</span>
           </a>
         </motion.div>
       </motion.div>
