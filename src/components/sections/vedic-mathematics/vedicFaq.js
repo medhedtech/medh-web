@@ -94,24 +94,8 @@ function VedicFaq() {
   };
 
   // Custom icon mapping for different FAQ categories
-  const getIconForQuestion = (question) => {
-    const color = getCategoryColor(question);
-    
-    if (question.includes("What is")) 
-      return <BookOpen className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("Who can") || question.includes("suitable")) 
-      return <Users className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("duration") || question.includes("long")) 
-      return <Clock className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("certificate")) 
-      return <Award className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("everyday") || question.includes("academic")) 
-      return <School className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("tuitions") || question.includes("Math classes")) 
-      return <Calculator className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("interact") || question.includes("support")) 
-      return <Brain className={`w-6 h-6`} style={{ color }} />;
-    return <Infinity className={`w-6 h-6`} style={{ color }} />;
+  const getIconForQuestion = () => {
+    return <BookOpen className="w-6 h-6 text-medhgreen" />;
   };
 
   const faqs = [
@@ -370,13 +354,9 @@ function VedicFaq() {
                 >
                   <div className="flex items-center gap-3">
                     <div 
-                      className="hidden sm:flex items-center justify-center w-10 h-10 rounded-full"
-                      style={{
-                        background: `linear-gradient(135deg, ${color1}20, ${color2}30)`,
-                        boxShadow: `0 2px 10px ${categoryColor}25`
-                      }}
+                      className="hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 dark:from-gray-700 dark:to-gray-700"
                     >
-                      {getIconForQuestion(faq.question)}
+                      {getIconForQuestion()}
                     </div>
                     <h3 className="font-bold text-gray-800 dark:text-gray-100 text-lg">
                       {faq.question}
@@ -464,11 +444,12 @@ function VedicFaq() {
             Still have questions about Vedic Mathematics? We're here to help! 
           </p>
           <a 
-            href="mailto:care@medh.co" 
+            href="https://mail.google.com/mail/u/0/?to=care@medh.co&fs=1&tf=cm" 
+            target="_blank" 
+            rel="noopener noreferrer"
             className={`inline-flex items-center px-6 py-3 font-semibold rounded-full shadow-md transition-all duration-300 transform-gpu hover:scale-105 bg-gradient-to-r ${titleGradients.light.gradient} dark:${titleGradients.dark.gradient} text-white hover:shadow-lg`}
           >
             <span className="mr-2">Contact Support</span>
-            <span className="text-xl">✨</span>
           </a>
         </motion.div>
       </motion.div>

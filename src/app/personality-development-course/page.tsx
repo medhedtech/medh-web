@@ -12,8 +12,7 @@ import ExploreJourney from "@/components/sections/explore-journey/Enroll-Form";
 import CourseBanner from "@/components/sections/personality-development/personalityCourseBanner";
 import ThemeController from "@/components/shared/others/ThemeController";
 import { UserPlus, Target, Sparkles, Star, Users, Award, Presentation } from "lucide-react";
-import Banner from "@/assets/Header-Images/Personality-Development/personality-development-course-age-18-plus-years.png";
-import DevelopmentImg from "@/assets/Header-Images/Personality-Development/multiracial-teenage-high-school-students-looking-a-2023-11-27-05-15-38-utc.jpg";
+
 import AnimatedContent from './AnimatedContent';
 
 interface IStat {
@@ -49,8 +48,6 @@ interface IBannerProps {
   enrollmentPath: string;
   stats: IStat[];
   features: IFeature[];
-  mainImage: string;
-  studentImage: string;
   themeClasses: IThemeClasses;
   onEnrollClick?: () => void;
 }
@@ -101,8 +98,6 @@ const PersonalityDevelopment: NextPage = () => {
         description: "Master public speaking"
       }
     ],
-    mainImage: Banner.src,
-    studentImage: DevelopmentImg.src,
     themeClasses: {
       badge: "bg-primary-500",
       badgeContainer: "bg-primary-500/10",
