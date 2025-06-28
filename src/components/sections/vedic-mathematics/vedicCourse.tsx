@@ -44,8 +44,8 @@ const VedicCourse: FC<IVedicCourseProps> = ({
               <Image
                 src={require("@/assets/images/logo/medh.png")}
                 alt="Medh Logo"
-                height={24}
-                style={{ width: "auto", height: "1.5em", marginBottom: "-2px" }}
+                height={28}
+                style={{ width: "auto", height: "28px", marginBottom: "-2px" }}
                 className="inline-block align-middle"
                 priority
               />
