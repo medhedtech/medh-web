@@ -23,18 +23,7 @@ function AnimatedContent({ components, bannerProps }) {
         <VedicBanner {...bannerProps} />
       </motion.section>
 
-      {/* Overview Section */}
-      <motion.section
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={fadeInUp}
-        transition={{ duration: 0.5 }}
-      >
-        <VedicOverview />
-      </motion.section>
-
-      {/* Course Section */}
+      {/* Course Section (moved above Overview) */}
       <motion.section
         initial="hidden"
         whileInView="visible"
@@ -43,6 +32,17 @@ function AnimatedContent({ components, bannerProps }) {
         transition={{ duration: 0.5 }}
       >
         <VedicCourse />
+      </motion.section>
+
+      {/* Overview Section (now below Course) */}
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={fadeInUp}
+        transition={{ duration: 0.5 }}
+      >
+        <VedicOverview />
       </motion.section>
 
       {/* FAQ Section */}
