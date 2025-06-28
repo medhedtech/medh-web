@@ -2,15 +2,10 @@
 
 import React, { useMemo, memo } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useTheme } from "next-themes";
 import { Users, Star, Heart, ArrowRight, Shield, Award, Smile, TrendingUp, Zap } from 'lucide-react';
 
-// Copyright-free Unsplash images for Personality Development
-const PERSONALITY_DEVELOPMENT_IMAGES = {
-  mainBanner: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1887&q=80", // Confident person presenting
-  studentImage: "https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" // Team building and communication
-};
+
 
 // TypeScript interfaces
 interface IFeatureCard {
@@ -123,9 +118,9 @@ const PersonalityCourseBanner: React.FC = memo(() => {
             ? 'bg-gradient-to-br from-emerald-500/5 via-transparent to-green-500/5' 
             : 'bg-gradient-to-br from-emerald-200/20 via-transparent to-green-200/20'
         }`}></div>
-        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-emerald-400/10 rounded-full blur-xl animate-pulse gpu-accelerated"></div>
-        <div className="absolute top-3/4 right-1/4 w-40 h-40 bg-green-400/10 rounded-full blur-xl animate-pulse gpu-accelerated" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 right-1/3 w-24 h-24 bg-teal-400/10 rounded-full blur-xl animate-pulse gpu-accelerated" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-blue-400/10 rounded-full blur-xl animate-pulse gpu-accelerated"></div>
+        <div className="absolute top-3/4 right-1/4 w-40 h-40 bg-blue-400/10 rounded-full blur-xl animate-pulse gpu-accelerated" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 right-1/3 w-24 h-24 bg-blue-400/10 rounded-full blur-xl animate-pulse gpu-accelerated" style={{ animationDelay: '2s' }}></div>
       </div>
 
       <div className={contentClasses} style={{ paddingTop: 'calc(80px + 1rem)' }}>
@@ -225,66 +220,7 @@ const PersonalityCourseBanner: React.FC = memo(() => {
           </div>
         </div>
 
-        {/* Images Section - Enhanced Glass Effect */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 max-w-5xl mx-auto gpu-accelerated">
-          <div className={`relative group overflow-hidden rounded-xl p-3 md:p-4 gpu-accelerated backdrop-blur-xl border transition-all duration-300 ${
-            isDark 
-              ? 'bg-white/5 border-white/10 hover:bg-white/10' 
-              : 'bg-white/40 border-white/30 hover:bg-white/60 shadow-lg hover:shadow-xl'
-          }`}>
-            <div className="absolute inset-0 opacity-30 gpu-accelerated">
-              <div className={`absolute inset-0 bg-gradient-to-br animate-pulse gpu-accelerated ${
-                isDark 
-                  ? 'from-emerald-500/10 to-green-500/10' 
-                  : 'from-emerald-200/30 to-green-200/30'
-              }`}></div>
-            </div>
-            <div className="relative z-10">
-              <Image
-                src={PERSONALITY_DEVELOPMENT_IMAGES.mainBanner}
-                alt="Personality Development Course"
-                width={500}
-                height={300}
-                priority
-                quality={95}
-                className="w-full h-36 md:h-48 object-cover rounded-lg gpu-accelerated transition-transform duration-300 group-hover:scale-105"
-                style={{ 
-                  objectFit: 'cover',
-                  imageRendering: '-webkit-optimize-contrast',
-                  backfaceVisibility: 'hidden'
-                }}
-              />
-            </div>
-          </div>
-          <div className={`relative group overflow-hidden rounded-xl p-3 md:p-4 gpu-accelerated backdrop-blur-xl border transition-all duration-300 ${
-            isDark 
-              ? 'bg-white/5 border-white/10 hover:bg-white/10' 
-              : 'bg-white/40 border-white/30 hover:bg-white/60 shadow-lg hover:shadow-xl'
-          }`}>
-            <div className="absolute inset-0 opacity-30 gpu-accelerated">
-              <div className={`absolute inset-0 bg-gradient-to-br animate-pulse gpu-accelerated ${
-                isDark 
-                  ? 'from-green-500/10 to-teal-500/10' 
-                  : 'from-green-200/30 to-teal-200/30'
-              }`}></div>
-            </div>
-            <div className="relative z-10">
-              <Image
-                src={PERSONALITY_DEVELOPMENT_IMAGES.studentImage}
-                alt="Personality Development Training"
-                width={500}
-                height={300}
-                quality={95}
-                className="w-full h-36 md:h-48 object-cover rounded-lg gpu-accelerated transition-transform duration-300 group-hover:scale-105"
-                style={{ 
-                  objectFit: 'cover',
-                  imageRendering: '-webkit-optimize-contrast',
-                  backfaceVisibility: 'hidden'
-                }}
-              />
-            </div>
-          </div>
-        </div>
+
       </div>
     </section>
   );

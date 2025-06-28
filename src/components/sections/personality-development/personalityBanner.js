@@ -134,7 +134,7 @@ function PersonalityBanner() {
             {/* CTA Section */}
             <div className="flex flex-wrap gap-4 pt-4">
               <Link
-                href="/enroll"
+                href="/enrollment/personality-development"
                 className="inline-flex items-center px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-all transform hover:-translate-y-0.5 shadow-lg shadow-blue-500/25"
               >
                 Enroll Now

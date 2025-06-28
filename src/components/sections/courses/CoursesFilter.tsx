@@ -38,7 +38,12 @@ import { IUpdateCourseData } from '@/types/course.types';
 import { apiBaseUrl, apiUtils, ICourseFilters, ICourseSearchParams } from '@/apis/index';
 import { getAllCoursesWithLimits } from '@/apis/course/course';
 import axios from 'axios';
+<<<<<<< HEAD
 
+=======
+import CourseCard from "@/components/sections/courses/CourseCard";
+import ReactDOM from "react-dom";
+>>>>>>> 3f77f9d1f3aec566e97d3a88ab49a76b1b435025
 
 // TypeScript Interfaces
 interface ICourse {
@@ -2508,10 +2513,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
           {!hideGradeFilter && (
             <div className="mb-4">
               <div className="filter-glassmorphic rounded-xl border border-indigo-100 dark:border-indigo-900/30 overflow-hidden">
-                <div 
-                  className="flex items-center justify-between cursor-pointer p-3 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all duration-300 ease-in-out" 
-                  onClick={() => setIsGradeDropdownOpen(!isGradeDropdownOpen)}
-                >
+                <div className="flex items-center p-3">
                   <div className="flex items-center space-x-2">
                     <div className="w-6 h-6 filter-glassmorphic rounded-lg flex items-center justify-center">
                       <GraduationCap className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
@@ -2521,62 +2523,54 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                       <p className="text-xs text-indigo-600 dark:text-indigo-400">Educational level</p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    {selectedGrade.length > 0 && (
-                      <span className="text-xs bg-indigo-500 text-white px-2 py-1 rounded-full font-medium">
-                        {selectedGrade.length}
-                      </span>
-                    )}
-                    <ChevronDown className={`w-4 h-4 text-indigo-600 dark:text-indigo-400 transition-all duration-300 ease-in-out ${isGradeDropdownOpen ? 'rotate-180 scale-110' : 'rotate-0 scale-100'}`} />
-                  </div>
+                  {selectedGrade.length > 0 && (
+                    <span className="ml-auto text-xs bg-indigo-500 text-white px-2 py-1 rounded-full font-medium">
+                      {selectedGrade.length}
+                    </span>
+                  )}
                 </div>
-                
-                {/* Grade Level Dropdown Content */}
-                <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isGradeDropdownOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}`}>
-                  <div className="px-4 pb-4 space-y-2 border-t border-indigo-100 dark:border-indigo-900/30 bg-white dark:bg-gray-800">
-                    {gradeOptions.map((grade, index) => (
-                      <label
-                        key={grade}
-                        className={`flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 transform hover:scale-[1.02] ${isGradeDropdownOpen ? 'animate-slideIn' : ''}`}
-                        style={{ animationDelay: `${(index + 1) * 50}ms` }}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <input
-                            type="checkbox"
-                            checked={selectedGrade.includes(grade)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedGrade(prev => [...prev, grade]);
-                              } else {
-                                setSelectedGrade(prev => prev.filter(g => g !== grade));
-                              }
-                            }}
-                            className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 transition-all duration-200"
-                          />
-                          <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
-                            {grade}
-                          </span>
-                        </div>
-                        {selectedGrade.includes(grade) && (
-                          <span className="text-xs text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/40 px-2 py-1 rounded-full animate-pulse">
-                            ✓
-                          </span>
-                        )}
-                      </label>
-                    ))}
-                    
-                    {/* Clear Grade Filters */}
-                    {selectedGrade.length > 0 && (
-                      <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
-                        <button
-                          onClick={() => setSelectedGrade([])}
-                          className="w-full text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 bg-indigo-100 dark:bg-indigo-900/40 hover:bg-indigo-200 dark:hover:bg-indigo-900/60 px-3 py-2 rounded-lg transition-all duration-200 transform hover:scale-105"
-                        >
-                          Clear Grade Filters ({selectedGrade.length})
-                        </button>
+                {/* Grade Level Options - always visible */}
+                <div className="px-4 pb-4 space-y-2 border-t border-indigo-100 dark:border-indigo-900/30 bg-white dark:bg-gray-800">
+                  {gradeOptions.map((grade, index) => (
+                    <label
+                      key={grade}
+                      className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 transform hover:scale-[1.02]"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedGrade.includes(grade)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedGrade(prev => [...prev, grade]);
+                            } else {
+                              setSelectedGrade(prev => prev.filter(g => g !== grade));
+                            }
+                          }}
+                          className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 transition-all duration-200"
+                        />
+                        <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                          {grade}
+                        </span>
                       </div>
-                    )}
-                  </div>
+                      {selectedGrade.includes(grade) && (
+                        <span className="text-xs text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/40 px-2 py-1 rounded-full animate-pulse">
+                          ✓
+                        </span>
+                      )}
+                    </label>
+                  ))}
+                  {/* Clear Grade Filters */}
+                  {selectedGrade.length > 0 && (
+                    <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+                      <button
+                        onClick={() => setSelectedGrade([])}
+                        className="w-full text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 bg-indigo-100 dark:bg-indigo-900/40 hover:bg-indigo-200 dark:hover:bg-indigo-900/60 px-3 py-2 rounded-lg transition-all duration-200 transform hover:scale-105"
+                      >
+                        Clear Grade Filters ({selectedGrade.length})
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -2835,6 +2829,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
       setSelectedCount(total);
     }, [selectedLiveCourses, selectedBlendedLearning, selectedFreeCourses, selectedGrade]);
 
+<<<<<<< HEAD
     // Handle click outside to close dropdown
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
@@ -2848,6 +2843,105 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
         return () => document.removeEventListener('mousedown', handleClickOutside);
       }
     }, [isMobileCategoriesOpen]);
+=======
+    const modalContent = isMobileCategoriesOpen ? (
+      <>
+        {/* Enhanced mobile backdrop */}
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] animate-in fade-in duration-300" 
+          onClick={() => setIsMobileCategoriesOpen(false)}
+        />
+        {/* Grade Level Only Modal */}
+        <div 
+          className="fixed top-[8vh] bottom-[8vh] left-1/2 transform -translate-x-1/2 w-[92vw] max-w-lg bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[1001] flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 duration-300"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex-shrink-0 px-6 py-5 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/20 rounded-t-2xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/40 rounded-xl flex items-center justify-center">
+                  <GraduationCap className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Grade Level</h3>
+                  <p className="text-sm text-purple-600 dark:text-purple-400 font-medium">Filter by educational level</p>
+                </div>
+              </div>
+              <button
+                onClick={handleClearFilters}
+                className="px-4 py-2 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-200 rounded-xl hover:bg-purple-100 dark:hover:bg-purple-900/40 font-semibold active:scale-95 border border-purple-200 dark:border-purple-800"
+              >
+                Clear All
+              </button>
+            </div>
+          </div>
+          {/* Grade Filter Content */}
+          <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 px-4 md:px-6 py-6 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 dark:hover:scrollbar-thumb-gray-500">
+            <div className="space-y-4">
+              {gradeOptions.map((grade) => (
+                <label
+                  key={grade}
+                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 transform hover:scale-[1.02] border border-transparent hover:border-purple-200/20 dark:hover:border-purple-800/20"
+                >
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedGrade.includes(grade)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedGrade(prev => [...prev, grade]);
+                        } else {
+                          setSelectedGrade(prev => prev.filter(g => g !== grade));
+                        }
+                      }}
+                      className="w-5 h-5 text-purple-600 bg-gray-100 border-gray-300 rounded-lg focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 transition-all duration-200"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                      {grade}
+                    </span>
+                  </div>
+                  {selectedGrade.includes(grade) && (
+                    <span className="text-xs text-purple-600 dark:text-purple-400 bg-purple-500/20 dark:bg-purple-900/40 px-3 py-1 rounded-full font-semibold">
+                      ✓
+                    </span>
+                  )}
+                </label>
+              ))}
+            </div>
+          </div>
+          {/* Footer with Action Buttons */}
+          <div className="flex-shrink-0 px-6 py-5 border-t border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/20 rounded-b-2xl backdrop-blur-sm">
+            {selectedGrade.length > 0 && (
+              <div className="flex items-center justify-center mb-4 text-sm text-gray-600 dark:text-gray-400">
+                <Sparkles className="w-4 h-4 mr-2 text-purple-500" />
+                <span className="font-medium">
+                  {selectedGrade.length} grade{selectedGrade.length !== 1 ? 's' : ''} selected
+                </span>
+              </div>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setSelectedGrade([])}
+                className="flex-1 px-5 py-3.5 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-all duration-200 active:scale-95 shadow-sm flex items-center justify-center space-x-2"
+                disabled={selectedGrade.length === 0}
+              >
+                <X className="w-4 h-4" />
+                <span>Clear All</span>
+              </button>
+              <button
+                onClick={() => setIsMobileCategoriesOpen(false)}
+                className="flex-1 px-5 py-3.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white text-sm font-bold rounded-xl transition-all duration-200 active:scale-95 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
+              >
+                <Filter className="w-4 h-4" />
+                <span>Apply Filters</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    ) : null;
+>>>>>>> 3f77f9d1f3aec566e97d3a88ab49a76b1b435025
 
     return (
       <div className="mobile-categories-container xl:hidden relative" ref={mobileCategoriesRef}>
@@ -2876,6 +2970,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             isMobileCategoriesOpen ? 'rotate-180 text-purple-500' : 'text-gray-500'
           }`} />
         </button>
+<<<<<<< HEAD
 
         {isMobileCategoriesOpen && (
           <>
@@ -3174,6 +3269,335 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                   }}
                   className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
                   disabled={selectedCount === 0}
+=======
+        {typeof window !== 'undefined' && ReactDOM.createPortal(modalContent, document.body)}
+      </div>
+    );
+  });
+
+  // Add display name for debugging
+  MobileCategoriesDropdown.displayName = 'MobileCategoriesDropdown';
+
+  // Filter dropdown component - memoized to prevent carousel interference
+  const FilterDropdown = React.memo(() => {
+    // Save and restore scroll position to prevent jumping to top
+    useEffect(() => {
+      if (isFilterDropdownOpen && filterScrollRef.current) {
+        // Restore scroll position after re-render
+        filterScrollRef.current.scrollTop = savedScrollPosition.current;
+      }
+    });
+
+    // Save scroll position before potential re-renders
+    const handleDropdownScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+      savedScrollPosition.current = e.currentTarget.scrollTop;
+    }, []);
+
+    // Memoize filter options to prevent recreation on every render
+    const filterOptions = useMemo(() => [
+      {
+        id: 'level',
+        label: 'Skill Level',
+        type: 'radio',
+        options: [
+          { value: 'beginner', label: 'Beginner', count: 45 },
+          { value: 'intermediate', label: 'Intermediate', count: 38 },
+          { value: 'advanced', label: 'Advanced', count: 25 },
+          { value: 'expert', label: 'Expert', count: 12 }
+        ]
+      },
+      {
+        id: 'duration',
+        label: 'Course Duration',
+        type: 'checkbox',
+        options: [
+          { value: '0-2', label: '0-2 weeks', count: 8 },
+          { value: '2-4', label: '2-4 weeks', count: 15 },
+          { value: '1-3', label: '1-3 months', count: 35 },
+          { value: '3-6', label: '3-6 months', count: 28 },
+          { value: '6+', label: '6+ months', count: 20 }
+        ]
+      },
+      {
+        id: 'price',
+        label: 'Price Range',
+        type: 'checkbox',
+        options: [
+          { value: 'free', label: 'Free', count: 12 },
+          { value: '0-5000', label: '₹0 - ₹5,000', count: 18 },
+          { value: '5000-15000', label: '₹5,000 - ₹15,000', count: 25 },
+          { value: '15000-30000', label: '₹15,000 - ₹30,000', count: 22 },
+          { value: '30000+', label: '₹30,000+', count: 15 }
+        ]
+      },
+      {
+        id: 'format',
+        label: 'Course Format',
+        type: 'checkbox',
+        options: [
+          { value: 'live', label: 'Live Classes', count: 32 },
+          { value: 'recorded', label: 'Recorded Videos', count: 58 },
+          { value: 'hybrid', label: 'Hybrid (Live + Recorded)', count: 24 },
+          { value: 'self-paced', label: 'Self-Paced Learning', count: 41 }
+        ]
+      },
+      {
+        id: 'language',
+        label: 'Language',
+        type: 'checkbox',
+        options: [
+          { value: 'english', label: 'English', count: 95 },
+          { value: 'hindi', label: 'Hindi', count: 67 },
+          { value: 'spanish', label: 'Spanish', count: 23 },
+          { value: 'french', label: 'French', count: 15 },
+          { value: 'german', label: 'German', count: 12 }
+        ]
+      },
+      {
+        id: 'features',
+        label: 'Course Features',
+        type: 'checkbox',
+        options: [
+          { value: 'certificate', label: 'Certificate Included', count: 85 },
+          { value: 'job-guarantee', label: 'Job Guarantee', count: 25 },
+          { value: 'live-sessions', label: 'Live Sessions', count: 45 },
+          { value: 'hands-on-projects', label: 'Hands-on Projects', count: 60 },
+          { value: 'mentor-support', label: 'Mentor Support', count: 40 },
+          { value: 'lifetime-access', label: 'Lifetime Access', count: 50 }
+        ]
+      },
+      {
+        id: 'rating',
+        label: 'Course Rating',
+        type: 'radio',
+        options: [
+          { value: '4.5+', label: '4.5+ Stars', count: 42 },
+          { value: '4.0+', label: '4.0+ Stars', count: 68 },
+          { value: '3.5+', label: '3.5+ Stars', count: 89 },
+          { value: '3.0+', label: '3.0+ Stars', count: 105 }
+        ]
+      },
+      {
+        id: 'instructor',
+        label: 'Instructor Type',
+        type: 'checkbox',
+        options: [
+          { value: 'industry-expert', label: 'Industry Expert', count: 45 },
+          { value: 'certified-trainer', label: 'Certified Trainer', count: 38 },
+          { value: 'university-professor', label: 'University Professor', count: 22 },
+          { value: 'freelance-professional', label: 'Freelance Professional', count: 35 }
+        ]
+      }
+    ], []);
+
+    const handleFilterOptionChange = useCallback((filterId: string, optionValue: string, checked: boolean) => {
+      // Handle category filters (removed from dropdown but keeping for sidebar)
+      if (filterId === 'categories') {
+        if (checked) {
+          setSelectedCategory(prev => [...prev, optionValue]);
+        } else {
+          setSelectedCategory(prev => prev.filter(cat => cat !== optionValue));
+        }
+      }
+      // Handle skill level (radio button - single selection)
+      else if (filterId === 'level') {
+        if (checked) {
+          setSelectedLevel(optionValue);
+        }
+      }
+      // Handle duration filters
+      else if (filterId === 'duration') {
+        if (checked) {
+          setSelectedDuration(prev => [...prev, optionValue]);
+        } else {
+          setSelectedDuration(prev => prev.filter(duration => duration !== optionValue));
+        }
+      }
+      // Handle price range filters
+      else if (filterId === 'price') {
+        if (checked) {
+          setSelectedPriceRange(prev => [...prev, optionValue]);
+        } else {
+          setSelectedPriceRange(prev => prev.filter(price => price !== optionValue));
+        }
+      }
+      // Handle course format filters
+      else if (filterId === 'format') {
+        if (checked) {
+          setSelectedFormat(prev => [...prev, optionValue]);
+        } else {
+          setSelectedFormat(prev => prev.filter(format => format !== optionValue));
+        }
+      }
+      // Handle language filters
+      else if (filterId === 'language') {
+        if (checked) {
+          setSelectedLanguage(prev => [...prev, optionValue]);
+        } else {
+          setSelectedLanguage(prev => prev.filter(language => language !== optionValue));
+        }
+      }
+      // Handle features filters
+      else if (filterId === 'features') {
+        if (checked) {
+          setSelectedFeatures(prev => [...prev, optionValue]);
+        } else {
+          setSelectedFeatures(prev => prev.filter(feature => feature !== optionValue));
+        }
+      }
+      // Handle rating filters (radio button - single selection)
+      else if (filterId === 'rating') {
+        if (checked) {
+          setSelectedRating(optionValue);
+        }
+      }
+      // Handle instructor type filters
+      else if (filterId === 'instructor') {
+        if (checked) {
+          setSelectedInstructor(prev => [...prev, optionValue]);
+        } else {
+          setSelectedInstructor(prev => prev.filter(instructor => instructor !== optionValue));
+        }
+      }
+      
+      setCurrentPage(1);
+    }, []);
+
+    const getCheckedValue = useCallback((filterId: string, optionValue: string) => {
+      switch (filterId) {
+        case 'categories':
+          return selectedCategory.includes(optionValue);
+        case 'level':
+          return selectedLevel === optionValue;
+        case 'duration':
+          return selectedDuration.includes(optionValue);
+        case 'price':
+          return selectedPriceRange.includes(optionValue);
+        case 'format':
+          return selectedFormat.includes(optionValue);
+        case 'language':
+          return selectedLanguage.includes(optionValue);
+        case 'features':
+          return selectedFeatures.includes(optionValue);
+        case 'rating':
+          return selectedRating === optionValue;
+        case 'instructor':
+          return selectedInstructor.includes(optionValue);
+        default:
+          return false;
+      }
+    }, [selectedCategory, selectedLevel, selectedDuration, selectedPriceRange, selectedFormat, selectedLanguage, selectedFeatures, selectedRating, selectedInstructor]);
+
+    const getTotalActiveFilters = useCallback(() => {
+      return selectedCategory.length + 
+             (selectedLevel ? 1 : 0) + 
+             selectedDuration.length + 
+             selectedPriceRange.length + 
+             selectedFormat.length + 
+             selectedLanguage.length + 
+             selectedFeatures.length + 
+             (selectedRating ? 1 : 0) + 
+             selectedInstructor.length;
+    }, [selectedCategory, selectedLevel, selectedDuration, selectedPriceRange, selectedFormat, selectedLanguage, selectedFeatures, selectedRating, selectedInstructor]);
+
+    const clearAllFilters = useCallback(() => {
+      setSelectedCategory([]);
+      setSelectedLevel("");
+      setSelectedDuration([]);
+      setSelectedPriceRange([]);
+      setSelectedFormat([]);
+      setSelectedLanguage([]);
+      setSelectedFeatures([]);
+      setSelectedRating("");
+      setSelectedInstructor([]);
+      handleClearFilters();
+    }, [handleClearFilters]);
+
+    // Close filter dropdown when clicking outside
+    useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target as Node)) {
+          setIsFilterDropdownOpen(false);
+          // Reset scroll position when closing
+          savedScrollPosition.current = 0;
+          // Notify parent component
+          onFilterDropdownToggle?.(false);
+        }
+      };
+
+      if (isFilterDropdownOpen) {
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+          document.removeEventListener('mousedown', handleClickOutside);
+        };
+      }
+    }, [isFilterDropdownOpen, onFilterDropdownToggle]);
+
+    // Note: Individual category dropdowns (Live Courses, Blended Learning, etc.) 
+    // within the mobile categories dropdown don't auto-close to prevent interrupting user selection
+
+    return (
+      <div className="relative" ref={filterDropdownRef}>
+        {/* Filter Button */}
+        <button
+          onClick={() => {
+            const newState = !isFilterDropdownOpen;
+            setIsFilterDropdownOpen(newState);
+            // Notify parent component
+            onFilterDropdownToggle?.(newState);
+          }}
+          className={`flex items-center justify-between w-full md:w-32 px-3 md:px-4 py-2 md:py-3 rounded-xl transition-all duration-200 border shadow-sm ${
+            isFilterDropdownOpen 
+              ? 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600' 
+              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+          }`}
+        >
+          <div className="flex items-center">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+              Filters
+            </span>
+            {getTotalActiveFilters() > 0 && (
+              <span className="ml-2 px-2 py-1 bg-primary-500 text-white text-xs font-medium rounded-full">
+                {getTotalActiveFilters()}
+              </span>
+            )}
+          </div>
+          <ChevronDown 
+            size={16} 
+            className={`transition-transform duration-200 text-gray-400 dark:text-gray-500 ${isFilterDropdownOpen ? 'rotate-180' : ''}`} 
+          />
+        </button>
+
+        {/* Dropdown Menu */}
+        {isFilterDropdownOpen && (
+          <>
+            {/* Mobile backdrop */}
+            <div 
+              className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" 
+              onClick={() => {
+                setIsFilterDropdownOpen(false);
+                onFilterDropdownToggle?.(false);
+              }}
+              onTouchMove={(e) => e.preventDefault()}
+              style={{ touchAction: 'none' }}
+            />
+            <div 
+              className="fixed inset-4 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-2rem)] max-w-sm filter-glassmorphic rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-50 max-h-96 overflow-hidden md:absolute md:top-full md:right-0 md:left-auto md:transform-none md:translate-x-0 md:translate-y-0 md:inset-auto md:mt-2 md:w-96"
+              onClick={(e) => e.stopPropagation()}
+              style={{ touchAction: 'auto' }}
+            >
+            {/* Filter Sections - Single scroll for entire content */}
+            <div 
+              ref={filterScrollRef}
+              onScroll={handleDropdownScroll}
+              className="overflow-y-auto max-h-80 p-2 md:p-3 space-y-2 md:space-y-3"
+            >
+              {/* Clear All Button - moved to top */}
+              <div className="flex justify-end">
+                <button
+                  onClick={clearAllFilters}
+                  className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
+>>>>>>> 3f77f9d1f3aec566e97d3a88ab49a76b1b435025
                 >
                   Clear All
                 </button>
@@ -3191,6 +3615,162 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     );
   });
 
+<<<<<<< HEAD
+=======
+  // Add display name for debugging
+  FilterDropdown.displayName = 'FilterDropdown';
+
+  // Modern main content renderer
+  const renderMainContent = (): React.ReactNode => {
+    return (
+      <div className={!hideCategoryFilter ? "w-full lg:w-[80%] py-4" : "w-full py-4"}>
+        {/* Header Section */}
+        <div className="mb-3 px-4 md:px-6 lg:px-8">
+          {/* Results count - Improved styling */}
+          {!hideFilterBar && (
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
+              <div className="flex items-center gap-2 mb-2 sm:mb-0">
+                <div className="text-gray-700 dark:text-gray-300">
+                  <span className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                    {totalItems.toLocaleString()}
+                  </span>
+                  <span className="ml-1 text-base">
+                    {totalItems === 1 ? 'course found' : 'courses found'}
+                  </span>
+                </div>
+                {showingRelated && (
+                  <button
+                    onClick={clearRelated}
+                    className="px-3 py-1 text-sm bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50 rounded-lg transition-colors duration-200"
+                  >
+                    ← Back to All
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Error state */}
+          {queryError && (
+            <div className="flex flex-col items-center justify-center py-16 px-4 border border-red-200 dark:border-red-800 rounded-2xl bg-red-50 dark:bg-red-900/10 text-center mb-6">
+              <AlertCircle size={48} className="text-red-500 dark:text-red-400 mb-4" />
+              <h3 className="text-xl font-semibold text-red-700 dark:text-red-300 mb-2">Error Loading Courses</h3>
+              <p className="text-red-600 dark:text-red-400 max-w-md mb-6">
+                {queryError}
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-colors"
+              >
+                Refresh Page
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Course Cards Section */}
+        <div className="relative">
+          {renderCourseList()}
+        </div>
+
+        {/* Pagination Section - Fixed styling */}
+        {totalPages > 1 && (
+          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 px-4 md:px-6 lg:px-8">
+            <nav className="flex justify-center" aria-label="Pagination">
+              {simplePagination ? (
+                <SimplePaginationWrapper
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  simplified={true}
+                />
+              ) : (
+                <SimplePaginationWrapper
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  simplified={false}
+                />
+              )}
+            </nav>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Prevent body scroll when any dropdown is open (mobile-focused with enhanced prevention)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const isAnyDropdownOpen = isGradeDropdownOpen || isLiveCoursesDropdownOpen || isBlendedLearningDropdownOpen || isFreeCoursesDropdownOpen || isFilterDropdownOpen || isMobileCategoriesOpen;
+    const isMobile = window.innerWidth < 768; // md breakpoint
+    if (isAnyDropdownOpen && isMobile) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isGradeDropdownOpen, isLiveCoursesDropdownOpen, isBlendedLearningDropdownOpen, isFreeCoursesDropdownOpen, isFilterDropdownOpen, isMobileCategoriesOpen]);
+
+  // Add formatDuration helper function if not already present
+  const formatDuration = (duration: any) => {
+    if (!duration) return "Self-paced";
+    
+    if (typeof duration === 'string' && duration.includes(' ')) {
+      const parts = duration.toLowerCase().split(' ');
+      const durationParts = [];
+      let totalWeeks = 0;
+      let monthValue = 0;
+      let weekValue = 0;
+      
+      for (let i = 0; i < parts.length; i += 2) {
+        if (i + 1 >= parts.length) break;
+        
+        const value = parseFloat(parts[i]);
+        const unit = parts[i + 1].replace(/s$/, '');
+        
+        if (!isNaN(value) && value > 0) {
+          switch (unit) {
+            case 'year':
+              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Year' : 'Years'}`);
+              totalWeeks += value * 52;
+              break;
+            case 'month':
+              monthValue = value;
+              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Month' : 'Months'}`);
+              totalWeeks += value * 4;
+              break;
+            case 'week':
+              weekValue = value;
+              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Week' : 'Weeks'}`);
+              totalWeeks += value;
+              break;
+            case 'day':
+              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Day' : 'Days'}`);
+              totalWeeks += value / 7;
+              break;
+            case 'hour':
+              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Hour' : 'Hours'}`);
+              break;
+          }
+        }
+      }
+      
+      if (durationParts.length > 0) {
+        if (monthValue > 0 && weekValue > 0) {
+          return `${Math.round(monthValue)} ${Math.round(monthValue) === 1 ? 'Month' : 'Months'} / ${Math.round(weekValue)} ${Math.round(weekValue) === 1 ? 'Week' : 'Weeks'}`;
+        }
+        return durationParts.join(' ');
+      }
+    }
+    
+    return duration;
+  };
+
+>>>>>>> 3f77f9d1f3aec566e97d3a88ab49a76b1b435025
   return (
     <ErrorBoundary>
       <section className="w-full" role="region" aria-label="Course Filter">

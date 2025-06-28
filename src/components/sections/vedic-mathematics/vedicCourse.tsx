@@ -4,6 +4,7 @@ import React from "react";
 import type { FC } from 'react';
 import CoursesFilter from "../courses/CoursesFilter";
 import { Calculator, Brain } from "lucide-react";
+import Image from "next/image";
 
 interface IVedicCourseProps {
   className?: string;
@@ -39,7 +40,16 @@ const VedicCourse: FC<IVedicCourseProps> = ({
           
           <div className="flex items-center justify-center gap-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold">
             <span className="text-gray-900 dark:text-white">with</span>
-            <span className="text-medhgreen dark:text-medhgreen bg-gradient-to-r from-indigo-50/10 to-transparent px-2 py-1 rounded">MEDH</span>
+            <span className="inline-flex items-center align-middle ml-1">
+              <Image
+                src={require("@/assets/images/logo/medh.png")}
+                alt="Medh Logo"
+                height={28}
+                style={{ width: "auto", height: "28px", marginBottom: "-2px" }}
+                className="inline-block align-middle"
+                priority
+              />
+            </span>
           </div>
         </div>
 
@@ -66,7 +76,6 @@ const VedicCourse: FC<IVedicCourseProps> = ({
             hideSearch={true}
             hideSortOptions={true}
             hideFilterBar={true}
-            hideViewModeSwitch={true}
             hideHeader={true}
             gridColumns={3}
             itemsPerPage={8}
@@ -78,20 +87,6 @@ const VedicCourse: FC<IVedicCourseProps> = ({
               gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
               width: '100%',
               maxWidth: '100%'
-            }}
-            customFilterStyles={{
-              container: "w-full max-w-none px-0",
-              content: "w-full",
-              gradeFilter: {
-                wrapper: "w-full border-0",
-                container: "w-full max-w-none px-0",
-                dropdown: "w-full rounded-xl shadow-lg",
-                header: "p-5 bg-indigo-50 dark:bg-indigo-900/20",
-                content: "p-4 space-y-3",
-                option: "p-4 hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
-              },
-              filterSection: "w-full px-0",
-              filterBar: "w-full px-0 mx-0"
             }}
             emptyStateContent={
               <div className="flex flex-col items-center justify-center min-h-[20vh] md:min-h-[30vh] text-center p-4 md:p-8 bg-white dark:bg-gray-800/50 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">

@@ -226,65 +226,6 @@ const VedicBanner: React.FC = memo(() => {
         </div>
 
         {/* Images Section - Enhanced Glass Effect */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 max-w-5xl mx-auto gpu-accelerated">
-          <div className={`relative group overflow-hidden rounded-xl p-3 md:p-4 gpu-accelerated backdrop-blur-xl border transition-all duration-300 ${
-            isDark 
-              ? 'bg-white/5 border-white/10 hover:bg-white/10' 
-              : 'bg-white/40 border-white/30 hover:bg-white/60 shadow-lg hover:shadow-xl'
-          }`}>
-            <div className="absolute inset-0 opacity-30 gpu-accelerated">
-              <div className={`absolute inset-0 bg-gradient-to-br animate-pulse gpu-accelerated ${
-                isDark 
-                  ? 'from-amber-500/10 to-orange-500/10' 
-                  : 'from-amber-200/30 to-orange-200/30'
-              }`}></div>
-            </div>
-            <div className="relative z-10">
-              <Image
-                src={VEDIC_MATHEMATICS_IMAGES.mainBanner}
-                alt="Vedic Mathematics Course"
-                width={500}
-                height={300}
-                priority
-                quality={95}
-                className="w-full h-36 md:h-48 object-cover rounded-lg gpu-accelerated transition-transform duration-300 group-hover:scale-105"
-                style={{ 
-                  objectFit: 'cover',
-                  imageRendering: '-webkit-optimize-contrast',
-                  backfaceVisibility: 'hidden'
-                }}
-              />
-            </div>
-          </div>
-          <div className={`relative group overflow-hidden rounded-xl p-3 md:p-4 gpu-accelerated backdrop-blur-xl border transition-all duration-300 ${
-            isDark 
-              ? 'bg-white/5 border-white/10 hover:bg-white/10' 
-              : 'bg-white/40 border-white/30 hover:bg-white/60 shadow-lg hover:shadow-xl'
-          }`}>
-            <div className="absolute inset-0 opacity-30 gpu-accelerated">
-              <div className={`absolute inset-0 bg-gradient-to-br animate-pulse gpu-accelerated ${
-                isDark 
-                  ? 'from-orange-500/10 to-yellow-500/10' 
-                  : 'from-orange-200/30 to-yellow-200/30'
-              }`}></div>
-            </div>
-            <div className="relative z-10">
-              <Image
-                src={VEDIC_MATHEMATICS_IMAGES.studentImage}
-                alt="Vedic Mathematics Learning"
-                width={500}
-                height={300}
-                quality={95}
-                className="w-full h-36 md:h-48 object-cover rounded-lg gpu-accelerated transition-transform duration-300 group-hover:scale-105"
-                style={{ 
-                  objectFit: 'cover',
-                  imageRendering: '-webkit-optimize-contrast',
-                  backfaceVisibility: 'hidden'
-                }}
-              />
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   );
