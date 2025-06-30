@@ -2531,6 +2531,9 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
 
   // Modern sidebar renderer - Simplified Category Filter
   const renderSidebar = (): React.ReactNode => {
+    // Hide sidebar completely if grade filter is disabled
+    if (hideGradeFilter) return null;
+    
     // Show sidebar if grade filter is enabled, even with fixed category
     if (hideCategoryFilter && hideGradeFilter) return null;
     if (fixedCategory && hideGradeFilter) return null;
@@ -2861,6 +2864,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
 
   // Simplified Mobile Categories dropdown component - fixed stuck issue
   const MobileCategoriesDropdown = React.memo(() => {
+    // Don't render if grade filter is hidden
+    if (hideGradeFilter) return null;
     // Don't render if there's a fixed category AND no grade filter
     if (fixedCategory && hideGradeFilter) return null;
     const mobileCategoriesRef = useRef<HTMLDivElement>(null);
@@ -2956,17 +2961,18 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             style={{ touchAction: 'pan-y' }}
           >
             
-            {/* Grade Level Section */}
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center">
-                  <GraduationCap className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+            {/* Grade Level Section - Only show if grade filter is not hidden */}
+            {!hideGradeFilter && (
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center">
+                    <GraduationCap className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-gray-900 dark:text-gray-100">Grade Level</h4>
+                    <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">Educational level</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-base font-bold text-gray-900 dark:text-gray-100">Grade Level</h4>
-                  <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">Educational level</p>
-                </div>
-              </div>
               <div className="grid grid-cols-2 gap-3">
                 {gradeOptions.map((grade) => (
                   <label
@@ -3004,6 +3010,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                 ))}
               </div>
             </div>
+            )}
 
             {/* Live Courses Section */}
             <div className="space-y-4">

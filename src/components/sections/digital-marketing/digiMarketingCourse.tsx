@@ -67,6 +67,7 @@ const DigiMarketingCourse: React.FC = () => {
               hideSortOptions={true}
               hideFilterBar={true}
               hideHeader={true}
+              hideGradeFilter={true}
               gridColumns={4}
               itemsPerPage={16}
               simplePagination={true}

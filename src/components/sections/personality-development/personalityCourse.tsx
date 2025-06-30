@@ -41,7 +41,7 @@ const PersonalityCourse: React.FC<IPersonalityCourseProps> = ({
       tablet: 2,
       desktop: 4
     },
-    showFilters: false,
+    showFilters: true,
     itemsPerPage: {
       mobile: 4,
       tablet: 6,
@@ -129,11 +129,13 @@ const PersonalityCourse: React.FC<IPersonalityCourseProps> = ({
             CustomText="Personality Development Courses"
             CustomButton={CustomButtonComponent}
             fixedCategory="Personality Development"
+            hideCategoryFilter={false}
             hideCategories={true}
-            hideSearch={true}
-            hideSortOptions={true}
+            hideSearch={false}
+            hideSortOptions={false}
             hideHeader={true}
             hideGradeFilter={false}
+            hideFilterBar={false}
             gridColumns={3}
             itemsPerPage={8}
             simplePagination={true}
