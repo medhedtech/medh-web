@@ -19,16 +19,16 @@ const CourseOptions: React.FC = () => {
     "Predictive Analytics"
   ];
 
-  // Custom header content with improved mobile styling
+  // Custom header content with edge-to-edge styling
   const customHeader = (
-    <div className="relative text-center px-4 md:px-6 lg:px-8">
-      {/* Background decoration */}
+    <div className="relative text-center w-full">
+      {/* Background decoration - Full width */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-blue-50/30 to-transparent dark:from-blue-900/10" />
       </div>
 
-      {/* Content */}
-      <div className="relative space-y-4 md:space-y-6 py-6 md:py-8 lg:py-10">
+      {/* Content with controlled inner padding */}
+      <div className="relative space-y-4 md:space-y-6 py-6 md:py-8 lg:py-10 px-4 md:px-6 lg:px-8 max-w-6xl mx-auto">
         {/* Badge */}
         <div className="inline-flex items-center justify-center">
           <span className="inline-flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1 md:py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs md:text-sm font-medium">
@@ -61,169 +61,209 @@ const CourseOptions: React.FC = () => {
 
   return (
     <>
-      {/* Global styles for the course grid */}
+      {/* Enhanced Global styles for edge-to-edge course grid */}
       <style jsx global>{`
-        .courses-filter-optimized-layout .course-grid {
-          display: grid !important;
-          width: 100% !important;
-          margin: 0 auto !important;
-          padding: 1.5rem !important;
-          gap: 1.5rem !important;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
-          place-items: center !important;
-          justify-content: center !important;
-          max-width: 1600px !important;
-        }
-        
-        .courses-filter-optimized-layout .course-card {
-          width: 100% !important;
-          max-width: 340px !important;
-          min-width: 280px !important;
-          display: flex !important;
-          flex-direction: column !important;
+        /* Edge-to-edge container */
+        .courses-filter-edge-to-edge {
+          width: 100vw !important;
+          position: relative !important;
+          left: 50% !important;
+          right: 50% !important;
+          margin-left: -50vw !important;
+          margin-right: -50vw !important;
         }
 
-        .courses-filter-optimized-layout .course-card:hover {
-          transform: translateY(-4px) scale(1.02) !important;
+        .courses-filter-edge-to-edge .course-grid {
+          display: grid !important;
+          width: 100% !important;
+          margin: 0 !important;
+          gap: 0.75rem !important;
+          place-items: stretch !important;
+          justify-content: stretch !important;
+          padding: 0.75rem !important;
+        }
+        
+        .courses-filter-edge-to-edge .course-card {
+          width: 100% !important;
+          height: 100% !important;
+          display: flex !important;
+          flex-direction: column !important;
+          min-width: 0 !important;
+          max-width: none !important;
+        }
+
+        .courses-filter-edge-to-edge .course-card:hover {
+          transform: translateY(-2px) scale(1.01) !important;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
 
-        /* Mobile: Single column, compact cards */
-        @media (max-width: 639px) {
-          .courses-filter-optimized-layout .course-grid {
+        /* Mobile: Single column edge-to-edge */
+        @media (max-width: 479px) {
+          .courses-filter-edge-to-edge .course-grid {
             grid-template-columns: 1fr !important;
-            padding: 1rem !important;
-            gap: 1rem !important;
-          }
-          
-          .courses-filter-optimized-layout .course-card {
-            max-width: 100% !important;
-          }
-        }
-        
-        /* Small tablets: 2 columns */
-        @media (min-width: 640px) and (max-width: 1023px) {
-          .courses-filter-optimized-layout .course-grid {
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
-            padding: 1.75rem !important;
-            gap: 1.75rem !important;
-          }
-          
-          .courses-filter-optimized-layout .course-card {
-            max-width: 320px !important;
-          }
-        }
-        
-        /* Large tablets/small desktops: 3 columns */
-        @media (min-width: 1024px) and (max-width: 1279px) {
-          .courses-filter-optimized-layout .course-grid {
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
-            padding: 2rem !important;
-            gap: 2rem !important;
-          }
-          
-          .courses-filter-optimized-layout .course-card {
-            max-width: 320px !important;
-          }
-        }
-        
-        /* Desktop: 4 columns */
-        @media (min-width: 1280px) {
-          .courses-filter-optimized-layout .course-grid {
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
-            padding: 2.5rem !important;
-            gap: 2.5rem !important;
-          }
-          
-          .courses-filter-optimized-layout .course-card {
-            min-width: 300px !important;
-            max-width: 340px !important;
-          }
-        }
-        
-        /* Large desktop: Maintain 4 columns with better spacing */
-        @media (min-width: 1440px) {
-          .courses-filter-optimized-layout .course-grid {
-            grid-template-columns: repeat(4, minmax(320px, 1fr)) !important;
-            padding: 3rem !important;
-            gap: 3rem !important;
-          }
-          
-          .courses-filter-optimized-layout .course-card {
-            min-width: 320px !important;
-            max-width: 360px !important;
+            padding: 0.5rem !important;
+            gap: 0.5rem !important;
           }
         }
 
-        /* Ultra-wide screens: Cap at 5 columns */
-        @media (min-width: 1920px) {
-          .courses-filter-optimized-layout .course-grid {
-            grid-template-columns: repeat(5, minmax(320px, 1fr)) !important;
-            max-width: 1800px !important;
+        /* Mobile landscape: 2 columns */
+        @media (min-width: 480px) and (max-width: 639px) {
+          .courses-filter-edge-to-edge .course-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            padding: 0.75rem !important;
+            gap: 0.75rem !important;
+          }
+        }
+        
+        /* Small tablets: 2-3 columns based on available space */
+        @media (min-width: 640px) and (max-width: 767px) {
+          .courses-filter-edge-to-edge .course-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            padding: 1rem !important;
+            gap: 1rem !important;
+          }
+        }
+
+        /* Tablets: 3 columns */
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .courses-filter-edge-to-edge .course-grid {
+            grid-template-columns: repeat(3, 1fr) !important;
+            padding: 1rem !important;
+            gap: 1rem !important;
+          }
+        }
+        
+        /* Small laptops: 4 columns */
+        @media (min-width: 1024px) and (max-width: 1279px) {
+          .courses-filter-edge-to-edge .course-grid {
+            grid-template-columns: repeat(4, 1fr) !important;
+            padding: 1.25rem !important;
+            gap: 1.25rem !important;
+          }
+        }
+        
+        /* Desktop: 5 columns */
+        @media (min-width: 1280px) and (max-width: 1535px) {
+          .courses-filter-edge-to-edge .course-grid {
+            grid-template-columns: repeat(5, 1fr) !important;
+            padding: 1.5rem !important;
+            gap: 1.5rem !important;
+          }
+        }
+        
+        /* Large desktop: 6 columns */
+        @media (min-width: 1536px) and (max-width: 1919px) {
+          .courses-filter-edge-to-edge .course-grid {
+            grid-template-columns: repeat(6, 1fr) !important;
+            padding: 1.75rem !important;
+            gap: 1.75rem !important;
+          }
+        }
+
+        /* Ultra-wide screens: 7-8 columns */
+        @media (min-width: 1920px) and (max-width: 2559px) {
+          .courses-filter-edge-to-edge .course-grid {
+            grid-template-columns: repeat(7, 1fr) !important;
+            padding: 2rem !important;
+            gap: 2rem !important;
+          }
+        }
+
+        /* 4K and beyond: 8+ columns */
+        @media (min-width: 2560px) {
+          .courses-filter-edge-to-edge .course-grid {
+            grid-template-columns: repeat(8, 1fr) !important;
+            padding: 2.5rem !important;
+            gap: 2.5rem !important;
+          }
+        }
+
+        /* Ensure cards fill the available space */
+        .courses-filter-edge-to-edge .course-card > * {
+          flex: 1 !important;
+        }
+
+        /* Optimize for foldable devices */
+        @media (min-width: 600px) and (max-width: 900px) and (orientation: landscape) {
+          .courses-filter-edge-to-edge .course-grid {
+            grid-template-columns: repeat(4, 1fr) !important;
+            padding: 1rem !important;
+            gap: 1rem !important;
+          }
+        }
+
+        /* Optimize for tablet landscape */
+        @media (min-width: 900px) and (max-width: 1200px) and (orientation: landscape) {
+          .courses-filter-edge-to-edge .course-grid {
+            grid-template-columns: repeat(5, 1fr) !important;
+            padding: 1.25rem !important;
+            gap: 1.25rem !important;
           }
         }
       `}</style>
 
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+        {/* Header with controlled width */}
         <div className="w-full">
           {customHeader}
-          
-          <div className="w-full max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8">
-            <div className="courses-filter-optimized-layout">
-              <CoursesFilter
-                key="ai-and-data-science"
-                CustomText="AI and Data Science Courses"
-                CustomButton={() => (
-                  <Link href="/courses">
-                    <div className="inline-flex items-center px-4 md:px-6 py-2.5 md:py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white text-xs md:text-sm font-medium rounded-lg md:rounded-xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-95">
-                      <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
-                      <span>Explore All Courses</span>
-                    </div>
-                  </Link>
-                )}
-                fixedCategory="AI and Data Science"
-                hideCategoryFilter={true}
-                hideSearch={true}
-                hideSortOptions={true}
-                hideFilterBar={true}
-                hideHeader={true}
-                hideGradeFilter={true}
-                gridColumns={4}
-                itemsPerPage={16}
-                simplePagination={true}
-                scrollToTop={true}
-                description="Master artificial intelligence and data science with our comprehensive courses combining cutting-edge technology with practical applications."
-                customGridClassName="course-grid"
-                customGridStyle={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                  gap: '1.5rem',
-                  width: '100%',
-                  margin: '0 auto',
-                  padding: '1.5rem',
-                  placeItems: 'center',
-                  justifyContent: 'center',
-                  maxWidth: '1600px'
-                }}
-                emptyStateContent={
-                  <div className="bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 mx-2 w-full max-w-md">
-                    <div className="flex flex-col items-center justify-center min-h-[20vh] md:min-h-[30vh] text-center">
-                      <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/20 mb-3 md:mb-4">
-                        <Brain className="w-6 h-6 md:w-8 md:h-8 text-blue-500 dark:text-blue-400" />
-                      </div>
-                      <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                        Coming Soon
-                      </h3>
-                      <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 max-w-md">
-                        We're currently developing cutting-edge AI and Data Science courses. Check back soon for industry-leading content!
-                      </p>
-                    </div>
+        </div>
+        
+        {/* Edge-to-edge course grid container */}
+        <div className="courses-filter-edge-to-edge">
+          <CoursesFilter
+            key="ai-and-data-science-edge-to-edge"
+            CustomText="AI and Data Science Courses"
+            CustomButton={() => (
+              <div className="flex justify-center w-full py-4">
+                <Link href="/courses">
+                  <div className="inline-flex items-center px-4 md:px-6 py-2.5 md:py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white text-xs md:text-sm font-medium rounded-lg md:rounded-xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-95">
+                    <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                    <span>Explore All Courses</span>
                   </div>
-                }
-                activeTab="live"
-              />
-            </div>
-          </div>
+                </Link>
+              </div>
+            )}
+            fixedCategory="AI and Data Science"
+            hideCategoryFilter={true}
+            hideSearch={true}
+            hideSortOptions={true}
+            hideFilterBar={true}
+            hideHeader={true}
+            hideGradeFilter={true}
+            gridColumns={8} // Maximum columns for ultra-wide
+            itemsPerPage={32} // Increased for edge-to-edge
+            simplePagination={true}
+            scrollToTop={true}
+            description="Master artificial intelligence and data science with our comprehensive courses combining cutting-edge technology with practical applications."
+            customGridClassName="course-grid"
+            customGridStyle={{
+              display: 'grid',
+              width: '100%',
+              margin: '0',
+              padding: '1rem',
+              gap: '1rem',
+              placeItems: 'stretch',
+              justifyContent: 'stretch'
+            }}
+            emptyStateContent={
+              <div className="flex justify-center w-full py-8">
+                <div className="bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 w-full max-w-md mx-4">
+                  <div className="flex flex-col items-center justify-center min-h-[20vh] md:min-h-[30vh] text-center">
+                    <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/20 mb-3 md:mb-4">
+                      <Brain className="w-6 h-6 md:w-8 md:h-8 text-blue-500 dark:text-blue-400" />
+                    </div>
+                    <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                      Coming Soon
+                    </h3>
+                    <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 max-w-md">
+                      We're currently developing cutting-edge AI and Data Science courses. Check back soon for industry-leading content!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            }
+            activeTab="live"
+          />
         </div>
       </div>
     </>

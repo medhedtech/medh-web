@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { 
@@ -171,6 +171,8 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
   const cardRef = useRef(null);
   const router = useRouter();
 
+
+
   const handleImageLoad = () => setIsImageLoaded(true);
   const handleImageError = () => setIsImageError(true);
 
@@ -262,25 +264,192 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
 
   // Updated navigate logic: use dynamic enrollment URLs for live courses when provided
   const navigateToCourse = () => {
-    // 1. Check if it's a live class type and redirect to enrollment page
-    if (isLiveCourse && course?._id && course?.course_category) {
-      const categoryName = course.course_category.toLowerCase().replace(/\s+/g, '-');
-      const enrollmentUrl = `/enrollment/${categoryName}?course=${course._id}`;
-      router.push(enrollmentUrl);
-      return;
-    }
+    try {
+      // 1. Enhanced live course navigation with better category mapping
+      if (isLiveCourse && course?._id) {
+        let enrollmentUrl = null;
+        
+        // Method 1: Use course category if available
+        if (course?.course_category && typeof course.course_category === 'string') {
+          const categorySlug = generateCategorySlug(course.course_category);
+          if (categorySlug) {
+            enrollmentUrl = `/enrollment/${categorySlug}?course=${course._id}`;
+          }
+        }
+        
+        // Method 2: Generate slug from course title if category method failed
+        if (!enrollmentUrl && course?.course_title) {
+          const titleSlug = generateTitleSlug(course.course_title);
+          if (titleSlug) {
+            enrollmentUrl = `/enrollment/${titleSlug}?course=${course._id}`;
+          }
+        }
+        
+        // Method 3: Use explicit URL if provided
+        if (!enrollmentUrl && course?.url && typeof course.url === 'string' && course.url.trim() !== '') {
+          enrollmentUrl = validateAndFormatUrl(course.url);
+        }
+        
+        // Navigate to enrollment page if we have a valid URL
+        if (enrollmentUrl) {
+          console.log('Navigating live course to:', enrollmentUrl);
+          
+          // Use router.push for better navigation control and state management
+          router.push(enrollmentUrl);
+          return;
+        }
+        
+        // Fallback for live courses: try generic enrollment page with course ID
+        console.log('Live course fallback: generic enrollment with course ID');
+        router.push(`/enrollment?course=${course._id}`);
+        return;
+      }
 
-    // 2. Prefer an explicit URL if supplied (e.g. enrollment link for live courses)
-    if (course?.url && typeof course.url === 'string' && course.url.trim() !== '') {
-      // Ensure the URL is properly formatted (allow both absolute and relative)
-      const targetUrl = course.url.startsWith('http') ? course.url : course.url.startsWith('/') ? course.url : `/${course.url}`;
-      window.open(targetUrl, '_blank');
-      return;
-    }
+      // 2. Handle explicit URL navigation (for all course types)
+      if (course?.url && typeof course.url === 'string' && course.url.trim() !== '') {
+        const targetUrl = validateAndFormatUrl(course.url);
+        if (targetUrl) {
+          console.log('Navigating to explicit URL:', targetUrl);
+          
+          // Check if it's an internal route or external URL
+          if (targetUrl.startsWith('/') || targetUrl.includes(window.location.origin)) {
+            router.push(targetUrl);
+          } else {
+            window.open(targetUrl, '_blank', 'noopener,noreferrer');
+          }
+          return;
+        }
+      }
 
-    // 3. Fallback: open standard course-details page when course id is present
-    if (course?._id) {
-      window.open(`/course-details/${course._id}`, '_blank');
+      // 3. Fallback: navigate to course details page
+      if (course?._id) {
+        const detailsUrl = `/course-details/${course._id}`;
+        console.log('Fallback navigation to course details:', detailsUrl);
+        
+        // Open in new tab for better user experience
+        window.open(detailsUrl, '_blank', 'noopener,noreferrer');
+        return;
+      }
+      
+      // 4. Last resort: show error message
+      console.warn('No valid navigation path found for course:', course);
+      
+    } catch (error) {
+      console.error('Error in course navigation:', error);
+      
+      // Emergency fallback: try course details if we have an ID
+      if (course?._id) {
+        window.open(`/course-details/${course._id}`, '_blank', 'noopener,noreferrer');
+      }
+    }
+  };
+
+  // Helper function to generate category slug from course category
+  const generateCategorySlug = (category: string): string | null => {
+    if (!category || typeof category !== 'string') return null;
+    
+    // Normalize the category name
+    const normalized = category.toLowerCase().trim();
+    
+    // Known category mappings based on enrollment system
+    const categoryMappings: { [key: string]: string } = {
+      'ai and data science': 'ai-and-data-science',
+      'artificial intelligence': 'ai-and-data-science',
+      'data science': 'ai-and-data-science',
+      'machine learning': 'ai-and-data-science',
+      'digital marketing': 'digital-marketing',
+      'online marketing': 'digital-marketing',
+      'social media marketing': 'digital-marketing',
+      'personality development': 'personality-development',
+      'soft skills': 'personality-development',
+      'communication skills': 'personality-development',
+      'vedic mathematics': 'vedic-mathematics',
+      'vedic math': 'vedic-mathematics',
+      'mathematics': 'vedic-mathematics'
+    };
+    
+    // Check for exact matches first
+    if (categoryMappings[normalized]) {
+      return categoryMappings[normalized];
+    }
+    
+    // Check for partial matches
+    for (const [key, value] of Object.entries(categoryMappings)) {
+      if (normalized.includes(key) || key.includes(normalized)) {
+        return value;
+      }
+    }
+    
+    // Generate generic slug if no specific mapping found
+    return normalized
+      .replace(/[^a-z0-9\s&-]/g, '') // Remove special characters except &
+      .replace(/&/g, 'and') // Replace & with "and"
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Remove multiple consecutive hyphens
+      .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+  };
+
+  // Helper function to generate slug from course title
+  const generateTitleSlug = (title: string): string | null => {
+    if (!title || typeof title !== 'string') return null;
+    
+    const normalized = title.toLowerCase().trim();
+    
+    // Known title patterns for specific enrollment pages
+    const titleMappings: { [key: string]: string } = {
+      'ai': 'ai-and-data-science',
+      'artificial intelligence': 'ai-and-data-science',
+      'data science': 'ai-and-data-science',
+      'machine learning': 'ai-and-data-science',
+      'digital marketing': 'digital-marketing',
+      'personality development': 'personality-development',
+      'vedic mathematics': 'vedic-mathematics',
+      'vedic math': 'vedic-mathematics'
+    };
+    
+    // Check for matches in title
+    for (const [key, value] of Object.entries(titleMappings)) {
+      if (normalized.includes(key)) {
+        return value;
+      }
+    }
+    
+    // Generate generic slug from title
+    return normalized
+      .replace(/[^a-z0-9\s&-]/g, '') // Remove special characters
+      .replace(/&/g, 'and') // Replace & with "and"
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Remove multiple consecutive hyphens
+      .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+      .substring(0, 50); // Limit length for URL safety
+  };
+
+  // Helper function to validate and format URLs
+  const validateAndFormatUrl = (url: string): string | null => {
+    if (!url || typeof url !== 'string') return null;
+    
+    const trimmedUrl = url.trim();
+    if (!trimmedUrl) return null;
+    
+    try {
+      // Handle absolute URLs
+      if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+        // Validate URL format
+        new URL(trimmedUrl);
+        return trimmedUrl;
+      }
+      
+      // Handle relative URLs
+      if (trimmedUrl.startsWith('/')) {
+        return trimmedUrl;
+      }
+      
+      // Handle URLs without protocol (assume relative)
+      return `/${trimmedUrl}`;
+      
+    } catch (error) {
+      console.warn('Invalid URL format:', trimmedUrl, error);
+      return null;
     }
   };
 
@@ -566,6 +735,7 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
     <>
       {/* Mobile Layout (sm and below) - Horizontal layout with image on left */}
     <div 
+      key={`mobile-card-${course?._id}`}
       ref={cardRef}
         className="group relative flex flex-col md:hidden
           w-full 
@@ -754,6 +924,7 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
 
       {/* Desktop Layout (md and above) - Compact vertical layout optimized for live courses */}
       <div 
+        key={`desktop-card-${course?._id}`}
         className="group relative hidden md:flex flex-col 
         h-[360px] md:h-[380px] lg:h-[400px] xl:h-[400px] 
         w-full max-w-[280px] md:max-w-[300px] lg:max-w-[320px] xl:max-w-[340px] 

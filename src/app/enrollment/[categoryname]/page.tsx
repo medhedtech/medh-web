@@ -780,6 +780,112 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
     setPricingSyncKey(prev => prev + 1);
   }, [enrollmentType, activePricing]);
 
+  // Handle course auto-selection from URL query parameter
+  useEffect(() => {
+    const courseIdFromUrl = searchParams.get('course');
+    
+    if (courseIdFromUrl && courses.length > 0) {
+      // Skip if the course is already selected
+      if (selectedCourse && selectedCourse._id === courseIdFromUrl) {
+        console.log('Course already selected:', selectedCourse.title);
+        return;
+      }
+      
+      console.log('Auto-selecting course from URL:', courseIdFromUrl);
+      console.log('Available courses:', courses.map(c => ({ id: c._id, title: c.title })));
+      
+      // Find the course in the current courses list
+      const targetCourse = courses.find(course => course._id === courseIdFromUrl);
+      
+      if (targetCourse) {
+        console.log('Found course for auto-selection:', targetCourse.title);
+        handleCourseSelection(targetCourse);
+      } else {
+        console.log('Course not found in current list, attempting to fetch:', courseIdFromUrl);
+        
+        // If course not found in current list, try to fetch it directly
+        const courseEndpoint = apiUrls.courses.getCoursesById(courseIdFromUrl);
+        
+        getQuery({
+          url: courseEndpoint,
+          onSuccess: (response) => {
+            const courseData = response?.course || response?.data || response;
+            
+            if (courseData && courseData._id) {
+              console.log('Successfully fetched course for auto-selection:', courseData.course_title);
+              
+              // Process the course data
+              const processedCourse: Course = {
+                _id: courseData._id,
+                title: courseData.course_title || "",
+                description: courseData.course_description || "",
+                long_description: courseData.course_description || "",
+                category: courseData.course_category || "",
+                grade: courseData.course_grade || "",
+                course_grade: courseData.course_grade || "",
+                thumbnail: courseData.course_image || null,
+                course_duration: courseData.course_duration || "",
+                course_duration_days: parseDuration(courseData.course_duration) || 30,
+                course_fee: courseData.course_fee || 0,
+                prices: courseData.prices || [],
+                enrolled_students: courseData.enrolled_students || 0,
+                views: courseData.meta?.views || 0,
+                is_Certification: courseData.is_Certification === "Yes",
+                is_Assignments: courseData.is_Assignments === "Yes",
+                is_Projects: courseData.is_Projects === "Yes",
+                is_Quizes: courseData.is_Quizes === "Yes",
+                curriculum: Array.isArray(courseData.curriculum) ? courseData.curriculum : [],
+                highlights: courseData.highlights || [],
+                learning_outcomes: courseData.learning_outcomes || [],
+                prerequisites: courseData.prerequisites || [],
+                faqs: courseData.faqs || [],
+                no_of_Sessions: courseData.no_of_Sessions || 0,
+                status: courseData.status || "Published",
+                isFree: courseData.isFree || false,
+                hasFullDetails: true,
+                slug: courseData.slug || "",
+                category_type: courseData.category_type || "",
+                currency_code: userCurrency || "USD",
+                original_prices: courseData.prices || [],
+                classType: courseData.class_type || "",
+                class_type: courseData.class_type || "",
+                course_type: courseData.course_type || "",
+                delivery_format: courseData.delivery_format || "",
+                delivery_type: courseData.delivery_type || "",
+                meta: {
+                  views: courseData.meta?.views || 0,
+                  enrollments: courseData.meta?.enrollments || 0,
+                  lastUpdated: new Date().toISOString(),
+                  ratings: {
+                    average: 0,
+                    count: 0
+                  }
+                }
+              };
+              
+              // Add the course to the courses list if it's not already there
+              setCourses(prevCourses => {
+                const existingCourse = prevCourses.find(c => c._id === courseData._id);
+                if (!existingCourse) {
+                  return [...prevCourses, processedCourse];
+                }
+                return prevCourses;
+              });
+              
+              // Auto-select this course
+              handleCourseSelection(processedCourse);
+            } else {
+              console.error('Invalid course data received for auto-selection');
+            }
+          },
+          onFail: (err) => {
+            console.error('Failed to fetch course for auto-selection:', err);
+          }
+        });
+      }
+    }
+  }, [searchParams, courses, selectedCourse, getQuery, userCurrency]);
+
   // Create a shared pricing context that both components can use
   const sharedPricingState = useMemo(() => ({
     enrollmentType,
