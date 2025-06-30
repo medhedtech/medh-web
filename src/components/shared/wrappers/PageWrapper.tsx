@@ -183,25 +183,6 @@ const PageWrapper: React.FC<PageWrapperProps> = ({
       
       {/* Footer with theme prop */}
               <Footer />
-
-      {/* Enhanced scroll to top button */}
-      <AnimatePresence>
-        {showScrollTop && (
-          <motion.button
-            className="fixed bottom-6 right-6 p-3 rounded-full bg-primary-500 hover:bg-primary-600 text-white shadow-lg z-40 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 transition-all duration-300 transform hover:scale-110 dark:focus:ring-primary-600 dark:focus:ring-offset-gray-900"
-            onClick={scrollToTop}
-            onKeyDown={(e) => e.key === 'Enter' && scrollToTop()}
-            aria-label="Scroll to top"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.2 }}
-            title="Scroll to top (Alt+↑)"
-          >
-            <ChevronUp size={24} aria-hidden="true" />
-          </motion.button>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
