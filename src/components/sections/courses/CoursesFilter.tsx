@@ -2789,6 +2789,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     );
   };
 
+<<<<<<< HEAD
   // Main content renderer with course list and pagination
   const renderMainContent = (): React.ReactNode => {
     // Adjust width based on sidebar visibility
@@ -2821,6 +2822,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     );
   };
 
+=======
+>>>>>>> d3ad9c3d153486ce0ec46ae46f8e60e6b4d19d2d
   // Simplified Mobile Categories dropdown component - fixed stuck issue
   const MobileCategoriesDropdown = React.memo(() => {
     const mobileCategoriesRef = useRef<HTMLDivElement>(null);
@@ -2832,6 +2835,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
       setSelectedCount(total);
     }, [selectedLiveCourses, selectedBlendedLearning, selectedFreeCourses, selectedGrade]);
 
+<<<<<<< HEAD
     // Handle click outside to close dropdown
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
@@ -2846,6 +2850,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
       }
     }, [isMobileCategoriesOpen]);
 
+=======
+>>>>>>> d3ad9c3d153486ce0ec46ae46f8e60e6b4d19d2d
     const modalContent = isMobileCategoriesOpen ? (
       <>
         {/* Enhanced mobile backdrop */}
@@ -3095,9 +3101,13 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             isMobileCategoriesOpen ? 'rotate-180 text-indigo-500' : 'text-gray-500'
           }`} />
         </button>
+<<<<<<< HEAD
 
         {/* Render modal content using ReactDOM.createPortal */}
         {typeof window !== 'undefined' && modalContent && ReactDOM.createPortal(modalContent, document.body)}
+=======
+        {modalContent}
+>>>>>>> d3ad9c3d153486ce0ec46ae46f8e60e6b4d19d2d
       </div>
     );
   });
@@ -3427,6 +3437,15 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                   >
                     Clear All
                   </button>
+<<<<<<< HEAD
+=======
+                  <button
+                    onClick={() => setIsMobileCategoriesOpen(false)}
+                    className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    Apply Filters
+                  </button>
+>>>>>>> d3ad9c3d153486ce0ec46ae46f8e60e6b4d19d2d
                 </div>
               </div>
             </div>
@@ -3436,6 +3455,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     );
   });
 
+<<<<<<< HEAD
   // FilterDropdown component end
 
   return (
@@ -3453,48 +3473,108 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                 <div className="inline-flex items-center px-4 py-2 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-sm font-medium mb-6 backdrop-blur-sm border border-indigo-200 dark:border-indigo-800">
                   <Sparkles className="w-4 h-4 mr-2" />
                   Discover Your Perfect Course
+=======
+  // Add display name for debugging
+  FilterDropdown.displayName = 'FilterDropdown';
+
+  // Prevent body scroll when any dropdown is open (mobile-focused with enhanced prevention)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const isAnyDropdownOpen = isGradeDropdownOpen || isLiveCoursesDropdownOpen || isBlendedLearningDropdownOpen || isFreeCoursesDropdownOpen || isFilterDropdownOpen || isMobileCategoriesOpen;
+    const isMobile = window.innerWidth < 768; // md breakpoint
+    if (isAnyDropdownOpen && isMobile) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isGradeDropdownOpen, isLiveCoursesDropdownOpen, isBlendedLearningDropdownOpen, isFreeCoursesDropdownOpen, isFilterDropdownOpen, isMobileCategoriesOpen]);
+
+  // Add formatDuration helper function if not already present
+  const formatDuration = (duration: any) => {
+    if (!duration) return "Self-paced";
+    
+    if (typeof duration === 'string' && duration.includes(' ')) {
+      const parts = duration.toLowerCase().split(' ');
+      const durationParts = [];
+      let totalWeeks = 0;
+      let monthValue = 0;
+      let weekValue = 0;
+      
+      for (let i = 0; i < parts.length; i += 2) {
+        if (i + 1 >= parts.length) break;
+        
+        const value = parseFloat(parts[i]);
+        const unit = parts[i + 1].replace(/s$/, '');
+        
+        if (!isNaN(value) && value > 0) {
+          switch (unit) {
+            case 'year':
+              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Year' : 'Years'}`);
+              totalWeeks += value * 52;
+              break;
+            case 'month':
+              monthValue = value;
+              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Month' : 'Months'}`);
+              totalWeeks += value * 4;
+              break;
+            case 'week':
+              weekValue = value;
+              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Week' : 'Weeks'}`);
+              totalWeeks += value;
+              break;
+            case 'day':
+              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Day' : 'Days'}`);
+              totalWeeks += value / 7;
+              break;
+            case 'hour':
+              durationParts.push(`${Math.round(value)} ${Math.round(value) === 1 ? 'Hour' : 'Hours'}`);
+              break;
+          }
+        }
+      }
+      
+      if (durationParts.length > 0) {
+        if (monthValue > 0 && weekValue > 0) {
+          return `${Math.round(monthValue)} ${Math.round(monthValue) === 1 ? 'Month' : 'Months'} / ${Math.round(weekValue)} ${Math.round(weekValue) === 1 ? 'Week' : 'Weeks'}`;
+        }
+        return durationParts.join(' ');
+      }
+    }
+    
+    return duration;
+  };
+
+  // Restore renderMainContent function before the return statement in CoursesFilter
+  const renderMainContent = () => {
+    return (
+      <main className="flex-1 flex flex-col min-w-0">
+        {/* Course List */}
+        <div className="flex-1 flex flex-col">
+          <div className="bg-white dark:bg-gray-900 flex-1 overflow-hidden">
+            {/* Scrollable Course List Container */}
+            <div className="h-full overflow-y-auto custom-scrollbar">
+              {/* Course List */}
+              {renderCourseList()}
+              {/* Pagination */}
+              {!loading && filteredCourses.length > 0 && totalPages > 1 && (
+                <div className="flex justify-center py-2">
+                  <SimplePaginationWrapper
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                    className="mt-2"
+                    simplified={simplePagination}
+                  />
+>>>>>>> d3ad9c3d153486ce0ec46ae46f8e60e6b4d19d2d
                 </div>
-                
-                {/* Title */}
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-gray-900 via-indigo-900 to-purple-900 dark:from-white dark:via-indigo-100 dark:to-purple-100 bg-clip-text text-transparent mb-6 leading-tight">
-                  {typeof CustomText === 'string' ? CustomText : "Explore Courses"}
-                </h1>
-                
-                {/* Description */}
-                <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8">
-                  {description || "Discover courses to enhance your skills and advance your career with our comprehensive learning platform."}
-                </p>
-                
-                {/* Enhanced Stats - 3 columns on mobile */}
-                <div className="grid grid-cols-3 gap-3 sm:gap-6 md:gap-8 max-w-4xl mx-auto">
-                  <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl px-3 sm:px-6 py-4 sm:py-5 border border-white/30 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                    <div className="text-lg sm:text-2xl md:text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-1">
-                      {totalItems > 0 ? `${totalItems}+` : '82+'}
-                    </div>
-                    <div className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 font-medium leading-tight">
-                      Courses Available
-                    </div>
-                  </div>
-                  <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl px-3 sm:px-6 py-4 sm:py-5 border border-white/30 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                    <div className="text-lg sm:text-2xl md:text-3xl font-bold text-purple-600 dark:text-purple-400 mb-1">
-                      24/7
-                    </div>
-                    <div className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 font-medium leading-tight">
-                      Learning Support
-                    </div>
-                  </div>
-                  <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl px-3 sm:px-6 py-4 sm:py-5 border border-white/30 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                    <div className="text-lg sm:text-2xl md:text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-1">
-                      Expert
-                    </div>
-                    <div className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 font-medium leading-tight">
-                      Instructors
-                    </div>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
+<<<<<<< HEAD
         )}
 
         {/* Main container with improved background */}
@@ -3549,15 +3629,29 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             {renderSidebar()}
             {renderMainContent()}
           </div>
+=======
+>>>>>>> d3ad9c3d153486ce0ec46ae46f8e60e6b4d19d2d
         </div>
-      </section>
-    </ErrorBoundary>
+      </main>
+    );
+  };
+
+  return (
+    <>
+      {/* Render filter UI, sidebar, and main content as appropriate */}
+      {/* Example: */}
+      <div className="flex flex-col lg:flex-row w-full">
+        {/* Sidebar (if present) */}
+        {!hideCategoryFilter && renderSidebar && (
+          <aside className="hidden lg:block w-[20%] pr-6">
+            {renderSidebar()}
+          </aside>
+        )}
+        {/* Main Content */}
+        {renderMainContent()}
+      </div>
+    </>
   );
 };
-
-// Add display names for debugging
-SortDropdown.displayName = 'SortDropdown';
-SearchInput.displayName = 'SearchInput';
-MemoizedFilterCourseCard.displayName = 'MemoizedFilterCourseCard';
 
 export default CoursesFilter; 

@@ -598,24 +598,6 @@ const PersonalityOverview = () => {
             {activeContent.content}
           </motion.section>
         </AnimatePresence>
-
-        {/* Enhanced Scroll to Top Button */}
-        <AnimatePresence>
-          {showScrollTop && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="fixed bottom-4 right-6 md:bottom-6 md:right-6 bg-gradient-to-r from-primaryColor to-blue-600 text-white p-2 md:p-3 rounded-full shadow-lg hover:shadow-xl transition-all z-50"
-              onClick={() => {/* Removing scroll functionality */}}
-              aria-label="Scroll to top"
-            >
-              <ArrowUp className="h-5 w-5 md:h-6 md:w-6" />
-            </motion.button>
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );
