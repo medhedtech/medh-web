@@ -95,11 +95,6 @@ function DigiMarketingRalatedCource() {
 
   return (
     <div className="w-full bg-white dark:bg-screen-dark h-auto pt-3 pb-10 flex justify-center items-center flex-col">
-      <p className="text-[#727695] dark:text-gray300 text-[15px] leading-6 font-medium text-center px-4 md:w-[60%] w-full">
-        We are thrilled to be a part of your transformative journey and to
-        assist you in unlocking your complete potential in the digital marketing
-        and data analytics industry.
-      </p>
       <h1 className="text-center text-[#5C6574] dark:text-gray50 text-3xl font-bold py-5">
         Related Courses
       </h1>
