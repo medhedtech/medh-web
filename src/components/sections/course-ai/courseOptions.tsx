@@ -90,13 +90,14 @@ const CourseOptions: React.FC = () => {
               simplePagination={true}
               scrollToTop={true}
               description="Master artificial intelligence and data science with our comprehensive courses combining cutting-edge technology with practical applications."
-              customGridClassName="!grid !gap-4 !grid-cols-1 sm:!grid-cols-2 md:!grid-cols-3 lg:!grid-cols-4"
+              customGridClassName="!grid !gap-6 !grid-cols-1 sm:!grid-cols-2 md:!grid-cols-3 lg:!grid-cols-4"
               customGridStyle={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                gap: '1rem',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: '1.5rem',
                 width: '100%',
-                margin: '0 auto'
+                margin: '0 auto',
+                padding: '0'
               }}
               emptyStateContent={
                 <div className="bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 mx-2">
@@ -125,7 +126,7 @@ const CourseOptions: React.FC = () => {
             padding: 1rem;
             margin: 0 auto;
             max-width: 1440px;
-            gap: 1rem;
+            gap: 1.5rem;
           }
           
           .courses-filter-4-col-override :global(.container) {
@@ -142,28 +143,56 @@ const CourseOptions: React.FC = () => {
             margin: 0 auto;
           }
           
+          /* Mobile optimizations for new card design with banner */
+          @media (max-width: 767px) {
+            .courses-filter-4-col-override :global(.grid) {
+              grid-template-columns: 1fr;
+              gap: 1.5rem;
+              padding: 1rem 0.5rem;
+            }
+            
+            /* Ensure mobile cards have proper spacing for banner */
+            .courses-filter-4-col-override :global(.grid > *) {
+              margin-bottom: 0;
+            }
+          }
+          
           @media (min-width: 640px) {
             .courses-filter-4-col-override :global(.grid) {
               grid-template-columns: repeat(2, minmax(0, 1fr));
-              gap: 1rem;
+              gap: 1.25rem;
               padding: 1rem;
             }
           }
           
           @media (min-width: 768px) {
             .courses-filter-4-col-override :global(.grid) {
-              grid-template-columns: repeat(3, minmax(0, 1fr));
-              gap: 1rem;
+              grid-template-columns: repeat(3, minmax(280px, 1fr));
+              gap: 1.5rem;
               padding: 1.5rem;
             }
           }
           
           @media (min-width: 1024px) {
             .courses-filter-4-col-override :global(.grid) {
-              grid-template-columns: repeat(4, minmax(0, 1fr));
-              gap: 1rem;
+              grid-template-columns: repeat(4, minmax(280px, 1fr));
+              gap: 1.5rem;
               padding: 2rem;
             }
+          }
+          
+          @media (min-width: 1280px) {
+            .courses-filter-4-col-override :global(.grid) {
+              grid-template-columns: repeat(4, minmax(300px, 1fr));
+              gap: 2rem;
+              padding: 2rem;
+            }
+          }
+          
+          /* Ensure cards maintain consistent sizing */
+          .courses-filter-4-col-override :global(.grid > div) {
+            width: 100%;
+            max-width: none;
           }
         `}</style>
       </div>

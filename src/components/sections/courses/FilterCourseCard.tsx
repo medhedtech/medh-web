@@ -567,8 +567,8 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
       {/* Mobile Layout (sm and below) - Horizontal layout with image on left */}
     <div 
       ref={cardRef}
-        className="group relative flex md:hidden
-          min-h-[140px] sm:min-h-[160px] h-auto w-full 
+        className="group relative flex flex-col md:hidden
+          w-full 
           rounded-lg overflow-hidden 
           border border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300/60 dark:hover:border-gray-600/60
           bg-white dark:bg-gray-900 
@@ -580,149 +580,178 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
         onMouseMove={handleMouseMove}
         onClick={navigateToCourse}
       >
-        {/* Left side - Image */}
-        <div className="relative w-[140px] sm:w-[160px] flex-shrink-0">
-          <div className="relative w-full h-full overflow-hidden rounded-l-lg">
-            <OptimizedImage
-              src={course?.course_image || ''}
-              alt={course?.course_title || "Course Image"}
-              fill={true}
-              className="object-cover transition-all duration-300 ease-out group-hover:scale-105"
-              quality={isLCP ? 95 : 85}
-              priority={isLCP}
-              onLoad={handleImageLoad}
-              onError={handleImageError}
-              loading={isLCP ? 'eager' : 'lazy'}
-              decoding={isLCP ? 'sync' : 'async'}
-              sizes="(max-width: 640px) 140px, 160px"
-            />
-            
-            {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/5 via-transparent to-black/10 dark:from-black/10 dark:to-black/20" />
+        {/* Main Card Content - Horizontal layout */}
+        <div className="flex min-h-[120px] xs:min-h-[140px] sm:min-h-[160px] h-auto">
+          {/* Left side - Image */}
+          <div className="relative w-[100px] xs:w-[120px] sm:w-[160px] flex-shrink-0">
+            <div className="relative w-full h-full overflow-hidden rounded-tl-lg">
+              <OptimizedImage
+                src={course?.course_image || ''}
+                alt={course?.course_title || "Course Image"}
+                fill={true}
+                className="object-cover transition-all duration-300 ease-out group-hover:scale-105"
+                quality={isLCP ? 95 : 85}
+                priority={isLCP}
+                onLoad={handleImageLoad}
+                onError={handleImageError}
+                loading={isLCP ? 'eager' : 'lazy'}
+                decoding={isLCP ? 'sync' : 'async'}
+                sizes="(max-width: 360px) 100px, (max-width: 480px) 120px, (max-width: 640px) 140px, 160px"
+              />
+              
+              {/* Gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-r from-black/5 via-transparent to-black/10 dark:from-black/10 dark:to-black/20" />
+            </div>
           </div>
-        </div>
 
-        {/* Right side - Content */}
-        <div className="flex flex-col flex-grow p-3 sm:p-4 space-y-2 sm:space-y-2.5 min-w-0">
-          {/* Course Title - Enhanced hierarchy */}
-          <div className="flex-shrink-0">
-            <h3 className="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white leading-tight line-clamp-2">
-              {(() => {
-                const title = course?.course_title || "Course Title";
-                const bracketMatch = title.match(/^(.*?)\s*\(([^)]+)\)(.*)$/);
+          {/* Right side - Content */}
+          <div className="flex flex-col flex-grow p-2 xs:p-3 sm:p-4 space-y-1.5 xs:space-y-2 sm:space-y-2.5 min-w-0">
+            {/* Course Title - Enhanced hierarchy */}
+            <div className="flex-shrink-0">
+              <h3 className="text-sm xs:text-base sm:text-lg font-extrabold text-gray-900 dark:text-white leading-tight line-clamp-2">
+                {(() => {
+                  const title = course?.course_title || "Course Title";
+                  const bracketMatch = title.match(/^(.*?)\s*\(([^)]+)\)(.*)$/);
+                  
+                  if (bracketMatch) {
+                    const [, beforeBracket, insideBracket, afterBracket] = bracketMatch;
+                    return (
+                      <>
+                        {beforeBracket.trim()}{afterBracket.trim() && ` ${afterBracket.trim()}`}
+                        <span className="text-xs font-medium text-gray-600 dark:text-gray-400 block mt-0.5 hidden xs:block">
+                          ({insideBracket})
+                        </span>
+                      </>
+                    );
+                  }
+                  
+                  return title;
+                })()}
+              </h3>
+            </div>
+            
+            {/* Sessions and Duration for Live Courses */}
+            <div className="flex-shrink-0">
+              <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 flex-wrap">
+                <div className={`inline-flex items-center 
+                  px-1.5 xs:px-2 sm:px-2.5 py-0.5 sm:py-1 
+                  rounded-md 
+                  text-xs font-semibold
+                  ${styles.chipBg} ${styles.chipText} border ${styles.chipBorder}`}>
+                  {content.sessionIcon}
+                  <span className="ml-0.5 xs:ml-1">
+                    {course?.no_of_Sessions || course?.video_count || 0} <span className="hidden xs:inline">{content.sessionLabel}</span><span className="xs:hidden">S</span>
+                  </span>
+                </div>
                 
-                if (bracketMatch) {
-                  const [, beforeBracket, insideBracket, afterBracket] = bracketMatch;
-                  return (
-                    <>
-                      {beforeBracket.trim()}{afterBracket.trim() && ` ${afterBracket.trim()}`}
-                      <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 block mt-0.5">
-                        ({insideBracket})
-                      </span>
-                    </>
-                  );
-                }
-                
-                return title;
-              })()}
-            </h3>
-          </div>
-          
-          {/* Sessions and Duration for Live Courses */}
-          <div className="flex-shrink-0">
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-              <div className={`inline-flex items-center 
-                px-2 sm:px-2.5 py-0.5 sm:py-1 
+                {/* Course Duration - Only for Live Courses */}
+                {isLiveCourse && (course?.course_duration || course?.duration_range) && (
+                  <div className={`inline-flex items-center 
+                    px-1.5 xs:px-2 sm:px-2.5 py-0.5 sm:py-1 
+                    rounded-md 
+                    text-xs font-semibold whitespace-nowrap
+                    ${styles.chipBg} ${styles.chipText} border ${styles.chipBorder}`}>
+                    <Clock size={10} className="mr-0.5 xs:mr-1" />
+                    <span className="text-xs">{formatCourseDuration(course?.duration_range || course?.course_duration)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Grade, Q&A, and Job Guarantee chips */}
+            <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 flex-wrap flex-shrink-0">
+              {/* Grade Chip */}
+              <div className="inline-flex items-center 
+                px-1 xs:px-1.5 sm:px-2 py-0.5 
                 rounded-md 
-                text-xs sm:text-sm font-semibold
-                ${styles.chipBg} ${styles.chipText} border ${styles.chipBorder}`}>
-                {content.sessionIcon}
-                <span className="ml-1">
-                  {course?.no_of_Sessions || course?.video_count || 0} {content.sessionLabel}
-                </span>
+                text-xs font-medium
+                bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 
+                border border-gray-200 dark:border-gray-700">
+                <GraduationCap size={8} className="mr-0.5 xs:mr-1" />
+                <span className="text-xs">{formatCourseGrade(course?.course_grade)}</span>
               </div>
               
-              {/* Course Duration - Only for Live Courses */}
-              {isLiveCourse && (course?.course_duration || course?.duration_range) && (
-                <div className={`inline-flex items-center 
-                  px-2 sm:px-2.5 py-0.5 sm:py-1 
+              {/* Q&A Live Chip - Only for blended courses */}
+              {isBlendedCourse && (
+                <div className="inline-flex items-center 
+                  px-1 xs:px-1.5 sm:px-2 py-0.5 
                   rounded-md 
-                  text-xs sm:text-sm font-semibold whitespace-nowrap
-                  ${styles.chipBg} ${styles.chipText} border ${styles.chipBorder}`}>
-                  <Clock size={12} className="mr-1" />
-                  <span>{formatCourseDuration(course?.duration_range || course?.course_duration)}</span>
+                  text-xs font-medium whitespace-nowrap
+                  bg-[#379392]/10 text-[#379392] border border-[#379392]/20">
+                  <Users size={8} className="mr-0.5 xs:mr-1" />
+                  <span className="text-xs">Q&A <span className="hidden xs:inline">Live</span></span>
                 </div>
               )}
             </div>
-          </div>
-          
-          {/* Grade, Q&A, and Job Guarantee chips */}
-          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-shrink-0">
-            {/* Grade Chip */}
-            <div className="inline-flex items-center 
-              px-1.5 sm:px-2 py-0.5 
-              rounded-md 
-              text-xs sm:text-sm font-medium
-              bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 
-              border border-gray-200 dark:border-gray-700">
-              <GraduationCap size={10} className="mr-1" />
-              <span>{formatCourseGrade(course?.course_grade)}</span>
-            </div>
             
-            {/* Q&A Live Chip - Only for blended courses */}
-            {isBlendedCourse && (
-              <div className="inline-flex items-center 
-                px-1.5 sm:px-2 py-0.5 
-                rounded-md 
-                text-xs sm:text-sm font-medium whitespace-nowrap
-                bg-[#379392]/10 text-[#379392] border border-[#379392]/20">
-                <Users size={10} className="mr-1" />
-                <span>Q&A Live</span>
-              </div>
-            )}
-          </div>
-          
-          {/* Price */}
-          {!hidePrice && (
-            <div className="flex-shrink-0">
-              <div className="flex items-baseline gap-1">
-                <span className={`text-base sm:text-lg font-extrabold ${styles.priceColor} drop-shadow-sm`}>
-                  {formatPrice(course.course_fee, course.batchPrice)}
-                </span>
-                {isLiveCourse && (
-                  <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">onwards</span>
-                )}
-                {course?.original_fee && (
-                  <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-500 line-through ml-1">
-                    {course.original_fee.toLocaleString()}
+            {/* Price */}
+            {!hidePrice && (
+              <div className="flex-shrink-0">
+                <div className="flex items-baseline gap-1 flex-wrap">
+                  <span className={`text-sm xs:text-base sm:text-lg font-extrabold ${styles.priceColor} drop-shadow-sm`}>
+                    {formatPrice(course.course_fee, course.batchPrice)}
+                  </span>
+                  {isLiveCourse && (
+                    <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">onwards</span>
+                  )}
+                  {course?.original_fee && (
+                    <span className="text-xs text-gray-500 dark:text-gray-500 line-through ml-1">
+                      {course.original_fee.toLocaleString()}
+                    </span>
+                  )}
+                </div>
+                {course?.fee_note && (
+                  <span className="text-xs text-gray-600 dark:text-gray-400 font-medium block mt-0.5">
+                    {course.fee_note}
                   </span>
                 )}
               </div>
-              {course?.fee_note && (
-                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium block">
-                  {course.fee_note}
-                </span>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
-        {/* Class Type Badge - Positioned at bottom right of the card */}
-        <div className={`absolute 
-          bottom-2 right-2 z-20 
-          px-2 py-1 
-          rounded-lg 
-          text-[10px] sm:text-xs font-bold 
+        {/* Mobile Class Type Banner - Attached to bottom of card */}
+        <div className={`w-full 
           ${content.isJobGuarantee 
-            ? 'bg-gradient-to-r from-amber-400 via-yellow-500 to-orange-500 text-white shadow-xl shadow-yellow-500/40 border-2 border-yellow-300' 
-            : `${styles.stickyNoteBg} ${styles.stickyNoteText}`
+            ? 'bg-gradient-to-r from-amber-400 via-yellow-500 to-orange-500 border-t-2 border-amber-300' 
+            : `${styles.stickyNoteBg} border-t-2`
           } 
-          shadow-lg transform rotate-[2deg] 
-          transition-transform duration-300 ease-out group-hover:rotate-0`}
+          ${content.isJobGuarantee 
+            ? '' 
+            : (isLiveCourse 
+                ? 'border-red-400' 
+                : isBlendedCourse 
+                  ? 'border-purple-400' 
+                  : 'border-blue-400'
+              )
+          }
+          ${styles.stickyNoteText} 
+          py-2 xs:py-2.5 px-2 xs:px-4 
+          flex items-center justify-between gap-1 xs:gap-2 
+          font-bold text-xs xs:text-sm 
+          transition-all duration-300 ease-out`}
         >
-          <div className="flex items-center gap-1">
-            {content.tagIcon}
-            <span>{content.tag}</span>
+          {/* Left side - Main course type */}
+          <div className="flex items-center gap-1 xs:gap-2 min-w-0">
+            <div className="flex-shrink-0">
+              {React.cloneElement(content.tagIcon, { 
+                className: "w-3 h-3 xs:w-3.5 xs:h-3.5" 
+              })}
+            </div>
+            <span className="font-extrabold text-xs xs:text-sm truncate">{content.tag}</span>
+          </div>
+          
+          {/* Right side - Additional info */}
+          <div className="flex items-center gap-1 text-xs opacity-90 font-medium min-w-0 flex-shrink-0">
+            {isLiveCourse && (
+              <span className="hidden xs:inline whitespace-nowrap text-xs">Interactive Learning</span>
+            )}
+            {isBlendedCourse && (
+              <span className="hidden sm:inline whitespace-nowrap text-xs">Hybrid Learning</span>
+            )}
+            {isSelfPacedCourse && (
+              <span className="hidden xs:inline whitespace-nowrap text-xs">Your Pace</span>
+            )}
           </div>
         </div>
       </div>

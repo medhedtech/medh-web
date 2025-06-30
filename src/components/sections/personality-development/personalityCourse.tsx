@@ -133,6 +133,7 @@ const PersonalityCourse: React.FC<IPersonalityCourseProps> = ({
             hideSearch={true}
             hideSortOptions={true}
             hideHeader={true}
+            hideGradeFilter={false}
             gridColumns={3}
             itemsPerPage={8}
             simplePagination={true}
