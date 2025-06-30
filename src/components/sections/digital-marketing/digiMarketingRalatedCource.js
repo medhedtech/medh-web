@@ -56,6 +56,7 @@ import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import CourseCard from "../courses/CourseCard";
 import { getAllCoursesWithLimits } from "@/apis/course/course";
+import { motion } from "framer-motion";
 
 function DigiMarketingRalatedCource() {
   const { getQuery } = useGetQuery();
@@ -94,18 +95,19 @@ function DigiMarketingRalatedCource() {
   }, []);
 
   return (
-    <div className="w-full bg-white dark:bg-screen-dark h-auto pt-3 pb-10 flex justify-center items-center flex-col">
-      <h1 className="text-center text-[#5C6574] dark:text-gray50 text-3xl font-bold py-5">
+    <div className="w-full h-auto flex justify-center items-center flex-col">
+      {/* Related Courses Section */}
+      <h1 className="text-center text-orange text-3xl font-bold dark:text-yellow pb-10 ">
         Related Courses
       </h1>
-      <div className="md:w-[80%] w-[88%] h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-[#5C6574]">
+      <div className="md:w-[80%] w-[88%] h-full grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-6">
         {relatedCourses.length > 0 ? (
           relatedCourses.map((course) => (
             <CourseCard key={course._id} course={course} />
           ))
         ) : (
-          <p>
-            No related courses found for Digital Marketing with Data Analytics.
+          <p className="text-center text-black dark:text-white text-base py-2">
+            More Digital Marketing with Data Analytics courses coming soon! Stay tuned for new programs and specializations.
           </p>
         )}
       </div>

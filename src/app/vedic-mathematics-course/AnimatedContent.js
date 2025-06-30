@@ -9,7 +9,7 @@ const fadeInUp = {
 };
 
 function AnimatedContent({ components, bannerProps }) {
-  const { VedicBanner, VedicOverview, VedicCourse, VedicFaq, ThemeController } = components;
+  const { VedicBanner, VedicOverview, VedicCourse, VedicFaq, VedicRalatedCource, ThemeController } = components;
 
   return (
     <div className="space-y-16 md:space-y-24">
@@ -54,6 +54,17 @@ function AnimatedContent({ components, bannerProps }) {
         transition={{ duration: 0.5 }}
       >
         <VedicFaq />
+      </motion.section>
+
+      {/* Related Courses Section */}
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={fadeInUp}
+        transition={{ duration: 0.5 }}
+      >
+        <VedicRalatedCource />
       </motion.section>
     </div>
   );
