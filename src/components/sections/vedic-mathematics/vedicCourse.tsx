@@ -5,6 +5,7 @@ import type { FC } from 'react';
 import CoursesFilter from "../courses/CoursesFilter";
 import { Calculator, Brain } from "lucide-react";
 import Image from "next/image";
+import MedhLogo from "@/assets/images/logo/medh.png";
 
 interface IVedicCourseProps {
   className?: string;
@@ -40,14 +41,14 @@ const VedicCourse: FC<IVedicCourseProps> = ({
           
           <div className="flex items-center justify-center gap-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold">
             <span className="text-gray-900 dark:text-white">with</span>
-            <span className="inline-flex items-center align-middle ml-1">
+            <div className="flex items-center ml-1">
               <Image
-                src={require("@/assets/images/logo/medh.png")}
-                alt="Medh Logo"
+                src={MedhLogo}
+                alt="MEDH Logo"
                 className="h-6 md:h-[2.25rem] w-auto object-contain inline-block align-middle"
                 priority
               />
-            </span>
+            </div>
           </div>
         </div>
 
@@ -75,6 +76,7 @@ const VedicCourse: FC<IVedicCourseProps> = ({
             hideSortOptions={true}
             hideFilterBar={true}
             hideHeader={true}
+            hideGradeFilter={true}
             gridColumns={3}
             itemsPerPage={8}
             simplePagination={true}
