@@ -165,7 +165,7 @@ const VedicBanner: React.FC = memo(() => {
             {/* Main Heading */}
             <h1 className={headingClasses}>
               <span className={`gpu-accelerated ${isDark ? 'text-transparent bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text' : 'text-transparent bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text'}`}>
-                Comprehensive Course in<br />Vedic Mathematics
+                Vedic Mathematics
               </span>
             </h1>
 
@@ -176,10 +176,10 @@ const VedicBanner: React.FC = memo(() => {
 
             {/* CTA Button */}
             <div className="text-center mb-4 md:mb-6 gpu-accelerated">
-              <Link href="/enrollment/vedic-mathematics" className={ctaClasses}>
+              <a href="http://localhost:3000/enrollment/vedic-mathematics/?course=67c064d08a56e7688ddc5c86" className={ctaClasses} target="_blank" rel="noopener noreferrer">
                 <span className="relative z-10 font-extrabold tracking-wide gpu-accelerated">Enroll Now</span>
                 <ArrowRight size={16} className="relative z-10 ml-2 group-hover:translate-x-1 transition-gpu gpu-accelerated" />
-              </Link>
+              </a>
             </div>
 
             {/* Tagline - Medh Hai Toh Mumkin Hai */}

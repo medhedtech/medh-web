@@ -3217,7 +3217,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = (props) => {
                 <div className="inline-flex items-center px-4 py-2 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-sm font-medium mb-6 backdrop-blur-sm border border-indigo-200 dark:border-indigo-800">
                   <Sparkles className="w-4 h-4 mr-2" />
                   Discover Your Perfect Course
-                </div>
+          </div>
                 {/* Title and description */}
                 {props.categoryTitle && (
                   <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
@@ -3228,22 +3228,22 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = (props) => {
                   <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">
                     {props.description}
                   </p>
-                )}
-              </div>
-            </div>
-          </div>
+        )}
+                    </div>
+                    </div>
+                  </div>
         )}
         {/* Main content layout */}
         <div className="flex flex-col xl:flex-row w-full">
-          {/* Sidebar (if present) */}
+        {/* Sidebar (if present) */}
           {!props.hideCategoryFilter && renderSidebar && (
             <aside className="hidden xl:block w-[20%] pr-6">
-              {renderSidebar()}
-            </aside>
-          )}
-          {/* Main Content */}
-          {renderMainContent()}
-        </div>
+            {renderSidebar()}
+          </aside>
+        )}
+        {/* Main Content */}
+            {renderMainContent()}
+          </div>
       </section>
     </ErrorBoundary>
   );
