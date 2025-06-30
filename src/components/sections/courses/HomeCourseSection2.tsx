@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState, useCallback, useContext, useMemo, memo } from "react";
-import CourseCard from "@/components/sections/courses/CourseCard";
+import HomeCard from "@/components/sections/courses/HomeCard";
 import { getAllCoursesWithLimits, getCoursesWithFields } from '@/apis/course/course';
 import useGetQuery from "@/hooks/getQuery.hook";
 import { BookOpen, ChevronRight, Layers, Sparkles, Video, Clock, Users, Filter, Loader2 } from "lucide-react";
@@ -63,31 +63,43 @@ const getGlassmorphismStyles = (isDark: boolean): string => {
     .course-grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 1rem;
+      gap: 1.5rem;
       justify-content: center;
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
       padding: 0 1rem;
+      place-items: center;
     }
     
     @media (min-width: 640px) {
       .course-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
+        gap: 1.5rem;
+        padding: 0 1.5rem;
       }
     }
     
     @media (min-width: 1024px) {
       .course-grid {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1rem;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+        padding: 0 2rem;
       }
     }
     
     @media (min-width: 1280px) {
       .course-grid {
         grid-template-columns: repeat(4, 1fr);
-        gap: 1.5rem;
+        gap: 2rem;
+        padding: 0 2rem;
+      }
+    }
+    
+    @media (min-width: 1536px) {
+      .course-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2.5rem;
+        padding: 0 3rem;
       }
     }
     
@@ -110,94 +122,6 @@ const getGlassmorphismStyles = (isDark: boolean): string => {
         -webkit-transform: translate3d(0, 0, 0);
         -webkit-backface-visibility: hidden;
       }
-    }
-    
-    .home-course-card {
-      width: 100% !important;
-      max-width: 360px !important;
-      aspect-ratio: 5/6 !important;
-      margin: 0 auto !important;
-      display: flex !important;
-      flex-direction: column !important;
-    }
-    
-    .home-course-card .course-card {
-      height: 100% !important;
-      display: flex !important;
-      flex-direction: column !important;
-      padding: 0.75rem !important;
-      gap: 0.5rem !important;
-    }
-    
-    .home-course-card .course-card > * {
-      margin: 0 !important;
-    }
-    
-    .home-course-card .course-title,
-    .home-course-card h3 {
-      text-align: center !important;
-      font-size: 1rem !important;
-      font-weight: 600 !important;
-      line-height: 1.2 !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      width: 100% !important;
-    }
-    
-    .home-course-card .course-info {
-      padding: 0.25rem !important;
-      text-align: center !important;
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: center !important;
-      gap: 0.25rem !important;
-    }
-    
-    .home-course-card .course-duration {
-      font-size: 0.75rem !important;
-      padding: 0.125rem 0.5rem !important;
-      border-radius: 0.5rem !important;
-      font-weight: 500 !important;
-      background: rgba(55, 147, 146, 0.1) !important;
-      color: rgb(55, 147, 146) !important;
-      width: fit-content !important;
-      margin: 0 auto !important;
-    }
-    
-    .home-course-card .live-badge {
-      font-size: 0.625rem !important;
-      padding: 0.125rem 0.5rem !important;
-      border-radius: 0.75rem !important;
-      font-weight: 600 !important;
-      background: linear-gradient(135deg, #ef4444, #dc2626) !important;
-      color: white !important;
-      box-shadow: 0 1px 3px rgba(239, 68, 68, 0.4) !important;
-      position: absolute !important;
-      top: 0.5rem !important;
-      left: 0.5rem !important;
-      z-index: 10 !important;
-    }
-    
-    .home-course-card .course-price {
-      text-align: center !important;
-      font-weight: 600 !important;
-      color: rgb(55, 147, 146) !important;
-    }
-    
-    .home-course-card .course-sessions {
-      text-align: center !important;
-      font-size: 0.75rem !important;
-      color: #6b7280 !important;
-    }
-    
-    .home-course-card .course-button {
-      margin-top: auto !important;
-      width: 100% !important;
-      padding: 0.5rem !important;
-      border-radius: 0.5rem !important;
-      font-size: 0.875rem !important;
-      font-weight: 500 !important;
     }
   `;
   
@@ -484,13 +408,17 @@ const getDisplayDurationRange = (durationRange: string | undefined, courseType: 
 };
 
 const getBlendedCourseSessions = (course: ICourse) => {
-  const videoCount = typeof course.video_count === 'number' 
-    ? course.video_count 
-    : (typeof course.lectures_count === 'number' ? course.lectures_count : 25);
+  // Use actual no_of_Sessions from API first, then fallback to video_count, then lectures_count
+  const actualSessions = course.no_of_Sessions;
+  const videoCount = typeof actualSessions === 'number' 
+    ? actualSessions 
+    : (typeof course.video_count === 'number' 
+      ? course.video_count 
+      : (typeof course.lectures_count === 'number' ? course.lectures_count : 20));
   
   const qnaSessions = typeof course.qa_sessions === 'number' 
     ? course.qa_sessions 
-    : 5;
+    : 0; // Default to 0 instead of 5 to match API data
   
   return { videoCount, qnaSessions };
 };
@@ -573,8 +501,8 @@ const EmptyState = memo<{ type: 'live' | 'blended'; isDark: boolean }>(({ type, 
 
 EmptyState.displayName = 'EmptyState';
 
-// PERFORMANCE OPTIMIZATION: GPU-optimized CourseCardWrapper component
-const CourseCardWrapper = memo<{
+// PERFORMANCE OPTIMIZATION: GPU-optimized HomeCardWrapper component
+const HomeCardWrapper = memo<{
   course: ICourse;
   courseType: 'live' | 'blended';
   index: number;
@@ -583,7 +511,6 @@ const CourseCardWrapper = memo<{
     if (courseType === 'live') {
       const { videoCount, qnaSessions } = getBlendedCourseSessions(course);
       const batchPrice = course.prices?.[0]?.batch || null;
-      const minBatchSize = course.prices?.[0]?.min_batch_size || 2;
       const displayPrice = batchPrice || course.prices?.[0]?.individual || null;
 
       // Process course image using safe image URL function
@@ -623,12 +550,20 @@ const CourseCardWrapper = memo<{
           if (individualPrice <= 3000) return "20 live sessions";
           return `${videoCount + qnaSessions} live sessions`;
         })(),
+        session_display: (() => {
+          if (course.session_display) return course.session_display;
+          if (course.session_range) return course.session_range;
+          if (course.no_of_Sessions) return formatSessionRange(course.no_of_Sessions);
+          return "Live sessions";
+        })(),
         effort_hours: typeof course.effort_hours === 'string' 
           ? parseInt(course.effort_hours, 10) || 8
           : (course.effort_hours || course.efforts_per_Week ? 
             (typeof course.efforts_per_Week === 'string' ? parseInt(course.efforts_per_Week, 10) || 8 : course.efforts_per_Week || 8) 
             : 8),
         class_type: 'Live Courses',
+        classType: 'live' as const,
+        is_live_course: true,
         isFree: Boolean(course.isFree) || false,
         batchPrice: batchPrice || undefined,
         url: `/enrollment/${(course.course_category || course.category || course.course_title)?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`,
@@ -668,12 +603,16 @@ const CourseCardWrapper = memo<{
 
           return videoCount + qnaSessions;
         })(),
+                                session_display: course.session_display || `${course.no_of_Sessions || videoCount} video sessions`,
+                        efforts_per_Week: course.efforts_per_Week || "3-4 hrs/week",
         effort_hours: typeof course.effort_hours === 'string' 
           ? parseInt(course.effort_hours, 10) || 5
           : (course.effort_hours || course.efforts_per_Week ? 
             (typeof course.efforts_per_Week === 'string' ? parseInt(course.efforts_per_Week, 10) || 5 : course.efforts_per_Week || 5) 
             : 5),
         class_type: 'Blended Courses',
+        classType: 'blended' as const,
+        is_blended_course: true,
         isFree: course.isFree || false,
         batchPrice: course.prices?.[0]?.batch || undefined,
         course_category: course.course_category || course.category || 'Uncategorized',
@@ -686,19 +625,13 @@ const CourseCardWrapper = memo<{
   }, [course, courseType, index]);
 
   return (
-    <div className="home-course-card">
-      <CourseCard 
-        course={enhancedCourse}
-        classType={courseType === 'live' ? "Live Courses" : "blended"}
-        preserveClassType={courseType === 'live'}
-        showDuration={true}
-        isCompact={true}
-        coursesPageCompact={true}
-        viewMode="grid"
-        index={index}
-        isLCP={index < 2}
-      />
-    </div>
+    <HomeCard 
+      course={enhancedCourse}
+      courseType={courseType}
+      index={index}
+      isLCP={index < 2}
+      variant="standard"
+    />
   );
 }, (prevProps, nextProps) => {
   return (
@@ -708,7 +641,7 @@ const CourseCardWrapper = memo<{
   );
 });
 
-CourseCardWrapper.displayName = 'CourseCardWrapper';
+HomeCardWrapper.displayName = 'HomeCardWrapper';
 
 // Define ImageWrapper props interface
 interface ImageWrapperProps {
@@ -859,6 +792,12 @@ const HomeCourseSection2 = memo<{
                   
                   // Format session range based on course type and API data
                   const getSessionRange = (course: any) => {
+                    if (course.session_display) {
+                      return course.session_display;
+                    }
+                    if (course.session_range) {
+                      return course.session_range;
+                    }
                     if (course.no_of_Sessions) {
                       const sessionsStr = String(course.no_of_Sessions).trim();
                       // Handle range format like "24-120" or "32-120"
@@ -867,13 +806,13 @@ const HomeCourseSection2 = memo<{
                         if (parts.length === 2) {
                           const min = parts[0].trim();
                           const max = parts[1].trim();
-                          return `${min} - ${max} live sessions`;
+                          return `${min} to ${max} live sessions`;
                         }
                       }
                       // Handle single number format
                       return `${sessionsStr} live sessions`;
                     }
-                    return '24 - 120 live sessions'; // Default fallback
+                    return '24 to 120 live sessions'; // Default fallback
                   };
                   
                   const sessionDisplay = getSessionRange(course);
@@ -912,12 +851,13 @@ const HomeCourseSection2 = memo<{
                     status: course.status || "Published",
                     updatedAt: course.updatedAt || new Date().toISOString(),
                     createdAt: course.createdAt || new Date().toISOString(),
-                    url: `/enrollment/${(course.course_category || course.category || courseTitle)?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`,
-                    effort_hours: course.effort_hours,
-                    no_of_Sessions: sessionCount,
-                    session_display: sessionDisplay,
-                    session_range: sessionDisplay, // Add for easy access
-                    instructor: course.instructor,
+                                            url: `/enrollment/${(course.course_category || course.category || courseTitle)?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`,
+                        effort_hours: course.effort_hours,
+                        no_of_Sessions: sessionDisplay, // Use formatted display string
+                        session_display: sessionDisplay,
+                        session_range: sessionDisplay, // Add for easy access
+                        efforts_per_Week: course.efforts_per_Week || "4 hrs/week",
+                        instructor: course.instructor,
                     price_suffix: course.price_suffix
                   } as ICourse;
                 });
@@ -1245,52 +1185,56 @@ const HomeCourseSection2 = memo<{
         </div>
       </div>
 
-      {/* GPU-optimized Live Courses Section */}
-      <div className="mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-3 sm:px-4 md:px-8 lg:px-10 gpu-accelerated">
-        <div className="flex items-center justify-center mb-3 sm:mb-4 gpu-accelerated">
-          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#3bac63] dark:text-[#3bac63] transition-gpu">
-            Live Interactive Courses
-          </h3>
-        </div>
+              {/* GPU-optimized Live Courses Section */}
+        <div className="mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-3 sm:px-4 md:px-6 lg:px-8 gpu-accelerated">
+          <div className="flex items-center justify-center mb-6 sm:mb-8 gpu-accelerated">
+            <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#3bac63] dark:text-[#3bac63] transition-gpu">
+              Live Interactive Courses
+            </h3>
+          </div>
 
         {liveCourses.length > 0 ? (
-          <div className="course-grid gpu-accelerated">
-            {liveCourses.map((course, index) => (
-              <CourseCardWrapper 
-                key={course._id}
-                course={course}
-                courseType="live"
-                index={index}
-              />
-            ))}
+          <div className="relative overflow-visible">
+            <div className="course-grid gpu-accelerated">
+              {liveCourses.map((course, index) => (
+                <HomeCardWrapper 
+                  key={course._id}
+                  course={course}
+                  courseType="live"
+                  index={index}
+                />
+              ))}
+            </div>
           </div>
         ) : (
           <EmptyState type="live" isDark={isDark} />
         )}
       </div>
 
-      {/* GPU-optimized Blended Courses Section */}
-      {!showOnlyLive && (
-        <div className="mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-3 sm:px-4 md:px-8 lg:px-10 gpu-accelerated">
-          <div className="flex flex-col items-center justify-center text-center gap-2 gpu-accelerated">
-            <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#3bac63] dark:text-[#3bac63] transition-gpu">
-              Self-Paced Blended Courses
-            </h3>
-            <p className="text-xs mt-1 text-black dark:text-[#3bac63] transition-gpu">
-              (Interactive Video Courses with live doubt-clearing sessions)
-            </p>
-          </div>
+              {/* GPU-optimized Blended Courses Section */}
+        {!showOnlyLive && (
+          <div className="mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-3 sm:px-4 md:px-6 lg:px-8 gpu-accelerated">
+            <div className="flex flex-col items-center justify-center text-center gap-2 mb-6 sm:mb-8 gpu-accelerated">
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#3bac63] dark:text-[#3bac63] transition-gpu">
+                Self-Paced Blended Courses
+              </h3>
+              <p className="text-xs mt-1 text-black dark:text-[#3bac63] transition-gpu">
+                (Interactive Video Courses with live doubt-clearing sessions)
+              </p>
+            </div>
 
           {filteredBlendedCourses.length > 0 ? (
-            <div className="course-grid gpu-accelerated">
-              {filteredBlendedCourses.map((course, index) => (
-                <CourseCardWrapper 
-                  key={course._id}
-                  course={course}
-                  courseType="blended"
-                  index={index}
-                />
-              ))}
+            <div className="relative overflow-visible">
+              <div className="course-grid gpu-accelerated">
+                {filteredBlendedCourses.map((course, index) => (
+                  <HomeCardWrapper 
+                    key={course._id}
+                    course={course}
+                    courseType="blended"
+                    index={index}
+                  />
+                ))}
+              </div>
             </div>
           ) : (
             <EmptyState type="blended" isDark={isDark} />
@@ -1299,7 +1243,7 @@ const HomeCourseSection2 = memo<{
       )}
 
       {/* GPU-optimized Mobile View All Button */}
-      <div className="block md:hidden px-3 sm:px-4 md:px-8 lg:px-10 gpu-accelerated text-center">
+      <div className="block md:hidden px-3 sm:px-4 md:px-6 lg:px-8 gpu-accelerated text-center mt-8">
         <ViewAllButton 
           href="/courses" 
           text="View All Courses"
