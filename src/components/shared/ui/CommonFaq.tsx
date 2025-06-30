@@ -344,6 +344,7 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
                   ) : (
                     <>
                       {categories.map((category) => (
+                        category === 'all' ? null : (
                         <motion.button
                           key={category}
                           variants={buttonVariants}
@@ -366,6 +367,7 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
                         >
                           {category.charAt(0).toUpperCase() + category.slice(1)}
                         </motion.button>
+                        )
                       ))}
                     </>
                   )}
