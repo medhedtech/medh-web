@@ -101,7 +101,7 @@ const PersonalityCourse: React.FC<IPersonalityCourseProps> = ({
               <Image
                 src={MedhLogo}
                 alt="MEDH Logo"
-                className="h-6 md:h-8 w-auto object-contain"
+                className="h-6 md:h-[2.25rem] w-auto object-contain inline-block align-middle"
                 priority
               />
             </div>
