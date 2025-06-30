@@ -3,6 +3,8 @@ import React from "react";
 import CoursesFilter from "../courses/CoursesFilter";
 import Link from "next/link";
 import { BarChart2, Globe } from "lucide-react";
+import Image from "next/image";
+import MedhLogo from "@/assets/images/logo/medh.png";
 
 const DigiMarketingCourse: React.FC = () => {
   // Custom header content with improved mobile styling
@@ -26,12 +28,19 @@ const DigiMarketingCourse: React.FC = () => {
         {/* Main Heading */}
         <div className="space-y-2 md:space-y-4">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
-            TRANSFORM MARKETING INSIGHTS POWERFULLY
+            Transform Marketing Insights Powerfully
           </h1>
           
           <div className="flex items-center justify-center gap-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold">
             <span className="text-gray-900 dark:text-white">with</span>
-            <span className="text-medhgreen dark:text-medhgreen bg-gradient-to-r from-rose-50/10 to-transparent px-2 py-1 rounded">MEDH</span>
+            <span className="inline-flex items-center align-middle ml-1">
+              <Image
+                src={MedhLogo}
+                alt="Medh Logo"
+                className="h-7 md:h-8 w-auto inline-block align-middle ml-1"
+                priority
+              />
+            </span>
           </div>
         </div>
 
