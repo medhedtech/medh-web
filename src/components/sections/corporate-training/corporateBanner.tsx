@@ -159,19 +159,19 @@ const categories: IValueItem[] = [
     icon: <BookOpen className="w-6 h-6" />,
     title: "Comprehensive Access",
     description: "Access to all courses and learning materials",
-    color: "from-blue-500 to-cyan-500"
+    color: "from-orange-400 to-orange-600"
   },
   {
     icon: <Crown className="w-6 h-6" />,
     title: "Premium Resources",
     description: "Exclusive content and advanced learning paths",
-    color: "from-emerald-500 to-teal-500"
+    color: "from-emerald-500 to-lime-400"
   },
   {
     icon: <Users className="w-6 h-6" />,
     title: "Expert Mentorship",
     description: "One-on-one guidance from industry professionals",
-    color: "from-purple-500 to-indigo-500"
+    color: "from-fuchsia-500 to-pink-500"
   }
 ];
 
