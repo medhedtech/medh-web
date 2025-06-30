@@ -160,7 +160,7 @@ const PersonalityCourseBanner: React.FC = memo(() => {
             {/* Main Heading */}
             <h1 className={headingClasses}>
               <span className={`gpu-accelerated ${isDark ? 'text-transparent bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text' : 'text-transparent bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text'}`}>
-                Personality Development<br />Course
+                Personality Development
               </span>
             </h1>
 
