@@ -38,17 +38,19 @@ function RelatedCourses() {
   }, []);
 
   return (
-    <div className="w-full bg-white dark:bg-screen-dark h-auto py-6 flex justify-center items-center flex-col">
-      <h1 className="text-center text-[#5C6574] text-3xl font-bold py-5 dark:text-gray50">
+    <div className="w-full h-auto flex justify-center items-center flex-col">
+      <h1 className="text-center text-orange text-3xl font-bold dark:text-yellow pb-10 ">
         Related Courses
       </h1>
-      <div className="md:w-[80%] w-[88%] h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="md:w-[80%] w-[88%] h-full grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-6">
         {relatedCourses.length > 0 ? (
           relatedCourses.map((course) => (
             <CourseCard key={course._id} course={course} />
           ))
         ) : (
-          <p className="text-center text-lg font-medium text-gray-700 dark:text-gray-200 py-8">More AI and Data Science courses coming soon! Stay tuned for new programs and specializations.</p>
+          <p className="text-center text-black dark:text-white text-base py-2">
+            More Personality Development courses coming soon! Stay tuned for new programs and specializations.
+          </p>
         )}
       </div>
     </div>
