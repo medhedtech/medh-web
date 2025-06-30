@@ -630,59 +630,55 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
               </h3>
             </div>
             
-            {/* Sessions and Duration for Live Courses */}
+            {/* Compact Badge Row - Sessions, Duration, Grade */}
             <div className="flex-shrink-0">
-              <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 flex-wrap">
+              <div className="flex items-center gap-1 xs:gap-1.5 flex-wrap">
+                {/* Sessions Badge */}
                 <div className={`inline-flex items-center 
-                  px-1.5 xs:px-2 sm:px-2.5 py-0.5 sm:py-1 
-                  rounded-md 
-                  text-xs font-semibold
+                  px-1.5 xs:px-2 py-0.5 
+                  rounded text-xs font-medium
                   ${styles.chipBg} ${styles.chipText} border ${styles.chipBorder}`}>
                   {content.sessionIcon}
-                  <span className="ml-0.5 xs:ml-1">
-                    {course?.no_of_Sessions || course?.video_count || 0} <span className="hidden xs:inline">{content.sessionLabel}</span><span className="xs:hidden">S</span>
+                  <span className="ml-0.5">
+                    {course?.no_of_Sessions || course?.video_count || 0}
                   </span>
                 </div>
                 
-                {/* Course Duration - Only for Live Courses */}
+                {/* Duration Badge - Only for Live Courses */}
                 {isLiveCourse && (course?.course_duration || course?.duration_range) && (
                   <div className={`inline-flex items-center 
-                    px-1.5 xs:px-2 sm:px-2.5 py-0.5 sm:py-1 
-                    rounded-md 
-                    text-xs font-semibold whitespace-nowrap
+                    px-1.5 xs:px-2 py-0.5 
+                    rounded text-xs font-medium whitespace-nowrap
                     ${styles.chipBg} ${styles.chipText} border ${styles.chipBorder}`}>
-                    <Clock size={10} className="mr-0.5 xs:mr-1" />
-                    <span className="text-xs">{formatCourseDuration(course?.duration_range || course?.course_duration)}</span>
+                    <Clock size={10} className="mr-0.5" />
+                    <span>{formatCourseDuration(course?.duration_range || course?.course_duration)}</span>
                   </div>
                 )}
+                
+                {/* Grade Badge */}
+                <div className="inline-flex items-center 
+                  px-1.5 xs:px-2 py-0.5 
+                  rounded text-xs font-medium
+                  bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 
+                  border border-gray-200 dark:border-gray-700">
+                  <GraduationCap size={10} className="mr-0.5" />
+                  <span>{formatCourseGrade(course?.course_grade)}</span>
+                </div>
               </div>
             </div>
             
-            {/* Grade, Q&A, and Job Guarantee chips */}
-            <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 flex-wrap flex-shrink-0">
-              {/* Grade Chip */}
-              <div className="inline-flex items-center 
-                px-1 xs:px-1.5 sm:px-2 py-0.5 
-                rounded-md 
-                text-xs font-medium
-                bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 
-                border border-gray-200 dark:border-gray-700">
-                <GraduationCap size={8} className="mr-0.5 xs:mr-1" />
-                <span className="text-xs">{formatCourseGrade(course?.course_grade)}</span>
-              </div>
-              
-              {/* Q&A Live Chip - Only for blended courses */}
-              {isBlendedCourse && (
+            {/* Q&A Live Chip - Only for blended courses */}
+            {isBlendedCourse && (
+              <div className="flex-shrink-0">
                 <div className="inline-flex items-center 
-                  px-1 xs:px-1.5 sm:px-2 py-0.5 
-                  rounded-md 
-                  text-xs font-medium whitespace-nowrap
+                  px-1.5 xs:px-2 py-0.5 
+                  rounded text-xs font-medium whitespace-nowrap
                   bg-[#379392]/10 text-[#379392] border border-[#379392]/20">
-                  <Users size={8} className="mr-0.5 xs:mr-1" />
-                  <span className="text-xs">Q&A <span className="hidden xs:inline">Live</span></span>
+                  <Users size={10} className="mr-0.5" />
+                  <span>Q&A Live</span>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
             
             {/* Price */}
             {!hidePrice && (
@@ -756,10 +752,10 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
         </div>
       </div>
 
-      {/* Desktop Layout (md and above) - Original vertical layout with iPad optimizations */}
+      {/* Desktop Layout (md and above) - Compact vertical layout optimized for live courses */}
       <div 
         className="group relative hidden md:flex flex-col 
-        h-[380px] md:h-[420px] lg:h-[420px] xl:h-[420px] 
+        h-[360px] md:h-[380px] lg:h-[400px] xl:h-[400px] 
         w-full max-w-[280px] md:max-w-[300px] lg:max-w-[320px] xl:max-w-[340px] 
         mx-auto rounded-lg md:rounded-xl overflow-hidden 
         border border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300/60 dark:hover:border-gray-600/60
@@ -806,19 +802,19 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
         </div>
       </div>
 
-      {/* Course content */}
+      {/* Course content - Compact layout */}
       <div className="flex flex-col flex-grow 
-        p-3 md:p-4 lg:p-5 
-        space-y-1.5 md:space-y-2 lg:space-y-2.5">
+        p-3 md:p-4 lg:p-4 
+        space-y-2 md:space-y-2.5">
         
-        {/* 1. Course Title - Top Priority in Hierarchy */}
-        <div className="text-left space-y-1 
-          min-h-[50px] md:min-h-[60px] lg:min-h-[65px] 
+        {/* 1. Course Title - Compact */}
+        <div className="text-left 
+          min-h-[45px] md:min-h-[50px] lg:min-h-[55px] 
           flex flex-col justify-center">
-          <h3 className="text-sm md:text-base lg:text-lg 
+          <h3 className="text-sm md:text-base lg:text-base 
             font-bold md:font-extrabold 
             text-gray-900 dark:text-white leading-tight 
-            break-words word-break overflow-wrap-anywhere">
+            break-words word-break overflow-wrap-anywhere line-clamp-2">
             {(() => {
               const title = course?.course_title || "Course Title";
               const bracketMatch = title.match(/^(.*?)\s*\(([^)]+)\)(.*)$/);
@@ -828,7 +824,7 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
                 return (
                   <>
                     {beforeBracket.trim()}{afterBracket.trim() && ` ${afterBracket.trim()}`}
-                    <div className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
+                    <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mt-0.5">
                       ({insideBracket})
                     </div>
                   </>
@@ -840,78 +836,76 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
           </h3>
         </div>
         
-        {/* 2. Number of Videos/Live Sessions and Duration for Live Courses */}
-        <div className="flex items-center justify-start gap-1.5 md:gap-2 flex-wrap">
-          <div className={`inline-flex items-center 
-            px-2 md:px-2.5 lg:px-3 py-1 md:py-1.5 
-            rounded-md lg:rounded-lg 
-            text-xs md:text-sm font-semibold whitespace-nowrap
-            ${styles.chipBg} ${styles.chipText} border ${styles.chipBorder}`}>
-            {content.sessionIcon}
-            <span className="ml-1">
-              {course?.no_of_Sessions || course?.video_count || 0} {content.sessionLabel}
-            </span>
-          </div>
-          
-          {/* Course Duration - Only for Live Courses */}
-          {isLiveCourse && (course?.course_duration || course?.duration_range) && (
+        {/* 2. Compact Badge Grid - 3 badges in 2 rows */}
+        <div className="space-y-1.5">
+          {/* First Row - Sessions and Duration */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {/* Sessions Badge */}
             <div className={`inline-flex items-center 
-              px-2 md:px-2.5 lg:px-3 py-1 md:py-1.5 
-              rounded-md lg:rounded-lg 
-              text-xs md:text-sm font-semibold whitespace-nowrap
+              px-2 md:px-2.5 py-1 
+              rounded-md text-xs font-semibold
               ${styles.chipBg} ${styles.chipText} border ${styles.chipBorder}`}>
-              <Clock size={12} className="mr-1" />
-              <span>{formatCourseDuration(course?.duration_range || course?.course_duration)}</span>
+              {content.sessionIcon}
+              <span className="ml-1">
+                {course?.no_of_Sessions || course?.video_count || 0} Sessions
+              </span>
             </div>
-          )}
-        </div>
-        
-        {/* 3. Chips Row - Grade, Q&A Live, and Job Guarantee */}
-        <div className="flex items-center justify-start gap-1.5 md:gap-2 flex-wrap">
-          {/* All Grades Chip */}
-          <div className="inline-flex items-center 
-            px-2 md:px-2.5 py-0.5 md:py-1 
-            rounded-sm md:rounded-md 
-            text-xs md:text-sm font-medium whitespace-nowrap
-            bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 
-            border border-gray-200 dark:border-gray-700">
-            <GraduationCap size={12} className="mr-1" />
-            <span>{formatCourseGrade(course?.course_grade)}</span>
+            
+            {/* Duration Badge - Only for Live Courses */}
+            {isLiveCourse && (course?.course_duration || course?.duration_range) && (
+              <div className={`inline-flex items-center 
+                px-2 md:px-2.5 py-1 
+                rounded-md text-xs font-semibold whitespace-nowrap
+                ${styles.chipBg} ${styles.chipText} border ${styles.chipBorder}`}>
+                <Clock size={11} className="mr-1" />
+                <span>{formatCourseDuration(course?.duration_range || course?.course_duration)}</span>
+              </div>
+            )}
           </div>
           
-          {/* Q&A Live Chip - Only for blended courses */}
-          {isBlendedCourse && (
+          {/* Second Row - Grade and Q&A Live */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {/* Grade Badge */}
             <div className="inline-flex items-center 
-              px-2 md:px-2.5 py-0.5 md:py-1 
-              rounded-sm md:rounded-md 
-              text-xs md:text-sm font-medium whitespace-nowrap
-              bg-[#379392]/10 text-[#379392] border border-[#379392]/20">
-              <Users size={12} className="mr-1" />
-              <span>Q&A Live</span>
+              px-2 md:px-2.5 py-1 
+              rounded-md text-xs font-medium
+              bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 
+              border border-gray-200 dark:border-gray-700">
+              <GraduationCap size={11} className="mr-1" />
+              <span>{formatCourseGrade(course?.course_grade)}</span>
             </div>
-          )}
+            
+            {/* Q&A Live Badge - Only for blended courses */}
+            {isBlendedCourse && (
+              <div className="inline-flex items-center 
+                px-2 md:px-2.5 py-1 
+                rounded-md text-xs font-medium whitespace-nowrap
+                bg-[#379392]/10 text-[#379392] border border-[#379392]/20">
+                <Users size={11} className="mr-1" />
+                <span>Q&A Live</span>
+              </div>
+            )}
+          </div>
         </div>
         
-
-        
-        {/* 4. Price */}
+        {/* 3. Price - Compact */}
         {!hidePrice && (
-          <div className="text-left py-1 md:py-1.5">
-            <div className="flex items-baseline justify-start gap-1 md:gap-1.5">
-              <span className={`text-base md:text-lg lg:text-xl font-extrabold ${styles.priceColor} drop-shadow-sm`}>
+          <div className="text-left py-1">
+            <div className="flex items-baseline justify-start gap-1">
+              <span className={`text-base md:text-lg font-extrabold ${styles.priceColor} drop-shadow-sm`}>
                 {formatPrice(course.course_fee, course.batchPrice)}
               </span>
               {isLiveCourse && (
-                <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium">onwards</span>
+                <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">onwards</span>
               )}
               {course?.original_fee && (
-                <span className="text-xs md:text-sm text-gray-500 dark:text-gray-500 line-through ml-1">
+                <span className="text-xs text-gray-500 dark:text-gray-500 line-through ml-1">
                   {course.original_fee.toLocaleString()}
                 </span>
               )}
             </div>
             {course?.fee_note && (
-              <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium block mt-0.5">
+              <span className="text-xs text-gray-600 dark:text-gray-400 font-medium block mt-0.5">
                 {course.fee_note}
               </span>
             )}

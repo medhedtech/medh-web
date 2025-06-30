@@ -5,8 +5,6 @@ import { Zap, Sparkles, Brain } from "lucide-react";
 import Link from "next/link";
 import Image from 'next/image';
 
-
-
 const CourseOptions: React.FC = () => {
 
   // Define the specializations for AI and Data Science courses
@@ -62,141 +60,173 @@ const CourseOptions: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
-      <div className="w-full">
-        {customHeader}
+    <>
+      {/* Global styles for the course grid */}
+      <style jsx global>{`
+        .courses-filter-optimized-layout .course-grid {
+          display: grid !important;
+          width: 100% !important;
+          margin: 0 auto !important;
+          padding: 1.5rem !important;
+          gap: 1.5rem !important;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+          place-items: center !important;
+          justify-content: center !important;
+          max-width: 1600px !important;
+        }
         
-        <div className="w-full max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8">
-          <div className="courses-filter-4-col-override">
-            <CoursesFilter
-              key="ai-and-data-science"
-              CustomText="AI and Data Science Courses"
-              CustomButton={() => (
-                <Link href="/courses">
-                  <div className="inline-flex items-center px-4 md:px-6 py-2.5 md:py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white text-xs md:text-sm font-medium rounded-lg md:rounded-xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-95">
-                    <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
-                    <span>Explore All Courses</span>
-                  </div>
-                </Link>
-              )}
-              fixedCategory="AI and Data Science"
-              hideCategoryFilter={true}
-              hideSearch={true}
-              hideSortOptions={true}
-              hideFilterBar={true}
-              hideHeader={true}
-              gridColumns={4}
-              itemsPerPage={16}
-              simplePagination={true}
-              scrollToTop={true}
-              description="Master artificial intelligence and data science with our comprehensive courses combining cutting-edge technology with practical applications."
-              customGridClassName="!grid !gap-6 !grid-cols-1 sm:!grid-cols-2 md:!grid-cols-3 lg:!grid-cols-4"
-              customGridStyle={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: '1.5rem',
-                width: '100%',
-                margin: '0 auto',
-                padding: '0'
-              }}
-              emptyStateContent={
-                <div className="bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 mx-2">
-                  <div className="flex flex-col items-center justify-center min-h-[20vh] md:min-h-[30vh] text-center">
-                    <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/20 mb-3 md:mb-4">
-                      <Brain className="w-6 h-6 md:w-8 md:h-8 text-blue-500 dark:text-blue-400" />
+        .courses-filter-optimized-layout .course-card {
+          width: 100% !important;
+          max-width: 340px !important;
+          min-width: 280px !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+
+        .courses-filter-optimized-layout .course-card:hover {
+          transform: translateY(-4px) scale(1.02) !important;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        /* Mobile: Single column, compact cards */
+        @media (max-width: 639px) {
+          .courses-filter-optimized-layout .course-grid {
+            grid-template-columns: 1fr !important;
+            padding: 1rem !important;
+            gap: 1rem !important;
+          }
+          
+          .courses-filter-optimized-layout .course-card {
+            max-width: 100% !important;
+          }
+        }
+        
+        /* Small tablets: 2 columns */
+        @media (min-width: 640px) and (max-width: 1023px) {
+          .courses-filter-optimized-layout .course-grid {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+            padding: 1.75rem !important;
+            gap: 1.75rem !important;
+          }
+          
+          .courses-filter-optimized-layout .course-card {
+            max-width: 320px !important;
+          }
+        }
+        
+        /* Large tablets/small desktops: 3 columns */
+        @media (min-width: 1024px) and (max-width: 1279px) {
+          .courses-filter-optimized-layout .course-grid {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+            padding: 2rem !important;
+            gap: 2rem !important;
+          }
+          
+          .courses-filter-optimized-layout .course-card {
+            max-width: 320px !important;
+          }
+        }
+        
+        /* Desktop: 4 columns */
+        @media (min-width: 1280px) {
+          .courses-filter-optimized-layout .course-grid {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+            padding: 2.5rem !important;
+            gap: 2.5rem !important;
+          }
+          
+          .courses-filter-optimized-layout .course-card {
+            min-width: 300px !important;
+            max-width: 340px !important;
+          }
+        }
+        
+        /* Large desktop: Maintain 4 columns with better spacing */
+        @media (min-width: 1440px) {
+          .courses-filter-optimized-layout .course-grid {
+            grid-template-columns: repeat(4, minmax(320px, 1fr)) !important;
+            padding: 3rem !important;
+            gap: 3rem !important;
+          }
+          
+          .courses-filter-optimized-layout .course-card {
+            min-width: 320px !important;
+            max-width: 360px !important;
+          }
+        }
+
+        /* Ultra-wide screens: Cap at 5 columns */
+        @media (min-width: 1920px) {
+          .courses-filter-optimized-layout .course-grid {
+            grid-template-columns: repeat(5, minmax(320px, 1fr)) !important;
+            max-width: 1800px !important;
+          }
+        }
+      `}</style>
+
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+        <div className="w-full">
+          {customHeader}
+          
+          <div className="w-full max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8">
+            <div className="courses-filter-optimized-layout">
+              <CoursesFilter
+                key="ai-and-data-science"
+                CustomText="AI and Data Science Courses"
+                CustomButton={() => (
+                  <Link href="/courses">
+                    <div className="inline-flex items-center px-4 md:px-6 py-2.5 md:py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white text-xs md:text-sm font-medium rounded-lg md:rounded-xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-95">
+                      <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                      <span>Explore All Courses</span>
                     </div>
-                    <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                      Coming Soon
-                    </h3>
-                    <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 max-w-md">
-                      We're currently developing cutting-edge AI and Data Science courses. Check back soon for industry-leading content!
-                    </p>
+                  </Link>
+                )}
+                fixedCategory="AI and Data Science"
+                hideCategoryFilter={true}
+                hideSearch={true}
+                hideSortOptions={true}
+                hideFilterBar={true}
+                hideHeader={true}
+                hideGradeFilter={true}
+                gridColumns={4}
+                itemsPerPage={16}
+                simplePagination={true}
+                scrollToTop={true}
+                description="Master artificial intelligence and data science with our comprehensive courses combining cutting-edge technology with practical applications."
+                customGridClassName="course-grid"
+                customGridStyle={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                  gap: '1.5rem',
+                  width: '100%',
+                  margin: '0 auto',
+                  padding: '1.5rem',
+                  placeItems: 'center',
+                  justifyContent: 'center',
+                  maxWidth: '1600px'
+                }}
+                emptyStateContent={
+                  <div className="bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 mx-2 w-full max-w-md">
+                    <div className="flex flex-col items-center justify-center min-h-[20vh] md:min-h-[30vh] text-center">
+                      <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/20 mb-3 md:mb-4">
+                        <Brain className="w-6 h-6 md:w-8 md:h-8 text-blue-500 dark:text-blue-400" />
+                      </div>
+                      <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                        Coming Soon
+                      </h3>
+                      <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 max-w-md">
+                        We're currently developing cutting-edge AI and Data Science courses. Check back soon for industry-leading content!
+                      </p>
+                    </div>
                   </div>
-                </div>
-              }
-              activeTab="live"
-            />
+                }
+                activeTab="live"
+              />
+            </div>
           </div>
         </div>
-        
-        <style jsx>{`
-          .courses-filter-4-col-override :global(.grid) {
-            grid-template-columns: repeat(1, minmax(0, 1fr));
-            width: 100%;
-            padding: 1rem;
-            margin: 0 auto;
-            max-width: 1440px;
-            gap: 1.5rem;
-          }
-          
-          .courses-filter-4-col-override :global(.container) {
-            max-width: 1440px;
-            padding: 0 1rem;
-            margin: 0 auto;
-            width: 100%;
-          }
-          
-          .courses-filter-4-col-override :global(.max-w-full),
-          .courses-filter-4-col-override :global(.max-w-6xl),
-          .courses-filter-4-col-override :global(.max-w-7xl) {
-            max-width: 1440px !important;
-            margin: 0 auto;
-          }
-          
-          /* Mobile optimizations for new card design with banner */
-          @media (max-width: 767px) {
-            .courses-filter-4-col-override :global(.grid) {
-              grid-template-columns: 1fr;
-              gap: 1.5rem;
-              padding: 1rem 0.5rem;
-            }
-            
-            /* Ensure mobile cards have proper spacing for banner */
-            .courses-filter-4-col-override :global(.grid > *) {
-              margin-bottom: 0;
-            }
-          }
-          
-          @media (min-width: 640px) {
-            .courses-filter-4-col-override :global(.grid) {
-              grid-template-columns: repeat(2, minmax(0, 1fr));
-              gap: 1.25rem;
-              padding: 1rem;
-            }
-          }
-          
-          @media (min-width: 768px) {
-            .courses-filter-4-col-override :global(.grid) {
-              grid-template-columns: repeat(3, minmax(280px, 1fr));
-              gap: 1.5rem;
-              padding: 1.5rem;
-            }
-          }
-          
-          @media (min-width: 1024px) {
-            .courses-filter-4-col-override :global(.grid) {
-              grid-template-columns: repeat(4, minmax(280px, 1fr));
-              gap: 1.5rem;
-              padding: 2rem;
-            }
-          }
-          
-          @media (min-width: 1280px) {
-            .courses-filter-4-col-override :global(.grid) {
-              grid-template-columns: repeat(4, minmax(300px, 1fr));
-              gap: 2rem;
-              padding: 2rem;
-            }
-          }
-          
-          /* Ensure cards maintain consistent sizing */
-          .courses-filter-4-col-override :global(.grid > div) {
-            width: 100%;
-            max-width: none;
-          }
-        `}</style>
       </div>
-    </div>
+    </>
   );
 };
 

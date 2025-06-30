@@ -46,6 +46,8 @@ function CourseOptions() {
       fixedCategory="AI and Data Science"
       // Hide the category selection since we're only showing one category
       hideCategoryFilter={true}
+      // Hide the grade filter
+      hideGradeFilter={true}
       // Only show relevant grade levels
       availableCategories={grades}
       categoryTitle="Grade Level"
