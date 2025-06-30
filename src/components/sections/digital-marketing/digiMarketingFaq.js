@@ -276,7 +276,7 @@ function DigiMarketingFaq() {
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex flex-col items-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-600 dark:from-blue-400 dark:to-violet-400 mb-4">
-            Frequently Asked Questions
+            Explore FAQs
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-violet-500 rounded-full mb-6"></div>
           <p className="text-center text-gray-700 dark:text-gray-300 max-w-3xl mx-auto">
