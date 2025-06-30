@@ -349,6 +349,36 @@ function DigiMarketingFaq() {
           })}
         </motion.div>
       </div>
+
+      {/* Support Section (animated, matching Vedic Maths) */}
+      <motion.div 
+        className="mt-12 text-center bg-white dark:bg-gray-800/90 p-6 rounded-xl shadow-md transform-gpu w-full max-w-5xl mx-auto"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ 
+          duration: 0.5, 
+          delay: 0.3,
+          type: "spring",
+          stiffness: 100,
+          damping: 20
+        }}
+        style={{ 
+          willChange: "transform, opacity",
+          backfaceVisibility: "hidden"
+        }}
+      >
+        <p className="text-gray-700 dark:text-gray-300 mb-3">
+          Still have questions about Digital Marketing with Data Analytics? We're here to help!
+        </p>
+        <a
+          href="https://mail.google.com/mail/u/0/?to=care@medh.co&fs=1&tf=cm"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center px-6 py-3 font-semibold rounded-full shadow-md transition-all duration-300 transform-gpu hover:scale-105 bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 text-white hover:shadow-lg"
+        >
+          <span className="mr-2">Contact Support</span>
+        </a>
+      </motion.div>
     </section>
   );
 }
