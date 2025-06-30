@@ -127,9 +127,6 @@ const PersonalityDevelopment: NextPage = () => {
               <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Personality Development
               </h1>
-              <span className="px-2 py-1 text-xs font-medium bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 rounded-full">
-                Course
-              </span>
             </div>
           </nav>
         </header>

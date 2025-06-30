@@ -2778,8 +2778,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
               </div>
 
 
-            </div>
-          )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -3238,26 +3238,26 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
               onClick={(e) => e.stopPropagation()}
               style={{ touchAction: 'auto' }}
             >
-              {/* Filter Sections - Single scroll for entire content */}
-              <div 
-                ref={filterScrollRef}
-                onScroll={handleDropdownScroll}
-                className="overflow-y-auto max-h-80 p-2 md:p-3 space-y-2 md:space-y-3"
-              >
-                {/* Clear All Button - moved to top */}
-                <div className="flex justify-end">
-                  <button
-                    onClick={clearAllFilters}
-                    className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
-                  >
-                    Clear All
-                  </button>
-                  <button
-                    onClick={() => setIsMobileCategoriesOpen(false)}
-                    className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors"
-                  >
-                    Apply Filters
-                  </button>
+            {/* Filter Sections - Single scroll for entire content */}
+            <div 
+              ref={filterScrollRef}
+              onScroll={handleDropdownScroll}
+              className="overflow-y-auto max-h-80 p-2 md:p-3 space-y-2 md:space-y-3"
+            >
+              {/* Clear All Button - moved to top */}
+              <div className="flex justify-end">
+                <button
+                  onClick={clearAllFilters}
+                  className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
+                >
+                  Clear All
+                </button>
+                <button
+                  onClick={() => setIsMobileCategoriesOpen(false)}
+                  className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Apply Filters
+                </button>
                 </div>
               </div>
             </div>
@@ -3343,7 +3343,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
 
   // Restore renderMainContent function before the return statement in CoursesFilter
   const renderMainContent = () => {
-    return (
+  return (
       <main className="flex-1 flex flex-col min-w-0">
         {/* Course List */}
         <div className="flex-1 flex flex-col">
@@ -3362,11 +3362,11 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                     className="mt-2"
                     simplified={simplePagination}
                   />
-                </div>
-              )}
-            </div>
           </div>
-        </div>
+        )}
+                    </div>
+                    </div>
+                  </div>
       </main>
     );
   };
@@ -3383,8 +3383,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
           </aside>
         )}
         {/* Main Content */}
-        {renderMainContent()}
-      </div>
+            {renderMainContent()}
+          </div>
     </>
   );
 };
