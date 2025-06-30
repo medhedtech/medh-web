@@ -3583,31 +3583,73 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                   <Sparkles className="w-4 h-4 mr-2" />
                   Discover Your Perfect Course
                 </div>
-                {/* Title and description */}
-                {props.categoryTitle && (
-                  <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                    {props.categoryTitle}
-                  </h1>
-                )}
-                {props.description && (
-                  <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">
-                    {props.description}
-                  </p>
-                )}
+
+                {/* Title */}
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+                  Find Your Perfect Course
+                </h1>
+
+                {/* Description */}
+                <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
+                  Discover courses tailored to your goals and skill level
+                </p>
               </div>
             </div>
           </div>
         )}
-        {/* Main content layout */}
-        <div className="flex flex-col xl:flex-row w-full">
-          {/* Sidebar (if present) */}
-          {!props.hideCategoryFilter && renderSidebar && (
-            <aside className="hidden xl:block w-[20%] pr-6">
-              {renderSidebar()}
-            </aside>
+
+        {/* Main container with improved background */}
+        <div className="w-full bg-gradient-to-b from-gray-50/80 to-white dark:from-gray-900/80 dark:to-gray-900 min-h-screen flex flex-col">
+          {/* Enhanced search and filters bar */}
+          {!hideFilterBar && (
+            <div className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm flex-shrink-0">
+              <div className="px-4 md:px-6 lg:px-8 py-4 md:py-6">
+                {/* Filter Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl text-white">
+                      <Filter className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-white">Find Your Course</h2>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Use filters to discover the perfect learning path</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Search and Filter Controls - iPad optimized layout */}
+                <div className="flex flex-col md:flex-row gap-4 md:gap-6">
+                  {/* Filter Controls - Top on iPad */}
+                  <div className="flex flex-wrap gap-3 md:gap-4 items-center justify-center md:justify-start order-1 md:order-2">
+                    {!hideSortOptions && (
+                      <SortDropdown 
+                        sortOrder={sortOrder} 
+                        handleSortChange={handleSortChange} 
+                        showSortDropdown={showSortDropdown} 
+                        setShowSortDropdown={setShowSortDropdown} 
+                      />
+                    )}
+                    
+                    {/* Mobile Categories Dropdown */}
+                    <MobileCategoriesDropdown />
+                  </div>
+                  
+                  {/* Search Section - Below filters on iPad */}
+                  {!hideSearch && (
+                    <div className="flex-1 lg:max-w-2xl order-2 md:order-1">
+                      <SearchInput searchTerm={searchTerm} handleSearch={handleSearch} setSearchTerm={setSearchTerm} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           )}
-          {/* Main Content */}
-          {renderMainContent()}
+
+          {/* Main content area with dynamic layout - Edge to edge */}
+          <div className="flex flex-col lg:flex-row relative flex-1 overflow-hidden">
+            {renderSidebar()}
+            {renderMainContent()}
+          </div>
         </div>
       </section>
     </ErrorBoundary>
