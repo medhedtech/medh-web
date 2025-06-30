@@ -212,6 +212,7 @@ function CourseAiFaq() {
             <h2 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-blue-500 dark:from-violet-400 dark:to-blue-300 inline-block mb-4">
               Explore FAQs
             </h2>
+            <div className="w-16 h-1 mx-auto rounded-full bg-gradient-to-r from-violet-600 to-blue-500 dark:from-violet-400 dark:to-blue-300"></div>
           </motion.div>
           <p className="text-gray-600 dark:text-gray-300 text-lg max-w-2xl mx-auto">
             Discover everything you need to know about our amazing AI and Data Science course!

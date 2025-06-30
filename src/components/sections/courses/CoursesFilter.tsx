@@ -2822,8 +2822,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
               </div>
 
 
-            </div>
-          )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -2963,16 +2963,16 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             
             {/* Grade Level Section - Only show if grade filter is not hidden */}
             {!hideGradeFilter && (
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center">
-                    <GraduationCap className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <div>
-                    <h4 className="text-base font-bold text-gray-900 dark:text-gray-100">Grade Level</h4>
-                    <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">Educational level</p>
-                  </div>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center">
+                  <GraduationCap className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                 </div>
+                <div>
+                  <h4 className="text-base font-bold text-gray-900 dark:text-gray-100">Grade Level</h4>
+                  <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">Educational level</p>
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 {gradeOptions.map((grade) => (
                   <label
@@ -3536,26 +3536,26 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
               onClick={(e) => e.stopPropagation()}
               style={{ touchAction: 'auto' }}
             >
-              {/* Filter Sections - Single scroll for entire content */}
-              <div 
-                ref={filterScrollRef}
-                onScroll={handleDropdownScroll}
-                className="overflow-y-auto max-h-80 p-2 md:p-3 space-y-2 md:space-y-3"
-              >
-                {/* Clear All Button - moved to top */}
-                <div className="flex justify-end">
-                  <button
-                    onClick={clearAllFilters}
-                    className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
-                  >
-                    Clear All
-                  </button>
-                  <button
-                    onClick={() => setIsMobileCategoriesOpen(false)}
-                    className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors"
-                  >
-                    Apply Filters
-                  </button>
+            {/* Filter Sections - Single scroll for entire content */}
+            <div 
+              ref={filterScrollRef}
+              onScroll={handleDropdownScroll}
+              className="overflow-y-auto max-h-80 p-2 md:p-3 space-y-2 md:space-y-3"
+            >
+              {/* Clear All Button - moved to top */}
+              <div className="flex justify-end">
+                <button
+                  onClick={clearAllFilters}
+                  className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
+                >
+                  Clear All
+                </button>
+                <button
+                  onClick={() => setIsMobileCategoriesOpen(false)}
+                  className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Apply Filters
+                </button>
                 </div>
               </div>
             </div>
@@ -3638,11 +3638,11 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                   {!hideSearch && (
                     <div className="flex-1 lg:max-w-2xl order-2 md:order-1">
                       <SearchInput searchTerm={searchTerm} handleSearch={handleSearch} setSearchTerm={setSearchTerm} />
+          </div>
+        )}
                     </div>
-                  )}
-                </div>
-              </div>
-            </div>
+                    </div>
+                  </div>
           )}
 
           {/* Main content area with dynamic layout - Edge to edge */}
