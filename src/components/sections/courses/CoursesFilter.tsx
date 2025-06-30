@@ -38,12 +38,8 @@ import { IUpdateCourseData } from '@/types/course.types';
 import { apiBaseUrl, apiUtils, ICourseFilters, ICourseSearchParams } from '@/apis/index';
 import { getAllCoursesWithLimits } from '@/apis/course/course';
 import axios from 'axios';
-<<<<<<< HEAD
-
-=======
 import CourseCard from "@/components/sections/courses/CourseCard";
 import ReactDOM from "react-dom";
->>>>>>> 3f77f9d1f3aec566e97d3a88ab49a76b1b435025
 
 // TypeScript Interfaces
 interface ICourse {
@@ -2790,34 +2786,6 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     );
   };
 
-  // Main content renderer with course list and pagination
-  const renderMainContent = (): React.ReactNode => {
-    return (
-      <div className="flex-1 lg:w-[80%] flex flex-col">
-        <div className="bg-white dark:bg-gray-900 flex-1 overflow-hidden">
-          {/* Scrollable Course List Container */}
-          <div className="h-full overflow-y-auto custom-scrollbar">
-            {/* Course List */}
-            {renderCourseList()}
-            
-            {/* Pagination */}
-            {!loading && filteredCourses.length > 0 && totalPages > 1 && (
-              <div className="px-4 md:px-6 lg:px-8 py-6 border-t border-gray-100 dark:border-gray-800">
-                <SimplePaginationWrapper
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                  simplified={simplePagination}
-                  className="flex justify-center"
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   // Simplified Mobile Categories dropdown component - fixed stuck issue
   const MobileCategoriesDropdown = React.memo(() => {
     const mobileCategoriesRef = useRef<HTMLDivElement>(null);
@@ -2829,21 +2797,6 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
       setSelectedCount(total);
     }, [selectedLiveCourses, selectedBlendedLearning, selectedFreeCourses, selectedGrade]);
 
-<<<<<<< HEAD
-    // Handle click outside to close dropdown
-    useEffect(() => {
-      const handleClickOutside = (event: MouseEvent) => {
-        if (mobileCategoriesRef.current && !mobileCategoriesRef.current.contains(event.target as Node)) {
-          setIsMobileCategoriesOpen(false);
-        }
-      };
-
-      if (isMobileCategoriesOpen) {
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-      }
-    }, [isMobileCategoriesOpen]);
-=======
     const modalContent = isMobileCategoriesOpen ? (
       <>
         {/* Enhanced mobile backdrop */}
@@ -2941,7 +2894,6 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
         </div>
       </>
     ) : null;
->>>>>>> 3f77f9d1f3aec566e97d3a88ab49a76b1b435025
 
     return (
       <div className="mobile-categories-container xl:hidden relative" ref={mobileCategoriesRef}>
@@ -2970,307 +2922,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             isMobileCategoriesOpen ? 'rotate-180 text-purple-500' : 'text-gray-500'
           }`} />
         </button>
-<<<<<<< HEAD
-
-        {isMobileCategoriesOpen && (
-          <>
-            {/* Simplified backdrop */}
-            <div 
-              className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
-              onClick={() => setIsMobileCategoriesOpen(false)}
-            />
-            
-            {/* Simplified dropdown */}
-            <div 
-              className="fixed top-[15vh] left-4 right-4 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 max-h-[70vh] overflow-hidden lg:absolute lg:top-full lg:left-0 lg:right-auto lg:w-96 lg:max-h-[500px]"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/20">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center">
-                    <Filter className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Categories</h3>
-                    {selectedCount > 0 && (
-                      <p className="text-sm text-purple-600 dark:text-purple-400 font-medium">
-                        {selectedCount} active
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <button
-                  onClick={() => setIsMobileCategoriesOpen(false)}
-                  className="p-2 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                </button>
-              </div>
-              
-              {/* Content */}
-              <div className="overflow-y-auto max-h-[calc(70vh-120px)] p-4 space-y-4">
-                {/* Live Courses */}
-                <div className="border border-red-100 dark:border-red-900/30 rounded-lg overflow-hidden">
-                  <div 
-                    className="flex items-center justify-between cursor-pointer p-3 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" 
-                    onClick={() => setIsLiveCoursesDropdownOpen(!isLiveCoursesDropdownOpen)}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-6 h-6 bg-red-100 dark:bg-red-900/40 rounded-lg flex items-center justify-center">
-                        <Zap className="w-3 h-3 text-red-600 dark:text-red-400" />
-                      </div>
-                      <div>
-                        <h5 className="text-sm font-semibold text-red-900 dark:text-red-100">Live Courses</h5>
-                        <p className="text-xs text-red-600 dark:text-red-400">Interactive sessions</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {selectedLiveCourses.length > 0 && (
-                        <span className="text-xs bg-red-500 text-white px-2 py-1 rounded-full font-medium">
-                          {selectedLiveCourses.length}
-                        </span>
-                      )}
-                      <ChevronDown className={`w-4 h-4 text-red-600 dark:text-red-400 transition-transform duration-200 ${isLiveCoursesDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
-                    </div>
-                  </div>
-                  
-                  {isLiveCoursesDropdownOpen && (
-                    <div className="px-3 pb-3 space-y-2 border-t border-red-100 dark:border-red-900/30">
-                      {liveCoursesOptions.map((option) => (
-                        <label
-                          key={option}
-                          className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <input
-                              type="checkbox"
-                              checked={selectedLiveCourses.includes(option)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedLiveCourses(prev => [...prev, option]);
-                                } else {
-                                  setSelectedLiveCourses(prev => prev.filter(item => item !== option));
-                                }
-                                setCurrentPage(1);
-                              }}
-                              className="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 dark:focus:ring-red-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                            />
-                            <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
-                              {option}
-                            </span>
-                          </div>
-                          {selectedLiveCourses.includes(option) && (
-                            <span className="text-xs text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/40 px-2 py-1 rounded-full">
-                              ✓
-                            </span>
-                          )}
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Blended Learning */}
-                <div className="border border-blue-100 dark:border-blue-900/30 rounded-lg overflow-hidden">
-                  <div 
-                    className="flex items-center justify-between cursor-pointer p-3 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors" 
-                    onClick={() => setIsBlendedLearningDropdownOpen(!isBlendedLearningDropdownOpen)}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
-                        <Target className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div>
-                        <h5 className="text-sm font-semibold text-blue-900 dark:text-blue-100">Blended Learning</h5>
-                        <p className="text-xs text-blue-600 dark:text-blue-400">Live + self-paced</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {selectedBlendedLearning.length > 0 && (
-                        <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded-full font-medium">
-                          {selectedBlendedLearning.length}
-                        </span>
-                      )}
-                      <ChevronDown className={`w-4 h-4 text-blue-600 dark:text-blue-400 transition-transform duration-200 ${isBlendedLearningDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
-                    </div>
-                  </div>
-                  
-                  {isBlendedLearningDropdownOpen && (
-                    <div className="px-3 pb-3 space-y-2 border-t border-blue-100 dark:border-blue-900/30">
-                      {blendedLearningOptions.map((option) => (
-                        <label
-                          key={option}
-                          className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <input
-                              type="checkbox"
-                              checked={selectedBlendedLearning.includes(option)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedBlendedLearning(prev => [...prev, option]);
-                                } else {
-                                  setSelectedBlendedLearning(prev => prev.filter(item => item !== option));
-                                }
-                                setCurrentPage(1);
-                              }}
-                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                            />
-                            <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
-                              {option}
-                            </span>
-                          </div>
-                          {selectedBlendedLearning.includes(option) && (
-                            <span className="text-xs text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 px-2 py-1 rounded-full">
-                              ✓
-                            </span>
-                          )}
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Free Courses */}
-                <div className="border border-green-100 dark:border-green-900/30 rounded-lg overflow-hidden">
-                  <div 
-                    className="flex items-center justify-between cursor-pointer p-3 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors" 
-                    onClick={() => setIsFreeCoursesDropdownOpen(!isFreeCoursesDropdownOpen)}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-6 h-6 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center">
-                        <span className="text-green-600 dark:text-green-400 font-bold text-xs">$</span>
-                      </div>
-                      <div>
-                        <h5 className="text-sm font-semibold text-green-900 dark:text-green-100">Free Courses</h5>
-                        <p className="text-xs text-green-600 dark:text-green-400">Get started free</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {selectedFreeCourses.length > 0 && (
-                        <span className="text-xs bg-green-500 text-white px-2 py-1 rounded-full font-medium">
-                          {selectedFreeCourses.length}
-                        </span>
-                      )}
-                      <ChevronDown className={`w-4 h-4 text-green-600 dark:text-green-400 transition-transform duration-200 ${isFreeCoursesDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
-                    </div>
-                  </div>
-                  
-                  {isFreeCoursesDropdownOpen && (
-                    <div className="px-3 pb-3 space-y-2 border-t border-green-100 dark:border-green-900/30">
-                      {freeCoursesOptions.map((option) => (
-                        <label
-                          key={option}
-                          className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <input
-                              type="checkbox"
-                              checked={selectedFreeCourses.includes(option)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedFreeCourses(prev => [...prev, option]);
-                                } else {
-                                  setSelectedFreeCourses(prev => prev.filter(item => item !== option));
-                                }
-                                setCurrentPage(1);
-                              }}
-                              className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                            />
-                            <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
-                              {option}
-                            </span>
-                          </div>
-                          {selectedFreeCourses.includes(option) && (
-                            <span className="text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/40 px-2 py-1 rounded-full">
-                              ✓
-                            </span>
-                          )}
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Grade Level */}
-                {!hideGradeFilter && (
-                  <div className="border border-purple-100 dark:border-purple-900/30 rounded-lg overflow-hidden">
-                    <div 
-                      className="flex items-center justify-between cursor-pointer p-3 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors" 
-                      onClick={() => setIsGradeDropdownOpen(!isGradeDropdownOpen)}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-6 h-6 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center">
-                          <GraduationCap className="w-3 h-3 text-purple-600 dark:text-purple-400" />
-                        </div>
-                        <div>
-                          <h5 className="text-sm font-semibold text-purple-900 dark:text-purple-100">Grade Level</h5>
-                          <p className="text-xs text-purple-600 dark:text-purple-400">Educational level</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        {selectedGrade.length > 0 && (
-                          <span className="text-xs bg-purple-500 text-white px-2 py-1 rounded-full font-medium">
-                            {selectedGrade.length}
-                          </span>
-                        )}
-                        <ChevronDown className={`w-4 h-4 text-purple-600 dark:text-purple-400 transition-transform duration-200 ${isGradeDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
-                      </div>
-                    </div>
-                    
-                    {isGradeDropdownOpen && (
-                      <div className="px-3 pb-3 space-y-2 border-t border-purple-100 dark:border-purple-900/30">
-                        {gradeOptions.map((grade) => (
-                          <label
-                            key={grade}
-                            className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
-                          >
-                            <div className="flex items-center space-x-3">
-                              <input
-                                type="checkbox"
-                                checked={selectedGrade.includes(grade)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setSelectedGrade(prev => [...prev, grade]);
-                                  } else {
-                                    setSelectedGrade(prev => prev.filter(g => g !== grade));
-                                  }
-                                  setCurrentPage(1);
-                                }}
-                                className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                              />
-                              <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
-                                {grade}
-                              </span>
-                            </div>
-                            {selectedGrade.includes(grade) && (
-                              <span className="text-xs text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/40 px-2 py-1 rounded-full">
-                                ✓
-                              </span>
-                            )}
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-              
-              {/* Footer */}
-              <div className="flex items-center justify-between p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-                <button
-                  onClick={() => {
-                    setSelectedLiveCourses([]);
-                    setSelectedBlendedLearning([]);
-                    setSelectedFreeCourses([]);
-                    setSelectedGrade([]);
-                    setCurrentPage(1);
-                  }}
-                  className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
-                  disabled={selectedCount === 0}
-=======
-        {typeof window !== 'undefined' && ReactDOM.createPortal(modalContent, document.body)}
+        {modalContent}
       </div>
     );
   });
@@ -3586,27 +3238,27 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
               onClick={(e) => e.stopPropagation()}
               style={{ touchAction: 'auto' }}
             >
-            {/* Filter Sections - Single scroll for entire content */}
-            <div 
-              ref={filterScrollRef}
-              onScroll={handleDropdownScroll}
-              className="overflow-y-auto max-h-80 p-2 md:p-3 space-y-2 md:space-y-3"
-            >
-              {/* Clear All Button - moved to top */}
-              <div className="flex justify-end">
-                <button
-                  onClick={clearAllFilters}
-                  className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
->>>>>>> 3f77f9d1f3aec566e97d3a88ab49a76b1b435025
-                >
-                  Clear All
-                </button>
-                <button
-                  onClick={() => setIsMobileCategoriesOpen(false)}
-                  className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  Apply Filters
-                </button>
+              {/* Filter Sections - Single scroll for entire content */}
+              <div 
+                ref={filterScrollRef}
+                onScroll={handleDropdownScroll}
+                className="overflow-y-auto max-h-80 p-2 md:p-3 space-y-2 md:space-y-3"
+              >
+                {/* Clear All Button - moved to top */}
+                <div className="flex justify-end">
+                  <button
+                    onClick={clearAllFilters}
+                    className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
+                  >
+                    Clear All
+                  </button>
+                  <button
+                    onClick={() => setIsMobileCategoriesOpen(false)}
+                    className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    Apply Filters
+                  </button>
+                </div>
               </div>
             </div>
           </>
@@ -3615,89 +3267,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     );
   });
 
-<<<<<<< HEAD
-=======
   // Add display name for debugging
   FilterDropdown.displayName = 'FilterDropdown';
-
-  // Modern main content renderer
-  const renderMainContent = (): React.ReactNode => {
-    return (
-      <div className={!hideCategoryFilter ? "w-full lg:w-[80%] py-4" : "w-full py-4"}>
-        {/* Header Section */}
-        <div className="mb-3 px-4 md:px-6 lg:px-8">
-          {/* Results count - Improved styling */}
-          {!hideFilterBar && (
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
-              <div className="flex items-center gap-2 mb-2 sm:mb-0">
-                <div className="text-gray-700 dark:text-gray-300">
-                  <span className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                    {totalItems.toLocaleString()}
-                  </span>
-                  <span className="ml-1 text-base">
-                    {totalItems === 1 ? 'course found' : 'courses found'}
-                  </span>
-                </div>
-                {showingRelated && (
-                  <button
-                    onClick={clearRelated}
-                    className="px-3 py-1 text-sm bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50 rounded-lg transition-colors duration-200"
-                  >
-                    ← Back to All
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Error state */}
-          {queryError && (
-            <div className="flex flex-col items-center justify-center py-16 px-4 border border-red-200 dark:border-red-800 rounded-2xl bg-red-50 dark:bg-red-900/10 text-center mb-6">
-              <AlertCircle size={48} className="text-red-500 dark:text-red-400 mb-4" />
-              <h3 className="text-xl font-semibold text-red-700 dark:text-red-300 mb-2">Error Loading Courses</h3>
-              <p className="text-red-600 dark:text-red-400 max-w-md mb-6">
-                {queryError}
-              </p>
-              <button
-                onClick={() => window.location.reload()}
-                className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-colors"
-              >
-                Refresh Page
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Course Cards Section */}
-        <div className="relative">
-          {renderCourseList()}
-        </div>
-
-        {/* Pagination Section - Fixed styling */}
-        {totalPages > 1 && (
-          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 px-4 md:px-6 lg:px-8">
-            <nav className="flex justify-center" aria-label="Pagination">
-              {simplePagination ? (
-                <SimplePaginationWrapper
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                  simplified={true}
-                />
-              ) : (
-                <SimplePaginationWrapper
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                  simplified={false}
-                />
-              )}
-            </nav>
-          </div>
-        )}
-      </div>
-    );
-  };
 
   // Prevent body scroll when any dropdown is open (mobile-focused with enhanced prevention)
   useEffect(() => {
@@ -3770,127 +3341,52 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     return duration;
   };
 
->>>>>>> 3f77f9d1f3aec566e97d3a88ab49a76b1b435025
-  return (
-    <ErrorBoundary>
-      <section className="w-full" role="region" aria-label="Course Filter">
-        {/* Modern header with improved design */}
-        {!hideHeader && (
-          <div className="relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900">
-            {/* Background Pattern */}
-            <div className="absolute inset-0 bg-grid-slate-100 dark:bg-grid-slate-700/25 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]"></div>
-            
-            <div className="relative px-4 md:px-6 lg:px-8 py-12 md:py-16 text-center">
-              <div className="max-w-4xl mx-auto">
-                {/* Badge */}
-                <div className="inline-flex items-center px-4 py-2 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-sm font-medium mb-6 backdrop-blur-sm border border-indigo-200 dark:border-indigo-800">
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Discover Your Perfect Course
+  // Restore renderMainContent function before the return statement in CoursesFilter
+  const renderMainContent = () => {
+    return (
+      <main className="flex-1 flex flex-col min-w-0">
+        {/* Course List */}
+        <div className="flex-1 flex flex-col">
+          <div className="bg-white dark:bg-gray-900 flex-1 overflow-hidden">
+            {/* Scrollable Course List Container */}
+            <div className="h-full overflow-y-auto custom-scrollbar">
+              {/* Course List */}
+              {renderCourseList()}
+              {/* Pagination */}
+              {!loading && filteredCourses.length > 0 && totalPages > 1 && (
+                <div className="flex justify-center py-2">
+                  <SimplePaginationWrapper
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                    className="mt-2"
+                    simplified={simplePagination}
+                  />
                 </div>
-                
-                {/* Title */}
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-gray-900 via-indigo-900 to-purple-900 dark:from-white dark:via-indigo-100 dark:to-purple-100 bg-clip-text text-transparent mb-6 leading-tight">
-                  {typeof CustomText === 'string' ? CustomText : "Explore Courses"}
-                </h1>
-                
-                {/* Description */}
-                <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8">
-                  {description || "Discover courses to enhance your skills and advance your career with our comprehensive learning platform."}
-                </p>
-                
-                {/* Enhanced Stats - 3 columns on mobile */}
-                <div className="grid grid-cols-3 gap-3 sm:gap-6 md:gap-8 max-w-4xl mx-auto">
-                  <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl px-3 sm:px-6 py-4 sm:py-5 border border-white/30 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                    <div className="text-lg sm:text-2xl md:text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-1">
-                      {totalItems > 0 ? `${totalItems}+` : '82+'}
-                    </div>
-                    <div className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 font-medium leading-tight">
-                      Courses Available
-                    </div>
-                  </div>
-                  <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl px-3 sm:px-6 py-4 sm:py-5 border border-white/30 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                    <div className="text-lg sm:text-2xl md:text-3xl font-bold text-purple-600 dark:text-purple-400 mb-1">
-                      24/7
-                    </div>
-                    <div className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 font-medium leading-tight">
-                      Learning Support
-                    </div>
-                  </div>
-                  <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl px-3 sm:px-6 py-4 sm:py-5 border border-white/30 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                    <div className="text-lg sm:text-2xl md:text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-1">
-                      Expert
-                    </div>
-                    <div className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 font-medium leading-tight">
-                      Instructors
-                    </div>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
-          </div>
-        )}
-
-        {/* Main container with improved background */}
-        <div className="w-full bg-gradient-to-b from-gray-50/80 to-white dark:from-gray-900/80 dark:to-gray-900 min-h-screen flex flex-col">
-          {/* Enhanced search and filters bar */}
-          {!hideFilterBar && (
-            <div className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm flex-shrink-0">
-              <div className="px-4 md:px-6 lg:px-8 py-4 md:py-6">
-                {/* Filter Header */}
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl text-white">
-                      <Filter className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-bold text-gray-900 dark:text-white">Find Your Course</h2>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Use filters to discover the perfect learning path</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Search and Filter Controls */}
-                <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
-                  {/* Search Section */}
-                  {!hideSearch && (
-                    <div className="flex-1 lg:max-w-2xl">
-                      <SearchInput searchTerm={searchTerm} handleSearch={handleSearch} setSearchTerm={setSearchTerm} />
-                    </div>
-                  )}
-                  
-                  {/* Filter Controls */}
-                  <div className="flex flex-wrap gap-3 lg:gap-4 items-center justify-center lg:justify-end">
-                    {!hideSortOptions && (
-                      <SortDropdown 
-                        sortOrder={sortOrder} 
-                        handleSortChange={handleSortChange} 
-                        showSortDropdown={showSortDropdown} 
-                        setShowSortDropdown={setShowSortDropdown} 
-                      />
-                    )}
-                    
-                    {/* Mobile Categories Dropdown */}
-                    <MobileCategoriesDropdown />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Main content area with dynamic layout - Edge to edge */}
-          <div className="flex flex-col lg:flex-row relative flex-1 overflow-hidden">
-            {renderSidebar()}
-            {renderMainContent()}
           </div>
         </div>
-      </section>
-    </ErrorBoundary>
+      </main>
+    );
+  };
+
+  return (
+    <>
+      {/* Render filter UI, sidebar, and main content as appropriate */}
+      {/* Example: */}
+      <div className="flex flex-col lg:flex-row w-full">
+        {/* Sidebar (if present) */}
+        {!hideCategoryFilter && renderSidebar && (
+          <aside className="hidden lg:block w-[20%] pr-6">
+            {renderSidebar()}
+          </aside>
+        )}
+        {/* Main Content */}
+        {renderMainContent()}
+      </div>
+    </>
   );
 };
-
-// Add display names for debugging
-SortDropdown.displayName = 'SortDropdown';
-SearchInput.displayName = 'SearchInput';
-MemoizedFilterCourseCard.displayName = 'MemoizedFilterCourseCard';
 
 export default CoursesFilter; 

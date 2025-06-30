@@ -680,22 +680,6 @@ const VedicOverview = () => {
             </a>
           </Link>
         </motion.div>
-
-        {/* Scroll to Top Button with improved styling */}
-        <AnimatePresence>
-          {showScrollTop && (
-            <motion.button
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="fixed bottom-4 right-4 bg-gradient-to-r from-primaryColor to-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-primaryColor/90 transition-all z-50"
-              onClick={() => {/* Removing scroll functionality */}}
-              aria-label="Scroll to top"
-            >
-              <ArrowUp className="h-6 w-6" />
-            </motion.button>
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );
