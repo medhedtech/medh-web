@@ -488,7 +488,7 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
         buttonBg: 'bg-[#379392] hover:bg-[#379392]/90',
         buttonText: 'text-white',
         accentColor: 'text-[#379392]',
-        priceColor: 'text-[#379392]',
+        priceColor: 'text-[#2d5f5d] dark:text-[#4ade80]',
         chipBg: 'bg-[#379392]/10',
         chipText: 'text-[#379392]',
         chipBorder: 'border-[#379392]/20'
@@ -502,7 +502,7 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
         buttonBg: 'bg-purple-500 hover:bg-purple-600',
         buttonText: 'text-white',
         accentColor: 'text-purple-500',
-        priceColor: 'text-purple-600',
+        priceColor: 'text-purple-800 dark:text-purple-400',
         chipBg: 'bg-purple-100',
         chipText: 'text-purple-600',
         chipBorder: 'border-purple-200'
@@ -516,7 +516,7 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
       buttonBg: 'bg-indigo-500 hover:bg-indigo-600',
       buttonText: 'text-white',
       accentColor: 'text-indigo-500',
-      priceColor: 'text-indigo-600',
+      priceColor: 'text-indigo-800 dark:text-indigo-400',
       chipBg: 'bg-indigo-100',
       chipText: 'text-indigo-600',
       chipBorder: 'border-indigo-200'
@@ -567,8 +567,8 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
       {/* Mobile Layout (sm and below) - Horizontal layout with image on left */}
     <div 
       ref={cardRef}
-        className="group relative flex sm:hidden
-          min-h-[140px] h-auto w-full 
+        className="group relative flex md:hidden
+          min-h-[140px] sm:min-h-[160px] h-auto w-full 
           rounded-lg overflow-hidden 
           border border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300/60 dark:hover:border-gray-600/60
           bg-white dark:bg-gray-900 
@@ -581,7 +581,7 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
         onClick={navigateToCourse}
       >
         {/* Left side - Image */}
-        <div className="relative w-[140px] flex-shrink-0">
+        <div className="relative w-[140px] sm:w-[160px] flex-shrink-0">
           <div className="relative w-full h-full overflow-hidden rounded-l-lg">
             <OptimizedImage
               src={course?.course_image || ''}
@@ -594,7 +594,7 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
               onError={handleImageError}
               loading={isLCP ? 'eager' : 'lazy'}
               decoding={isLCP ? 'sync' : 'async'}
-              sizes="140px"
+              sizes="(max-width: 640px) 140px, 160px"
             />
             
             {/* Gradient overlay */}
@@ -603,10 +603,10 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
         </div>
 
         {/* Right side - Content */}
-        <div className="flex flex-col flex-grow p-3 space-y-2 min-w-0">
+        <div className="flex flex-col flex-grow p-3 sm:p-4 space-y-2 sm:space-y-2.5 min-w-0">
           {/* Course Title - Enhanced hierarchy */}
           <div className="flex-shrink-0">
-            <h3 className="text-base font-extrabold text-gray-900 dark:text-white leading-tight line-clamp-2">
+            <h3 className="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white leading-tight line-clamp-2">
               {(() => {
                 const title = course?.course_title || "Course Title";
                 const bracketMatch = title.match(/^(.*?)\s*\(([^)]+)\)(.*)$/);
@@ -616,7 +616,7 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
                   return (
                     <>
                       {beforeBracket.trim()}{afterBracket.trim() && ` ${afterBracket.trim()}`}
-                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400 block mt-0.5">
+                      <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 block mt-0.5">
                         ({insideBracket})
                       </span>
                     </>
@@ -630,11 +630,11 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
           
           {/* Sessions and Duration for Live Courses */}
           <div className="flex-shrink-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
               <div className={`inline-flex items-center 
-                px-2 py-0.5 
+                px-2 sm:px-2.5 py-0.5 sm:py-1 
                 rounded-md 
-                text-xs font-semibold
+                text-xs sm:text-sm font-semibold
                 ${styles.chipBg} ${styles.chipText} border ${styles.chipBorder}`}>
                 {content.sessionIcon}
                 <span className="ml-1">
@@ -645,9 +645,9 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
               {/* Course Duration - Only for Live Courses */}
               {isLiveCourse && (course?.course_duration || course?.duration_range) && (
                 <div className={`inline-flex items-center 
-                  px-2 py-0.5 
+                  px-2 sm:px-2.5 py-0.5 sm:py-1 
                   rounded-md 
-                  text-xs font-semibold whitespace-nowrap
+                  text-xs sm:text-sm font-semibold whitespace-nowrap
                   ${styles.chipBg} ${styles.chipText} border ${styles.chipBorder}`}>
                   <Clock size={12} className="mr-1" />
                   <span>{formatCourseDuration(course?.duration_range || course?.course_duration)}</span>
@@ -657,12 +657,12 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
           </div>
           
           {/* Grade, Q&A, and Job Guarantee chips */}
-          <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-shrink-0">
             {/* Grade Chip */}
             <div className="inline-flex items-center 
-              px-1.5 py-0.5 
+              px-1.5 sm:px-2 py-0.5 
               rounded-md 
-              text-xs font-medium
+              text-xs sm:text-sm font-medium
               bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 
               border border-gray-200 dark:border-gray-700">
               <GraduationCap size={10} className="mr-1" />
@@ -672,9 +672,9 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
             {/* Q&A Live Chip - Only for blended courses */}
             {isBlendedCourse && (
               <div className="inline-flex items-center 
-                px-1.5 py-0.5 
+                px-1.5 sm:px-2 py-0.5 
                 rounded-md 
-                text-xs font-medium
+                text-xs sm:text-sm font-medium whitespace-nowrap
                 bg-[#379392]/10 text-[#379392] border border-[#379392]/20">
                 <Users size={10} className="mr-1" />
                 <span>Q&A Live</span>
@@ -682,27 +682,24 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
             )}
           </div>
           
-          {/* Spacer */}
-          <div className="flex-grow"></div>
-          
           {/* Price */}
           {!hidePrice && (
             <div className="flex-shrink-0">
               <div className="flex items-baseline gap-1">
-                <span className={`text-sm font-bold ${styles.priceColor}`}>
+                <span className={`text-base sm:text-lg font-extrabold ${styles.priceColor} drop-shadow-sm`}>
                   {formatPrice(course.course_fee, course.batchPrice)}
                 </span>
                 {isLiveCourse && (
-                  <span className="text-xs text-gray-500 font-medium">onwards</span>
+                  <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">onwards</span>
                 )}
                 {course?.original_fee && (
-                  <span className="text-xs text-gray-500 line-through ml-1">
+                  <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-500 line-through ml-1">
                     {course.original_fee.toLocaleString()}
                   </span>
                 )}
               </div>
               {course?.fee_note && (
-                <span className="text-xs text-gray-500 font-medium block">
+                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium block">
                   {course.fee_note}
                 </span>
               )}
@@ -715,7 +712,7 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
           bottom-2 right-2 z-20 
           px-2 py-1 
           rounded-lg 
-          text-[10px] font-bold 
+          text-[10px] sm:text-xs font-bold 
           ${content.isJobGuarantee 
             ? 'bg-gradient-to-r from-amber-400 via-yellow-500 to-orange-500 text-white shadow-xl shadow-yellow-500/40 border-2 border-yellow-300' 
             : `${styles.stickyNoteBg} ${styles.stickyNoteText}`
@@ -728,16 +725,14 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
             <span>{content.tag}</span>
           </div>
         </div>
-
-
       </div>
 
-      {/* Desktop Layout (sm and above) - Original vertical layout */}
+      {/* Desktop Layout (md and above) - Original vertical layout with iPad optimizations */}
       <div 
-        className="group relative hidden sm:flex flex-col 
-        h-[320px] xs:h-[340px] sm:h-[360px] md:h-[380px] lg:h-[400px] 
-        w-full max-w-[280px] xs:max-w-[300px] sm:max-w-[320px] md:max-w-sm lg:max-w-md 
-        mx-auto rounded-lg xs:rounded-xl overflow-hidden 
+        className="group relative hidden md:flex flex-col 
+        h-[380px] md:h-[420px] lg:h-[420px] xl:h-[420px] 
+        w-full max-w-[280px] md:max-w-[300px] lg:max-w-[320px] xl:max-w-[340px] 
+        mx-auto rounded-lg md:rounded-xl overflow-hidden 
         border border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300/60 dark:hover:border-gray-600/60
         bg-white dark:bg-gray-900 
         shadow-sm hover:shadow-xl hover:shadow-gray-200/25 dark:hover:shadow-gray-800/25
@@ -764,10 +759,10 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
         
         {/* Sticky Note Badge - Top Left Corner */}
         <div className={`absolute 
-          top-2 xs:top-2.5 sm:top-3 left-2 xs:left-2.5 sm:left-3 z-10 
-          px-2 xs:px-2.5 sm:px-3 py-1 xs:py-1.5 
-          rounded-md xs:rounded-lg 
-          text-[10px] xs:text-xs font-bold 
+          top-2 md:top-3 lg:top-3 left-2 md:left-3 lg:left-3 z-10 
+          px-2 md:px-3 lg:px-3 py-1 md:py-1.5 lg:py-1.5 
+          rounded-md md:rounded-lg 
+          text-xs md:text-sm font-bold 
           ${content.isJobGuarantee 
             ? 'bg-gradient-to-r from-amber-400 via-yellow-500 to-orange-500 text-white shadow-xl shadow-yellow-500/40 border-2 border-yellow-300' 
             : `${styles.stickyNoteBg} ${styles.stickyNoteText}`
@@ -784,15 +779,15 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
 
       {/* Course content */}
       <div className="flex flex-col flex-grow 
-        p-2 xs:p-2.5 sm:p-3 md:p-4 
-        space-y-1.5 xs:space-y-2 sm:space-y-2.5">
+        p-3 md:p-4 lg:p-5 
+        space-y-1.5 md:space-y-2 lg:space-y-2.5">
         
         {/* 1. Course Title - Top Priority in Hierarchy */}
-        <div className="text-left space-y-0.5 xs:space-y-1 
-          min-h-[40px] xs:min-h-[45px] sm:min-h-[50px] md:min-h-[55px] 
+        <div className="text-left space-y-1 
+          min-h-[50px] md:min-h-[60px] lg:min-h-[65px] 
           flex flex-col justify-center">
-          <h3 className="text-sm xs:text-base sm:text-lg md:text-xl 
-            font-bold xs:font-extrabold 
+          <h3 className="text-sm md:text-base lg:text-lg 
+            font-bold md:font-extrabold 
             text-gray-900 dark:text-white leading-tight 
             break-words word-break overflow-wrap-anywhere">
             {(() => {
@@ -804,7 +799,7 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
                 return (
                   <>
                     {beforeBracket.trim()}{afterBracket.trim() && ` ${afterBracket.trim()}`}
-                    <div className="text-[10px] xs:text-xs font-medium text-gray-600 dark:text-gray-400 mt-0.5 xs:mt-1">
+                    <div className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
                       ({insideBracket})
                     </div>
                   </>
@@ -817,11 +812,11 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
         </div>
         
         {/* 2. Number of Videos/Live Sessions and Duration for Live Courses */}
-        <div className="flex items-center justify-start gap-1.5 flex-wrap">
+        <div className="flex items-center justify-start gap-1.5 md:gap-2 flex-wrap">
           <div className={`inline-flex items-center 
-            px-1.5 xs:px-2 sm:px-2.5 py-0.5 xs:py-1 
-            rounded-md xs:rounded-lg 
-            text-[10px] xs:text-xs font-semibold whitespace-nowrap
+            px-2 md:px-2.5 lg:px-3 py-1 md:py-1.5 
+            rounded-md lg:rounded-lg 
+            text-xs md:text-sm font-semibold whitespace-nowrap
             ${styles.chipBg} ${styles.chipText} border ${styles.chipBorder}`}>
             {content.sessionIcon}
             <span className="ml-1">
@@ -832,63 +827,62 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
           {/* Course Duration - Only for Live Courses */}
           {isLiveCourse && (course?.course_duration || course?.duration_range) && (
             <div className={`inline-flex items-center 
-              px-1.5 xs:px-2 sm:px-2.5 py-0.5 xs:py-1 
-              rounded-md xs:rounded-lg 
-              text-[10px] xs:text-xs font-semibold whitespace-nowrap
+              px-2 md:px-2.5 lg:px-3 py-1 md:py-1.5 
+              rounded-md lg:rounded-lg 
+              text-xs md:text-sm font-semibold whitespace-nowrap
               ${styles.chipBg} ${styles.chipText} border ${styles.chipBorder}`}>
-              <Clock size={10} className="mr-1" />
+              <Clock size={12} className="mr-1" />
               <span>{formatCourseDuration(course?.duration_range || course?.course_duration)}</span>
             </div>
           )}
         </div>
         
         {/* 3. Chips Row - Grade, Q&A Live, and Job Guarantee */}
-        <div className="flex items-center justify-start gap-1 xs:gap-1.5 flex-wrap">
+        <div className="flex items-center justify-start gap-1.5 md:gap-2 flex-wrap">
           {/* All Grades Chip */}
           <div className="inline-flex items-center 
-            px-1.5 xs:px-2 py-0.5 
-            rounded-sm xs:rounded-md 
-            text-[10px] xs:text-xs font-medium whitespace-nowrap
+            px-2 md:px-2.5 py-0.5 md:py-1 
+            rounded-sm md:rounded-md 
+            text-xs md:text-sm font-medium whitespace-nowrap
             bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 
             border border-gray-200 dark:border-gray-700">
-            <GraduationCap size={10} className="mr-1" />
+            <GraduationCap size={12} className="mr-1" />
             <span>{formatCourseGrade(course?.course_grade)}</span>
           </div>
           
           {/* Q&A Live Chip - Only for blended courses */}
           {isBlendedCourse && (
             <div className="inline-flex items-center 
-              px-1.5 xs:px-2 py-0.5 
-              rounded-sm xs:rounded-md 
-              text-[10px] xs:text-xs font-medium whitespace-nowrap
+              px-2 md:px-2.5 py-0.5 md:py-1 
+              rounded-sm md:rounded-md 
+              text-xs md:text-sm font-medium whitespace-nowrap
               bg-[#379392]/10 text-[#379392] border border-[#379392]/20">
-              <Users size={10} className="mr-1" />
+              <Users size={12} className="mr-1" />
               <span>Q&A Live</span>
             </div>
           )}
         </div>
         
-        {/* Spacer to push price and CTA to bottom */}
-        <div className="flex-grow"></div>
+
         
         {/* 4. Price */}
         {!hidePrice && (
-          <div className="text-left py-0.5 xs:py-1">
-            <div className="flex items-baseline justify-start gap-1 xs:gap-1.5">
-              <span className={`text-sm xs:text-base sm:text-lg font-bold ${styles.priceColor}`}>
+          <div className="text-left py-1 md:py-1.5">
+            <div className="flex items-baseline justify-start gap-1 md:gap-1.5">
+              <span className={`text-base md:text-lg lg:text-xl font-extrabold ${styles.priceColor} drop-shadow-sm`}>
                 {formatPrice(course.course_fee, course.batchPrice)}
               </span>
               {isLiveCourse && (
-                <span className="text-[10px] xs:text-xs text-gray-500 font-medium">onwards</span>
+                <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium">onwards</span>
               )}
               {course?.original_fee && (
-                <span className="text-[10px] xs:text-xs text-gray-500 line-through ml-0.5 xs:ml-1">
+                <span className="text-xs md:text-sm text-gray-500 dark:text-gray-500 line-through ml-1">
                   {course.original_fee.toLocaleString()}
                 </span>
               )}
             </div>
             {course?.fee_note && (
-              <span className="text-[10px] xs:text-xs text-gray-500 font-medium block mt-0.5">
+              <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium block mt-0.5">
                 {course.fee_note}
               </span>
             )}
@@ -911,15 +905,15 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
           }}
         >
           {/* Glassmorphic View Details button */}
-          <div className="px-4 xs:px-6 sm:px-8 py-2 xs:py-3 sm:py-4 
-            rounded-lg xs:rounded-xl 
-            font-semibold text-sm xs:text-base sm:text-lg 
-            flex items-center gap-2 xs:gap-3 
+          <div className="px-4 md:px-6 lg:px-8 py-2 md:py-3 lg:py-4 
+            rounded-lg md:rounded-xl 
+            font-semibold text-sm md:text-base lg:text-lg 
+            flex items-center gap-2 md:gap-3 
             bg-white/15 backdrop-blur-xl border border-white/30 shadow-2xl
             text-white transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100
             transition-all duration-100 ease-out">
             View Details
-            <ArrowUpRight size={16} className="xs:w-5 xs:h-5 sm:w-6 sm:h-6 transition-transform duration-100 ease-out group-hover:translate-x-1 group-hover:-translate-y-1" />
+            <ArrowUpRight size={16} className="md:w-5 md:h-5 lg:w-6 lg:h-6 transition-transform duration-100 ease-out group-hover:translate-x-1 group-hover:-translate-y-1" />
           </div>
         </div>
       </div>
