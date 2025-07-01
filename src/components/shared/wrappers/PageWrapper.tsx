@@ -20,11 +20,26 @@ interface PageWrapperProps {
    * Skip to content ID for accessibility
    */
   skipToContentId?: string;
+  /**
+   * Whether to add top padding for header spacing
+   */
+  addTopPadding?: boolean;
+  /**
+   * Whether to add bottom padding
+   */
+  addBottomPadding?: boolean;
+  /**
+   * Whether to show the footer
+   */
+  showFooter?: boolean;
 }
 
 const PageWrapper: React.FC<PageWrapperProps> = ({ 
   children,
-  skipToContentId = "main-content" 
+  skipToContentId = "main-content",
+  addTopPadding = true,
+  addBottomPadding = true,
+  showFooter = true
 }) => {
   const [hasPageLoaded, setHasPageLoaded] = useState<boolean>(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -174,7 +189,11 @@ const PageWrapper: React.FC<PageWrapperProps> = ({
         id={skipToContentId}
         role="main"
         tabIndex={-1}
-        className={`flex-grow w-full transition-opacity duration-700 pt-[var(--header-height)] will-change-opacity ${hasPageLoaded ? 'opacity-100' : 'opacity-0'}`}
+        className={`flex-grow w-full transition-opacity duration-700 will-change-opacity ${
+          addTopPadding ? 'pt-[var(--header-height)]' : ''
+        } ${
+          addBottomPadding ? 'pb-8' : ''
+        } ${hasPageLoaded ? 'opacity-100' : 'opacity-0'}`}
       >
         <div className="animate-fadeIn">
           {children}
@@ -182,7 +201,7 @@ const PageWrapper: React.FC<PageWrapperProps> = ({
       </main>
       
       {/* Footer with theme prop */}
-              <Footer />
+      {showFooter && <Footer />}
     </div>
   );
 };

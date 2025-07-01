@@ -249,7 +249,7 @@ const HireFromMedhBanner: React.FC<HireFromMedhBannerProps> = ({ onLearnMoreClic
   };
 
   return (
-    <section className="relative min-h-[80vh] overflow-hidden animate-theme-transition">
+    <section className="relative pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-0 overflow-hidden animate-theme-transition">
       {/* Add mobile tagline styles */}
       <style jsx>{mobileTaglineStyles}</style>
       
@@ -262,13 +262,16 @@ const HireFromMedhBanner: React.FC<HireFromMedhBannerProps> = ({ onLearnMoreClic
         <div className={`absolute top-3/4 left-1/2 w-12 h-12 md:w-16 md:h-16 rounded-xl border-2 ${isDark ? 'border-blue-500/20' : 'border-blue-400/30'} transform rotate-45 animate-float`}></div>
       </div>
 
+      {/* Centered container matching Hero2.tsx pattern */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
-        <div className="flex flex-col items-center justify-center min-h-[80vh] text-center py-6">
+        <div className="flex flex-col items-center justify-center text-center pb-4 md:pb-6 lg:pb-8">
           
+          {/* Hero Text Section */}
           <div className={`mb-2 md:mb-3 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <div className="glass-container rounded-3xl p-4 md:p-6 lg:p-8 mb-1 transform scale-90 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
+            <div className="glass-container rounded-3xl p-8 md:p-12 mb-1" style={{ transform: 'scale(0.9) translate3d(0,0,0)' }}>
               
-              <div className="flex flex-wrap justify-center gap-3 mb-4">
+              {/* Certification Badges */}
+              <div className="flex flex-wrap justify-center gap-3 mb-3 sm:mb-4">
                 <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
                   <Shield size={10} className="mr-1 sm:w-3 sm:h-3" />
                   ISO Certified
@@ -279,95 +282,78 @@ const HireFromMedhBanner: React.FC<HireFromMedhBannerProps> = ({ onLearnMoreClic
                 </div>
               </div>
                
-              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-2 sm:mb-3 md:mb-4 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                <span className="block text-sm sm:text-base font-medium uppercase tracking-widest mb-3 opacity-80">Elite Global Talent Hub</span>
-                <span className="block whitespace-nowrap">Hire From Medh</span>
+              {/* Main Heading */}
+              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-4 md:mb-6 tracking-tight max-w-4xl mx-auto ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 <span className="block whitespace-nowrap">
-                  <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9)' }}>with</em>
-                  <span className="inline-flex items-center">
-                  <Image 
-                     src={medhLogo} 
-                     alt="Medh Logo" 
-                     width={128} 
-                     height={128} 
-                     unoptimized={true}
-                     className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline"
-                     style={{ 
-                         filter: 'brightness(1.1) contrast(1.2)',
-                         transform: 'scale(0.9) translateY(5px)',
-                         verticalAlign: 'baseline'
-                       }}
-                   />
+                  Hire From{' '}                                                       
+                  <span className="inline-flex items-baseline align-baseline">
+                    <Image 
+                      src={medhLogo} 
+                      alt="Medh Logo" 
+                      width={96} 
+                      height={96} 
+                      priority 
+                      quality={95}
+                      fetchPriority="high"
+                      sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, (max-width: 1024px) 96px, 112px"
+                      className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline"
+                      style={{ 
+                        transform: 'translateY(2px) translate3d(0,0,0)',
+                        verticalAlign: 'baseline',
+                        objectFit: 'contain',
+                        imageRendering: '-webkit-optimize-contrast',
+                        backfaceVisibility: 'hidden',
+                        WebkitFontSmoothing: 'antialiased'
+                      }}
+                      onLoad={() => {
+                        // Mark LCP element as loaded for performance tracking
+                        if (typeof window !== 'undefined' && 'performance' in window) {
+                          performance.mark('hero-logo-loaded');
+                        }
+                      }}
+                    />
                   </span>
                 </span>
               </h1>
                 
-              <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-3 sm:mb-4 md:mb-6 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
+              {/* Description */}
+              <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>
                 Recruit top IT professionals in areas including AI, Data Science, Digital Marketing, Analytics, Cybersecurity, and more. Save time and resources with our pre-vetted talent.
               </p>
 
-
-              <div className={`mumkinMedh text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold mb-2 leading-tight pt-12 ${
-                isDark 
-                  ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
-                  : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
-              }`} style={{ transform: 'scaleX(1.1)', letterSpacing: '0.05em' }}>
-                Medh Hai Toh Mumkin Hai !
-              </div>
-            </div>
-          </div>
-
-          <div className={`mb-3 md:mb-4 transition-all duration-1000 delay-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-5xl lg:max-w-6xl mx-auto">
-              {highlights.map((highlight, index) => (
-                <div
-                  key={index}
-                  className="glass-stats rounded-xl p-4 md:p-6 text-center hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden"
+              {/* CTA Button */}
+              <div className="mt-4 sm:mt-6 md:mt-8">
+                <button 
+                  onClick={handleExplore}
+                  className={`inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-all duration-300 transform hover:scale-105 group text-sm sm:text-base md:text-lg relative overflow-hidden shadow-2xl ${
+                    isDark
+                      ? 'bg-gradient-to-r from-primary-500 to-purple-500 text-white hover:shadow-2xl hover:shadow-primary-500/30 glass-stats' 
+                      : 'bg-white/95 backdrop-blur-lg text-gray-900 border-2 border-primary-500/40 hover:border-primary-500/70 hover:bg-white shadow-2xl hover:shadow-3xl'
+                  }`}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
-                  <div className="relative z-10">
-                    <div className={`mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-primary-300' : 'text-primary-600'} flex justify-center`}>
-                      <div className={`bg-gradient-to-br ${highlight.color} text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform`}>
-                        <div className="w-6 h-6 md:w-8 md:h-8">
-                          {highlight.icon}
-                        </div>
-                      </div>
-                    </div>
-                    <div className={`font-semibold text-sm md:text-base group-hover:text-primary-300 transition-colors ${isDark ? 'text-white' : 'text-gray-800'}`}>{highlight.title}</div>
-                    <div className={`text-xs md:text-sm mt-1 ${isDark ? 'text-white' : 'text-gray-700'} font-medium`}>{highlight.description}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+                  <span className="relative z-10 font-extrabold tracking-wide">Get Started</span>
+                  <ArrowRight size={16} className="relative z-10 ml-3 group-hover:translate-x-1 transition-transform sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                </button>
+              </div>
 
-          <div className={`mb-4 md:mb-6 transition-all duration-1000 delay-500 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <div className="glass-stats rounded-2xl p-6 md:p-8 max-w-5xl lg:max-w-6xl mx-auto">
-              <h3 className={`text-xl md:text-2xl font-bold mb-4 md:mb-6 text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>Hiring Benefits</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-                {categories.map((category, index) => (
-                  <div
-                    key={index}
-                    className="relative overflow-hidden rounded-xl p-4 md:p-6 cursor-pointer group transition-all duration-300 text-center glass-stats hover:scale-105"
-                  >
-                    <div className="relative z-10">
-                      <div className={`bg-gradient-to-br ${category.color} text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform`}>
-                        <div className="w-5 h-5 md:w-6 md:h-6">
-                          {category.icon}
-                        </div>
-                      </div>
-                      <h4 className={`text-base md:text-lg font-bold mb-2 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'}`}>{category.title}</h4>
-                      <p className={`text-sm md:text-base transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'}`}>{category.description}</p>
-                    </div>
-                  </div>
-                ))}
+              {/* Tagline */}
+              <div className="pt-2 mb-0 w-full overflow-hidden" style={{ paddingTop: '1rem' }}>
+                <div className={`mumkinMedh font-extrabold leading-tight ${
+                  isDark 
+                    ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
+                    : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
+                }`} style={{ 
+                  fontSize: 'clamp(2rem, 8vw, 5rem)',
+                  transform: 'scaleX(1.1) translate3d(0,0,0)', 
+                  letterSpacing: '0.05em', 
+                  whiteSpace: 'nowrap',
+                  textAlign: 'center',
+                  width: '100%'
+                }}>
+                  Medh Hai Toh Mumkin Hai !
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className={`flex flex-col items-center mt-4 md:mt-6 transition-all duration-1000 delay-700 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <span className={`text-sm mb-2 ${isDark ? 'text-white' : 'text-gray-600'} font-medium`}>Discover Your Hiring Solutions</span>
-            <ChevronDown className={`w-6 h-6 animate-bounce ${isDark ? 'text-white' : 'text-gray-500'}`} />
           </div>
         </div>
       </div>

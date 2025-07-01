@@ -11,7 +11,8 @@ import {
   Award,
   UserPlus,
   Calendar,
-  HeartHandshake
+  HeartHandshake,
+  HelpCircle
 } from "lucide-react";
 
 const HireFromMedhFaq: React.FC = () => {
@@ -125,34 +126,31 @@ const HireFromMedhFaq: React.FC = () => {
   ];
 
   return (
-    <section className="relative bg-gradient-to-br from-slate-50 via-white to-emerald-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-16 md:py-24 overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-20 dark:opacity-10"></div>
-      
-      {/* Enhanced Floating Elements */}
-      <div className="absolute top-20 left-0 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute top-40 right-0 w-40 h-40 bg-gradient-to-br from-blue-400/20 to-purple-500/20 rounded-full blur-3xl animate-pulse animation-delay-2000"></div>
-      <div className="absolute bottom-20 left-1/2 w-36 h-36 bg-gradient-to-br from-purple-400/20 to-pink-500/20 rounded-full blur-3xl animate-pulse animation-delay-4000"></div>
-      
-      <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Modern Header with Badge */}
+    <section className="bg-slate-50 dark:bg-slate-900 pt-16 md:pt-24 relative overflow-hidden">
+      {/* Background elements */}
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/30 via-transparent to-blue-50/30 dark:from-emerald-950/10 dark:via-transparent dark:to-blue-950/10"></div>
+      <div className="absolute top-10 left-10 w-32 h-32 bg-emerald-100/20 dark:bg-emerald-800/10 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-10 right-10 w-40 h-40 bg-blue-100/20 dark:bg-blue-800/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+
+      <div className="relative w-full px-4 sm:px-6 lg:px-8">
+        {/* Header */}
         <div className="text-center mb-12 md:mb-16">
           <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-emerald-100 to-blue-100 dark:from-emerald-900/30 dark:to-blue-900/30 rounded-full border border-emerald-200 dark:border-emerald-700/50 mb-6">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mr-2" />
-            <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Hiring Questions Answered</span>
+            <HelpCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mr-2" />
+            <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Frequently Asked Questions</span>
           </div>
           
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent leading-tight mb-4">
-            Got Questions?
-          </h1>
-          <p className="text-xl md:text-2xl font-medium text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl mx-auto">
-            Everything you need to know about hiring through Recruit@Medh
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-slate-100 mb-4 leading-tight">
+            Got Questions? We've Got Answers
+          </h2>
+          <p className="text-xl md:text-2xl font-medium text-slate-600 dark:text-slate-300 leading-relaxed w-full mx-auto">
+            Everything you need to know about hiring from Medh
           </p>
         </div>
 
         {/* Edge-to-Edge FAQ Content with Glass Effect */}
         <div className="bg-gradient-to-r from-white/80 to-slate-50/80 dark:from-slate-800/80 dark:to-slate-900/80 backdrop-blur-xl rounded-3xl border border-white/40 dark:border-slate-600/40 shadow-2xl overflow-hidden">
-          <div className="p-6 sm:p-8 md:p-12 lg:p-16">
+          <div className="p-6 sm:p-8 md:p-12 lg:p-16 pb-0">
             <CommonFaq
               title=""
               subtitle=""

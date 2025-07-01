@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, ChevronRight, ArrowUp, UserPlus, FileText, Users, Shield, Award, Workflow } from "lucide-react";
+import { Check, ChevronRight, ArrowUp, UserPlus, FileText, Users, Shield, Award, Workflow, Target } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { buildAdvancedComponent, corporatePatterns, mobilePatterns } from "@/utils/designSystem";
 
@@ -122,15 +122,15 @@ const HiringProcess: React.FC<IHiringProcessProps> = memo(({ className = "" }) =
 
   if (isLoading) {
     return (
-      <section className={`relative bg-slate-50 dark:bg-slate-900 min-h-screen overflow-hidden w-full ${className}`}>
+      <section className={`relative bg-white dark:bg-slate-950 min-h-screen overflow-hidden w-full ${className}`}>
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
         
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-violet-50/50 via-transparent to-blue-50/50 dark:from-violet-950/20 dark:via-transparent dark:to-blue-950/20"></div>
         
-        <div className="relative z-10 w-full px-3 sm:px-4 md:px-6 lg:px-8 py-8 md:py-12">
-          <div className="animate-pulse space-y-8 max-w-6xl mx-auto">
+        <div className="relative z-10 w-full py-8 md:py-12">
+          <div className="animate-pulse space-y-8 w-full px-4 sm:px-6 md:px-8">
             {/* Header skeleton */}
             <div className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm">
               <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-2/3 mx-auto mb-4"></div>
@@ -140,12 +140,12 @@ const HiringProcess: React.FC<IHiringProcessProps> = memo(({ className = "" }) =
             {/* Content skeleton */}
             <div className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm">
               <div className="grid md:grid-cols-2 gap-8">
+                <div className="h-64 bg-slate-200 dark:bg-slate-700 rounded-xl"></div>
                 <div className="space-y-4">
-                  {[1, 2, 3, 4].map((i) => (
+                  {[1, 2, 3].map((i) => (
                     <div key={i} className="h-16 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
                   ))}
                 </div>
-                <div className="h-64 bg-slate-200 dark:bg-slate-700 rounded-xl"></div>
               </div>
             </div>
           </div>
@@ -155,7 +155,7 @@ const HiringProcess: React.FC<IHiringProcessProps> = memo(({ className = "" }) =
   }
 
   return (
-    <section className={`relative ${mobilePatterns.mobileSection()} overflow-hidden ${className}`}>
+    <section className={`relative bg-white dark:bg-slate-950 py-12 md:py-20 overflow-hidden w-full ${className}`}>
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
       
@@ -166,74 +166,45 @@ const HiringProcess: React.FC<IHiringProcessProps> = memo(({ className = "" }) =
       <div className="absolute top-10 sm:top-20 left-0 w-20 h-20 sm:w-32 sm:h-32 bg-violet-200/20 dark:bg-violet-800/20 rounded-full blur-2xl sm:blur-3xl animate-blob"></div>
       <div className="absolute bottom-10 sm:bottom-20 right-0 w-24 h-24 sm:w-40 sm:h-40 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-2xl sm:blur-3xl animate-blob animation-delay-2000"></div>
 
-      <div className={`relative z-10 ${mobilePatterns.mobileContainer('lg')}`}>
+      <div className="relative z-10 w-full px-4 sm:px-6 md:px-8 lg:px-12 py-8 md:py-12">
+        {/* Enhanced Header Section */}
         <motion.div
           initial="hidden"
           animate={isVisible ? "visible" : "hidden"}
           variants={fadeInUp}
           transition={{ duration: 0.8 }}
-          className={buildAdvancedComponent.glassCard({ variant: 'hero', padding: 'mobile' })}
+          className={buildAdvancedComponent.glassCard({ variant: 'hero', padding: 'desktop', hover: false })}
         >
-          {/* Header Section - Mobile optimized */}
-          <div className="text-center mb-8 md:mb-10">
-            <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="w-full mx-auto">
               {/* Section Badge */}
               <div className={corporatePatterns.sectionBadge('violet')}>
-                <Workflow className="w-3 h-3 sm:w-4 sm:h-4 text-violet-600 dark:text-violet-400 mr-2" />
-                <span className="text-xs sm:text-sm">Streamlined Process</span>
+                <Target className="w-4 h-4 text-violet-600 dark:text-violet-400 mr-2" />
+                <span>Streamlined Process</span>
               </div>
               
-              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-slate-900 dark:text-slate-100 mb-3 md:mb-4 leading-tight">
-                <span className="text-violet-600 dark:text-violet-400">Simple</span> Hiring Process
-              </h1>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-slate-100 mb-4 leading-tight whitespace-nowrap">
+                Our Hiring <span className="text-violet-600 dark:text-violet-400">Process</span>
+              </h2>
               
-              <div className="max-w-3xl mx-auto">
-                <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-600 dark:text-slate-300 leading-relaxed mb-4 md:mb-6">
-                  Fully managed by our support team with a 
-                  <span className="font-semibold text-slate-800 dark:text-slate-200"> dedicated relationship manager</span> for you
+              <div className="w-full mx-auto">
+                <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 leading-relaxed">
+                  A structured approach to finding the 
+                  <span className="font-semibold text-slate-800 dark:text-slate-200"> right talent</span> for your 
+                  <span className="font-semibold text-slate-800 dark:text-slate-200"> specific needs</span>
                 </p>
-                
-                {/* Process Highlights - Mobile friendly */}
-                <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4 text-xs sm:text-sm">
-                  <div className={corporatePatterns.valueHighlight('violet')}>
-                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-violet-500 rounded-full mr-2"></div>
-                    <span className="font-medium">5 Simple Steps</span>
-                  </div>
-                  <div className={corporatePatterns.valueHighlight('emerald')}>
-                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full mr-2"></div>
-                    <span className="font-medium">Fully Managed</span>
-                  </div>
-                  <div className={corporatePatterns.valueHighlight('blue')}>
-                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full mr-2"></div>
-                    <span className="font-medium">Quick Results</span>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
-
-          {/* Main Content - Enhanced mobile layout */}
-          <div className="max-w-4xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="mb-6 md:mb-8"
-            >
-              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2 md:mb-3 text-center">
-                How It Works
-              </h3>
-              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed text-center">
-                Five simple steps to connect with verified professionals
-              </p>
             </motion.div>
 
-            {/* Process Steps - Improved mobile layout */}
+        {/* Process Steps */}
             <motion.div
-              variants={staggerContainer}
               initial="hidden"
               animate={isVisible ? "visible" : "hidden"}
-              className="space-y-3 sm:space-y-4"
+              variants={staggerContainer}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="w-full flex flex-col md:flex-row gap-6 md:gap-8 justify-center items-center md:items-stretch px-0"
             >
               {steps.map((step, index) => {
                 const IconComponent = step.icon;
@@ -242,30 +213,23 @@ const HiringProcess: React.FC<IHiringProcessProps> = memo(({ className = "" }) =
                     key={index}
                     variants={fadeInUp}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className="group"
+                    className="flex-1 min-w-[220px] max-w-xs md:max-w-sm lg:max-w-xs flex flex-col items-center text-center"
                   >
-                    <div className="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl p-4 sm:p-5 border border-slate-200 dark:border-slate-600 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group-hover:border-violet-300 dark:group-hover:border-violet-600">
-                      <div className="flex items-start space-x-3 sm:space-x-4">
-                        {/* Icon Container - Mobile optimized */}
-                        <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-violet-500 to-violet-600 rounded-lg sm:rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
-                          <IconComponent className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-                        </div>
-                        
-                        {/* Content Container - Better mobile alignment */}
-                        <div className="flex-grow min-w-0">
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-3">
-                            <h4 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors duration-300 mb-1 sm:mb-0 leading-tight">
-                              {step.title}
-                            </h4>
-                            <div className="text-xs sm:text-sm font-semibold text-violet-600 dark:text-violet-400 bg-violet-100 dark:bg-violet-900/30 px-2 sm:px-3 py-1 rounded-full w-fit">
-                              Step {index + 1}
-                            </div>
-                          </div>
-                          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                            {step.description}
-                          </p>
+                    <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-600 shadow-sm w-full h-full flex flex-col items-center">
+                      <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-violet-500 to-violet-600 rounded-xl flex items-center justify-center shadow-md mb-3">
+                        <IconComponent className="w-7 h-7 text-white" />
+                      </div>
+                      <div className="flex flex-col items-center mb-2">
+                        <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100 leading-tight mb-1">
+                          {step.title}
+                        </h4>
+                        <div className="text-xs font-semibold text-violet-600 dark:text-violet-400 bg-violet-100 dark:bg-violet-900/30 px-3 py-1 rounded-full">
+                          Step {index + 1}
                         </div>
                       </div>
+                      <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                        {step.description}
+                      </p>
                     </div>
                   </motion.div>
                 );
@@ -294,8 +258,6 @@ const HiringProcess: React.FC<IHiringProcessProps> = memo(({ className = "" }) =
                     <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">Quick Results</div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
           </div>
         </motion.div>
       </div>
