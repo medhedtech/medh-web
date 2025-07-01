@@ -235,7 +235,7 @@ const CertificationGrid = memo<{
   }, []);
 
   const titleClasses = useMemo(() => {
-    return "text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-5 sm:mb-6 md:mb-8 text-center relative after:content-[''] after:absolute after:bottom-[-12px] sm:after:bottom-[-16px] after:left-1/2 after:-translate-x-1/2 after:w-16 sm:after:w-20 md:after:w-24 after:h-1 sm:after:h-1.5 after:bg-gradient-to-r after:from-primary-500 after:to-blue-500 after:rounded-full leading-tight";
+    return "text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-5 sm:mb-6 md:mb-8 text-center leading-tight";
   }, []);
 
   const itemClasses = useMemo(() => {
@@ -363,7 +363,7 @@ const WhyMedh = memo(() => {
   }, []);
 
   const certificationsTitleClasses = useMemo(() => {
-    return "text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white relative after:content-[''] after:absolute after:bottom-[-12px] sm:after:bottom-[-16px] after:left-1/2 after:-translate-x-1/2 after:w-20 sm:after:w-24 md:after:w-32 after:h-1 sm:after:h-1.5 after:bg-gradient-to-r after:from-yellow-400 after:via-orange-500 after:to-red-500 after:rounded-full leading-tight bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent";
+    return "text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white leading-tight bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent";
   }, []);
 
   const certificationsDescriptionClasses = useMemo(() => {
@@ -527,28 +527,12 @@ const WhyMedh = memo(() => {
               />
             </div>
 
-            {/* Enhanced CTA Section */}
+            {/* Additional CTA Text Section */}
             <div className="mt-12 sm:mt-16 text-center px-4 sm:px-6">
-              <div className="bg-gradient-to-r from-primary-500/10 via-blue-500/10 to-purple-500/10 dark:from-primary-900/20 dark:via-blue-900/20 dark:to-purple-900/20 rounded-3xl p-8 sm:p-12 backdrop-blur-sm border border-primary-200/50 dark:border-primary-800/50 shadow-2xl">
-                <h3 className={certificationsTitleClasses}>Get Started Today</h3>
-                <p className={certificationsDescriptionClasses}>
-                  These certifications ensure your learning journey is built on globally recognized standards of excellence, innovation, and quality assurance.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center mt-8">
-                  <button 
-                    onClick={handleGetStarted}
-                    className="px-8 py-4 bg-gradient-to-r from-primary-500 to-blue-600 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 active:scale-95"
-                  >
-                    Start Learning Now
-                  </button>
-                  <button 
-                    onClick={handleLearnMore}
-                    className="px-8 py-4 bg-white/80 dark:bg-gray-800/80 text-gray-900 dark:text-white font-semibold rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 active:scale-95"
-                  >
-                    Learn More
-                  </button>
-                </div>
-              </div>
+              <h3 className={certificationsTitleClasses}>Get Started Today</h3>
+              <p className={certificationsDescriptionClasses}>
+                These certifications ensure your learning journey is built on globally recognized standards of excellence.
+              </p>
             </div>
 
           </div>
