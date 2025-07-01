@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback, useRef, use } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, use, RefObject } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Calculator, BrainCircuit, TrendingUp, UserCheck, ArrowLeft, 
@@ -148,12 +148,13 @@ interface CategoryEnrollmentPageProps {
 }
 
 interface SectionRef {
-  overview: RefObject<HTMLDivElement>;
-  about: RefObject<HTMLDivElement>;
-  curriculum: RefObject<HTMLDivElement>;
-  reviews: RefObject<HTMLDivElement>;
-  faq: RefObject<HTMLDivElement>;
-  certificate: RefObject<HTMLDivElement>;
+  [key: string]: RefObject<HTMLDivElement | null>;
+  overview: RefObject<HTMLDivElement | null>;
+  about: RefObject<HTMLDivElement | null>;
+  curriculum: RefObject<HTMLDivElement | null>;
+  reviews: RefObject<HTMLDivElement | null>;
+  faq: RefObject<HTMLDivElement | null>;
+  certificate: RefObject<HTMLDivElement | null>;
 }
 
 interface FeatureCardProps {
@@ -415,7 +416,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
   });
   const [isDetectingLocation, setIsDetectingLocation] = useState(true);
   
-  // Initialize currency detection on mount
+  // Initialize currency detection on mount - Fixed to prevent infinite loops
   useEffect(() => {
     const initializeCurrency = async () => {
       // Skip if currency is already set from cache
@@ -477,7 +478,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
     };
     
     initializeCurrency();
-  }, [searchParams, userCurrency]);
+  }, [searchParams]); // Removed userCurrency dependency to prevent infinite loop
   
   // Currency conversion utility functions
   const CURRENCY_RATES = {
@@ -550,12 +551,12 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
   
   // Refs for section navigation
   const sectionRefs: SectionRef = {
-    overview: useRef(null),
-    about: useRef(null),
-    curriculum: useRef(null),
-    reviews: useRef(null),
-    faq: useRef(null),
-    certificate: useRef(null)
+    overview: useRef<HTMLDivElement>(null),
+    about: useRef<HTMLDivElement>(null),
+    curriculum: useRef<HTMLDivElement>(null),
+    reviews: useRef<HTMLDivElement>(null),
+    faq: useRef<HTMLDivElement>(null),
+    certificate: useRef<HTMLDivElement>(null)
   };
 
   // State for active section
