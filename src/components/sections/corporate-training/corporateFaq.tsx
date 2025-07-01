@@ -1,135 +1,137 @@
 "use client";
 import React from "react";
 import CommonFaq, { IFAQ } from "@/components/shared/ui/CommonFaq";
-import { Brain, Zap, Award, MessageCircle, Sparkles, Lightbulb, BookOpen } from "lucide-react";
+import { HelpCircle, Users, DollarSign, Award, HeadphonesIcon, UserCheck } from "lucide-react";
+import { buildAdvancedComponent, typography } from "@/utils/designSystem";
 
 const CorporateFaq: React.FC = () => {
-  // FAQ data with improved color themes for light/dark modes
+  // Streamlined FAQ data with concise, actionable answers
   const faqs: IFAQ[] = [
     {
-      icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" style={{ color: '#3bac63' }} />, // Medh green book
-      iconBg: "#3b82f6", // Blue-500 outer circle
-      iconColor: "#3bac63", // Medh green book
+      icon: <Users className="w-5 h-5" />,
+      iconBg: "#3b82f6",
+      iconColor: "#3b82f6",
       category: "courses",
-      question: "What is the course curriculum and learning objectives?",
-      answer: "Our courses cover technical skills (AI, Data Science, Cybersecurity, Cloud Computing) and soft skills (Leadership, Communication, Personality Development). Learning objectives are tailored to equip participants with practical, industry-relevant skills.",
+      question: "What training programs do you offer?",
+      answer: "Technical skills (AI, Data Science, Cybersecurity, Cloud Computing) and leadership development. All programs are tailored to your industry and business objectives.",
     },
     {
-      icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" style={{ color: '#3bac63' }} />,
-      iconBg: "#3b82f6",
-      iconColor: "#3bac63",
+      icon: <Users className="w-5 h-5" />,
+      iconBg: "#3b82f6", 
+      iconColor: "#3b82f6",
       category: "courses",
-      question: "What are the delivery methods for training courses?",
-      answer: "Flexible 6-week programs with classes twice weekly. We offer online and in-person options with interactive sessions, hands-on workshops, and comprehensive learning materials.",
+      question: "How are programs delivered?",
+      answer: "Flexible formats: on-site workshops, virtual classrooms, or hybrid models. Standard 6-week programs with bi-weekly sessions designed around your schedule.",
     },
     {
-      icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" style={{ color: '#3bac63' }} />,
-      iconBg: "#3b82f6",
-      iconColor: "#3bac63",
+      icon: <DollarSign className="w-5 h-5" />,
+      iconBg: "#10b981",
+      iconColor: "#10b981", 
       category: "pricing",
-      question: "What are the pricing and payment options?",
-      answer: "Customized pricing based on your organization's needs. Includes per-participant rates, bulk discounts, and tailored packages. Flexible payment options: corporate invoicing, bulk discounts, and installment plans.",
+      question: "What are the investment options?",
+      answer: "Custom pricing based on team size and program scope. Options include bulk discounts, corporate invoicing, and flexible payment plans.",
     },
     {
-      icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" style={{ color: '#3bac63' }} />,
-      iconBg: "#3b82f6",
-      iconColor: "#3bac63",
-      category: "certification",
-      question: "Are the training courses certified or accredited?",
-      answer: "Yes, courses are designed with industry standards. Participants receive recognized certifications that validate skills and enhance professional credentials, aligned with industry benchmarks.",
+      icon: <Award className="w-5 h-5" />,
+      iconBg: "#f59e0b",
+      iconColor: "#f59e0b",
+      category: "certification", 
+      question: "Do participants receive certifications?",
+      answer: "Yes, industry-recognized certifications aligned with professional standards. Digital badges and certificates enhance participant credentials.",
     },
     {
-      icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" style={{ color: '#3bac63' }} />,
+      icon: <Users className="w-5 h-5" />,
       iconBg: "#3b82f6",
-      iconColor: "#3bac63",
+      iconColor: "#3b82f6",
       category: "courses",
-      question: "Can you tailor training to specific business needs?",
-      answer: "Absolutely! We create customized programs addressing your organization's unique skill gaps and strategic objectives. Our team develops tailored curriculum aligned with your specific requirements.",
+      question: "Can training be customized for our needs?",
+      answer: "Absolutely. We conduct needs assessments and design programs addressing your specific challenges, technologies, and business goals.",
     },
     {
-      icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" style={{ color: '#3bac63' }} />,
-      iconBg: "#3b82f6",
-      iconColor: "#3bac63",
+      icon: <HeadphonesIcon className="w-5 h-5" />,
+      iconBg: "#8b5cf6",
+      iconColor: "#8b5cf6",
       category: "support",
-      question: "What are the qualifications of your instructors?",
-      answer: "Our instructors are seasoned IT professionals with extensive industry experience and proven training track records. They bring real-world insights and practical knowledge, ensuring actionable skills directly applicable to work.",
+      question: "What support is provided after training?",
+      answer: "Ongoing mentorship, learning resource access, follow-up sessions, and professional networking opportunities for continuous development.",
     },
     {
-      icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" style={{ color: '#3bac63' }} />,
-      iconBg: "#3b82f6",
-      iconColor: "#3bac63",
-      category: "support",
-      question: "What post-training support do you provide?",
-      answer: "Comprehensive support including learning materials access, follow-up mentorship sessions, career guidance, and professional networking. Ongoing access to our learning platform for continued skill development.",
-    },
-    {
-      icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" style={{ color: '#3bac63' }} />,
-      iconBg: "#3b82f6",
-      iconColor: "#3bac63",
-      category: "courses",
-      question: "How do your courses compare to competitors?",
-      answer: "We stand out through industry-aligned curriculum, experienced instructors, personalized learning, and comprehensive support. Focus on practical, hands-on learning that directly translates to workplace performance.",
-    },
-    {
-      icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" style={{ color: '#3bac63' }} />,
-      iconBg: "#3b82f6",
-      iconColor: "#3bac63",
+      icon: <UserCheck className="w-5 h-5" />,
+      iconBg: "#ec4899",
+      iconColor: "#ec4899",
       category: "enrollment",
-      question: "What is the enrollment process and timeline?",
-      answer: "Straightforward process: initial consultation → detailed proposal → training scheduling → participant setup → pre-course materials. Entire process from contact to course start typically takes 2-4 weeks.",
+      question: "How do we get started?",
+      answer: "Simple 3-step process: consultation call → customized proposal → program launch. Typically 2-4 weeks from initial contact to training start.",
     },
-  ];
-
-  // Category definitions for our filter
-  const categories = [
-    { id: "all", label: "All", count: faqs.length },
-    { id: "courses", label: "Courses", count: faqs.filter(f => f.category === "courses").length },
-    { id: "pricing", label: "Pricing", count: faqs.filter(f => f.category === "pricing").length },
-    { id: "certification", label: "Certification", count: faqs.filter(f => f.category === "certification").length },
-    { id: "support", label: "Support", count: faqs.filter(f => f.category === "support").length },
-    { id: "enrollment", label: "Enrollment", count: faqs.filter(f => f.category === "enrollment").length }
   ];
 
   return (
-    <section className="relative bg-slate-50 dark:bg-slate-900 min-h-screen overflow-hidden w-full">
-      {/* Enhanced Background Pattern */}
+    <section className="relative bg-slate-50 dark:bg-slate-900 py-12 md:py-20 overflow-hidden">
+      {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
       
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-violet-50/50 dark:from-blue-950/20 dark:via-transparent dark:to-violet-950/20"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-violet-50/50 via-transparent to-blue-50/50 dark:from-violet-950/20 dark:via-transparent dark:to-blue-950/20"></div>
       
       {/* Floating Elements */}
-      <div className="absolute top-20 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-3xl animate-blob"></div>
-      <div className="absolute top-40 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-violet-200/20 dark:bg-violet-800/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-      <div className="absolute bottom-20 left-1/2 w-28 h-28 sm:w-36 sm:h-36 bg-amber-200/20 dark:bg-amber-800/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+      <div className="absolute top-20 left-0 w-32 h-32 bg-violet-200/20 dark:bg-violet-800/20 rounded-full blur-3xl animate-blob"></div>
+      <div className="absolute bottom-20 right-0 w-40 h-40 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
 
-      <div className="relative z-10 w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-12">
-        {/* Single Unified Container for All FAQ Content */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 shadow-lg shadow-slate-200/50 dark:shadow-slate-800/50 max-w-7xl mx-auto overflow-hidden">
-          
-          {/* Header Section */}
-          <div className="p-6 md:p-8 border-b border-slate-200 dark:border-slate-600 text-center">
-            <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-slate-900 dark:text-slate-50 mb-2 sm:mb-3 leading-tight">
-              Frequently Asked Questions
-            </h1>
-            <p className="text-xs sm:text-sm md:text-base lg:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl mx-auto">
-              Everything you need to know about our corporate training programs
-            </p>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8">
+        {/* Header Section */}
+        <div className={buildAdvancedComponent.glassCard({ variant: 'hero', padding: 'tablet' })}>
+          <div className="text-center mb-12">
+            <div className="max-w-4xl mx-auto">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-slate-100 mb-6 leading-tight">
+                Common 
+                <span className="block text-violet-600 dark:text-violet-400 mt-2">
+                  Questions
+                </span>
+              </h1>
+              <div className="max-w-3xl mx-auto">
+                <p className="text-lg sm:text-xl md:text-2xl text-slate-600 dark:text-slate-300 leading-relaxed mb-8">
+                  Quick answers to help you understand our 
+                  <span className="font-semibold text-slate-800 dark:text-slate-200"> corporate training programs</span>
+                </p>
+                
+                {/* Question Categories Highlights */}
+                <div className="flex flex-wrap justify-center gap-4 text-sm sm:text-base">
+                  <div className="flex items-center bg-blue-50 dark:bg-blue-900/30 px-3 py-2 rounded-full">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                    <span className="text-blue-700 dark:text-blue-300 font-medium">Programs</span>
+                  </div>
+                  <div className="flex items-center bg-emerald-50 dark:bg-emerald-900/30 px-3 py-2 rounded-full">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full mr-2"></div>
+                    <span className="text-emerald-700 dark:text-emerald-300 font-medium">Investment</span>
+                  </div>
+                  <div className="flex items-center bg-amber-50 dark:bg-amber-900/30 px-3 py-2 rounded-full">
+                    <div className="w-2 h-2 bg-amber-500 rounded-full mr-2"></div>
+                    <span className="text-amber-700 dark:text-amber-300 font-medium">Certification</span>
+                  </div>
+                  <div className="flex items-center bg-violet-50 dark:bg-violet-900/30 px-3 py-2 rounded-full">
+                    <div className="w-2 h-2 bg-violet-500 rounded-full mr-2"></div>
+                    <span className="text-violet-700 dark:text-violet-300 font-medium">Support</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+        </div>
 
-          {/* FAQ Content Section */}
-          <div className="p-3 sm:p-4 md:p-6 lg:p-8">
+        {/* FAQ Content */}
+        <div className="mt-8">
+          <div className={buildAdvancedComponent.glassCard({ variant: 'primary', padding: 'desktop' })}>
             <CommonFaq
               title=""
               subtitle=""
               faqs={faqs}
               theme={{
-                primaryColor: "#3b82f6", // Blue-500 - Excellent contrast in both themes
-                secondaryColor: "#1e40af", // Blue-800 - Strong contrast for text
-                accentColor: "#2563eb", // Blue-600 - Perfect balance
+                primaryColor: "#3b82f6",
+                secondaryColor: "#1e40af", 
+                accentColor: "#2563eb",
                 showContactSection: true,
                 contactEmail: "care@medh.co",
-                contactText: "Have more questions about our corporate training? Contact our team at"
+                contactText: "Have more questions? Our team is here to help"
               }}
               showSearch={true}
               showCategories={true}
@@ -142,4 +144,4 @@ const CorporateFaq: React.FC = () => {
   );
 };
 
-export default CorporateFaq; 
+export default CorporateFaq;
