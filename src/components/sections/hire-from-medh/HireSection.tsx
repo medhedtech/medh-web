@@ -3,9 +3,9 @@
 import React, { useState, useEffect, useCallback, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { Check, ChevronRight, ArrowUp, Users, Target, Shield, Zap, Network } from "lucide-react";
+import { Check, ChevronRight, ArrowUp, Users, Target, Shield, Zap, Network, Briefcase, TrendingUp, Award } from "lucide-react";
 import { useRouter } from "next/navigation";
-import HireSectionImg from "@/assets/images/hireformmedh/hiresectionimg.png";
+import { buildAdvancedComponent, corporatePatterns, getResponsive, mobilePatterns } from "@/utils/designSystem";
 
 interface IBenefit {
   title: string;
@@ -156,86 +156,122 @@ const HireSection: React.FC<IHireSectionProps> = memo(({ className = "" }) => {
   }
 
   return (
-    <section className={`relative bg-slate-50 dark:bg-slate-900 min-h-screen overflow-hidden w-full ${className}`}>
-      {/* Enhanced Background Pattern */}
+    <section className={`relative ${mobilePatterns.mobileSection()} overflow-hidden ${className}`}>
+      {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
       
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-emerald-50/50 dark:from-blue-950/20 dark:via-transparent dark:to-emerald-950/20"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 via-transparent to-blue-50/50 dark:from-emerald-950/20 dark:via-transparent dark:to-blue-950/20"></div>
       
-      {/* Floating Elements */}
-      <div className="absolute top-20 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-3xl animate-blob"></div>
-      <div className="absolute top-40 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-emerald-200/20 dark:bg-emerald-800/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-      <div className="absolute bottom-20 left-1/2 w-28 h-28 sm:w-36 sm:h-36 bg-purple-200/20 dark:bg-purple-800/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+      {/* Floating Elements - optimized for mobile */}
+      <div className="absolute top-10 sm:top-20 left-0 w-20 h-20 sm:w-32 sm:h-32 bg-emerald-200/20 dark:bg-emerald-800/20 rounded-full blur-2xl sm:blur-3xl animate-blob"></div>
+      <div className="absolute bottom-10 sm:bottom-20 right-0 w-24 h-24 sm:w-40 sm:h-40 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-2xl sm:blur-3xl animate-blob animation-delay-2000"></div>
 
-      <div className="relative z-10 w-full px-3 sm:px-4 md:px-6 lg:px-8 py-8 md:py-12">
-        {/* Enhanced Header */}
+      <div className={`relative z-10 ${mobilePatterns.mobileContainer('lg')}`}>
+        {/* Enhanced Header Section */}
         <motion.div
           initial="hidden"
           animate={isVisible ? "visible" : "hidden"}
           variants={fadeInUp}
-          transition={{ duration: 0.6 }}
-          className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 mb-8 max-w-6xl mx-auto text-center"
+          transition={{ duration: 0.8 }}
+          className={buildAdvancedComponent.glassCard({ variant: 'hero', padding: 'desktop' })}
         >
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-slate-100 mb-4 leading-tight">
-            HIRE INDUSTRY-READY PROFESSIONALS FROM{" "}
-            <span className="text-emerald-600 dark:text-emerald-400">MEDH</span>
-          </h1>
-          <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-4xl mx-auto leading-relaxed">
-            Vetted candidates with real project experience across technical and business domains
-          </p>
-        </motion.div>
+          <div className="text-center mb-10">
+            <div className="max-w-4xl mx-auto">
+              {/* Section Badge */}
+              <div className={corporatePatterns.sectionBadge('emerald')}>
+                <Briefcase className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mr-2" />
+                <span>Professional Recruitment</span>
+              </div>
+              
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-slate-100 mb-4 leading-tight">
+                Hire Industry-Ready
+                <span className="block text-emerald-600 dark:text-emerald-400 mt-1">
+                  Professionals
+                </span>
+              </h1>
+              
+              <div className="max-w-3xl mx-auto">
+                <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
+                  Access vetted candidates with 
+                  <span className="font-semibold text-slate-800 dark:text-slate-200"> real project experience</span> across 
+                  <span className="font-semibold text-slate-800 dark:text-slate-200"> technical and business domains</span>
+                </p>
+                
+                {/* Value Proposition Highlights */}
+                <div className="flex flex-wrap justify-center gap-4 text-sm">
+                  <div className={corporatePatterns.valueHighlight('emerald')}>
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full mr-2"></div>
+                    <span className="font-medium">Pre-Vetted Talent</span>
+                  </div>
+                  <div className={corporatePatterns.valueHighlight('blue')}>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                    <span className="font-medium">Industry Experience</span>
+                  </div>
+                  <div className={corporatePatterns.valueHighlight('violet')}>
+                    <div className="w-2 h-2 bg-violet-500 rounded-full mr-2"></div>
+                    <span className="font-medium">Rapid Deployment</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        {/* Main Content Section */}
-        <motion.div
-          initial="hidden"
-          animate={isVisible ? "visible" : "hidden"}
-          variants={fadeInUp}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 max-w-6xl mx-auto"
-        >
-          <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+          {/* Main Content Grid */}
+          <div className="grid lg:grid-cols-2 gap-8 items-center mb-10">
             {/* Image Section */}
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={isVisible ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="relative order-2 md:order-1"
+              initial={{ opacity: 0, x: -30 }}
+              animate={isVisible ? { opacity: 1, x: 0 } : { opacity: 0, x: -30 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="relative"
             >
-              <div className="relative rounded-2xl overflow-hidden shadow-xl group">
-                <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 via-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl group">
+                <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 via-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <Image
-                  src={HireSectionImg}
-                  alt="Hire from Medh - Professional talent recruitment"
+                  src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+                  alt="Professional team collaboration and talent recruitment"
                   width={600}
                   height={400}
-                  className="w-full h-auto object-cover rounded-2xl transform group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-auto object-cover rounded-3xl transform group-hover:scale-105 transition-transform duration-700"
                   priority
                 />
+                {/* Professional Badge */}
+                <div className="absolute bottom-6 left-6 right-6">
+                  <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-2xl p-4 border border-white/50 dark:border-slate-600/50">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mb-1">Industry-Ready</div>
+                      <div className="text-sm text-slate-600 dark:text-slate-400">Verified Professionals</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </motion.div>
 
-            {/* Content Section */}
-            <div className="order-1 md:order-2">
+            {/* Benefits Section */}
+            <div>
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={isVisible ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                className="mb-6 md:mb-8"
+                initial={{ opacity: 0, x: 30 }}
+                animate={isVisible ? { opacity: 1, x: 0 } : { opacity: 0, x: 30 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                className="mb-6"
               >
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-                  Why Hire from
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">
+                  Why Choose
                 </h2>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-emerald-600 dark:text-emerald-400">
-                  Recruit@Medh?
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-4">
+                  Recruit@MEDH?
                 </h2>
+                <p className="text-base text-slate-600 dark:text-slate-300 leading-relaxed">
+                  Transform your hiring process with comprehensive talent solutions
+                </p>
               </motion.div>
 
               <motion.div
                 variants={staggerContainer}
                 initial="hidden"
                 animate={isVisible ? "visible" : "hidden"}
-                className="space-y-4 md:space-y-6"
+                className="space-y-4"
               >
                 {benefits.map((benefit, index) => {
                   const IconComponent = benefit.icon;
@@ -243,30 +279,93 @@ const HireSection: React.FC<IHireSectionProps> = memo(({ className = "" }) => {
                     <motion.div
                       key={index}
                       variants={fadeInUp}
-                      transition={{ duration: 0.4, delay: index * 0.1 }}
-                      className="group flex items-start space-x-4 p-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all duration-300 hover:shadow-md hover:transform hover:translate-x-2"
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                      className="group"
                     >
-                      <div className={`flex-shrink-0 w-12 h-12 rounded-xl ${benefit.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                        <IconComponent 
-                          className="w-6 h-6" 
-                          style={{ color: benefit.color }}
-                        />
-                      </div>
-                      <div className="flex-grow">
-                        <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors duration-300 mb-2">
-                          {benefit.title}
-                        </h3>
-                        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
-                          {benefit.description}
-                        </p>
+                      <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-600 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group-hover:border-emerald-300 dark:group-hover:border-emerald-600">
+                        <div className="flex items-start space-x-3">
+                          <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
+                            <IconComponent className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex-grow">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors duration-300 mb-2">
+                              {benefit.title}
+                            </h3>
+                            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                              {benefit.description}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </motion.div>
                   );
                 })}
               </motion.div>
-
             </div>
           </div>
+
+          {/* Enhanced Call to Action */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ duration: 0.6, delay: 1.0 }}
+          >
+            <div className="bg-gradient-to-r from-emerald-600 to-blue-700 dark:from-emerald-700 dark:to-blue-800 rounded-3xl p-8 md:p-12 text-center relative overflow-hidden">
+              {/* Background Pattern */}
+              <div className="absolute inset-0 bg-white/5 opacity-20">
+                <div className="absolute top-0 left-0 w-full h-full bg-grid-pattern opacity-30"></div>
+              </div>
+              
+              {/* Floating Elements */}
+              <div className="absolute top-4 right-4 w-16 h-16 bg-white/10 rounded-full blur-xl"></div>
+              <div className="absolute bottom-4 left-4 w-12 h-12 bg-white/10 rounded-full blur-xl"></div>
+              
+              <div className="relative z-10">
+                <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
+                  Ready to Find Your Perfect Candidate?
+                </h3>
+                <p className="text-lg text-emerald-100 max-w-2xl mx-auto leading-relaxed mb-8">
+                  Connect with industry-ready professionals who can drive your business forward
+                </p>
+                
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                  <button
+                    onClick={handleContactClick}
+                    className="group inline-flex items-center px-8 py-4 bg-white text-emerald-600 font-bold rounded-xl hover:bg-emerald-50 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:scale-105"
+                  >
+                    <span>Start Hiring Now</span>
+                    <ArrowUp className="ml-3 w-5 h-5 rotate-45 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                  
+                  <button
+                    onClick={() => router.push('/contact-us')}
+                    className="group inline-flex items-center px-8 py-4 bg-transparent text-white font-semibold rounded-xl border-2 border-white/30 hover:border-white hover:bg-white/10 transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+                  >
+                    <span>Schedule Consultation</span>
+                    <ChevronRight className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+
+                {/* Trust Indicators */}
+                <div className="mt-8 pt-8 border-t border-white/20">
+                  <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-emerald-100">
+                    <div className="flex items-center">
+                      <TrendingUp className="w-4 h-4 mr-2" />
+                      <span>Proven Track Record</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Award className="w-4 h-4 mr-2" />
+                      <span>Quality Assurance</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Shield className="w-4 h-4 mr-2" />
+                      <span>Verified Professionals</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </motion.div>
       </div>
 

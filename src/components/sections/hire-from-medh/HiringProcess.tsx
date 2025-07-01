@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect, useCallback, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
-import { Check, ChevronRight, ArrowUp, UserPlus, FileText, Users, Shield, Award } from "lucide-react";
+import { Check, ChevronRight, ArrowUp, UserPlus, FileText, Users, Shield, Award, Workflow } from "lucide-react";
 import { useRouter } from "next/navigation";
-import HiringProcessImg from "../../../assets/images/hireformmedh/hiringprocessimg.jpeg";
+import { buildAdvancedComponent, corporatePatterns, mobilePatterns } from "@/utils/designSystem";
 
 interface IProcessStep {
   title: string;
@@ -156,115 +155,149 @@ const HiringProcess: React.FC<IHiringProcessProps> = memo(({ className = "" }) =
   }
 
   return (
-    <section className={`relative bg-slate-50 dark:bg-slate-900 min-h-screen overflow-hidden w-full ${className}`}>
-      {/* Enhanced Background Pattern */}
+    <section className={`relative ${mobilePatterns.mobileSection()} overflow-hidden ${className}`}>
+      {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
       
       {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-violet-50/50 via-transparent to-blue-50/50 dark:from-violet-950/20 dark:via-transparent dark:to-blue-950/20"></div>
       
-      {/* Floating Elements */}
-      <div className="absolute top-20 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-violet-200/20 dark:bg-violet-800/20 rounded-full blur-3xl animate-blob"></div>
-      <div className="absolute top-40 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-      <div className="absolute bottom-20 left-1/2 w-28 h-28 sm:w-36 sm:h-36 bg-emerald-200/20 dark:bg-emerald-800/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+      {/* Floating Elements - optimized for mobile */}
+      <div className="absolute top-10 sm:top-20 left-0 w-20 h-20 sm:w-32 sm:h-32 bg-violet-200/20 dark:bg-violet-800/20 rounded-full blur-2xl sm:blur-3xl animate-blob"></div>
+      <div className="absolute bottom-10 sm:bottom-20 right-0 w-24 h-24 sm:w-40 sm:h-40 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-2xl sm:blur-3xl animate-blob animation-delay-2000"></div>
 
-      <div className="relative z-10 w-full px-3 sm:px-4 md:px-6 lg:px-8 py-8 md:py-12">
-        {/* Enhanced Header */}
+      <div className={`relative z-10 ${mobilePatterns.mobileContainer('lg')}`}>
         <motion.div
           initial="hidden"
           animate={isVisible ? "visible" : "hidden"}
           variants={fadeInUp}
-          transition={{ duration: 0.6 }}
-          className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 mb-8 max-w-6xl mx-auto text-center"
+          transition={{ duration: 0.8 }}
+          className={buildAdvancedComponent.glassCard({ variant: 'hero', padding: 'mobile' })}
         >
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-slate-100 mb-4 leading-tight">
-            <span className="text-emerald-600 dark:text-emerald-400">Simple</span> Hiring Process
-          </h1>
-          <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-4xl mx-auto leading-relaxed">
-            Fully managed by our support team with a dedicated relationship manager for you
-          </p>
-        </motion.div>
-
-        {/* Main Content Section */}
-        <motion.div
-          initial="hidden"
-          animate={isVisible ? "visible" : "hidden"}
-          variants={fadeInUp}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 max-w-6xl mx-auto"
-        >
-          <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-            {/* Content Section */}
-            <div className="order-2 md:order-1">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={isVisible ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="mb-6 md:mb-8"
-              >
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-4">
-                  How It Works
-                </h3>
-                <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-                  Five simple steps to connect with verified professionals
+          {/* Header Section - Mobile optimized */}
+          <div className="text-center mb-8 md:mb-10">
+            <div className="max-w-4xl mx-auto">
+              {/* Section Badge */}
+              <div className={corporatePatterns.sectionBadge('violet')}>
+                <Workflow className="w-3 h-3 sm:w-4 sm:h-4 text-violet-600 dark:text-violet-400 mr-2" />
+                <span className="text-xs sm:text-sm">Streamlined Process</span>
+              </div>
+              
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-slate-900 dark:text-slate-100 mb-3 md:mb-4 leading-tight">
+                <span className="text-violet-600 dark:text-violet-400">Simple</span> Hiring Process
+              </h1>
+              
+              <div className="max-w-3xl mx-auto">
+                <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-600 dark:text-slate-300 leading-relaxed mb-4 md:mb-6">
+                  Fully managed by our support team with a 
+                  <span className="font-semibold text-slate-800 dark:text-slate-200"> dedicated relationship manager</span> for you
                 </p>
-              </motion.div>
-
-              <motion.div
-                variants={staggerContainer}
-                initial="hidden"
-                animate={isVisible ? "visible" : "hidden"}
-                className="space-y-4 md:space-y-6"
-              >
-                {steps.map((step, index) => {
-                  const IconComponent = step.icon;
-                  return (
-                    <motion.div
-                      key={index}
-                      variants={fadeInUp}
-                      transition={{ duration: 0.4, delay: index * 0.1 }}
-                      className="group flex items-start space-x-4 p-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all duration-300 hover:shadow-md hover:transform hover:translate-x-2"
-                    >
-                      <div className={`flex-shrink-0 w-12 h-12 rounded-xl ${step.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                        <IconComponent 
-                          className="w-6 h-6" 
-                          style={{ color: step.color }}
-                        />
-                      </div>
-                      <div className="flex-grow">
-                        <h4 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors duration-300 mb-2">
-                          {step.title}
-                        </h4>
-                        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
-                          {step.description}
-                        </p>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </motion.div>
+                
+                {/* Process Highlights - Mobile friendly */}
+                <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4 text-xs sm:text-sm">
+                  <div className={corporatePatterns.valueHighlight('violet')}>
+                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-violet-500 rounded-full mr-2"></div>
+                    <span className="font-medium">5 Simple Steps</span>
+                  </div>
+                  <div className={corporatePatterns.valueHighlight('emerald')}>
+                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full mr-2"></div>
+                    <span className="font-medium">Fully Managed</span>
+                  </div>
+                  <div className={corporatePatterns.valueHighlight('blue')}>
+                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full mr-2"></div>
+                    <span className="font-medium">Quick Results</span>
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
 
-            {/* Image Section */}
+          {/* Main Content - Enhanced mobile layout */}
+          <div className="max-w-4xl mx-auto">
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={isVisible ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="relative order-1 md:order-2"
+              initial={{ opacity: 0, y: 20 }}
+              animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="mb-6 md:mb-8"
             >
-              <div className="relative rounded-2xl overflow-hidden shadow-xl group">
-                <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 via-violet-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <Image
-                  src={HiringProcessImg}
-                  alt="Professional hiring process illustration"
-                  className="w-full h-auto object-cover rounded-2xl transform group-hover:scale-105 transition-transform duration-500"
-                  priority
-                />
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2 md:mb-3 text-center">
+                How It Works
+              </h3>
+              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed text-center">
+                Five simple steps to connect with verified professionals
+              </p>
+            </motion.div>
+
+            {/* Process Steps - Improved mobile layout */}
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate={isVisible ? "visible" : "hidden"}
+              className="space-y-3 sm:space-y-4"
+            >
+              {steps.map((step, index) => {
+                const IconComponent = step.icon;
+                return (
+                  <motion.div
+                    key={index}
+                    variants={fadeInUp}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    className="group"
+                  >
+                    <div className="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl p-4 sm:p-5 border border-slate-200 dark:border-slate-600 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group-hover:border-violet-300 dark:group-hover:border-violet-600">
+                      <div className="flex items-start space-x-3 sm:space-x-4">
+                        {/* Icon Container - Mobile optimized */}
+                        <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-violet-500 to-violet-600 rounded-lg sm:rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
+                          <IconComponent className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                        </div>
+                        
+                        {/* Content Container - Better mobile alignment */}
+                        <div className="flex-grow min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-3">
+                            <h4 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors duration-300 mb-1 sm:mb-0 leading-tight">
+                              {step.title}
+                            </h4>
+                            <div className="text-xs sm:text-sm font-semibold text-violet-600 dark:text-violet-400 bg-violet-100 dark:bg-violet-900/30 px-2 sm:px-3 py-1 rounded-full w-fit">
+                              Step {index + 1}
+                            </div>
+                          </div>
+                          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                            {step.description}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+
+            {/* Summary Stats - Mobile optimized */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.6, delay: 1.0 }}
+              className="mt-8 md:mt-10"
+            >
+              <div className="bg-gradient-to-r from-violet-50 to-blue-50 dark:from-violet-900/20 dark:to-blue-900/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-violet-200/50 dark:border-violet-700/50">
+                <div className="grid grid-cols-3 gap-4 sm:gap-6 text-center">
+                  <div>
+                    <div className="text-2xl sm:text-3xl font-bold text-violet-600 dark:text-violet-400 mb-1 sm:mb-2">5</div>
+                    <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">Simple Steps</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-1 sm:mb-2">100%</div>
+                    <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">Managed Process</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1 sm:mb-2">Fast</div>
+                    <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">Quick Results</div>
+                  </div>
+                </div>
               </div>
             </motion.div>
           </div>
         </motion.div>
-
       </div>
 
       {/* Scroll to top button */}

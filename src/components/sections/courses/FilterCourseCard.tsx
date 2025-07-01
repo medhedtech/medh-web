@@ -163,18 +163,167 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
   index = 0,
   isLCP = false
 }) => {
+  // Enhanced state management for better UX
   const [isHovered, setIsHovered] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [isImageError, setIsImageError] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 });
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [showQuickPreview, setShowQuickPreview] = useState(false);
+  const [touchStartTime, setTouchStartTime] = useState(0);
+  const [lastTapTime, setLastTapTime] = useState(0);
+  const [hoverIntentTimer, setHoverIntentTimer] = useState<NodeJS.Timeout | null>(null);
   
   const cardRef = useRef(null);
   const router = useRouter();
+  const previewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 
 
-  const handleImageLoad = () => setIsImageLoaded(true);
+  const handleImageLoad = () => {
+    setIsImageLoaded(true);
+    // Trigger a subtle animation when image loads
+    if (cardRef.current) {
+      (cardRef.current as HTMLElement).classList.add('image-loaded');
+    }
+  };
+  
   const handleImageError = () => setIsImageError(true);
+
+  // Enhanced UX interaction handlers
+  const handleBookmarkToggle = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsBookmarked(!isBookmarked);
+    
+    // Add haptic feedback for mobile
+    if ('vibrate' in navigator) {
+      navigator.vibrate(50);
+    }
+    
+    // Store bookmark state
+    try {
+      const bookmarks = JSON.parse(localStorage.getItem('course-bookmarks') || '[]');
+      if (isBookmarked) {
+        const filtered = bookmarks.filter((id: string) => id !== course._id);
+        localStorage.setItem('course-bookmarks', JSON.stringify(filtered));
+      } else {
+        bookmarks.push(course._id);
+        localStorage.setItem('course-bookmarks', JSON.stringify(bookmarks));
+      }
+    } catch (error) {
+      console.warn('Failed to save bookmark:', error);
+    }
+  }, [isBookmarked, course._id]);
+
+  // Enhanced hover intent detection
+  const handleMouseEnter = useCallback(() => {
+    setIsHovered(true);
+    
+    // Clear any existing timer
+    if (hoverIntentTimer) {
+      clearTimeout(hoverIntentTimer);
+    }
+    
+    // Set a timer for hover intent (user seems interested)
+    const timer = setTimeout(() => {
+      // Preload course data or show quick preview after 500ms of hover
+      setShowQuickPreview(true);
+    }, 500);
+    
+    setHoverIntentTimer(timer);
+  }, [hoverIntentTimer]);
+
+  const handleMouseLeave = useCallback(() => {
+    setIsHovered(false);
+    setShowQuickPreview(false);
+    
+    // Clear hover intent timer
+    if (hoverIntentTimer) {
+      clearTimeout(hoverIntentTimer);
+      setHoverIntentTimer(null);
+    }
+  }, [hoverIntentTimer]);
+
+  // Enhanced touch handlers for mobile UX
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    setTouchStartTime(Date.now());
+    
+    // Add visual feedback for touch
+    if (cardRef.current) {
+      (cardRef.current as HTMLElement).style.transform = 'scale(0.98)';
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    const touchDuration = Date.now() - touchStartTime;
+    const now = Date.now();
+    
+    // Reset touch feedback
+    if (cardRef.current) {
+      (cardRef.current as HTMLElement).style.transform = '';
+    }
+    
+    // Detect double tap for bookmark (within 300ms)
+    if (now - lastTapTime < 300) {
+      e.preventDefault();
+      handleBookmarkToggle(e as any);
+      return;
+    }
+    
+    setLastTapTime(now);
+    
+    // Long press detection (>500ms) - show quick preview
+    if (touchDuration > 500) {
+      e.preventDefault();
+      setShowQuickPreview(true);
+      
+      // Auto-hide preview after 3 seconds
+      if (previewTimeoutRef.current) {
+        clearTimeout(previewTimeoutRef.current);
+      }
+      previewTimeoutRef.current = setTimeout(() => {
+        setShowQuickPreview(false);
+      }, 3000);
+      return;
+    }
+  }, [touchStartTime, lastTapTime, handleBookmarkToggle]);
+
+  // Enhanced navigation with loading state
+  const handleNavigationClick = useCallback(async () => {
+    setIsNavigating(true);
+    
+    try {
+      await navigateToCourse();
+    } catch (error) {
+      console.error('Navigation error:', error);
+    } finally {
+      // Reset navigation state after a short delay
+      setTimeout(() => setIsNavigating(false), 1000);
+    }
+  }, []);
+
+  // Load bookmark state on mount
+  React.useEffect(() => {
+    try {
+      const bookmarks = JSON.parse(localStorage.getItem('course-bookmarks') || '[]');
+      setIsBookmarked(bookmarks.includes(course._id));
+    } catch (error) {
+      console.warn('Failed to load bookmarks:', error);
+    }
+  }, [course._id]);
+
+  // Cleanup timers on unmount
+  React.useEffect(() => {
+    return () => {
+      if (hoverIntentTimer) {
+        clearTimeout(hoverIntentTimer);
+      }
+      if (previewTimeoutRef.current) {
+        clearTimeout(previewTimeoutRef.current);
+      }
+    };
+  }, [hoverIntentTimer]);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (cardRef.current) {
@@ -772,10 +921,12 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
           shadow-sm hover:shadow-lg hover:shadow-gray-200/25 dark:hover:shadow-gray-800/25
           transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.01] cursor-pointer
           transform-gpu will-change-transform mb-3"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
-        onClick={navigateToCourse}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onClick={handleNavigationClick}
       >
         {/* Main Card Content - Horizontal layout */}
         <div className="flex min-h-[120px] xs:min-h-[140px] sm:min-h-[160px] h-auto">
@@ -903,6 +1054,51 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
           </div>
         </div>
 
+        {/* Floating Bookmark Button - Mobile */}
+        <button
+          onClick={handleBookmarkToggle}
+          className={`absolute top-2 right-2 z-20 p-1.5 rounded-full 
+            ${isBookmarked 
+              ? 'bg-red-500 text-white shadow-lg shadow-red-500/30' 
+              : 'bg-white/80 text-gray-600 hover:bg-white'
+            } 
+            backdrop-blur-sm border border-white/20 
+            transition-all duration-200 ease-out 
+            hover:scale-110 active:scale-95 
+            shadow-md hover:shadow-lg`}
+          aria-label={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
+        >
+          <Heart 
+            size={14} 
+            className={`transition-all duration-200 ${
+              isBookmarked ? 'fill-current scale-110' : 'hover:fill-current hover:text-red-500'
+            }`} 
+          />
+        </button>
+
+        {/* Loading Overlay - Mobile */}
+        {isNavigating && (
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-30 rounded-lg">
+            <div className="bg-white/90 dark:bg-gray-800/90 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Loading...</span>
+            </div>
+          </div>
+        )}
+
+        {/* Quick Preview Tooltip - Mobile */}
+        {showQuickPreview && (
+          <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-40 p-3">
+            <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+              <div className="font-medium">Quick Preview:</div>
+              <div>• Double tap to bookmark</div>
+              <div>• Long press for details</div>
+              {isLiveCourse && <div>• Live interactive sessions</div>}
+              {isBlendedCourse && <div>• Hybrid learning format</div>}
+            </div>
+          </div>
+        )}
+
         {/* Mobile Class Type Banner - Attached to bottom of card */}
         <div className={`w-full 
           ${content.isJobGuarantee 
@@ -961,10 +1157,10 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
         shadow-sm hover:shadow-xl hover:shadow-gray-200/25 dark:hover:shadow-gray-800/25
         transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.02] cursor-pointer
         transform-gpu will-change-transform"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       onMouseMove={handleMouseMove}
-      onClick={navigateToCourse}
+      onClick={handleNavigationClick}
     >
       {/* Image section with sticky note badge - Reduced size */}
       <div className="relative h-[140px] md:h-[150px] lg:h-[160px] overflow-hidden rounded-t-xl group">
@@ -1003,6 +1199,74 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
             <span>{content.tag}</span>
           </div>
         </div>
+
+        {/* Floating Bookmark Button - Desktop */}
+        <button
+          onClick={handleBookmarkToggle}
+          className={`absolute top-2 md:top-3 lg:top-3 right-2 md:right-3 lg:right-3 z-20 
+            p-2 md:p-2.5 lg:p-2.5 rounded-full 
+            ${isBookmarked 
+              ? 'bg-red-500 text-white shadow-lg shadow-red-500/30' 
+              : 'bg-white/90 text-gray-600 hover:bg-white hover:text-red-500'
+            } 
+            backdrop-blur-sm border border-white/30 
+            transition-all duration-300 ease-out 
+            opacity-0 group-hover:opacity-100 hover:scale-110 active:scale-95 
+            shadow-md hover:shadow-lg transform translate-y-1 group-hover:translate-y-0`}
+          aria-label={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
+        >
+          <Heart 
+            size={16} 
+            className={`transition-all duration-200 ${
+              isBookmarked ? 'fill-current scale-110' : 'hover:fill-current'
+            }`} 
+          />
+        </button>
+
+        {/* Loading Overlay - Desktop */}
+        {isNavigating && (
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-30 rounded-t-xl">
+            <div className="bg-white/95 dark:bg-gray-800/95 px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+              <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Loading course...</span>
+            </div>
+          </div>
+        )}
+
+        {/* Quick Preview Tooltip - Desktop */}
+        {showQuickPreview && (
+          <div className="absolute top-full left-0 right-0 mt-2 mx-2 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border border-gray-200/80 dark:border-gray-700/80 rounded-xl shadow-2xl z-40 p-4">
+            <div className="text-xs text-gray-600 dark:text-gray-400 space-y-2">
+              <div className="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                <Info size={14} />
+                Course Preview
+              </div>
+              <div className="space-y-1">
+                {isLiveCourse && (
+                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                    <Users size={12} />
+                    <span>Live interactive sessions</span>
+                  </div>
+                )}
+                {isBlendedCourse && (
+                  <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
+                    <Layers size={12} />
+                    <span>Hybrid learning format</span>
+                  </div>
+                )}
+                {isSelfPacedCourse && (
+                  <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                    <Play size={12} />
+                    <span>Learn at your own pace</span>
+                  </div>
+                )}
+                <div className="text-gray-500 dark:text-gray-400 text-xs mt-2 pt-2 border-t border-gray-200/50 dark:border-gray-700/50">
+                  Hover for 500ms to see this preview
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Course content - Reduced spacing */}
