@@ -21,7 +21,6 @@ import ThemeController from "@/components/shared/others/ThemeController";
 // import CourseHeader from '@/components/sections/course-detailed/CourseHeader';
 // import CourseNavigation from '@/components/sections/course-detailed/CourseNavigation';
 import GradeFilter from '@/components/sections/course-detailed/GradeFilter';
-import CourseSelector from '@/components/sections/course-detailed/CourseSelector';
 import CourseSelection from '@/components/sections/course-detailed/CourseSelection';
 import EnrollmentDetails from '@/components/sections/course-detailed/EnrollmentDetails';
 import EnrollButton from '@/components/sections/course-detailed/EnrollButton';
@@ -161,6 +160,20 @@ interface FeatureCardProps {
   title: string;
   Icon: LucideIcon;
   description: string;
+}
+
+interface EmptySectionProps {
+  title: string;
+  icon: LucideIcon;
+  description: string;
+}
+
+interface ColorClasses {
+  border: string;
+  bg: string;
+  bgIcon: string;
+  text: string;
+  heading: string;
 }
 
 // Custom CSS for sticky sidebar and floating button
@@ -781,111 +794,64 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
     setPricingSyncKey(prev => prev + 1);
   }, [enrollmentType, activePricing]);
 
-  // Handle course auto-selection from URL query parameter
+  // Optimized course auto-selection from URL parameter - prevent infinite loops
+  const courseIdFromUrl = searchParams.get('course');
+  
+  // Track if this is a user-initiated selection to prevent auto-override
+  const [isUserSelection, setIsUserSelection] = useState(false);
+  
+  // Optimized auto-course selection to prevent deadlocks
+  const filteredCourseIds = useMemo(() => {
+    return filteredCourses.map(c => c._id).sort().join(',');
+  }, [filteredCourses]);
+
+  // Fixed auto-selection logic - less aggressive, more responsive
   useEffect(() => {
-    const courseIdFromUrl = searchParams.get('course');
-    
-    if (courseIdFromUrl && courses.length > 0) {
-      // Skip if the course is already selected
-      if (selectedCourse && selectedCourse._id === courseIdFromUrl) {
-        console.log('Course already selected:', selectedCourse.title);
+    // Don't auto-select if user has manually chosen a course that's still available
+    if (isUserSelection && selectedCourse && filteredCourses.some(c => c._id === selectedCourse._id)) {
+      return;
+    }
+
+    // Priority 1: If URL has ?course= param and it exists in filtered courses, select it
+    if (courseIdFromUrl && filteredCourses.length > 0) {
+      const urlCourse = filteredCourses.find(c => c._id === courseIdFromUrl);
+      if (urlCourse && selectedCourse?._id !== urlCourse._id) {
+        console.log('Selecting course from URL:', urlCourse.title);
+        setSelectedCourse(urlCourse);
+        setLastValidCourse(urlCourse);
+        setIsUserSelection(false); // URL selection is not user selection
         return;
       }
-      
-      console.log('Auto-selecting course from URL:', courseIdFromUrl);
-      console.log('Available courses:', courses.map(c => ({ id: c._id, title: c.title })));
-      
-      // Find the course in the current courses list
-      const targetCourse = courses.find(course => course._id === courseIdFromUrl);
-      
-      if (targetCourse) {
-        console.log('Found course for auto-selection:', targetCourse.title);
-        handleCourseSelection(targetCourse);
-      } else {
-        console.log('Course not found in current list, attempting to fetch:', courseIdFromUrl);
-        
-        // If course not found in current list, try to fetch it directly
-        const courseEndpoint = apiUrls.courses.getCourseById(courseIdFromUrl);
-        
-        getQuery({
-          url: courseEndpoint,
-          onSuccess: (response) => {
-            const courseData = response?.course || response?.data || response;
-            
-            if (courseData && courseData._id) {
-              console.log('Successfully fetched course for auto-selection:', courseData.course_title);
-              
-              // Process the course data
-              const processedCourse: Course = {
-                _id: courseData._id,
-                title: courseData.course_title || "",
-                description: courseData.course_description || "",
-                long_description: courseData.course_description || "",
-                category: courseData.course_category || "",
-                grade: courseData.course_grade || "",
-                course_grade: courseData.course_grade || "",
-                thumbnail: courseData.course_image || null,
-                course_duration: courseData.course_duration || "",
-                course_duration_days: parseDuration(courseData.course_duration) || 30,
-                course_fee: courseData.course_fee || 0,
-                prices: courseData.prices || [],
-                enrolled_students: courseData.enrolled_students || 0,
-                views: courseData.meta?.views || 0,
-                is_Certification: courseData.is_Certification === "Yes",
-                is_Assignments: courseData.is_Assignments === "Yes",
-                is_Projects: courseData.is_Projects === "Yes",
-                is_Quizes: courseData.is_Quizes === "Yes",
-                curriculum: Array.isArray(courseData.curriculum) ? courseData.curriculum : [],
-                highlights: courseData.highlights || [],
-                learning_outcomes: courseData.learning_outcomes || [],
-                prerequisites: courseData.prerequisites || [],
-                faqs: courseData.faqs || [],
-                no_of_Sessions: courseData.no_of_Sessions || 0,
-                status: courseData.status || "Published",
-                isFree: courseData.isFree || false,
-                hasFullDetails: true,
-                slug: courseData.slug || "",
-                category_type: courseData.category_type || "",
-                currency_code: userCurrency || "USD",
-                original_prices: courseData.prices || [],
-                classType: courseData.class_type || "",
-                class_type: courseData.class_type || "",
-                course_type: courseData.course_type || "",
-                delivery_format: courseData.delivery_format || "",
-                delivery_type: courseData.delivery_type || "",
-                meta: {
-                  views: courseData.meta?.views || 0,
-                  enrollments: courseData.meta?.enrollments || 0,
-                  lastUpdated: new Date().toISOString(),
-                  ratings: {
-                    average: 0,
-                    count: 0
-                  }
-                }
-              };
-              
-              // Add the course to the courses list if it's not already there
-              setCourses(prevCourses => {
-                const existingCourse = prevCourses.find(c => c._id === courseData._id);
-                if (!existingCourse) {
-                  return [...prevCourses, processedCourse];
-                }
-                return prevCourses;
-              });
-              
-              // Auto-select this course
-              handleCourseSelection(processedCourse);
-            } else {
-              console.error('Invalid course data received for auto-selection');
-            }
-          },
-          onFail: (err) => {
-            console.error('Failed to fetch course for auto-selection:', err);
-          }
-        });
-      }
     }
-  }, [searchParams, courses, selectedCourse, getQuery, userCurrency]);
+
+    // Priority 2: If current selection is not in filtered list, auto-select first available
+    if (filteredCourses.length > 0 && (!selectedCourse || !filteredCourses.some(c => c._id === selectedCourse._id))) {
+      console.log('Auto-selecting first available course:', filteredCourses[0].title);
+      setSelectedCourse(filteredCourses[0]);
+      setLastValidCourse(filteredCourses[0]);
+      setIsUserSelection(false);
+      
+      // Update URL to reflect auto-selection
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.set('course', filteredCourses[0]._id);
+      router.replace(currentUrl.pathname + currentUrl.search);
+    }
+  }, [filteredCourses, courseIdFromUrl, selectedCourse?._id, isUserSelection, router]);
+
+  // Transform Course to CourseDetails compatibility
+  const transformCourseToDetails = useCallback((course: Course | null) => {
+    if (!course) return null;
+    
+    return {
+      ...course,
+      course_title: course.title || '',
+      course_image: course.thumbnail || undefined,
+      is_Certification: course.is_Certification ? 'Yes' : 'No',
+      is_Assignments: course.is_Assignments ? 'Yes' : 'No',
+      is_Projects: course.is_Projects ? 'Yes' : 'No',
+      is_Quizes: course.is_Quizes ? 'Yes' : 'No'
+    } as any; // Type assertion to handle complex interface compatibility
+  }, []);
 
   // Create a shared pricing context that both components can use
   const sharedPricingState = useMemo(() => ({
@@ -997,32 +963,30 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
     return Array.from(gradeMap.values());
   }, []);
 
-  // Handle grade selection
-  const handleGradeChange = (gradeId: string) => {
-    console.log('Grade selected:', gradeId); // Debug log
-    setSelectedGrade(gradeId);
-    // Reset selected course when grade changes
-    setSelectedCourse(null);
-  };
 
-  // Filter courses when grade filter changes
+
+  // Optimized course filtering to prevent infinite loops
+  const courseIds = useMemo(() => {
+    return courses.map(c => c._id).sort().join(',');
+  }, [courses.length]);
+
   useEffect(() => {
-    if (loading) return;
+    if (loading || courses.length === 0) return;
     
     let filteredResults = [...courses];
     
     // Apply grade filter for categories that use it
-    if (['vedic-mathematics', 'personality-development'].includes(normalizedCategory) && selectedGrade !== 'all') {
+    if (['vedic-mathematics', 'personality-development'].includes(normalizedCategory || '') && selectedGrade !== 'all') {
       const selectedGradeOption = availableGrades.find(g => g.id === selectedGrade);
       if (selectedGradeOption) {
         filteredResults = filteredResults.filter((course: Course) => 
           course.course_grade === selectedGradeOption.id || course.grade === selectedGradeOption.id
-      );
+        );
       }
     }
     
     // For categories with hidden grade selector, show all courses 
-    if (['ai-and-data-science', 'digital-marketing'].includes(normalizedCategory)) {
+    if (['ai-and-data-science', 'digital-marketing'].includes(normalizedCategory || '')) {
       filteredResults = [...courses];
     }
     
@@ -1043,17 +1007,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
       setLastValidCourse(selectedCourse);
     }
     
-    // If no filtered results but we have a lastValidCourse, keep it selected for details display
-    if (filteredResults.length === 0 && lastValidCourse) {
-      // Keep the last valid course selected for details display
-      return;
-    }
-    
-    // Reset selected course if it's no longer in filtered results
-    if (selectedCourse && !filteredResults.some(c => c._id === selectedCourse._id)) {
-      setSelectedCourse(null);
-    }
-  }, [selectedGrade, selectedDuration, courses, loading, normalizedCategory, selectedCourse, lastValidCourse]);
+  }, [courseIds, selectedGrade, selectedDuration, loading, normalizedCategory, availableGrades.length]); // Optimized dependencies
 
   // Component-level refresh function
   const refreshData = useCallback(async () => {
@@ -1579,41 +1533,55 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
     setSelectedDuration(durationId);
   };
 
-  // Handle course selection with progress update
-  const handleCourseSelection = (course: Course | null) => {
-    try {
-      if (!course) {
-        setSelectedCourse(null);
-        return;
-      }
 
-      // Ensure we have the full course details before setting
-      const courseWithDetails: Course = {
-        ...course,
-        hasFullDetails: true,
-        views: course.views || 0,
-        meta: course.meta || {
-          views: 0,
-          enrollments: 0,
-          lastUpdated: new Date().toISOString(),
-          ratings: {
-            average: 0,
-            count: 0
-          }
-        }
-      };
 
-      setSelectedCourse(courseWithDetails);
-      setLastValidCourse(courseWithDetails);
-      
-      // Update URL with selected course using the current URL
-      const currentUrl = new URL(window.location.href);
-      currentUrl.searchParams.set('course', course._id);
-      router.push(currentUrl.pathname + currentUrl.search);
-    } catch (err) {
-      console.error('Error in course selection:', err);
+  // Manual course selection wrapper for user interactions
+  const handleManualCourseSelection = useCallback((course: Course | null) => {
+    console.log('=== MANUAL COURSE SELECTION ===');
+    console.log('Selected course:', course?.title);
+    console.log('Previous course:', selectedCourse?.title);
+    console.log('Setting user selection flag to true');
+    
+    setIsUserSelection(true);
+    
+    if (!course) {
+      setSelectedCourse(null);
+      return;
     }
-  };
+
+    if (selectedCourse?._id === course._id) {
+      console.log('Same course already selected, ignoring');
+      return;
+    }
+
+    setSelectedCourse(course);
+    setLastValidCourse(course);
+    
+    // Update URL
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('course', course._id);
+    router.push(currentUrl.pathname + currentUrl.search);
+    
+    console.log('Manual selection completed');
+  }, [selectedCourse, router]);
+
+  // Reset user selection flag when grade changes to allow auto-selection
+  const handleGradeChange = useCallback((gradeId: string) => {
+    console.log('Grade changed to:', gradeId);
+    
+    // Skip if the same grade is already selected
+    if (selectedGrade === gradeId) {
+      return;
+    }
+    
+    setSelectedGrade(gradeId);
+    
+    // Reset user selection flag when grade changes to allow auto-selection
+    setIsUserSelection(false);
+    
+    // Clear selected course when grade changes to prevent stale selection
+    setSelectedCourse(null);
+  }, [selectedGrade]);
 
   // Intersection Observer for section navigation
   useEffect(() => {
@@ -1745,7 +1713,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
   );
 
   // Empty state for section with no content - enhanced with better visual cues
-  const EmptySection = ({ title, icon: Icon, description }) => (
+  const EmptySection: React.FC<EmptySectionProps> = ({ title, icon: Icon, description }) => (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 transition-all hover:border-gray-300 dark:hover:border-gray-600">
       <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
         {Icon && <Icon className="h-5 w-5 mr-2" />}
@@ -1803,7 +1771,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
     return null; // Will be redirected by useEffect
   }
 
-  const getColorClasses = (color) => ({
+  const getColorClasses = (color: string): ColorClasses => ({
     border: `border-${color}-200 dark:border-${color}-800`,
     bg: `bg-${color}-50 dark:bg-${color}-900/20`,
     bgIcon: `bg-${color}-100 dark:bg-${color}-800/40`,
@@ -1813,11 +1781,12 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
 
   // Handle clicks outside the courses dropdown
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = (event: MouseEvent) => {
       const dropdown = document.getElementById('courses-dropdown');
       const dropdownTrigger = document.getElementById('courses-dropdown-trigger');
       
       if (dropdown && dropdownTrigger &&
+          event.target instanceof Node &&
           !dropdown.contains(event.target) && 
           !dropdownTrigger.contains(event.target)) {
         dropdown.classList.add('hidden');
@@ -1831,13 +1800,6 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
   }, []);
 
   // Note: All enrollment functions are now handled by the EnrollButton component
-
-  // Ensure we have a selected course when filtered courses change
-  useEffect(() => {
-    if (filteredCourses.length > 0 && !selectedCourse) {
-      handleCourseSelection(filteredCourses[0]);
-    }
-  }, [filteredCourses, selectedCourse, handleCourseSelection]);
 
   // New: Add specific course fetch logic
   useEffect(() => {
@@ -2011,7 +1973,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
                         <CourseDetailsPage 
                           courseId={(selectedCourse || lastValidCourse)?._id} 
                           initialActiveSection={activeSection !== 'overview' ? activeSection : 'about'}
-                          faqComponent={<CourseFaq courseId={(selectedCourse || lastValidCourse)?._id} />}
+                          faqComponent={<CourseFaq courseId={(selectedCourse || lastValidCourse)?._id || ''} />}
                           courseSelectionComponent={
                             !isCourseView && (
                               <motion.div
@@ -2029,7 +1991,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
                                       filteredCourses={filteredCourses}
                                       selectedCourse={selectedCourse}
                                       handleGradeChange={handleGradeChange}
-                                      handleCourseSelection={handleCourseSelection}
+                                      handleCourseSelection={handleManualCourseSelection}
                                       categoryInfo={categoryInfo}
                                       setSelectedGrade={setSelectedGrade}
                                       showOnlyGradeFilter={true}
@@ -2039,12 +2001,10 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
                                 <CourseSelection 
                                   filteredCourses={filteredCourses}
                                   selectedCourse={selectedCourse}
-                                  onCourseSelect={handleCourseSelection}
+                                  onCourseSelect={handleManualCourseSelection}
                                   categoryInfo={categoryInfo}
                                   formatPriceFunc={formatPrice}
                                   loading={loading}
-                                  onRefresh={refreshData}
-                                  refreshing={refreshing}
                                   selectedGrade={selectedGrade}
                                 />
                               </motion.div>
@@ -2077,7 +2037,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
                                   filteredCourses={filteredCourses}
                                   selectedCourse={selectedCourse}
                                   handleGradeChange={handleGradeChange}
-                                  handleCourseSelection={handleCourseSelection}
+                                  handleCourseSelection={handleManualCourseSelection}
                                   categoryInfo={categoryInfo}
                                   setSelectedGrade={setSelectedGrade}
                                   showOnlyGradeFilter={true}
@@ -2087,12 +2047,10 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
                             <CourseSelection 
                               filteredCourses={filteredCourses}
                               selectedCourse={selectedCourse}
-                              onCourseSelect={handleCourseSelection}
+                              onCourseSelect={handleManualCourseSelection}
                               categoryInfo={categoryInfo}
                               formatPriceFunc={formatPrice}
                               loading={loading}
-                              onRefresh={refreshData}
-                              refreshing={refreshing}
                               selectedGrade={selectedGrade}
                             />
                           </motion.div>
@@ -2108,7 +2066,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
                           >
                             <div className="bg-white dark:bg-gray-800 border-y border-gray-200 dark:border-gray-700">
                             <EnrollmentDetails 
-                              courseDetails={selectedCourse || lastValidCourse}
+                              courseDetails={transformCourseToDetails(selectedCourse || lastValidCourse)}
                               categoryInfo={isCourseView ? {
                                 displayName: (selectedCourse || lastValidCourse)?.category,
                                   colorClass: 'blue',
@@ -2218,7 +2176,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
                         
                         {/* Main FAQ container */}
                         <div className="relative bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-xl backdrop-blur-sm">
-                          <CourseFaq courseId={(selectedCourse || lastValidCourse)?._id} />
+                          <CourseFaq courseId={(selectedCourse || lastValidCourse)?._id || ''} />
                         </div>
                       </motion.div>
                     </div>
