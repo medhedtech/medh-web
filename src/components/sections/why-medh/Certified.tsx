@@ -243,88 +243,91 @@ const Certified: React.FC = () => {
         <div className="absolute top-20 sm:top-32 right-0 w-18 h-18 sm:w-24 sm:h-24 md:w-32 md:h-32 bg-indigo-200/20 dark:bg-indigo-800/20 rounded-full blur-2xl sm:blur-3xl animate-blob animation-delay-2000"></div>
         <div className="absolute bottom-12 sm:bottom-16 left-1/4 sm:left-1/3 w-20 h-20 sm:w-22 sm:h-22 md:w-30 md:h-30 bg-purple-200/20 dark:bg-purple-800/20 rounded-full blur-2xl sm:blur-3xl animate-blob animation-delay-4000"></div>
 
-        <div className="relative z-10 max-w-6xl mx-auto px-3 sm:px-4 md:px-8">
-          {/* Enhanced Mobile-First Header */}
-          <div className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-4 sm:p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 mb-6 sm:mb-8 text-center">
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-2 sm:mb-3 leading-tight">
-              Our Certifications
-            </h2>
-            <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mx-auto px-2">
-              Recognized standards of excellence in education and technology
-            </p>
-          </div>
-
-          {/* Enhanced Mobile-First Certifications Carousel */}
-          <div className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-3 sm:p-4 md:p-6 lg:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 overflow-visible">
-            <div className="relative overflow-visible" style={{ paddingTop: isMobile ? '60px' : '80px', marginBottom: isMobile ? '30px' : '40px' }}>
-              <Slider ref={sliderRef} {...updatedSettings}>
-                {certifications.map((cert, index) => (
-                  <div
-                    key={index}
-                    className="p-1 sm:p-2 md:p-3"
-                    onMouseEnter={() => {
-                      if (!isMobile) {
-                        console.log('Hovering over certification:', index, cert.title);
-                        setHoveredIndex(index);
-                      }
-                    }}
-                    onMouseLeave={() => {
-                      if (!isMobile) {
-                        console.log('Leaving certification hover');
-                        setHoveredIndex(null);
-                      }
-                    }}
-                    onTouchStart={() => handleTouchStart(index)}
-                    onTouchEnd={handleTouchEnd}
-                  >
-                    <div
-                      className={`relative group transition-all duration-200 transform 
-                        ${(hoveredIndex === index && !isMobile) || (touchedIndex === index && isMobile) ? 'scale-105' : 'scale-100'}
-                        hover:shadow-lg active:scale-95 rounded-lg bg-slate-50 dark:bg-slate-700 p-3 sm:p-3 md:p-4 cursor-pointer border border-slate-200 dark:border-slate-600 overflow-visible min-h-[120px] sm:min-h-[140px] md:min-h-[160px] flex flex-col justify-center touch-manipulation`}
-                    >
-                      <div className="relative h-[60px] sm:h-[80px] md:h-[100px] lg:h-[120px] w-[50px] sm:w-[60px] md:w-[70px] lg:w-[90px] mx-auto">
-                        <Image
-                          src={cert.image}
-                          alt={cert.alt}
-                          width={90}
-                          height={120}
-                          className="w-full h-full object-contain transition-all duration-300"
-                          priority={index < 4} // Prioritize first 4 images for faster loading
-                        />
-                      </div>
-                      <div className="mt-2 sm:mt-3 text-center">
-                        <p className="text-xs sm:text-xs md:text-sm font-medium text-slate-700 dark:text-slate-300 leading-tight">
-                          {cert.title}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </Slider>
+        <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-4 md:px-8">
+          {/* Unified Container for Certifications */}
+          <div className="bg-white dark:bg-slate-800 rounded-xl md:rounded-2xl border border-slate-200 dark:border-slate-600 shadow-lg shadow-slate-200/50 dark:shadow-slate-800/50 p-4 sm:p-6 md:p-10 lg:p-14 mb-6 sm:mb-8 text-center overflow-visible">
+            {/* Header */}
+            <div className="mb-8">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-2 sm:mb-3 leading-tight">
+                Our Certifications
+              </h2>
+              <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mx-auto px-2">
+                Recognized standards of excellence in education and technology
+              </p>
             </div>
 
-            {/* Enhanced Mobile-First Navigation Dots */}
-            <div className="mt-4 sm:mt-6 text-center">
-              <div className="inline-flex items-center justify-center space-x-1.5 sm:space-x-2">
-                {certifications.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleDotClick(index)}
-                    className={`rounded-full transition-all duration-200 touch-manipulation ${
-                      currentSlide === index 
-                        ? 'bg-blue-600 dark:bg-blue-500 w-6 h-2 sm:w-8 sm:h-2.5'
-                        : 'bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500 w-2 h-2 sm:w-2.5 sm:h-2.5'
-                    }`}
-                    style={{ minWidth: currentSlide === index ? (isMobile ? '24px' : '32px') : (isMobile ? '8px' : '10px') }}
-                    aria-label={`Go to certification ${index + 1}`}
-                  />
-                ))}
+            {/* Certifications Carousel */}
+            <div className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-3 sm:p-4 md:p-6 lg:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 overflow-visible">
+              <div className="relative overflow-visible" style={{ paddingTop: isMobile ? '60px' : '80px', marginBottom: isMobile ? '30px' : '40px' }}>
+                <Slider ref={sliderRef} {...updatedSettings}>
+                  {certifications.map((cert, index) => (
+                    <div
+                      key={index}
+                      className="p-1 sm:p-2 md:p-3"
+                      onMouseEnter={() => {
+                        if (!isMobile) {
+                          console.log('Hovering over certification:', index, cert.title);
+                          setHoveredIndex(index);
+                        }
+                      }}
+                      onMouseLeave={() => {
+                        if (!isMobile) {
+                          console.log('Leaving certification hover');
+                          setHoveredIndex(null);
+                        }
+                      }}
+                      onTouchStart={() => handleTouchStart(index)}
+                      onTouchEnd={handleTouchEnd}
+                    >
+                      <div
+                        className={`relative group transition-all duration-200 transform 
+                          ${(hoveredIndex === index && !isMobile) || (touchedIndex === index && isMobile) ? 'scale-105' : 'scale-100'}
+                          hover:shadow-lg active:scale-95 rounded-lg bg-slate-50 dark:bg-slate-700 p-3 sm:p-3 md:p-4 cursor-pointer border border-slate-200 dark:border-slate-600 overflow-visible min-h-[120px] sm:min-h-[140px] md:min-h-[160px] flex flex-col justify-center touch-manipulation`}
+                      >
+                        <div className="relative h-[60px] sm:h-[80px] md:h-[100px] lg:h-[120px] w-[50px] sm:w-[60px] md:w-[70px] lg:w-[90px] mx-auto">
+                          <Image
+                            src={cert.image}
+                            alt={cert.alt}
+                            width={90}
+                            height={120}
+                            className="w-full h-full object-contain transition-all duration-300"
+                            priority={index < 4} // Prioritize first 4 images for faster loading
+                          />
+                        </div>
+                        <div className="mt-2 sm:mt-3 text-center">
+                          <p className="text-xs sm:text-xs md:text-sm font-medium text-slate-700 dark:text-slate-300 leading-tight">
+                            {cert.title}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </Slider>
               </div>
-              {isMobile && (
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                  Swipe or tap dots to navigate
-                </p>
-              )}
+
+              {/* Enhanced Mobile-First Navigation Dots */}
+              <div className="mt-4 sm:mt-6 text-center">
+                <div className="inline-flex items-center justify-center space-x-1.5 sm:space-x-2">
+                  {certifications.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleDotClick(index)}
+                      className={`rounded-full transition-all duration-200 touch-manipulation ${
+                        currentSlide === index 
+                          ? 'bg-blue-600 dark:bg-blue-500 w-6 h-2 sm:w-8 sm:h-2.5'
+                          : 'bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500 w-2 h-2 sm:w-2.5 sm:h-2.5'
+                      }`}
+                      style={{ minWidth: currentSlide === index ? (isMobile ? '24px' : '32px') : (isMobile ? '8px' : '10px') }}
+                      aria-label={`Go to certification ${index + 1}`}
+                    />
+                  ))}
+                </div>
+                {isMobile && (
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                    Swipe or tap dots to navigate
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>

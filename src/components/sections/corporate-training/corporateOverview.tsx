@@ -336,157 +336,165 @@ const CorporateOverview: React.FC = () => {
       <div className="absolute bottom-20 left-1/2 w-28 h-28 sm:w-36 sm:h-36 bg-purple-200/20 dark:bg-purple-800/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
 
       <div className="relative z-10 w-full px-3 sm:px-4 md:px-6 lg:px-8 py-8 md:py-12">
-        {/* Enhanced Header */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 mb-8 max-w-6xl mx-auto">
+        {/* Main Container for All Content */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl md:rounded-2xl border border-slate-200 dark:border-slate-600 shadow-lg shadow-slate-200/50 dark:shadow-slate-800/50 max-w-7xl mx-auto overflow-hidden">
+          
+          {/* Enhanced Header */}
+          <div className="p-6 md:p-8 border-b border-slate-200 dark:border-slate-600">
+            <motion.div
+              initial="hidden"
+              animate={isVisible ? "visible" : "hidden"}
+              variants={fadeInUp}
+              transition={{ duration: 0.6 }}
+              className="text-center"
+            >
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-50 mb-4">
+                Corporate Training Excellence
+              </h1>
+              <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
+                Transform your organization with our comprehensive training solutions designed to elevate performance, 
+                enhance skills, and drive sustainable growth across all levels of your business.
+              </p>
+            </motion.div>
+          </div>
+
+          {/* Tab Navigation - Mobile Optimized */}
           <motion.div
             initial="hidden"
             animate={isVisible ? "visible" : "hidden"}
             variants={fadeInUp}
-            transition={{ duration: 0.6 }}
-            className="text-center"
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="px-6 md:px-8 py-4 md:py-6 border-b border-slate-200 dark:border-slate-600"
           >
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-50 mb-4">
-              Corporate Training Excellence
-            </h1>
-            <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
-              Transform your organization with our comprehensive training solutions designed to elevate performance, 
-              enhance skills, and drive sustainable growth across all levels of your business.
-            </p>
-          </motion.div>
-        </div>
-
-        {/* Tab Navigation - Mobile Optimized */}
-        <motion.div
-          initial="hidden"
-          animate={isVisible ? "visible" : "hidden"}
-          variants={fadeInUp}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="flex justify-center mb-6 md:mb-8"
-        >
-          <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-600 p-1 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 max-w-fit mx-auto">
-            <div className="flex space-x-1">
-              {data.tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => handleTabClick(tab.id)}
-                                      className={`px-4 md:px-6 py-2 md:py-3 rounded-md font-medium transition-all duration-200 text-sm md:text-base ${
-                    activeTab === tab.id
-                      ? 'bg-blue-600 dark:bg-blue-500 text-white'
-                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  {tab.name}
-                </button>
-              ))}
+            <div className="flex justify-center">
+              <div className="bg-slate-100 dark:bg-slate-700 rounded-lg p-1 max-w-fit mx-auto">
+                <div className="flex space-x-1">
+                  {data.tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => handleTabClick(tab.id)}
+                      className={`px-4 md:px-6 py-2 md:py-3 rounded-md font-medium transition-all duration-200 text-sm md:text-base ${
+                        activeTab === tab.id
+                          ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-sm'
+                          : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-600 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      {tab.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
-        </motion.div>
-
-        {/* Tab Content - Mobile Optimized */}
-        <AnimatePresence mode="wait">
-          <motion.div 
-            key={activeTab}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 max-w-6xl mx-auto"
-          >
-            {activeTab === 1 && (
-              <div className="space-y-3 sm:space-y-4 md:space-y-6">
-                {[
-                  {
-                    title: "Customized Training Solutions",
-                    description: "Our expert trainers collaborate closely with your team to develop tailored programs that address your specific IT and professional development needs. From cutting-edge technologies to essential soft skills, we ensure every course aligns perfectly with your organizational objectives."
-                  },
-                  {
-                    title: "Industry-Leading Instructors",
-                    description: "Learn from seasoned professionals who bring decades of real-world experience to every session. Our instructors combine theoretical knowledge with practical insights, ensuring your team gains actionable skills they can apply immediately."
-                  },
-                  {
-                    title: "Flexible Learning Pathways",
-                    description: "Choose from a variety of learning formats designed to suit your team's schedule and preferences. Whether it's intensive on-site workshops, interactive virtual classrooms, or self-paced e-learning modules, we adapt to your organizational rhythm."
-                  },
-                  {
-                    title: "Results-Driven Methodology",
-                    description: "Our training programs focus on measurable outcomes and practical applications. Through real-world scenarios and hands-on exercises, participants develop skills they can immediately implement to drive business results."
-                  },
-                  {
-                    title: "Continuous Support & Mentorship",
-                    description: "Your learning journey doesn't end with course completion. We provide ongoing support, mentorship opportunities, and resources to ensure successful skill implementation and long-term organizational growth."
-                  }
-                ].map((item, index) => (
-                  <Accordion 
-                    key={index}
-                    title={item.title}
-                    defaultOpen={index === 0}
-                  >
-                    <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
-                      {item.description}
-                    </p>
-                  </Accordion>
-                ))}
-              </div>
-            )}
-
-            {activeTab === 2 && (
-              <div className="space-y-3 sm:space-y-4 md:space-y-6">
-                {[
-                  {
-                    title: "Strategic Talent Acquisition",
-                    description: "Position your organization as an employer of choice by demonstrating a strong commitment to professional development. Our comprehensive training programs help attract and retain top talent in today's competitive market."
-                  },
-                  {
-                    title: "Accelerated Skill Development",
-                    description: "Fast-track your team's growth with targeted training programs that rapidly enhance their capabilities. Our structured approach ensures quick mastery of new skills and technologies."
-                  },
-                  {
-                    title: "Peak Performance Culture",
-                    description: "Foster a high-performance environment where continuous learning and improvement become part of your organizational DNA. Watch as enhanced skills translate into superior outcomes and innovation."
-                  },
-                  {
-                    title: "Elevated Employee Engagement",
-                    description: "Create a motivated and committed workforce through personalized development opportunities. Our training programs help employees see clear career progression paths within your organization."
-                  },
-                  {
-                    title: "Digital Transformation Ready",
-                    description: "Prepare your team for the digital future with comprehensive training in emerging technologies and methodologies. Stay competitive by keeping your workforce at the forefront of technological advancement."
-                  }
-                ].map((benefit, index) => (
-                  <Accordion 
-                    key={index}
-                    title={benefit.title}
-                    defaultOpen={index === 0}
-                  >
-                    <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
-                      {benefit.description}
-                    </p>
-                  </Accordion>
-                ))}
-              </div>
-            )}
           </motion.div>
-        </AnimatePresence>
 
-        {/* Call to Action - Mobile Optimized */}
-        <motion.div
-          initial="hidden"
-          animate={isVisible ? "visible" : "hidden"}
-          variants={fadeInUp}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 text-center mt-8 max-w-6xl mx-auto"
-        >
-          <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 mb-6">
-            Ready to transform your organization's potential into performance?
-          </p>
-          <button
-            onClick={() => router.push('/contact-us')}
-            className="inline-flex items-center px-6 md:px-8 py-3 md:py-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-semibold rounded-lg transition-all duration-200"
+          {/* Tab Content - Mobile Optimized */}
+          <div className="p-6 md:p-8">
+            <AnimatePresence mode="wait">
+              <motion.div 
+                key={activeTab}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                {activeTab === 1 && (
+                  <div className="space-y-3 sm:space-y-4 md:space-y-6">
+                    {[
+                      {
+                        title: "Customized Training Solutions",
+                        description: "Our expert trainers collaborate closely with your team to develop tailored programs that address your specific IT and professional development needs. From cutting-edge technologies to essential soft skills, we ensure every course aligns perfectly with your organizational objectives."
+                      },
+                      {
+                        title: "Industry-Leading Instructors",
+                        description: "Learn from seasoned professionals who bring decades of real-world experience to every session. Our instructors combine theoretical knowledge with practical insights, ensuring your team gains actionable skills they can apply immediately."
+                      },
+                      {
+                        title: "Flexible Learning Pathways",
+                        description: "Choose from a variety of learning formats designed to suit your team's schedule and preferences. Whether it's intensive on-site workshops, interactive virtual classrooms, or self-paced e-learning modules, we adapt to your organizational rhythm."
+                      },
+                      {
+                        title: "Results-Driven Methodology",
+                        description: "Our training programs focus on measurable outcomes and practical applications. Through real-world scenarios and hands-on exercises, participants develop skills they can immediately implement to drive business results."
+                      },
+                      {
+                        title: "Continuous Support & Mentorship",
+                        description: "Your learning journey doesn't end with course completion. We provide ongoing support, mentorship opportunities, and resources to ensure successful skill implementation and long-term organizational growth."
+                      }
+                    ].map((item, index) => (
+                      <Accordion 
+                        key={index}
+                        title={item.title}
+                        defaultOpen={index === 0}
+                      >
+                        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
+                          {item.description}
+                        </p>
+                      </Accordion>
+                    ))}
+                  </div>
+                )}
+
+                {activeTab === 2 && (
+                  <div className="space-y-3 sm:space-y-4 md:space-y-6">
+                    {[
+                      {
+                        title: "Strategic Talent Acquisition",
+                        description: "Position your organization as an employer of choice by demonstrating a strong commitment to professional development. Our comprehensive training programs help attract and retain top talent in today's competitive market."
+                      },
+                      {
+                        title: "Accelerated Skill Development",
+                        description: "Fast-track your team's growth with targeted training programs that rapidly enhance their capabilities. Our structured approach ensures quick mastery of new skills and technologies."
+                      },
+                      {
+                        title: "Peak Performance Culture",
+                        description: "Foster a high-performance environment where continuous learning and improvement become part of your organizational DNA. Watch as enhanced skills translate into superior outcomes and innovation."
+                      },
+                      {
+                        title: "Elevated Employee Engagement",
+                        description: "Create a motivated and committed workforce through personalized development opportunities. Our training programs help employees see clear career progression paths within your organization."
+                      },
+                      {
+                        title: "Digital Transformation Ready",
+                        description: "Prepare your team for the digital future with comprehensive training in emerging technologies and methodologies. Stay competitive by keeping your workforce at the forefront of technological advancement."
+                      }
+                    ].map((benefit, index) => (
+                      <Accordion 
+                        key={index}
+                        title={benefit.title}
+                        defaultOpen={index === 0}
+                      >
+                        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
+                          {benefit.description}
+                        </p>
+                      </Accordion>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Call to Action - Mobile Optimized */}
+          <motion.div
+            initial="hidden"
+            animate={isVisible ? "visible" : "hidden"}
+            variants={fadeInUp}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="bg-slate-50 dark:bg-slate-700/50 p-6 md:p-8 text-center border-t border-slate-200 dark:border-slate-600"
           >
-            Start Your Journey
-            <ChevronRight className="ml-2 w-4 h-4 md:w-5 md:h-5" />
-          </button>
-        </motion.div>
+            <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 mb-6">
+              Ready to transform your organization's potential into performance?
+            </p>
+            <button
+              onClick={() => router.push('/contact-us')}
+              className="inline-flex items-center px-6 md:px-8 py-3 md:py-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-semibold rounded-lg transition-all duration-200"
+            >
+              Start Your Journey
+              <ChevronRight className="ml-2 w-4 h-4 md:w-5 md:h-5" />
+            </button>
+          </motion.div>
+        
+        </div>
       </div>
 
       {/* Scroll to top button - Mobile Optimized */}
