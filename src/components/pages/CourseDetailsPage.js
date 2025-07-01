@@ -1877,47 +1877,10 @@ const CourseDetailsPage = ({ ...props }) => {
   };
 
   return (
-    <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900">
+    <>
       {/* Course Header with Mobile-Optimized Design */}
       <div className="mb-3 sm:mb-6 md:mb-8">
-        <div className="relative overflow-hidden rounded-xl sm:rounded-2xl md:rounded-3xl bg-gradient-to-br from-white via-gray-50/50 to-white dark:from-gray-800 dark:via-gray-700/50 dark:to-gray-800 shadow-lg sm:shadow-xl border border-gray-200/60 dark:border-gray-600/60">
-          {/* Enhanced Background Pattern - Mobile Optimized */}
-          <div className="absolute inset-0">
-            {/* Mobile Grid Pattern */}
-            <div className="block sm:hidden">
-              <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" className="opacity-2 dark:opacity-3">
-                <defs>
-                  <pattern id="mobile-grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                    <circle cx="2" cy="2" r="0.5" fill="currentColor" opacity="0.3"/>
-                    <circle cx="18" cy="18" r="0.3" fill="currentColor" opacity="0.2"/>
-                  </pattern>
-                  <pattern id="mobile-lines" width="30" height="30" patternUnits="userSpaceOnUse">
-                    <path d="M 0 15 L 30 15" stroke="currentColor" strokeWidth="0.5" opacity="0.1"/>
-                    <path d="M 15 0 L 15 30" stroke="currentColor" strokeWidth="0.5" opacity="0.1"/>
-                  </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#mobile-grid)" />
-                <rect width="100%" height="100%" fill="url(#mobile-lines)" />
-              </svg>
-            </div>
-            
-            {/* Desktop Grid Pattern */}
-            <div className="hidden sm:block opacity-5 dark:opacity-10">
-              <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <pattern id="desktop-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="1"/>
-                    <circle cx="20" cy="20" r="1" fill="currentColor" opacity="0.3"/>
-                  </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#desktop-grid)" />
-              </svg>
-            </div>
-            
-            {/* Mobile Gradient Overlay for Better Readability */}
-            <div className="block sm:hidden absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent dark:via-gray-900/10 pointer-events-none"></div>
-          </div>
-
+        <div>
           <div className="relative py-4 sm:py-8 md:py-10 px-3 sm:px-6 md:px-8">
             {/* Course Title and Description - Mobile-First Design */}
             <motion.div
@@ -2067,7 +2030,7 @@ const CourseDetailsPage = ({ ...props }) => {
           ? courseDetails.brochures[0] 
           : null}
       />
-    </div>
+    </>
   );
 };
 
