@@ -277,18 +277,16 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
           transition={{ duration: 0.5 }}
           className="text-center max-w-3xl mx-auto mb-12"
         >
-          <div className="inline-flex items-center justify-center gap-3 px-6 py-2 rounded-full bg-[#F6B335]/10 backdrop-blur-sm mb-6">
-            <HelpCircle className={`w-5 h-5 text-[${primaryColor}] stroke-[1.75]`} style={{ fill: `${primaryColor}10` }} aria-hidden="true" />
-            <span className={`text-[${primaryColor}] font-semibold`}>FAQ</span>
-          </div>
-          
-          <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent mb-4">
-            {title}
-          </h2>
-          
-          <div className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            {subtitle}
-          </div>
+          {title && (
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+              {title}
+            </h2>
+          )}
+          {subtitle && (
+            <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
+              {subtitle}
+            </p>
+          )}
 
           {/* Search Bar */}
           {showSearch && (
@@ -550,19 +548,37 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
                 </motion.div>
                 <div className="text-gray-600 dark:text-gray-300 text-lg">
                   {theme.contactText || "Have more questions? Contact us at"}{" "}
-                  <a
-                    href={`mailto:${theme.contactEmail}`}
-                    className={`text-[${primaryColor}] font-semibold hover:underline inline-flex items-center gap-1 group`}
-                    style={{ color: primaryColor }}
-                  >
-                    {theme.contactEmail}
-                    <motion.span
-                      whileHover={{ x: 5 }}
-                      className="inline-block transition-transform"
+                  {theme.contactEmail === "care@medh.co" ? (
+                    <a
+                      href="https://mail.google.com/mail/u/0/?to=care@medh.co&fs=1&tf=cm"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`text-[${primaryColor}] font-semibold hover:underline inline-flex items-center gap-1 group`}
+                      style={{ color: primaryColor }}
                     >
-                      →
-                    </motion.span>
-                  </a>
+                      {theme.contactEmail}
+                      <motion.span
+                        whileHover={{ x: 5 }}
+                        className="inline-block transition-transform"
+                      >
+                        →
+                      </motion.span>
+                    </a>
+                  ) : (
+                    <a
+                      href={`mailto:${theme.contactEmail}`}
+                      className={`text-[${primaryColor}] font-semibold hover:underline inline-flex items-center gap-1 group`}
+                      style={{ color: primaryColor }}
+                    >
+                      {theme.contactEmail}
+                      <motion.span
+                        whileHover={{ x: 5 }}
+                        className="inline-block transition-transform"
+                      >
+                        →
+                      </motion.span>
+                    </a>
+                  )}
                 </div>
               </div>
             </div>

@@ -24,7 +24,7 @@ const VedicCourse: FC<IVedicCourseProps> = ({
 }) => {
   const customHeader = (
     <div className="w-full text-center">
-      <div className="relative space-y-4 md:space-y-6 py-6 md:py-8 lg:py-10">
+      <div className="relative space-y-4 md:space-y-6 pb-4 md:pb-6 lg:pb-8 pt-0">
         {/* Badge */}
         <div className="inline-flex items-center justify-center">
           <span className="inline-flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1 md:py-1.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs md:text-sm font-medium">
