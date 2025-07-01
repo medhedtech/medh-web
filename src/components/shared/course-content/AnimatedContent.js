@@ -144,6 +144,12 @@ function AnimatedContent({
     className: "w-full py-3 md:py-16 relative z-10 transform-gpu"
   };
 
+  // Custom motion props for FAQ section to remove top padding
+  const faqMotionSectionProps = {
+    ...motionSectionProps,
+    className: "w-full pt-0 pb-8 md:pt-0 md:pb-12 relative z-10 transform-gpu"
+  };
+
   return (
     <div className="relative w-full overflow-hidden" ref={mainRef}>
       {/* Hero Section */}
@@ -189,7 +195,7 @@ function AnimatedContent({
 
         {/* FAQ Section */}
         {CourseFAQ && (
-          <motion.section {...motionSectionProps}>
+          <motion.section {...faqMotionSectionProps}>
             <div className="">
               <div className="py-0">
                 <CourseFAQ />
