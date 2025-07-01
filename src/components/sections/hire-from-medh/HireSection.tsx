@@ -130,8 +130,8 @@ const HireSection: React.FC<IHireSectionProps> = memo(({ className = "" }) => {
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-emerald-50/50 dark:from-blue-950/20 dark:via-transparent dark:to-emerald-950/20"></div>
         
-        <div className="relative z-10 w-full px-3 sm:px-4 md:px-6 lg:px-8 py-8 md:py-12">
-          <div className="animate-pulse space-y-8 max-w-6xl mx-auto">
+        <div className="relative z-10 w-full py-8 md:py-12">
+          <div className="animate-pulse space-y-8 w-full px-4 sm:px-6 md:px-8">
             {/* Header skeleton */}
             <div className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm">
               <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-2/3 mx-auto mb-4"></div>
@@ -156,7 +156,7 @@ const HireSection: React.FC<IHireSectionProps> = memo(({ className = "" }) => {
   }
 
   return (
-    <section className={`relative ${mobilePatterns.mobileSection()} overflow-hidden ${className}`}>
+    <section className={`relative bg-slate-50 dark:bg-slate-900 min-h-screen overflow-hidden w-full ${className}`}>
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
       
@@ -167,31 +167,28 @@ const HireSection: React.FC<IHireSectionProps> = memo(({ className = "" }) => {
       <div className="absolute top-10 sm:top-20 left-0 w-20 h-20 sm:w-32 sm:h-32 bg-emerald-200/20 dark:bg-emerald-800/20 rounded-full blur-2xl sm:blur-3xl animate-blob"></div>
       <div className="absolute bottom-10 sm:bottom-20 right-0 w-24 h-24 sm:w-40 sm:h-40 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-2xl sm:blur-3xl animate-blob animation-delay-2000"></div>
 
-      <div className={`relative z-10 ${mobilePatterns.mobileContainer('lg')}`}>
+      <div className="relative z-10 w-full py-8 md:py-12">
         {/* Enhanced Header Section */}
         <motion.div
           initial="hidden"
           animate={isVisible ? "visible" : "hidden"}
           variants={fadeInUp}
           transition={{ duration: 0.8 }}
-          className={buildAdvancedComponent.glassCard({ variant: 'hero', padding: 'desktop' })}
+          className={`${buildAdvancedComponent.glassCard({ variant: 'hero', padding: 'desktop' })} mx-4 sm:mx-6 md:mx-8 lg:mx-12`}
         >
           <div className="text-center mb-10">
-            <div className="max-w-4xl mx-auto">
+            <div className="w-full mx-auto">
               {/* Section Badge */}
               <div className={corporatePatterns.sectionBadge('emerald')}>
                 <Briefcase className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mr-2" />
                 <span>Professional Recruitment</span>
               </div>
               
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-slate-100 mb-4 leading-tight">
-                Hire Industry-Ready
-                <span className="block text-emerald-600 dark:text-emerald-400 mt-1">
-                  Professionals
-                </span>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-slate-100 mb-4 leading-tight whitespace-nowrap">
+                Hire Industry-Ready <span className="text-emerald-600 dark:text-emerald-400">Professionals</span>
               </h1>
               
-              <div className="max-w-3xl mx-auto">
+              <div className="w-full mx-auto">
                 <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
                   Access vetted candidates with 
                   <span className="font-semibold text-slate-800 dark:text-slate-200"> real project experience</span> across 
@@ -324,7 +321,7 @@ const HireSection: React.FC<IHireSectionProps> = memo(({ className = "" }) => {
                 <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
                   Ready to Find Your Perfect Candidate?
                 </h3>
-                <p className="text-lg text-emerald-100 max-w-2xl mx-auto leading-relaxed mb-8">
+                <p className="text-lg text-emerald-100 leading-relaxed mb-8">
                   Connect with industry-ready professionals who can drive your business forward
                 </p>
                 
@@ -335,14 +332,6 @@ const HireSection: React.FC<IHireSectionProps> = memo(({ className = "" }) => {
                   >
                     <span>Start Hiring Now</span>
                     <ArrowUp className="ml-3 w-5 h-5 rotate-45 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                  
-                  <button
-                    onClick={() => router.push('/contact-us')}
-                    className="group inline-flex items-center px-8 py-4 bg-transparent text-white font-semibold rounded-xl border-2 border-white/30 hover:border-white hover:bg-white/10 transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
-                  >
-                    <span>Schedule Consultation</span>
-                    <ChevronRight className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </button>
                 </div>
 

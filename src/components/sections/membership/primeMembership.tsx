@@ -304,23 +304,25 @@ const PrimeMembership: React.FC = () => {
 
   return (
     <section className="bg-gray-50 dark:bg-gray-900 py-8">
-      <div className="max-w-5xl mx-auto px-4">
-        {/* Compact Header with Urgency */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 px-3 py-1 rounded-full text-sm font-medium mb-3">
-            <Zap className="w-3 h-3" />
-            Limited Time Offer - 65% OFF
+      <div className="w-full">
+        {/* Main Container */}
+        <div className="bg-white dark:bg-gray-800 shadow-xl border-t border-b border-gray-200 dark:border-gray-700">
+          {/* Compact Header with Urgency */}
+          <div className="text-center mb-8 px-6 md:px-8 lg:px-10 pt-6 md:pt-8 lg:pt-10">
+            <div className="inline-flex items-center gap-2 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 px-3 py-1 rounded-full text-sm font-medium mb-3">
+              <Zap className="w-3 h-3" />
+              Limited Time Offer - 65% OFF
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              Choose Your Learning Journey
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              Join thousands of professionals advancing their careers
+            </p>
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Choose Your Learning Journey
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Join thousands of professionals advancing their careers
-          </p>
-        </div>
 
         {/* Compact Membership Cards */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <div className="grid md:grid-cols-2 gap-6 mb-8 px-6 md:px-8 lg:px-10">
           {membershipData.map((membership: IMembershipData, index: number) => {
             const selectedPlanDuration = membership.type === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
             const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
@@ -496,22 +498,23 @@ const PrimeMembership: React.FC = () => {
           })}
         </div>
 
-        {/* Compact Trust Signals */}
-        <div className="text-center">
-          <div className="inline-flex items-center gap-4 bg-white dark:bg-gray-800 rounded-lg px-6 py-3 shadow-sm">
-            <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-              <CheckCircle className="w-4 h-4 text-green-500" />
-              <span>70+ Courses</span>
-            </div>
-            <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
-            <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-              <CheckCircle className="w-4 h-4 text-green-500" />
-              <span>Industry Certified</span>
-            </div>
-            <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
-            <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-              <CheckCircle className="w-4 h-4 text-green-500" />
-              <span>Job Assistance</span>
+          {/* Compact Trust Signals */}
+          <div className="text-center px-6 md:px-8 lg:px-10 pb-6 md:pb-8 lg:pb-10">
+            <div className="inline-flex items-center gap-4 bg-gray-50 dark:bg-gray-700 rounded-lg px-6 py-3 shadow-sm border border-gray-100 dark:border-gray-600">
+              <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span>70+ Courses</span>
+              </div>
+              <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
+              <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span>Industry Certified</span>
+              </div>
+              <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
+              <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span>Job Assistance</span>
+              </div>
             </div>
           </div>
         </div>

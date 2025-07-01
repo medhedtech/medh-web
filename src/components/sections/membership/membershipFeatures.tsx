@@ -100,30 +100,32 @@ const MembershipFeatures: React.FC = () => {
 
   return (
     <section className="bg-gray-50 dark:bg-gray-900 py-12">
-      <div className="w-full px-4 md:px-6 lg:px-8">
-        {/* Compact Header with Impact */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100 to-emerald-100 dark:from-blue-900/30 dark:to-emerald-900/30 text-blue-700 dark:text-blue-400 px-3 py-1 rounded-full text-sm font-medium mb-3">
-            <Star className="w-3 h-3 fill-current" />
-            Premium Features
+      <div className="w-full">
+        {/* Main Container */}
+        <div className="bg-white dark:bg-gray-800 shadow-xl border-t border-b border-gray-200 dark:border-gray-700">
+          {/* Compact Header with Impact */}
+          <div className="text-center mb-8 px-6 md:px-8 lg:px-10 pt-6 md:pt-8 lg:pt-10">
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100 to-emerald-100 dark:from-blue-900/30 dark:to-emerald-900/30 text-blue-700 dark:text-blue-400 px-3 py-1 rounded-full text-sm font-medium mb-3">
+              <Star className="w-3 h-3 fill-current" />
+              Premium Features
+            </div>
+            
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+              What's Included
+            </h2>
           </div>
-          
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-            What's Included
-          </h2>
-        </div>
 
-        {/* Compact Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature: IFeature, index: number) => {
-            const colors = getSemanticColor(feature.category);
-            const isHovered = hoveredIndex === index;
+          {/* Compact Features Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-6 md:px-8 lg:px-10">
+            {features.map((feature: IFeature, index: number) => {
+              const colors = getSemanticColor(feature.category);
+              const isHovered = hoveredIndex === index;
 
-            return (
-              <div
-                key={index}
-                className="relative bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5"
-              >
+              return (
+                <div
+                  key={index}
+                  className="relative bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-100 dark:border-gray-600 p-5"
+                >
                 {/* Top Section */}
                 <div className="flex items-center justify-between mb-4">
                   {/* Icon */}
@@ -173,36 +175,37 @@ const MembershipFeatures: React.FC = () => {
           })}
         </div>
 
-        {/* Bottom Trust Indicators */}
-        <div className="mt-12 text-center">
-          <div className="max-w-4xl mx-auto">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-              Trusted by Professionals Worldwide
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-center mb-2">
-                  <TrendingUp className="w-8 h-8 text-emerald-500" />
-                </div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">95%</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Career Growth Rate</div>
-              </div>
+          {/* Bottom Trust Indicators */}
+          <div className="mt-12 text-center px-6 md:px-8 lg:px-10 pb-6 md:pb-8 lg:pb-10">
+            <div className="w-full">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+                Trusted by Professionals Worldwide
+              </h3>
               
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-center mb-2">
-                  <Award className="w-8 h-8 text-amber-500" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-100 dark:border-gray-600">
+                  <div className="flex items-center justify-center mb-2">
+                    <TrendingUp className="w-8 h-8 text-emerald-500" />
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">95%</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Career Growth Rate</div>
                 </div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">100%</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Industry Recognized</div>
-              </div>
-              
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-center mb-2">
-                  <CheckCircle className="w-8 h-8 text-green-500" />
+                
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-100 dark:border-gray-600">
+                  <div className="flex items-center justify-center mb-2">
+                    <Award className="w-8 h-8 text-amber-500" />
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">100%</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Industry Recognized</div>
                 </div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">24/7</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Support Available</div>
+                
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-100 dark:border-gray-600">
+                  <div className="flex items-center justify-center mb-2">
+                    <CheckCircle className="w-8 h-8 text-green-500" />
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">24/7</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Support Available</div>
+                </div>
               </div>
             </div>
           </div>

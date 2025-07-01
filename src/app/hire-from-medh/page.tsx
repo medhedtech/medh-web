@@ -20,15 +20,49 @@ import { NextPage } from "next";
  */
 const HireFromMedh: NextPage = () => {
   return (
-    <PageWrapper>
-      <HireFromMedhBanner />
-      <HireSection />
-      <SkillsSection />
-      <HiringProcess />
-      <Certified />
-      <HireFromMedhFaq />
-      {/* <HireFromMedhCourseBanner /> */}
-    </PageWrapper>
+    <>
+      <style jsx global>{`
+        html, body {
+          padding: 0 !important;
+          margin: 0 !important;
+          height: 100% !important;
+        }
+        
+        #main-content {
+          padding-bottom: 0 !important;
+          margin-bottom: 0 !important;
+          min-height: 100vh !important;
+        }
+        
+        .flex.flex-col.min-h-screen {
+          min-height: 100vh !important;
+          height: 100vh !important;
+        }
+        
+        main {
+          padding-bottom: 0 !important;
+          margin-bottom: 0 !important;
+        }
+        
+        section:last-child {
+          margin-bottom: 0 !important;
+          padding-bottom: 0 !important;
+        }
+      `}</style>
+      <PageWrapper addTopPadding={false} addBottomPadding={false} showFooter={false}>
+        <div className="space-y-0">
+          <HireFromMedhBanner />
+          <HireSection />
+          <SkillsSection />
+          <HiringProcess />
+          <Certified />
+          <div className="pb-0 mb-0">
+            <HireFromMedhFaq />
+          </div>
+        </div>
+        {/* <HireFromMedhCourseBanner /> */}
+      </PageWrapper>
+    </>
   );
 };
 

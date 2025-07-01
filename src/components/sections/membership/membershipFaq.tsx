@@ -122,35 +122,38 @@ const MembershipFaq: React.FC = () => {
 
   return (
     <section className="bg-gray-50 dark:bg-gray-900 py-12">
-      <div className="w-full px-4 md:px-6 lg:px-8">
-        {/* Compact Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Frequently Asked Questions
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Everything you need to know about MEDH memberships
-          </p>
-        </div>
+      <div className="w-full">
+        {/* Main Container */}
+        <div className="bg-white dark:bg-gray-800 shadow-xl border-t border-b border-gray-200 dark:border-gray-700">
+          {/* Compact Header */}
+          <div className="text-center mb-8 px-6 md:px-8 lg:px-10 pt-6 md:pt-8 lg:pt-10">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              Frequently Asked Questions
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              Everything you need to know about MEDH memberships
+            </p>
+          </div>
 
-        {/* FAQ Content */}
-        <div className="w-full">
-          <CommonFaq
-            title=""
-            subtitle=""
-            faqs={faqs}
-            theme={{
-              primaryColor: "#3b82f6", // Blue-500 - Excellent contrast in both themes
-              secondaryColor: "#1e40af", // Blue-800 - Strong contrast for text
-              accentColor: "#2563eb", // Blue-600 - Perfect balance
-              showContactSection: true,
-              contactEmail: "care@medh.co",
-              contactText: "Have more questions about our membership program? Contact our team at"
-            }}
-            showSearch={true}
-            showCategories={true}
-            defaultCategory="all"
-          />
+          {/* FAQ Content */}
+          <div className="w-full px-6 md:px-8 lg:px-10 pb-6 md:pb-8 lg:pb-10">
+            <CommonFaq
+              title=""
+              subtitle=""
+              faqs={faqs}
+              theme={{
+                primaryColor: "#3b82f6", // Blue-500 - Excellent contrast in both themes
+                secondaryColor: "#1e40af", // Blue-800 - Strong contrast for text
+                accentColor: "#2563eb", // Blue-600 - Perfect balance
+                showContactSection: true,
+                contactEmail: "care@medh.co",
+                contactText: "Have more questions about our membership program? Contact our team at"
+              }}
+              showSearch={true}
+              showCategories={true}
+              defaultCategory="all"
+            />
+          </div>
         </div>
       </div>
     </section>
