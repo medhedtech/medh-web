@@ -1467,15 +1467,15 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
     fetchCourses();
   }, [
     normalizedCategory,
-    categoryInfo,
+    categoryInfo?.displayName, // Only depend on the specific property to avoid object reference issues
     currentPage,
     selectedGrade,
     selectedDuration,
     getQuery,
     extractDurationOptions,
     extractGradeOptions,
-    userCurrency,
-    convertPrice
+    userCurrency
+    // Removed 'convertPrice' as it's undefined and causing infinite re-renders
   ]);
 
   // Handle page change
@@ -1572,7 +1572,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
         setCourseLoading(false);
       }
     });
-  }, [getQuery, selectedCourse, categoryInfo, userCurrency, convertPrice]);
+  }, [getQuery, selectedCourse, categoryInfo?.displayName, userCurrency]);
 
   // Handle duration selection
   const handleDurationChange = (durationId: string) => {
@@ -1866,18 +1866,21 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
         }
         
         // Process the course data
-        const processedCourse = {
+        const processedCourse: Course = {
           _id: courseData._id,
           title: courseData.course_title || "",
           description: courseData.course_description || "",
           long_description: courseData.course_description || "",
           category: courseData.course_category || "",
           grade: courseData.course_grade || "",
+          course_grade: courseData.course_grade || "",
           thumbnail: courseData.course_image || null,
           course_duration: courseData.course_duration || "",
           course_duration_days: parseDuration(courseData.course_duration) || 30,
           course_fee: courseData.course_fee || 0,
+          prices: courseData.prices || [],
           enrolled_students: courseData.enrolled_students || 0,
+          views: courseData.meta?.views || 0,
           is_Certification: courseData.is_Certification === "Yes",
           is_Assignments: courseData.is_Assignments === "Yes",
           is_Projects: courseData.is_Projects === "Yes",
@@ -1890,7 +1893,25 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
           no_of_Sessions: courseData.no_of_Sessions || 0,
           status: courseData.status || "Published",
           isFree: courseData.isFree || false,
-          hasFullDetails: true
+          hasFullDetails: true,
+          slug: courseData.slug || "",
+          category_type: courseData.category_type || "",
+          currency_code: courseData.currency_code || userCurrency,
+          original_prices: courseData.prices || [],
+          classType: courseData.classType || "",
+          class_type: courseData.class_type || "",
+          course_type: courseData.course_type || "",
+          delivery_format: courseData.delivery_format || "",
+          delivery_type: courseData.delivery_type || "",
+          meta: {
+            views: courseData.meta?.views || 0,
+            enrollments: courseData.meta?.enrollments || 0,
+            lastUpdated: courseData.updatedAt || new Date().toISOString(),
+            ratings: {
+              average: courseData.meta?.ratings?.average || 0,
+              count: courseData.meta?.ratings?.count || 0
+            }
+          }
         };
         
         // Set both courses and filtered courses with just this course
@@ -1901,7 +1922,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
         setSelectedCourse(processedCourse);
         setLoading(false);
       },
-      onError: (err) => {
+      onFail: (err: any) => {
         console.error("Error fetching course:", err);
         setError(parseApiError(err) || "Failed to load course details");
         setLoading(false);
