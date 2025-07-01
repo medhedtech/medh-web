@@ -501,7 +501,7 @@ const PrimeMembership: React.FC = () => {
           <div className="inline-flex items-center gap-4 bg-white dark:bg-gray-800 rounded-lg px-6 py-3 shadow-sm">
             <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
               <CheckCircle className="w-4 h-4 text-green-500" />
-              <span>7,000+ Active Students</span>
+              <span>100,000+ Hours Taught</span>
             </div>
             <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
             <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
