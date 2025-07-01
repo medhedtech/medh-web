@@ -1186,23 +1186,32 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     }
   }, [loading, filteredCourses.length]);
 
-  // Update grid columns based on screen size
+  // Update grid columns based on screen size and course count
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
     const updateGridColumns = (): void => {
+      const courseCount = filteredCourses.length;
+      
       if (isMobile) {
         setResponsiveGridColumns(1);
       } else if (isTablet) {
-        setResponsiveGridColumns(2);
+        // For tablets, adjust based on course count
+        setResponsiveGridColumns(courseCount < 4 ? Math.min(courseCount, 2) : 2);
       } else {
-        // Always use 4 columns for desktop and larger screens
-        setResponsiveGridColumns(4);
+        // For desktop, dynamically adjust based on course count
+        if (courseCount <= 2) {
+          setResponsiveGridColumns(Math.max(courseCount, 1));
+        } else if (courseCount <= 3) {
+          setResponsiveGridColumns(3);
+        } else {
+          setResponsiveGridColumns(4);
+        }
       }
     };
     
     updateGridColumns();
-  }, [isMobile, isTablet, gridColumns]);
+  }, [isMobile, isTablet, gridColumns, filteredCourses.length]);
 
   // Reset page number when filters change
   useEffect(() => {
@@ -2011,25 +2020,47 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   // Use getTabStyles to generate dynamic styling based on activeTab
   const tabStyles = getTabStyles();
 
-  // Determine grid column classes
+  // Determine grid column classes - optimized for fewer courses
   const getGridColumnClasses = (): string => {
     if (customGridClassName) {
       return customGridClassName;
     }
     
-    // Default responsive grid - optimized for wider cards with minimal gap
-    let gridClass = "grid gap-1.5 lg:gap-2 pb-1";
+    const courseCount = filteredCourses.length;
     
-    switch (responsiveGridColumns) {
-      case 1:
-        gridClass += " grid-cols-1";
-        break;
-      case 2:
-        gridClass += " grid-cols-1 md:grid-cols-2";
-        break;
-      case 3:
-      default:
-        gridClass += " grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
+    // Optimize grid layout based on course count
+    let gridClass = "grid pb-0";
+    
+    // Adjust gap based on course count
+    if (courseCount <= 3) {
+      gridClass += " gap-4 lg:gap-6"; // Larger gaps for fewer courses
+    } else {
+      gridClass += " gap-1.5 lg:gap-2"; // Standard gaps for more courses
+    }
+    
+    // Dynamic grid columns based on actual course count and screen size
+    if (courseCount === 1) {
+      gridClass += " grid-cols-1 justify-items-center";
+    } else if (courseCount === 2) {
+      gridClass += " grid-cols-1 md:grid-cols-2 justify-items-center";
+    } else if (courseCount === 3) {
+      gridClass += " grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 justify-items-center";
+    } else {
+      // Standard responsive grid for 4+ courses
+      switch (responsiveGridColumns) {
+        case 1:
+          gridClass += " grid-cols-1";
+          break;
+        case 2:
+          gridClass += " grid-cols-1 md:grid-cols-2";
+          break;
+        case 3:
+          gridClass += " grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
+          break;
+        case 4:
+        default:
+          gridClass += " grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
+      }
     }
     
     return gridClass;
@@ -2086,9 +2117,9 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     }
 
     return (
-      <div className="course-grid-container relative px-4 md:px-6 lg:px-8">
+      <div className="course-grid-container relative px-4 md:px-6 lg:px-8 pb-0">
         {/* Enhanced Course Cards Grid - Responsive for all screen sizes */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-1.5 lg:gap-2 auto-rows-fr">
+        <div className={`${getGridColumnClasses()} auto-rows-fr ${filteredCourses.length <= 3 ? 'max-w-4xl mx-auto' : ''}`}>
             {filteredCourses.map((course, index) => {
               if (!course || !course._id) {
                 console.warn('Invalid course data:', course);
@@ -2165,8 +2196,9 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             })}
         </div>
 
-        {/* Enhanced Custom CSS for animations and performance */}
+        {/* Enhanced Custom CSS converted to Tailwind - keeping only essential animations and browser-specific styling */}
         <style jsx>{`
+          /* Essential keyframe animations that can't be replicated with Tailwind utilities */
           @keyframes fadeInUp {
             from {
               opacity: 0;
@@ -2189,11 +2221,25 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             }
           }
 
+          @keyframes loading {
+            0% {
+              background-position: -200% 0;
+            }
+            100% {
+              background-position: 200% 0;
+            }
+          }
+
+          /* Animation utility classes */
           .animate-slideIn {
             animation: slideIn 0.3s ease-out forwards;
           }
 
-          /* Custom Scrollbar Styles */
+          .animate-loading {
+            animation: loading 1.5s infinite;
+          }
+
+          /* Browser-specific scrollbar styling that can't be replicated with Tailwind */
           .custom-scrollbar {
             scrollbar-width: thin;
             scrollbar-color: rgb(156 163 175) rgb(243 244 246);
@@ -2236,56 +2282,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             background: rgb(107 114 128);
           }
 
-          /* Dropdown Animation Enhancements */
-          .dropdown-enter {
-            opacity: 0;
-            max-height: 0;
-            transform: translateY(-10px);
-          }
-
-          .dropdown-enter-active {
-            opacity: 1;
-            max-height: 400px;
-            transform: translateY(0);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          }
-
-          .dropdown-exit {
-            opacity: 1;
-            max-height: 400px;
-            transform: translateY(0);
-          }
-
-          .dropdown-exit-active {
-            opacity: 0;
-            max-height: 0;
-            transform: translateY(-10px);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          }
-
-          /* Enhanced hover effects */
-          .dropdown-item:hover {
-            transform: translateX(4px);
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-          }
-
-          /* Grid optimizations */
-          .grid {
-            contain: layout style paint;
-          }
-
-          /* Smooth scroll behavior */
-          .overflow-y-auto {
-            scroll-behavior: smooth;
-            scrollbar-width: thin;
-            scrollbar-color: rgb(156 163 175) rgb(243 244 246);
-          }
-
-          .dark .overflow-y-auto {
-            scrollbar-color: rgb(75 85 99) rgb(31 41 55);
-          }
-
-          /* Webkit scrollbar styling */
+          /* Global webkit scrollbar styling */
           ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -2317,12 +2314,6 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
 
           .dark ::-webkit-scrollbar-thumb:hover {
             background: rgb(107 114 128);
-          }
-
-          /* Performance optimizations */
-          .course-card {
-            will-change: transform;
-            transform: translateZ(0);
           }
 
           /* Responsive grid improvements - Optimized for all screen sizes */
@@ -2846,7 +2837,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             
             {/* Pagination */}
             {!loading && filteredCourses.length > 0 && totalPages > 1 && (
-              <div className="px-4 md:px-6 lg:px-8 py-6 border-t border-gray-100 dark:border-gray-800">
+              <div className="px-4 md:px-6 lg:px-8 py-2 border-t border-gray-100 dark:border-gray-800">
                 <SimplePaginationWrapper
                   currentPage={currentPage}
                   totalPages={totalPages}
@@ -3600,25 +3591,25 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
 
         {/* Main container with improved background */}
         <div className="w-full bg-gradient-to-b from-gray-50/80 to-white dark:from-gray-900/80 dark:to-gray-900 min-h-screen flex flex-col">
-          {/* Enhanced search and filters bar */}
+          {/* Compact search and filters bar */}
           {!hideFilterBar && (
             <div className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm flex-shrink-0">
-              <div className="px-4 md:px-6 lg:px-8 py-4 md:py-6">
-                {/* Filter Header */}
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl text-white">
-                      <Filter className="w-5 h-5" />
+              <div className="px-4 md:px-6 lg:px-8 py-2 md:py-3">
+                {/* Compact Filter Header */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="p-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg text-white">
+                      <Filter className="w-4 h-4" />
                     </div>
                     <div>
-                      <h2 className="text-xl font-bold text-gray-900 dark:text-white">Find Your Course</h2>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Use filters to discover the perfect learning path</p>
+                      <h2 className="text-lg font-bold text-gray-900 dark:text-white">Find Your Course</h2>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">Use filters to discover the perfect learning path</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Search and Filter Controls - iPad optimized layout */}
-                <div className="flex flex-col md:flex-row gap-4 md:gap-6">
+                {/* Compact Search and Filter Controls */}
+                <div className="flex flex-col md:flex-row gap-3 md:gap-4">
                   {/* Filter Controls - Top on iPad */}
                   <div className="flex flex-wrap gap-3 md:gap-4 items-center justify-center md:justify-start order-1 md:order-2">
                     {!hideSortOptions && (
@@ -3656,4 +3647,4 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   );
 };
 
-export default CoursesFilter; 
+export default CoursesFilter;

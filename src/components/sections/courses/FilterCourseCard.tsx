@@ -648,47 +648,71 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
     return /18\s*months?/i.test(durationText);
   };
 
-  // Get course type specific styles
+  // Get course type specific styles with enhanced design
   const getCourseTypeStyles = () => {
+    const isJobGuarantee = isJobGuaranteeCourse();
+    
     if (isLiveCourse) {
       return {
-        stickyNoteBg: 'bg-red-500',
-        stickyNoteText: 'text-white',
-        buttonBg: 'bg-[#379392] hover:bg-[#379392]/90',
+        stickyNoteBg: isJobGuarantee 
+          ? 'bg-gradient-to-br from-amber-400 via-yellow-500 to-orange-600' 
+          : 'bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500',
+        stickyNoteText: isJobGuarantee 
+          ? 'text-black font-black' 
+          : 'text-white',
+        buttonBg: 'bg-emerald-600 hover:bg-emerald-700',
         buttonText: 'text-white',
-        accentColor: 'text-[#379392]',
-        priceColor: 'text-[#2d5f5d] dark:text-[#4ade80]',
-        chipBg: 'bg-[#379392]/10',
-        chipText: 'text-[#379392]',
-        chipBorder: 'border-[#379392]/20'
+        accentColor: isJobGuarantee ? 'text-amber-600' : 'text-emerald-600',
+        priceColor: isJobGuarantee 
+          ? 'text-amber-700 dark:text-amber-400' 
+          : 'text-emerald-700 dark:text-emerald-400',
+        chipBg: isJobGuarantee 
+          ? 'bg-amber-50 dark:bg-amber-900/20' 
+          : 'bg-emerald-50 dark:bg-emerald-900/20',
+        chipText: isJobGuarantee 
+          ? 'text-amber-700 dark:text-amber-300' 
+          : 'text-emerald-700 dark:text-emerald-300',
+        chipBorder: isJobGuarantee 
+          ? 'border-amber-200 dark:border-amber-700/50' 
+          : 'border-emerald-200 dark:border-emerald-700/50',
+        cardBorder: isJobGuarantee 
+          ? 'border-amber-200/50 dark:border-amber-700/50 hover:border-amber-300/60 dark:hover:border-amber-600/60'
+          : 'border-emerald-200/50 dark:border-emerald-700/50 hover:border-emerald-300/60 dark:hover:border-emerald-600/60',
+        cardShadow: isJobGuarantee 
+          ? 'shadow-amber-100/50 hover:shadow-amber-200/25 dark:hover:shadow-amber-800/25'
+          : 'shadow-emerald-100/50 hover:shadow-emerald-200/25 dark:hover:shadow-emerald-800/25'
       };
     }
     
     if (isBlendedCourse) {
       return {
-        stickyNoteBg: 'bg-purple-500',
+        stickyNoteBg: 'bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500',
         stickyNoteText: 'text-white',
-        buttonBg: 'bg-purple-500 hover:bg-purple-600',
+        buttonBg: 'bg-purple-600 hover:bg-purple-700',
         buttonText: 'text-white',
-        accentColor: 'text-purple-500',
-        priceColor: 'text-purple-800 dark:text-purple-400',
-        chipBg: 'bg-purple-100',
-        chipText: 'text-purple-600',
-        chipBorder: 'border-purple-200'
+        accentColor: 'text-purple-600',
+        priceColor: 'text-purple-700 dark:text-purple-400',
+        chipBg: 'bg-purple-50 dark:bg-purple-900/20',
+        chipText: 'text-purple-700 dark:text-purple-300',
+        chipBorder: 'border-purple-200 dark:border-purple-700/50',
+        cardBorder: 'border-purple-200/50 dark:border-purple-700/50 hover:border-purple-300/60 dark:hover:border-purple-600/60',
+        cardShadow: 'shadow-purple-100/50 hover:shadow-purple-200/25 dark:hover:shadow-purple-800/25'
       };
     }
     
     // Default to self-paced course styles
     return {
-      stickyNoteBg: 'bg-blue-500',
+      stickyNoteBg: 'bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-500',
       stickyNoteText: 'text-white',
-      buttonBg: 'bg-indigo-500 hover:bg-indigo-600',
+      buttonBg: 'bg-blue-600 hover:bg-blue-700',
       buttonText: 'text-white',
-      accentColor: 'text-indigo-500',
-      priceColor: 'text-indigo-800 dark:text-indigo-400',
-      chipBg: 'bg-indigo-100',
-      chipText: 'text-indigo-600',
-      chipBorder: 'border-indigo-200'
+      accentColor: 'text-blue-600',
+      priceColor: 'text-blue-700 dark:text-blue-400',
+      chipBg: 'bg-blue-50 dark:bg-blue-900/20',
+      chipText: 'text-blue-700 dark:text-blue-300',
+      chipBorder: 'border-blue-200 dark:border-blue-700/50',
+      cardBorder: 'border-blue-200/50 dark:border-blue-700/50 hover:border-blue-300/60 dark:hover:border-blue-600/60',
+      cardShadow: 'shadow-blue-100/50 hover:shadow-blue-200/25 dark:hover:shadow-blue-800/25'
     };
   };
 
@@ -701,8 +725,9 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
       const isJobGuarantee = isJobGuaranteeCourse();
       
       return {
-        tag: isJobGuarantee ? 'Live Job Guarantee' : 'Live',
-        tagIcon: <Play className="w-3 h-3" />,
+        tag: isJobGuarantee ? '🎯 Job Guarantee Course' : 'Live',
+        mobileTag: isJobGuarantee ? '🎯 Job Guarantee' : 'Live',
+        tagIcon: isJobGuarantee ? <GraduationCap className="w-3 h-3" /> : <Play className="w-3 h-3" />,
         sessionLabel: 'Sessions',
         sessionIcon: <Users size={12} />,
         isJobGuarantee
@@ -711,7 +736,8 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
     
     if (isBlendedCourse) {
       return {
-        tag: 'Blended (self-paced)',
+        tag: 'Blended',
+        mobileTag: 'Blended',
         tagIcon: <Layers className="w-3 h-3" />,
         sessionLabel: 'Video Sessions',
         sessionIcon: <Play size={12} />,
@@ -722,6 +748,7 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
     // Default to self-paced content
     return {
       tag: 'Self-Paced',
+      mobileTag: 'Self-Paced',
       tagIcon: <Play className="w-3 h-3" />,
       sessionLabel: 'Videos',
       sessionIcon: <Play size={12} />,
@@ -904,7 +931,7 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
                 className: "w-3 h-3 xs:w-3.5 xs:h-3.5" 
               })}
             </div>
-            <span className="font-extrabold text-xs xs:text-sm truncate">{content.tag}</span>
+            <span className="font-extrabold text-xs xs:text-sm truncate">{content.mobileTag || content.tag}</span>
           </div>
           
           {/* Right side - Additional info */}
@@ -926,8 +953,8 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
       <div 
         key={`desktop-card-${course?._id}`}
         className="group relative hidden md:flex flex-col 
-        h-[360px] md:h-[380px] lg:h-[400px] xl:h-[400px] 
-        w-full max-w-[280px] md:max-w-[300px] lg:max-w-[320px] xl:max-w-[340px] 
+        h-[300px] md:h-[320px] lg:h-[340px] xl:h-[340px] 
+        w-full max-w-[240px] md:max-w-[260px] lg:max-w-[280px] xl:max-w-[300px] 
         mx-auto rounded-lg md:rounded-xl overflow-hidden 
         border border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300/60 dark:hover:border-gray-600/60
         bg-white dark:bg-gray-900 
@@ -939,19 +966,24 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
       onMouseMove={handleMouseMove}
       onClick={navigateToCourse}
     >
-      {/* Image section with sticky note badge */}
-      <div className="relative">
-        <ImageWrapper
+      {/* Image section with sticky note badge - Reduced size */}
+      <div className="relative h-[140px] md:h-[150px] lg:h-[160px] overflow-hidden rounded-t-xl group">
+        <OptimizedImage
           src={course?.course_image || ''}
           alt={course?.course_title || "Course Image"}
+          fill={true}
+          className="object-cover transition-all duration-300 ease-out group-hover:scale-105"
+          quality={isLCP ? 95 : 85}
+          priority={isLCP}
           onLoad={handleImageLoad}
           onError={handleImageError}
-          priority={isLCP}
-          isLCP={isLCP}
-          index={index}
-          coursesPageCompact={coursesPageCompact}
-          isLiveCourse={isLiveCourse}
+          loading={isLCP ? 'eager' : 'lazy'}
+          decoding={isLCP ? 'sync' : 'async'}
+          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
         />
+
+        {/* Subtle gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/20 dark:from-black/10 dark:to-black/30" />
         
         {/* Sticky Note Badge - Top Left Corner */}
         <div className={`absolute 
@@ -973,14 +1005,14 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
         </div>
       </div>
 
-      {/* Course content - Compact layout */}
+      {/* Course content - Reduced spacing */}
       <div className="flex flex-col flex-grow 
         p-3 md:p-4 lg:p-4 
         space-y-2 md:space-y-2.5">
         
-        {/* 1. Course Title - Compact */}
+        {/* 1. Course Title - Compact proportions */}
         <div className="text-left 
-          min-h-[45px] md:min-h-[50px] lg:min-h-[55px] 
+          min-h-[40px] md:min-h-[45px] lg:min-h-[48px] 
           flex flex-col justify-center">
           <h3 className="text-sm md:text-base lg:text-base 
             font-bold md:font-extrabold 
@@ -1116,4 +1148,4 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
   );
 };
 
-export default FilterCourseCard; 
+export default FilterCourseCard;

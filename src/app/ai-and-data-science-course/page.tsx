@@ -1,7 +1,9 @@
 'use client';
 
+import React from 'react';
 import { Cpu, Database, Brain, Star, Users, BookOpen } from 'lucide-react';
-import dynamic from 'next/dynamic';
+import Link from 'next/link';
+import Image from 'next/image';
 
 // Core components
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
@@ -14,27 +16,56 @@ import CourseAiFaq from "@/components/sections/course-ai/courseAiFaq";
 import CourseAiRelatedCourses from "@/components/sections/course-ai/courseAiRelatedCourse";
 import CourseOptions from "@/components/sections/course-ai/courseOptions";
 
-// Dynamic import for AnimatedContent to avoid SSR issues
-const AnimatedContent = dynamic(
-  () => import('./AnimatedContent'),
-  { 
-    ssr: false,
-    loading: () => (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
-        </div>
-      </div>
-    )
-  }
-);
 
 // Assets
 import Banner from "@/assets/Header-Images/ai-and-data/ai-with-data-science.png";
 import DevelopmentImg from "@/assets/Header-Images/ai-and-data/image-3rd.jpg";
 
-function CourseAi() {
-  const bannerProps = {
+/**
+ * Interface for banner configuration props
+ */
+interface IBannerProps {
+  badge: string;
+  title: string;
+  titleHighlight: string;
+  description: string;
+  enrollmentPath: string;
+  stats: Array<{
+    icon: React.ReactNode;
+    value: string;
+    label: string;
+  }>;
+  features: Array<{
+    icon: React.ReactNode;
+    title: string;
+    description: string;
+  }>;
+  mainImage: any;
+  studentImage: any;
+  themeClasses: {
+    badge: string;
+    badgeContainer: string;
+    title: string;
+    button: string;
+    secondaryButton: string;
+    gradientFrom: string;
+    gradientVia: string;
+    gradientTo: string;
+    backgroundPrimary: string;
+    backgroundSecondary: string;
+  };
+}
+
+/**
+ * AI and Data Science Course Page Component
+ * 
+ * This page displays comprehensive information about the AI and Data Science course,
+ * including course overview, options, FAQ, and related courses.
+ * 
+ * @returns React element containing the complete course page
+ */
+function CourseAi(): React.ReactElement {
+  const bannerProps: IBannerProps = {
     badge: "New Course",
     title: "Artificial Intelligence &",
     titleHighlight: "Data Science",
@@ -92,26 +123,40 @@ function CourseAi() {
 
   return (
     <PageWrapper>
-      {/* Content with Header Offset */}
+      {/* Course Banner Section */}
+      <section className="relative w-full">
+        <CourseBanner {...bannerProps} />
+        <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-gray-50 dark:from-gray-900 to-transparent" />
+      </section>
 
-        <AnimatedContent 
-          components={{
-            CourseBanner,
-            CourseAiOverview,
-            CourseOptions,
-            CourseAiFaq,
-            CourseAiRelatedCourses,
-            ThemeController
-          }}
-          // exploreJourneyProps={{
-          //   mainText: "Master AI & Data Science. Future-proof Your Career.",
-          //   subText: "Enroll Now!"
-          // }}
-          bannerProps={bannerProps}
-        />
+      {/* Course Options Section */}
+      <section className="w-full py-3 md:py-3 relative z-10">
+        <CourseOptions />
+      </section>
 
+      {/* Main Content */}
+      <main className="relative w-full bg-gray-50 dark:bg-gray-900">
+        {/* Course Overview Section */}
+        <section className="w-full py-3 md:py-16 relative z-10">
+          <CourseAiOverview />
+        </section>
 
-      {/* Theme Controller - Now positioned in bottom right */}
+        {/* Course FAQ Section */}
+        <section className="w-full py-3 md:py-16 relative z-10">
+          <div className="">
+            <div className="py-0">
+              <CourseAiFaq />
+            </div>
+          </div>
+        </section>
+
+        {/* Related Courses Section */}
+        <section className="w-full py-2 md:py-8 relative z-10">
+          <CourseAiRelatedCourses />
+        </section>
+      </main>
+
+      {/* Theme Controller - Positioned in bottom right */}
       <div className="fixed bottom-4 right-4 z-50">
         <ThemeController />
       </div>

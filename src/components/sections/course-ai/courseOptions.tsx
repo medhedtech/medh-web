@@ -1,11 +1,15 @@
 "use client";
-import React, { useState } from "react";
-import CoursesFilter from "../courses/CoursesFilter";
-import { Zap, Sparkles, Brain } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import FilterCards from "../../shared/courses/FilterCards";
+import { Zap, Sparkles, Brain, Search } from "lucide-react";
 import Link from "next/link";
 import Image from 'next/image';
+import { getAllCoursesWithLimits } from "@/apis/course/course";
 
 const CourseOptions: React.FC = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredCourses, setFilteredCourses] = useState<any[]>([]);
+  const [allCourses, setAllCourses] = useState<any[]>([]);
 
   // Define the specializations for AI and Data Science courses
   const specializations = [
@@ -18,6 +22,118 @@ const CourseOptions: React.FC = () => {
     "AI Strategy & Ethics",
     "Predictive Analytics"
   ];
+
+  // Load courses and filter for AI and Data Science category
+  useEffect(() => {
+    const fetchAICourses = async () => {
+      try {
+        // Use the API to fetch AI and Data Science courses
+        const apiUrl = getAllCoursesWithLimits({
+          course_category: "AI and Data Science",
+          status: "Published",
+          page: 1,
+          limit: 50, // Fetch more courses for better search experience
+          sort_by: "createdAt",
+          sort_order: "desc"
+        });
+
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        
+        if (data.success && data.data && data.data.courses) {
+          // Also include courses with AI/Data related keywords in title
+          const allApiCourses = data.data.courses;
+          const aiDataScienceCourses = allApiCourses.filter((course: any) => 
+            course.course_category === "AI and Data Science" || 
+            course.course_title?.toLowerCase().includes("ai") ||
+            course.course_title?.toLowerCase().includes("data") ||
+            course.course_title?.toLowerCase().includes("machine learning") ||
+            course.course_title?.toLowerCase().includes("analytics") ||
+            course.course_title?.toLowerCase().includes("artificial intelligence") ||
+            course.course_tag?.toLowerCase().includes("ai") ||
+            course.course_tag?.toLowerCase().includes("data science")
+          );
+          
+          setAllCourses(aiDataScienceCourses);
+          setFilteredCourses(aiDataScienceCourses);
+        } else {
+          console.warn("No courses found in API response");
+          setAllCourses([]);
+          setFilteredCourses([]);
+        }
+      } catch (error) {
+        console.error("Error fetching AI courses:", error);
+        setAllCourses([]);
+        setFilteredCourses([]);
+      }
+    };
+
+    fetchAICourses();
+  }, []);
+
+  // Search functionality with API integration
+  useEffect(() => {
+    const performSearch = async () => {
+      if (searchTerm.trim() === "") {
+        setFilteredCourses(allCourses);
+      } else {
+        try {
+          // Use API search for live results
+          const apiUrl = getAllCoursesWithLimits({
+            search: searchTerm,
+            course_category: "AI and Data Science",
+            status: "Published",
+            page: 1,
+            limit: 30,
+            sort_by: "createdAt",
+            sort_order: "desc"
+          });
+
+          const response = await fetch(apiUrl);
+          const data = await response.json();
+          
+          if (data.success && data.data && data.data.courses) {
+            // Filter API results for AI/Data Science courses
+            const aiDataScienceCourses = data.data.courses.filter((course: any) => 
+              course.course_category === "AI and Data Science" || 
+              course.course_title?.toLowerCase().includes("ai") ||
+              course.course_title?.toLowerCase().includes("data") ||
+              course.course_title?.toLowerCase().includes("machine learning") ||
+              course.course_title?.toLowerCase().includes("analytics")
+            );
+            setFilteredCourses(aiDataScienceCourses);
+          } else {
+            // Fallback to local filtering if API search fails
+            const filtered = allCourses.filter((course: any) =>
+              course.course_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              course.program_overview?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              course.course_subtitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              course.instructor_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              course.course_category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              course.course_tag?.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            setFilteredCourses(filtered);
+          }
+        } catch (error) {
+          console.error("Search API error:", error);
+          // Fallback to local filtering
+          const filtered = allCourses.filter((course: any) =>
+            course.course_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            course.program_overview?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            course.course_subtitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            course.instructor_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            course.course_category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            course.course_tag?.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+          setFilteredCourses(filtered);
+        }
+      }
+    };
+
+    // Debounce search to avoid too many API calls
+    const timeoutId = setTimeout(performSearch, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, allCourses]);
 
   // Custom header content with edge-to-edge styling
   const customHeader = (
@@ -61,213 +177,94 @@ const CourseOptions: React.FC = () => {
 
   return (
     <>
-      {/* Enhanced Global styles for edge-to-edge course grid */}
-      <style jsx global>{`
-        /* Edge-to-edge container */
-        .courses-filter-edge-to-edge {
-          width: 100vw !important;
-          position: relative !important;
-          left: 50% !important;
-          right: 50% !important;
-          margin-left: -50vw !important;
-          margin-right: -50vw !important;
-        }
-
-        .courses-filter-edge-to-edge .course-grid {
-          display: grid !important;
-          width: 100% !important;
-          margin: 0 !important;
-          gap: 0.75rem !important;
-          place-items: stretch !important;
-          justify-content: stretch !important;
-          padding: 0.75rem !important;
-        }
-        
-        .courses-filter-edge-to-edge .course-card {
-          width: 100% !important;
-          height: 100% !important;
-          display: flex !important;
-          flex-direction: column !important;
-          min-width: 0 !important;
-          max-width: none !important;
-        }
-
-        .courses-filter-edge-to-edge .course-card:hover {
-          transform: translateY(-2px) scale(1.01) !important;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        }
-
-        /* Mobile: Single column edge-to-edge */
-        @media (max-width: 479px) {
-          .courses-filter-edge-to-edge .course-grid {
-            grid-template-columns: 1fr !important;
-            padding: 0.5rem !important;
-            gap: 0.5rem !important;
-          }
-        }
-
-        /* Mobile landscape: 2 columns */
-        @media (min-width: 480px) and (max-width: 639px) {
-          .courses-filter-edge-to-edge .course-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-            padding: 0.75rem !important;
-            gap: 0.75rem !important;
-          }
-        }
-        
-        /* Small tablets: 2-3 columns based on available space */
-        @media (min-width: 640px) and (max-width: 767px) {
-          .courses-filter-edge-to-edge .course-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-            padding: 1rem !important;
-            gap: 1rem !important;
-          }
-        }
-
-        /* Tablets: 3 columns */
-        @media (min-width: 768px) and (max-width: 1023px) {
-          .courses-filter-edge-to-edge .course-grid {
-            grid-template-columns: repeat(3, 1fr) !important;
-            padding: 1rem !important;
-            gap: 1rem !important;
-          }
-        }
-        
-        /* Small laptops: 4 columns */
-        @media (min-width: 1024px) and (max-width: 1279px) {
-          .courses-filter-edge-to-edge .course-grid {
-            grid-template-columns: repeat(4, 1fr) !important;
-            padding: 1.25rem !important;
-            gap: 1.25rem !important;
-          }
-        }
-        
-        /* Desktop: 5 columns */
-        @media (min-width: 1280px) and (max-width: 1535px) {
-          .courses-filter-edge-to-edge .course-grid {
-            grid-template-columns: repeat(5, 1fr) !important;
-            padding: 1.5rem !important;
-            gap: 1.5rem !important;
-          }
-        }
-        
-        /* Large desktop: 6 columns */
-        @media (min-width: 1536px) and (max-width: 1919px) {
-          .courses-filter-edge-to-edge .course-grid {
-            grid-template-columns: repeat(6, 1fr) !important;
-            padding: 1.75rem !important;
-            gap: 1.75rem !important;
-          }
-        }
-
-        /* Ultra-wide screens: 7-8 columns */
-        @media (min-width: 1920px) and (max-width: 2559px) {
-          .courses-filter-edge-to-edge .course-grid {
-            grid-template-columns: repeat(7, 1fr) !important;
-            padding: 2rem !important;
-            gap: 2rem !important;
-          }
-        }
-
-        /* 4K and beyond: 8+ columns */
-        @media (min-width: 2560px) {
-          .courses-filter-edge-to-edge .course-grid {
-            grid-template-columns: repeat(8, 1fr) !important;
-            padding: 2.5rem !important;
-            gap: 2.5rem !important;
-          }
-        }
-
-        /* Ensure cards fill the available space */
-        .courses-filter-edge-to-edge .course-card > * {
-          flex: 1 !important;
-        }
-
-        /* Optimize for foldable devices */
-        @media (min-width: 600px) and (max-width: 900px) and (orientation: landscape) {
-          .courses-filter-edge-to-edge .course-grid {
-            grid-template-columns: repeat(4, 1fr) !important;
-            padding: 1rem !important;
-            gap: 1rem !important;
-          }
-        }
-
-        /* Optimize for tablet landscape */
-        @media (min-width: 900px) and (max-width: 1200px) and (orientation: landscape) {
-          .courses-filter-edge-to-edge .course-grid {
-            grid-template-columns: repeat(5, 1fr) !important;
-            padding: 1.25rem !important;
-            gap: 1.25rem !important;
-          }
-        }
-      `}</style>
-
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
         {/* Header with controlled width */}
         <div className="w-full">
           {customHeader}
         </div>
+
+        {/* Search Section */}
+        <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6">
+          <div className="relative max-w-md mx-auto">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search AI & Data Science courses..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="block w-full pl-9 md:pl-10 pr-3 py-2 md:py-3 border border-gray-300 dark:border-gray-600 rounded-lg md:rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base transition-all duration-200"
+            />
+          </div>
+        </div>
         
-        {/* Edge-to-edge course grid container */}
-        <div className="courses-filter-edge-to-edge">
-          <CoursesFilter
-            key="ai-and-data-science-edge-to-edge"
-            CustomText="AI and Data Science Courses"
-            CustomButton={() => (
-              <div className="flex justify-center w-full py-4">
-                <Link href="/courses">
-                  <div className="inline-flex items-center px-4 md:px-6 py-2.5 md:py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white text-xs md:text-sm font-medium rounded-lg md:rounded-xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-95">
-                    <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
-                    <span>Explore All Courses</span>
+        {/* Course Section Header */}
+        <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 pb-4">
+          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white text-center mb-2">
+            AI and Data Science Courses
+          </h2>
+          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 text-center max-w-2xl mx-auto">
+            Master artificial intelligence and data science with our comprehensive courses combining cutting-edge technology with practical applications.
+          </p>
+        </div>
+
+        {/* Course grid container with consistent styling from CoursesFilter */}
+        <div className="px-4 md:px-6 lg:px-8">
+          {filteredCourses.length > 0 ? (
+            <div className={`grid gap-1.5 lg:gap-2 auto-rows-fr ${
+              filteredCourses.length === 1 
+                ? 'grid-cols-1 justify-items-center max-w-md mx-auto' 
+                : filteredCourses.length === 2 
+                ? 'grid-cols-1 md:grid-cols-2 justify-items-center max-w-2xl mx-auto' 
+                : filteredCourses.length === 3 
+                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 justify-items-center max-w-4xl mx-auto' 
+                : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+            }`}>
+              {filteredCourses.map((course, index) => (
+                <div key={course._id || index} className="h-full">
+                  <FilterCards 
+                    type="lg"
+                    courses={[course]}
+                    customClassName="h-full"
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex justify-center w-full py-8">
+              <div className="bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 w-full max-w-md mx-4">
+                <div className="flex flex-col items-center justify-center min-h-[20vh] md:min-h-[30vh] text-center">
+                  <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/20 mb-3 md:mb-4">
+                    <Brain className="w-6 h-6 md:w-8 md:h-8 text-blue-500 dark:text-blue-400" />
                   </div>
-                </Link>
-              </div>
-            )}
-            fixedCategory="AI and Data Science"
-            hideCategoryFilter={true}
-            hideSearch={true}
-            hideSortOptions={true}
-            hideFilterBar={true}
-            hideHeader={true}
-            hideGradeFilter={true}
-            gridColumns={8} // Maximum columns for ultra-wide
-            itemsPerPage={32} // Increased for edge-to-edge
-            simplePagination={true}
-            scrollToTop={true}
-            description="Master artificial intelligence and data science with our comprehensive courses combining cutting-edge technology with practical applications."
-            customGridClassName="course-grid"
-            customGridStyle={{
-              display: 'grid',
-              width: '100%',
-              margin: '0',
-              padding: '1rem',
-              gap: '1rem',
-              placeItems: 'stretch',
-              justifyContent: 'stretch'
-            }}
-            emptyStateContent={
-              <div className="flex justify-center w-full py-8">
-                <div className="bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 w-full max-w-md mx-4">
-                  <div className="flex flex-col items-center justify-center min-h-[20vh] md:min-h-[30vh] text-center">
-                    <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/20 mb-3 md:mb-4">
-                      <Brain className="w-6 h-6 md:w-8 md:h-8 text-blue-500 dark:text-blue-400" />
-                    </div>
-                    <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                      Coming Soon
-                    </h3>
-                    <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 max-w-md">
-                      We're currently developing cutting-edge AI and Data Science courses. Check back soon for industry-leading content!
-                    </p>
-                  </div>
+                  <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    {searchTerm ? "No courses found" : "Coming Soon"}
+                  </h3>
+                  <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 max-w-md">
+                    {searchTerm 
+                      ? `No courses match "${searchTerm}". Try different keywords or browse all available courses.`
+                      : "We're currently developing cutting-edge AI and Data Science courses. Check back soon for industry-leading content!"
+                    }
+                  </p>
                 </div>
               </div>
-            }
-            activeTab="live"
-          />
+            </div>
+          )}
+        </div>
+
+        {/* Explore More Button */}
+        <div className="flex justify-center w-full py-6 md:py-8">
+          <Link href="/courses">
+            <div className="inline-flex items-center px-6 md:px-8 py-3 md:py-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white text-sm md:text-base font-medium rounded-lg md:rounded-xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-95">
+              <Zap className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+              <span>Explore All Courses</span>
+            </div>
+          </Link>
         </div>
       </div>
     </>
   );
 };
 
-export default CourseOptions; 
+export default CourseOptions;

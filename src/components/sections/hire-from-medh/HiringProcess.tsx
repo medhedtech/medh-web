@@ -38,39 +38,39 @@ const steps: IProcessStep[] = [
   {
     title: "Company Registration",
     description:
-      "Companies interested in hiring through our placement cell need to register with us and provide comprehensive details about their organization, culture, and specific job openings to ensure the best candidate match.",
+      "Register with your requirements. We match you with pre-assessed candidates from our talent pool.",
     icon: UserPlus,
     color: "#3b82f6",
     bgColor: "bg-blue-100 dark:bg-blue-900/20"
   },
   {
-    title: "Job Description",
+    title: "Job Requirements",
     description:
-      "After registration, companies can share detailed job descriptions, requirements, and expectations with our team. We help refine these to attract the most suitable candidates from our talent pool.",
+      "Share your job specs. Our team helps refine requirements to find the perfect candidates faster.",
     icon: FileText,
     color: "#10b981",
     bgColor: "bg-emerald-100 dark:bg-emerald-900/20"
   },
   {
-    title: "Candidate Shortlisting",
+    title: "Candidate Matching",
     description:
-      "Our expert team carefully reviews and shortlists qualified candidates from our extensive pool who perfectly match the job requirements, skills, and company culture fit.",
+      "We shortlist qualified professionals who match your technical needs and company culture.",
     icon: Users,
     color: "#8b5cf6",
     bgColor: "bg-violet-100 dark:bg-violet-900/20"
   },
   {
-    title: "Pre-screening & Assessment",
+    title: "Skill Verification",
     description:
-      "The shortlisted candidates undergo comprehensive evaluation including technical assessments, behavioral interviews, and skill validation to ensure they meet the highest standards.",
+      "Candidates undergo technical assessment and skill validation. Only verified talent reaches you.",
     icon: Shield,
     color: "#f59e0b",
     bgColor: "bg-amber-100 dark:bg-amber-900/20"
   },
   {
-    title: "Final Selection & Placement",
+    title: "Hire & Onboard",
     description:
-      "Based on comprehensive evaluation results, companies can conduct final interviews, make informed hiring decisions, and extend job offers to the most qualified candidates.",
+      "Conduct final interviews with pre-screened candidates. Make confident hiring decisions quickly.",
     icon: Award,
     color: "#ec4899",
     bgColor: "bg-pink-100 dark:bg-pink-900/20"
@@ -178,13 +178,10 @@ const HiringProcess: React.FC<IHiringProcessProps> = memo(({ className = "" }) =
           className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 mb-8 max-w-6xl mx-auto text-center"
         >
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-slate-100 mb-4 leading-tight">
-            <span className="text-emerald-600 dark:text-emerald-400">Streamlined Process</span> for Hiring
+            <span className="text-emerald-600 dark:text-emerald-400">Simple</span> Hiring Process
           </h1>
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4">
-            IT Professionals through Recruit@Medh
-          </h2>
           <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-4xl mx-auto leading-relaxed">
-            Our hiring process is completely managed by our Support Team and a Dedicated Relationship Manager assigned for you
+            Fully managed by our support team with a dedicated relationship manager for you
           </p>
         </motion.div>
 
@@ -206,10 +203,10 @@ const HiringProcess: React.FC<IHiringProcessProps> = memo(({ className = "" }) =
                 className="mb-6 md:mb-8"
               >
                 <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-4">
-                  Our Comprehensive Hiring Process
+                  How It Works
                 </h3>
                 <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-                  Experience a seamless recruitment journey with our structured approach that ensures quality matches and successful placements.
+                  Five simple steps to connect with verified professionals
                 </p>
               </motion.div>
 
@@ -268,29 +265,6 @@ const HiringProcess: React.FC<IHiringProcessProps> = memo(({ className = "" }) =
           </div>
         </motion.div>
 
-        {/* Call to Action Section */}
-        <motion.div
-          initial="hidden"
-          animate={isVisible ? "visible" : "hidden"}
-          variants={fadeInUp}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 text-center mt-8 max-w-6xl mx-auto"
-        >
-          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-4">
-            Ready to Start Your Hiring Journey?
-          </h3>
-          <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 mb-6 max-w-2xl mx-auto">
-            Connect with our dedicated recruitment specialists and experience our streamlined hiring process that delivers exceptional talent.
-          </p>
-          <button
-            onClick={handleContactClick}
-            className="inline-flex items-center px-6 md:px-8 py-3 md:py-4 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-semibold rounded-lg text-sm md:text-base transition-all duration-200 hover:-translate-y-1 hover:shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 min-h-[44px] touch-manipulation"
-            aria-label="Begin hiring process"
-          >
-            Begin Hiring Process
-            <ChevronRight className="ml-2 w-4 h-4 md:w-5 md:h-5" />
-          </button>
-        </motion.div>
       </div>
 
       {/* Scroll to top button */}

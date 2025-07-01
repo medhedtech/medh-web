@@ -83,7 +83,7 @@ function AnimatedContent({
         </section>
 
         {CourseContent && (
-          <section className="w-full py-3 md:py-16 relative z-10">
+          <section className="w-full py-3 md:py-3 relative z-10">
             <CourseContent />
           </section>
         )}

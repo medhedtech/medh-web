@@ -110,31 +110,21 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  // Animation variants
+  // Simplified animation variants for better performance
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
+      transition: { duration: 0.3 }
     }
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      y: 0,
-      transition: { duration: 0.5 }
+      transition: { duration: 0.2 }
     }
-  };
-
-  const buttonVariants = {
-    idle: { scale: 1 },
-    hover: { scale: 1.05 },
-    tap: { scale: 0.98 }
   };
 
   // Fetch categories if endpoint is provided
@@ -277,14 +267,8 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
   const primaryColor = theme.primaryColor || defaultTheme.primaryColor;
 
   return (
-    <section className={`relative py-16 overflow-hidden ${className}`}>
-      {/* Background Elements */}
-      <div className="absolute inset-0 bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900" />
-      <div className="absolute inset-0 bg-grid-pattern opacity-[0.02] dark:opacity-[0.04]" />
-      <div className={`absolute -top-1/4 right-1/2 w-[120%] aspect-square bg-[${primaryColor}]/10 rounded-full blur-3xl transform translate-x-1/2 opacity-30 dark:opacity-20 animate-float mix-blend-multiply dark:mix-blend-soft-light`} />
-      <div className={`absolute top-1/4 left-1/2 w-[120%] aspect-square bg-[${primaryColor}]/10 rounded-full blur-3xl transform -translate-x-1/2 opacity-30 dark:opacity-20 animate-float animation-delay-1000 mix-blend-multiply dark:mix-blend-soft-light`} />
-
-      <div className="container mx-auto px-4 relative z-10">
+    <section className={`relative overflow-hidden ${className}`}>
+      <div className="relative">
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -345,15 +329,11 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
                     <>
                       {categories.map((category) => (
                         category === 'all' ? null : (
-                        <motion.button
+                        <button
                           key={category}
-                          variants={buttonVariants}
-                          initial="idle"
-                          whileHover="hover"
-                          whileTap="tap"
                           onClick={() => handleCategoryChange(category)}
                           suppressHydrationWarning
-                          className={`px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap ${
+                          className={`px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap hover:scale-105 ${
                             selectedCategory === category
                               ? `bg-[${primaryColor}] text-white shadow-md`
                               : "bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-300"
@@ -366,7 +346,7 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
                           }}
                         >
                           {category.charAt(0).toUpperCase() + category.slice(1)}
-                        </motion.button>
+                        </button>
                         )
                       ))}
                     </>
@@ -392,18 +372,14 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
               <AlertTriangle className="h-12 w-12 text-red-500 dark:text-red-400 mb-4" />
               <h3 className="text-lg font-semibold text-red-800 dark:text-red-300 mb-2">Something went wrong</h3>
               <p className="text-red-600 dark:text-red-300 mb-4">{error}</p>
-              <motion.button
-                variants={buttonVariants}
-                initial="idle"
-                whileHover="hover"
-                whileTap="tap"
+              <button
                 onClick={handleRetry}
                 suppressHydrationWarning
-                className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
+                className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors hover:scale-105"
               >
                 <RefreshCw size={16} className="mr-2" />
                 Try Again
-              </motion.button>
+              </button>
             </div>
           </motion.div>
         )}
@@ -419,25 +395,21 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
           >
             {filteredFaqs.length > 0 ? (
               filteredFaqs.map((faq, index) => (
-                <motion.div
+                <div
                   key={faq._id || faq.id || index}
-                  variants={itemVariants}
                   onMouseEnter={() => setHoveredIndex(index)}
                   onMouseLeave={() => setHoveredIndex(null)}
                   className={`
-                    bg-white dark:bg-slate-800 backdrop-blur-sm 
-                    rounded-lg sm:rounded-xl overflow-hidden 
-                    border border-slate-200 dark:border-slate-600
-                    transition-all duration-300
-                    ${hoveredIndex === index ? 'shadow-lg sm:scale-[1.01]' : 'shadow-sm sm:shadow-md'}
+                    bg-white dark:bg-slate-800 rounded-xl border transition-all duration-200
+                    ${openIndex === index 
+                      ? 'border-emerald-200 dark:border-emerald-700 shadow-lg bg-emerald-50/30 dark:bg-emerald-900/10' 
+                      : 'border-slate-200 dark:border-slate-600 shadow-sm hover:shadow-md hover:border-emerald-200/70 dark:hover:border-emerald-700/50'
+                    }
                   `}
-                  style={{
-                    boxShadow: openIndex === index ? `0 0 15px ${faq.iconColor || primaryColor}10` : ''
-                  }}
                 >
                   <button
                     onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                    className="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3 sm:gap-4 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/50 group"
+                    className="w-full px-6 py-5 flex items-center gap-4 text-left transition-colors duration-200 hover:bg-slate-50 dark:hover:bg-slate-700/50"
                     aria-expanded={openIndex === index}
                     aria-controls={`faq-answer-${index}`}
                     suppressHydrationWarning
@@ -450,23 +422,37 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
                     >
                       {getIcon(faq, index)}
                     </IconWrapper>
-                    <span className={`font-semibold pr-8 flex-grow transition-colors duration-300 ${
-                      openIndex === index 
-                        ? 'text-gray-900 dark:text-white' 
-                        : 'text-gray-800 dark:text-gray-100'
-                    }`}>
-                      {faq.question}
-                    </span>
+                    
+                    <div className="flex-grow pr-4">
+                      <span className={`font-bold text-base md:text-lg transition-all duration-300 block ${
+                        openIndex === index 
+                          ? 'text-emerald-700 dark:text-emerald-400' 
+                          : 'text-slate-800 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
+                      }`}>
+                        {faq.question}
+                      </span>
+                    </div>
+                    
                     <motion.div
                       animate={{ 
                         rotate: openIndex === index ? 180 : 0,
-                        color: openIndex === index ? faq.iconColor || primaryColor : '#9CA3AF'
+                        scale: openIndex === index ? 1.1 : 1,
                       }}
-                      transition={{ duration: 0.3 }}
-                      className="flex-shrink-0"
+                      transition={{ duration: 0.3, type: "spring", stiffness: 200, damping: 20 }}
+                      className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-300 ${
+                        openIndex === index 
+                          ? 'bg-emerald-100 dark:bg-emerald-900/50' 
+                          : 'bg-slate-100 dark:bg-slate-700 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/30'
+                      }`}
                       aria-hidden="true"
                     >
-                      <ChevronDown className="w-5 h-5 stroke-[2]" />
+                      <ChevronDown 
+                        className={`w-5 h-5 stroke-[2] transition-colors duration-300 ${
+                          openIndex === index 
+                            ? 'text-emerald-600 dark:text-emerald-400' 
+                            : 'text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
+                        }`}
+                      />
                     </motion.div>
                   </button>
 
@@ -479,7 +465,7 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
                           height: "auto", 
                           opacity: 1,
                           transition: {
-                            height: { duration: 0.3 },
+                            height: { duration: 0.4, ease: "easeOut" },
                             opacity: { duration: 0.3, delay: 0.1 }
                           }
                         }}
@@ -487,26 +473,31 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
                           height: 0, 
                           opacity: 0,
                           transition: {
-                            height: { duration: 0.3 },
+                            height: { duration: 0.3, ease: "easeIn" },
                             opacity: { duration: 0.2 }
                           }
                         }}
                         className="overflow-hidden"
                       >
-                        <div 
-                          className="px-6 py-4 border-t border-gray-100 dark:border-gray-700/50"
-                          style={{
-                            background: `linear-gradient(to right, ${faq.iconBg || primaryColor}10, transparent)`,
-                          }}
-                        >
-                          <div className="pl-12 text-gray-600 dark:text-gray-300 leading-relaxed">
-                            {faq.answer}
+                        <div className="relative">
+                          {/* Gradient divider */}
+                          <div className="h-px bg-gradient-to-r from-transparent via-emerald-200 dark:via-emerald-700/50 to-transparent" />
+                          
+                          <div className="px-6 py-6 bg-gradient-to-r from-emerald-50/30 via-white/50 to-emerald-50/30 dark:from-emerald-900/10 dark:via-slate-800/50 dark:to-emerald-900/10">
+                            <motion.div 
+                              initial={{ y: 10, opacity: 0 }}
+                              animate={{ y: 0, opacity: 1 }}
+                              transition={{ delay: 0.2, duration: 0.3 }}
+                              className="pl-16 text-slate-700 dark:text-slate-300 leading-relaxed text-base"
+                            >
+                              {faq.answer}
+                            </motion.div>
                           </div>
                         </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </motion.div>
+                </div>
               ))
             ) : (
               <motion.div 
@@ -599,4 +590,4 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
   );
 };
 
-export default CommonFaq; 
+export default CommonFaq;

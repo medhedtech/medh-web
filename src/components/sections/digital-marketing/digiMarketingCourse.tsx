@@ -1,166 +1,514 @@
 "use client";
-import React from "react";
-import CoursesFilter from "../courses/CoursesFilter";
+import React, { useState, useEffect } from "react";
+import FilterCourseCard from "../courses/FilterCourseCard";
 import Link from "next/link";
-import { BarChart2, Globe } from "lucide-react";
+import { 
+  BarChart2, 
+  Globe, 
+  Sparkles, 
+  TrendingUp, 
+  Target, 
+  Users, 
+  Award,
+  ChevronRight,
+  Search,
+  Filter,
+  Zap,
+  Rocket,
+  Star,
+  CheckCircle,
+  Clock,
+  Play,
+  BookOpen,
+  ArrowRight,
+  Brain,
+  Heart,
+  Briefcase
+} from "lucide-react";
 import Image from "next/image";
 import MedhLogo from "@/assets/images/logo/medh.png";
+import { getAllCoursesWithLimits } from "@/apis/course/course";
+import { 
+  buildAdvancedComponent, 
+  getResponsive, 
+  getAnimations, 
+  backgroundPatterns,
+  getEnhancedSemanticColor 
+} from "@/utils/designSystem";
 
 const DigiMarketingCourse: React.FC = () => {
-  // Custom header content with improved mobile styling
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredCourses, setFilteredCourses] = useState<any[]>([]);
+  const [allCourses, setAllCourses] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load courses and filter for Digital Marketing category
+  useEffect(() => {
+    const fetchDigitalMarketingCourses = async () => {
+      try {
+        // Use the API to fetch Digital Marketing courses
+        const apiUrl = getAllCoursesWithLimits({
+          course_category: "Digital Marketing with Data Analytics",
+          status: "Published",
+          page: 1,
+          limit: 50,
+          sort_by: "createdAt",
+          sort_order: "desc"
+        });
+
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        
+        if (data.success && data.data && data.data.courses) {
+          const allApiCourses = data.data.courses;
+          const digitalMarketingCourses = allApiCourses.filter((course: any) => 
+            course.course_category === "Digital Marketing with Data Analytics" || 
+            course.course_title?.toLowerCase().includes("digital marketing") ||
+            course.course_title?.toLowerCase().includes("marketing") ||
+            course.course_title?.toLowerCase().includes("analytics") ||
+            course.course_tag?.toLowerCase().includes("marketing") ||
+            course.course_tag?.toLowerCase().includes("digital")
+          );
+          
+          setAllCourses(digitalMarketingCourses);
+          setFilteredCourses(digitalMarketingCourses);
+        } else {
+          console.warn("No courses found in API response");
+          setAllCourses([]);
+          setFilteredCourses([]);
+        }
+      } catch (error) {
+        console.error("Error fetching Digital Marketing courses:", error);
+        setAllCourses([]);
+        setFilteredCourses([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDigitalMarketingCourses();
+  }, []);
+
+  // Search functionality with API integration
+  useEffect(() => {
+    const performSearch = async () => {
+      if (searchTerm.trim() === "") {
+        setFilteredCourses(allCourses);
+      } else {
+        try {
+          const apiUrl = getAllCoursesWithLimits({
+            search: searchTerm,
+            course_category: "Digital Marketing with Data Analytics",
+            status: "Published",
+            page: 1,
+            limit: 30,
+            sort_by: "createdAt",
+            sort_order: "desc"
+          });
+
+          const response = await fetch(apiUrl);
+          const data = await response.json();
+          
+          if (data.success && data.data && data.data.courses) {
+            const digitalMarketingCourses = data.data.courses.filter((course: any) => 
+              course.course_category === "Digital Marketing with Data Analytics" || 
+              course.course_title?.toLowerCase().includes("digital marketing") ||
+              course.course_title?.toLowerCase().includes("marketing") ||
+              course.course_title?.toLowerCase().includes("analytics")
+            );
+            setFilteredCourses(digitalMarketingCourses);
+          } else {
+            const filtered = allCourses.filter((course: any) =>
+              course.course_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              course.program_overview?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              course.course_subtitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              course.instructor_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              course.course_category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              course.course_tag?.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            setFilteredCourses(filtered);
+          }
+        } catch (error) {
+          console.error("Search API error:", error);
+          const filtered = allCourses.filter((course: any) =>
+            course.course_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            course.program_overview?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            course.course_subtitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            course.instructor_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            course.course_category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            course.course_tag?.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+          setFilteredCourses(filtered);
+        }
+      }
+    };
+
+    const timeoutId = setTimeout(performSearch, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, allCourses]);
+
+  // Enhanced header with psychological appeal and real data
   const customHeader = (
-    <div className="relative text-center px-4 md:px-6 lg:px-8">
-      {/* Background decoration */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-rose-50/30 to-transparent dark:from-rose-900/10" />
+    <div className="relative w-full overflow-hidden">
+      {/* Dynamic background with floating blobs */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-emerald-50 to-violet-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900" />
+        <div className={backgroundPatterns.floatingBlobs.blob1} />
+        <div className={backgroundPatterns.floatingBlobs.blob2} />
+        <div className={backgroundPatterns.floatingBlobs.blob3} />
       </div>
 
-      {/* Content */}
-      <div className="relative space-y-4 md:space-y-6 py-6 md:py-8 lg:py-10">
-        {/* Badge */}
-        <div className="inline-flex items-center justify-center">
-          <span className="inline-flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1 md:py-1.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 text-xs md:text-sm font-medium">
-            <Globe className="w-3 h-3 md:w-4 md:h-4" />
-            Digital Skills
-          </span>
-        </div>
-
-        {/* Main Heading */}
-        <div className="space-y-2 md:space-y-4">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
-            Transform Marketing Insights Powerfully
-          </h1>
+      {/* Enhanced hero content */}
+      <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-8 py-12 md:py-20">
+        {/* Glassmorphic hero card */}
+        <div className={buildAdvancedComponent.glassCard({ variant: 'hero', padding: 'desktop' })}>
           
-          <div className="flex items-center justify-center gap-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold">
-            <span className="text-gray-900 dark:text-white">with</span>
-            <span className="inline-flex items-center align-middle ml-1">
-              <Image
-                src={MedhLogo}
-                alt="Medh Logo"
-                className="h-7 md:h-8 w-auto inline-block align-middle ml-1"
-                priority
-              />
-            </span>
+          {/* Category badge with animation */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-200/30 dark:border-emerald-700/30 backdrop-blur-sm">
+              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+              <span className="text-emerald-700 dark:text-emerald-300 font-semibold text-sm">
+                🚀 Digital Marketing Excellence
+              </span>
+            </div>
           </div>
-        </div>
 
-        {/* Description */}
-        <p className="text-sm md:text-base lg:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
-          Integrate Advanced Analytics with Powerful Marketing Techniques for Success
-        </p>
+          {/* Simple header */}
+          <div className="text-center space-y-6 mb-8">
+            <h1 className={`${getResponsive.fluidText('heading')} font-bold text-slate-900 dark:text-white leading-tight`}>
+              Digital Marketing with Data Analytics
+            </h1>
+
+            {/* Real feature highlights */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-white/20 dark:border-slate-600/20">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center">
+                  <BarChart2 className="w-5 h-5 text-white" />
+                </div>
+                <div className="text-left">
+                  <div className="font-semibold text-slate-900 dark:text-white">Data Analytics</div>
+                  <div className="text-sm text-slate-600 dark:text-slate-400">Real campaign analysis</div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-white/20 dark:border-slate-600/20">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center">
+                  <Target className="w-5 h-5 text-white" />
+                </div>
+                <div className="text-left">
+                  <div className="font-semibold text-slate-900 dark:text-white">Campaign Strategy</div>
+                  <div className="text-sm text-slate-600 dark:text-slate-400">Multi-platform expertise</div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-white/20 dark:border-slate-600/20">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-violet-500 to-purple-500 flex items-center justify-center">
+                  <Award className="w-5 h-5 text-white" />
+                </div>
+                <div className="text-left">
+                  <div className="font-semibold text-slate-900 dark:text-white">Industry Certification</div>
+                  <div className="text-sm text-slate-600 dark:text-slate-400">Recognized credentials</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Real course statistics display */}
+          {filteredCourses.length > 0 && (
+            <div className="text-center">
+              <div className="inline-flex items-center gap-6 px-6 py-3 rounded-full bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-200/30 dark:border-emerald-700/30 backdrop-blur-sm">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-emerald-600" />
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    {filteredCourses.length} Course{filteredCourses.length !== 1 ? 's' : ''} Available
+                  </span>
+                </div>
+                {filteredCourses.some(course => course.enrolled_students) && (
+                  <>
+                    <div className="w-1 h-1 bg-slate-400 rounded-full" />
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                        {filteredCourses.reduce((total, course) => total + (course.enrolled_students || 0), 0).toLocaleString()} Students Enrolled
+                      </span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/30 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      {/* Enhanced Header */}
       <div className="w-full">
         {customHeader}
-        
-        <div className="w-full max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8">
-          <div className="courses-filter-4-col-override">
-            <CoursesFilter
-              key="digital-marketing"
-              CustomText="Digital Marketing with Data Analytics Courses"
-              CustomButton={() => (
-                <Link href="/courses">
-                  <div className="inline-flex items-center px-4 md:px-6 py-2.5 md:py-3 bg-rose-600 hover:bg-rose-700 dark:bg-rose-700 dark:hover:bg-rose-600 text-white text-xs md:text-sm font-medium rounded-lg md:rounded-xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-95">
-                    <BarChart2 className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
-                    <span>Explore All Courses</span>
+      </div>
+
+      {/* Course Discovery Section */}
+      <div className="relative px-4 md:px-8 pb-12">
+        <div className="max-w-6xl mx-auto">
+          
+          {/* Section title with psychological messaging */}
+          {filteredCourses.length > 0 && (
+            <div className="text-center mb-8">
+              <div className={buildAdvancedComponent.glassCard({ variant: 'secondary', padding: 'tablet' })}>
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-emerald-500 to-blue-500 flex items-center justify-center">
+                    <Rocket className="w-4 h-4 text-white" />
                   </div>
-                </Link>
-              )}
-              fixedCategory="Digital Marketing with Data Analytics"
-              hideCategoryFilter={true}
-              hideSearch={true}
-              hideSortOptions={true}
-              hideFilterBar={true}
-              hideHeader={true}
-              hideGradeFilter={true}
-              gridColumns={4}
-              itemsPerPage={16}
-              simplePagination={true}
-              scrollToTop={true}
-              description="Master the art of digital marketing with our comprehensive courses combining modern marketing techniques with data analytics."
-              customGridClassName="!grid !gap-4 !grid-cols-1 sm:!grid-cols-2 md:!grid-cols-3 lg:!grid-cols-4"
-              customGridStyle={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                gap: '1rem',
-                width: '100%',
-                margin: '0 auto'
-              }}
-              emptyStateContent={
-                <div className="bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 mx-2">
-                  <div className="flex flex-col items-center justify-center min-h-[20vh] md:min-h-[30vh] text-center">
-                    <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-rose-50 dark:bg-rose-900/20 mb-3 md:mb-4">
-                      <BarChart2 className="w-6 h-6 md:w-8 md:h-8 text-rose-500 dark:text-rose-400" />
+                  <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">
+                    Choose Your Success Path
+                  </h2>
+                </div>
+                <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+                  Each course is designed with real industry projects and current market demands. 
+                  Start your journey to becoming a digital marketing expert.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Enhanced Course Grid */}
+          <div className="space-y-6">
+            {isLoading ? (
+              <div className="grid gap-4 md:gap-6 auto-rows-fr grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <div key={index} className="animate-pulse">
+                    <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-xl h-80 shadow-sm border border-slate-200/50 dark:border-slate-700/50"></div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredCourses.length > 0 ? (
+              <>
+                {/* Course cards with enhanced spacing */}
+                <div className={`grid gap-4 md:gap-6 auto-rows-fr ${
+                  filteredCourses.length === 1 
+                    ? 'grid-cols-1 justify-items-center max-w-md mx-auto' 
+                    : filteredCourses.length === 2 
+                    ? 'grid-cols-1 md:grid-cols-2 justify-items-center max-w-3xl mx-auto' 
+                    : filteredCourses.length === 3 
+                    ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 justify-items-center max-w-5xl mx-auto' 
+                    : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                }`}>
+                  {filteredCourses.map((course, index) => (
+                    <div key={course._id || index} className="h-full w-full">
+                      <FilterCourseCard
+                        course={course}
+                        index={index}
+                        isLCP={index < 2}
+                        coursesPageCompact={true}
+                        classType="live_courses"
+                        preserveClassType={true}
+                      />
                     </div>
-                    <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                      Coming Soon
-                    </h3>
-                    <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 max-w-md">
-                      We're currently developing cutting-edge Digital Marketing courses. Check back soon for industry-leading content!
-                    </p>
+                  ))}
+                </div>
+
+                {/* Success indicators using real data */}
+                <div className="mt-12">
+                  <div className={buildAdvancedComponent.glassCard({ variant: 'primary', padding: 'desktop' })}>
+                    <div className="text-center space-y-6">
+                      <div className="flex items-center justify-center gap-2 mb-4">
+                        <Star className="w-5 h-5 text-yellow-500" />
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">Why Choose Our Digital Marketing Program?</h3>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="text-center">
+                          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center">
+                            <Brain className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="font-semibold text-slate-900 dark:text-white mb-1">Industry-Relevant Curriculum</div>
+                          <div className="text-sm text-slate-600 dark:text-slate-400">Updated with latest trends and tools</div>
+                        </div>
+                        
+                        <div className="text-center">
+                          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center">
+                            <Users className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="font-semibold text-slate-900 dark:text-white mb-1">Expert Instructors</div>
+                          <div className="text-sm text-slate-600 dark:text-slate-400">Learn from industry professionals</div>
+                        </div>
+                        
+                        <div className="text-center">
+                          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-r from-violet-500 to-purple-500 flex items-center justify-center">
+                            <Briefcase className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="font-semibold text-slate-900 dark:text-white mb-1">Career Support</div>
+                          <div className="text-sm text-slate-600 dark:text-slate-400">Job placement assistance included</div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              }
-              activeTab="live"
-            />
+              </>
+            ) : (
+              <div className="flex justify-center w-full py-12">
+                <div className={buildAdvancedComponent.glassCard({ variant: 'primary', padding: 'desktop' })}>
+                  <div className="flex flex-col items-center justify-center text-center max-w-md">
+                    <div className="w-16 h-16 flex items-center justify-center rounded-full bg-gradient-to-r from-emerald-500 to-blue-500 mb-6">
+                      <Rocket className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">
+                      {searchTerm ? "No courses found" : "Exciting Courses Coming Soon"}
+                    </h3>
+                    <p className="text-slate-600 dark:text-slate-400 mb-6">
+                      {searchTerm 
+                        ? `No courses match "${searchTerm}". Try different keywords or explore our other categories.`
+                        : "We're crafting exceptional Digital Marketing courses with real-world projects and industry partnerships. Be the first to know when they launch!"
+                      }
+                    </p>
+                    <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                      <Heart className="w-4 h-4" />
+                      <span>Built with care for your success</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-          
-          <style jsx>{`
-            .courses-filter-4-col-override :global(.grid) {
-              grid-template-columns: repeat(1, minmax(0, 1fr));
-              width: 100%;
-              padding: 1rem;
-              margin: 0 auto;
-              max-width: 1440px;
-              gap: 1rem;
-            }
-            
-            .courses-filter-4-col-override :global(.container) {
-              max-width: 1440px;
-              padding: 0 1rem;
-              margin: 0 auto;
-              width: 100%;
-            }
-            
-            .courses-filter-4-col-override :global(.max-w-full),
-            .courses-filter-4-col-override :global(.max-w-6xl),
-            .courses-filter-4-col-override :global(.max-w-7xl) {
-              max-width: 1440px !important;
-              margin: 0 auto;
-            }
-            
-            @media (min-width: 640px) {
-              .courses-filter-4-col-override :global(.grid) {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 1rem;
-                padding: 1rem;
-              }
-            }
-            
-            @media (min-width: 768px) {
-              .courses-filter-4-col-override :global(.grid) {
-                grid-template-columns: repeat(3, minmax(0, 1fr));
-                gap: 1rem;
-                padding: 1.5rem;
-              }
-            }
-            
-            @media (min-width: 1024px) {
-              .courses-filter-4-col-override :global(.grid) {
-                grid-template-columns: repeat(4, minmax(0, 1fr));
-                gap: 1rem;
-                padding: 2rem;
-              }
-            }
-          `}</style>
         </div>
       </div>
+
+
+      {/* Enhanced CSS for professional animations and effects */}
+      <style jsx>{`
+        /* Advanced animation keyframes */
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes slideInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes slideInLeft {
+          from {
+            opacity: 0;
+            transform: translateX(-30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        
+        @keyframes blob {
+          0% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
+        
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.8; }
+        }
+        
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        
+        /* Enhanced animation classes */
+        .animate-fadeIn {
+          animation: fadeIn 0.8s ease-out;
+        }
+        
+        .animate-slideInUp {
+          animation: slideInUp 0.8s ease-out;
+        }
+        
+        .animate-slideInLeft {
+          animation: slideInLeft 0.8s ease-out;
+        }
+        
+        .animate-blob {
+          animation: blob 8s infinite;
+        }
+        
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+        
+        .animate-pulse-slow {
+          animation: pulse-slow 2s ease-in-out infinite;
+        }
+        
+        .animate-shimmer {
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+          background-size: 200% 100%;
+          animation: shimmer 2s infinite;
+        }
+        
+        /* Staggered animation delays */
+        .animation-delay-100 { animation-delay: 100ms; }
+        .animation-delay-200 { animation-delay: 200ms; }
+        .animation-delay-300 { animation-delay: 300ms; }
+        .animation-delay-400 { animation-delay: 400ms; }
+        .animation-delay-500 { animation-delay: 500ms; }
+        .animation-delay-600 { animation-delay: 600ms; }
+        .animation-delay-700 { animation-delay: 700ms; }
+        .animation-delay-800 { animation-delay: 800ms; }
+        .animation-delay-1000 { animation-delay: 1s; }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
+        
+        /* Hover effects for enhanced interactivity */
+        .hover-lift {
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .hover-lift:hover {
+          transform: translateY(-4px) scale(1.02);
+          box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        /* Glassmorphism enhancements */
+        .glass-effect {
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+        }
+        
+        /* Professional gradient overlays */
+        .gradient-overlay::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+          pointer-events: none;
+        }
+        
+        /* Responsive text scaling */
+        @media (max-width: 640px) {
+          .responsive-text-scale {
+            font-size: clamp(0.875rem, 4vw, 1.125rem);
+          }
+        }
+      `}</style>
     </div>
   );
 };
 
-export default DigiMarketingCourse; 
+export default DigiMarketingCourse;
