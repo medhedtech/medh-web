@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { 
   ChevronDown, GraduationCap, Info, RefreshCw, 
   BookOpen, Clock, CheckCircle2, Award, AlertTriangle, 
   Filter 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 // Types
 interface GradeOption {
@@ -18,8 +18,49 @@ interface GradeOption {
 interface Course {
   _id: string;
   title: string;
-  course_duration?: string;
-  is_Certification?: boolean;
+  description: string;
+  long_description?: string;
+  category: string;
+  grade: string;
+  course_grade?: string;
+  thumbnail: string | null;
+  course_duration: string;
+  course_duration_days: number;
+  course_fee: number;
+  prices?: any[];
+  enrolled_students: number;
+  views: number;
+  is_Certification: boolean;
+  is_Assignments: boolean;
+  is_Projects: boolean;
+  is_Quizes: boolean;
+  curriculum: any[];
+  highlights: string[];
+  learning_outcomes: string[];
+  prerequisites: string[];
+  faqs: any[];
+  no_of_Sessions: number;
+  status: string;
+  isFree: boolean;
+  hasFullDetails: boolean;
+  slug?: string;
+  category_type?: string;
+  currency_code?: string;
+  original_prices?: any[];
+  classType?: string;
+  class_type?: string;
+  course_type?: string;
+  delivery_format?: string;
+  delivery_type?: string;
+  meta?: {
+    views: number;
+    enrollments: number;
+    lastUpdated: string;
+    ratings: {
+      average: number;
+      count: number;
+    };
+  };
 }
 
 interface CategoryInfo {
@@ -104,46 +145,38 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
 }) => {
   const [dropdownVisible, setDropdownVisible] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastProcessedCoursesLength, setLastProcessedCoursesLength] = useState<number>(0);
 
-  // Function to format grade value for API
-  const formatGradeForApi = useCallback((gradeId: string): string => {
-    if (gradeId === 'all') return 'all';
-    
-    // Find the grade option from availableGrades
-    const gradeOption = availableGrades.find(g => g.id === gradeId);
-    if (!gradeOption) return gradeId;
-    
-    // Return the ID directly since it's now in the correct format
-    return gradeOption.id;
-  }, [availableGrades]);
-
-  // Memoized and filtered courses
-  const displayCourses = useMemo(() => {
-    return filteredCourses;
-  }, [filteredCourses]);
-
-  // Auto-select first course when filtered courses change
+  // Stable refs to prevent infinite loops
+  const handleCourseSelectionRef = useRef(handleCourseSelection);
+  const handleGradeChangeRef = useRef(handleGradeChange);
+  
+  // Update refs when props change
   useEffect(() => {
-    try {
-      if (displayCourses.length > 0 && !selectedCourse) {
-        // Only select first course if we have courses and no current selection
-        const firstCourse = displayCourses[0];
-        if (firstCourse) {
-          handleCourseSelection(firstCourse);
-        }
-      } else if (displayCourses.length === 0) {
-        // Clear selected course when no courses are available
-        handleCourseSelection(null);
-      } else if (selectedCourse && !displayCourses.some(course => course._id === selectedCourse._id)) {
-        // If selected course is not in filtered courses anymore, clear selection
-        handleCourseSelection(null);
-      }
-    } catch (err) {
-      console.error('Error in course selection:', err);
-      setError('Failed to select course');
-      toast.error('Unable to select course automatically');
+    handleCourseSelectionRef.current = handleCourseSelection;
+    handleGradeChangeRef.current = handleGradeChange;
+  }, [handleCourseSelection, handleGradeChange]);
+
+  // Memoize courses with stable dependencies
+  const memoizedCourses = useMemo(() => {
+    return filteredCourses || [];
+  }, [filteredCourses?.length, filteredCourses?.map(c => c._id).join(',')]);
+
+  // Optimized course auto-selection - only when courses change significantly
+  useEffect(() => {
+    const coursesLength = memoizedCourses.length;
+    
+    // Skip if courses haven't changed significantly
+    if (coursesLength === lastProcessedCoursesLength) {
+      return;
     }
-  }, [displayCourses, selectedCourse, handleCourseSelection]);
+    
+    setLastProcessedCoursesLength(coursesLength);
+    
+    // Don't interfere with course selection - let parent component handle auto-selection
+    // This component should only handle the dropdown display and user interactions
+    
+  }, [memoizedCourses.length]); // Minimal dependencies - removed auto-selection logic
 
   // Handle clicks outside the courses dropdown
   useEffect(() => {
@@ -152,8 +185,9 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
       const dropdownTrigger = document.getElementById('courses-dropdown-trigger');
       
       if (dropdown && dropdownTrigger &&
-          !dropdown.contains(event.target as Node) && 
-          !dropdownTrigger.contains(event.target as Node)) {
+          event.target instanceof Node &&
+          !dropdown.contains(event.target) && 
+          !dropdownTrigger.contains(event.target)) {
         setDropdownVisible(false);
       }
     };
@@ -164,20 +198,34 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
     };
   }, []);
 
-  // Toggle dropdown with error handling
-  const toggleDropdown = useCallback((): void => {
-    try {
-      setDropdownVisible(prev => !prev);
-    } catch (err) {
-      console.error('Dropdown toggle error:', err);
-      showToast.error('Unable to toggle dropdown');
+  // Stable grade change handler
+  const handleGradeChangeWithReset = useCallback((gradeId: string) => {
+    if (handleGradeChangeRef.current) {
+      handleGradeChangeRef.current(gradeId);
     }
+    // Reset dropdown visibility
+    setDropdownVisible(false);
   }, []);
 
-  // Reset error state
+  // Stable course selection handler
+  const handleCourseClick = useCallback((course: Course) => {
+    if (handleCourseSelectionRef.current) {
+      handleCourseSelectionRef.current(course);
+    }
+    setDropdownVisible(false);
+  }, []);
+
+  // Toggle dropdown with error handling
+  const toggleDropdown = useCallback((): void => {
+    setDropdownVisible(prev => !prev);
+  }, []);
+
+  // Reset error state - stable version
   const resetErrorState = useCallback((): void => {
     setError(null);
-    setSelectedGrade('all');
+    if (typeof setSelectedGrade === 'function') {
+      setSelectedGrade('all');
+    }
   }, [setSelectedGrade]);
 
   // If there's an error, show error fallback
@@ -201,19 +249,7 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
         <div className="relative group">
           <select
             value={selectedGrade}
-            onChange={(e) => {
-              try {
-                const gradeId = e.target.value;
-                handleGradeChange(gradeId);
-                // Reset course selection when grade changes
-                if (selectedCourse) {
-                  handleCourseSelection(null);
-                }
-              } catch (err) {
-                console.error('Grade change error:', err);
-                toast.error('Unable to change grade');
-              }
-            }}
+            onChange={(e) => handleGradeChangeWithReset(e.target.value)}
             className="appearance-none block w-full px-4 py-3 text-base transition-all duration-200 ease-in-out
             border-2 dark:border-gray-600 rounded-xl
             bg-white dark:bg-gray-700 
@@ -245,7 +281,7 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
         </div>
         <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center">
           <Info className="w-3 h-3 mr-1" />
-          {filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'} available
+          {memoizedCourses.length} {memoizedCourses.length === 1 ? 'course' : 'courses'} available
         </p>
       </div>
     );
@@ -282,19 +318,7 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
           <div className="relative group">
             <select
               value={selectedGrade}
-              onChange={(e) => {
-                try {
-                  const gradeId = e.target.value;
-                  handleGradeChange(gradeId);
-                  // Reset course selection when grade changes
-                  if (selectedCourse) {
-                    handleCourseSelection(null);
-                  }
-                } catch (err) {
-                  console.error('Grade change error:', err);
-                  toast.error('Unable to change grade');
-                }
-              }}
+              onChange={(e) => handleGradeChangeWithReset(e.target.value)}
               className="appearance-none block w-full px-4 py-3 text-base transition-all duration-200 ease-in-out
               border-2 dark:border-gray-600 rounded-xl
               bg-white dark:bg-gray-700 
@@ -353,7 +377,7 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
             <div className="flex items-center gap-2">
               {!hideGradeSelector && selectedGrade !== 'all' && (
                 <button
-                  onClick={() => setSelectedGrade('all')}
+                  onClick={() => handleGradeChangeWithReset('all')}
                   className="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
                 >
                   View All
@@ -361,14 +385,14 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
               )}
               <span className="text-xs text-gray-400 dark:text-gray-500 mx-1">•</span>
               <span className="text-xs text-gray-500 dark:text-gray-400">
-                {displayCourses.length} {displayCourses.length === 1 ? 'course' : 'courses'}
+                {memoizedCourses.length} {memoizedCourses.length === 1 ? 'course' : 'courses'}
               </span>
             </div>
           </div>
         </div>
 
         {/* Course Selection or Empty State */}
-        {displayCourses.length > 0 ? (
+        {memoizedCourses.length > 0 ? (
           <div className="relative">
             {/* Selected course display */}
             <div 
@@ -419,7 +443,7 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
                 className="absolute z-20 mt-1 w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-h-64 overflow-y-auto"
               >
                 <div className="p-1">
-                  {displayCourses.map((course) => (
+                  {memoizedCourses.map((course) => (
                     <div
                       key={course._id}
                       className={`p-2 cursor-pointer rounded-md transition-colors ${
@@ -427,15 +451,7 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
                           ? `${categoryInfo?.bgClass || 'bg-primary-50 dark:bg-primary-900/20'} ${categoryInfo?.colorClass || 'text-primary-600 dark:text-primary-400'}`
                           : 'hover:bg-gray-50 dark:hover:bg-gray-750'
                       }`}
-                      onClick={() => {
-                        try {
-                          handleCourseSelection(course);
-                          setDropdownVisible(false);
-                        } catch (err) {
-                          console.error('Course selection error:', err);
-                          showToast.error('Unable to select course');
-                        }
-                      }}
+                      onClick={() => handleCourseClick(course)}
                     >
                       <div className="flex items-center">
                         <div className="min-w-0 flex-1">
@@ -473,9 +489,7 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
             </p>
             {!hideGradeSelector && selectedGrade !== 'all' && (
               <button
-                onClick={() => {
-                  setSelectedGrade('all');
-                }}
+                onClick={() => handleGradeChangeWithReset('all')}
                 className="mt-3 text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 bg-primary-50 dark:bg-primary-900/20 px-3 py-1.5 rounded-full"
               >
                 Reset Filters
