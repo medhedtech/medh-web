@@ -306,19 +306,6 @@ const HireFromMedhBanner: React.FC<HireFromMedhBannerProps> = ({ onLearnMoreClic
                 Recruit top IT professionals in areas including AI, Data Science, Digital Marketing, Analytics, Cybersecurity, and more. Save time and resources with our pre-vetted talent.
               </p>
 
-              <div className="mt-4 sm:mt-6 md:mt-8 flex flex-wrap gap-4 justify-center">
-                <button 
-                  onClick={onLearnMoreClick || handleExplore}
-                  className={`inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-all duration-300 hover:scale-105 group text-sm sm:text-base md:text-lg relative overflow-hidden ${
-                    isDark 
-                      ? 'bg-gradient-to-r from-primary-500 to-blue-500 text-white hover:shadow-2xl hover:shadow-primary-500/30 glass-stats' 
-                      : 'bg-white/95 backdrop-blur-lg text-gray-900 border-2 border-primary-500/40 hover:border-primary-500/70 hover:bg-white shadow-2xl hover:shadow-3xl'
-                  }`}
-                >
-                  <span className="relative z-10 font-extrabold tracking-wide">Let's Connect</span>
-                  <ArrowRight size={16} className="relative z-10 ml-3 group-hover:translate-x-1 transition-transform sm:w-4 sm:h-4 md:w-5 md:h-5" />
-                </button>
-              </div>
 
               <div className={`mumkinMedh text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold mb-2 leading-tight pt-12 ${
                 isDark 

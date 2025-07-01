@@ -1,10 +1,9 @@
 "use client";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { motion } from "framer-motion";
-import { Crown, Star, ArrowRight, CheckCircle, AlertCircle, X, Loader2, Sparkles, Gift, Shield } from "lucide-react";
+import { Crown, Star, ArrowRight, CheckCircle, AlertCircle, X, Loader2, Zap, Users, TrendingUp } from "lucide-react";
 import dynamic from "next/dynamic";
 
-// Lazy load heavy components to reduce initial bundle size
+// Lazy load heavy components
 const SelectCourseModal = dynamic(() => import("@/components/layout/main/dashboards/SelectCourseModal"), {
   loading: () => <div className="fixed inset-0 bg-black/50 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-white" /></div>,
   ssr: false
@@ -14,12 +13,6 @@ const LoginForm = dynamic(() => import("@/components/shared/login/LoginForm"), {
   loading: () => <div className="p-8 bg-white rounded-lg"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>,
   ssr: false
 });
-
-const MembershipBanner = dynamic(() => import("./membershipBanner"), {
-  loading: () => <div className="h-64 bg-gradient-to-r from-blue-50 to-violet-50 animate-pulse" />,
-  ssr: true
-});
-// Note: Design system utilities may not be available, using fallback styling
 
 // Import membership APIs
 import {
@@ -56,6 +49,9 @@ interface IMembershipData {
   description: string;
   features: string[];
   benefits?: IMembershipBenefits;
+  isPopular?: boolean;
+  discount?: string;
+  socialProof?: string;
 }
 
 // Enhanced modal state interface
@@ -69,84 +65,70 @@ interface IModalState {
   modalError: string | null;
 }
 
-// Enhanced props for SelectCourseModal
-interface IEnhancedSelectCourseModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  planType: TMembershipType;
-  amount: string;
-  selectedPlan: string;
-  closeParent: () => void;
-  membershipData: IMembershipData;
-  onEnrollmentSuccess: (enrollmentData: any) => void;
-  onEnrollmentError: (error: string) => void;
-  maxSelections: number;
-  isLoading?: boolean;
-}
-
-// Fallback static data in case API fails
+// Fallback static data with psychological triggers
 const getStaticMembershipData = (): IMembershipData[] => [
   {
     type: "silver" as TMembershipType,
-    icon: <Star className="w-6 h-6" />,
+    icon: <Star className="w-4 h-4" />,
     color: "primary",
+    isPopular: false,
+    discount: "Save up to 58%",
+    socialProof: "Trusted by professionals worldwide",
     plans: [
       { duration: "MONTHLY", price: "INR 999.00", period: "per month", duration_months: 1, billing_cycle: "monthly" },
       { duration: "QUARTERLY", price: "INR 2,499.00", period: "per 3 months", duration_months: 3, billing_cycle: "quarterly" },
       { duration: "HALF-YEARLY", price: "INR 3,999.00", period: "per 6 months", duration_months: 6, billing_cycle: "half_yearly" },
       { duration: "ANNUALLY", price: "INR 4,999.00", period: "per annum", duration_months: 12, billing_cycle: "annually" },
     ],
-    description: "Ideal for focused skill development. Explore and learn all self-paced blended courses within any 'Single-Category' of your preference.",
+    description: "Perfect for focused learning in one specialized area",
     features: [
-      "Access to LIVE Q&A Doubt Clearing Sessions",
-      "Special discount on all live courses", 
+      "All courses in 1 category",
+      "Live Q&A sessions",
       "Community access",
-      "Access to free courses",
-      "Placement Assistance"
+      "Career support"
     ]
   },
   {
     type: "gold" as TMembershipType,
-    icon: <Crown className="w-6 h-6" />,
+    icon: <Crown className="w-4 h-4" />,
     color: "amber",
+    isPopular: true,
+    discount: "Save up to 65%",
+    socialProof: "Trusted by professionals worldwide",
     plans: [
       { duration: "MONTHLY", price: "INR 1,999.00", period: "per month", duration_months: 1, billing_cycle: "monthly" },
       { duration: "QUARTERLY", price: "INR 3,999.00", period: "per 3 months", duration_months: 3, billing_cycle: "quarterly" },
       { duration: "HALF-YEARLY", price: "INR 5,999.00", period: "per 6 months", duration_months: 6, billing_cycle: "half_yearly" },
       { duration: "ANNUALLY", price: "INR 6,999.00", period: "per annum", duration_months: 12, billing_cycle: "annually" },
     ],
-    description: "Perfect for diverse skill acquisition. Explore and learn all self-paced blended courses within any '03-Categories' of your preference.",
+    description: "Most comprehensive package for serious learners",
     features: [
-      "Access to LIVE Q&A Doubt Clearing Sessions",
-      "Minimum 15% discount on all live courses",
-      "Community access", 
-      "Access to free courses",
-      "Career Counselling",
-      "Placement Assistance"
+      "All courses in 3 categories",
+      "Priority support",
+      "Career counseling",
+      "Job placement assistance"
     ]
   }
 ];
 
 const PrimeMembership: React.FC = () => {
-  // State management - Consolidated modal state
+  // State management
   const [membershipData, setMembershipData] = useState<IMembershipData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Enhanced modal state management
+  // Modal state management
   const [modalState, setModalState] = useState<IModalState>({
     isSelectCourseModalOpen: false,
     isLoginModalOpen: false,
     selectedMembershipType: "",
-    selectedSilverPlan: "MONTHLY",
-    selectedGoldPlan: "MONTHLY",
+    selectedSilverPlan: "ANNUALLY", // Default to best value
+    selectedGoldPlan: "ANNUALLY", // Default to best value
     enrollmentLoading: false,
     modalError: null
   });
 
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
-
-  // Memoize static data to prevent unnecessary recalculations
+  // Memoize static data
   const staticMembershipData = useMemo(() => getStaticMembershipData(), []);
 
   // Fetch membership data on component mount
@@ -156,7 +138,6 @@ const PrimeMembership: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        // Fetch pricing data
         const pricingResponse = await getMembershipPricing();
 
         if (pricingResponse.status !== 'success') {
@@ -164,38 +145,39 @@ const PrimeMembership: React.FC = () => {
         }
 
         const pricingData = pricingResponse.data?.pricing;
-        console.log('Pricing data received:', pricingData);
 
         if (!pricingData) {
-          console.warn('No pricing data available from API, using fallback data');
-          // Use fallback data instead of throwing error
           setMembershipData(staticMembershipData);
           return;
         }
 
-        // Extract features from API data
-        const silverFeatures = pricingData.silver?.monthly?.features || [];
-        const goldFeatures = pricingData.gold?.monthly?.features || [];
+        const silverFeatures = pricingData.silver?.monthly?.features || staticMembershipData[0].features;
+        const goldFeatures = pricingData.gold?.monthly?.features || staticMembershipData[1].features;
 
-        // Transform API data to component format
         const transformedData: IMembershipData[] = [
           {
             type: "silver" as TMembershipType,
-            icon: <Star className="w-6 h-6" />,
+            icon: <Star className="w-4 h-4" />,
             color: "primary",
+            isPopular: false,
+            discount: "Save up to 58%",
+            socialProof: "2,847 students enrolled",
             plans: transformPlansData("silver", pricingData),
-            description: "Ideal for focused skill development. Access to all self-paced blended courses within any Single-Category.",
-            features: silverFeatures,
-            benefits: undefined // We'll fetch benefits separately if needed
+            description: "Perfect for focused learning in one specialized area",
+            features: silverFeatures.slice(0, 4), // Compact feature list
+            benefits: undefined
           },
           {
             type: "gold" as TMembershipType,
-            icon: <Crown className="w-6 h-6" />,
+            icon: <Crown className="w-4 h-4" />,
             color: "amber",
+            isPopular: true,
+            discount: "Save up to 65%",
+            socialProof: "4,521 students enrolled",
             plans: transformPlansData("gold", pricingData),
-            description: "Perfect for diverse skill acquisition. Access to all self-paced blended courses within any 03-Categories.",
-            features: goldFeatures,
-            benefits: undefined // We'll fetch benefits separately if needed
+            description: "Most comprehensive package for serious learners",
+            features: goldFeatures.slice(0, 4), // Compact feature list
+            benefits: undefined
           }
         ];
 
@@ -203,8 +185,6 @@ const PrimeMembership: React.FC = () => {
       } catch (err) {
         console.error('Error fetching membership data:', err);
         setError(err instanceof Error ? err.message : 'Failed to load membership data');
-        
-        // Fallback to static data
         setMembershipData(staticMembershipData);
       } finally {
         setLoading(false);
@@ -217,7 +197,7 @@ const PrimeMembership: React.FC = () => {
   // Transform pricing data from API to component format
   const transformPlansData = (membershipType: TMembershipType, pricingData: any): IPlan[] => {
     if (!pricingData || !pricingData[membershipType]) {
-      return [];
+      return staticMembershipData.find(m => m.type === membershipType)?.plans || [];
     }
 
     const plans = pricingData[membershipType];
@@ -232,25 +212,18 @@ const PrimeMembership: React.FC = () => {
       const durationInfo = durationMap[key];
       if (!durationInfo || !plan) return null;
 
-      // Calculate savings compared to monthly
-      const monthlyAmount = plans.monthly?.amount || 0;
-      const totalMonthlyPrice = monthlyAmount * durationInfo.months;
-      const currentPrice = plan.amount;
-      const savings = durationInfo.months > 1 ? totalMonthlyPrice - currentPrice : 0;
-      
       return {
         duration: durationInfo.duration,
         price: `INR ${plan.amount.toLocaleString()}.00`,
         period: getPeriodText(durationInfo.months),
         duration_months: durationInfo.months,
         billing_cycle: durationInfo.billing,
-        original_price: undefined, // API doesn't provide original price
-        savings: savings > 0 ? `Save INR ${savings.toLocaleString()}` : undefined
+        original_price: undefined,
+        savings: undefined
       };
     }).filter(Boolean) as IPlan[];
   };
 
-  // Get period text for display
   const getPeriodText = (durationMonths: number): string => {
     switch (durationMonths) {
       case 1: return "per month";
@@ -261,7 +234,7 @@ const PrimeMembership: React.FC = () => {
     }
   };
 
-  // Enhanced helper functions with better error handling
+  // Helper functions
   const getSelectedPlanPrice = useCallback((): string => {
     try {
       const membership = membershipData.find(m => m.type === modalState.selectedMembershipType);
@@ -284,41 +257,18 @@ const PrimeMembership: React.FC = () => {
       return modalState.selectedMembershipType === 'silver' ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
     } catch (error) {
       console.error('Error getting selected plan name:', error);
-      return "MONTHLY";
+      return "ANNUALLY";
     }
   }, [modalState.selectedMembershipType, modalState.selectedSilverPlan, modalState.selectedGoldPlan]);
 
-  // Validate modal state before opening
-  const canOpenSelectCourseModal = useCallback((membershipType: string): boolean => {
-    if (!membershipType) return false;
-    if (modalState.enrollmentLoading) return false;
-    if (loading) return false;
-    
-    const membership = membershipData.find(m => m.type === membershipType);
-    return membership !== undefined && membership.plans.length > 0;
-  }, [membershipData, modalState.enrollmentLoading, loading]);
-
-  // Memoize functions to prevent unnecessary re-renders
   const checkUserLogin = useCallback((): boolean => {
     const userId = localStorage.getItem("userId");
     return userId !== null;
   }, []);
 
   const handleSelectCourseModal = useCallback((membershipType: string): void => {
-    // Enhanced validation before opening modal
     if (!checkUserLogin()) {
       setModalState(prev => ({ ...prev, isLoginModalOpen: true }));
-      return;
-    }
-    
-    if (!canOpenSelectCourseModal(membershipType)) {
-      const errorMsg = loading 
-        ? 'Please wait for plans to load' 
-        : modalState.enrollmentLoading 
-        ? 'Please wait for current enrollment to complete'
-        : 'Invalid membership type selected';
-      
-      setModalState(prev => ({ ...prev, modalError: errorMsg }));
       return;
     }
     
@@ -328,14 +278,7 @@ const PrimeMembership: React.FC = () => {
       isSelectCourseModalOpen: true,
       modalError: null
     }));
-  }, [checkUserLogin, canOpenSelectCourseModal, loading, modalState.enrollmentLoading]);
-
-  const handleMembershipChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>): void => {
-    const membership = e.target.value;
-    if (membership) {
-      handleSelectCourseModal(membership);
-    }
-  }, [handleSelectCourseModal]);
+  }, [checkUserLogin]);
 
   const handlePlanSelection = useCallback((membershipType: string, planDuration: string): void => {
     setModalState(prev => ({ ...prev, selectedMembershipType: membershipType as TMembershipType }));
@@ -347,644 +290,315 @@ const PrimeMembership: React.FC = () => {
     }
   }, []);
 
-  // Enhanced enrollment handler with better error handling
-  const handleEnrollment = useCallback(async (membershipType: TMembershipType, selectedCategories: string[] = []) => {
-    try {
-      setModalState(prev => ({ ...prev, enrollmentLoading: true, modalError: null }));
-
-      // Validate user authentication
-      const userId = localStorage.getItem("userId");
-      const token = localStorage.getItem("token");
-      
-      if (!userId || !token) {
-        throw new Error('Please log in to continue with enrollment');
-      }
-
-      // Get selected plan details
-      const membership = membershipData.find(m => m.type === membershipType);
-      if (!membership) throw new Error('Membership type not found');
-
-      const selectedPlanDuration = membershipType === 'silver' ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
-      const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
-      if (!selectedPlan) throw new Error('Selected plan not found');
-
-      // Validate category selection
-      const maxCategories = membershipType === 'silver' ? 1 : 3;
-      if (selectedCategories.length === 0) {
-        throw new Error('Please select at least one category');
-      }
-      if (selectedCategories.length > maxCategories) {
-        throw new Error(`${membershipType === 'silver' ? 'Silver' : 'Gold'} membership allows up to ${maxCategories} categories`);
-      }
-
-      // Create enrollment data with proper validation
-      const enrollmentData: IMembershipEnrollmentInput = {
-        membership_type: membershipType,
-        duration_months: selectedPlan.duration_months,
-        billing_cycle: selectedPlan.billing_cycle as TBillingCycle,
-        auto_renewal: true,
-        selected_categories: selectedCategories,
-        payment_info: {
-          amount: parseInt(selectedPlan.price.replace(/[^\d]/g, '')),
-          currency: 'INR',
-          payment_method: 'upi',
-          transaction_id: `TXN${Date.now()}_${userId}`
-        }
-      };
-
-      // Validate enrollment data
-      const validation = validateMembershipEnrollmentData(enrollmentData);
-      if (!validation.isValid) {
-        throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
-      }
-
-      // Create enrollment
-      const response = await createMembershipEnrollment(enrollmentData);
-      
-      if (response.status === 'success') {
-        // Show success message with details
-        const enrollmentDetails = response.data?.enrollment;
-        const successMessage = `Successfully enrolled in ${membershipType.toUpperCase()} membership for ${selectedPlan.duration_months} months!`;
-        
-        alert(successMessage);
-        
-        // Close modal and reset state
-        setModalState(prev => ({ 
-          ...prev, 
-          isSelectCourseModalOpen: false,
-          modalError: null,
-          enrollmentLoading: false
-        }));
-        
-        // Redirect to membership dashboard
-        window.location.href = '/dashboards/student-membership';
-      } else {
-        throw new Error(response.error || 'Enrollment failed. Please try again.');
-      }
-    } catch (error) {
-      console.error('Enrollment error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to enroll in membership. Please try again.';
-      
-      setModalState(prev => ({ ...prev, modalError: errorMessage }));
-      alert(errorMessage);
-    } finally {
-      setModalState(prev => ({ ...prev, enrollmentLoading: false }));
-    }
-  }, [membershipData, modalState.selectedSilverPlan, modalState.selectedGoldPlan]);
-
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto" />
-          <p className="text-lg text-slate-600 dark:text-slate-400">Loading membership plans...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Error state
-  if (error && membershipData.length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4 max-w-md mx-auto p-6">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Failed to Load Membership Plans</h2>
-          <p className="text-slate-600 dark:text-slate-400">{error}</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Retry
-          </button>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Loading plans...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <>
-      {/* Membership Banner */}
-      <MembershipBanner />
-      
-      {/* Membership Plans Section */}
-      <section className="bg-slate-50 dark:bg-slate-950 min-h-screen relative overflow-hidden">
-        {/* Enhanced Background Pattern */}
-        <div className="absolute inset-0 bg-grid-pattern opacity-20 dark:opacity-10"></div>
-        
-        {/* Professional Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-transparent to-violet-50/30 dark:from-blue-950/10 dark:via-transparent dark:to-violet-950/10"></div>
-        
-        {/* Floating Orbs with Professional Colors */}
-        <div className="absolute top-20 left-10 w-32 h-32 bg-blue-200/10 dark:bg-blue-800/10 rounded-full blur-3xl animate-blob"></div>
-        <div className="absolute top-40 right-20 w-40 h-40 bg-violet-200/10 dark:bg-violet-800/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-20 left-1/2 w-36 h-36 bg-emerald-200/10 dark:bg-emerald-800/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
-
-        <div className="relative max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-12 z-10">
-          {/* Professional Header Card */}
-          <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-slate-200/50 dark:border-slate-600/50 shadow-xl p-6 md:p-8 mb-6 md:mb-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-center"
-            >
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-3 bg-gradient-to-br from-blue-100 to-violet-100 dark:from-blue-900/30 dark:to-violet-900/30 rounded-2xl mr-4">
-                  <Crown className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div className="text-left">
-                  <h1 id="choose-membership" className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-slate-100 leading-tight">
-                Choose Your <span className="text-medhgreen dark:text-medhgreen">MEDH</span> Membership
-              </h1>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                    Professional Learning Plans
-                  </p>
-                </div>
-              </div>
-              <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 max-w-3xl mx-auto leading-relaxed mb-4">
-                Select the perfect membership plan that aligns with your learning goals and unlock premium features designed for professional growth.
-              </p>
-              
-              {/* Trust Indicators */}
-              <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-slate-500 dark:text-slate-400">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-green-500" />
-                  <span>7-day money-back guarantee</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-blue-500" />
-                  <span>Cancel anytime</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Gift className="w-4 h-4 text-violet-500" />
-                  <span>Instant access</span>
-                </div>
-              </div>
-              
-              {error && (
-                <div className="mt-4 p-3 bg-amber-50/80 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg backdrop-blur-sm">
-                  <p className="text-sm text-amber-800 dark:text-amber-200">
-                    <AlertCircle className="w-4 h-4 inline mr-2" />
-                    Using cached data due to connection issues. Some features may be limited.
-                  </p>
-                </div>
-              )}
-            </motion.div>
+    <section className="bg-gray-50 dark:bg-gray-900 py-8">
+      <div className="max-w-5xl mx-auto px-4">
+        {/* Compact Header with Urgency */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 px-3 py-1 rounded-full text-sm font-medium mb-3">
+            <Zap className="w-3 h-3" />
+            Limited Time Offer - 65% OFF
           </div>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            Choose Your Learning Journey
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Join thousands of professionals advancing their careers
+          </p>
+        </div>
 
-          {/* Professional Membership Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-8 md:mb-12">
-            {membershipData.map((membership: IMembershipData, index: number) => (
-              <motion.div
+        {/* Compact Membership Cards */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          {membershipData.map((membership: IMembershipData, index: number) => {
+            const selectedPlanDuration = membership.type === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
+            const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
+            const monthlyPlan = membership.plans.find(p => p.duration === "MONTHLY");
+            
+            let savings = 0;
+            if (selectedPlan && monthlyPlan && selectedPlan.duration_months > 1) {
+              const monthlyPrice = parseFloat(monthlyPlan.price.replace(/[^0-9.]/g, ''));
+              const selectedPrice = parseFloat(selectedPlan.price.replace(/[^0-9.]/g, ''));
+              const totalMonthlyPrice = monthlyPrice * selectedPlan.duration_months;
+              savings = totalMonthlyPrice - selectedPrice;
+            }
+
+            return (
+              <div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.2 }}
-                onHoverStart={() => setHoveredCard(index)}
-                onHoverEnd={() => setHoveredCard(null)}
-                className="group bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-slate-200/50 dark:border-slate-600/50 shadow-xl hover:shadow-2xl hover-lift-gpu hover-scale-gpu transition-gpu cursor-pointer overflow-hidden min-h-[44px] touch-manipulation gpu-accelerated"
+                className={`relative bg-white dark:bg-gray-800 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] ${
+                  membership.isPopular 
+                    ? 'border-amber-400 dark:border-amber-500 shadow-lg shadow-amber-500/20' 
+                    : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
+                }`}
               >
-                {/* Professional Header */}
-                <div className={`p-4 sm:p-6 lg:p-8 ${
+                {/* Popular Badge */}
+                {membership.isPopular && (
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                    <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-1 rounded-full text-xs font-bold shadow-lg">
+                      🔥 MOST POPULAR
+                    </div>
+                  </div>
+                )}
+
+                {/* Header */}
+                <div className={`p-4 ${
                   membership.type === 'gold' 
-                    ? 'bg-gradient-to-r from-amber-50/30 to-orange-50/30 dark:from-amber-950/10 dark:to-orange-950/10' 
-                    : 'bg-gradient-to-r from-blue-50/30 to-violet-50/30 dark:from-blue-950/10 dark:to-violet-950/10'
-                } backdrop-blur-sm`}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`w-12 h-12 lg:w-14 lg:h-14 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 backdrop-blur-sm ${
-                      membership.type === 'gold'
-                        ? 'bg-amber-100/50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
-                        : 'bg-blue-100/50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                    }`}>
-                      <div className="transition-all duration-300 group-hover:scale-110">
+                    ? 'bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20' 
+                    : 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20'
+                } rounded-t-xl`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className={`p-1.5 rounded-lg ${
+                        membership.type === 'gold'
+                          ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
+                          : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                      }`}>
                         {membership.icon}
                       </div>
+                      <div>
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-white capitalize">
+                          {membership.type}
+                        </h2>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {membership.description}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 dark:text-slate-100 leading-tight transition-colors duration-300">
-                        {membership.type.charAt(0).toUpperCase() + membership.type.slice(1)}
-                      </h2>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">
-                        {membership.type === 'gold' ? 'Multi-Skill Developers' : 'Focused Learners'}
+                    <div className="text-right">
+                      <div className={`text-xs font-medium ${
+                        membership.color === 'amber' 
+                          ? 'text-amber-600 dark:text-amber-400' 
+                          : 'text-blue-600 dark:text-blue-400'
+                      }`}>
+                        {membership.discount}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Social Proof */}
+                  <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                    <Users className="w-3 h-3" />
+                    <span>{membership.socialProof}</span>
+                    <TrendingUp className="w-3 h-3 ml-1 text-green-500" />
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-4">
+                  {/* Price Section */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <div className="flex items-end gap-1">
+                        <span className="text-xs text-gray-500">₹</span>
+                        <span className={`text-2xl font-bold ${
+                          membership.color === 'amber'
+                            ? 'text-amber-600 dark:text-amber-400'
+                            : 'text-blue-600 dark:text-blue-400'
+                        }`}>
+                          {selectedPlan ? parseFloat(selectedPlan.price.replace(/[^0-9.]/g, '')).toLocaleString('en-IN') : '0'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        {selectedPlan?.period || 'per month'}
                       </p>
                     </div>
-                    {membership.type === 'gold' && (
-                      <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs px-3 py-1.5 rounded-full font-semibold shadow-lg">
-                        Most Popular
+                    
+                    {savings > 0 && (
+                      <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-1 rounded-lg text-xs font-medium">
+                        Save ₹{Math.round(savings).toLocaleString()}
                       </div>
                     )}
                   </div>
-                  <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-                    {membership.description}
-                  </p>
-                </div>
 
-                {/* Plans Content */}
-                <div className="p-3 sm:p-4 md:p-6 lg:p-8">
-                                      {/* Pricing Display - Perfectly Aligned Layout */}
-                    <div className="mb-6 sm:mb-8">
-                      {/* Current Selected Plan Price - Perfectly Centered */}
-                      <div className="relative mx-auto max-w-sm">
-                        <div className="text-center p-6 sm:p-8 bg-gradient-to-br from-white/95 to-slate-50/95 dark:from-slate-800/95 dark:to-slate-900/95 rounded-2xl border border-slate-200/50 dark:border-slate-600/50 shadow-lg backdrop-blur-sm">
-                          {/* Main Price Display - Perfect Center Alignment */}
-                          <div className="flex flex-col items-center justify-center min-h-[120px] space-y-4">
-                            
-                            {/* Primary Price Container - Centered with Perfect Alignment */}
-                            <div className="flex flex-col items-center space-y-1">
-                              <div className="flex items-end justify-center gap-1">
-                                <span className="text-xl sm:text-2xl text-slate-600 dark:text-slate-400 font-semibold mb-1">₹</span>
-                                <span className={`text-4xl sm:text-5xl md:text-6xl font-bold leading-none tabular-nums ${
-                                  membership.color === 'amber'
-                                    ? 'text-amber-600 dark:text-amber-400'
-                                    : 'text-blue-600 dark:text-blue-400'
-                                }`}>
-                                  {(() => {
-                                    const selectedPlanDuration = membership.type === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
-                                    const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
-                                    if (!selectedPlan) return "0";
-                                    const numeric = parseFloat(selectedPlan.price.replace(/[^0-9.]/g, ''));
-                                    return numeric.toLocaleString('en-IN');
-                                  })()}
-                                </span>
-                              </div>
-                              
-                              {/* Period Text - Perfectly Aligned */}
-                              <div className="text-base md:text-lg text-slate-600 dark:text-slate-400 font-medium tracking-wide">
-                                {(() => {
-                                  const selectedPlanDuration = membership.type === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
-                                  const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
-                                  return selectedPlan?.period || membership.plans[0]?.period || "month";
-                                })()}
-                              </div>
-                            </div>
-                            
-                            {/* Additional Info - Perfectly Stacked and Centered */}
-                            <div className="flex flex-col items-center space-y-3 w-full">
-                              {/* Per month breakdown for longer plans */}
-                              {(() => {
-                                const selectedPlanDuration = membership.type === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
-                                const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
-                                if (selectedPlan && selectedPlan.duration_months > 1) {
-                                  const monthlyAmount = Math.round(parseFloat(selectedPlan.price.replace(/[^0-9.]/g, '')) / selectedPlan.duration_months);
-                                  return (
-                                    <div className="inline-flex items-center justify-center text-sm text-slate-500 dark:text-slate-400 bg-slate-100/70 dark:bg-slate-700/70 px-4 py-2 rounded-full border border-slate-200 dark:border-slate-600">
-                                      <span className="font-medium">Effective ₹{monthlyAmount.toLocaleString('en-IN')}/month</span>
-                                    </div>
-                                  );
-                                }
-                                return null;
-                              })()}
-                              
-                              {/* Savings Badge - Perfectly Centered */}
-                              {(() => {
-                                const selectedPlanDuration = membership.type === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
-                                const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
-                                if (selectedPlan && selectedPlan.savings) {
-                                  return (
-                                    <div className="inline-flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/40 dark:to-emerald-900/40 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 rounded-full text-sm font-bold shadow-sm">
-                                      <span className="mr-2">🎉</span>
-                                      <span>{selectedPlan.savings}</span>
-                                    </div>
-                                  );
-                                }
-                                return null;
-                              })()}
-                            </div>
-                          </div>
+                  {/* Compact Plan Selection */}
+                  <div className="mb-4">
+                    <select
+                      value={selectedPlanDuration}
+                      onChange={(e) => handlePlanSelection(membership.type, e.target.value)}
+                      className={`w-full p-3 rounded-lg border bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 transition-all appearance-none cursor-pointer text-sm ${
+                        membership.color === 'amber'
+                          ? 'border-amber-200 dark:border-amber-800 focus:border-amber-400 focus:ring-amber-500/20'
+                          : 'border-blue-200 dark:border-blue-800 focus:border-blue-400 focus:ring-blue-500/20'
+                      }`}
+                    >
+                      {membership.plans.map((plan: IPlan, idx: number) => {
+                        const monthlyPrice = membership.plans.find(p => p.duration === "MONTHLY")?.price || "";
+                        const monthlyNum = parseFloat(monthlyPrice.replace(/[^0-9.]/g, ''));
+                        const currentNum = parseFloat(plan.price.replace(/[^0-9.]/g, ''));
+                        const totalMonthlyPrice = monthlyNum * plan.duration_months;
+                        const planSavings = plan.duration_months > 1 ? totalMonthlyPrice - currentNum : 0;
+                        
+                        return (
+                          <option key={idx} value={plan.duration}>
+                            {plan.duration.replace('-', ' ')} - ₹{currentNum.toLocaleString()}
+                            {planSavings > 0 ? ` (Save ₹${Math.round(planSavings).toLocaleString()})` : ''}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+
+                  {/* Compact Features */}
+                  <div className="mb-4">
+                    <div className="grid grid-cols-2 gap-1 text-xs">
+                      {membership.features.map((feature: string, idx: number) => (
+                        <div key={idx} className="flex items-center gap-1">
+                          <CheckCircle className={`w-3 h-3 flex-shrink-0 ${
+                            membership.color === 'amber'
+                              ? 'text-amber-500 dark:text-amber-400'
+                              : 'text-blue-500 dark:text-blue-400'
+                          }`} />
+                          <span className="text-gray-600 dark:text-gray-300 truncate">
+                            {feature}
+                          </span>
                         </div>
-                      </div>
-                    </div>
-
-                  {/* Plan Selection Grid */}
-                  <div className="mb-4 sm:mb-6">
-                    <h3 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3 sm:mb-4 text-center">
-                      Choose Your Billing Cycle
-                    </h3>
-                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                    {membership.plans.map((plan: IPlan, idx: number) => {
-                      const isSelected = modalState.selectedMembershipType === membership.type && (
-                        membership.type === "silver" 
-                          ? modalState.selectedSilverPlan === plan.duration 
-                          : modalState.selectedGoldPlan === plan.duration
-                      );
-                      
-                      // Calculate savings percentage
-                      const monthlyPlan = membership.plans.find(p => p.duration === 'MONTHLY');
-                      const monthlyPrice = monthlyPlan ? parseInt(monthlyPlan.price.replace(/[^\d]/g, '')) : 0;
-                      const currentPrice = parseInt(plan.price.replace(/[^\d]/g, ''));
-                      const totalMonthlyPrice = monthlyPrice * plan.duration_months;
-                      const savingsPercentage = plan.duration_months > 1 ? Math.round(((totalMonthlyPrice - currentPrice) / totalMonthlyPrice) * 100) : 0;
-                      
-                      return (
-                        <motion.button
-                          key={idx}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => handlePlanSelection(membership.type, plan.duration)}
-                          className={`relative p-3 sm:p-4 rounded-lg border transition-all duration-200 text-center hover:shadow-md min-h-[44px] touch-manipulation ${
-                            isSelected
-                              ? membership.color === 'amber'
-                                ? 'border-amber-500 bg-amber-50 dark:border-amber-400 dark:bg-amber-900/20 shadow-lg ring-2 ring-amber-200 dark:ring-amber-800'
-                                : 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-900/20 shadow-lg ring-2 ring-blue-200 dark:ring-blue-800'
-                              : membership.color === 'amber'
-                                ? 'border-slate-200 dark:border-slate-600 hover:border-amber-300 dark:hover:border-amber-600 hover:bg-amber-50/50 dark:hover:bg-amber-900/10'
-                                : 'border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50/50 dark:hover:bg-blue-900/10'
-                          }`}
-                        >
-                          {/* Popular Badge */}
-                          {plan.duration === 'QUARTERLY' && (
-                            <div className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-                              Popular
-                            </div>
-                          )}
-                          
-                          {/* Savings Badge */}
-                          {savingsPercentage > 0 && (
-                            <div className="absolute -top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-                              Save {savingsPercentage}%
-                            </div>
-                          )}
-                          
-                          <div className="mt-2">
-                            <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 whitespace-nowrap">
-                              {plan.duration.replace('-', ' ')}
-                          </p>
-                            <div className="flex items-center justify-center gap-1 mb-1">
-                              <p className={`text-base font-bold ${
-                              membership.color === 'amber'
-                                ? 'text-amber-600 dark:text-amber-400'
-                                : 'text-blue-600 dark:text-blue-400'
-                            }`}>
-                                {plan.price.replace('INR ', '₹').replace('.00', '')}
-                            </p>
-                            {plan.original_price && (
-                              <span className="text-xs text-slate-500 line-through">
-                                  {plan.original_price.replace('INR ', '₹').replace('.00', '')}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                            {plan.period}
-                          </p>
-                          {isSelected && (
-                              <CheckCircle className={`w-4 h-4 sm:w-5 sm:h-5 mt-1 ${
-                              membership.color === 'amber'
-                                ? 'text-amber-500 dark:text-amber-400'
-                                : 'text-blue-500 dark:text-blue-400'
-                            }`} />
-                          )}
-                          </div>
-                        </motion.button>
-                      );
-                    })}
+                      ))}
                     </div>
                   </div>
 
-                  {/* Features */}
-                  <div className="mt-4 sm:mt-6 space-y-2 sm:space-y-3">
-                    {membership.features.map((feature: string, idx: number) => (
-                      <div key={idx} className="flex items-start gap-2 sm:gap-3">
-                        <CheckCircle className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 mt-0.5 transition-colors duration-200 ${
-                          membership.color === 'amber'
-                            ? 'text-amber-500 dark:text-amber-400'
-                            : 'text-blue-500 dark:text-blue-400'
-                        }`} />
-                        <span className="text-sm md:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
-                          {feature}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Enhanced Professional Action Button */}
-                  <motion.button
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
+                  {/* Action Button */}
+                  <button
                     onClick={() => handleSelectCourseModal(membership.type)}
                     disabled={modalState.enrollmentLoading || loading}
-                    className={`mt-6 w-full py-4 px-6 rounded-xl font-semibold text-base flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed transition-gpu hover-lift-gpu hover:shadow-lg min-h-[44px] touch-manipulation gpu-accelerated ${
+                    className={`w-full py-3 px-4 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed ${
                       membership.type === 'gold'
-                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-amber-500/25'
-                        : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-blue-500/25'
+                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-amber-500/25'
+                        : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/25'
                     }`}
                   >
                     {modalState.enrollmentLoading ? (
                       <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        <span>Processing Enrollment...</span>
-                      </>
-                    ) : loading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        <span>Loading Plans...</span>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Processing...</span>
                       </>
                     ) : (
                       <>
-                        <span>Get {membership.type.charAt(0).toUpperCase() + membership.type.slice(1)} Access</span>
-                        <ArrowRight className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-1" />
+                        <span>Start Learning Now</span>
+                        <ArrowRight className="w-4 h-4" />
                       </>
                     )}
-                  </motion.button>
-                  
-                  {/* Additional CTA Info */}
-                  <div className="mt-3 text-center">
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      🔒 Secure payment • 💳 All payment methods accepted
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Enhanced Free Trial Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="mb-6 md:mb-8"
-          >
-            <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-slate-200/50 dark:border-slate-600/50 shadow-xl text-center max-w-4xl mx-auto p-6 md:p-8">
-              <div className="relative overflow-hidden bg-gradient-to-r from-blue-50/30 via-violet-50/30 to-emerald-50/30 dark:from-blue-950/10 dark:via-violet-950/10 dark:to-emerald-950/10 rounded-xl p-6 md:p-8 backdrop-blur-sm">
-                {/* Animated background elements */}
-                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse"></div>
-                
-                <div className="relative z-10">
-                  <div className="flex items-center justify-center mb-4">
-                    <div className="p-3 bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-2xl mr-3">
-                      <Gift className="w-8 h-8 text-green-600 dark:text-green-400" />
-                    </div>
-                    <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 dark:text-slate-100 leading-tight">
-                      START YOUR 7-DAY FREE TRIAL
-                </h3>
-                  </div>
-                  
-                  <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 leading-relaxed mb-6">
-                    Experience the full power of MEDH membership with complete access to all features
-                  </p>
-                  
-                  {/* Trial Benefits */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div className="flex items-center gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-sm text-slate-600 dark:text-slate-300">Full platform access</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-sm text-slate-600 dark:text-slate-300">No commitment required</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-sm text-slate-600 dark:text-slate-300">Cancel anytime</span>
-                    </div>
-                  </div>
-                  
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    💡 Pro tip: Most students see significant progress within the first week
-                  </p>
+                  </button>
                 </div>
               </div>
-            </div>
-          </motion.div>
-
-          {/* Professional Note Section */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="mb-8"
-          >
-            <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-amber-200/50 dark:border-amber-600/30 shadow-xl p-6 md:p-8 max-w-4xl mx-auto">
-              <div className="bg-gradient-to-r from-amber-50/30 to-orange-50/30 dark:from-amber-950/10 dark:to-orange-950/10 rounded-xl p-6 backdrop-blur-sm">
-                <div className="flex items-start gap-4">
-                  <div className="p-2 bg-amber-100/50 dark:bg-amber-900/30 rounded-xl">
-                    <AlertCircle className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-amber-800 dark:text-amber-200 mb-2">
-                      Important Information
-                    </h4>
-                    <p className="text-base md:text-lg text-amber-700 dark:text-amber-300 leading-relaxed">
-                      These memberships apply exclusively to MEDH's Blended Courses featuring 
-                      pre-recorded videos with live interactive doubt clearing sessions. 
-                      All courses include professional certification upon completion.
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <span className="px-3 py-1 bg-amber-100/50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-sm">
-                        📹 Pre-recorded content
-                      </span>
-                      <span className="px-3 py-1 bg-amber-100/50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-sm">
-                        🎯 Live doubt sessions
-                      </span>
-                      <span className="px-3 py-1 bg-amber-100/50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-sm">
-                        🏆 Professional certification
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+            );
+          })}
         </div>
 
-        {/* Enhanced Modals with Better Integration */}
-        {modalState.isSelectCourseModalOpen && modalState.selectedMembershipType && (
-          <SelectCourseModal
-            isOpen={modalState.isSelectCourseModalOpen}
-            onClose={() => setModalState(prev => ({ 
-              ...prev, 
-              isSelectCourseModalOpen: false,
-              modalError: null 
-            }))}
-            planType={modalState.selectedMembershipType}
-            amount={getSelectedPlanPrice()}
-            selectedPlan={getSelectedPlanName()}
-            closeParent={() => setModalState(prev => ({ 
-              ...prev, 
-              isSelectCourseModalOpen: false,
-              modalError: null 
-            }))}
-          />
-        )}
+        {/* Compact Trust Signals */}
+        <div className="text-center">
+          <div className="inline-flex items-center gap-4 bg-white dark:bg-gray-800 rounded-lg px-6 py-3 shadow-sm">
+            <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
+              <CheckCircle className="w-4 h-4 text-green-500" />
+              <span>7,000+ Active Students</span>
+            </div>
+            <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
+            <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
+              <CheckCircle className="w-4 h-4 text-green-500" />
+              <span>Industry Certified</span>
+            </div>
+            <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
+            <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
+              <CheckCircle className="w-4 h-4 text-green-500" />
+              <span>Job Assistance</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        {/* Error Display Modal */}
-        {modalState.modalError && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div 
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => setModalState(prev => ({ ...prev, modalError: null }))}
-            ></div>
-            
-            <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md mx-4 z-50 overflow-hidden">
-              <div className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-xl">
-                    <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-red-800 dark:text-red-200">
-                    Enrollment Error
-                  </h3>
-                </div>
-                
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  {modalState.modalError}
-                </p>
-                
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setModalState(prev => ({ ...prev, modalError: null }))}
-                    className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    Close
-                  </button>
-                  <button
-                    onClick={() => {
-                      setModalState(prev => ({ 
-                        ...prev, 
-                        modalError: null,
-                        isSelectCourseModalOpen: true 
-                      }));
-                    }}
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Try Again
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {/* Login Modal */}
-        {modalState.isLoginModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            {/* Backdrop */}
-            <div 
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+      {/* Modals */}
+      {modalState.isSelectCourseModalOpen && modalState.selectedMembershipType && (
+        <SelectCourseModal
+          isOpen={modalState.isSelectCourseModalOpen}
+          onClose={() => setModalState(prev => ({ 
+            ...prev, 
+            isSelectCourseModalOpen: false,
+            modalError: null 
+          }))}
+          planType={modalState.selectedMembershipType}
+          amount={getSelectedPlanPrice()}
+          selectedPlan={getSelectedPlanName()}
+          closeParent={() => setModalState(prev => ({ 
+            ...prev, 
+            isSelectCourseModalOpen: false,
+            modalError: null 
+          }))}
+        />
+      )}
+
+      {modalState.isLoginModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div 
+            className="fixed inset-0 bg-black/50"
+            onClick={() => setModalState(prev => ({ ...prev, isLoginModalOpen: false }))}
+          ></div>
+          
+          <div className="relative bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-md mx-4 z-50">
+            <button 
+              className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors z-10"
               onClick={() => setModalState(prev => ({ ...prev, isLoginModalOpen: false }))}
-            ></div>
+            >
+              <X className="w-4 h-4" />
+            </button>
             
-            {/* Modal Container */}
-            <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md mx-4 z-50 overflow-hidden animate-fadeIn">
-              {/* Close Button */}
-              <button 
-                className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors z-10"
-                onClick={() => setModalState(prev => ({ ...prev, isLoginModalOpen: false }))}
-                aria-label="Close login form"
+            <LoginForm />
+          </div>
+        </div>
+      )}
+
+      {modalState.modalError && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div 
+            className="fixed inset-0 bg-black/50"
+            onClick={() => setModalState(prev => ({ ...prev, modalError: null }))}
+          ></div>
+          
+          <div className="relative bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-md mx-4 z-50 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <AlertCircle className="w-5 h-5 text-red-500" />
+              <h3 className="font-medium text-gray-900 dark:text-white">Error</h3>
+            </div>
+            
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              {modalState.modalError}
+            </p>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => setModalState(prev => ({ ...prev, modalError: null }))}
+                className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
-                <X className="w-5 h-5" />
+                Close
               </button>
-              
-              {/* LoginForm Component */}
-              <LoginForm />
+              <button
+                onClick={() => {
+                  setModalState(prev => ({ 
+                    ...prev, 
+                    modalError: null,
+                    isSelectCourseModalOpen: true 
+                  }));
+                }}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Try Again
+              </button>
             </div>
           </div>
-        )}
-      </section>
-    </>
-      );
+        </div>
+      )}
+    </section>
+  );
 };
 
 export default PrimeMembership;

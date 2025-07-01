@@ -125,48 +125,53 @@ const HireFromMedhFaq: React.FC = () => {
   ];
 
   return (
-    <section className="relative bg-slate-50 dark:bg-slate-900 min-h-screen overflow-hidden w-full">
-      {/* Enhanced Background Pattern */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
+    <section className="relative bg-gradient-to-br from-slate-50 via-white to-emerald-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-16 md:py-24 overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-20 dark:opacity-10"></div>
       
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 via-transparent to-blue-50/50 dark:from-emerald-950/20 dark:via-transparent dark:to-blue-950/20"></div>
+      {/* Enhanced Floating Elements */}
+      <div className="absolute top-20 left-0 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute top-40 right-0 w-40 h-40 bg-gradient-to-br from-blue-400/20 to-purple-500/20 rounded-full blur-3xl animate-pulse animation-delay-2000"></div>
+      <div className="absolute bottom-20 left-1/2 w-36 h-36 bg-gradient-to-br from-purple-400/20 to-pink-500/20 rounded-full blur-3xl animate-pulse animation-delay-4000"></div>
       
-      {/* Floating Elements */}
-      <div className="absolute top-20 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-emerald-200/20 dark:bg-emerald-800/20 rounded-full blur-3xl animate-blob"></div>
-      <div className="absolute top-40 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-      <div className="absolute bottom-20 left-1/2 w-28 h-28 sm:w-36 sm:h-36 bg-violet-200/20 dark:bg-violet-800/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
-
-      <div className="relative z-10 w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-12">
-        {/* Enhanced Header */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-4 sm:p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 mb-4 sm:mb-6 md:mb-8 text-center max-w-6xl mx-auto">
-          <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-slate-900 dark:text-slate-50 mb-2 sm:mb-3 leading-tight">
-            Frequently Asked Questions
+      <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Modern Header with Badge */}
+        <div className="text-center mb-12 md:mb-16">
+          <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-emerald-100 to-blue-100 dark:from-emerald-900/30 dark:to-blue-900/30 rounded-full border border-emerald-200 dark:border-emerald-700/50 mb-6">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mr-2" />
+            <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Hiring Questions Answered</span>
+          </div>
+          
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent leading-tight mb-4">
+            Got Questions?
           </h1>
-          <p className="text-xs sm:text-sm md:text-base lg:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl mx-auto">
-            Find answers to common questions about hiring from Recruit@Medh and our recruitment process.
+          <p className="text-xl md:text-2xl font-medium text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl mx-auto">
+            Everything you need to know about hiring through Recruit@Medh
           </p>
         </div>
 
-        {/* Enhanced FAQ Content */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-3 sm:p-4 md:p-6 lg:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 max-w-6xl mx-auto">
-          <CommonFaq
-            title=""
-            subtitle=""
-            faqs={faqs}
-            theme={{
-              primaryColor: "#10b981", // Emerald-500 - Perfect for hiring/recruitment theme
-              secondaryColor: "#047857", // Emerald-700 - Strong contrast for text
-              accentColor: "#059669", // Emerald-600 - Perfect balance
-              showContactSection: true,
-              contactEmail: "care@medh.co",
-              contactText: "Have more questions about hiring? Contact our recruitment team at"
-            }}
-            showSearch={true}
-            showCategories={true}
-            defaultCategory="all"
-          />
+        {/* Edge-to-Edge FAQ Content with Glass Effect */}
+        <div className="bg-gradient-to-r from-white/80 to-slate-50/80 dark:from-slate-800/80 dark:to-slate-900/80 backdrop-blur-xl rounded-3xl border border-white/40 dark:border-slate-600/40 shadow-2xl overflow-hidden">
+          <div className="p-6 sm:p-8 md:p-12 lg:p-16">
+            <CommonFaq
+              title=""
+              subtitle=""
+              faqs={faqs}
+              theme={{
+                primaryColor: "#10b981", // Emerald-500 - Perfect for hiring/recruitment theme
+                secondaryColor: "#047857", // Emerald-700 - Strong contrast for text
+                accentColor: "#059669", // Emerald-600 - Perfect balance
+                showContactSection: true,
+                contactEmail: "care@medh.co",
+                contactText: "Have more questions about hiring? Contact our recruitment team at"
+              }}
+              showSearch={true}
+              showCategories={true}
+              defaultCategory="all"
+            />
+          </div>
         </div>
+        
       </div>
     </section>
   );

@@ -3,6 +3,11 @@ import tsParser from '@typescript-eslint/parser';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import js from '@eslint/js';
 import globals from 'globals';
+// Filter out globals with leading/trailing whitespace in keys
+const filterGlobals = (globs) =>
+  Object.fromEntries(
+    Object.entries(globs).filter(([key]) => key.trim() === key)
+  );
 
 export default [
   js.configs.recommended,
@@ -18,9 +23,9 @@ export default [
         },
       },
       globals: {
-        ...globals.browser,
-        ...globals.node,
-        ...globals.es2021,
+        ...filterGlobals(globals.browser),
+        ...filterGlobals(globals.node),
+        ...filterGlobals(globals.es2021),
         JSX: 'readonly',
         React: 'readonly',
       },

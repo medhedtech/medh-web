@@ -804,7 +804,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
         console.log('Course not found in current list, attempting to fetch:', courseIdFromUrl);
         
         // If course not found in current list, try to fetch it directly
-        const courseEndpoint = apiUrls.courses.getCoursesById(courseIdFromUrl);
+        const courseEndpoint = apiUrls.courses.getCourseById(courseIdFromUrl);
         
         getQuery({
           url: courseEndpoint,
@@ -1847,7 +1847,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
     console.log("Fetching specific course:", courseId);
     
     // Fetch the specific course by ID
-    const courseEndpoint = apiUrls.courses.getCoursesById(courseId);
+    const courseEndpoint = apiUrls.courses.getCourseById(courseId);
     
     getQuery({
       url: courseEndpoint,
@@ -2213,4 +2213,4 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
   );
 }
 
-export default CategoryEnrollmentPage; 
+export default CategoryEnrollmentPage;

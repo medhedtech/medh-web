@@ -36,41 +36,41 @@ const staggerContainer = {
 
 const benefits: IBenefit[] = [
   {
-    title: "Job Ready Candidates",
+    title: "Industry-Trained Talent",
     description:
-      "Our intensive courses are led by industry experts, ensuring that our candidates are job-ready upon completion, equipped with practical experience from relevant projects and real-world scenarios.",
+      "Real project experience from structured learning. Practical skills, not just theoretical knowledge.",
     icon: Target,
     color: "#3b82f6",
     bgColor: "bg-blue-100 dark:bg-blue-900/20"
   },
   {
-    title: "Diverse Talent Pool",
+    title: "Multiple Domains",
     description:
-      "Our platform boasts a diverse talent pool across multiple domains and skill levels, allowing you to choose the perfect fit for your projects based on their expertise and experience.",
+      "Technical and non-technical skill sets across various experience levels to match your exact needs.",
     icon: Users,
     color: "#10b981",
     bgColor: "bg-emerald-100 dark:bg-emerald-900/20"
   },
   {
-    title: "Dedicated Support",
+    title: "Guided Hiring Process",
     description:
-      "Count on our dedicated relationship managers who are well-versed in understanding your specific needs, providing unwavering support throughout the entire hiring process.",
+      "Dedicated relationship managers who understand your requirements and support you through candidate selection.",
     icon: Shield,
     color: "#8b5cf6",
     bgColor: "bg-violet-100 dark:bg-violet-900/20"
   },
   {
-    title: "Strong Technical Skills",
+    title: "Vetted Capabilities",
     description:
-      "We prioritize strong technical skills through a rigorous selection process and continuous assessment, ensuring candidates possess the necessary competencies for immediate success.",
+      "Rigorous assessment process ensures verified competencies before recommendation. Reduce hiring uncertainty.",
     icon: Zap,
     color: "#f59e0b",
     bgColor: "bg-amber-100 dark:bg-amber-900/20"
   },
   {
-    title: "Networking Opportunities",
+    title: "Collaborative Partnerships",
     description:
-      "Emphasizing the power of professional networking, we encourage potential collaborations and partnerships for joint projects and expanded access to top-tier talent.",
+      "Long-term talent relationships and ongoing professional connections for sustained project success.",
     icon: Network,
     color: "#ec4899",
     bgColor: "bg-pink-100 dark:bg-pink-900/20"
@@ -178,11 +178,11 @@ const HireSection: React.FC<IHireSectionProps> = memo(({ className = "" }) => {
           className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 mb-8 max-w-6xl mx-auto text-center"
         >
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-slate-100 mb-4 leading-tight">
-            DISCOVER EXCEPTIONAL TALENT INSTANTLY WITH{" "}
+            HIRE INDUSTRY-READY PROFESSIONALS FROM{" "}
             <span className="text-emerald-600 dark:text-emerald-400">MEDH</span>
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-4xl mx-auto leading-relaxed">
-            Pre-Vetted Professionals Ready to Accelerate Innovation across Multiple Domains
+            Vetted candidates with real project experience across technical and business domains
           </p>
         </motion.div>
 
@@ -264,6 +264,7 @@ const HireSection: React.FC<IHireSectionProps> = memo(({ className = "" }) => {
                   );
                 })}
               </motion.div>
+
             </div>
           </div>
         </motion.div>
