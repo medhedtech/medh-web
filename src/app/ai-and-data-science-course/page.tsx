@@ -137,12 +137,12 @@ function CourseAi(): React.ReactElement {
       {/* Main Content */}
       <main className="relative w-full bg-gray-50 dark:bg-gray-900">
         {/* Course Overview Section */}
-        <section className="w-full py-3 md:py-16 relative z-10">
+        <section className="w-full py-3 md:py-6 relative z-10">
           <CourseAiOverview />
         </section>
 
         {/* Course FAQ Section */}
-        <section className="w-full py-3 md:py-16 relative z-10">
+        <section className="w-full py-3 md:py-6 relative z-10">
           <div className="">
             <div className="py-0">
               <CourseAiFaq />
