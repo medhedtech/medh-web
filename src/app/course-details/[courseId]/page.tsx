@@ -143,9 +143,14 @@ export default async function CourseDetailsPage({ params, searchParams }: Course
   const structuredData = generateCourseStructuredData(course);
 
   return (
-    <CourseViewClient 
-      initialCourse={course}
-      structuredData={structuredData}
-    />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Edge-to-edge mobile container */}
+      <div className="w-full">
+        <CourseViewClient 
+          initialCourse={course}
+          structuredData={structuredData}
+        />
+      </div>
+    </div>
   );
 } 

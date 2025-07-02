@@ -1881,7 +1881,7 @@ const CourseDetailsPage = ({ ...props }) => {
       {/* Course Header with Mobile-Optimized Design */}
       <div className="mb-3 sm:mb-6 md:mb-8">
         <div>
-          <div className="relative py-4 sm:py-8 md:py-10 px-3 sm:px-6 md:px-8">
+          <div className="relative py-4 sm:py-8 md:py-10 px-0 sm:px-6 md:px-8">
             {/* Course Title and Description - Mobile-First Design */}
             <motion.div
               className="relative z-10"
@@ -1889,8 +1889,8 @@ const CourseDetailsPage = ({ ...props }) => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
             >
-              {/* Glassmorphic Container - Mobile Optimized */}
-              <div className="relative backdrop-blur-lg sm:backdrop-blur-xl bg-gradient-to-br from-white/80 via-white/60 to-white/80 dark:from-gray-800/80 dark:via-gray-700/60 dark:to-gray-800/80 rounded-xl sm:rounded-2xl p-4 sm:p-8 md:p-10 shadow-lg sm:shadow-2xl border border-white/60 dark:border-gray-600/60 overflow-hidden">
+              {/* Glassmorphic Container - Mobile Optimized - Edge-to-edge mobile */}
+              <div className="relative backdrop-blur-lg sm:backdrop-blur-xl bg-gradient-to-br from-white/80 via-white/60 to-white/80 dark:from-gray-800/80 dark:via-gray-700/60 dark:to-gray-800/80 rounded-none sm:rounded-2xl p-4 sm:p-8 md:p-10 shadow-none sm:shadow-2xl border-0 sm:border border-white/60 dark:border-gray-600/60 overflow-hidden">
                 {/* Mobile-Optimized Background Elements */}
                 <div className={`absolute -top-20 -right-20 sm:-top-32 sm:-right-32 w-32 h-32 sm:w-56 sm:h-56 rounded-full bg-gradient-to-br from-${getCategoryColorClasses().primaryColor}-300/25 via-${getCategoryColorClasses().primaryColor}-400/15 to-blue-300/25 dark:from-${getCategoryColorClasses().primaryColor}-500/20 dark:via-${getCategoryColorClasses().primaryColor}-600/10 dark:to-blue-500/20 blur-2xl sm:blur-3xl animate-pulse`}></div>
                 <div className={`absolute -bottom-20 -left-20 sm:-bottom-32 sm:-left-32 w-32 h-32 sm:w-56 sm:h-56 rounded-full bg-gradient-to-tr from-purple-300/25 via-${getCategoryColorClasses().primaryColor}-300/15 to-rose-300/25 dark:from-purple-500/20 dark:via-${getCategoryColorClasses().primaryColor}-500/10 dark:to-rose-500/20 blur-2xl sm:blur-3xl animate-pulse`} style={{ animationDelay: '1s' }}></div>
@@ -1909,8 +1909,8 @@ const CourseDetailsPage = ({ ...props }) => {
                     </div>
                   </div>
                     
-                  {/* Course Video Player - Mobile Optimized */}
-                  <div className="bg-gradient-to-br from-gray-50/40 to-white/40 dark:from-gray-700/40 dark:to-gray-800/40 rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 border border-gray-200/40 dark:border-gray-600/40 shadow-sm sm:shadow-inner">
+                  {/* Course Video Player - Mobile Optimized - Edge-to-edge mobile */}
+                  <div className="bg-gradient-to-br from-gray-50/40 to-white/40 dark:from-gray-700/40 dark:to-gray-800/40 rounded-none sm:rounded-xl p-2 sm:p-3 md:p-4 border-0 sm:border border-gray-200/40 dark:border-gray-600/40 shadow-none sm:shadow-inner">
                     <CourseVideoPlayer 
                       courseId={courseId}
                       courseTitle={courseDetails?.course_title}
@@ -1920,7 +1920,7 @@ const CourseDetailsPage = ({ ...props }) => {
                   </div>
                     
                   {/* Mobile-First Feature Indicators - Two Column Layout for Mobile */}
-                  <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 md:gap-4 justify-center">
+                  <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 md:gap-4 justify-center px-4 sm:px-0">
                     {/* Duration - 3 months / 12 weeks */}
                     <div className={`flex items-center justify-center sm:justify-start px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-100/70 dark:from-${getCategoryColorClasses().primaryColor}-900/30 dark:to-${getCategoryColorClasses().primaryColor}-800/30 rounded-lg sm:rounded-xl shadow-sm sm:shadow-md border border-${getCategoryColorClasses().primaryColor}-200/50 dark:border-${getCategoryColorClasses().primaryColor}-700/50 backdrop-blur-sm col-span-1`}>
                       <Clock className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400 mr-2 flex-shrink-0`} />
@@ -1956,7 +1956,7 @@ const CourseDetailsPage = ({ ...props }) => {
 
                   {/* Course Selection Component - Mobile Enhanced */}
                   {props.courseSelectionComponent && (
-                    <div className="mt-4 sm:mt-6 block lg:hidden">
+                    <div className="mt-4 sm:mt-6 block lg:hidden px-4 sm:px-0">
                       <div className="bg-gradient-to-br from-gray-50/90 to-white/90 dark:from-gray-700/90 dark:to-gray-800/90 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-200/70 dark:border-gray-600/70 shadow-md backdrop-blur-sm">
                         {props.courseSelectionComponent}
                       </div>
@@ -1969,7 +1969,7 @@ const CourseDetailsPage = ({ ...props }) => {
         </div>
       </div>
 
-      {/* Navigation */}
+      {/* Navigation - Edge-to-edge mobile */}
       <div className="sticky top-14 z-40 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 py-2">
         <CourseNavigation 
           activeSection={activeSection} 
@@ -1982,8 +1982,8 @@ const CourseDetailsPage = ({ ...props }) => {
         />
       </div>
 
-      {/* Content Area */}
-      <div className="pt-2 sm:pt-4 pb-4">
+      {/* Content Area - Edge-to-edge mobile */}
+      <div className="pt-2 sm:pt-4 pb-4 px-0 sm:px-4 md:px-6 lg:px-8">
         <AnimatePresence mode="wait">
           {renderActiveSection()}
         </AnimatePresence>

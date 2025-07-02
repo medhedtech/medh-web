@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Frame from "@/assets/images/course-detailed/frame.svg";
-import Certificate from "@/assets/images/course-detailed/certificate.svg";
+// import Certificate from "@/assets/images/course-detailed/certificate.svg";
 import { Award } from 'lucide-react';
 
 const CertificateSection = () => {
@@ -44,25 +44,16 @@ const CertificateSection = () => {
                   </div>
                 </div>
                 
-                {/* Right Side: Certificate inside Frame */}
+                {/* Right Side: Real Certificate Image */}
                 <div className="relative flex justify-center items-center md:w-1/2 w-full mt-4 md:mt-0">
-                  {/* Frame surrounding the certificate */}
                   <div className="relative transform transition-transform hover:scale-105 duration-300">
                     <Image
-                      src={Frame}
-                      alt="Frame"
-                      width={300}
-                      height={300}
-                      className="relative z-0 w-[180px] sm:w-[220px] md:w-[300px]" // Responsive image width
-                    />
-                    
-                    {/* Certificate Image */}
-                    <Image
-                      src={Certificate}
-                      alt="Certificate of completion"
-                      width={250}
+                      src="/Live Certificate.jpg"
+                      alt="Sample Live Course Certificate"
+                      width={350}
                       height={250}
-                      className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 w-[160px] sm:w-[200px] md:w-[250px]" // Responsive image width
+                      className="rounded-lg shadow-md w-[180px] sm:w-[220px] md:w-[350px] h-auto border border-gray-200 dark:border-gray-700"
+                      priority
                     />
                   </div>
                 </div>

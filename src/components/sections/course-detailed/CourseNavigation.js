@@ -111,7 +111,7 @@ const CourseNavigation = ({
 
   return (
     <motion.div 
-      className={`bg-white dark:bg-gray-800 rounded-lg md:rounded-xl ${compact ? 'p-1.5 sm:p-2' : 'p-2 sm:p-2.5 md:p-3'} shadow-sm border border-gray-200 dark:border-gray-700`}
+      className={`bg-white dark:bg-gray-800 rounded-none sm:rounded-lg md:rounded-xl ${compact ? 'p-1.5 sm:p-2' : 'p-3 sm:p-2.5 md:p-3'} shadow-none sm:shadow-sm border-0 sm:border border-gray-200 dark:border-gray-700 mx-0 sm:mx-4 md:mx-6 lg:mx-8`}
       initial="initial"
       animate="animate"
       variants={fadeIn}
