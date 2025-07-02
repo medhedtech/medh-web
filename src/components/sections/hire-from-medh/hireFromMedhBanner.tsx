@@ -245,6 +245,7 @@ const HireFromMedhBanner: React.FC<HireFromMedhBannerProps> = ({ onLearnMoreClic
         behavior: 'smooth',
         block: 'start'
       });
+      element.focus({ preventScroll: true }); // for accessibility
     }
   };
 
