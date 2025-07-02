@@ -16,6 +16,14 @@ import {
   Briefcase
 } from "lucide-react";
 import { useTheme } from "next-themes";
+import { 
+  buildComponent, 
+  buildAdvancedComponent, 
+  corporatePatterns, 
+  getResponsive,
+  getAnimations,
+  backgroundPatterns
+} from "@/utils/designSystem";
 
 // Import assets
 import CourseBannerImg from "@/assets/images/personality/coursebannerimg.jpg";
