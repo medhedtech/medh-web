@@ -8,9 +8,9 @@ import {
   Award, 
   BookOpen, 
   Target, 
-  Trophy, 
+  Trophy,
   Building,
-  ArrowRight,
+  ArrowUpRight,
   Users,
   Briefcase
 } from "lucide-react";
@@ -23,38 +23,36 @@ interface IFeature {
 
 // PERFORMANCE OPTIMIZATION: Frozen feature data to prevent mutations
 const EDUCATOR_FEATURES: readonly IFeature[] = Object.freeze([
-  Object.freeze({ icon: Globe, text: "Global teaching opportunities" }),
-  Object.freeze({ icon: Clock, text: "Flexible scheduling" }),
-  Object.freeze({ icon: Award, text: "Competitive compensation" }),
-  Object.freeze({ icon: BookOpen, text: "Comprehensive teaching resources" })
+  Object.freeze({ icon: Globe, text: "Access to global teaching opportunities with flexible scheduling" }),
+  Object.freeze({ icon: Clock, text: "Set your own hours and teach from anywhere in the world" }),
+  Object.freeze({ icon: Award, text: "Competitive compensation with performance-based incentives" }),
+  Object.freeze({ icon: BookOpen, text: "Access to comprehensive teaching resources and support" })
 ]);
 
 const PARTNER_FEATURES: readonly IFeature[] = Object.freeze([
-  Object.freeze({ icon: Target, text: "Customized training solutions" }),
-  Object.freeze({ icon: Award, text: "Industry-aligned curriculum" }),
-  Object.freeze({ icon: Trophy, text: "Cutting-edge technologies" }),
-  Object.freeze({ icon: Building, text: "Enhanced employability" })
+  Object.freeze({ icon: Target, text: "Customized training solutions tailored to your institution's needs" }),
+  Object.freeze({ icon: Award, text: "Industry-aligned curriculum with cutting-edge content" }),
+  Object.freeze({ icon: Trophy, text: "Access to advanced learning technologies and platforms" }),
+  Object.freeze({ icon: Building, text: "Enhanced employability outcomes for your students" })
 ]);
 
 // PERFORMANCE OPTIMIZATION: Memoized FeatureList component
 const FeatureList = memo<{
   features: readonly IFeature[];
-  isDark: boolean;
-}>(({ features, isDark }) => {
-  const itemClasses = useMemo(() => {
-    return `flex items-center gap-3 p-3 rounded-lg transition-all duration-300 hover:bg-white/10 ${
-      isDark ? 'text-white/90' : 'text-gray-700'
-    }`;
-  }, [isDark]);
-
+  colorClass: string;
+}>(({ features, colorClass }) => {
   return (
-    <div className="space-y-3">
+    <div className="space-y-4 mb-8">
       {features.map((feature, index) => {
         const IconComponent = feature.icon;
         return (
-          <div key={index} className={itemClasses}>
-            <IconComponent className="w-5 h-5 text-primary-400 flex-shrink-0" />
-            <span className="text-sm">{feature.text}</span>
+          <div key={index} className="flex items-start gap-3 group/item">
+            <div className={`w-8 h-8 rounded-lg ${colorClass} flex items-center justify-center flex-shrink-0 group-hover/item:scale-105 transition-transform duration-200`}>
+              <IconComponent className="w-4 h-4 text-white" />
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+              {feature.text}
+            </p>
           </div>
         );
       })}
@@ -63,7 +61,7 @@ const FeatureList = memo<{
 }, (prevProps, nextProps) => {
   return (
     prevProps.features === nextProps.features &&
-    prevProps.isDark === nextProps.isDark
+    prevProps.colorClass === nextProps.colorClass
   );
 });
 
@@ -73,89 +71,105 @@ FeatureList.displayName = 'FeatureList';
 const JoinCard = memo<{
   title: string;
   subtitle: string;
-  description: string;
   features: readonly IFeature[];
   buttonText: string;
   onClick: () => void;
   icon: React.ReactNode;
+  colorClass: string;
+  buttonColorClass: string;
   isDark: boolean;
   index: number;
   isVisible: boolean;
 }>(({ 
   title, 
   subtitle, 
-  description, 
   features, 
   buttonText, 
   onClick, 
   icon, 
+  colorClass, 
+  buttonColorClass,
   isDark, 
   index, 
   isVisible 
 }) => {
   const cardClasses = useMemo(() => {
-    return `group relative h-full glass-card p-6 md:p-8 rounded-2xl border border-white/20 dark:border-gray-700/50 hover:border-primary-400/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl backdrop-blur-xl ${
+    return `group relative h-full transition-all duration-300 hover:-translate-y-1 ${
       isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
     }`;
   }, [isVisible]);
 
-  const iconContainerClasses = useMemo(() => {
-    return "w-16 h-16 rounded-xl bg-gradient-to-br from-primary-500 to-blue-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg";
+  const contentClasses = useMemo(() => {
+    return "relative h-full rounded-2xl bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-100 dark:border-gray-800 shadow-lg hover:shadow-xl transition-all duration-300 p-8";
   }, []);
+
+  const headerClasses = useMemo(() => {
+    return "flex items-center gap-4 mb-6";
+  }, []);
+
+  const iconContainerClasses = useMemo(() => {
+    return `w-20 h-14 rounded-lg ${colorClass} flex items-center justify-center shadow-lg sm:w-16 sm:h-16 sm:rounded-xl`;
+  }, [colorClass]);
 
   const titleClasses = useMemo(() => {
-    return `text-2xl md:text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`;
-  }, [isDark]);
+    return "text-xl font-bold text-gray-900 dark:text-white";
+  }, []);
 
   const subtitleClasses = useMemo(() => {
-    return `text-lg font-medium mb-4 ${isDark ? 'text-primary-300' : 'text-primary-600'}`;
-  }, [isDark]);
-
-  const descriptionClasses = useMemo(() => {
-    return `text-sm leading-relaxed mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`;
-  }, [isDark]);
+    return "text-sm text-gray-700 dark:text-gray-300";
+  }, []);
 
   const buttonClasses = useMemo(() => {
-    return "w-full inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-primary-500 to-blue-600 text-white font-semibold rounded-lg hover:from-primary-600 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl group/btn";
-  }, []);
+    return `w-full inline-flex items-center justify-center px-6 py-4 ${buttonColorClass} text-white font-medium rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl group`;
+  }, [buttonColorClass]);
 
   return (
     <div 
       className={cardClasses}
       style={{ transitionDelay: `${index * 200}ms` }}
     >
-      {/* Icon */}
-      <div className={iconContainerClasses}>
-        {icon}
+      <div className={contentClasses + " flex flex-col h-full"}>
+        {/* Card Header */}
+        <div className={headerClasses}>
+          <div className={iconContainerClasses}>
+            {icon}
+          </div>
+          <div>
+            <h3 className={titleClasses}>
+              {title}
+            </h3>
+            <p className={subtitleClasses}>
+              {subtitle}
+            </p>
+          </div>
+        </div>
+
+        {/* Features List */}
+        <FeatureList features={features} colorClass={colorClass.replace('bg-gradient-to-br from-', 'bg-').replace(' to-indigo-600', '').replace(' to-purple-600', '')} />
+
+        {/* CTA Button at the bottom */}
+        <div className="mt-auto pt-4">
+          <button
+            onClick={onClick}
+            className={buttonClasses}
+          >
+            <span>{buttonText}</span>
+            <ArrowUpRight size={18} className="ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+          </button>
+        </div>
       </div>
-      
-      {/* Content */}
-      <h3 className={titleClasses}>{title}</h3>
-      <p className={subtitleClasses}>{subtitle}</p>
-      <p className={descriptionClasses}>{description}</p>
-      
-      {/* Features */}
-      <FeatureList features={features} isDark={isDark} />
-      
-      {/* Button */}
-      <button
-        onClick={onClick}
-        className={buttonClasses}
-      >
-        <span>{buttonText}</span>
-        <ArrowRight className="ml-2 w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-      </button>
     </div>
   );
 }, (prevProps, nextProps) => {
   return (
     prevProps.title === nextProps.title &&
     prevProps.subtitle === nextProps.subtitle &&
-    prevProps.description === nextProps.description &&
     prevProps.features === nextProps.features &&
     prevProps.buttonText === nextProps.buttonText &&
     prevProps.onClick === nextProps.onClick &&
     prevProps.icon === nextProps.icon &&
+    prevProps.colorClass === nextProps.colorClass &&
+    prevProps.buttonColorClass === nextProps.buttonColorClass &&
     prevProps.isDark === nextProps.isDark &&
     prevProps.index === nextProps.index &&
     prevProps.isVisible === nextProps.isVisible
@@ -191,56 +205,64 @@ const JoinMedh = memo(() => {
   }, [router]);
 
   // PERFORMANCE OPTIMIZATION: Memoized class names
-  const sectionClasses = useMemo(() => {
-    return "w-full py-20 md:py-20";
-  }, []);
-
-  const backgroundClasses = useMemo(() => {
-    return "absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-blue-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900/20 gpu-accelerated";
-  }, []);
-
   const containerClasses = useMemo(() => {
-    return `relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 transition-all duration-700 ${
-      isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-    }`;
+    return `w-full transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} py-8 bg-gradient-to-br from-gray-50/50 to-white dark:from-gray-900/50 dark:to-gray-800/50`;
   }, [isVisible]);
 
-  const headerClasses = useMemo(() => {
-    return "text-center mb-12 md:mb-16";
+  const sectionClasses = useMemo(() => {
+    return "w-full py-8 relative";
+  }, []);
+
+  const headerContainerClasses = useMemo(() => {
+    return "text-center mb-16 relative";
   }, []);
 
   const badgeClasses = useMemo(() => {
-    return "inline-flex items-center gap-2 px-4 py-2 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full text-sm font-medium mb-6";
+    return "inline-flex items-center gap-2 mb-6";
   }, []);
 
   const titleClasses = useMemo(() => {
-    return `text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight ${
-      isDark ? 'text-white' : 'text-gray-900'
-    }`;
-  }, [isDark]);
-
-  const descriptionClasses = useMemo(() => {
-    return `text-lg md:text-xl leading-relaxed max-w-3xl mx-auto ${
-      isDark ? 'text-gray-300' : 'text-gray-600'
-    }`;
-  }, [isDark]);
-
-  const gridClasses = useMemo(() => {
-    return "grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12";
+    return "text-3xl md:text-4xl font-bold mb-6 text-gray-900 dark:text-white";
   }, []);
 
-  // PERFORMANCE OPTIMIZATION: Memoized icons
+  const descriptionClasses = useMemo(() => {
+    return "text-lg text-gray-700 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed";
+  }, []);
+
+  const gridClasses = useMemo(() => {
+    return "grid grid-cols-1 lg:grid-cols-2 gap-8 relative";
+  }, []);
+
+  const bottomCtaClasses = useMemo(() => {
+    return "text-center mt-16 relative";
+  }, []);
+
+  const bottomDescriptionClasses = useMemo(() => {
+    return "text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto";
+  }, []);
+
+  const bottomButtonsClasses = useMemo(() => {
+    return "flex flex-col sm:flex-row gap-4 items-center justify-center";
+  }, []);
+
+  // PERFORMANCE OPTIMIZATION: Memoized icons and color classes
   const educatorIcon = useMemo(() => <Users className="w-8 h-8 text-white" />, []);
-  const partnerIcon = useMemo(() => <Briefcase className="w-8 h-8 text-white" />, []);
+  const partnerIcon = useMemo(() => <Building className="w-8 h-8 text-white" />, []);
+  
+  const educatorColorClass = useMemo(() => "bg-gradient-to-br from-blue-500 to-indigo-600", []);
+  const partnerColorClass = useMemo(() => "bg-gradient-to-br from-purple-500 to-purple-600", []);
+  
+  const educatorButtonColorClass = useMemo(() => "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700", []);
+  const partnerButtonColorClass = useMemo(() => "bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700", []);
 
   // Fast loading state
   if (!mounted) {
     return (
-      <div className="py-16 opacity-0">
+      <div className="py-8 opacity-0">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-16">
             <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded mb-4 animate-pulse w-64 mx-auto"></div>
-            <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded mb-6 animate-pulse w-96 mx-auto"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-96 mx-auto"></div>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {[...Array(2)].map((_, i) => (
@@ -253,72 +275,83 @@ const JoinMedh = memo(() => {
   }
 
   return (
-    <section className={sectionClasses}>
-      {/* Background grid pattern and overlays for glassmorphism */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-violet-50/50 dark:from-blue-950/20 dark:via-transparent dark:to-violet-950/20"></div>
-      {/* Floating blurred blobs */}
-      <div className="absolute top-20 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-3xl animate-blob"></div>
-      <div className="absolute top-40 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-violet-200/20 dark:bg-violet-800/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-      <div className="absolute bottom-20 left-1/2 w-28 h-28 sm:w-36 sm:h-36 bg-amber-200/20 dark:bg-amber-800/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
-
-      <div className={containerClasses}>
-        {/* Header */}
-        <div className={headerClasses}>
-          <div className={badgeClasses}>
-            <Users className="w-4 h-4" />
-            <span>Transform Education Together with MEDH</span>
+    <div className={containerClasses}>
+      <section className={sectionClasses}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          {/* Header */}
+          <div className={headerContainerClasses}>
+            <div className={badgeClasses}>
+              <Briefcase className="w-6 h-6 text-blue-500" />
+              <span className="text-sm font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                Join MEDH
+              </span>
+            </div>
+            <h2 className={titleClasses}>
+              Transform Education Together
+            </h2>
+            <p className={descriptionClasses}>
+              Join our mission to revolutionize education and empower learners worldwide
+            </p>
           </div>
-          
-          <h2 className={titleClasses}>
-            Join the <span className="text-primary-600 dark:text-primary-400">MEDH</span> Community
-          </h2>
-          
-          <p className={descriptionClasses}>
-            Be part of our global movement transforming education through innovation and accessibility. Whether you're passionate about teaching or representing an institution, MEDH offers a pathway to create meaningful impact.
-          </p>
-        </div>
 
-        {/* Cards Grid */}
-        <div className={gridClasses + " relative w-full max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 overflow-hidden p-0 md:p-0"}>
-          {/* Educator Card */}
-          <JoinCard
-            title="Join as Educator"
-            subtitle="Share Your Expertise"
-            description="Inspire the next generation. Bring your knowledge to eager learners worldwide and make a lasting difference in their educational journey."
-            features={EDUCATOR_FEATURES}
-            buttonText="Become an Educator"
-            onClick={handleEducatorNavigate}
-            icon={educatorIcon}
-            isDark={isDark}
-            index={0}
-            isVisible={isVisible}
-          />
+          {/* Cards Grid */}
+          <div className={gridClasses}>
+            {/* Educator Card */}
+            <JoinCard
+              title="Join as Educator"
+              subtitle="Share Your Expertise"
+              features={EDUCATOR_FEATURES}
+              buttonText="Become an Educator"
+              onClick={handleEducatorNavigate}
+              icon={educatorIcon}
+              colorClass={educatorColorClass}
+              buttonColorClass={educatorButtonColorClass}
+              isDark={isDark}
+              index={0}
+              isVisible={isVisible}
+            />
 
-          {/* Partner Card */}
-          <JoinCard
-            title="Partner with Us"
-            subtitle="Institutional Excellence"
-            description="Elevate your institution's educational offerings through our collaborative programs designed to meet the evolving demands of today's learners."
-            features={PARTNER_FEATURES}
-            buttonText="Become a Partner"
-            onClick={handlePartnerNavigate}
-            icon={partnerIcon}
-            isDark={isDark}
-            index={1}
-            isVisible={isVisible}
-          />
-        </div>
+            {/* Partner Card */}
+            <JoinCard
+              title="Partner with Us"
+              subtitle="Institutional Excellence"
+              features={PARTNER_FEATURES}
+              buttonText="Become a Partner"
+              onClick={handlePartnerNavigate}
+              icon={partnerIcon}
+              colorClass={partnerColorClass}
+              buttonColorClass={partnerButtonColorClass}
+              isDark={isDark}
+              index={1}
+              isVisible={isVisible}
+            />
+          </div>
 
-        {/* Community CTA */}
-        <div className="mt-12 text-center max-w-2xl mx-auto">
-          <h3 className="text-lg md:text-xl font-semibold mb-2 text-primary-700 dark:text-primary-300">Join our growing community of educators and institutions making a global impact.</h3>
-          <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 whitespace-nowrap">
-            Whether you teach or partner with us, together we're building the future of education.
-          </p>
+          {/* Bottom CTA Section */}
+          <div className={bottomCtaClasses}>
+            <p className={bottomDescriptionClasses}>
+              Join our growing community of educators and institutions making a global impact
+            </p>
+            <div className={bottomButtonsClasses}>
+              <button
+                onClick={handleEducatorNavigate}
+                className="group inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-all duration-300 border border-blue-200 dark:border-blue-800"
+              >
+                <Users className="mr-2 w-4 h-4" />
+                Join as Educator
+              </button>
+              <button
+                onClick={handlePartnerNavigate}
+                className="group inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg transition-all duration-300 border border-purple-200 dark:border-purple-800"
+              >
+                <Building className="mr-2 w-4 h-4" />
+                Become a Partner
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 });
 
