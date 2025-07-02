@@ -23,6 +23,16 @@ import Logo3 from "@/assets/images/career/logo-5.svg";
 import Logo4 from "@/assets/images/career/logo-6.svg";
 import Logo5 from "@/assets/images/career/logo-7.svg";
 import WelcomeCareers from "./welcomeCareers";
+import { 
+  buildComponent, 
+  buildAdvancedComponent, 
+  corporatePatterns, 
+  getResponsive,
+  layoutPatterns,
+  typography,
+  mobilePatterns,
+  getAnimations
+} from "@/utils/designSystem";
 
 interface IBenefit {
   id: number;
@@ -151,16 +161,11 @@ const BenefitCard: React.FC<IBenefitCardProps> = memo(({ icon, logo, title, desc
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className={`p-4 sm:p-5 md:p-6 rounded-lg sm:rounded-xl md:rounded-2xl bg-gradient-to-br ${color} backdrop-blur-sm 
-        border border-white/20 dark:border-white/10
-        shadow-sm hover:shadow-md dark:shadow-slate-900/20
-        transition-all duration-500 ease-in-out
-        ${isHovered ? 'transform -translate-y-1' : ''}`}>
+      <div className={`${corporatePatterns.featureCard('premium')} bg-gradient-to-br ${color}`}>
         <div className="flex items-start space-x-3 sm:space-x-4">
           <div className="flex-shrink-0">
             <motion.div 
-              className="p-2 sm:p-3 bg-white/95 dark:bg-slate-700 rounded-lg sm:rounded-xl 
-                shadow-sm border border-slate-100/80 dark:border-slate-600/30"
+              className={buildComponent.card('minimal', 'mobile')}
               animate={{ rotate: isHovered ? 360 : 0 }}
               transition={{ duration: 0.5 }}
             >
@@ -170,11 +175,10 @@ const BenefitCard: React.FC<IBenefitCardProps> = memo(({ icon, logo, title, desc
             </motion.div>
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mb-2 
-              group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+            <h3 className={`${typography.h3} mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 ${getAnimations.transition()}`}>
               {title}
             </h3>
-            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
+            <p className={`${typography.body} leading-relaxed mb-4`}>
               {description}
             </p>
             <AnimatePresence>
@@ -191,10 +195,9 @@ const BenefitCard: React.FC<IBenefitCardProps> = memo(({ icon, logo, title, desc
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.1 }}
-                      className="flex items-center text-xs sm:text-sm text-slate-600 dark:text-slate-400"
+                      className={`${corporatePatterns.valueHighlight('blue')} text-xs sm:text-sm`}
                     >
-                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-2 
-                        shadow-sm" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-2 shadow-sm" />
                       {highlight}
                     </motion.div>
                   ))}
