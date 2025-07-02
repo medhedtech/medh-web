@@ -77,7 +77,6 @@ const itemVariants = {
     y: 0,
     scale: 1,
     transition: {
-      type: "spring",
       stiffness: 400,
       damping: 30,
       mass: 1
