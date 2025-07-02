@@ -11,6 +11,7 @@ import {
   Award,
   Building
 } from "lucide-react";
+import { buildAdvancedComponent, layoutPatterns, typography } from "@/utils/designSystem";
 
 const CareerFaq: React.FC = () => {
   // FAQ data with improved color themes and semantic categorization
@@ -93,31 +94,20 @@ const CareerFaq: React.FC = () => {
   ];
 
   return (
-    <section className="relative bg-slate-50 dark:bg-slate-900 min-h-screen overflow-hidden w-full">
-      {/* Enhanced Background Pattern */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
-      
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-violet-50/50 via-transparent to-pink-50/50 dark:from-violet-950/20 dark:via-transparent dark:to-pink-950/20"></div>
-      
-      {/* Floating Elements */}
-      <div className="absolute top-20 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-violet-200/20 dark:bg-violet-800/20 rounded-full blur-3xl animate-blob"></div>
-      <div className="absolute top-40 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-pink-200/20 dark:bg-pink-800/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-      <div className="absolute bottom-20 left-1/2 w-28 h-28 sm:w-36 sm:h-36 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
-
-      <div className="relative z-10 w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-12">
-        {/* Enhanced Header */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-4 sm:p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 mb-4 sm:mb-6 md:mb-8 text-center max-w-6xl mx-auto">
-          <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-slate-900 dark:text-slate-50 mb-2 sm:mb-3 leading-tight">
+    <section className={layoutPatterns.sectionWrapper}>
+      <div className={layoutPatterns.containerWrapper}>
+        {/* Header */}
+        <div className={buildAdvancedComponent.headerCard()}>
+          <h1 className={typography.h1}>
             Career Opportunities FAQ
           </h1>
-          <p className="text-xs sm:text-sm md:text-base lg:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl mx-auto">
+          <p className={typography.lead}>
             Everything you need to know about joining the Medh team and building your career with us
           </p>
         </div>
 
-        {/* Enhanced FAQ Content */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-3 sm:p-4 md:p-6 lg:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 max-w-6xl mx-auto">
+        {/* FAQ Content */}
+        <div className={buildAdvancedComponent.contentCard()}>
           <CommonFaq
             title=""
             subtitle=""
