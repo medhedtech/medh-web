@@ -68,7 +68,7 @@ const HeroSlider3 = () => {
       grabCursor={true}
       modules={[Navigation, Pagination]}
       className={`ecommerce-slider ${
-        isHome9 || isHome9Dark ? "kindergarden" : ""
+        isHome9 || isHome9Dark ? "kindergarten" : ""
       } py-50px md:py-100px lg:pt-100px lg:pb-150px 2xl:pt-70px 2xl:pb-30 4xl:pt-155px 4xl:pb-250px`}
     >
       {slides.map((slide, idx) => (
