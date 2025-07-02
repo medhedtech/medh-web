@@ -139,18 +139,18 @@ const CorporateOverview: React.FC = () => {
           </div>
 
           {/* Core Features Grid - Mobile optimized */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-10 md:mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-10 md:mb-16 h-full">
             {coreFeatures.map((feature, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 30 }}
                 animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
                 transition={{ duration: 0.6, delay: index * 0.2 }}
-                className="group"
+                className="h-full"
               >
-                <div className="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl md:rounded-2xl p-5 sm:p-6 md:p-8 border border-slate-200 dark:border-slate-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 md:hover:-translate-y-2 group-hover:border-blue-300 dark:group-hover:border-blue-600">
+                <div className="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl md:rounded-2xl p-5 sm:p-6 md:p-8 border border-slate-200 dark:border-slate-600 shadow-lg h-full min-h-[340px] flex flex-col justify-between">
                   {/* Icon Header - Mobile optimized */}
-                  <div className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl md:rounded-2xl mb-4 sm:mb-5 md:mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
+                  <div className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl md:rounded-2xl mb-4 sm:mb-5 md:mb-6 mx-auto">
                     <div className="text-white">
                       {feature.icon}
                     </div>

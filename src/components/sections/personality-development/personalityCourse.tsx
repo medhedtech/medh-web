@@ -117,51 +117,46 @@ const PersonalityCourse: React.FC<IPersonalityCourseProps> = ({
   );
 
   return (
-    <div>
-      {/* Remove container class and adjust padding */}
-      <div className="w-full">
-        {customHeader}
-        
-        {/* Remove margin-top and make the filter section full width */}
-        <div className="w-full">
-          <CoursesFilter
-            key="personality-development"
-            CustomText="Personality Development Courses"
-            CustomButton={CustomButtonComponent}
-            fixedCategory="Personality Development"
-            hideCategoryFilter={false}
-            hideCategories={true}
-            hideSearch={false}
-            hideSortOptions={false}
-            hideHeader={true}
-            hideGradeFilter={false}
-            hideFilterBar={false}
-            gridColumns={3}
-            itemsPerPage={8}
-            simplePagination={true}
-            scrollToTop={true}
-            description="Enhance your personal growth with our comprehensive personality development programs tailored for all age groups."
-            customGridClassName="grid gap-4 sm:gap-6 lg:gap-8 w-full"
-            customGridStyle={{
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-              width: '100%',
-              maxWidth: '100%'
-            }}
-            emptyStateContent={
-              <div className="flex flex-col items-center justify-center min-h-[20vh] md:min-h-[30vh] text-center p-4 md:p-8 bg-white dark:bg-gray-800/50 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-primary-50 dark:bg-primary-900/20 mb-3 md:mb-4">
-                  <BookOpen className="w-6 h-6 md:w-8 md:h-8 text-primary-500 dark:text-primary-400" />
-                </div>
-                <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  Coming Soon
-                </h3>
-                <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 max-w-md">
-                  We're currently crafting exceptional personality development courses. Check back soon for transformative learning experiences!
-                </p>
+    <div className="w-full px-0">
+      {customHeader}
+      <div className="w-full px-0">
+        <CoursesFilter
+          key="personality-development"
+          CustomText="Personality Development Courses"
+          CustomButton={CustomButtonComponent}
+          fixedCategory="Personality Development"
+          hideCategoryFilter={false}
+          hideCategories={true}
+          hideSearch={false}
+          hideSortOptions={false}
+          hideHeader={true}
+          hideGradeFilter={false}
+          hideFilterBar={false}
+          gridColumns={3}
+          itemsPerPage={8}
+          simplePagination={true}
+          scrollToTop={true}
+          description="Enhance your personal growth with our comprehensive personality development programs tailored for all age groups."
+          customGridClassName="grid gap-4 sm:gap-6 lg:gap-8 w-full"
+          customGridStyle={{
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            width: '100%',
+            maxWidth: '100%'
+          }}
+          emptyStateContent={
+            <div className="flex flex-col items-center justify-center min-h-[20vh] md:min-h-[30vh] text-center p-4 md:p-8 bg-white dark:bg-gray-800/50 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-primary-50 dark:bg-primary-900/20 mb-3 md:mb-4">
+                <BookOpen className="w-6 h-6 md:w-8 md:h-8 text-primary-500 dark:text-primary-400" />
               </div>
-            }
-          />
-        </div>
+              <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                Coming Soon
+              </h3>
+              <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 max-w-md">
+                We're currently crafting exceptional personality development courses. Check back soon for transformative learning experiences!
+              </p>
+            </div>
+          }
+        />
       </div>
     </div>
   );
