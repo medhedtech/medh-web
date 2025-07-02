@@ -37,7 +37,7 @@ const CareersPage: NextPage = () => {
           <JobOpening />
         </div>
         <CareerFaq />
-        <CareerCourceBanner />
+        {/* <CareerCourceBanner /> */}
         <div className={buildComponent.section('dark')}>
           <div className="pb-16">
             <Certified />
