@@ -53,8 +53,8 @@ const MembershipFeatures: React.FC = () => {
       description: "Learn from industry veterans",
       icon: GraduationCap,
       category: "experts",
-      highlight: "10+ Years Exp",
-      stats: "25+ Experts",
+      highlight: "5+ Years Exp",
+      stats: "10+ Experts",
       benefit: "Practical insights"
     },
     {
