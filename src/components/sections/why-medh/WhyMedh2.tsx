@@ -139,12 +139,6 @@ const FeatureCard = memo<{
           {feature.description}
         </p>
         
-        {/* Hover indicator with arrow */}
-        <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 hidden sm:flex items-center gap-1">
-          <span className="text-xs font-medium text-primary-600 dark:text-primary-400">Learn More</span>
-          <ArrowRight className="w-3 h-3 text-primary-600 dark:text-primary-400" />
-        </div>
-        
         {/* Mobile touch indicator */}
         <div className="absolute bottom-3 right-3 sm:hidden">
           <div className="w-2 h-2 rounded-full bg-primary-400 animate-pulse"></div>
