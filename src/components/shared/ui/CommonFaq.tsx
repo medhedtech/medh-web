@@ -67,19 +67,14 @@ const IconWrapper: React.FC<{
 }> = ({ children, isOpen, bgColor = "#3b82f6", color = "#3b82f6" }) => (
   <div 
     style={{
-      backgroundColor: isOpen ? `${bgColor}20` : `${bgColor}10`,
+      backgroundColor: `${bgColor}10`,
       color: color,
-      boxShadow: isOpen ? `0 0 12px ${bgColor}40` : 'none',
+      boxShadow: 'none',
     }}
-    className={`
-      w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl 
-      flex items-center justify-center flex-shrink-0
-      transition-all duration-300 transform 
-      ${isOpen ? 'scale-110' : 'scale-100'}
-    `}
+    className="w-12 h-12 flex items-center justify-center flex-shrink-0 rounded-full transition-all duration-300 transform scale-100"
     aria-hidden="true"
   >
-    <div className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7">
+    <div className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 flex items-center justify-center">
       {children}
     </div>
   </div>

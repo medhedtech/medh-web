@@ -2,111 +2,102 @@
 import React from "react";
 import CommonFaq, { IFAQ } from "@/components/shared/ui/CommonFaq";
 import { 
-  Users, 
-  Building, 
-  Briefcase, 
-  GraduationCap, 
-  CheckCircle2,
-  MapPin,
-  Award,
-  UserPlus,
-  Calendar,
-  HeartHandshake,
+  BookOpen,
   HelpCircle
 } from "lucide-react";
 
 const HireFromMedhFaq: React.FC = () => {
   const faqs: IFAQ[] = [
     {
-      icon: <Users strokeWidth={1.75} className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" style={{ fill: "rgba(59, 130, 246, 0.15)" }} />,
+      icon: <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />,
       iconBg: "#3b82f6",
-      iconColor: "#1e40af",
+      iconColor: "#10b981",
       category: "general",
       question: "What is Recruit@Medh?",
       answer: "Recruit@Medh is our dedicated department that facilitates the recruitment of highly skilled and qualified IT professionals for various job roles in the IT industry. We work closely with both our students, professional job-seekers and industry partners to bridge the gap between talent and opportunities.",
     },
     {
-      icon: <Building strokeWidth={1.75} className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" style={{ fill: "rgba(16, 185, 129, 0.15)" }} />,
-      iconBg: "#10b981",
-      iconColor: "#047857",
+      icon: <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />,
+      iconBg: "#3b82f6",
+      iconColor: "#10b981",
       category: "hiring",
       question: "What types of IT professionals does Recruit@Medh cater to?",
       answer: "We cater to a wide range of IT professionals, including AI Platform Developers, Web Developers, Data Scientists, Cybersecurity specialists, System administrators, Database administrators, UX/UI designers, and more. We strive to meet the diverse hiring needs of organizations within the IT sector.",
     },
     {
-      icon: <GraduationCap strokeWidth={1.75} className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" style={{ fill: "rgba(245, 158, 11, 0.15)" }} />,
-      iconBg: "#f59e0b",
-      iconColor: "#d97706",
+      icon: <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />,
+      iconBg: "#3b82f6",
+      iconColor: "#10b981",
       category: "candidates",
       question: "How to hire the right candidate?",
       answer: "We have a pool of trained candidates with hands on experience, and have worked on industry relevant capstones in IT domain. Hiring companies can review, shortlist, assess and interview the candidates based on their requirements and hire the best candidates.",
     },
     {
-      icon: <Briefcase strokeWidth={1.75} className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" style={{ fill: "rgba(139, 92, 246, 0.15)" }} />,
-      iconBg: "#8b5cf6",
-      iconColor: "#7c3aed",
+      icon: <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />,
+      iconBg: "#3b82f6",
+      iconColor: "#10b981",
       category: "benefits",
       question: "What is the benefit of hiring employees from Recruit@Medh?",
       answer: "Organisations will get trained and certified IT candidates with hands on experience from Recruit@Medh. We also offer dedicated hiring support so hiring becomes easier.",
     },
     {
-      icon: <HeartHandshake strokeWidth={1.75} className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" style={{ fill: "rgba(236, 72, 153, 0.15)" }} />,
-      iconBg: "#ec4899",
-      iconColor: "#db2777",
+      icon: <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />,
+      iconBg: "#3b82f6",
+      iconColor: "#10b981",
       category: "collaboration",
       question: "How can my company collaborate with Recruit@Medh for hiring?",
       answer:
         "To collaborate with our Placement Cell, you can reach out to our placement coordinator or contact our placement cell through email or phone. We will understand your specific hiring requirements and work with you to identify suitable candidates from our pool of talented IT professionals.",
     },
     {
-      icon: <CheckCircle2 strokeWidth={1.75} className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" style={{ fill: "rgba(22, 163, 74, 0.15)" }} />,
-      iconBg: "#16a34a",
-      iconColor: "#15803d",
+      icon: <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />,
+      iconBg: "#3b82f6",
+      iconColor: "#10b981",
       category: "hiring",
       question: "Is there any limit to hiring employees from Recruit@Medh?",
       answer:
         "You can hire as many candidates as you want from us. We have an extensive talent pool and can scale our recruitment efforts to meet your organization's needs, whether you're looking for a single specialist or building an entire team.",
     },
     {
-      icon: <MapPin strokeWidth={1.75} className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" style={{ fill: "rgba(220, 38, 38, 0.15)" }} />,
-      iconBg: "#dc2626",
-      iconColor: "#b91c1c",
+      icon: <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />,
+      iconBg: "#3b82f6",
+      iconColor: "#10b981",
       category: "locations",
       question: "For which locations can I hire candidates from Recruit@Medh?",
       answer:
         "Candidates are available across India as well as globally. Our talent pool includes professionals ready for remote work, on-site positions, or hybrid arrangements, giving you flexibility in your hiring strategy.",
     },
     {
-      icon: <Award strokeWidth={1.75} className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" style={{ fill: "rgba(251, 191, 36, 0.15)" }} />,
-      iconBg: "#fbbf24",
-      iconColor: "#f59e0b",
+      icon: <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />,
+      iconBg: "#3b82f6",
+      iconColor: "#10b981",
       category: "candidates",
       question: "What sets the candidates from Recruit@Medh apart from others?",
       answer:
         "Our candidates undergo rigorous training and skill development programs. They receive a well-rounded education, gain hands-on experience through real-world projects, and are mentored by experienced professionals. This ensures that our candidates are well-prepared to meet the demands of the IT industry.",
     },
     {
-      icon: <UserPlus strokeWidth={1.75} className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" style={{ fill: "rgba(6, 182, 212, 0.15)" }} />,
-      iconBg: "#06b6d4",
-      iconColor: "#0891b2",
+      icon: <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />,
+      iconBg: "#3b82f6",
+      iconColor: "#10b981",
       category: "events",
       question: "Are there any opportunities for companies to interact with potential candidates directly?",
       answer:
         "Yes, we regularly organize placement drives, job fairs, and recruitment events where companies can interact with our students and alumni directly. These events provide a platform for companies to showcase their organization and job opportunities while allowing candidates to learn more about the company culture and job roles available.",
     },
     {
-      icon: <Calendar strokeWidth={1.75} className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" style={{ fill: "rgba(168, 85, 247, 0.15)" }} />,
-      iconBg: "#a855f7",
-      iconColor: "#9333ea",
+      icon: <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />,
+      iconBg: "#3b82f6",
+      iconColor: "#10b981",
       category: "internships",
       question: "Can companies offer internships to IT students through Recruit@Medh?",
       answer:
         "Absolutely! We encourage companies to offer internships to our IT students. Internships are an excellent way for students to gain practical experience and understand the real-world dynamics of the IT industry. It also allows companies to assess the intern's potential for future full-time roles.",
     },
     {
-      icon: <HeartHandshake strokeWidth={1.75} className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" style={{ fill: "rgba(139, 92, 246, 0.15)" }} />,
-      iconBg: "#8b5cf6",
-      iconColor: "#7c3aed",
+      icon: <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />,
+      iconBg: "#3b82f6",
+      iconColor: "#10b981",
       category: "support",
       question: "What support does Recruit@Medh provide during the recruitment process?",
       answer:
@@ -133,24 +124,16 @@ const HireFromMedhFaq: React.FC = () => {
       <div className="absolute bottom-10 right-10 w-40 h-40 bg-blue-100/20 dark:bg-blue-800/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
 
       <div className="relative w-full px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-12 md:mb-16">
-          <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-emerald-100 to-blue-100 dark:from-emerald-900/30 dark:to-blue-900/30 rounded-full border border-emerald-200 dark:border-emerald-700/50 mb-6">
-            <HelpCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mr-2" />
-            <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Frequently Asked Questions</span>
-          </div>
-          
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-slate-100 mb-4 leading-tight">
-            Got Questions? We've Got Answers
-          </h2>
-          <p className="text-xl md:text-2xl font-medium text-slate-600 dark:text-slate-300 leading-relaxed w-full mx-auto">
-            Everything you need to know about hiring from Medh
-          </p>
-        </div>
-
         {/* Edge-to-Edge FAQ Content with Glass Effect */}
         <div className="bg-gradient-to-r from-white/80 to-slate-50/80 dark:from-slate-800/80 dark:to-slate-900/80 backdrop-blur-xl rounded-3xl border border-white/40 dark:border-slate-600/40 shadow-2xl overflow-hidden">
           <div className="p-6 sm:p-8 md:p-12 lg:p-16 pb-0">
+            <h2 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-blue-500 dark:from-violet-400 dark:to-blue-300 inline-block mb-4 text-center w-full">
+              Explore FAQs
+            </h2>
+            <div className="w-16 h-1 mx-auto rounded-full bg-gradient-to-r from-violet-600 to-blue-500 dark:from-violet-400 dark:to-blue-300"></div>
+            <p className="text-lg md:text-xl font-medium text-slate-600 dark:text-slate-300 leading-relaxed text-center mb-6">
+              Everything you need to know about hiring from Medh
+            </p>
             <CommonFaq
               title=""
               subtitle=""
@@ -163,7 +146,7 @@ const HireFromMedhFaq: React.FC = () => {
                 contactEmail: "care@medh.co",
                 contactText: "Have more questions about hiring? Contact our recruitment team at"
               }}
-              showSearch={true}
+              showSearch={false}
               showCategories={true}
               defaultCategory="all"
             />

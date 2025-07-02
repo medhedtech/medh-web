@@ -233,7 +233,7 @@ const Certified: React.FC = () => {
 
       <section
         id="certified-section"
-        className="relative bg-slate-50 dark:bg-slate-900 py-12 md:py-20 overflow-hidden"
+        className="relative bg-slate-50 dark:bg-slate-900 pt-2 md:pt-4 pb-0 overflow-hidden"
       >
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
@@ -255,12 +255,12 @@ const Certified: React.FC = () => {
                 <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">Quality Assurance</span>
               </div>
               
-              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-slate-100 mb-6 leading-tight whitespace-nowrap">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-6 leading-tight whitespace-nowrap">
                 Trusted <span className="text-indigo-600 dark:text-indigo-400">Standards</span>
               </h2>
               
               <div className="w-full mx-auto">
-                <p className="text-lg sm:text-xl md:text-2xl text-slate-600 dark:text-slate-300 leading-relaxed mb-8">
+                <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed mb-8">
                   Accredited excellence in education and technology services with 
                   <span className="font-semibold text-slate-800 dark:text-slate-200"> global recognition</span> and 
                   <span className="font-semibold text-slate-800 dark:text-slate-200"> industry compliance</span>
@@ -329,32 +329,7 @@ const Certified: React.FC = () => {
           </div>
 
           {/* Enhanced Trust Indicators */}
-          <div className="bg-gradient-to-r from-slate-50 to-indigo-50 dark:from-slate-800 dark:to-indigo-900/20 mx-6 md:mx-8 lg:mx-10 mb-6 md:mb-8 lg:mb-10 rounded-2xl p-8 text-center">
-            <div className="mb-6">
-              <div className="inline-flex items-center bg-emerald-50 dark:bg-emerald-900/30 px-6 py-3 rounded-full">
-                <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mr-3" />
-                <span className="text-emerald-700 dark:text-emerald-300 font-medium">
-                  Maintaining the highest standards in educational excellence and security
-                </span>
-              </div>
-            </div>
-            
-            {/* Compliance Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full mx-auto">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">8+</div>
-                <p className="text-sm text-slate-600 dark:text-slate-400">International Certifications</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-2">100%</div>
-                <p className="text-sm text-slate-600 dark:text-slate-400">Compliance Rate</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">24/7</div>
-                <p className="text-sm text-slate-600 dark:text-slate-400">Security Monitoring</p>
-              </div>
-            </div>
-          </div>
+          {/* Removed as per request */}
         </div>
       </section>
     </>

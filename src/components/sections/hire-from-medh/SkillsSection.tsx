@@ -109,12 +109,12 @@ const SkillsSection: React.FC<ISkillsSectionProps> = memo(({ className = "" }) =
                 <span>Core Competencies</span>
               </div>
               
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-slate-100 mb-4 leading-tight whitespace-nowrap">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4 leading-tight whitespace-nowrap">
                 Skills & Expertise <span className="text-blue-600 dark:text-blue-400">We Offer</span>
               </h2>
               
               <div className="w-full mx-auto">
-                <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 leading-relaxed">
+                <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
                   Our talent pool spans diverse technical and business domains with 
                   <span className="font-semibold text-slate-800 dark:text-slate-200"> proven expertise</span> and 
                   <span className="font-semibold text-slate-800 dark:text-slate-200"> industry experience</span>
@@ -130,7 +130,7 @@ const SkillsSection: React.FC<ISkillsSectionProps> = memo(({ className = "" }) =
           animate={isVisible ? "visible" : "hidden"}
           variants={staggerContainer}
           transition={{ duration: 0.8, delay: 0.3 }}
-          className="w-full mb-8 md:mb-10"
+          className="w-full mb-0"
         >
           <motion.div
             initial={{ opacity: 0, y: 20 }}
