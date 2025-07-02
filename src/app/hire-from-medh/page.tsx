@@ -35,8 +35,6 @@ const HireFromMedh: NextPage = () => {
         }
         
         .flex.flex-col.min-h-screen {
-          min-height: 100vh !important;
-          height: 100vh !important;
         }
         
         main {
@@ -49,7 +47,7 @@ const HireFromMedh: NextPage = () => {
           padding-bottom: 0 !important;
         }
       `}</style>
-      <PageWrapper addTopPadding={false} addBottomPadding={false} showFooter={false}>
+      <PageWrapper addTopPadding={false} addBottomPadding={false} showFooter={true}>
         <div className="space-y-0">
           <HireFromMedhBanner />
           <HireSection />

@@ -93,7 +93,7 @@ const CorporateOverview: React.FC = () => {
       <div className="absolute top-10 sm:top-20 left-0 w-20 h-20 sm:w-32 sm:h-32 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-xl sm:blur-3xl animate-blob"></div>
       <div className="absolute bottom-10 sm:bottom-20 right-0 w-24 h-24 sm:w-40 sm:h-40 bg-emerald-200/20 dark:bg-emerald-800/20 rounded-full blur-xl sm:blur-3xl animate-blob animation-delay-2000"></div>
 
-      <div className={`relative z-10 ${mobilePatterns.mobileContainer('lg')}`}>
+      <div className="relative z-10 w-full px-0">
         {/* Header Section */}
         <motion.div
           initial="hidden"
@@ -206,7 +206,7 @@ const CorporateOverview: React.FC = () => {
                 </div>
 
                 {/* Outcomes Grid - Mobile optimized */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 h-full">
                   {businessOutcomes.map((outcome, index) => (
                     <motion.div
                       key={index}
@@ -215,7 +215,7 @@ const CorporateOverview: React.FC = () => {
                       transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
                       className="group"
                     >
-                      <div className="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl md:rounded-2xl p-5 sm:p-6 md:p-8 text-center border border-slate-200 dark:border-slate-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group-hover:border-blue-300 dark:group-hover:border-blue-600">
+                      <div className="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl md:rounded-2xl p-5 sm:p-6 md:p-8 text-center border border-slate-200 dark:border-slate-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group-hover:border-blue-300 dark:group-hover:border-blue-600 h-full min-h-[340px] flex flex-col justify-between">
                         {/* Icon with gradient background - Mobile optimized */}
                         <div className="relative mb-4 md:mb-6">
                           <div className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl md:rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg">
@@ -315,10 +315,6 @@ const CorporateOverview: React.FC = () => {
                   <div className="flex items-center">
                     <Users className="w-4 h-4 mr-2" />
                     <span>Trained Professionals</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Trophy className="w-4 h-4 mr-2" />
-                    <span>95% Success Rate</span>
                   </div>
                 </div>
               </div>

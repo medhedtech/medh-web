@@ -97,20 +97,22 @@ function DigiMarketingRalatedCource() {
   return (
     <div className="w-full h-auto flex justify-center items-center flex-col">
       {/* Related Courses Section */}
-      <h1 className="text-center text-orange text-3xl font-bold dark:text-yellow pb-10 ">
+      <h1 className="text-center text-orange text-3xl font-bold dark:text-yellow pb-10 mt-16 ">
         Related Courses
       </h1>
-      <div className="md:w-[80%] w-[88%] h-full grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-6">
-        {relatedCourses.length > 0 ? (
-          relatedCourses.map((course) => (
+      {relatedCourses.length > 0 ? (
+        <div className="w-full h-full grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-6">
+          {relatedCourses.map((course) => (
             <CourseCard key={course._id} course={course} />
-          ))
-        ) : (
-          <p className="text-center text-black dark:text-white text-base py-2">
+          ))}
+        </div>
+      ) : (
+        <div className="flex justify-center items-center w-full min-h-[200px]">
+          <p className="text-center text-black dark:text-white text-base">
             More Digital Marketing with Data Analytics courses coming soon! Stay tuned for new programs and specializations.
           </p>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
