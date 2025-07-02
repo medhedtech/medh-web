@@ -1930,15 +1930,61 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
     <PageWrapper>
       <Toaster position="bottom-center" />
       <style jsx global>{stickyStyles}</style>
+      <style jsx global>{`
+        /* Mobile-First Edge-to-Edge Optimizations */
+        @media (max-width: 1023px) {
+          /* Remove horizontal scroll on mobile */
+          html, body {
+            overflow-x: hidden;
+            width: 100%;
+          }
+          
+          /* Safe area handling for iPhone notch and bottom bar */
+          .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom, 16px);
+          }
+          
+          /* Edge-to-edge containers */
+          .mobile-edge-container {
+            margin-left: calc(-1 * env(safe-area-inset-left, 0px));
+            margin-right: calc(-1 * env(safe-area-inset-right, 0px));
+            padding-left: env(safe-area-inset-left, 0px);
+            padding-right: env(safe-area-inset-right, 0px);
+          }
+        }
+        
+        /* Floating button optimizations */
+        .floating-btn-container {
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+        }
+        
+        /* Improved touch targets for mobile */
+        @media (max-width: 768px) {
+          button, .btn, .touch-target {
+            min-height: 44px;
+            min-width: 44px;
+          }
+        }
+        
+        /* Prevent content shift on mobile navigation */
+        .course-content-mobile {
+          transform: translateZ(0);
+          will-change: transform;
+        }
+      `}</style>
       <div className="flex flex-col min-h-screen w-full bg-gray-50 dark:bg-gray-900">
-        {/* Main Content Container with proper spacing */}
-        <main className="flex-grow w-full py-4 sm:py-6 lg:py-8 mb-20 sm:mb-24 lg:mb-32">
-          <div className="w-full max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Mobile-First Edge-to-Edge Main Content Container */}
+        <main className="flex-grow w-full py-0 sm:py-4 lg:py-8 mb-16 sm:mb-20 lg:mb-32">
+          {/* Mobile: Remove padding, Desktop: Keep container */}
+          <div className="w-full max-w-none lg:max-w-8xl lg:mx-auto px-0 sm:px-4 lg:px-8">
             {/* Show error state if there's an error */}
             {error ? (
-              <ErrorDisplay />
+              <div className="px-4 sm:px-0">
+                <ErrorDisplay />
+              </div>
             ) : !userCurrency || isDetectingLocation ? (
-              <div className="flex items-center justify-center min-h-[60vh] w-full">
+              <div className="flex items-center justify-center min-h-[60vh] w-full px-4">
                 <div className="category-loader">
                   <div></div>
                   <div></div>
@@ -1953,9 +1999,9 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
               </div>
             ) : (
               <div className="relative">
-                {/* Subtle refresh indicator */}
+                {/* Mobile-optimized refresh indicator */}
                 {refreshing && (
-                  <div className="absolute top-0 left-0 right-0 z-20 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
+                  <div className="absolute top-0 left-0 right-0 z-20 bg-blue-50 dark:bg-blue-900/20 border-x-0 sm:border-x border-blue-200 dark:border-blue-800 sm:rounded-lg p-3 mb-4 mx-0 sm:mx-4 lg:mx-0">
                     <div className="flex items-center justify-center text-blue-600 dark:text-blue-400">
                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                       <span className="text-sm font-medium">Refreshing courses...</span>
@@ -1963,13 +2009,14 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
                   </div>
                 )}
                 
-                <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 w-full min-h-full" ref={mainContentRef}>
-                  {/* Left Column - Dynamic Course Content */}
-                  <div className={`w-full ${isCourseView ? 'lg:w-3/4' : 'lg:w-3/4'} space-y-4 lg:space-y-6`}>
-                    {/* CourseDetailsPage integration - show dynamically based on selected course */}
+                {/* Responsive container with mobile-first approach */}
+                <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 w-full min-h-full" ref={mainContentRef}>
+                  {/* Left Column - Course Content (Full width on mobile, 3/4 on desktop) */}
+                  <div className={`w-full ${isCourseView ? 'lg:w-3/4' : 'lg:w-3/4'} space-y-4 lg:space-y-6 course-content-mobile`}>
+                    {/* CourseDetailsPage - Responsive design with proper spacing */}
                     {(selectedCourse || (filteredCourses.length === 0 && lastValidCourse)) && (
-                      <div className="relative z-10 w-full bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
-                        {/* We pass the activeSection to control which tab is visible */}
+                      <div className="relative z-10 w-full bg-white dark:bg-gray-800 rounded-lg lg:rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm lg:shadow-sm">
+                        {/* Course Details with responsive layout */}
                         <CourseDetailsPage 
                           courseId={(selectedCourse || lastValidCourse)?._id} 
                           initialActiveSection={activeSection !== 'overview' ? activeSection : 'about'}
@@ -1980,9 +2027,9 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.5 }}
-                                className="mb-6 block lg:hidden"
+                                className="mb-4 lg:mb-6 block lg:hidden px-4 lg:px-6"
                               >
-                                {/* Grade filter (mobile) */}
+                                {/* Grade filter with consistent spacing */}
                                 {(normalizedCategory === 'vedic-mathematics' || normalizedCategory === 'personality-development') && (
                                   <div className="mb-4">
                                     <GradeFilter 
@@ -1998,6 +2045,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
                                     />
                                   </div>
                                 )}
+                                {/* Course selection with consistent styling */}
                                 <CourseSelection 
                                   filteredCourses={filteredCourses}
                                   selectedCourse={selectedCourse}
@@ -2015,12 +2063,12 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
                     )}
                   </div>
                   
-                  {/* Right Column - Filters and Course Selection */}
+                  {/* Right Column - Mobile & Desktop Sidebar */}
                   <div className="w-full lg:w-1/4 mb-8 lg:mb-0 flex flex-col">
                     <div className="flex-grow flex flex-col lg:sticky lg:top-20">
-                      {/* Remove scrolling from sidebar and fill available height */}
-                      <div className="w-full flex-grow flex flex-col" ref={sidebarRef}>
-                        {/* Course Selection & Grade Filter for desktop (lg) */}
+                      {/* Mobile & Desktop sidebar content */}
+                      <div className="w-full flex-grow flex flex-col space-y-4 lg:space-y-6" ref={sidebarRef}>
+                        {/* Course Selection & Grade Filter - Hidden on mobile when embedded in CourseDetailsPage */}
                         {!isCourseView && (
                           <motion.div
                             initial={{ opacity: 0, y: 20 }}
@@ -2056,101 +2104,105 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
                           </motion.div>
                         )}
 
-                        {/* Enrollment Details with full height */}
+                        {/* Mobile & Desktop Enrollment Details */}
                         {(selectedCourse || (filteredCourses.length === 0 && lastValidCourse)) && (
                           <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5, delay: 0.2 }}
-                            className="pt-4 lg:pt-6 flex-grow"
+                            className="flex-grow"
                           >
-                            <div className="bg-white dark:bg-gray-800 border-y border-gray-200 dark:border-gray-700">
-                            <EnrollmentDetails 
-                              courseDetails={transformCourseToDetails(selectedCourse || lastValidCourse)}
-                              categoryInfo={isCourseView ? {
-                                displayName: (selectedCourse || lastValidCourse)?.category,
+                            {/* Mobile: Edge-to-edge styling, Desktop: Card styling */}
+                            <div className="bg-white dark:bg-gray-800 border-0 lg:border border-gray-200 dark:border-gray-700 rounded-none lg:rounded-lg shadow-none lg:shadow-sm">
+                              <EnrollmentDetails 
+                                courseDetails={transformCourseToDetails(selectedCourse || lastValidCourse)}
+                                categoryInfo={isCourseView ? {
+                                  displayName: (selectedCourse || lastValidCourse)?.category,
                                   colorClass: 'blue',
                                   bgClass: 'bg-blue-50',
                                   borderClass: 'border-blue-200'
-                              } : categoryInfo}
+                                } : categoryInfo}
                                 onEnrollClick={handleEnrollClick}
-                              currencyCode={userCurrency}
-                              formatPriceFunc={formatPrice}
-                            />
+                                currencyCode={userCurrency}
+                                formatPriceFunc={formatPrice}
+                              />
                             </div>
                           </motion.div>
                         )}
                       </div>
-
-
-                      
-                      {/* Enhanced Mobile Floating Action Button using EnrollButton component */}
-                      <motion.div 
-                        initial={{ y: 100, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.3, ease: "easeOut" }}
-                        className="floating-action-container bottom-0 left-0 right-0 lg:hidden"
-                        style={{ 
-                          position: 'fixed',
-                          bottom: '0px',
-                          zIndex: 9999,
-                          isolation: 'isolate'
-                        }}
-                      >
-                        {/* Clean container without extra backgrounds - stick to bottom */}
-                        <div className="relative">
-                          <EnrollButton
-                            courseDetails={selectedCourse || lastValidCourse}
-                            categoryInfo={isCourseView ? {
-                              displayName: (selectedCourse || lastValidCourse)?.category,
-                              colorClass: 'text-emerald-700 dark:text-emerald-300',
-                              bgClass: 'bg-emerald-50 dark:bg-emerald-900/30'
-                            } : categoryInfo}
-                            userCurrency={userCurrency}
-                            enrollmentType={enrollmentType}
-                            activePricing={activePricing}
-                            onEnrollmentTypeChange={setEnrollmentType}
-                            onActivePricingChange={setActivePricing}
-                            variant="floating"
-                            showCourseInfo={true}
-                          />
-                        </div>
-                      </motion.div>
                     </div>
                   </div>
+
+                  {/* Mobile-Only: Edge-to-Edge Floating Action Button */}
+                  <motion.div 
+                    initial={{ y: 100, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    className="fixed bottom-0 left-0 right-0 z-50 lg:hidden mobile-edge-container"
+                    style={{ 
+                      zIndex: 9999,
+                      isolation: 'isolate'
+                    }}
+                  >
+                    {/* Mobile: Enhanced edge-to-edge container with glass effect */}
+                    <div className="relative bg-white/95 dark:bg-gray-800/95 border-t border-gray-200/80 dark:border-gray-700/80 pb-safe floating-btn-container">
+                      {/* Subtle gradient overlay for depth */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-gray-50/30 to-transparent dark:from-gray-900/30 pointer-events-none"></div>
+                      
+                      {/* Button container with improved touch targets */}
+                      <div className="relative px-3 sm:px-4 py-3 course-content-mobile">
+                        <EnrollButton
+                          courseDetails={selectedCourse || lastValidCourse}
+                          categoryInfo={isCourseView ? {
+                            displayName: (selectedCourse || lastValidCourse)?.category,
+                            colorClass: 'text-emerald-700 dark:text-emerald-300',
+                            bgClass: 'bg-emerald-50 dark:bg-emerald-900/30'
+                          } : categoryInfo}
+                          userCurrency={userCurrency}
+                          enrollmentType={enrollmentType}
+                          activePricing={activePricing}
+                          onEnrollmentTypeChange={setEnrollmentType}
+                          onActivePricingChange={setActivePricing}
+                          variant="floating"
+                          showCourseInfo={true}
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
                 </div>
 
-                {/* Traditional FAQ Section - Always visible at bottom after enrollment */}
+                {/* Mobile-First FAQ Section - Edge-to-edge on mobile */}
                 {(selectedCourse || (filteredCourses.length === 0 && lastValidCourse)) && (
                   <motion.section 
-                    className="mt-16 sm:mt-20 lg:mt-24 mb-8 sm:mb-12 lg:mb-16"
+                    className="mt-8 sm:mt-16 lg:mt-24 mb-20 sm:mb-8 lg:mb-16"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.4 }}
                   >
-                    {/* Container with consistent max-width and padding as main content */}
-                    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                      {/* Enhanced visual separator */}
-                      <div className="relative mb-12 sm:mb-16">
+                    {/* Mobile: No container constraints, Desktop: Maintain container */}
+                    <div className="w-full max-w-none lg:max-w-7xl lg:mx-auto px-0 sm:px-4 lg:px-8">
+                      {/* Mobile-optimized visual separator */}
+                      <div className="relative mb-6 sm:mb-12 lg:mb-16 px-4 sm:px-0">
                         <div className="absolute inset-0 flex items-center">
                           <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
                         </div>
                         <div className="relative flex justify-center">
-                          <div className="bg-gray-50 dark:bg-gray-900 px-6 py-2">
+                          <div className="bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 py-2">
                             <div className="w-2 h-2 bg-gradient-to-r from-indigo-400 to-violet-500 rounded-full"></div>
                           </div>
                         </div>
                       </div>
 
-                      <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+                      {/* Mobile-first header design */}
+                      <div className="text-center mb-6 sm:mb-8 lg:mb-16 px-4 sm:px-0">
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.5, delay: 0.5 }}
-                          className="inline-flex items-center justify-center mb-4 sm:mb-6"
+                          className="inline-flex items-center justify-center mb-3 sm:mb-4 lg:mb-6"
                         >
-                          <div className="w-1.5 h-6 bg-gradient-to-b from-indigo-400 to-violet-500 rounded-sm mr-3"></div>
-                          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">
+                          <div className="w-1.5 h-6 bg-gradient-to-b from-indigo-400 to-violet-500 rounded-sm mr-2 sm:mr-3"></div>
+                          <h2 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">
                             Frequently Asked Questions
                           </h2>
                         </motion.div>
@@ -2158,24 +2210,24 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.5, delay: 0.6 }}
-                          className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed"
+                          className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed px-2 sm:px-0"
                         >
                           Find answers to common questions about this course and enrollment process
                         </motion.p>
                       </div>
                       
-                      {/* FAQ Container with improved styling */}
+                      {/* Mobile-First FAQ Container */}
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: 0.7 }}
                         className="relative"
                       >
-                        {/* Background decoration */}
-                        <div className="absolute -inset-4 bg-gradient-to-r from-indigo-50 via-purple-50 to-indigo-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-indigo-950/30 rounded-2xl opacity-50 blur-3xl"></div>
+                        {/* Desktop-only background decoration */}
+                        <div className="hidden lg:block absolute -inset-4 bg-gradient-to-r from-indigo-50 via-purple-50 to-indigo-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-indigo-950/30 rounded-2xl opacity-50 blur-3xl"></div>
                         
-                        {/* Main FAQ container */}
-                        <div className="relative bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-xl backdrop-blur-sm">
+                        {/* Mobile: Edge-to-edge, Desktop: Rounded container */}
+                        <div className="relative bg-white dark:bg-gray-800 rounded-none lg:rounded-2xl border-0 lg:border border-gray-200 dark:border-gray-700 overflow-hidden shadow-none lg:shadow-xl backdrop-blur-sm">
                           <CourseFaq courseId={(selectedCourse || lastValidCourse)?._id || ''} />
                         </div>
                       </motion.div>
