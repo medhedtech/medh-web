@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, memo } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, easeOut } from "framer-motion";
 import Image from "next/image";
 import { 
   ArrowRight, 
@@ -65,7 +65,7 @@ const CareerCourseBanner: React.FC = () => {
     visible: { 
       opacity: 1, 
       y: 0,
-      transition: { duration: 0.6, ease: "easeOut" }
+      transition: { duration: 0.6, ease: easeOut }
     }
   };
 
@@ -84,7 +84,7 @@ const CareerCourseBanner: React.FC = () => {
     initial: { scale: 1 },
     hover: { 
       scale: 1.02,
-      transition: { duration: 0.3, ease: "easeOut" }
+      transition: { duration: 0.3, ease: easeOut }
     }
   };
 
@@ -316,7 +316,6 @@ const CareerCourseBanner: React.FC = () => {
 
           {/* Image Section */}
           <motion.div
-            variants={fadeInUp}
             variants={scaleOnHover}
             initial="initial"
             whileHover="hover"

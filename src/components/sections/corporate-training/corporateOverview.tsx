@@ -52,19 +52,19 @@ const businessOutcomes: IBenefit[] = [
   {
     icon: <Trophy className="w-5 h-5" />,
     title: "Performance Boost",
-    impact: "Measurable productivity gains",
+    impact: "Measurable productivity gains across teams",
     metric: "Up to 40% improvement"
   },
   {
     icon: <Shield className="w-5 h-5" />,
     title: "Talent Retention",
-    impact: "Reduced turnover costs",
+    impact: "Reduced turnover costs significantly",
     metric: "85% retention rate"
   },
   {
     icon: <Lightbulb className="w-5 h-5" />,
     title: "Innovation Edge",
-    impact: "Competitive advantage",
+    impact: "Competitive advantage in market",
     metric: "3x faster adaptation"
   }
 ];
@@ -82,7 +82,7 @@ const CorporateOverview: React.FC = () => {
   }, []);
 
   return (
-    <section className={`relative ${mobilePatterns.mobileSection()} overflow-hidden`}>
+    <section className="relative w-full overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
       
@@ -93,15 +93,16 @@ const CorporateOverview: React.FC = () => {
       <div className="absolute top-10 sm:top-20 left-0 w-20 h-20 sm:w-32 sm:h-32 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-xl sm:blur-3xl animate-blob"></div>
       <div className="absolute bottom-10 sm:bottom-20 right-0 w-24 h-24 sm:w-40 sm:h-40 bg-emerald-200/20 dark:bg-emerald-800/20 rounded-full blur-xl sm:blur-3xl animate-blob animation-delay-2000"></div>
 
-      <div className={`relative z-10 ${mobilePatterns.mobileContainer('lg')}`}>
+      <div className="relative z-10 w-full">
         {/* Header Section */}
         <motion.div
           initial="hidden"
           animate={isVisible ? "visible" : "hidden"}
           variants={fadeInUp}
           transition={{ duration: 0.8 }}
-          className={buildAdvancedComponent.glassCard({ variant: 'hero', padding: 'mobile' })}
+          className="w-full bg-white/10 backdrop-blur-xl border-y border-white/20 py-8 md:py-12 lg:py-16"
         >
+          <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
           {/* Header Section - Mobile optimized */}
           <div className="text-center mb-10 md:mb-16">
             <div className="max-w-4xl mx-auto">
@@ -177,106 +178,142 @@ const CorporateOverview: React.FC = () => {
             ))}
           </div>
 
-          {/* Business Outcomes Section - Enhanced */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="relative overflow-hidden"
-          >
-            {/* Section Background */}
-            <div className="bg-gradient-to-br from-slate-50 via-blue-50/50 to-indigo-50 dark:from-slate-800 dark:via-blue-900/20 dark:to-indigo-900/20 rounded-xl sm:rounded-2xl md:rounded-3xl p-6 sm:p-8 md:p-10 lg:p-12 border border-slate-200/50 dark:border-slate-700/50">
-              {/* Decorative Elements - Mobile optimized */}
-              <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-xl md:blur-2xl -translate-y-8 md:-translate-y-16 translate-x-8 md:translate-x-16"></div>
-              <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-18 sm:h-18 md:w-24 md:h-24 bg-indigo-200/20 dark:bg-indigo-800/20 rounded-full blur-xl md:blur-2xl translate-y-6 md:translate-y-12 -translate-x-6 md:-translate-x-12"></div>
+          </div>
+        </motion.div>
+
+        {/* Executive Results Section - Edge-to-Edge */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+          className="relative overflow-hidden w-full"
+        >
+          {/* Premium Background with Subtle Texture */}
+          <div className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950 w-full border-y border-blue-800/30 shadow-2xl">
+            <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-10 lg:py-12">
+              
+              {/* Sophisticated Background Pattern */}
+              <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.02)_50%,transparent_75%)] bg-[length:20px_20px]"></div>
+              <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -translate-y-48 translate-x-48"></div>
+              <div className="absolute bottom-0 left-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl translate-y-40 -translate-x-40"></div>
               
               <div className="relative z-10">
-                {/* Section Header - Mobile optimized */}
+                {/* Executive Header */}
                 <div className="text-center mb-8 md:mb-12">
-                  <div className="inline-flex items-center bg-blue-100 dark:bg-blue-900/50 px-3 sm:px-4 py-2 rounded-full mb-4 md:mb-6">
-                    <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400 mr-2" />
-                    <span className="text-blue-700 dark:text-blue-300 font-semibold text-xs sm:text-sm">Proven Results</span>
+                  <div className="inline-flex items-center bg-gradient-to-r from-blue-500/20 to-indigo-500/20 backdrop-blur-sm border border-blue-400/30 px-3 py-1.5 rounded-full mb-4">
+                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mr-2 animate-pulse"></div>
+                    <span className="text-blue-200 font-medium text-xs tracking-wide uppercase">Executive Impact</span>
                   </div>
-                  <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-3 md:mb-4">
-                    Measurable Business Impact
+                  
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight">
+                    Transformational 
+                    <span className="block text-transparent bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text">
+                      Business Results
+                    </span>
                   </h2>
-                  <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-                    Join forward-thinking organizations that have transformed their performance through strategic training investments
+                  
+                  <p className="text-base md:text-lg text-blue-100/80 max-w-2xl mx-auto leading-relaxed">
+                    Join industry leaders who have achieved remarkable transformation through our 
+                    <span className="text-white font-semibold"> strategic workforce development programs</span>
                   </p>
                 </div>
 
-                {/* Outcomes Grid - Mobile optimized */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+                {/* Premium Metrics Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
                   {businessOutcomes.map((outcome, index) => (
                     <motion.div
                       key={index}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={isVisible ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
-                      transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
-                      className="group"
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+                      transition={{ duration: 0.6, delay: 0.8 + index * 0.15 }}
+                      className="group relative"
                     >
-                      <div className="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl md:rounded-2xl p-5 sm:p-6 md:p-8 text-center border border-slate-200 dark:border-slate-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group-hover:border-blue-300 dark:group-hover:border-blue-600">
-                        {/* Icon with gradient background - Mobile optimized */}
-                        <div className="relative mb-4 md:mb-6">
-                          <div className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl md:rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                            <div className="text-white">
-                              {outcome.icon}
+                                              {/* Premium Card with Glass Effect */}
+                        <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-4 md:p-6 hover:bg-white/10 hover:border-blue-400/30 transition-all duration-500 group-hover:scale-105 group-hover:shadow-xl group-hover:shadow-blue-500/20 h-full flex flex-col">
+                          
+                          {/* Floating Icon */}
+                          <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                            <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-blue-400/50 transition-all duration-300">
+                              <div className="text-white text-sm">
+                                {outcome.icon}
+                              </div>
                             </div>
                           </div>
-                          {/* Glow effect */}
-                          <div className="absolute inset-0 w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-blue-400/20 rounded-lg sm:rounded-xl md:rounded-2xl blur-xl mx-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        </div>
-                        
-                        {/* Metric Display - Mobile optimized */}
-                        <div className="mb-3 md:mb-4">
-                          <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                            {outcome.metric}
+                          
+                          {/* Content */}
+                          <div className="text-center pt-6 flex-1 flex flex-col justify-between">
+                            {/* Primary Metric */}
+                            <div className="mb-3">
+                              <div className="text-2xl md:text-3xl font-bold text-transparent bg-gradient-to-r from-blue-300 to-indigo-300 bg-clip-text mb-1 min-h-[2.5rem] flex items-center justify-center">
+                                {outcome.metric}
+                              </div>
+                              <div className="h-px w-12 bg-gradient-to-r from-blue-400 to-indigo-400 mx-auto mb-3"></div>
+                            </div>
+                            
+                            {/* Title & Description */}
+                            <div className="flex-1 flex flex-col justify-center">
+                              <h3 className="text-base md:text-lg font-bold text-white mb-2 min-h-[1.5rem]">
+                                {outcome.title}
+                              </h3>
+                              <p className="text-blue-100/70 text-xs md:text-sm leading-relaxed min-h-[2.5rem] flex items-center justify-center">
+                                {outcome.impact}
+                              </p>
+                            </div>
                           </div>
-                          <h3 className="text-base sm:text-lg md:text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-                            {outcome.title}
-                          </h3>
-                          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300">
-                            {outcome.impact}
-                          </p>
+                          
+                          {/* Subtle Bottom Accent */}
+                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400/50 via-indigo-400/50 to-blue-400/50 rounded-b-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </div>
-                        
-                        {/* Progress Bar Visual */}
-                        <div className="w-full bg-slate-200 dark:bg-slate-600 rounded-full h-2 mb-2">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={isVisible ? { width: `${90 - index * 10}%` } : { width: 0 }}
-                            transition={{ duration: 1, delay: 1 + index * 0.2 }}
-                            className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full"
-                          ></motion.div>
-                        </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                          Client satisfaction rate
-                        </p>
-                      </div>
                     </motion.div>
                   ))}
                 </div>
                 
-                {/* Bottom CTA - Mobile optimized */}
-                <div className="text-center mt-8 md:mt-12">
-                  <div className="inline-flex items-center bg-emerald-50 dark:bg-emerald-900/30 px-4 sm:px-6 py-2 sm:py-3 rounded-full">
-                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 dark:text-emerald-400 mr-2 sm:mr-3" />
-                    <span className="text-xs sm:text-sm md:text-base text-emerald-700 dark:text-emerald-300 font-medium">
-                      Results backed by industry data and client success stories
-                    </span>
+                {/* Executive Trust Indicators */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                  transition={{ duration: 0.6, delay: 1.4 }}
+                  className="border-t border-white/10 pt-6"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                    <div className="flex flex-col items-center">
+                      <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center mb-2">
+                        <Shield className="w-4 h-4 text-emerald-400" />
+                      </div>
+                      <div className="text-white font-semibold text-sm mb-1">ISO 27001 Certified</div>
+                      <div className="text-blue-200/60 text-xs">Enterprise-grade security & compliance</div>
+                    </div>
+                    
+                    <div className="flex flex-col items-center">
+                      <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center mb-2">
+                        <Users className="w-4 h-4 text-blue-400" />
+                      </div>
+                      <div className="text-white font-semibold text-sm mb-1">Trusted by Industry Leaders</div>
+                      <div className="text-blue-200/60 text-xs">Focus on Global Standards</div>
+                    </div>
+                    
+                    <div className="flex flex-col items-center">
+                      <div className="w-8 h-8 bg-violet-500/20 rounded-lg flex items-center justify-center mb-2">
+                        <Trophy className="w-4 h-4 text-violet-400" />
+                      </div>
+                      <div className="text-white font-semibold text-sm mb-1">92% Completion Rate</div>
+                      <div className="text-blue-200/60 text-xs">Consistent delivery excellence</div>
+                    </div>
                   </div>
-                </div>
+                </motion.div>
               </div>
             </div>
-          </motion.div>
+          </div>
+        </motion.div>
 
-          {/* Minimal Call to Action Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-            transition={{ duration: 0.6, delay: 1.2 }}
-            className="mt-12 md:mt-16"
-          >
+        {/* Minimal Call to Action Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.6, delay: 1.2 }}
+          className="w-full"
+        >
+          <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-12">
             <div className="bg-blue-600 dark:bg-blue-700 rounded-lg sm:rounded-xl p-6 sm:p-8 text-center">
               {/* Simple Header */}
               <div className="mb-6">
@@ -323,7 +360,7 @@ const CorporateOverview: React.FC = () => {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </motion.div>
       </div>
     </section>
