@@ -271,7 +271,7 @@ const CourseViewClient: React.FC<CourseViewClientProps> = ({ initialCourse, stru
       <div className="relative min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 category-page" data-category="course-view">
         {/* Fixed Header - Improved for mobile */}
         <header className="fixed top-0 left-0 right-0 z-30 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transform-gpu">
-          <nav className="container mx-auto px-2 sm:px-4 h-14 sm:h-16 flex items-center justify-between">
+          <nav className="w-full max-w-none lg:max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-4 overflow-hidden">
               <button 
                 onClick={() => router.back()}
@@ -317,7 +317,7 @@ const CourseViewClient: React.FC<CourseViewClientProps> = ({ initialCourse, stru
           </nav>
         </header>
 
-        {/* Content with Header Offset */}
+        {/* Content with Header Offset - Edge-to-edge mobile */}
         <main className="flex-grow pt-12 sm:pt-6 md:pt-8 relative z-10">
           {loading ? (
             <div className="flex items-center justify-center min-h-[60vh]">
@@ -329,10 +329,10 @@ const CourseViewClient: React.FC<CourseViewClientProps> = ({ initialCourse, stru
           ) : error ? (
             <ErrorDisplay />
           ) : (
-            <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12">
-              <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
-                {/* Left Column - Course Content */}
-                <div className="w-full lg:w-8/12 space-y-4 lg:space-y-8 pb-20 sm:pb-24 lg:pb-0">
+            <div className="w-full max-w-none lg:max-w-8xl lg:mx-auto px-0 sm:px-4 lg:px-8">
+              <div className="flex flex-col lg:flex-row gap-0 sm:gap-4 lg:gap-8">
+                {/* Left Column - Course Content - Edge-to-edge mobile */}
+                <div className="w-full lg:w-3/4 space-y-0 sm:space-y-4 lg:space-y-8 pb-20 sm:pb-24 lg:pb-0">
                   {/* Course Details */}
                   {course && (
                     <div className="relative z-20">
@@ -346,8 +346,8 @@ const CourseViewClient: React.FC<CourseViewClientProps> = ({ initialCourse, stru
                   )}
                 </div>
                 
-                {/* Right Column - Enrollment Details */}
-                <div className="w-full lg:w-4/12 mb-8 lg:mb-0">
+                {/* Right Column - Enrollment Details - Mobile edge-to-edge */}
+                <div className="w-full lg:w-1/4 mb-8 lg:mb-0 px-4 sm:px-0">
                   <div className="lg:sticky lg:top-24 space-y-5 sm:space-y-6 relative z-20">
                     {/* Enrollment Details */}
                     {course && (

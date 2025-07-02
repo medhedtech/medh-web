@@ -164,56 +164,56 @@ const CertificationCard = memo<{
   description: string;
 }>(({ image, alt, title, description }) => {
   const cardClasses = useMemo(() => {
-    return "group relative w-full max-w-sm mx-auto transform transition-all duration-300 hover:-translate-y-3 active:scale-95 touch-manipulation";
+    return "group relative w-full max-w-lg mx-auto transform transition-all duration-300 hover:-translate-y-1 active:scale-98 touch-manipulation bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg rounded-2xl border border-gray-100/50 dark:border-gray-800/50 shadow-lg hover:shadow-xl p-4 sm:p-5";
   }, []);
 
   const imageContainerClasses = useMemo(() => {
-    return "w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 mx-auto mb-4 sm:mb-5 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-3xl p-4 sm:p-5 shadow-2xl border border-gray-100 dark:border-gray-700 transition-all duration-300 group-hover:scale-110 group-hover:shadow-3xl group-hover:border-primary-200 dark:group-hover:border-primary-800";
+    return "relative w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4 bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl p-3 shadow-lg border border-gray-100 dark:border-gray-700 transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl group-hover:border-primary-200 dark:group-hover:border-primary-800 overflow-hidden";
   }, []);
 
   const titleClasses = useMemo(() => {
-    return "font-bold text-lg sm:text-xl md:text-2xl text-gray-900 dark:text-white mb-3 transition-colors group-hover:text-primary-600 dark:group-hover:text-primary-400 text-center leading-tight";
+    return "font-bold text-lg sm:text-xl text-gray-900 dark:text-white mb-2 transition-colors group-hover:text-primary-600 dark:group-hover:text-primary-400 text-center leading-tight";
   }, []);
 
   const descriptionClasses = useMemo(() => {
-    return "text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-sm text-center px-3 sm:px-4 opacity-90 group-hover:opacity-100 transition-opacity leading-relaxed";
+    return "text-sm text-gray-600 dark:text-gray-300 text-center leading-relaxed mb-3";
   }, []);
 
   return (
     <div className={cardClasses}>
-      {/* Glow effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-primary-400/20 to-blue-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10"></div>
+      {/* Subtle glow effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary-400/10 via-blue-400/10 to-purple-400/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
       
       <div className={imageContainerClasses}>
         <Image
           src={image}
           alt={alt}
-          width={128}
-          height={128}
+          width={96}
+          height={96}
           className="w-full h-full object-contain transition-all duration-300 group-hover:scale-110"
           priority={false}
           loading="lazy"
         />
       </div>
-      <h4 className={titleClasses}>{title}</h4>
-      <p className={descriptionClasses}>
-        {description}
-      </p>
       
-      {/* Star rating for visual appeal */}
-      <div className="flex justify-center mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        {[...Array(5)].map((_, i) => (
-          <Star key={i} className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-current" />
-        ))}
+      <h4 className={titleClasses}>{title}</h4>
+      <p className={descriptionClasses}>{description}</p>
+      
+      {/* Compact rating display */}
+      <div className="flex items-center justify-center gap-3">
+        <div className="flex items-center gap-0.5">
+          {[...Array(5)].map((_, i) => (
+            <Star 
+              key={i} 
+              className="w-3.5 h-3.5 text-yellow-400 fill-current" 
+            />
+          ))}
+        </div>
+        <span className="text-xs text-primary-600 dark:text-primary-400 font-medium">
+          Globally Recognized
+        </span>
       </div>
     </div>
-  );
-}, (prevProps, nextProps) => {
-  return (
-    prevProps.image === nextProps.image &&
-    prevProps.alt === nextProps.alt &&
-    prevProps.title === nextProps.title &&
-    prevProps.description === nextProps.description
   );
 });
 
@@ -470,37 +470,34 @@ const WhyMedh = memo(() => {
 
           {/* Our Quality Certifications Section */}
           <div className={certificationsHeaderClasses}>
-            <div className={certificationsBadgeClasses}>
-              <div className={certificationsIconClasses}>
-                <Trophy className={`w-3 h-3 sm:w-4 sm:h-4 ${isDark ? 'text-white' : 'text-black'}`} />
-              </div>
-              <h3 className={certificationsTitleClasses}>
-                Our Quality Certifications!
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <Trophy className="w-5 h-5 text-yellow-500" />
+              <h3 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent">
+                Our Certifications
               </h3>
             </div>
-            <p className={certificationsDescriptionClasses}>
-              Certified Standards That Ensure Your Success and Excellence in Learning
-            </p>
             
-            {/* Featured Certifications - Main Display */}
-            <div className={featuredCertificationsClasses}>
-              {/* STEM Certified */}
-              <CertificationCard
-                image={stemAccreditation}
-                alt="STEM Certified"
-                title="STEM Certified"
-                description="Recognized excellence in Science, Technology, Engineering, and Mathematics education with global standards."
-              />
-              
-              {/* ISO Certified */}
-              <CertificationCard
-                image={iso9001Emblem}
-                alt="ISO Certified"
-                title="ISO Certified"
-                description="International standards for quality management and continuous improvement in educational services."
-              />
+            {/* Featured Certifications - Compact Display */}
+            <div className="relative max-w-5xl mx-auto px-4 sm:px-6 mb-12">
+              <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                {/* STEM Certified */}
+                <CertificationCard
+                  image={stemAccreditation}
+                  alt="STEM Certified"
+                  title="STEM Certified"
+                  description="Excellence in Science, Technology, Engineering, and Mathematics education with globally recognized standards."
+                />
+                
+                {/* ISO Certified */}
+                <CertificationCard
+                  image={iso9001Emblem}
+                  alt="ISO Certified"
+                  title="ISO Certified"
+                  description="International standards for quality management and continuous improvement in educational services."
+                />
+              </div>
             </div>
-            
+
             <div className={certificationGridsClasses}>
               {/* Learning Quality */}
               <CertificationGrid
