@@ -218,8 +218,8 @@ const CorporateOverview: React.FC = () => {
                   </p>
                 </div>
 
-                {/* Premium Metrics Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
+                {/* Outcomes Grid - Mobile optimized */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-8">
                   {businessOutcomes.map((outcome, index) => (
                     <motion.div
                       key={index}
@@ -228,42 +228,41 @@ const CorporateOverview: React.FC = () => {
                       transition={{ duration: 0.6, delay: 0.8 + index * 0.15 }}
                       className="group relative"
                     >
-                                              {/* Premium Card with Glass Effect */}
-                        <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-4 md:p-6 hover:bg-white/10 hover:border-blue-400/30 transition-all duration-500 group-hover:scale-105 group-hover:shadow-xl group-hover:shadow-blue-500/20 h-full flex flex-col">
-                          
-                          {/* Floating Icon */}
-                          <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                            <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-blue-400/50 transition-all duration-300">
-                              <div className="text-white text-sm">
-                                {outcome.icon}
-                              </div>
+                      <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-4 md:p-6 hover:bg-white/10 hover:border-blue-400/30 transition-all duration-500 group-hover:scale-105 group-hover:shadow-xl group-hover:shadow-blue-500/20 h-full flex flex-col">
+                        
+                        {/* Floating Icon */}
+                        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                          <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-blue-400/50 transition-all duration-300">
+                            <div className="text-white text-sm">
+                              {outcome.icon}
                             </div>
                           </div>
-                          
-                          {/* Content */}
-                          <div className="text-center pt-6 flex-1 flex flex-col justify-between">
-                            {/* Primary Metric */}
-                            <div className="mb-3">
-                              <div className="text-2xl md:text-3xl font-bold text-transparent bg-gradient-to-r from-blue-300 to-indigo-300 bg-clip-text mb-1 min-h-[2.5rem] flex items-center justify-center">
-                                {outcome.metric}
-                              </div>
-                              <div className="h-px w-12 bg-gradient-to-r from-blue-400 to-indigo-400 mx-auto mb-3"></div>
-                            </div>
-                            
-                            {/* Title & Description */}
-                            <div className="flex-1 flex flex-col justify-center">
-                              <h3 className="text-base md:text-lg font-bold text-white mb-2 min-h-[1.5rem]">
-                                {outcome.title}
-                              </h3>
-                              <p className="text-blue-100/70 text-xs md:text-sm leading-relaxed min-h-[2.5rem] flex items-center justify-center">
-                                {outcome.impact}
-                              </p>
-                            </div>
-                          </div>
-                          
-                          {/* Subtle Bottom Accent */}
-                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400/50 via-indigo-400/50 to-blue-400/50 rounded-b-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </div>
+                        
+                        {/* Content */}
+                        <div className="text-center pt-6 flex-1 flex flex-col justify-between">
+                          {/* Primary Metric */}
+                          <div className="mb-3">
+                            <div className="text-2xl md:text-3xl font-bold text-transparent bg-gradient-to-r from-blue-300 to-indigo-300 bg-clip-text mb-1 min-h-[2.5rem] flex items-center justify-center">
+                              {outcome.metric}
+                            </div>
+                            <div className="h-px w-12 bg-gradient-to-r from-blue-400 to-indigo-400 mx-auto mb-3"></div>
+                          </div>
+                          
+                          {/* Title & Description */}
+                          <div className="flex-1 flex flex-col justify-center">
+                            <h3 className="text-base md:text-lg font-bold text-white mb-2 min-h-[1.5rem]">
+                              {outcome.title}
+                            </h3>
+                            <p className="text-blue-100/70 text-xs md:text-sm leading-relaxed min-h-[2.5rem] flex items-center justify-center">
+                              {outcome.impact}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* Subtle Bottom Accent */}
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400/50 via-indigo-400/50 to-blue-400/50 rounded-b-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      </div>
                     </motion.div>
                   ))}
                 </div>
@@ -352,10 +351,6 @@ const CorporateOverview: React.FC = () => {
                   <div className="flex items-center">
                     <Users className="w-4 h-4 mr-2" />
                     <span>Trained Professionals</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Trophy className="w-4 h-4 mr-2" />
-                    <span>95% Success Rate</span>
                   </div>
                 </div>
               </div>

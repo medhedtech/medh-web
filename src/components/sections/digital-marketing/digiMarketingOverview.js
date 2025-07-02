@@ -333,7 +333,7 @@ const DigiMarketingOverview = () => {
   }
 
   return (
-    <section className="relative min-h-[50vh] bg-gradient-to-b from-gray-50 to-white dark:from-slate-950 dark:to-slate-900 overflow-hidden">
+    <section className="w-full px-0">
       {/* Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-grid-pattern opacity-5 dark:opacity-5"></div>
