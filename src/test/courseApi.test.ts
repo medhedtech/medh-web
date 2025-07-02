@@ -1,6 +1,10 @@
 import { apiBaseUrl } from '../apis';
+import { getCoursesWithFields } from '../apis/course/course';
 
 describe('getCoursesWithFields API', () => {
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
   it('should construct URL with currency filter', () => {
     const options = {
       page: 1,
@@ -12,7 +16,7 @@ describe('getCoursesWithFields API', () => {
       }
     };
 
-    const url = `${apiBaseUrl}/courses/fields?page=1&limit=10&status=Published&fields=card&filters[currency]=INR`;
+    const url = getCoursesWithFields(options);
 
     // Check if the URL contains the currency filter
     expect(url).toContain('fields=card');
@@ -31,7 +35,7 @@ describe('getCoursesWithFields API', () => {
       }
     };
 
-    const url = `${apiBaseUrl}/courses/fields?page=1&limit=10&status=Published&fields=card,details&filters[currency]=INR&filters[status]=Published`;
+    const url = getCoursesWithFields(options);
     
     // Check if the URL contains all filters
     expect(url).toContain('fields=card,details');
@@ -46,12 +50,21 @@ describe('getCoursesWithFields API', () => {
       fields: ['card']
     };
 
-    const url = `${apiBaseUrl}/courses/fields?page=2&limit=20&fields=card`;
+    const url = getCoursesWithFields(options);
     expect(url).toContain('page=2');
     expect(url).toContain('limit=20');
   });
 
   it('should handle response format', async () => {
+    const options = {
+      page: 1,
+      limit: 10,
+      status: 'Published',
+      fields: ['card'],
+      filters: {
+        currency: 'INR'
+      }
+    };
     const mockResponse = {
       success: true,
       data: [
@@ -90,7 +103,7 @@ describe('getCoursesWithFields API', () => {
       })
     );
 
-    const response = await fetch(`${apiBaseUrl}/courses/fields?page=1&limit=10&status=Published&fields=card&filters[currency]=INR`);
+    const response = await fetch(getCoursesWithFields(options));
     const data = await response.json();
 
     expect(data.success).toBe(true);
