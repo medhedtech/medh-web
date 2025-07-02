@@ -76,7 +76,6 @@ const IconWrapper: React.FC<{
       flex items-center justify-center flex-shrink-0
       transition-all duration-300 transform 
       ${isOpen ? 'scale-110' : 'scale-100'}
-      group-hover:scale-105 group-hover:shadow-md
     `}
     aria-hidden="true"
   >
@@ -401,13 +400,13 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
                     bg-white dark:bg-slate-800 rounded-xl border transition-all duration-200
                     ${openIndex === index 
                       ? 'border-emerald-200 dark:border-emerald-700 shadow-lg bg-emerald-50/30 dark:bg-emerald-900/10' 
-                      : 'border-slate-200 dark:border-slate-600 shadow-sm hover:shadow-md hover:border-emerald-200/70 dark:hover:border-emerald-700/50'
+                      : 'border-slate-200 dark:border-slate-600 shadow-sm'
                     }
                   `}
                 >
                   <button
                     onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                    className="w-full px-6 py-5 flex items-center gap-4 text-left transition-colors duration-200 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                    className="w-full px-6 py-5 flex items-center gap-4 text-left transition-colors duration-200"
                     aria-expanded={openIndex === index}
                     aria-controls={`faq-answer-${index}`}
                     suppressHydrationWarning
@@ -425,7 +424,7 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
                       <span className={`font-bold text-base md:text-lg transition-all duration-300 block ${
                         openIndex === index 
                           ? 'text-emerald-700 dark:text-emerald-400' 
-                          : 'text-slate-800 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
+                          : 'text-slate-800 dark:text-slate-200'
                       }`}>
                         {faq.question}
                       </span>
@@ -440,7 +439,7 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
                       className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-300 ${
                         openIndex === index 
                           ? 'bg-emerald-100 dark:bg-emerald-900/50' 
-                          : 'bg-slate-100 dark:bg-slate-700 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/30'
+                          : 'bg-slate-100 dark:bg-slate-700'
                       }`}
                       aria-hidden="true"
                     >
@@ -448,7 +447,7 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
                         className={`w-5 h-5 stroke-[2] transition-colors duration-300 ${
                           openIndex === index 
                             ? 'text-emerald-600 dark:text-emerald-400' 
-                            : 'text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
+                            : 'text-slate-500 dark:text-slate-400'
                         }`}
                       />
                     </motion.div>

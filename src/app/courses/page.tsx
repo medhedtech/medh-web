@@ -37,7 +37,7 @@ interface ICourse {
   format?: string;
   lectures_count?: number;
   live_sessions?: number;
-  course_duration?: string | React.ReactNode;
+  course_duration?: string;
   duration?: string;
   duration_range?: string;
   no_of_Sessions?: number;
@@ -238,7 +238,7 @@ const Courses = () => {
     },
     {
       icon: <Award className="w-6 h-6" />,
-      title: "Recognized Certs",
+      title: "Recognized Certifications",
       description: "Get certificates that matter to employers"
     }
   ], []);
@@ -290,12 +290,7 @@ const Courses = () => {
     
     if (isLive) {
       typedProps = {
-        course_duration: (
-          <div className="flex items-center text-sm">
-            <Clock className="w-4 h-4 mr-1 text-rose-500" />
-            <span>{formatCourseDuration(course.course_duration as string)}</span>
-          </div>
-        ),
+        course_duration: formatCourseDuration(course.course_duration as string),
         no_of_Sessions: course.no_of_Sessions || 24,
         effort_hours: course.effort_hours || "6-8",
         highlights: [
@@ -308,12 +303,7 @@ const Courses = () => {
       const { videoCount, qnaSessions } = getBlendedCourseSessions(course);
       
       typedProps = {
-        course_duration: (
-          <div className="flex items-center text-sm">
-            <Clock className="w-4 h-4 mr-1 text-rose-500" />
-            <span>{formatCourseDuration(course.course_duration as string || course.duration)}</span>
-          </div>
-        ),
+        course_duration: formatCourseDuration(course.course_duration as string || course.duration),
         duration_range: `${videoCount} Videos • ${qnaSessions} Q&A • ${course.duration_range || "Self-paced"}`,
         no_of_Sessions: course.no_of_Sessions || videoCount,
         effort_hours: course.effort_hours || "3-5",
@@ -325,12 +315,7 @@ const Courses = () => {
       };
     } else {
       typedProps = {
-        course_duration: (
-          <div className="flex items-center text-sm">
-            <Clock className="w-4 h-4 mr-1 text-gray-500" />
-            <span>{formatCourseDuration(course.course_duration as string)}</span>
-          </div>
-        ),
+        course_duration: formatCourseDuration(course.course_duration as string),
         effort_hours: course.effort_hours || "4-6",
         no_of_Sessions: course.no_of_Sessions || 24
       };
@@ -356,12 +341,7 @@ const Courses = () => {
     cardStyle: 'live',
     isLiveCourse: true,
     isBlendedCourse: false,
-    course_duration: (
-      <div className="flex items-center text-sm">
-        <Clock className="w-4 h-4 mr-1 text-rose-500" />
-        <span>{formatCourseDuration(course.course_duration as string)}</span>
-      </div>
-    ),
+    course_duration: formatCourseDuration(course.course_duration as string),
     effort_hours: course.effort_hours || "6-8",
     no_of_Sessions: course.no_of_Sessions || 24,
     instructor: course.instructor || null,
@@ -381,12 +361,7 @@ const Courses = () => {
       cardStyle: 'blended',
       isLiveCourse: false,
       isBlendedCourse: true,
-      course_duration: (
-        <div className="flex items-center text-sm">
-          <Clock className="w-4 h-4 mr-1 text-rose-500" />
-          <span>{formatCourseDuration(course.course_duration as string || course.duration)}</span>
-        </div>
-      ),
+      course_duration: formatCourseDuration(course.course_duration as string || course.duration),
       duration_range: `${videoCount} Videos • 2 Q&A • ${course.duration_range || "Self-paced"}`,
       no_of_Sessions: course.no_of_Sessions || videoCount,
       effort_hours: course.effort_hours || "3-5",

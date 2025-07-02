@@ -250,7 +250,7 @@ function DigiMarketingFaq() {
   };
 
   return (
-    <section className="w-full py-12 bg-gray-50 dark:bg-gray-900 overflow-hidden">
+    <section className="w-full px-0">
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex flex-col items-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-600 dark:from-blue-400 dark:to-violet-400 mb-4">
@@ -352,7 +352,7 @@ function DigiMarketingFaq() {
 
       {/* Support Section (animated, matching Vedic Maths) */}
       <motion.div 
-        className="mt-12 text-center bg-white dark:bg-gray-800/90 p-6 rounded-xl shadow-md transform-gpu w-full max-w-5xl mx-auto"
+        className="mt-16 text-center bg-white dark:bg-gray-800/90 p-6 rounded-xl shadow-md transform-gpu w-full max-w-5xl mx-auto"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ 

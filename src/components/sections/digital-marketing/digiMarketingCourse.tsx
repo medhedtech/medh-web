@@ -159,9 +159,9 @@ const DigiMarketingCourse: React.FC = () => {
       </div>
 
       {/* Enhanced hero content */}
-      <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-8 py-12 md:py-20">
+      <div className="relative z-10 w-full px-0 py-12 md:py-20">
         {/* Glassmorphic hero card */}
-        <div className={buildAdvancedComponent.glassCard({ variant: 'hero', padding: 'desktop' })}>
+        <div className={buildAdvancedComponent.glassCard({ variant: 'hero', padding: 'desktop', hover: false })}>
           
           {/* Category badge with animation */}
           <div className="flex items-center justify-center mb-6">
@@ -250,13 +250,12 @@ const DigiMarketingCourse: React.FC = () => {
       </div>
 
       {/* Course Discovery Section */}
-      <div className="relative px-4 md:px-8 pb-12">
-        <div className="max-w-6xl mx-auto">
-          
+      <div className="relative w-full px-0 pb-12">
+        <div className="w-full">
           {/* Section title with psychological messaging */}
           {filteredCourses.length > 0 && (
-            <div className="text-center mb-8">
-              <div className={buildAdvancedComponent.glassCard({ variant: 'secondary', padding: 'tablet' })}>
+            <div className="w-full mb-8">
+              <div className={buildAdvancedComponent.glassCard({ variant: 'secondary', padding: 'tablet', hover: false }) + ' w-full'}>
                 <div className="flex items-center justify-center gap-3 mb-4">
                   <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-emerald-500 to-blue-500 flex items-center justify-center">
                     <Rocket className="w-4 h-4 text-white" />
@@ -274,9 +273,9 @@ const DigiMarketingCourse: React.FC = () => {
           )}
 
           {/* Enhanced Course Grid */}
-          <div className="space-y-6">
+          <div className="space-y-6 w-full">
             {isLoading ? (
-              <div className="grid gap-4 md:gap-6 auto-rows-fr grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 md:gap-6 auto-rows-fr grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full">
                 {Array.from({ length: 6 }).map((_, index) => (
                   <div key={index} className="animate-pulse">
                     <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-xl h-80 shadow-sm border border-slate-200/50 dark:border-slate-700/50"></div>
@@ -286,13 +285,13 @@ const DigiMarketingCourse: React.FC = () => {
             ) : filteredCourses.length > 0 ? (
               <>
                 {/* Course cards with enhanced spacing */}
-                <div className={`grid gap-4 md:gap-6 auto-rows-fr ${
+                <div className={`grid gap-4 md:gap-6 auto-rows-fr w-full ${
                   filteredCourses.length === 1 
-                    ? 'grid-cols-1 justify-items-center max-w-md mx-auto' 
+                    ? 'grid-cols-1 justify-items-center' 
                     : filteredCourses.length === 2 
-                    ? 'grid-cols-1 md:grid-cols-2 justify-items-center max-w-3xl mx-auto' 
+                    ? 'grid-cols-1 md:grid-cols-2 justify-items-center' 
                     : filteredCourses.length === 3 
-                    ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 justify-items-center max-w-5xl mx-auto' 
+                    ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 justify-items-center' 
                     : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
                 }`}>
                   {filteredCourses.map((course, index) => (
@@ -311,7 +310,7 @@ const DigiMarketingCourse: React.FC = () => {
 
                 {/* Success indicators using real data */}
                 <div className="mt-12">
-                  <div className={buildAdvancedComponent.glassCard({ variant: 'primary', padding: 'desktop' })}>
+                  <div className={buildAdvancedComponent.glassCard({ variant: 'primary', padding: 'desktop', hover: false })}>
                     <div className="text-center space-y-6">
                       <div className="flex items-center justify-center gap-2 mb-4">
                         <Star className="w-5 h-5 text-yellow-500" />
