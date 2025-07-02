@@ -113,7 +113,7 @@ const CorporateOverview: React.FC = () => {
                 </span>
               </h1>
               <div className="max-w-3xl mx-auto">
-                <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-600 dark:text-slate-300 leading-relaxed mb-6 md:mb-8">
+                <p className="text-xs sm:text-sm md:text-base lg:text-lg text-slate-600 dark:text-slate-300 leading-relaxed mb-6 md:mb-8">
                   Accelerate growth with enterprise training programs that deliver 
                   <span className="font-semibold text-slate-800 dark:text-slate-200"> measurable results</span> and 
                   <span className="font-semibold text-slate-800 dark:text-slate-200"> competitive advantage</span>

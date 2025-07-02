@@ -155,7 +155,7 @@ const HiringProcess: React.FC<IHiringProcessProps> = memo(({ className = "" }) =
   }
 
   return (
-    <section className={`relative bg-white dark:bg-slate-950 py-12 md:py-20 overflow-hidden w-full ${className}`}>
+    <section className={`relative bg-white dark:bg-slate-950 pt-2 md:pt-4 pb-0 md:pb-0 overflow-hidden w-full ${className}`}>
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
       
@@ -183,12 +183,12 @@ const HiringProcess: React.FC<IHiringProcessProps> = memo(({ className = "" }) =
                 <span>Streamlined Process</span>
               </div>
               
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-slate-100 mb-4 leading-tight whitespace-nowrap">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4 leading-tight whitespace-nowrap">
                 Our Hiring <span className="text-violet-600 dark:text-violet-400">Process</span>
               </h2>
               
               <div className="w-full mx-auto">
-                <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 leading-relaxed">
+                <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
                   A structured approach to finding the 
                   <span className="font-semibold text-slate-800 dark:text-slate-200"> right talent</span> for your 
                   <span className="font-semibold text-slate-800 dark:text-slate-200"> specific needs</span>
@@ -241,7 +241,7 @@ const HiringProcess: React.FC<IHiringProcessProps> = memo(({ className = "" }) =
               initial={{ opacity: 0, y: 20 }}
               animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
               transition={{ duration: 0.6, delay: 1.0 }}
-              className="mt-8 md:mt-10"
+              className="mt-4 md:mt-4"
             >
               <div className="bg-gradient-to-r from-violet-50 to-blue-50 dark:from-violet-900/20 dark:to-blue-900/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-violet-200/50 dark:border-violet-700/50">
                 <div className="grid grid-cols-3 gap-4 sm:gap-6 text-center">
