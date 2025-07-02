@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { mobilePatterns } from "@/utils/designSystem";
 import Certified from "../why-medh/Certified";
+import MEDH_LOGO from "@/assets/images/logo/medh.png";
 
 interface IFeature {
   title: string;
@@ -225,13 +226,10 @@ const WhyChooseMEDH: React.FC = () => {
               Why Choose Us
             </span>
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-800 dark:text-white mb-4 md:mb-6 flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
-              Why Choose{" "}
+              Why Choose {" "}
               <div className="flex items-center gap-1 sm:gap-2">
-                <span className="text-sm sm:text-base md:text-lg lg:text-xl font-medium text-slate-600 dark:text-slate-400">
-                  with
-                </span>
                 <Image
-                  src="/medh_logo.png"
+                  src={MEDH_LOGO}
                   alt="MEDH Logo"
                   width={120}
                   height={120}

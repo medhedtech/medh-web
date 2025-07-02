@@ -5,6 +5,7 @@ import HireFromMedhCourseBanner from "@/components/sections/hire-from-medh/HireF
 import HireFromMedhFaq from "@/components/sections/hire-from-medh/HireFromMedhFaq";
 import HireSection from "@/components/sections/hire-from-medh/HireSection";
 import HiringProcess from "@/components/sections/hire-from-medh/HiringProcess";
+import MultiStepHireForm from "@/components/sections/hire/MultiStepHireForm";
 import SkillsSection from "@/components/sections/hire-from-medh/SkillsSection";
 import Certified from "@/components/sections/why-medh/Certified";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
@@ -53,6 +54,9 @@ const HireFromMedh: NextPage = () => {
           <HireSection />
           <SkillsSection />
           <HiringProcess />
+          <section id="registration-form" tabIndex={-1} className="scroll-mt-24">
+            <MultiStepHireForm />
+          </section>
           <Certified />
           <div className="pb-0 mb-0">
             <HireFromMedhFaq />
