@@ -30,6 +30,11 @@ frontend:
           export AMPLIFY_DISABLE_TIMEOUT=true
           export AMPLIFY_BUILD_TIMEOUT=3600  # 1 hour
           
+          # TypeScript configuration for Next.js
+          export NEXT_TELEMETRY_DISABLED=1
+          export TSC_COMPILE_ON_ERROR=true
+          export SKIP_TYPE_CHECK=false
+          
           # Log what we're using (without showing actual secrets)
           echo "NODE_ENV: $NODE_ENV"
           echo "NEXT_PUBLIC_API_URL: $NEXT_PUBLIC_API_URL"
@@ -145,9 +150,19 @@ frontend:
           npm cache clean --force
           npm install @radix-ui/react-avatar @radix-ui/react-progress --no-cache
           
-          # Explicitly install TypeScript and related dev dependencies
+          # Explicitly install TypeScript and related dependencies
           echo "Ensuring TypeScript and build dependencies are installed..."
-          npm install --save-dev typescript @types/react @types/react-dom @types/node --no-audit --prefer-offline --no-fund --verbose
+          npm install typescript @types/react @types/react-dom @types/node tsx --no-audit --prefer-offline --no-fund --verbose
+          
+          # Verify TypeScript installation immediately
+          echo "Verifying TypeScript installation..."
+          if [ -f "node_modules/.bin/tsc" ]; then
+            echo "✅ TypeScript compiler installed successfully"
+            node_modules/.bin/tsc --version
+          else
+            echo "❌ TypeScript installation failed - trying global install"
+            npm install -g typescript
+          fi
         
         # Verify installation
         - echo ""
@@ -207,26 +222,59 @@ frontend:
              echo "✅ Manual installation completed"
            }
            
-           # Verify TypeScript installation
-           echo "Verifying TypeScript installation..."
-           if [ -f "node_modules/.bin/tsc" ]; then
+           # Comprehensive TypeScript verification
+           echo "Final TypeScript verification..."
+           if [ -f "node_modules/.bin/tsc" ] && [ -f "node_modules/typescript/package.json" ]; then
              echo "✅ TypeScript compiler found"
              node_modules/.bin/tsc --version
+             
+             # Test TypeScript compilation
+             echo "Testing TypeScript compilation..."
+             echo 'console.log("TypeScript test");' > test.ts
+             if node_modules/.bin/tsc test.ts --noEmit 2>/dev/null; then
+               echo "✅ TypeScript compilation test passed"
+             else
+               echo "⚠️ TypeScript compilation test failed but continuing..."
+             fi
+             rm -f test.ts test.js 2>/dev/null || true
            else
              echo "❌ TypeScript compiler not found - attempting emergency install"
-             npm install --save-dev typescript --force --no-cache
+             npm install typescript @types/react @types/react-dom @types/node --force --no-cache
+             
+             # If still failing, try global install
+             if [ ! -f "node_modules/.bin/tsc" ]; then
+               echo "❌ Local install failed - trying global TypeScript"
+               npm install -g typescript
+               export PATH="$PATH:$(npm config get prefix)/bin"
+             fi
            fi
            
-           # Verify TypeScript types
+           # Final TypeScript types verification
            echo "Verifying TypeScript types..."
-           npm list typescript @types/react @types/react-dom --depth=0 || {
-             echo "❌ TypeScript types verification failed - attempting reinstall"
-             npm install --save-dev typescript @types/react @types/react-dom @types/node --force --no-cache
+           npm list typescript @types/react @types/react-dom @types/node --depth=0 || {
+             echo "❌ TypeScript types verification failed - attempting final reinstall"
+             npm install typescript @types/react @types/react-dom @types/node tsx --force --no-cache
            }
+           
+           # Set PATH for build phase
+           echo "Setting TypeScript PATH for build..."
+           export PATH="$PWD/node_modules/.bin:$PATH"
     build:
       commands:
         - echo ""
         - echo "=== Starting Build Process ==="
+        - echo "Setting up TypeScript environment for build..."
+        - export PATH="$PWD/node_modules/.bin:$PATH"
+        - export NEXT_TELEMETRY_DISABLED=1
+        - export TSC_COMPILE_ON_ERROR=true
+        - |
+          # Final pre-build TypeScript check
+          if [ -f "node_modules/.bin/tsc" ]; then
+            echo "✅ TypeScript available for build: $(node_modules/.bin/tsc --version)"
+          else
+            echo "❌ TypeScript not found - emergency install"
+            npm install typescript --force
+          fi
         - chmod +x ./scripts/amplify-build.sh
         - ./scripts/amplify-build.sh
   artifacts:

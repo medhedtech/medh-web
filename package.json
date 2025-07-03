@@ -202,6 +202,11 @@
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.174.0",
     "ts-jest": "^29.3.1",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.2.79",
+    "@types/react-dom": "^18.2.25",
     "typography": "^0.16.24",
     "uuid": "^11.1.0",
     "vanilla-tilt": "^1.8.1",
@@ -214,13 +219,8 @@
   "devDependencies": {
     "@aws-amplify/backend": "^1.16.1",
     "@aws-amplify/backend-cli": "^1.8.0",
-    "@types/node": "^20.14.0",
-    "@types/react": "^18.2.79",
-    "@types/react-dom": "^18.2.25",
     "aws-cdk-lib": "^2.189.1",
     "constructs": "^10.4.2",
-    "esbuild": "^0.25.5",
-    "tsx": "^4.20.3",
-    "typescript": "^5.8.3"
+    "esbuild": "^0.25.5"
   }
 }
