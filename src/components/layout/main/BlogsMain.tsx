@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Search, Filter, Grid, List, Clock, Eye, Calendar, ArrowUpRight, Loader2, Sparkles, Brain, Wand2, TrendingUp } from "lucide-react";
+import { Search, Filter, Grid, List, Clock, Eye, Calendar, ArrowUpRight, Loader2, TrendingUp } from "lucide-react";
 import BlogCard from "@/components/sections/blogs/BlogCard";
 import { useTheme } from "next-themes";
 import { useGetQuery } from "@/hooks";
-import { apiUrls, IBlog, aiUtils, IAIBlogSuggestionsInput, IAIBlogEnhanceInput } from "@/apis";
+import { apiUrls, IBlog } from "@/apis";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -23,12 +23,11 @@ interface BlogsMainProps {
   };
 }
 
-// Enhanced sorting options with AI features
+// Enhanced sorting options (removed AI features)
 const SORT_OPTIONS = [
   { id: 'latest', name: 'Latest', icon: Clock },
   { id: 'popular', name: 'Most Popular', icon: Eye },
   { id: 'featured', name: 'Featured', icon: ArrowUpRight },
-  { id: 'ai-enhanced', name: 'AI Enhanced', icon: Sparkles },
   { id: 'trending', name: 'Trending', icon: TrendingUp },
 ];
 
@@ -37,119 +36,6 @@ const VIEW_OPTIONS = [
   { id: 'grid', name: 'Grid View', icon: Grid },
   { id: 'list', name: 'List View', icon: List },
 ];
-
-// AI Enhancement Modal Component
-const AIEnhancementModal: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  blog: IBlog | null;
-  onEnhance: (blog: IBlog, enhancementType: string) => void;
-}> = ({ isOpen, onClose, blog, onEnhance }) => {
-  const [enhancementType, setEnhancementType] = useState('improve');
-  const [customPrompt, setCustomPrompt] = useState('');
-  
-  if (!isOpen || !blog) return null;
-  
-  const enhancementOptions = [
-    { id: 'improve', name: 'Improve Content', description: 'Enhance readability and engagement' },
-    { id: 'expand', name: 'Expand Content', description: 'Add more details and examples' },
-    { id: 'summarize', name: 'Create Summary', description: 'Generate a concise summary' },
-    { id: 'rewrite', name: 'Rewrite Style', description: 'Change writing style and tone' },
-    { id: 'custom', name: 'Custom Enhancement', description: 'Specify your own requirements' }
-  ];
-  
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Brain className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                AI Content Enhancement
-              </h2>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              ×
-            </button>
-          </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-            Enhance "{blog.title}" with AI-powered improvements
-          </p>
-        </div>
-        
-        <div className="p-6">
-          <div className="space-y-4 mb-6">
-            {enhancementOptions.map((option) => (
-              <label
-                key={option.id}
-                className={`flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                  enhancementType === option.id
-                    ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="enhancement"
-                  value={option.id}
-                  checked={enhancementType === option.id}
-                  onChange={(e) => setEnhancementType(e.target.value)}
-                  className="mt-1"
-                />
-                <div>
-                  <div className="font-medium text-gray-900 dark:text-white">
-                    {option.name}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    {option.description}
-                  </div>
-                </div>
-              </label>
-            ))}
-          </div>
-          
-          {enhancementType === 'custom' && (
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Custom Enhancement Instructions
-              </label>
-              <textarea
-                value={customPrompt}
-                onChange={(e) => setCustomPrompt(e.target.value)}
-                placeholder="Describe how you want the content to be enhanced..."
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                rows={4}
-              />
-            </div>
-          )}
-          
-          <div className="flex gap-3">
-            <button
-              onClick={onClose}
-              className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => {
-                onEnhance(blog, enhancementType);
-                onClose();
-              }}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              <Wand2 className="w-4 h-4" />
-              Enhance Content
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const BlogsMain: React.FC<BlogsMainProps> = ({ 
   initialBlogs = [], 
@@ -175,13 +61,6 @@ const BlogsMain: React.FC<BlogsMainProps> = ({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isLoading, setIsLoading] = useState(false);
   
-  // AI Enhancement states
-  const [showAIModal, setShowAIModal] = useState(false);
-  const [selectedBlogForAI, setSelectedBlogForAI] = useState<IBlog | null>(null);
-  const [aiProcessing, setAiProcessing] = useState<string | null>(null);
-  const [aiSuggestions, setAiSuggestions] = useState<any[]>([]);
-  const [showAISuggestions, setShowAISuggestions] = useState(false);
-  
   const blogsPerPage = 12;
   const isDark = mounted ? theme === 'dark' : false;
 
@@ -206,7 +85,6 @@ const BlogsMain: React.FC<BlogsMainProps> = ({
         sort_by: sort === 'latest' ? 'createdAt' : 
                  sort === 'popular' ? 'views' : 
                  sort === 'featured' ? 'featured' :
-                 sort === 'ai-enhanced' ? 'ai_enhanced' :
                  sort === 'trending' ? 'trending_score' : 'createdAt',
         sort_order: 'desc',
         status: 'published',
@@ -223,10 +101,6 @@ const BlogsMain: React.FC<BlogsMainProps> = ({
 
       if (sort === 'featured') {
         queryParams.featured = true;
-      }
-
-      if (sort === 'ai-enhanced') {
-        queryParams.ai_enhanced = true;
       }
 
       const response = await getQuery({
@@ -247,60 +121,6 @@ const BlogsMain: React.FC<BlogsMainProps> = ({
       console.error("Error fetching blogs:", error);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  // Generate AI content suggestions
-  const generateAISuggestions = async () => {
-    try {
-      setShowAISuggestions(true);
-      const input: IAIBlogSuggestionsInput = {
-        topic: searchTerm || "education technology and learning",
-        categories: ["education", "technology", "learning"],
-        count: 5,
-        approach: 'professional'
-      };
-      
-      const response = await aiUtils.generateBlogSuggestions(input);
-      
-      if (response.success && response.data.suggestions) {
-        setAiSuggestions(response.data.suggestions);
-      }
-    } catch (error) {
-      console.error('Error generating AI suggestions:', error);
-    }
-  };
-
-  // Handle AI content enhancement
-  const handleAIEnhancement = async (blog: IBlog, enhancementType: string) => {
-    setAiProcessing(blog._id);
-    
-    try {
-      const input: IAIBlogEnhanceInput = {
-        blogId: blog._id,
-        enhancementType: enhancementType as any,
-        updateInDatabase: true
-      };
-      
-      const response = await aiUtils.enhanceExistingBlog(input);
-      
-      if (response.success) {
-        // Update the blog in the list
-        setBlogs(prevBlogs => 
-          prevBlogs.map(b => 
-            b._id === blog._id 
-              ? { ...b, content: response.data.enhancedContent, ai_enhanced: true }
-              : b
-          )
-        );
-        
-        // Show success message or redirect to editor
-        router.push(`/dashboard/blogs/edit/${blog._id}`);
-      }
-    } catch (error) {
-      console.error('Error enhancing blog:', error);
-    } finally {
-      setAiProcessing(null);
     }
   };
 
@@ -333,11 +153,6 @@ const BlogsMain: React.FC<BlogsMainProps> = ({
       const params = new URLSearchParams(searchParams);
       if (sort === 'featured') {
         params.set('featured', 'true');
-      } else if (sort === 'ai-enhanced') {
-        params.set('ai_enhanced', 'true');
-      } else {
-        params.delete('featured');
-        params.delete('ai_enhanced');
       }
       params.delete('page');
       router.push(`/blogs?${params.toString()}`);
@@ -411,16 +226,6 @@ const BlogsMain: React.FC<BlogsMainProps> = ({
                   </button>
                 )}
               </div>
-              
-              {/* AI Suggestions Button */}
-              <button
-                type="button"
-                onClick={generateAISuggestions}
-                className="mt-2 flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
-              >
-                <Brain className="w-4 h-4" />
-                Get AI Content Suggestions
-              </button>
             </form>
             
             {/* Enhanced Sort Options */}
@@ -473,7 +278,7 @@ const BlogsMain: React.FC<BlogsMainProps> = ({
             </div>
           </div>
           
-          {/* Results Info with AI Features */}
+          {/* Results Info (removed AI features) */}
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <div className="text-sm text-gray-600 dark:text-gray-400">
               {isLoading ? (
@@ -483,17 +288,10 @@ const BlogsMain: React.FC<BlogsMainProps> = ({
                 </div>
               ) : (
                 <>
-                  {totalCount > 0 ? (
+                  {totalCount > 0 && searchTerm && (
                     <span>
-                      Showing <strong>{((currentPage - 1) * blogsPerPage) + 1}</strong> to{" "}
-                      <strong>{Math.min(currentPage * blogsPerPage, totalCount)}</strong> of{" "}
-                      <strong>{totalCount}</strong> articles
-                      {searchTerm && (
-                        <span> for "<strong>{searchTerm}</strong>"</span>
-                      )}
+                      Search results for "<strong>{searchTerm}</strong>"
                     </span>
-                  ) : (
-                    <span>No articles found</span>
                   )}
                 </>
               )}
@@ -508,53 +306,9 @@ const BlogsMain: React.FC<BlogsMainProps> = ({
                   Clear search
                 </button>
               )}
-              
-              {/* AI Enhancement Toggle */}
-              <button
-                onClick={() => setShowAISuggestions(!showAISuggestions)}
-                className={`flex items-center gap-2 px-3 py-1 rounded-lg text-sm transition-colors ${
-                  showAISuggestions
-                    ? 'bg-indigo-100 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-300'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}
-              >
-                <Sparkles className="w-4 h-4" />
-                AI Tools
-              </button>
             </div>
           </div>
         </div>
-        
-        {/* AI Suggestions Panel */}
-        {showAISuggestions && aiSuggestions.length > 0 && (
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-2xl p-6 mb-8 border border-indigo-200 dark:border-indigo-800">
-            <div className="flex items-center gap-2 mb-4">
-              <Brain className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                AI Content Suggestions
-              </h3>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {aiSuggestions.slice(0, 3).map((suggestion, index) => (
-                <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">
-                    {suggestion.title}
-                  </h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                    {suggestion.description}
-                  </p>
-                  <button
-                    onClick={() => router.push(`/dashboard/blogs/new?suggestion=${encodeURIComponent(JSON.stringify(suggestion))}`)}
-                    className="flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
-                  >
-                    <Wand2 className="w-4 h-4" />
-                    Create Article
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
         
         {/* Loading State */}
         {isLoading && (
@@ -566,7 +320,7 @@ const BlogsMain: React.FC<BlogsMainProps> = ({
           </div>
         )}
         
-        {/* Enhanced Blog Grid/List with AI Features */}
+        {/* Blog Grid/List (removed AI features) */}
         {!isLoading && blogs.length > 0 && (
           <div className={`${
             viewMode === 'grid' 
@@ -578,22 +332,6 @@ const BlogsMain: React.FC<BlogsMainProps> = ({
                 key={blog._id} 
                 className={`group relative ${viewMode === 'list' ? 'flex gap-6 bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-6 hover:shadow-lg transition-all duration-300' : ''}`}
               >
-                {/* AI Enhancement Button */}
-                <button
-                  onClick={() => {
-                    setSelectedBlogForAI(blog);
-                    setShowAIModal(true);
-                  }}
-                  className="absolute top-2 right-2 z-10 p-2 bg-indigo-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-indigo-700"
-                  title="Enhance with AI"
-                >
-                  {aiProcessing === blog._id ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Wand2 className="w-4 h-4" />
-                  )}
-                </button>
-                
                 {viewMode === 'grid' ? (
                   <BlogCard blog={blog} />
                 ) : (
@@ -624,12 +362,6 @@ const BlogsMain: React.FC<BlogsMainProps> = ({
                             : 'Article'
                           }
                         </span>
-                        {(blog as any).ai_enhanced && (
-                          <span className="bg-indigo-100 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-300 px-2 py-1 rounded flex items-center gap-1">
-                            <Sparkles className="w-3 h-3" />
-                            AI Enhanced
-                          </span>
-                        )}
                         <span>•</span>
                         <Calendar className="w-3 h-3" />
                         <time dateTime={new Date(blog.createdAt).toISOString()}>
@@ -765,14 +497,6 @@ const BlogsMain: React.FC<BlogsMainProps> = ({
           </div>
         )}
       </div>
-      
-      {/* AI Enhancement Modal */}
-      <AIEnhancementModal
-        isOpen={showAIModal}
-        onClose={() => setShowAIModal(false)}
-        blog={selectedBlogForAI}
-        onEnhance={handleAIEnhancement}
-      />
     </section>
   );
 };

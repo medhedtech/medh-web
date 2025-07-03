@@ -1396,7 +1396,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
               { id: 'Grade 7-8', label: 'Grade 7-8', description: 'Middle school advancement' },
               { id: 'Grade 9-10', label: 'Grade 9-10', description: 'High school preparation' },
               { id: 'Grade 11-12', label: 'Grade 11-12', description: 'College preparation' },
-              { id: 'UG - Graduate - Professionals', label: 'UG/Grad/Pro', description: 'University level' }
+              { id: 'UG - Graduate - Professionals', label: 'UG - Graduate - Professionals', description: 'University level' }
             ];
             setAvailableGrades(gradeOptions);
             
