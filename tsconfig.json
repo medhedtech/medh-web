@@ -45,7 +45,7 @@
     "**/*.gif",
     "**/*.svg",
     "**/*.ico"
-, "src/components/sections/hire-from-medh/HiringProcess.ok", "src/components/sections/join-as-school/schoolFaq.os"  ],
+  ],
   "exclude": [
     "node_modules"
   ]
