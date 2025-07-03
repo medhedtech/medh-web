@@ -435,7 +435,7 @@ const SchoolFaq: React.FC = () => {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="mt-8 p-6 bg-gradient-to-r from-[#3bac63]/10 via-white/50 to-[#3bac63]/10 dark:from-[#3bac63]/20 dark:via-slate-800/50 dark:to-[#3bac63]/20 rounded-xl border border-[#3bac63]/20 dark:border-[#3bac63]/30 backdrop-blur-sm"
             >
-              <p className="text-slate-700 dark:text-slate-300 flex flex-col sm:flex-row sm:items-center text-center sm:text-left">
+              <div className="text-slate-700 dark:text-slate-300 flex flex-col sm:flex-row sm:items-center text-center sm:text-left">
                 <motion.div 
                   whileHover={{ scale: 1.1, rotate: 15 }}
                   className="w-12 h-12 mx-auto sm:mx-0 sm:mr-4 mb-3 sm:mb-0 rounded-xl bg-[#3bac63]/20 flex items-center justify-center transform transition-transform duration-300"
@@ -457,7 +457,7 @@ const SchoolFaq: React.FC = () => {
                     </motion.span>
                   </a>
                 </span>
-              </p>
+              </div>
             </motion.div>
           </div>
         </motion.div>
