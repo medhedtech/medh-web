@@ -144,6 +144,10 @@ frontend:
           echo "Clearing npm cache and double-checking installation..."
           npm cache clean --force
           npm install @radix-ui/react-avatar @radix-ui/react-progress --no-cache
+          
+          # Explicitly install TypeScript and related dev dependencies
+          echo "Ensuring TypeScript and build dependencies are installed..."
+          npm install --save-dev typescript @types/react @types/react-dom @types/node --no-audit --prefer-offline --no-fund --verbose
         
         # Verify installation
         - echo ""
@@ -201,6 +205,23 @@ frontend:
              fi
              
              echo "✅ Manual installation completed"
+           }
+           
+           # Verify TypeScript installation
+           echo "Verifying TypeScript installation..."
+           if [ -f "node_modules/.bin/tsc" ]; then
+             echo "✅ TypeScript compiler found"
+             node_modules/.bin/tsc --version
+           else
+             echo "❌ TypeScript compiler not found - attempting emergency install"
+             npm install --save-dev typescript --force --no-cache
+           fi
+           
+           # Verify TypeScript types
+           echo "Verifying TypeScript types..."
+           npm list typescript @types/react @types/react-dom --depth=0 || {
+             echo "❌ TypeScript types verification failed - attempting reinstall"
+             npm install --save-dev typescript @types/react @types/react-dom @types/node --force --no-cache
            }
     build:
       commands:

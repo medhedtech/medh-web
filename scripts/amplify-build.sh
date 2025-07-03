@@ -45,6 +45,15 @@ else
   npm install @radix-ui/react-progress --force --no-cache
 fi
 
+echo "Checking for TypeScript..."
+if [ -f "node_modules/.bin/tsc" ]; then
+  echo "✅ TypeScript compiler found"
+  node_modules/.bin/tsc --version
+else
+  echo "❌ TypeScript compiler missing - installing now..."
+  npm install --save-dev typescript --force --no-cache
+fi
+
 # Check for environment file
 echo ""
 echo "=== Environment File Configuration ==="
