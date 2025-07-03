@@ -114,10 +114,6 @@ frontend:
         - ls -la node_modules/ | head -10
         - echo "Checking critical dependencies..."
         - npm list next react react-dom --depth=0 || echo "⚠️ Some critical dependencies missing"
-        - echo "Installing missing Radix dependencies..."
-        - npm install @radix-ui/react-avatar @radix-ui/react-progress
-        - echo "Installing TypeScript..."
-        - npm install --save-dev typescript
     build:
       commands:
         - echo ""
