@@ -361,99 +361,101 @@ const UniqueBenefits: React.FC = () => {
     <section className="relative bg-white dark:bg-slate-900 min-h-screen overflow-hidden w-full">
       <div className="relative z-10 w-full px-4 md:px-6 lg:px-8 py-12 md:py-16">
         <div className="max-w-7xl mx-auto">
-          <WelcomeCareers />
-          
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="text-center mb-16"
-          >
-            <div className="p-8 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
-              <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 dark:text-white mb-4">
-                Competitive Benefits Package
-              </h2>
-              
-              <p className="text-lg text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">
-                We invest in our team's growth, well-being, and success with comprehensive benefits designed for professionals.
-              </p>
-            </div>
-          </motion.div>
-
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="space-y-16"
-          >
-            {/* Core Benefits */}
-            <div>
-              <motion.h3 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="text-2xl font-semibold text-slate-800 dark:text-white mb-8"
-              >
-                Core Benefits
-              </motion.h3>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-                {advantagesData.map((advantage, index) => (
-                  <BenefitCard key={advantage.id} {...advantage} index={index} />
-                ))}
-              </div>
-            </div>
-
-            {/* Growth & Wellness */}
-            <div>
-              <motion.h3 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="text-2xl font-semibold text-slate-800 dark:text-white mb-8"
-              >
-                Growth & Wellness
-              </motion.h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-                {advantagesPotentialData.map((advantage, index) => (
-                  <BenefitCard key={advantage.id} {...advantage} index={index + advantagesData.length} />
-                ))}
-              </div>
-            </div>
-
-            {/* Enhanced Perks Showcase */}
+          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-2xl p-4 sm:p-6 md:p-10 my-8">
+            <WelcomeCareers />
+            
             <motion.div
               initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-8"
+              animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="text-center mb-16"
             >
-              <div className="mb-8 text-center">
-                <h3 className="text-2xl font-semibold text-slate-800 dark:text-white mb-2">
-                  Additional Perks & Privileges
-                </h3>
-                <p className="text-slate-600 dark:text-slate-300">
-                  Enjoy exclusive benefits that enhance your work experience
+              <div className="p-8 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 dark:text-white mb-4">
+                  Competitive Benefits Package
+                </h2>
+                
+                <p className="text-lg text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">
+                  We invest in our team's growth, well-being, and success with comprehensive benefits designed for professionals.
                 </p>
               </div>
-              
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
-                {additionalPerks.map((perk, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="flex flex-col items-center p-4 bg-white dark:bg-slate-850 rounded-lg border border-slate-200 dark:border-slate-700"
-                  >
-                    <div className="p-2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 mb-3">
-                      {perk.icon}
-                    </div>
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 text-center">
-                      {perk.text}
-                    </span>
-                  </motion.div>
-                ))}
-              </div>
             </motion.div>
-          </motion.div>
+
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="space-y-16"
+            >
+              {/* Core Benefits */}
+              <div>
+                <motion.h3 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="text-2xl font-semibold text-slate-800 dark:text-white mb-8"
+                >
+                  Core Benefits
+                </motion.h3>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+                  {advantagesData.map((advantage, index) => (
+                    <BenefitCard key={advantage.id} {...advantage} index={index} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Growth & Wellness */}
+              <div>
+                <motion.h3 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="text-2xl font-semibold text-slate-800 dark:text-white mb-8"
+                >
+                  Growth & Wellness
+                </motion.h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+                  {advantagesPotentialData.map((advantage, index) => (
+                    <BenefitCard key={advantage.id} {...advantage} index={index + advantagesData.length} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Enhanced Perks Showcase */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-8"
+              >
+                <div className="mb-8 text-center">
+                  <h3 className="text-2xl font-semibold text-slate-800 dark:text-white mb-2">
+                    Additional Perks & Privileges
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-300">
+                    Enjoy exclusive benefits that enhance your work experience
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
+                  {additionalPerks.map((perk, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="flex flex-col items-center p-4 bg-white dark:bg-slate-850 rounded-lg border border-slate-200 dark:border-slate-700"
+                    >
+                      <div className="p-2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 mb-3">
+                        {perk.icon}
+                      </div>
+                      <span className="text-sm font-medium text-slate-700 dark:text-slate-300 text-center">
+                        {perk.text}
+                      </span>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            </motion.div>
+          </div>
         </div>
       </div>
     </section>
