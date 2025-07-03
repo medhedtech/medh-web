@@ -503,15 +503,22 @@ const CourseDetailsPage = ({ ...props }) => {
 
     try {
       // Map API field names to our feature structure with better error handling
-      const features = [
-        {
+      const features = [];
+
+      // Only add duration for non-blended courses
+      if (!isBlendedCourse(courseDetails)) {
+        features.push({
           label: "Duration",
           value: formatDuration(courseDetails),
           icon: Calendar,
           color: "text-purple-500 dark:text-purple-400",
           bgColor: "bg-purple-50 dark:bg-purple-900/30",
           fillOpacity: 0.2,
-        },
+        });
+      }
+
+      // Add other features
+      features.push(
         {
           label: isBlendedCourse(courseDetails) ? "Videos" : "Live Sessions",
           value: formatLiveSessions(courseDetails),
@@ -538,8 +545,8 @@ const CourseDetailsPage = ({ ...props }) => {
           color: "text-green-500 dark:text-green-400",
           bgColor: "bg-green-50 dark:bg-green-900/30",
           fillOpacity: 0.2,
-        },
-      ];
+        }
+      );
 
       // Add optional features if data is available
       if (courseDetails.difficulty_level || courseDetails.skill_level) {
@@ -1921,13 +1928,15 @@ const CourseDetailsPage = ({ ...props }) => {
                     
                   {/* Mobile-First Feature Indicators - Two Column Layout for Mobile */}
                   <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 md:gap-4 justify-center px-4 sm:px-0">
-                    {/* Duration - 3 months / 12 weeks */}
-                    <div className={`flex items-center justify-center sm:justify-start px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-100/70 dark:from-${getCategoryColorClasses().primaryColor}-900/30 dark:to-${getCategoryColorClasses().primaryColor}-800/30 rounded-lg sm:rounded-xl shadow-sm sm:shadow-md border border-${getCategoryColorClasses().primaryColor}-200/50 dark:border-${getCategoryColorClasses().primaryColor}-700/50 backdrop-blur-sm col-span-1`}>
-                      <Clock className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400 mr-2 flex-shrink-0`} />
-                      <span className={`text-xs sm:text-sm font-semibold text-${getCategoryColorClasses().primaryColor}-700 dark:text-${getCategoryColorClasses().primaryColor}-300 text-center sm:text-left`}>
-                        3 months / 12 weeks
-                      </span>
-                    </div>
+                    {/* Duration - 3 months / 12 weeks - Only show for non-blended courses */}
+                    {!isBlendedCourse(courseDetails) && (
+                      <div className={`flex items-center justify-center sm:justify-start px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-100/70 dark:from-${getCategoryColorClasses().primaryColor}-900/30 dark:to-${getCategoryColorClasses().primaryColor}-800/30 rounded-lg sm:rounded-xl shadow-sm sm:shadow-md border border-${getCategoryColorClasses().primaryColor}-200/50 dark:border-${getCategoryColorClasses().primaryColor}-700/50 backdrop-blur-sm col-span-1`}>
+                        <Clock className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400 mr-2 flex-shrink-0`} />
+                        <span className={`text-xs sm:text-sm font-semibold text-${getCategoryColorClasses().primaryColor}-700 dark:text-${getCategoryColorClasses().primaryColor}-300 text-center sm:text-left`}>
+                          3 months / 12 weeks
+                        </span>
+                      </div>
+                    )}
 
                     {/* Sessions - 24 Sessions */}
                     <div className="flex items-center justify-center sm:justify-start px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-purple-50 to-purple-100/70 dark:from-purple-900/30 dark:to-purple-800/30 rounded-lg sm:rounded-xl shadow-sm sm:shadow-md border border-purple-200/50 dark:border-purple-700/50 backdrop-blur-sm col-span-1">

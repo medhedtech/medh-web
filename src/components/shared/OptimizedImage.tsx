@@ -1,159 +1,188 @@
 "use client";
-import React, { useState, useCallback } from 'react';
-import Image, { ImageProps } from 'next/image';
+import React, { useState, useCallback, useRef, memo } from 'react';
+import Image, { ImageProps, StaticImageData } from 'next/image';
 import { shimmer, toBase64 } from '@/utils/imageUtils';
 
-interface OptimizedImageProps extends Omit<ImageProps, 'onLoadingComplete' | 'alt'> {
-  alt?: string;
-  onLoad?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
-  onError?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
+// Define interface with proper types
+interface IOptimizedImageProps extends Omit<ImageProps, 'src' | 'onError' | 'onLoad'> {
+  src: string | StaticImageData;
+  alt: string;
+  className?: string;
   fallbackSrc?: string;
+  onError?: () => void;
+  onLoad?: (img: HTMLImageElement) => void;
+  objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
 }
 
-const OptimizedImage: React.FC<OptimizedImageProps> = ({
+const OptimizedImage: React.FC<IOptimizedImageProps> = memo(({
   src,
   alt,
   className = '',
-  onLoad,
-  onError,
+  sizes,
+  priority = false,
+  quality = 90,
   placeholder = 'blur',
   blurDataURL,
-  quality,
-  priority = false,
-  loading,
-  sizes,
+  fallbackSrc = '/placeholder.jpg',
+  loading = 'lazy',
+  objectFit = 'cover',
   fill,
   width,
   height,
   style,
-  fallbackSrc,
-  ...props
+  onError: customOnError,
+  onLoad: customOnLoad,
+  ...rest
 }) => {
+  // Convert StaticImageData to string if needed
+  const srcString = typeof src === 'string' ? src : src.src;
+  const [imgSrc, setImgSrc] = useState<string | StaticImageData>(src);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const [currentSrc, setCurrentSrc] = useState(src);
   const [fallbackAttempts, setFallbackAttempts] = useState(0);
+  const imgRef = useRef<HTMLDivElement>(null);
 
-  // Define fallback hierarchy
-  const getFallbackSrc = useCallback((attemptNumber: number): string => {
-    const fallbacks = [
-      fallbackSrc || '/fallback-course-image.jpg',
-      '/fallback-course-image 2.jpg',
-      '/images/placeholder.jpg',
-      // Generate a data URL as last resort
-      `data:image/svg+xml;base64,${toBase64(shimmer(400, 300))}`
-    ];
+  // Generate fallback URLs for S3 images
+  const generateFallbacks = useCallback((originalSrc: string): string[] => {
+    const fallbacks: string[] = [];
     
-    return fallbacks[Math.min(attemptNumber, fallbacks.length - 1)];
+    // Check if it's an S3 URL that's failing
+    if (originalSrc.includes('medhdocuments.s3') || originalSrc.includes('amazonaws.com')) {
+      // Extract the key from the S3 URL
+      const urlParts = originalSrc.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+      
+      // Use the proxy endpoint for S3 images
+      fallbacks.push(`/api/image-proxy?url=${encodeURIComponent(originalSrc)}`);
+      
+      // Try different S3 endpoints
+      if (originalSrc.includes('ap-south-1')) {
+        // Try without region-specific endpoint
+        const globalUrl = originalSrc.replace('medhdocuments.s3.ap-south-1.amazonaws.com', 'medhdocuments.s3.amazonaws.com');
+        fallbacks.push(globalUrl);
+        fallbacks.push(`/api/image-proxy?url=${encodeURIComponent(globalUrl)}`);
+      } else {
+        // Try with region-specific endpoint
+        const regionalUrl = originalSrc.replace('medhdocuments.s3.amazonaws.com', 'medhdocuments.s3.ap-south-1.amazonaws.com');
+        fallbacks.push(regionalUrl);
+        fallbacks.push(`/api/image-proxy?url=${encodeURIComponent(regionalUrl)}`);
+      }
+      
+      // Try direct CloudFront URL if available
+      if (originalSrc.includes('medhdocuments')) {
+        fallbacks.push(`https://medh-documents.s3.amazonaws.com/images/${fileName}`);
+      }
+      
+      // Add local fallback for common images
+      if (fileName.includes('course') || fileName.includes('blog')) {
+        fallbacks.push('/placeholder.jpg');
+      }
+    }
+    
+    // Always add the default fallback as last resort
+    fallbacks.push(fallbackSrc);
+    fallbacks.push('/placeholder.jpg'); // Final fallback
+    
+    // Remove duplicates while preserving order
+    return [...new Set(fallbacks)];
   }, [fallbackSrc]);
 
-  // Handle successful load
-  const handleLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
-    setIsLoading(false);
-    setHasError(false);
-    if (onLoad) onLoad(e);
-  }, [onLoad]);
-
-  // Handle load error with progressive fallback
-  const handleError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
-    console.warn(`Image failed to load: ${currentSrc}, attempting fallback ${fallbackAttempts + 1}`);
+  // Handle image loading errors
+  const handleError = useCallback(() => {
+    const fallbacks = generateFallbacks(srcString);
     
-    if (fallbackAttempts < 3) {
-      const nextFallback = getFallbackSrc(fallbackAttempts);
-      setCurrentSrc(nextFallback);
+    if (fallbackAttempts < fallbacks.length) {
+      const currentSrc = typeof imgSrc === 'string' ? imgSrc : imgSrc.src;
+      console.warn(`Image failed to load: ${currentSrc}, attempting fallback ${fallbackAttempts + 1}`);
+      setImgSrc(fallbacks[fallbackAttempts]);
       setFallbackAttempts(prev => prev + 1);
       setIsLoading(true);
-      setHasError(false);
     } else {
+      console.error(`All image fallbacks failed for: ${srcString}`);
       setHasError(true);
-      setIsLoading(false);
-      if (onError) onError(e);
+      // As last resort, use the original src directly, unoptimized
+      setImgSrc(srcString);
+      setUnoptimized(true);
+      if (customOnError) customOnError();
     }
-  }, [currentSrc, fallbackAttempts, getFallbackSrc, onError]);
+  }, [srcString, imgSrc, fallbackAttempts, generateFallbacks, customOnError]);
+
+  // Track if we should use unoptimized mode
+  const [unoptimized, setUnoptimized] = useState(false);
+
+  // Handle successful load
+  const handleLoad = useCallback((img: any) => {
+    setIsLoading(false);
+    setHasError(false);
+    if (customOnLoad) customOnLoad(img);
+  }, [customOnLoad]);
 
   // Reset state when src changes
   React.useEffect(() => {
-    if (src !== currentSrc && fallbackAttempts === 0) {
-      setCurrentSrc(src);
+    if (src !== imgSrc && fallbackAttempts === 0) {
+      setImgSrc(src);
       setIsLoading(true);
       setHasError(false);
       setFallbackAttempts(0);
+      setUnoptimized(false);
     }
-  }, [src, currentSrc, fallbackAttempts]);
+  }, [src, imgSrc, fallbackAttempts]);
 
   // Generate blur placeholder if not provided
-  const defaultBlurDataURL = blurDataURL || `data:image/svg+xml;base64,${toBase64(shimmer(700, 475))}`;
+  const defaultBlurDataURL = blurDataURL || (placeholder === 'blur' ? `data:image/svg+xml;base64,${toBase64(shimmer(Number(width) || 400, Number(height) || 300))}` : undefined);
 
-  // Combine classes with better error and loading states
+  // Prepare alt text
+  const finalAlt = alt || 'Image';
+
+  // Determine image classes
   const imageClasses = `
     ${className}
-    ${isLoading ? 'opacity-0' : 'opacity-100'}
-    ${hasError ? 'filter grayscale opacity-50' : ''}
-    transition-opacity duration-300 ease-in-out
+    ${isLoading ? 'animate-pulse' : ''}
+    ${hasError ? 'opacity-50' : ''}
+    transition-opacity duration-300
   `.trim();
 
-  // Determine image props based on fill mode
-  const finalAlt = alt || 'Image';
-  
   // Build base props
-  const baseProps = {
-    src: currentSrc,
+  const baseProps: Partial<ImageProps> = {
+    src: imgSrc,
     alt: hasError ? `${finalAlt} (fallback)` : finalAlt,
     className: imageClasses,
     placeholder,
     blurDataURL: defaultBlurDataURL,
-    quality: quality || 85,
+    quality,
     priority,
-    loading: loading || (priority ? 'eager' : 'lazy'),
-    sizes: sizes || '100vw'
+    loading,
+    sizes: sizes || '100vw',
+    unoptimized,
   };
 
-  // Handle fill mode vs fixed dimensions separately
-  let imageProps: Partial<ImageProps>;
-  
-  if (fill) {
-    // For fill mode, don't include width, height, or conflicting styles
-    imageProps = {
-      ...baseProps,
-      fill: true,
-      style: {
-        objectFit: 'cover',
-        objectPosition: 'center',
-        ...style // Allow custom styles but don't override objectFit/objectPosition
+  // Conditional props based on layout type
+  const imageProps = fill
+    ? {
+        ...baseProps,
+        fill: true,
+        style: {
+          objectFit: objectFit || 'cover',
+          ...style,
+        },
       }
-    };
-  } else if (width && height) {
-    // For fixed dimensions, include width/height and different styles
-    imageProps = {
-      ...baseProps,
-      width,
-      height,
-      style: {
-        maxWidth: '100%',
-        height: 'auto',
-        ...style
-      }
-    };
-  } else {
-    // Fallback case - use intrinsic sizing
-    imageProps = {
-      ...baseProps,
-      style: {
-        maxWidth: '100%',
-        height: 'auto',
-        ...style
-      }
-    };
-  }
+    : {
+        ...baseProps,
+        width: width || 400,
+        height: height || 300,
+        style,
+      };
 
   return (
     <Image
-      {...imageProps}
-      {...props}
+      {...(imageProps as any)}
+      {...rest}
       onLoadingComplete={handleLoad}
       onError={handleError}
     />
   );
-};
+});
+
+OptimizedImage.displayName = 'OptimizedImage';
 
 export default OptimizedImage; 

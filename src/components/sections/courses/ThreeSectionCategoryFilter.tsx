@@ -101,7 +101,7 @@ const ThreeSectionCategoryFilter: React.FC<IThreeSectionCategoryFilterProps> = (
         "Grade 7-8",
         "Grade 9-10",
         "Grade 11-12",
-        "UG/Grad/Pro"
+        "UG - Graduate - Professionals"
       ]
     }
   ];

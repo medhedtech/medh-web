@@ -173,7 +173,7 @@ const AtMedh: React.FC = () => {
   }
 
   return (
-    <section className="relative bg-slate-50 dark:bg-slate-900 min-h-screen overflow-hidden w-full">
+    <section className="relative bg-slate-50 dark:bg-slate-900 overflow-hidden w-full">
       {/* Enhanced Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
       
@@ -185,7 +185,7 @@ const AtMedh: React.FC = () => {
       <div className="absolute top-40 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
       <div className="absolute bottom-20 left-1/2 w-28 h-28 sm:w-36 sm:h-36 bg-indigo-200/20 dark:bg-indigo-800/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
 
-      <div className="relative z-10 w-full px-3 sm:px-4 md:px-6 lg:px-8 py-8 md:py-12">
+      <div className="relative z-10 w-full px-3 sm:px-4 md:px-6 lg:px-8 py-2">
         <div className="max-w-7xl mx-auto">
           {/* Main Heading - Enhanced */}
           <motion.div
@@ -297,9 +297,9 @@ const AtMedh: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
-            className="flex justify-center mt-12"
+            className="flex justify-center mt-6 md:mt-8"
           >
-            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+            <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
               <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
               <span className="text-sm sm:text-base italic">Transforming Education, Empowering Lives</span>
               <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
@@ -307,22 +307,6 @@ const AtMedh: React.FC = () => {
           </motion.div>
         </div>
       </div>
-
-      {/* Scroll to top button - Mobile Optimized */}
-      <AnimatePresence>
-        {showScrollTop && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            onClick={scrollToTop}
-            className="fixed bottom-6 right-6 md:bottom-8 md:right-8 p-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white rounded-full shadow-lg transition-all z-50 hover:shadow-xl"
-            aria-label="Scroll to top"
-          >
-            <ArrowUp className="w-4 h-4 md:w-5 md:h-5" />
-          </motion.button>
-        )}
-      </AnimatePresence>
     </section>
   );
 };

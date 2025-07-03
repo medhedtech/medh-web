@@ -83,32 +83,6 @@ const nextConfig = {
     // Only add custom rules if absolutely necessary
     // Remove problematic CSS loader rules that cause conflicts
     
-    if (!dev && !isServer) {
-      // Optimize production builds
-      config.optimization = {
-        ...config.optimization,
-        runtimeChunk: {
-          name: 'runtime',
-        },
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            vendor: {
-              name: 'vendors',
-              test: /[\\/]node_modules[\\/]/,
-              priority: -10,
-              reuseExistingChunk: true,
-            },
-            default: {
-              minChunks: 2,
-              priority: -20,
-              reuseExistingChunk: true,
-            },
-          },
-        },
-      };
-    }
-
     return config;
   },
   // Enable production source maps for better debugging

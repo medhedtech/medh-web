@@ -28,5 +28,6 @@
     "editor.quickSuggestions": {
         "strings": "on"
     },
-    "editor.inlineSuggest.enabled": true
+    "editor.inlineSuggest.enabled": true,
+    "coderabbit.agentType": "Native"
 }

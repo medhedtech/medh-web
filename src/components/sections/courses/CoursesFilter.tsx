@@ -227,6 +227,9 @@ const gradeOptions = [
   "Grade 7-8", 
   "Grade 9-10",
   "Grade 11-12",
+  "Foundation Certificate",
+  "Advance Certificate",
+  "Executive Diploma",
   "UG - Graduate - Professionals"
 ];
 
@@ -699,7 +702,7 @@ const SearchInput = React.memo<ISearchInputProps>(({ searchTerm, handleSearch, s
         <input
           ref={searchInputRef}
           type="text"
-          placeholder="Search for courses, topics, instructors, or skills..."
+          placeholder="Search courses by title, category, or topic (most relevant first)..."
           value={searchTerm}
           onChange={handleSearch}
           onFocus={() => {
@@ -787,6 +790,7 @@ const SearchInput = React.memo<ISearchInputProps>(({ searchTerm, handleSearch, s
               <div className="flex items-center space-x-2 mb-3">
                 <Sparkles className="w-4 h-4 text-indigo-500" />
                 <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Suggested Searches</span>
+                <span className="text-xs bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 px-2 py-1 rounded-full">Relevance sorted</span>
               </div>
               <div className="space-y-1">
                 {searchSuggestions.map((suggestion, index) => (
@@ -1357,6 +1361,89 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     fixedCategory,
   ]);
 
+  // Add a search relevance scoring function after the usePerformanceMonitor hook (around line 850)
+  const calculateSearchRelevance = useCallback((course: ICourse, searchTerm: string): number => {
+    if (!searchTerm.trim()) return 0;
+    
+    const term = searchTerm.toLowerCase().trim();
+    const title = course.course_title?.toLowerCase() || '';
+    const category = course.course_category?.toLowerCase() || '';
+    const grade = course.course_grade?.toLowerCase() || '';
+    
+    let score = 0;
+    
+    // Exact title match gets highest priority
+    if (title === term) {
+      score += 100;
+    }
+    // Title starts with search term
+    else if (title.startsWith(term)) {
+      score += 80;
+    }
+    // Title contains search term as whole word
+    else if (title.includes(` ${term} `) || title.includes(`${term} `) || title.includes(` ${term}`)) {
+      score += 60;
+    }
+    // Title contains search term anywhere
+    else if (title.includes(term)) {
+      score += 40;
+    }
+    
+    // Category relevance
+    if (category === term) {
+      score += 50;
+    } else if (category.includes(term)) {
+      score += 30;
+    }
+    
+    // Grade relevance
+    if (grade === term) {
+      score += 30;
+    } else if (grade.includes(term)) {
+      score += 20;
+    }
+    
+    // Bonus for newer courses (slight preference)
+    if (course.createdAt) {
+      const courseDate = new Date(course.createdAt);
+      const now = new Date();
+      const daysDiff = (now.getTime() - courseDate.getTime()) / (1000 * 3600 * 24);
+      if (daysDiff < 30) {
+        score += 5; // Small bonus for courses created in last 30 days
+      }
+    }
+    
+    // Bonus for published status
+    if (course.status === 'Published') {
+      score += 2;
+    }
+    
+    return score;
+  }, []);
+
+  // Add a function to sort courses by search relevance
+  const sortCoursesByRelevance = useCallback((courses: ICourse[], searchTerm: string): ICourse[] => {
+    if (!searchTerm.trim()) return courses;
+    
+    const coursesWithScores = courses.map(course => ({
+      course,
+      relevanceScore: calculateSearchRelevance(course, searchTerm)
+    }));
+    
+    // Sort by relevance score (descending), then by creation date (descending) as tiebreaker
+    coursesWithScores.sort((a, b) => {
+      if (b.relevanceScore !== a.relevanceScore) {
+        return b.relevanceScore - a.relevanceScore;
+      }
+      // Tiebreaker: newer courses first
+      const dateA = new Date(a.course.createdAt || 0);
+      const dateB = new Date(b.course.createdAt || 0);
+      return dateB.getTime() - dateA.getTime();
+    });
+    
+    return coursesWithScores.map(item => item.course);
+  }, [calculateSearchRelevance]);
+
   /**
    * 3) Fetch courses from API whenever relevant states change (debounced).
    */
@@ -1417,6 +1504,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
       // Add search term if available
       if (searchTerm?.trim()) {
         searchParams.search = searchTerm.trim();
+        // For search queries, increase the limit to get more results for better relevance sorting
+        searchParams.limit = Math.max(itemsPerPage * 3, 36);
       }
 
       // Add grade if selected
@@ -1429,31 +1518,37 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
         searchParams.class_type = classType;
       }
 
-      // Add sorting
-      switch (sortOrder) {
-        case "oldest-first":
-          searchParams.sort_by = "createdAt";
-          searchParams.sort_order = "asc";
-          break;
-        case "A-Z":
-          searchParams.sort_by = "course_title";
-          searchParams.sort_order = "asc";
-          break;
-        case "Z-A":
-          searchParams.sort_by = "course_title";
-          searchParams.sort_order = "desc";
-          break;
-        case "price-low-high":
-          searchParams.sort_by = "course_fee";
-          searchParams.sort_order = "asc";
-          break;
-        case "price-high-low":
-          searchParams.sort_by = "course_fee";
-          searchParams.sort_order = "desc";
-          break;
-        default:
-          searchParams.sort_by = "createdAt";
-          searchParams.sort_order = "desc";
+      // Add sorting - but for search queries, we'll do client-side relevance sorting
+      if (!searchTerm?.trim()) {
+        switch (sortOrder) {
+          case "oldest-first":
+            searchParams.sort_by = "createdAt";
+            searchParams.sort_order = "asc";
+            break;
+          case "A-Z":
+            searchParams.sort_by = "course_title";
+            searchParams.sort_order = "asc";
+            break;
+          case "Z-A":
+            searchParams.sort_by = "course_title";
+            searchParams.sort_order = "desc";
+            break;
+          case "price-low-high":
+            searchParams.sort_by = "course_fee";
+            searchParams.sort_order = "asc";
+            break;
+          case "price-high-low":
+            searchParams.sort_by = "course_fee";
+            searchParams.sort_order = "desc";
+            break;
+          default:
+            searchParams.sort_by = "createdAt";
+            searchParams.sort_order = "desc";
+        }
+      } else {
+        // For search queries, get results sorted by creation date first, then we'll re-sort by relevance
+        searchParams.sort_by = "createdAt";
+        searchParams.sort_order = "desc";
       }
 
       const apiUrl = getAllCoursesWithLimits(searchParams);
@@ -1495,23 +1590,53 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             courses = [];
           }
 
-          setAllCourses(courses);
-          setFilteredCourses(courses);
-
-          // Handle pagination data from different response structures
-          let paginationData = null;
-          if (response && response.data && response.data.pagination) {
-            paginationData = response.data.pagination;
-          } else if (response && response.pagination) {
-            paginationData = response.pagination;
-          }
-          
-          if (paginationData) {
-            setTotalPages(paginationData.totalPages || 1);
-            setTotalItems(paginationData.total || 0);
+          // Apply search relevance sorting if there's a search term
+          if (searchTerm?.trim() && courses.length > 0) {
+            courses = sortCoursesByRelevance(courses, searchTerm);
+            
+            // For search results, implement pagination client-side after relevance sorting
+            const startIndex = (currentPage - 1) * (itemsPerPage || 12);
+            const endIndex = startIndex + (itemsPerPage || 12);
+            const paginatedCourses = courses.slice(startIndex, endIndex);
+            
+            setAllCourses(courses); // Store all results
+            setFilteredCourses(paginatedCourses); // Show paginated relevant results
+            
+            // Calculate pagination for search results
+            const totalSearchResults = courses.length;
+            const calculatedTotalPages = Math.ceil(totalSearchResults / (itemsPerPage || 12));
+            setTotalPages(calculatedTotalPages);
+            setTotalItems(totalSearchResults);
+            
+            if (process.env.NODE_ENV === 'development') {
+              const topResults = courses.slice(0, 5).map(course => ({
+                title: course.course_title,
+                category: course.course_category,
+                relevanceScore: calculateSearchRelevance(course, searchTerm)
+              }));
+              console.log(`Search relevance sorting applied. Found ${totalSearchResults} results, showing ${paginatedCourses.length} on page ${currentPage}`);
+              console.log('Top 5 most relevant results:', topResults);
+            }
           } else {
-            setTotalPages(1);
-            setTotalItems(courses.length);
+            // No search term, use original logic
+            setAllCourses(courses);
+            setFilteredCourses(courses);
+
+            // Handle pagination data from different response structures
+            let paginationData = null;
+            if (response && response.data && response.data.pagination) {
+              paginationData = response.data.pagination;
+            } else if (response && response.pagination) {
+              paginationData = response.pagination;
+            }
+            
+            if (paginationData) {
+              setTotalPages(paginationData.totalPages || 1);
+              setTotalItems(paginationData.total || 0);
+            } else {
+              setTotalPages(1);
+              setTotalItems(courses.length);
+            }
           }
 
           // Handle facets data from different response structures
@@ -1573,7 +1698,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     userCurrency,
     selectedLiveCourses,
     selectedBlendedLearning,
-    selectedFreeCourses
+    selectedFreeCourses,
+    sortCoursesByRelevance
   ]);
 
   // Whenever relevant states change, fire the fetch (with small debounce)
@@ -1962,24 +2088,51 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
    * No results
    */
   const renderNoResults = useCallback(() => {
+    const isSearchActive = searchTerm.trim().length > 0;
+    
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
         <div className="w-20 h-20 filter-glassmorphic rounded-full flex items-center justify-center mb-6">
           <SearchX size={32} className="text-gray-400 dark:text-gray-500" />
         </div>
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">No courses found</h3>
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
+          {isSearchActive ? `No courses found for "${searchTerm}"` : "No courses found"}
+        </h3>
         <p className="text-gray-600 dark:text-gray-400 max-w-md mb-8 leading-relaxed">
-          We couldn't find any courses matching your criteria. Try adjusting your filters or search terms.
+          {isSearchActive 
+            ? "We couldn't find any courses matching your search. Try different keywords, check spelling, or adjust your filters."
+            : "We couldn't find any courses matching your criteria. Try adjusting your filters or search terms."
+          }
         </p>
-        <button
-          onClick={handleClearFilters}
-          className="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-xl transition-colors duration-200 font-medium"
-        >
-          Clear Filters
-        </button>
+        {isSearchActive && (
+          <div className="mb-6 text-sm text-gray-500 dark:text-gray-400">
+            <p className="mb-2">Search suggestions:</p>
+            <ul className="space-y-1">
+              <li>• Try broader terms like "data science" instead of "machine learning algorithms"</li>
+              <li>• Check category and grade filters on the left</li>
+              <li>• Use different keywords related to your topic</li>
+            </ul>
+          </div>
+        )}
+        <div className="flex flex-col sm:flex-row gap-3">
+          {isSearchActive && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl transition-colors duration-200 font-medium"
+            >
+              Clear Search
+            </button>
+          )}
+          <button
+            onClick={handleClearFilters}
+            className="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-xl transition-colors duration-200 font-medium"
+          >
+            Clear All Filters
+          </button>
+        </div>
       </div>
     );
-  }, [handleClearFilters]);
+  }, [handleClearFilters, searchTerm, setSearchTerm]);
 
   /**
    * Count text - Memoized for performance
@@ -1987,9 +2140,13 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   const coursesCountText = useMemo(() => {
     if (showingRelated) return "Related Courses";
     if (totalItems === 0) return "No courses found";
-    if (totalItems === 1) return "1 course found";
-    return `${totalItems.toLocaleString()} courses found`;
-  }, [showingRelated, totalItems]);
+    if (totalItems === 1) {
+      return searchTerm.trim() ? "1 course found (relevance sorted)" : "1 course found";
+    }
+    return searchTerm.trim() 
+      ? `${totalItems.toLocaleString()} courses found (relevance sorted)` 
+      : `${totalItems.toLocaleString()} courses found`;
+  }, [showingRelated, totalItems, searchTerm]);
 
   // Determine UI theme colors based on activeTab
   const getTabStyles = (): ITabStyles => {
@@ -2117,7 +2274,22 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     }
 
     return (
-      <div className="course-grid-container relative px-4 md:px-6 lg:px-8 pb-0">
+              <div className="course-grid-container relative px-4 md:px-6 lg:px-8 pb-0">
+        {/* Search relevance indicator */}
+        {searchTerm.trim() && filteredCourses.length > 0 && (
+          <div className="mb-4 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl">
+            <div className="flex items-center space-x-2 text-sm">
+              <Target className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <span className="text-indigo-700 dark:text-indigo-300 font-medium">
+                Search results sorted by relevance for "{searchTerm}"
+              </span>
+              <span className="text-xs bg-indigo-100 dark:bg-indigo-800 text-indigo-600 dark:text-indigo-300 px-2 py-1 rounded-full">
+                Most relevant first
+              </span>
+            </div>
+          </div>
+        )}
+        
         {/* Enhanced Course Cards Grid - Responsive for all screen sizes */}
         <div className={`${getGridColumnClasses()} auto-rows-fr ${filteredCourses.length <= 3 ? 'max-w-4xl mx-auto' : ''}`}>
             {filteredCourses.map((course, index) => {
@@ -2529,8 +2701,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     if (hideCategoryFilter && hideGradeFilter) return null;
     if (fixedCategory && hideGradeFilter) return null;
     
-    // Hide sidebar on iPad (md and lg breakpoints) and when search is active
-    const shouldHideSidebar = searchTerm.trim().length > 0;
+    // Show sidebar based on grade filter availability only
+    const shouldHideSidebar = false; // Always show sidebar if grade filter is enabled
     
     return (
       <div className={`hidden xl:block xl:w-[20%] flex-shrink-0 ${shouldHideSidebar ? 'xl:hidden' : ''}`}>
@@ -2690,7 +2862,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                     </div>
                     <div>
                       <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 filter-glassmorphic">Blended Learning</h5>
-                      <p className="text-xs text-blue-600 dark:text-blue-400">Live + self-paced</p>
+                      <p className="text-xs text-blue-600 dark:text-blue-400">Live Q&A + self-paced</p>
                     </div>
                   </div>
                   <ChevronDown className={`w-4 h-4 text-blue-600 dark:text-blue-400 transition-all duration-300 ease-in-out ${isBlendedLearningDropdownOpen ? 'rotate-180 scale-110' : 'rotate-0 scale-100'}`} />
@@ -2824,7 +2996,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   // Main content renderer with course list and pagination
   const renderMainContent = (): React.ReactNode => {
     // Adjust width based on sidebar visibility - show sidebar if grade filter is enabled
-    const shouldHideSidebar = searchTerm.trim().length > 0 || (fixedCategory && hideGradeFilter);
+    const shouldHideSidebar = (fixedCategory && hideGradeFilter);
     const mainContentWidth = shouldHideSidebar ? 'w-full' : 'xl:w-[80%]';
     
     return (
@@ -3060,7 +3232,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                 </div>
                 <div>
                   <h4 className="text-base font-bold text-gray-900 dark:text-gray-100">Blended Learning</h4>
-                  <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">Live + self-paced</p>
+                  <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">Live Q&A + self-paced</p>
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-3">
