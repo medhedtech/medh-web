@@ -87,6 +87,8 @@ const getSemanticColor = (index: number): { bg: string; text: string; border: st
     { bg: 'bg-purple-50 dark:bg-purple-900/20', text: 'text-purple-600 dark:text-purple-400', border: 'border-purple-200 dark:border-purple-800' }
   ];
   return colorMap[index % colorMap.length];
+};
+
 const WelcomeCard: React.FC<IWelcomeCardProps> = memo(({ icon: Icon, title, description, color, index }) => {
   const [isHovered, setIsHovered] = useState<boolean>(false);
 
@@ -256,14 +258,14 @@ const WelcomeCareers: React.FC = () => {
             variants={fadeInUp}
             className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-4 md:mb-6 tracking-tight text-slate-900 dark:text-white flex flex-col items-center gap-2 md:gap-3"
           >
-            <span className="block text-slate-900 dark:text-white">Welcome to</span>
+            <span className="block text-lg sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl text-slate-900 dark:text-white">Welcome to</span>
             <div className="flex items-center justify-center">
               <Image
                 src={medhLogo}
                 alt="MEDH Logo"
-                width={120}
-                height={40}
-                className="h-8 sm:h-10 md:h-12 lg:h-16 xl:h-20 w-auto object-contain"
+                width={58}
+                height={22}
+                className="h-5 sm:h-7 md:h-9 lg:h-11 xl:h-12 w-auto object-contain"
                 priority
               />
             </div>
@@ -271,7 +273,7 @@ const WelcomeCareers: React.FC = () => {
           
           <motion.p 
             variants={fadeInUp}
-            className="text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed text-slate-600 dark:text-slate-300 max-w-4xl mx-auto"
+            className="text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed text-slate-600 dark:text-slate-300 max-w-4xl mx-auto"
           >
             Where we are redefining the future of education through innovation and technology. 
             As a leading EdTech company, we are committed to providing cutting-edge skill 

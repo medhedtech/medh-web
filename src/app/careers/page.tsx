@@ -36,13 +36,13 @@ const CareersPage: NextPage = () => {
         <div ref={jobOpeningRef} id="job-openings">
           <JobOpening />
         </div>
-        <CareerFaq />
-        {/* <CareerCourceBanner /> */}
         <div className={buildComponent.section('dark')}>
           <div className="pb-16">
             <Certified />
           </div>
         </div>
+        <CareerFaq />
+        {/* <CareerCourceBanner /> */}
       </main>
     </PageWrapper>
   );
