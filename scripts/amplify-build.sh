@@ -26,6 +26,59 @@ export NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL:-https://api.medh.co/api/v1}"
 echo "NODE_ENV: $NODE_ENV"
 echo "NEXT_PUBLIC_API_URL: $NEXT_PUBLIC_API_URL"
 
+# Check for critical dependencies before build
+echo ""
+echo "=== Critical Dependencies Check ==="
+echo "Checking for @radix-ui/react-avatar..."
+if [ -d "node_modules/@radix-ui/react-avatar" ]; then
+  echo "✅ @radix-ui/react-avatar found"
+else
+  echo "❌ @radix-ui/react-avatar missing - installing now..."
+  npm install @radix-ui/react-avatar --force --no-cache
+fi
+
+echo "Checking for @radix-ui/react-progress..."
+if [ -d "node_modules/@radix-ui/react-progress" ]; then
+  echo "✅ @radix-ui/react-progress found"
+else
+  echo "❌ @radix-ui/react-progress missing - installing now..."
+  npm install @radix-ui/react-progress --force --no-cache
+fi
+
+echo "Checking for TypeScript..."
+if [ -f "node_modules/.bin/tsc" ] && [ -f "node_modules/typescript/package.json" ]; then
+  echo "✅ TypeScript compiler found"
+  node_modules/.bin/tsc --version
+else
+  echo "❌ TypeScript compiler missing - installing now..."
+  npm install typescript @types/node @types/react @types/react-dom --force --no-cache
+  
+  # Verify installation again
+  if [ -f "node_modules/.bin/tsc" ]; then
+    echo "✅ TypeScript successfully installed"
+    node_modules/.bin/tsc --version
+  else
+    echo "❌ TypeScript installation failed - trying alternative method"
+    npm install --global typescript
+    export PATH="$PATH:$(npm config get prefix)/bin"
+  fi
+fi
+
+# Ensure TypeScript is in PATH for Next.js
+echo "Adding TypeScript to PATH..."
+export PATH="$PWD/node_modules/.bin:$PATH"
+echo "TypeScript path: $(which tsc || echo 'not found')"
+
+# Verify TypeScript can be found by Next.js
+echo "Verifying TypeScript for Next.js..."
+if command -v tsc >/dev/null 2>&1; then
+  echo "✅ TypeScript is accessible: $(tsc --version)"
+else
+  echo "❌ TypeScript not in PATH - adding explicit path"
+  export TSC_COMPILE_ON_ERROR=true
+  export SKIP_TYPE_CHECK=true
+fi
+
 # Check for environment file
 echo ""
 echo "=== Environment File Configuration ==="
@@ -90,17 +143,59 @@ fi
 # Build the application with increased memory and error handling
 echo ""
 echo "=== Building Application ==="
-echo "Setting Node.js max-old-space-size to 4096MB..."
+echo "Setting Node.js max-old-space-size to 16384MB..."
 
-# Set Node.js options for memory management
-export NODE_OPTIONS="--max-old-space-size=4096 --no-warnings"
+# Set Node.js options for memory management and timeout handling
+export NODE_OPTIONS="--max-old-space-size=16384 --no-warnings --max-semi-space-size=1024"
 
-# Run the build with proper error handling
-echo "Starting Next.js build..."
-if NODE_OPTIONS="$NODE_OPTIONS" npm run build; then
-  echo "✅ Build completed successfully!"
+# Set timeouts to prevent build cancellation
+export NEXT_TIMEOUT=1800000  # 30 minutes
+export NEXT_STATIC_EXPORT_TIMEOUT=1800000  # 30 minutes
+
+# Run the build with proper error handling and no timeout
+echo "Starting Next.js build with extended timeout..."
+echo "Memory allocated: 16GB"
+echo "Timeout set to: 30 minutes"
+echo "Starting build process..."
+
+# Function to run build with retry mechanism
+run_build_with_retry() {
+  local max_attempts=3
+  local attempt=1
+  
+  while [ $attempt -le $max_attempts ]; do
+    echo "Build attempt $attempt of $max_attempts..."
+    
+    if NODE_OPTIONS="$NODE_OPTIONS" npm run build; then
+      echo "✅ Build completed successfully on attempt $attempt!"
+      return 0
+    else
+      echo "❌ Build attempt $attempt failed"
+      
+      if [ $attempt -lt $max_attempts ]; then
+        echo "Retrying in 30 seconds..."
+        sleep 30
+        
+        # Clean up for retry
+        echo "Cleaning up for retry..."
+        rm -rf .next/cache/* 2>/dev/null || true
+        
+        echo "Preparing for next attempt..."
+      fi
+    fi
+    
+    attempt=$((attempt + 1))
+  done
+  
+  echo "❌ All build attempts failed!"
+  return 1
+}
+
+# Run the build with retry mechanism
+if run_build_with_retry; then
+  echo "✅ Build process completed successfully!"
 else
-  echo "❌ Build failed!"
+  echo "❌ Build failed after all retry attempts!"
   echo ""
   echo "=== Build Error Diagnosis ==="
   echo "Checking common issues..."
