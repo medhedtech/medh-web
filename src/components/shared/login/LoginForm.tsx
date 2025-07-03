@@ -31,6 +31,13 @@ import {
   setRememberMe
 } from "@/utils/auth";
 import { 
+  RememberedAccountsManager, 
+  RememberedAccount,
+  hasRememberedAccounts 
+} from "@/utils/rememberedAccounts";
+import QuickLoginAccounts from './QuickLoginAccounts';
+import QuickLoginPassword from './QuickLoginPassword';
+import { 
   authAPI, 
   authUtils, 
   ILoginData, 
@@ -202,6 +209,12 @@ const LoginForm = () => {
   const [useBackupCode, setUseBackupCode] = useState<boolean>(false);
   const [backupCode, setBackupCode] = useState<string>('');
   const [smsResendCooldown, setSmsResendCooldown] = useState<number>(0);
+  
+  // Quick Login states
+  const [showQuickLogin, setShowQuickLogin] = useState<boolean>(false);
+  const [selectedAccount, setSelectedAccount] = useState<RememberedAccount | null>(null);
+  const [showQuickPassword, setShowQuickPassword] = useState<boolean>(false);
+  const [quickLoginError, setQuickLoginError] = useState<string>('');
 
   const {
     register,
@@ -223,6 +236,23 @@ const LoginForm = () => {
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 300);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Check for remembered accounts on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Migrate old format first
+      RememberedAccountsManager.migrateFromOldFormat();
+      
+      // Check if we have remembered accounts
+      const hasAccounts = hasRememberedAccounts();
+      setShowQuickLogin(hasAccounts);
+      
+      // If we have accounts, hide the regular form initially
+      if (hasAccounts) {
+        console.log('Found remembered accounts, showing quick login interface');
+      }
+    }
   }, []);
 
   // Prefill email from auth utility if remember me was previously enabled
@@ -753,6 +783,19 @@ const LoginForm = () => {
       rememberMe: rememberMe
     };
 
+    // Save to new remembered accounts system if remember me is enabled
+    if (rememberMe) {
+      try {
+        RememberedAccountsManager.addRememberedAccount({
+          email: loginData.email,
+          fullName: fullName || loginData.email.split('@')[0],
+          role: userRole
+        });
+      } catch (error) {
+        console.warn('Failed to save to remembered accounts:', error);
+      }
+    }
+
     // Parallel operations: storage, events, and UI updates
     const operations = [
       () => storageManager.login(storageData),
@@ -1170,6 +1213,13 @@ const LoginForm = () => {
 
   // Updated submit handler to handle MFA responses
   const onSubmit = async (data: FormInputs): Promise<void> => {
+    // Check terms agreement first with immediate feedback
+    if (!data.agree_terms) {
+      trigger("agree_terms");
+      showToast.warning("📋 Please accept the Terms of Service and Privacy Policy to continue.", { duration: 4000 });
+      return;
+    }
+
     if (!recaptchaValue) {
       setRecaptchaError(true);
       showToast.warning("🤖 Please complete the reCAPTCHA verification to continue.", { duration: 4000 });
@@ -1411,6 +1461,140 @@ const LoginForm = () => {
       tempSession: false
     });
     setCurrentStep(1);
+  };
+
+  // Quick Login Handlers
+  const handleQuickAccountSelect = (account: RememberedAccount): void => {
+    setSelectedAccount(account);
+    setQuickLoginError('');
+    
+    // Check if password is needed
+    if (RememberedAccountsManager.needsPasswordEntry(account.email)) {
+      setShowQuickPassword(true);
+    } else {
+      // Perform quick login without password
+      performQuickLogin(account);
+    }
+  };
+
+  const handleQuickPasswordSubmit = (password: string): void => {
+    if (selectedAccount) {
+      performQuickLogin(selectedAccount, password);
+    }
+  };
+
+  const handleBackToQuickLogin = (): void => {
+    setShowQuickPassword(false);
+    setSelectedAccount(null);
+    setQuickLoginError('');
+  };
+
+  const handleManualLogin = (): void => {
+    setShowQuickLogin(false);
+    setSelectedAccount(null);
+    setShowQuickPassword(false);
+    setQuickLoginError('');
+  };
+
+  const handleRemoveQuickAccount = (email: string): void => {
+    try {
+      RememberedAccountsManager.removeRememberedAccount(email);
+      
+      // If no more accounts, switch to manual login
+      if (!hasRememberedAccounts()) {
+        setShowQuickLogin(false);
+      }
+    } catch (error) {
+      console.error('Error removing account:', error);
+    }
+  };
+
+  // Perform quick login
+  const performQuickLogin = async (account: RememberedAccount, password?: string): Promise<void> => {
+    const loadingToastId = showToast.loading("🔐 Signing you in...", { duration: 15000 });
+    
+    try {
+      const loginData: ILoginData = {
+        email: account.email,
+        password: password || '' // For quick login without password, we'll use stored credentials
+      };
+
+      await postQuery({
+        url: authAPI.local.login,
+        postData: loginData,
+        onSuccess: (res: any) => {
+          showToast.dismiss(loadingToastId);
+          
+          // Handle the same login success flow as regular login
+          if (authUtils.isMFARequired(res)) {
+            const mfaResponse = res as IMFALoginRequiredResponse;
+            showToast.info("🔐 Multi-factor authentication required", { duration: 3000 });
+            
+            setMFAVerificationState({
+              isRequired: true,
+              method: mfaResponse.mfa_method,
+              userId: mfaResponse.data.user_id,
+              phoneHint: mfaResponse.data.phone_hint,
+              tempSession: mfaResponse.data.temp_session
+            });
+            setShowMFAVerification(true);
+            setShowQuickLogin(false);
+            setShowQuickPassword(false);
+            return;
+          }
+          
+          if (!res || !res.data) {
+            showToast.error("❌ Invalid response from server. Please try again.", { duration: 5000 });
+            return;
+          }
+          
+          const isNestedStructure = res.data && 'user' in res.data && res.data.user;
+          const userData = isNestedStructure ? res.data.user : res.data;
+          const token = isNestedStructure ? res.data.token : res.data.access_token;
+          const refreshToken = isNestedStructure ? res.data.session_id : res.data.refresh_token;
+          
+          if (!userData || !userData.id || !userData.email) {
+            showToast.error("❌ Incomplete user data received. Please try again.", { duration: 5000 });
+            return;
+          }
+
+          const loginResponseData: LoginResponseData = {
+            id: userData.id || '',
+            email: userData.email || '',
+            full_name: userData.full_name || '',
+            role: userData.role || [],
+            permissions: userData.permissions || [],
+            access_token: token || '',
+            refresh_token: refreshToken || '',
+            emailVerified: userData.email_verified
+          };
+
+          // Update last used account
+          RememberedAccountsManager.setLastUsedAccount(account.email);
+          
+          completeLoginProcess(loginResponseData);
+        },
+        onFail: (error) => {
+          showToast.dismiss(loadingToastId);
+          console.error('Quick login error:', error);
+          
+          const enhancedError = getEnhancedErrorMessage(error);
+          setQuickLoginError(enhancedError);
+          
+          // If password was required but failed, show password form
+          if (password) {
+            // Stay on password form with error
+          } else {
+            // Switch to password form for this account
+            setShowQuickPassword(true);
+          }
+        }
+      });
+    } catch (error: any) {
+      showToast.dismiss(loadingToastId);
+      console.error('Quick login submission error:', error);
+      setQuickLoginError("❌ An unexpected error occurred. Please try again.");
+    }
   };
 
   // Account Lockout Warning Component
@@ -1835,11 +2019,42 @@ const LoginForm = () => {
             
             {/* Form area */}
             <div className="px-4 sm:px-8 pb-4 sm:pb-8">
-              <form 
-                onSubmit={handleSubmit(onSubmit)} 
-                className="space-y-3 sm:space-y-5"
-                onKeyDown={handleKeyDown}
-              >
+              {/* Quick Login Interface */}
+              {showQuickLogin && !showQuickPassword ? (
+                <QuickLoginAccounts
+                  onAccountSelect={handleQuickAccountSelect}
+                  onManualLogin={handleManualLogin}
+                  onRemoveAccount={handleRemoveQuickAccount}
+                  isLoading={loading}
+                />
+              ) : showQuickPassword && selectedAccount ? (
+                <QuickLoginPassword
+                  account={selectedAccount}
+                  onSubmit={handleQuickPasswordSubmit}
+                  onBack={handleBackToQuickLogin}
+                  isLoading={loading}
+                  error={quickLoginError}
+                />
+              ) : (
+                /* Regular Login Form */
+                <form 
+                  onSubmit={handleSubmit(onSubmit)} 
+                  className="space-y-3 sm:space-y-5"
+                  onKeyDown={handleKeyDown}
+                >
+                  {/* Back to Quick Login button if we have accounts */}
+                  {hasRememberedAccounts() && (
+                    <div className="mb-4">
+                      <button
+                        type="button"
+                        onClick={() => setShowQuickLogin(true)}
+                        className="w-full py-2.5 px-4 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium rounded-xl border border-dashed border-blue-300 dark:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-solid transition-all flex items-center justify-center gap-2"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        ✨ Back to saved accounts
+                      </button>
+                    </div>
+                  )}
                 {/* Email field */}
                 <div>
                   <div className="relative">
@@ -1921,18 +2136,18 @@ const LoginForm = () => {
                       id="remember-me"
                       name="remember-me"
                       type="checkbox"
-                      className="h-3.5 w-3.5 rounded-md text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                      className="h-4 w-4 rounded-md text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
                       onChange={handleRememberMeChange}
                       checked={rememberMe}
                     />
-                    <label htmlFor="remember-me" className="ml-2 block text-xs text-gray-700 dark:text-gray-300">
+                    <label htmlFor="remember-me" className="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Remember me
                     </label>
                   </div>
                   <div className="text-right">
                     <a
                       href="/forgot-password"
-                      className="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors"
+                      className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors"
                     >
                       Forgot password?
                     </a>
@@ -1940,45 +2155,68 @@ const LoginForm = () => {
                 </div>
                 
                 {/* Terms and conditions */}
-                <div>
-                  <label className="inline-flex items-start">
+                <div className={`rounded-xl p-4 transition-all duration-200 ${
+                  errors.agree_terms 
+                    ? 'border-2 border-red-300 dark:border-red-500 bg-red-50/50 dark:bg-red-900/10' 
+                    : 'border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50'
+                }`}>
+                  <label className="flex items-start cursor-pointer group">
                     <input
                       type="checkbox"
-                      className="rounded-md text-primary-600 focus:ring-primary-500 h-3.5 w-3.5 border-gray-300 dark:border-gray-600 dark:bg-gray-700 mt-0.5"
+                      className={`rounded-lg text-primary-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 h-5 w-5 mt-0.5 transition-all shadow-sm ${
+                        errors.agree_terms 
+                          ? 'border-red-300 dark:border-red-500' 
+                          : 'border-gray-300 dark:border-gray-600 group-hover:border-primary-400'
+                      } dark:bg-gray-700`}
                       {...register("agree_terms")}
                     />
-                    <span className="ml-2 text-xs text-gray-600 dark:text-gray-400">
-                      I accept the{" "}
-                      <a
-                        href="/terms-and-services"
-                        className="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 underline"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Terms of use
-                      </a>{" "}
-                      and{" "}
-                      <a
-                        href="/privacy-policy"
-                        className="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 underline"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Privacy Policy
-                      </a>
-                    </span>
+                    <div className="ml-3 flex-1">
+                      <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                        I agree to the{" "}
+                        <a
+                          href="/terms-and-services"
+                          className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-semibold no-underline hover:underline underline-offset-2 decoration-2"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Terms of Service
+                        </a>{" "}
+                        and{" "}
+                        <a
+                          href="/privacy-policy"
+                          className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-semibold no-underline hover:underline underline-offset-2 decoration-2"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Privacy Policy
+                        </a>
+                      </span>
+                      <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Required to create your account and access our services
+                      </div>
+                    </div>
                   </label>
                   {errors.agree_terms && (
-                    <p className="mt-1 text-xs text-red-500 flex items-start" role="alert">
-                      <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
-                      <span>{errors.agree_terms.message}</span>
-                    </p>
+                    <div className="mt-3 pt-3 border-t border-red-200 dark:border-red-800 flex items-start gap-2 text-red-600 dark:text-red-400">
+                      <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm font-medium">{errors.agree_terms.message}</span>
+                    </div>
                   )}
                 </div>
                 
                 {/* Custom ReCAPTCHA */}
-                <div className="scale-90 sm:scale-100 origin-center">
+                <div className={`scale-90 sm:scale-100 origin-center transition-all duration-200 ${
+                  recaptchaError 
+                    ? 'border-2 border-red-300 dark:border-red-500 rounded-lg bg-red-50/30 dark:bg-red-900/10 p-2' 
+                    : ''
+                }`}>
                   <CustomReCaptcha onChange={handleRecaptchaChange} error={!!recaptchaError} />
+                  {recaptchaError && (
+                    <div className="mt-2 flex items-center gap-2 text-red-600 dark:text-red-400 text-sm">
+                      <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                      <span>Please complete the verification to continue</span>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Submit Button */}
@@ -2007,7 +2245,8 @@ const LoginForm = () => {
                     </a>
                   </p>
                 </div>
-              </form>
+                </form>
+              )}
             </div>
           </div>
           
