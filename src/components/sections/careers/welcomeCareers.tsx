@@ -88,7 +88,6 @@ const getSemanticColor = (index: number): { bg: string; text: string; border: st
   ];
   return colorMap[index % colorMap.length];
 };
-
 const WelcomeCard: React.FC<IWelcomeCardProps> = memo(({ icon: Icon, title, description, color, index }) => {
   const [isHovered, setIsHovered] = useState<boolean>(false);
 
@@ -366,4 +365,4 @@ const WelcomeCareers: React.FC = () => {
   );
 };
 
-export default memo(WelcomeCareers);
+export default WelcomeCareers;

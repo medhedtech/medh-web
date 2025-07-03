@@ -2250,6 +2250,7 @@ export * from './courses';
 export * from './blog.api';
 export * from './apiClient';
 export * from './batch';
+export * from './broucher';
 
 // Admin Dashboard Interfaces
 export interface IDashboardCount {
