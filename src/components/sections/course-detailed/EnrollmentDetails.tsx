@@ -2804,19 +2804,23 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           
           {/* Course Features - Mobile-first redesign */}
           <div className="border-t border-gray-200 dark:border-gray-700 pt-5 sm:pt-4">
-            <h4 className="flex items-center justify-center gap-2 sm:gap-1.5 font-semibold text-gray-900 dark:text-white text-lg sm:text-sm mb-4 sm:mb-3">
-              <ThumbsUp className="w-6 h-6 sm:w-4 sm:h-4 text-green-500" />
+            <h4 className="flex items-center gap-3 font-semibold text-gray-900 dark:text-white text-lg mb-4">
+              <div className="h-9 w-9 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
+                <Award className="h-5 w-5 text-emerald-500" />
+              </div>
               What you'll get
             </h4>
 
-            <div className="space-y-3 sm:space-y-2 sm:grid sm:grid-cols-1 lg:grid-cols-3 sm:gap-2 sm:space-y-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {courseFeatures.map((feature: string, index: number) => (
                 <div
                   key={index}
-                  className="flex items-center gap-3 sm:gap-1.5 bg-white dark:bg-gray-800 rounded-xl sm:rounded-lg border border-gray-100 dark:border-gray-700 px-4 py-3 sm:px-3 sm:py-2 text-base sm:text-xs font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                  className="flex items-center gap-3 bg-gray-50/50 dark:bg-gray-800/50 rounded-xl border border-gray-200/50 dark:border-gray-700/50 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition-colors duration-200"
                 >
-                  <CheckCircle2 className="w-5 h-5 sm:w-3 sm:h-3 text-green-500 flex-shrink-0" />
-                  <span className="leading-relaxed">{feature}</span>
+                  <div className="h-8 w-8 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  </div>
+                  <span className="leading-snug">{feature}</span>
                 </div>
               ))}
             </div>

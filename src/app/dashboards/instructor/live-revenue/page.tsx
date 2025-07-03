@@ -1,534 +1,209 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { instructorApi, InstructorRevenue } from '@/apis/instructor.api';
-import { showToast } from '@/utils/toast';
-import Preloader from '@/components/shared/others/Preloader';
-import { 
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { 
-  LucideDollarSign,
-  LucideBarChart,
-  LucideTrendingUp,
-  LucideTrendingDown,
-  LucideCalendar,
-  LucideFilter,
-  LucideDownload,
-  LucideVideo,
-  LucideUsers,
-  LucideGraduationCap,
-  LucideRefreshCw,
-  LucideEye,
-  LucideTarget,
-  LucideActivity,
-  LucideAward,
-  LucideCreditCard,
-  LucideAlertCircle,
-  LucideCheckCircle,
-  LucideClock,
-  LucideArrowUpRight,
-  LucideArrowDownRight,
-  LucidePieChart
-} from 'lucide-react';
+import React, { useState, useEffect, useCallback } from "react";
+import { motion } from "framer-motion";
+import { instructorApi } from "@/apis/instructor.api";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { buildAdvancedComponent, getResponsive, typography, buildComponent } from "@/utils/designSystem";
+import {
+  AlertCircle,
+  DollarSign,
+  Users,
+  TrendingUp,
+  TrendingDown,
+  Calendar,
+  BarChart, // Added BarChart import
+} from "lucide-react";
+import { showToast } from "@/utils/toast";
+import { format } from "date-fns";
 
-interface RevenueFilters {
-  period: 'week' | 'month' | 'quarter' | 'year';
-  startDate: string;
-  endDate: string;
-  includeProjections: boolean;
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+};
+
+interface LiveRevenueData {
+  totalEnrollments: number;
+  activeBatches: number;
+  averageRevenuePerBatch: number;
+  totalRevenue: number;
+  batchDetails: any[]; // Assuming this contains details for breakdown
 }
 
-interface MonthlyTrend {
-  year: number;
-  month: number;
-  revenue: number;
-  enrollments: number;
-  monthName: string;
-  batches: number;
-}
-
-const LiveRevenuePage: React.FC = () => {
-  const [revenueData, setRevenueData] = useState<InstructorRevenue | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+const LiveRevenuePage = () => {
+  const [revenueData, setRevenueData] = useState<LiveRevenueData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<RevenueFilters>({
-    period: 'month',
-    startDate: new Date(new Date().setMonth(new Date().getMonth() - 6)).toISOString().split('T')[0],
-    endDate: new Date().toISOString().split('T')[0],
-    includeProjections: false
-  });
+
+  const fetchLiveRevenue = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Assuming instructorApi.getBatchRevenueMetrics returns LiveRevenueData
+      const data = await instructorApi.getBatchRevenueMetrics();
+      setRevenueData(data);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "An unknown error occurred.";
+      setError(errorMessage);
+      showToast.error("Failed to load live revenue data.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        // Get current instructor ID from localStorage or context
-        const instructorId = localStorage.getItem('instructorId') || 'current';
-        const response = await instructorApi.getInstructorRevenue(instructorId);
-        setRevenueData(response);
-        setError(null);
-      } catch (err: any) {
-        console.error('Error fetching live revenue:', err);
-        setError(err?.message || 'Failed to load revenue data');
-        showToast.error('Failed to load revenue data');
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetchLiveRevenue();
+  }, [fetchLiveRevenue]);
 
-    fetchData();
-  }, [filters, instructorApi]);
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
-
-  const formatPercentage = (value: number) => {
-    return `${value > 0 ? '+' : ''}${value.toFixed(1)}%`;
-  };
-
-  const getGrowthIcon = (value: number) => {
-    if (value > 0) return <LucideArrowUpRight className="w-4 h-4 text-green-600" />;
-    if (value < 0) return <LucideArrowDownRight className="w-4 h-4 text-red-600" />;
-    return <LucideActivity className="w-4 h-4 text-gray-600" />;
-  };
-
-  const getGrowthColor = (value: number) => {
-    if (value > 0) return 'text-green-600 dark:text-green-400';
-    if (value < 0) return 'text-red-600 dark:text-red-400';
-    return 'text-gray-600 dark:text-gray-400';
-  };
-
-  if (loading) return <Preloader />;
+  if (loading) {
+    return (
+      <div className="p-6">
+        <Skeleton className="h-8 w-1/4 mb-4" />
+        <Skeleton className="h-48 w-full mb-6" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-32" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6 flex items-center justify-center">
-        <Card className="max-w-md w-full">
-          <CardHeader>
-            <CardTitle className="text-red-600 dark:text-red-400 flex items-center gap-2">
-              <LucideAlertCircle className="w-5 h-5" />
-              Error Loading Revenue Data
-            </CardTitle>
-            <CardDescription>{error}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <button
-              onClick={() => window.location.reload()}
-              className="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
-            >
-              <LucideRefreshCw className="w-4 h-4" />
-              Try Again
-            </button>
-          </CardContent>
-        </Card>
+      <div className="p-6">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       </div>
     );
   }
 
   if (!revenueData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6 flex items-center justify-center">
-        <Card className="max-w-md w-full">
-          <CardContent className="text-center py-12">
-            <LucideDollarSign className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              No Revenue Data Available
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400">
-              Start teaching to see your revenue analytics.
-            </p>
-          </CardContent>
-        </Card>
+      <div className="text-center py-16">
+          <DollarSign className="mx-auto h-12 w-12 text-gray-400" />
+          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No live revenue data</h3>
+          <p className="mt-1 text-sm text-gray-500">No live class revenue data available at the moment.</p>
       </div>
     );
   }
 
-  // Calculate growth rates
-  const currentMonth = revenueData.monthlyTrends[revenueData.monthlyTrends.length - 1];
-  const previousMonth = revenueData.monthlyTrends[revenueData.monthlyTrends.length - 2];
-  const monthlyGrowth = previousMonth ? 
-    ((currentMonth?.revenue - previousMonth.revenue) / previousMonth.revenue) * 100 : 0;
-
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6"
+      className="p-4 md:p-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
     >
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
-                <LucideVideo className="w-8 h-8 text-green-600" />
-                Live Classes Revenue
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-                Track your earnings from live classes and analyze revenue trends
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2">
-                <LucideDownload className="w-4 h-4" />
-                Export Report
-              </button>
-              <button 
-                onClick={() => window.location.reload()}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
-              >
-                <LucideRefreshCw className="w-4 h-4" />
-                Refresh
-              </button>
-            </div>
-          </div>
-        </div>
+      <div className={buildAdvancedComponent.headerCard()}>
+        <h1 className={typography.h1}>Live Classes Revenue</h1>
+        <p className={typography.lead}>
+          Overview of revenue generated from live classes and batches.
+        </p>
+      </div>
 
-        {/* Filters */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <LucideFilter className="w-5 h-5" />
-              Revenue Filters
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <select
-                value={filters.period}
-                onChange={(e) => setFilters({ ...filters, period: e.target.value as any })}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              >
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-                <option value="quarter">This Quarter</option>
-                <option value="year">This Year</option>
-              </select>
-              
-              <input
-                type="date"
-                value={filters.startDate}
-                onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-              
-              <input
-                type="date"
-                value={filters.endDate}
-                onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-
-              <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800">
-                <input
-                  type="checkbox"
-                  checked={filters.includeProjections}
-                  onChange={(e) => setFilters({ ...filters, includeProjections: e.target.checked })}
-                  className="rounded"
-                />
-                <span className="text-sm text-gray-700 dark:text-gray-300">Include Projections</span>
-              </label>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Revenue Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-xl p-6 shadow-lg"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-3xl font-bold">
-                  {formatCurrency(revenueData.summary.totalRevenue)}
-                </p>
-                <p className="text-green-100 font-medium">
-                  Total Revenue
-                </p>
-              </div>
-              <div className="p-3 bg-white/20 rounded-xl">
-                <LucideDollarSign className="w-6 h-6" />
-              </div>
-            </div>
-            <div className="flex items-center gap-1 mt-3">
-              {getGrowthIcon(monthlyGrowth)}
-              <span className="text-sm font-medium">
-                {formatPercentage(monthlyGrowth)} from last month
-              </span>
-            </div>
-          </motion.div>
-
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                  {formatCurrency(revenueData.summary.monthlyRevenue)}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-300 font-medium">
-                  Monthly Revenue
-                </p>
-              </div>
-              <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl">
-                <LucideCalendar className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                  {revenueData.batchMetrics.activeBatches}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-300 font-medium">
-                  Active Batches
-                </p>
-              </div>
-              <div className="p-3 bg-purple-50 dark:bg-purple-900/30 rounded-xl">
-                <LucideGraduationCap className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">
-                  {revenueData.batchMetrics.totalEnrollments}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-300 font-medium">
-                  Total Enrollments
-                </p>
-              </div>
-              <div className="p-3 bg-orange-50 dark:bg-orange-900/30 rounded-xl">
-                <LucideUsers className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-              </div>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Revenue Breakdown and Trends */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Revenue Breakdown */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <LucidePieChart className="w-5 h-5" />
-                  Revenue Breakdown
-                </CardTitle>
-                <CardDescription>
-                  Your revenue distribution across different sources
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-                      <span className="font-medium">Batch Revenue</span>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-green-600 dark:text-green-400">
-                        {formatCurrency(revenueData.summary.batchRevenue)}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {((revenueData.summary.batchRevenue / revenueData.summary.totalRevenue) * 100).toFixed(1)}%
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
-                      <span className="font-medium">Demo Revenue</span>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-blue-600 dark:text-blue-400">
-                        {formatCurrency(revenueData.summary.demoRevenue)}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {((revenueData.summary.demoRevenue / revenueData.summary.totalRevenue) * 100).toFixed(1)}%
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-                      <span className="font-medium">Pending Amount</span>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-red-600 dark:text-red-400">
-                        {formatCurrency(revenueData.summary.pendingAmount)}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {((revenueData.summary.pendingAmount / revenueData.summary.totalRevenue) * 100).toFixed(1)}%
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Key Metrics */}
-          <div>
-        <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <LucideTarget className="w-5 h-5" />
-                  Key Metrics
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {formatCurrency(revenueData.summary.averageRevenuePerStudent)}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Avg Revenue/Student
-                    </p>
-                  </div>
-
-                  <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {formatCurrency(revenueData.batchMetrics.averageRevenuePerBatch)}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Avg Revenue/Batch
-                    </p>
-                  </div>
-
-                  <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {revenueData.demoMetrics.conversionRate.toFixed(1)}%
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Demo Conversion Rate
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Monthly Trends */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <LucideBarChart className="w-5 h-5" />
-              Monthly Revenue Trends
-            </CardTitle>
-            <CardDescription>
-              Track your revenue growth over the past months
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {revenueData.monthlyTrends.slice(-6).map((trend, index) => (
-                <div key={index} className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      {trend.monthName} {trend.year}
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {trend.enrollments} enrollments • {revenueData.breakdown.find(b => b.period.includes(trend.monthName))?.batches || 0} batches
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-green-600 dark:text-green-400">
-                      {formatCurrency(trend.revenue)}
-                    </p>
-                    {index > 0 && (
-                      <div className="flex items-center gap-1">
-                        {getGrowthIcon(((trend.revenue - revenueData.monthlyTrends[revenueData.monthlyTrends.length - 6 + index - 1].revenue) / revenueData.monthlyTrends[revenueData.monthlyTrends.length - 6 + index - 1].revenue) * 100)}
-                        <span className={`text-xs ${getGrowthColor(((trend.revenue - revenueData.monthlyTrends[revenueData.monthlyTrends.length - 6 + index - 1].revenue) / revenueData.monthlyTrends[revenueData.monthlyTrends.length - 6 + index - 1].revenue) * 100)}`}>
-                          {formatPercentage(((trend.revenue - revenueData.monthlyTrends[revenueData.monthlyTrends.length - 6 + index - 1].revenue) / revenueData.monthlyTrends[revenueData.monthlyTrends.length - 6 + index - 1].revenue) * 100)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Pending Payments */}
-        {revenueData.pendingPayments.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <LucideCreditCard className="w-5 h-5" />
-                Pending Payments ({revenueData.pendingPayments.length})
-              </CardTitle>
-              <CardDescription>
-                Students with pending payment obligations
-              </CardDescription>
+      <motion.div
+        className={getResponsive.grid({ mobile: 1, tablet: 2, desktop: 3, gap: 'lg' })}
+        variants={containerVariants}
+      >
+        <motion.div variants={itemVariants}>
+          <Card className={buildComponent.card('elegant')}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Live Revenue</CardTitle>
+              <DollarSign className="h-4 w-4 text-gray-500" />
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {revenueData.pendingPayments.slice(0, 5).map((payment, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white">
-                        {payment.studentName}
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {payment.batchName}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <p className="font-bold text-red-600 dark:text-red-400">
-                          {formatCurrency(payment.pendingAmount)}
-                        </p>
-                        <p className="text-xs text-gray-500 capitalize">
-                          {payment.paymentStatus.replace('_', ' ')}
-                        </p>
-                      </div>
-                      <button className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
-                        <LucideEye className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {revenueData.pendingPayments.length > 5 && (
-                  <div className="text-center py-4">
-                    <button className="text-blue-600 hover:text-blue-700 font-medium">
-                      View all {revenueData.pendingPayments.length} pending payments
-                    </button>
-                  </div>
-                )}
-              </div>
+              <div className="text-2xl font-bold">${revenueData.totalRevenue.toFixed(2)}</div>
+              <p className="text-xs text-gray-500">All time from live classes</p>
             </CardContent>
           </Card>
-        )}
-      </div>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <Card className={buildComponent.card('elegant')}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Enrollments</CardTitle>
+              <Users className="h-4 w-4 text-gray-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{revenueData.totalEnrollments}</div>
+              <p className="text-xs text-gray-500">Across all live batches</p>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <Card className={buildComponent.card('elegant')}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Batches</CardTitle>
+              <Calendar className="h-4 w-4 text-gray-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{revenueData.activeBatches}</div>
+              <p className="text-xs text-gray-500">Currently running</p>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <Card className={buildComponent.card('elegant')}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Avg. Revenue per Batch</CardTitle>
+              <DollarSign className="h-4 w-4 text-gray-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${revenueData.averageRevenuePerBatch.toFixed(2)}</div>
+              <p className="text-xs text-gray-500">Per active batch</p>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>
+
+      <motion.div variants={itemVariants} className="mt-8">
+        <Card className={buildComponent.card('elegant')}>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <BarChart className="mr-2 h-5 w-5" /> Batch Revenue Breakdown
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {revenueData.batchDetails.length === 0 ? (
+              <p className="text-gray-500 text-center">No batch revenue data available.</p>
+            ) : (
+              <div className="space-y-4">
+                {revenueData.batchDetails.map((batch, index) => (
+                  <div key={index} className="flex items-center space-x-4">
+                    <span className="w-32 text-sm text-gray-600">{batch.batch_name}</span>
+                    <div className="flex-1 bg-blue-100 rounded-full h-2.5">
+                      <div
+                        className="bg-blue-600 h-2.5 rounded-full"
+                        style={{ width: `${(batch.revenue / revenueData.totalRevenue) * 100}%` }}
+                      ></div>
+                    </div>
+                    <span className="w-20 text-right text-sm font-semibold">${batch.revenue.toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
     </motion.div>
   );
 };

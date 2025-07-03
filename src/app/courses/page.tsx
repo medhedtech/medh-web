@@ -227,17 +227,17 @@ const Courses = () => {
   // Features with modern icons
   const features = useMemo(() => [
     {
-      icon: <Target className="w-6 h-6" />,
+      icon: <Target className="w-6 h-6 text-purple-500" />,
       title: "Skill-Focused",
       description: "Learn exactly what you need for your career goals"
     },
     {
-      icon: <Globe className="w-6 h-6" />,
+      icon: <Globe className="w-6 h-6 text-indigo-500" />,
       title: "Global Access",
       description: "Study from anywhere, anytime with our platform"
     },
     {
-      icon: <Award className="w-6 h-6" />,
+      icon: <Award className="w-6 h-6 text-green-500" />,
       title: "Recognized Certifications",
       description: "Get certificates that matter to employers"
     }

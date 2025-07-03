@@ -330,12 +330,12 @@ const CourseViewClient: React.FC<CourseViewClientProps> = ({ initialCourse, stru
             <ErrorDisplay />
           ) : (
             <div className="w-full max-w-none lg:max-w-8xl lg:mx-auto px-0 sm:px-4 lg:px-8">
-              <div className="flex flex-col lg:flex-row gap-0 sm:gap-4 lg:gap-8">
-                {/* Left Column - Course Content - Edge-to-edge mobile */}
-                <div className="w-full lg:w-3/4 space-y-0 sm:space-y-4 lg:space-y-8 pb-20 sm:pb-24 lg:pb-0">
-                  {/* Course Details */}
+              <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 w-full min-h-full">
+                {/* Left Column - Course Content (Full width on mobile, 2/3 on desktop) */}
+                <div className="w-full lg:w-3/4 space-y-4 lg:space-y-6 pb-20 sm:pb-24 lg:pb-0">
+                  {/* Course Details with consistent container styling */}
                   {course && (
-                    <div className="relative z-20">
+                    <div className="relative z-10 w-full bg-white dark:bg-gray-800 rounded-lg lg:rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm lg:shadow-sm">
                       <CourseDetailsPage 
                         courseId={course._id} 
                         initialActiveSection={activeSection}
@@ -346,54 +346,61 @@ const CourseViewClient: React.FC<CourseViewClientProps> = ({ initialCourse, stru
                   )}
                 </div>
                 
-                {/* Right Column - Enrollment Details - Mobile edge-to-edge */}
-                <div className="w-full lg:w-1/4 mb-8 lg:mb-0 px-4 sm:px-0">
-                  <div className="lg:sticky lg:top-24 space-y-5 sm:space-y-6 relative z-20">
-                    {/* Enrollment Details */}
-                    {course && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        <EnrollmentDetails 
-                          courseDetails={{
-                            _id: course._id,
-                            course_title: course.course_title,
-                            course_duration: course.course_duration,
-                            grade: course.grade,
-                            prices: course.prices,
-                            course_category: course.category,
-                            course_description: course.course_description,
-                            course_fee: course.course_fee,
-                            curriculum: course.curriculum,
-                            classType: course.classType || course.course_type,
-                            course_type: course.course_type,
-                            delivery_format: course.delivery_format,
-                            delivery_type: course.delivery_type,
-                            meta: course.meta || {
-                              ratings: { average: 0, count: 0 },
-                              views: 0,
-                              enrollments: 0
-                            },
-                            features: [
-                              "Live interactive sessions",
-                              course.is_Certification && "Certificate of completion",
-                              "Lifetime access to recordings",
-                              course.is_Assignments && "Hands-on assignments",
-                              course.is_Projects && "Real-world projects",
-                              course.is_Quizes && "Interactive quizzes"
-                            ].filter(Boolean) as string[]
-                          } as any}
-                          categoryInfo={{
-                            primaryColor: 'emerald',
-                            colorClass: 'text-emerald-700 dark:text-emerald-300',
-                            bgClass: 'bg-emerald-50 dark:bg-emerald-900/30',
-                            borderClass: 'border-emerald-200 dark:border-emerald-800'
-                          }}
-                        />
-                      </motion.div>
-                    )}
+                {/* Right Column - Mobile & Desktop Sidebar */}
+                <div className="w-full lg:w-1/4 mb-8 lg:mb-0 flex flex-col">
+                  <div className="flex-grow flex flex-col lg:sticky lg:top-20">
+                    {/* Mobile & Desktop sidebar content */}
+                    <div className="w-full flex-grow flex flex-col space-y-4 lg:space-y-6 px-4 sm:px-0">
+                      {/* Mobile & Desktop Enrollment Details */}
+                      {course && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.5 }}
+                          className="flex-grow max-w-sm lg:max-w-none mx-auto w-full"
+                        >
+                          {/* Mobile: Edge-to-edge styling, Desktop: Card styling */}
+                          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
+                            <EnrollmentDetails 
+                              courseDetails={{
+                                _id: course._id,
+                                course_title: course.course_title,
+                                course_duration: course.course_duration,
+                                grade: course.grade,
+                                prices: course.prices,
+                                course_category: course.category,
+                                course_description: course.course_description,
+                                course_fee: course.course_fee,
+                                curriculum: course.curriculum,
+                                classType: course.classType || course.course_type,
+                                course_type: course.course_type,
+                                delivery_format: course.delivery_format,
+                                delivery_type: course.delivery_type,
+                                meta: course.meta || {
+                                  ratings: { average: 0, count: 0 },
+                                  views: 0,
+                                  enrollments: 0
+                                },
+                                features: [
+                                  "Live interactive sessions",
+                                  course.is_Certification && "Certificate of completion",
+                                  "Lifetime access to recordings",
+                                  course.is_Assignments && "Hands-on assignments",
+                                  course.is_Projects && "Real-world projects",
+                                  course.is_Quizes && "Interactive quizzes"
+                                ].filter(Boolean) as string[]
+                              } as any}
+                              categoryInfo={{
+                                primaryColor: 'emerald',
+                                colorClass: 'text-emerald-700 dark:text-emerald-300',
+                                bgClass: 'bg-emerald-50 dark:bg-emerald-900/30',
+                                borderClass: 'border-emerald-200 dark:border-emerald-800'
+                              }}
+                            />
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

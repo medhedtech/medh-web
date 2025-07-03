@@ -33,6 +33,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const [hasError, setHasError] = useState(false);
   const [currentSrc, setCurrentSrc] = useState(src);
   const [fallbackAttempts, setFallbackAttempts] = useState(0);
+  const [useUnoptimized, setUseUnoptimized] = useState(false);
 
   // Define fallback hierarchy
   const getFallbackSrc = useCallback((attemptNumber: number): string => {
@@ -48,18 +49,26 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   }, [fallbackSrc]);
 
   // Handle successful load
-  const handleLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+  const handleLoad = useCallback((img: HTMLImageElement) => {
     setIsLoading(false);
     setHasError(false);
-    if (onLoad) onLoad(e);
+    if (onLoad) onLoad(img as unknown as any);
   }, [onLoad]);
 
   // Handle load error with progressive fallback
   const handleError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     console.warn(`Image failed to load: ${currentSrc}, attempting fallback ${fallbackAttempts + 1}`);
     
-    if (fallbackAttempts < 3) {
-      const nextFallback = getFallbackSrc(fallbackAttempts);
+    // First retry: try the original src again but with unoptimized=true (raw fetch)
+    if (fallbackAttempts === 0) {
+      setUseUnoptimized(true);
+      setFallbackAttempts(1);
+      return;
+    }
+
+    // Subsequent retries: progressive fallback to local placeholders
+    if (fallbackAttempts < 4) {
+      const nextFallback = getFallbackSrc(fallbackAttempts - 1); // subtract 1 because first attempt is unoptimized
       setCurrentSrc(nextFallback);
       setFallbackAttempts(prev => prev + 1);
       setIsLoading(true);
@@ -96,7 +105,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const finalAlt = alt || 'Image';
   
   // Build base props
-  const baseProps = {
+  const baseProps: Partial<ImageProps> = {
     src: currentSrc,
     alt: hasError ? `${finalAlt} (fallback)` : finalAlt,
     className: imageClasses,
@@ -105,7 +114,8 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     quality: quality || 85,
     priority,
     loading: loading || (priority ? 'eager' : 'lazy'),
-    sizes: sizes || '100vw'
+    sizes: sizes || '100vw',
+    unoptimized: useUnoptimized,
   };
 
   // Handle fill mode vs fixed dimensions separately
@@ -148,7 +158,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   return (
     <Image
-      {...imageProps}
+      {...(imageProps as any)}
       {...props}
       onLoadingComplete={handleLoad}
       onError={handleError}
