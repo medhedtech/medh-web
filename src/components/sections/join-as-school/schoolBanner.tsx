@@ -271,27 +271,8 @@ const values: IValueItem[] = [
   }
 ];
 
-// Key highlights for schools (reduced to 3 items)
-const highlights: IHighlightItem[] = [
-  {
-    icon: <CheckCircle className="w-8 h-8" />,
-    title: "Digital Learning Solutions",
-    description: "Comprehensive platform for modern education",
-    color: "from-blue-500 to-cyan-500"
-  },
-  {
-    icon: <School className="w-8 h-8" />,
-    title: "Institutional Partnership",
-    description: "Collaborative solutions for educational institutions",
-    color: "from-emerald-500 to-teal-500"
-  },
-  {
-    icon: <Target className="w-8 h-8" />,
-    title: "Performance Analytics",
-    description: "Real-time insights into student progress and outcomes",
-    color: "from-purple-500 to-indigo-500"
-  }
-];
+// Key highlights for schools (removed as per request)
+const highlights: IHighlightItem[] = [];
 
 const SchoolBanner: React.FC = () => {
   const { theme } = useTheme();

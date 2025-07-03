@@ -39,8 +39,7 @@ const advantagesData: IAdvantage[] = [
     id: 1,
     icon: BookOpen,
     title: "Diversification of Skill Sets",
-    description:
-      "Introducing skill development program allows to diversify the skill sets of the students. This diversification prepares students for a rapidly evolving job market and equips them with a broader range of competencies.",
+    description: "Empower students with a broader range of skills for today's fast-changing job market.",
     color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-100 dark:bg-blue-900/30",
     gradientFrom: "from-blue-600",
@@ -50,8 +49,7 @@ const advantagesData: IAdvantage[] = [
     id: 2,
     icon: BarChart3,
     title: "Data-Driven Insights for Educators",
-    description:
-      "We provide data analytics and insights to educators, enabling them to track students' progress, identify areas for improvement, and personalize instruction based on individual learning patterns.",
+    description: "Track student progress and personalize learning with actionable analytics.",
     color: "text-emerald-600 dark:text-emerald-400",
     bgColor: "bg-emerald-100 dark:bg-emerald-900/30",
     gradientFrom: "from-emerald-600",
@@ -61,8 +59,7 @@ const advantagesData: IAdvantage[] = [
     id: 3,
     icon: Users,
     title: "Access to Specialized Expertise",
-    description:
-      "Our subject matter experts design and deliver specialized courses: Collaboration will allow to tap into this expertise, ensuring students receive high-quality education tailored to specific skills and industries.",
+    description: "Give students high-quality, industry-relevant courses from subject matter experts.",
     color: "text-violet-600 dark:text-violet-400",
     bgColor: "bg-violet-100 dark:bg-violet-900/30",
     gradientFrom: "from-violet-600",
@@ -72,8 +69,7 @@ const advantagesData: IAdvantage[] = [
     id: 4,
     icon: GraduationCap,
     title: "Empowerment of Teachers",
-    description:
-      "Skill development collaboration empowers teachers by providing them with training and resources to implement modern teaching methodologies: This boosts their confidence and teaching abilities, ultimately benefiting the students.",
+    description: "Equip teachers with modern training and resources to boost their impact.",
     color: "text-amber-600 dark:text-amber-400",
     bgColor: "bg-amber-100 dark:bg-amber-900/30",
     gradientFrom: "from-amber-600",
@@ -83,8 +79,7 @@ const advantagesData: IAdvantage[] = [
     id: 5,
     icon: DollarSign,
     title: "Cost-Effective Solutions",
-    description:
-      "Collaborating will provide cost-effective alternatives compared to developing in-house skill development courses and offer a broader range of skill development opportunities without straining the budgets.",
+    description: "Offer more skill development options without straining your budget.",
     color: "text-rose-600 dark:text-rose-400",
     bgColor: "bg-rose-100 dark:bg-rose-900/30",
     gradientFrom: "from-rose-600",
@@ -94,8 +89,7 @@ const advantagesData: IAdvantage[] = [
     id: 6,
     icon: Zap,
     title: "Scalability and Flexibility",
-    description:
-      "Solutions are scalable, making it easier to accommodate a larger number of students without compromising the quality of education: Additionally, these courses can be tailored to suit various academic schedules.",
+    description: "Easily scale programs and adapt to any academic schedule.",
     color: "text-cyan-600 dark:text-cyan-400",
     bgColor: "bg-cyan-100 dark:bg-cyan-900/30",
     gradientFrom: "from-cyan-600",
@@ -105,8 +99,7 @@ const advantagesData: IAdvantage[] = [
     id: 7,
     icon: Target,
     title: "Preparation for Future Careers",
-    description:
-      "Prepare students for future careers by aligning the curriculum with industry demands. This ensures that students are equipped with the necessary skills and knowledge required to excel in their chosen professions.",
+    description: "Align learning with industry needs so students are ready for tomorrow's jobs.",
     color: "text-indigo-600 dark:text-indigo-400",
     bgColor: "bg-indigo-100 dark:bg-indigo-900/30",
     gradientFrom: "from-indigo-600",
@@ -116,8 +109,7 @@ const advantagesData: IAdvantage[] = [
     id: 8,
     icon: Sparkles,
     title: "Making Students Future-ready",
-    description:
-      "Collaboration empowers with modern, cost- effective, and engaging skill development solutions, enhancing student learning, diversifying skill sets, and preparing them for the future job market.",
+    description: "Prepare students for the future with engaging, modern skill-building.",
     color: "text-green-600 dark:text-green-400",
     bgColor: "bg-green-100 dark:bg-green-900/30",
     gradientFrom: "from-green-600",
@@ -127,8 +119,7 @@ const advantagesData: IAdvantage[] = [
     id: 9,
     icon: Monitor,
     title: "Integration of Technology",
-    description:
-      "Collaborate to integrate our state-of-the-art tools, platforms, and applications into their teaching methods, enhancing students' digital literacy and technological proficiency.",
+    description: "Enhance digital literacy with state-of-the-art tools and platforms.",
     color: "text-purple-600 dark:text-purple-400",
     bgColor: "bg-purple-100 dark:bg-purple-900/30",
     gradientFrom: "from-purple-600",
@@ -141,15 +132,13 @@ const advantagesPotentialData: IAdditionalBenefit[] = [
     id: 1,
     icon: TrendingUp,
     title: "Increased Student Engagement and Motivation",
-    description:
-      "Gamified learning, interactive quizzes, and real-time progress tracking make the learning process more enjoyable and encourage active participation and motivation.",
+    description: "Make learning fun and interactive with gamification and real-time feedback.",
   },
   {
     id: 2,
     icon: BookOpen,
     title: "Enhanced Curriculum and Learning Experience",
-    description:
-      "Enrich the existing curriculum by integrating cutting-edge technologies and innovative teaching methods to make learning more engaging, interactive, and effective for students.",
+    description: "Enrich classes with innovative methods and cutting-edge technology.",
   },
 ];
 
@@ -197,135 +186,64 @@ const KeyAdvantages: React.FC = () => {
           viewport={{ once: true }}
           variants={containerVariants}
         >
-          {/* Header Section */}
-          <motion.div 
-            variants={itemVariants}
-            className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-4 sm:p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 mb-6 md:mb-8 text-center"
-          >
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-slate-100 leading-tight mb-4 md:mb-6 flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
-              Collaborate with{" "}
-              <div className="flex items-center gap-1 sm:gap-2">
-                <span className="text-sm sm:text-base md:text-lg lg:text-xl font-medium text-slate-600 dark:text-slate-400">
-                  with
-                </span>
-                <Image
-                  src={medhLogo}
-                  alt="MEDH Logo"
-                  width={128}
-                  height={128}
-                  unoptimized={true}
-                  className="h-6 sm:h-7 md:h-8 lg:h-9 w-auto object-contain ml-1 transition-transform duration-300 hover:scale-105"
-                  priority
-                />
+          {/* OUTER CONTAINER: Glassmorphism, gradient, and pattern for depth */}
+          <div className="relative rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-xl overflow-hidden px-2 py-4 sm:px-6 md:px-10 md:py-10 mb-8">
+            {/* Subtle background pattern/gradient for depth */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/60 via-white/40 to-emerald-50/60 dark:from-blue-900/30 dark:via-slate-900/40 dark:to-emerald-900/30 pointer-events-none" />
+            <div className="absolute inset-0 bg-[url('/backgrounds/grid-pattern.svg')] opacity-10 dark:opacity-10 pointer-events-none" />
+            <div className="relative z-10">
+              {/* Modern Heading with accent */}
+              <div className="flex flex-col items-center mb-8">
+                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-slate-100 text-center leading-tight">
+                  Key advantages to <span>Schools/Institutes</span>
+                </h3>
               </div>
-              and Empower your Students
-              <span className="block text-[#3bac63] mt-2">with cutting-edge skills.</span>
-            </h2>
-            <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 max-w-4xl mx-auto leading-relaxed">
-              Equip your students for the future: upskill for confidence,
-              job-readiness, and success. Let's work together to bring innovative
-              and effective education solutions to your institution.
-            </p>
-          </motion.div>
 
-          {/* Key Advantages Title */}
-          <motion.div 
-            variants={itemVariants}
-            className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-3 sm:p-4 md:p-6 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 mb-6 md:mb-8 text-center"
-          >
-            <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-slate-100">
-              Key advantages to Schools/Institutes
-            </h3>
-          </motion.div>
-
-          {/* Main Advantages Grid */}
-          <motion.div 
-            variants={containerVariants}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8"
-          >
-            {advantagesData.map((advantage, index) => (
-              <motion.div
-                key={advantage.id}
-                variants={itemVariants}
-                whileHover={{ scale: 1.02 }}
-                onHoverStart={() => setHoveredAdvantage(index)}
-                onHoverEnd={() => setHoveredAdvantage(null)}
-                className="relative"
-              >
-                <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-lg sm:rounded-xl md:rounded-2xl border border-white/50 dark:border-slate-600/50 p-4 sm:p-5 md:p-6 shadow-lg hover:shadow-xl shadow-slate-200/20 dark:shadow-slate-900/30 transition-all duration-300 h-full">
-                  <div className="flex flex-col items-center text-center">
-                    <motion.div
-                      animate={{
-                        scale: hoveredAdvantage === index ? 1.1 : 1,
-                        rotate: hoveredAdvantage === index ? 5 : 0
-                      }}
-                      transition={{ duration: 0.3 }}
-                      className={`w-16 h-16 sm:w-20 sm:h-20 ${advantage.bgColor} rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 md:mb-6 shadow-sm relative overflow-hidden`}
-                    >
-                      {/* Background glow effect */}
-                      <motion.div
-                        animate={{
-                          opacity: hoveredAdvantage === index ? 0.6 : 0,
-                          scale: hoveredAdvantage === index ? 1.2 : 1
-                        }}
-                        transition={{ duration: 0.3 }}
-                        className={`absolute inset-0 bg-gradient-to-br ${advantage.gradientFrom} ${advantage.gradientTo} opacity-0 blur-md`}
-                      />
-                      <advantage.icon 
-                        className={`w-8 h-8 sm:w-10 sm:h-10 ${advantage.color} relative z-10 transition-all duration-300`}
-                      />
-                    </motion.div>
-                    
-                    <h4 className={`text-lg sm:text-xl font-bold mb-2 md:mb-3 bg-gradient-to-r ${advantage.gradientFrom} ${advantage.gradientTo} bg-clip-text text-transparent`}>
+              {/* Responsive Grid of Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                {advantagesData.map((advantage, index) => (
+                  <div
+                    key={advantage.id}
+                    tabIndex={0}
+                    className="group relative bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 p-6 flex flex-col items-start focus:outline-none focus:ring-2 focus:ring-[#3bac63] focus:ring-offset-2 min-h-[220px] cursor-pointer hover:-translate-y-1 hover:scale-[1.025]"
+                  >
+                    {/* Icon or Accent */}
+                    <div className={`mb-4 w-12 h-12 flex items-center justify-center rounded-xl bg-gradient-to-br ${advantage.gradientFrom} ${advantage.gradientTo} shadow-sm`}>
+                      <advantage.icon className={`w-7 h-7 text-white drop-shadow`} />
+                    </div>
+                    {/* Title */}
+                    <h4 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 mb-2 bg-gradient-to-r from-[#3bac63] to-emerald-400 bg-clip-text text-transparent">
                       {advantage.title}
                     </h4>
+                    {/* Description */}
                     <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
                       {advantage.description}
                     </p>
                   </div>
-                  
-                  {/* Hover effect indicator */}
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: hoveredAdvantage === index ? 1 : 0 }}
-                    transition={{ duration: 0.3 }}
-                    className={`absolute top-2 right-2 w-8 h-8 bg-gradient-to-br ${advantage.gradientFrom} ${advantage.gradientTo} rounded-full flex items-center justify-center`}
+                ))}
+                {advantagesPotentialData.map((item, index) => (
+                  <div
+                    key={item.id}
+                    tabIndex={0}
+                    className="group relative bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 p-6 flex flex-col items-start focus:outline-none focus:ring-2 focus:ring-[#3bac63] focus:ring-offset-2 min-h-[220px] cursor-pointer hover:-translate-y-1 hover:scale-[1.025]"
                   >
-                    <Star className="w-4 h-4 text-white" />
-                  </motion.div>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          {/* Additional Benefits Section */}
-          <motion.div 
-            variants={containerVariants}
-            className="grid md:grid-cols-2 gap-4 md:gap-6"
-          >
-            {advantagesPotentialData.map((item, index) => (
-              <motion.div
-                key={item.id}
-                variants={itemVariants}
-                whileHover={{ scale: 1.02 }}
-                className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-lg sm:rounded-xl md:rounded-2xl border border-white/50 dark:border-slate-600/50 p-4 sm:p-6 md:p-8 shadow-lg hover:shadow-xl shadow-slate-200/20 dark:shadow-slate-900/30 transition-all duration-300"
-              >
-                <div className="flex items-start space-x-4 sm:space-x-6">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-100 to-violet-100 dark:from-blue-900/30 dark:to-violet-900/30 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-md flex-shrink-0 flex items-center justify-center">
-                    <item.icon className="w-8 h-8 sm:w-10 sm:h-10 text-blue-600 dark:text-blue-400 transition-transform duration-300 group-hover:scale-110" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2 md:mb-3">
+                    {/* Icon or Accent */}
+                    <div className="mb-4 w-12 h-12 flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-violet-100 dark:from-blue-900/30 dark:to-violet-900/30 shadow-sm">
+                      <item.icon className="w-7 h-7 text-blue-600 dark:text-blue-400 drop-shadow" />
+                    </div>
+                    {/* Title */}
+                    <h4 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 mb-2 bg-gradient-to-r from-[#3bac63] to-emerald-400 bg-clip-text text-transparent">
                       {item.title}
                     </h4>
+                    {/* Description */}
                     <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
                       {item.description}
                     </p>
                   </div>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
+                ))}
+              </div>
+            </div>
+          </div>
         </motion.div>
       </div>
     </section>
