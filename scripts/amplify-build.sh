@@ -90,17 +90,62 @@ fi
 # Build the application with increased memory and error handling
 echo ""
 echo "=== Building Application ==="
-echo "Setting Node.js max-old-space-size to 4096MB..."
+echo "Setting Node.js max-old-space-size to 16384MB..."
 
-# Set Node.js options for memory management
-export NODE_OPTIONS="--max-old-space-size=4096 --no-warnings"
+# Set Node.js options for memory management and timeout handling
+export NODE_OPTIONS="--max-old-space-size=16384 --no-warnings --max-semi-space-size=1024"
 
-# Run the build with proper error handling
-echo "Starting Next.js build..."
-if NODE_OPTIONS="$NODE_OPTIONS" npm run build; then
-  echo "✅ Build completed successfully!"
+# Set timeouts to prevent build cancellation
+export NEXT_TIMEOUT=1800000  # 30 minutes
+export NEXT_STATIC_EXPORT_TIMEOUT=1800000  # 30 minutes
+
+# Run the build with proper error handling and no timeout
+echo "Starting Next.js build with extended timeout..."
+echo "Memory allocated: 16GB"
+echo "Timeout set to: 30 minutes"
+echo "Starting build process..."
+
+# Function to run build with retry mechanism
+run_build_with_retry() {
+  local max_attempts=3
+  local attempt=1
+  local timeout_seconds=2700  # 45 minutes
+  
+  while [ $attempt -le $max_attempts ]; do
+    echo "Build attempt $attempt of $max_attempts..."
+    
+    if timeout $timeout_seconds NODE_OPTIONS="$NODE_OPTIONS" npm run build; then
+      echo "✅ Build completed successfully on attempt $attempt!"
+      return 0
+    else
+      echo "❌ Build attempt $attempt failed"
+      
+      if [ $attempt -lt $max_attempts ]; then
+        echo "Retrying in 30 seconds..."
+        sleep 30
+        
+        # Clean up for retry
+        echo "Cleaning up for retry..."
+        rm -rf .next/cache/* 2>/dev/null || true
+        
+        # Increase timeout for next attempt
+        timeout_seconds=$((timeout_seconds + 900))  # Add 15 minutes each retry
+        echo "Increasing timeout to $timeout_seconds seconds for next attempt"
+      fi
+    fi
+    
+    attempt=$((attempt + 1))
+  done
+  
+  echo "❌ All build attempts failed!"
+  return 1
+}
+
+# Run the build with retry mechanism
+if run_build_with_retry; then
+  echo "✅ Build process completed successfully!"
 else
-  echo "❌ Build failed!"
+  echo "❌ Build failed after all retry attempts!"
   echo ""
   echo "=== Build Error Diagnosis ==="
   echo "Checking common issues..."

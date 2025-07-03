@@ -11,6 +11,12 @@ const nextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
+  // Prevent build cancellation
+  staticPageGenerationTimeout: 1800, // 30 minutes
+  generateBuildId: async () => {
+    // Generate a unique build ID to prevent caching issues
+    return `build-${Date.now()}`
+  },
   transpilePackages: [
     '@floating-ui/core',
     '@floating-ui/dom',

@@ -23,6 +23,13 @@ frontend:
           export API_KEY_SALT="${API_KEY_SALT:-fallback-salt}"
           export SESSION_SECRET="${SESSION_SECRET:-fallback-session-secret}"
           
+          # Set build timeout and memory configurations
+          export NEXT_TIMEOUT=1800000  # 30 minutes
+          export NEXT_STATIC_EXPORT_TIMEOUT=1800000  # 30 minutes
+          export NODE_OPTIONS="--max-old-space-size=16384 --no-warnings --max-semi-space-size=1024"
+          export AMPLIFY_DISABLE_TIMEOUT=true
+          export AMPLIFY_BUILD_TIMEOUT=3600  # 1 hour
+          
           # Log what we're using (without showing actual secrets)
           echo "NODE_ENV: $NODE_ENV"
           echo "NEXT_PUBLIC_API_URL: $NEXT_PUBLIC_API_URL"
@@ -106,6 +113,10 @@ frontend:
             echo "No package-lock.json found, using npm install..."
             npm install --no-audit --prefer-offline --no-fund --verbose
           fi
+          
+          # Explicitly install critical Radix UI dependencies that might be missing
+          echo "Ensuring critical Radix UI dependencies are installed..."
+          npm install @radix-ui/react-avatar @radix-ui/react-progress --no-audit --prefer-offline --no-fund
         
         # Verify installation
         - echo ""
@@ -114,6 +125,8 @@ frontend:
         - ls -la node_modules/ | head -10
         - echo "Checking critical dependencies..."
         - npm list next react react-dom --depth=0 || echo "⚠️ Some critical dependencies missing"
+        - echo "Checking Radix UI dependencies..."
+        - npm list @radix-ui/react-avatar @radix-ui/react-progress --depth=0 || echo "⚠️ Some Radix UI dependencies missing"
     build:
       commands:
         - echo ""
