@@ -1086,6 +1086,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   const [filteredCourses, setFilteredCourses] = useState<ICourse[]>([]);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [searchResultsTotal, setSearchResultsTotal] = useState<number>(0);
 
   const [showingRelated, setShowingRelated] = useState<boolean>(false);
   const [activeFilters, setActiveFilters] = useState<IActiveFilter[]>([]);
@@ -1132,6 +1134,15 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   // Other hooks
   // Enhanced debounced search with improved performance and search analytics
   const debouncedSearchTerm = useDebounce(searchTerm, 500); // Increased delay for better performance
+
+  // Enhanced search state management
+  useEffect(() => {
+    if (searchTerm !== debouncedSearchTerm) {
+      setIsSearching(true);
+    } else {
+      setIsSearching(false);
+    }
+  }, [searchTerm, debouncedSearchTerm]);
   const { width } = useWindowSize();
   const isMobile = width < 768;
 
@@ -1354,7 +1365,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   }, [
     selectedCategory,
     selectedGrade,
-    searchTerm,
+    debouncedSearchTerm,
     sortOrder,
     currentPage,
     router,
@@ -1501,11 +1512,12 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
         searchParams.course_category = allSelectedCategories;
       }
 
-      // Add search term if available
-      if (searchTerm?.trim()) {
-        searchParams.search = searchTerm.trim();
-        // For search queries, increase the limit to get more results for better relevance sorting
-        searchParams.limit = Math.max(itemsPerPage * 3, 36);
+      // Enhanced search parameter handling - use debounced term for API calls
+      if (debouncedSearchTerm?.trim()) {
+        searchParams.search = debouncedSearchTerm.trim();
+        // Request server-side search relevance if available
+        searchParams.search_mode = 'server';
+        searchParams.relevance_scoring = true;
       }
 
       // Add grade if selected
@@ -1518,8 +1530,37 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
         searchParams.class_type = classType;
       }
 
-      // Add sorting - but for search queries, we'll do client-side relevance sorting
-      if (!searchTerm?.trim()) {
+      // Enhanced sorting logic for both search and non-search scenarios
+      if (debouncedSearchTerm?.trim()) {
+        // For search queries, prefer relevance-based sorting
+        switch (sortOrder) {
+          case "oldest-first":
+            searchParams.sort_by = "createdAt";
+            searchParams.sort_order = "asc";
+            break;
+          case "A-Z":
+            searchParams.sort_by = "course_title";
+            searchParams.sort_order = "asc";
+            break;
+          case "Z-A":
+            searchParams.sort_by = "course_title";
+            searchParams.sort_order = "desc";
+            break;
+          case "price-low-high":
+            searchParams.sort_by = "course_fee";
+            searchParams.sort_order = "asc";
+            break;
+          case "price-high-low":
+            searchParams.sort_by = "course_fee";
+            searchParams.sort_order = "desc";
+            break;
+          default:
+            // Default to relevance for search queries
+            searchParams.sort_by = "relevance";
+            searchParams.sort_order = "desc";
+        }
+      } else {
+        // For non-search queries, use standard sorting
         switch (sortOrder) {
           case "oldest-first":
             searchParams.sort_by = "createdAt";
@@ -1545,10 +1586,6 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             searchParams.sort_by = "createdAt";
             searchParams.sort_order = "desc";
         }
-      } else {
-        // For search queries, get results sorted by creation date first, then we'll re-sort by relevance
-        searchParams.sort_by = "createdAt";
-        searchParams.sort_order = "desc";
       }
 
       const apiUrl = getAllCoursesWithLimits(searchParams);
@@ -1590,52 +1627,50 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             courses = [];
           }
 
-          // Apply search relevance sorting if there's a search term
-          if (searchTerm?.trim() && courses.length > 0) {
-            courses = sortCoursesByRelevance(courses, searchTerm);
+          // Enhanced pagination handling - consistent server-side approach
+          setAllCourses(courses);
+          setFilteredCourses(courses);
+
+          // Handle pagination data from different response structures
+          let paginationData = null;
+          if (response && response.data && response.data.pagination) {
+            paginationData = response.data.pagination;
+          } else if (response && response.pagination) {
+            paginationData = response.pagination;
+          }
+          
+          if (paginationData) {
+            setTotalPages(paginationData.totalPages || 1);
+            setTotalItems(paginationData.total || 0);
             
-            // For search results, implement pagination client-side after relevance sorting
-            const startIndex = (currentPage - 1) * (itemsPerPage || 12);
-            const endIndex = startIndex + (itemsPerPage || 12);
-            const paginatedCourses = courses.slice(startIndex, endIndex);
-            
-            setAllCourses(courses); // Store all results
-            setFilteredCourses(paginatedCourses); // Show paginated relevant results
-            
-            // Calculate pagination for search results
-            const totalSearchResults = courses.length;
-            const calculatedTotalPages = Math.ceil(totalSearchResults / (itemsPerPage || 12));
-            setTotalPages(calculatedTotalPages);
-            setTotalItems(totalSearchResults);
-            
-            if (process.env.NODE_ENV === 'development') {
-              const topResults = courses.slice(0, 5).map(course => ({
-                title: course.course_title,
-                category: course.course_category,
-                relevanceScore: calculateSearchRelevance(course, searchTerm)
-              }));
-              console.log(`Search relevance sorting applied. Found ${totalSearchResults} results, showing ${paginatedCourses.length} on page ${currentPage}`);
-              console.log('Top 5 most relevant results:', topResults);
+            // Store search results total for better UX
+            if (debouncedSearchTerm?.trim()) {
+              setSearchResultsTotal(paginationData.total || 0);
             }
           } else {
-            // No search term, use original logic
-            setAllCourses(courses);
-            setFilteredCourses(courses);
-
-            // Handle pagination data from different response structures
-            let paginationData = null;
-            if (response && response.data && response.data.pagination) {
-              paginationData = response.data.pagination;
-            } else if (response && response.pagination) {
-              paginationData = response.pagination;
-            }
+            // Fallback for responses without pagination data
+            setTotalPages(1);
+            setTotalItems(courses.length);
             
-            if (paginationData) {
-              setTotalPages(paginationData.totalPages || 1);
-              setTotalItems(paginationData.total || 0);
-            } else {
-              setTotalPages(1);
-              setTotalItems(courses.length);
+            if (debouncedSearchTerm?.trim()) {
+              setSearchResultsTotal(courses.length);
+            }
+          }
+          
+          // Client-side relevance sorting fallback (only if server doesn't support relevance sorting)
+          if (debouncedSearchTerm?.trim() && courses.length > 0 && 
+              (sortOrder === 'newest-first' || !paginationData)) {
+            const sortedCourses = sortCoursesByRelevance(courses, debouncedSearchTerm);
+            setFilteredCourses(sortedCourses);
+            
+            if (process.env.NODE_ENV === 'development') {
+              const topResults = sortedCourses.slice(0, 3).map(course => ({
+                title: course.course_title,
+                category: course.course_category,
+                relevanceScore: calculateSearchRelevance(course, debouncedSearchTerm)
+              }));
+              console.log(`Client-side relevance sorting applied for search: "${debouncedSearchTerm}"`);
+              console.log('Top 3 results:', topResults);
             }
           }
 
@@ -1688,7 +1723,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     currentPage,
     itemsPerPage,
     sortOrder,
-    searchTerm,
+    debouncedSearchTerm,
     selectedGrade,
     selectedCategory,
     fixedCategory,
@@ -1752,9 +1787,11 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     setSearchTerm(value);
     setCurrentPage(1);
     
-    // Track search for analytics
+    // Track search for analytics and reset search results total
     if (value.trim()) {
       trackSearch(value);
+    } else {
+      setSearchResultsTotal(0);
     }
   }, [trackSearch]);
 
@@ -2275,17 +2312,47 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
 
     return (
               <div className="course-grid-container relative px-4 md:px-6 lg:px-8 pb-0">
-        {/* Search relevance indicator */}
-        {searchTerm.trim() && filteredCourses.length > 0 && (
+        {/* Enhanced search feedback and results information */}
+        {debouncedSearchTerm.trim() && (
           <div className="mb-4 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl">
-            <div className="flex items-center space-x-2 text-sm">
-              <Target className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-              <span className="text-indigo-700 dark:text-indigo-300 font-medium">
-                Search results sorted by relevance for "{searchTerm}"
-              </span>
-              <span className="text-xs bg-indigo-100 dark:bg-indigo-800 text-indigo-600 dark:text-indigo-300 px-2 py-1 rounded-full">
-                Most relevant first
-              </span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 text-sm">
+                <Target className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                <span className="text-indigo-700 dark:text-indigo-300 font-medium">
+                  Search results for "{debouncedSearchTerm}"
+                </span>
+                {filteredCourses.length > 0 && (
+                  <span className="text-xs bg-indigo-100 dark:bg-indigo-800 text-indigo-600 dark:text-indigo-300 px-2 py-1 rounded-full">
+                    Most relevant first
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center space-x-2 text-xs text-indigo-600 dark:text-indigo-400">
+                {isSearching ? (
+                  <div className="flex items-center space-x-1">
+                    <div className="animate-spin w-3 h-3 border border-indigo-400 border-t-transparent rounded-full"></div>
+                    <span>Searching...</span>
+                  </div>
+                ) : (
+                  <span>
+                    {searchResultsTotal > 0 ? (
+                      <>
+                        {searchResultsTotal.toLocaleString()} 
+                        {searchResultsTotal === 1 ? ' result' : ' results'}
+                        {totalPages > 1 && (
+                          <span className="ml-1">
+                            (page {currentPage} of {totalPages})
+                          </span>
+                        )}
+                      </>
+                    ) : filteredCourses.length > 0 ? (
+                      `${filteredCourses.length} ${filteredCourses.length === 1 ? 'result' : 'results'}`
+                    ) : (
+                      'No results found'
+                    )}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         )}
