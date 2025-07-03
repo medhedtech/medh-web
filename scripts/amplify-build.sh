@@ -109,12 +109,11 @@ echo "Starting build process..."
 run_build_with_retry() {
   local max_attempts=3
   local attempt=1
-  local timeout_seconds=2700  # 45 minutes
   
   while [ $attempt -le $max_attempts ]; do
     echo "Build attempt $attempt of $max_attempts..."
     
-    if timeout $timeout_seconds NODE_OPTIONS="$NODE_OPTIONS" npm run build; then
+    if NODE_OPTIONS="$NODE_OPTIONS" npm run build; then
       echo "✅ Build completed successfully on attempt $attempt!"
       return 0
     else
@@ -128,9 +127,7 @@ run_build_with_retry() {
         echo "Cleaning up for retry..."
         rm -rf .next/cache/* 2>/dev/null || true
         
-        # Increase timeout for next attempt
-        timeout_seconds=$((timeout_seconds + 900))  # Add 15 minutes each retry
-        echo "Increasing timeout to $timeout_seconds seconds for next attempt"
+        echo "Preparing for next attempt..."
       fi
     fi
     
