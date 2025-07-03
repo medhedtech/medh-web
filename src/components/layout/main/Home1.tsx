@@ -358,9 +358,22 @@ const Home1: React.FC = () => {
   
   // Memoized derived values with performance tracking and aggressive local fallback
   const isDark = useMemo(() => mounted ? theme === 'dark' : true, [mounted, theme]);
-  // The heavy variant selection now happens server-side (/api/video).
-  // This guarantees the request is issued as early as possible and reduces client JS.
-  const videoSrc = `/api/video?theme=${isDark ? 'dark' : 'light'}`;
+  const deviceType = useMemo(() => (isMobile ? 'mobile' : 'desktop'), [isMobile]);
+
+  // --- COMPRESSED VIDEO LOGIC ---
+  // Dynamically select the best video source for fast loading
+  const videoSrc = useMemo(() => {
+    // If video error or timeout, always use local fallback
+    if (hasVideoError || videoLoadTimeout) {
+      return VIDEO_CONFIG[isDark ? 'dark' : 'light'][deviceType].localFallback;
+    }
+    // If compressed video is requested (slow connection, low-end device, or after error), use compressed primary
+    if (useCompressedVideo) {
+      return VIDEO_CONFIG[isDark ? 'dark' : 'light'][deviceType].primary;
+    }
+    // Otherwise, use the /api/video endpoint for best-case (server-optimized)
+    return `/api/video?theme=${isDark ? 'dark' : 'light'}`;
+  }, [isDark, deviceType, useCompressedVideo, hasVideoError, videoLoadTimeout]);
 
   // Keep existing client-side dark/light poster logic for now.
   const videoPoster = useMemo(() => getVideoPoster(isDark), [isDark]);

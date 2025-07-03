@@ -186,160 +186,87 @@ const categoryColors = {
   wellness: { gradient: "from-emerald-600 to-teal-600", glow: "shadow-emerald-500/25" }
 };
 
-const BenefitCard: React.FC<IBenefitCardProps> = memo(({ icon, logo, title, description, color, highlights, stats, category, index }) => {
-  const [isHovered, setIsHovered] = useState<boolean>(false);
-  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+// Add this function after the interfaces
+const getSemanticColor = (category: IBenefit['category']): { bg: string; text: string; border: string } => {
+  const colorMap = {
+    core: { bg: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-200 dark:border-blue-800' },
+    growth: { bg: 'bg-purple-50 dark:bg-purple-900/20', text: 'text-purple-600 dark:text-purple-400', border: 'border-purple-200 dark:border-purple-800' },
+    wellness: { bg: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-200 dark:border-emerald-800' }
+  };
+  return colorMap[category] || { bg: 'bg-gray-50 dark:bg-gray-900/20', text: 'text-gray-600 dark:text-gray-400', border: 'border-gray-200 dark:border-gray-800' };
+};
 
-  const categoryStyle = categoryColors[category];
+// Updated benefit card with professional styling
+const BenefitCard: React.FC<IBenefitCardProps> = memo(({ icon, logo, title, description, color, highlights, stats, category, index }) => {
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const colors = getSemanticColor(category);
 
   return (
     <motion.div
       variants={cardVariants}
-      className="relative group perspective-1000"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className="bg-white dark:bg-slate-850 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden"
     >
-      <div className={`
-        ${buildAdvancedComponent.glassCard({ variant: 'primary', hover: true })}
-        ${color}
-        relative overflow-hidden
-        transform transition-all duration-500 ease-out
-        ${isHovered ? 'scale-[1.02] -translate-y-2' : ''}
-        before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/5 before:via-transparent before:to-white/5 
-        before:translate-x-[-100%] before:transition-transform before:duration-1000
-        ${isHovered ? 'before:translate-x-[100%]' : ''}
-      `}>
-        
-        {/* Floating Background Elements */}
-        <motion.div 
-          variants={floatingVariants}
-          animate="animate"
-          className="absolute -top-6 -right-6 w-32 h-32 opacity-5"
-        >
-          <div className={`w-full h-full rounded-full bg-gradient-to-r ${categoryStyle.gradient}`} />
-        </motion.div>
-
-        {/* Category Badge */}
-        <div className="absolute top-4 right-4 z-10">
-          <div className={`
-            inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold
-            bg-gradient-to-r ${categoryStyle.gradient} text-white
-            shadow-lg ${categoryStyle.glow}
-          `}>
-            <Sparkles className="w-3 h-3" />
-            {category.toUpperCase()}
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className={`p-2 rounded-lg ${colors.bg} ${colors.text} flex items-center justify-center`}>
+            {icon}
           </div>
-        </div>
-
-        {/* Stats Badge */}
-        {stats && (
-          <div className="absolute top-4 left-4 z-10">
-            <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-white/10 backdrop-blur-md text-white border border-white/20">
-              <TrendingUp className="w-3 h-3" />
+          
+          {stats && (
+            <div className={`px-2 py-1 rounded-md text-xs font-medium ${colors.bg} ${colors.text}`}>
               {stats}
             </div>
-          </div>
-        )}
-
-        <div className="relative z-10 p-6 sm:p-8">
-          <div className="flex items-start gap-4 mb-6">
-            {/* Enhanced Icon */}
-            <motion.div 
-              className={`
-                flex-shrink-0 p-3 rounded-2xl 
-                bg-gradient-to-r ${categoryStyle.gradient}
-                text-white shadow-lg ${categoryStyle.glow}
-                transform transition-all duration-300
-              `}
-              animate={{ 
-                rotate: isHovered ? [0, -10, 10, 0] : 0,
-                scale: isHovered ? 1.1 : 1
-              }}
-              transition={{ duration: 0.5 }}
-            >
-              {icon}
-            </motion.div>
-
-            <div className="flex-1 min-w-0">
-              <h3 className={`
-                text-xl sm:text-2xl font-bold mb-3
-                bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-200 
-                bg-clip-text text-transparent
-                group-hover:from-blue-600 group-hover:to-purple-600 transition-all duration-300
-              `}>
-                {title}
-              </h3>
-              
-              <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-4 text-sm sm:text-base">
-                {description}
-              </p>
-
-              {/* Expandable Features */}
-              <motion.button
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
-              >
-                <span>{isExpanded ? 'Show Less' : 'Show Features'}</span>
-                <motion.div
-                  animate={{ rotate: isExpanded ? 180 : 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </motion.div>
-              </motion.button>
-
-              <AnimatePresence>
-                {isExpanded && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                    animate={{ opacity: 1, height: "auto", marginTop: 16 }}
-                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="space-y-3"
-                  >
-                    {highlights.map((highlight, idx) => (
-                      <motion.div
-                        key={idx}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: idx * 0.1 }}
-                        className="flex items-center gap-3 p-3 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-white/20 dark:border-slate-700/50"
-                      >
-                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        <span className="text-sm text-slate-700 dark:text-slate-300">{highlight}</span>
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
-
-          {/* Enhanced Logo */}
-          <motion.div 
-            className="absolute -bottom-8 -right-8 opacity-10 group-hover:opacity-20 transition-all duration-500"
-            animate={{
-              scale: isHovered ? 1.2 : 1,
-              rotate: isHovered ? 15 : 5,
-            }}
-          >
-            <Image
-              src={logo}
-              alt={title}
-              className="w-24 h-24 sm:w-32 sm:h-32 drop-shadow-2xl"
-              width={128}
-              height={128}
-            />
-          </motion.div>
+          )}
         </div>
 
-        {/* Hover Glow Effect */}
-        <div className={`
-          absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500
-          bg-gradient-to-r ${categoryStyle.gradient} blur-xl -z-10 transform scale-105
-        `} />
+        <div className="space-y-3">
+          <div className="flex items-start justify-between">
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-white leading-tight">
+              {title}
+            </h3>
+          </div>
+
+          <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-3">
+            {description}
+          </p>
+
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors flex items-center gap-1"
+          >
+            <span>{isExpanded ? 'Show Less' : 'Show Features'}</span>
+            <svg 
+              className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <AnimatePresence>
+            {isExpanded && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mt-3 space-y-2"
+              >
+                {highlights.map((highlight, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-start gap-2 p-2 rounded-lg bg-slate-50 dark:bg-slate-800"
+                  >
+                    <CheckCircle className={`w-4 h-4 ${colors.text} mt-0.5 flex-shrink-0`} />
+                    <span className="text-sm text-slate-700 dark:text-slate-300">{highlight}</span>
+                  </div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </motion.div>
   );
@@ -431,67 +358,24 @@ const UniqueBenefits: React.FC = () => {
   }
 
   return (
-    <section className="relative bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20 dark:from-slate-950 dark:via-blue-950/30 dark:to-purple-950/20 min-h-screen overflow-hidden w-full">
-      {/* Enhanced Background Effects */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.15),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(147,51,234,0.15),transparent_50%)]" />
-        <div className="absolute top-0 left-0 w-full h-full bg-grid-pattern opacity-20 dark:opacity-10" />
-      </div>
-      
-      {/* Animated Floating Elements */}
-      <motion.div 
-        animate={{ y: [-20, 20, -20], rotate: [0, 180, 360] }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        className="absolute top-20 left-20 w-4 h-4 bg-blue-500/20 rounded-full blur-sm"
-      />
-      <motion.div 
-        animate={{ y: [20, -20, 20], rotate: [360, 180, 0] }}
-        transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-        className="absolute top-40 right-40 w-6 h-6 bg-purple-500/20 rounded-full blur-sm"
-      />
-      <motion.div 
-        animate={{ y: [-30, 30, -30], x: [-10, 10, -10] }}
-        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-        className="absolute bottom-32 left-32 w-3 h-3 bg-emerald-500/20 rounded-full blur-sm"
-      />
-
-      <div className="relative z-10 w-full px-3 sm:px-4 md:px-6 lg:px-8 py-8 md:py-12">
+    <section className="relative bg-white dark:bg-slate-900 min-h-screen overflow-hidden w-full">
+      <div className="relative z-10 w-full px-4 md:px-6 lg:px-8 py-12 md:py-16">
         <div className="max-w-7xl mx-auto">
           <WelcomeCareers />
           
-          {/* Enhanced Hero Section */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
             className="text-center mb-16"
           >
-            <div className={`${buildAdvancedComponent.glassCard({ variant: 'hero' })} p-8 sm:p-12`}>
-              <motion.div
-                initial={{ scale: 0.9 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-600/10 to-purple-600/10 rounded-full mb-6 border border-blue-200/50 dark:border-blue-700/50 backdrop-blur-sm"
-              >
-                <Award className="w-5 h-5 text-blue-600" />
-                <span className="text-blue-700 dark:text-blue-300 font-semibold">Join Our Elite Team</span>
-                <Sparkles className="w-4 h-4 text-purple-600" />
-              </motion.div>
-              
-              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                <span className="bg-gradient-to-r from-slate-800 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
-                  Exceptional Benefits &
-                </span>
-                <br />
-                <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  Extraordinary Perks
-                </span>
+            <div className="p-8 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+              <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 dark:text-white mb-4">
+                Competitive Benefits Package
               </h2>
               
-              <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 max-w-4xl mx-auto leading-relaxed">
-                Experience a workplace where your growth, well-being, and success are our top priorities. 
-                Discover comprehensive benefits designed to elevate your career and enrich your life.
+              <p className="text-lg text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">
+                We invest in our team's growth, well-being, and success with comprehensive benefits designed for professionals.
               </p>
             </div>
           </motion.div>
@@ -507,9 +391,9 @@ const UniqueBenefits: React.FC = () => {
               <motion.h3 
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white mb-8 text-center"
+                className="text-2xl font-semibold text-slate-800 dark:text-white mb-8"
               >
-                <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Core Benefits</span>
+                Core Benefits
               </motion.h3>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
                 {advantagesData.map((advantage, index) => (
@@ -523,9 +407,9 @@ const UniqueBenefits: React.FC = () => {
               <motion.h3 
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white mb-8 text-center"
+                className="text-2xl font-semibold text-slate-800 dark:text-white mb-8"
               >
-                <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Growth & Wellness</span>
+                Growth & Wellness
               </motion.h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
                 {advantagesPotentialData.map((advantage, index) => (
@@ -538,17 +422,15 @@ const UniqueBenefits: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-                             className={`${buildAdvancedComponent.glassCard({ variant: 'primary' })} p-8 sm:p-12 text-center`}
+              transition={{ delay: 0.4 }}
+              className="bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-8"
             >
-              <div className="mb-8">
-                <h3 className="text-2xl sm:text-3xl font-bold mb-4">
-                  <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                    Additional Perks & Privileges
-                  </span>
+              <div className="mb-8 text-center">
+                <h3 className="text-2xl font-semibold text-slate-800 dark:text-white mb-2">
+                  Additional Perks & Privileges
                 </h3>
-                <p className="text-slate-600 dark:text-slate-300 text-lg">
-                  Enjoy exclusive perks that make every day at work special
+                <p className="text-slate-600 dark:text-slate-300">
+                  Enjoy exclusive benefits that enhance your work experience
                 </p>
               </div>
               
@@ -556,47 +438,17 @@ const UniqueBenefits: React.FC = () => {
                 {additionalPerks.map((perk, index) => (
                   <motion.div
                     key={index}
-                    initial={{ opacity: 0, scale: 0.8, rotateY: -90 }}
-                    animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-                    transition={{ 
-                      delay: index * 0.1, 
-                      type: "spring", 
-                      stiffness: 300,
-                      damping: 20
-                    }}
-                    whileHover={{ 
-                      scale: 1.05, 
-                      rotateY: 10,
-                      transition: { duration: 0.2 }
-                    }}
-                    className="group cursor-pointer"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="flex flex-col items-center p-4 bg-white dark:bg-slate-850 rounded-lg border border-slate-200 dark:border-slate-700"
                   >
-                    <div className={`
-                      p-4 sm:p-6 rounded-2xl 
-                      bg-gradient-to-br ${perk.color} 
-                      text-white shadow-lg
-                      transform transition-all duration-300
-                      hover:shadow-2xl hover:-translate-y-1
-                      min-h-[120px] flex flex-col items-center justify-center
-                    `}>
-                      <motion.div 
-                        className="mb-3"
-                        animate={{ 
-                          rotate: [0, -10, 10, 0],
-                          scale: [1, 1.1, 1]
-                        }}
-                        transition={{ 
-                          duration: 2, 
-                          repeat: Infinity, 
-                          delay: index * 0.2 
-                        }}
-                      >
-                        {perk.icon}
-                      </motion.div>
-                      <span className="text-xs sm:text-sm font-semibold text-center leading-tight">
-                        {perk.text}
-                      </span>
+                    <div className="p-2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 mb-3">
+                      {perk.icon}
                     </div>
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 text-center">
+                      {perk.text}
+                    </span>
                   </motion.div>
                 ))}
               </div>
@@ -604,24 +456,6 @@ const UniqueBenefits: React.FC = () => {
           </motion.div>
         </div>
       </div>
-
-      {/* Enhanced Scroll to Top */}
-      <AnimatePresence>
-        {showScrollTop && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.5, rotate: -180 }}
-            animate={{ opacity: 1, scale: 1, rotate: 0 }}
-            exit={{ opacity: 0, scale: 0.5, rotate: 180 }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={scrollToTop}
-            className="fixed bottom-8 right-8 p-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full shadow-2xl hover:shadow-blue-500/25 transition-all z-50 min-h-[56px] min-w-[56px] touch-manipulation backdrop-blur-sm border border-white/20"
-            aria-label="Scroll to top"
-          >
-            <ArrowUp className="w-6 h-6" />
-          </motion.button>
-        )}
-      </AnimatePresence>
     </section>
   );
 };
