@@ -193,36 +193,6 @@ const AboutContent: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Features Grid - Mobile optimized */}
-        <motion.div
-          initial="hidden"
-          animate={isVisible ? "visible" : "hidden"}
-          variants={fadeInUp}
-          transition={{ delay: 0.2, duration: 0.6 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8 md:mb-10"
-        >
-          {features.map((feature, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 + 0.3 }}
-              whileHover={{ scale: 1.02, translateY: -5 }}
-              className="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-600 p-4 sm:p-5 md:p-6 hover:shadow-lg transition-all duration-300 group"
-            >
-              <div className={`w-10 h-10 sm:w-12 sm:h-12 ${feature.bgColor} rounded-lg sm:rounded-xl flex items-center justify-center ${feature.color} mb-3 md:mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                {feature.icon}
-              </div>
-              <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-                {feature.title}
-              </h3>
-              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                {feature.description}
-              </p>
-            </motion.div>
-          ))}
-        </motion.div>
-
         {/* UPD Section - Mobile optimized */}
         <motion.div
           initial="hidden"
