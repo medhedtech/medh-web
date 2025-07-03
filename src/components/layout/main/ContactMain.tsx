@@ -29,7 +29,7 @@ const contactMethods: IContactMethod[] = [
     icon: <Mail className="w-6 h-6" />,
     title: "Email",
     value: "care@medh.co",
-    href: "mailto:care@medh.co",
+    href: "https://mail.google.com/mail/u/0/?to=care@medh.co&fs=1&tf=cm",
     description: "Send us an email anytime"
   },
   {

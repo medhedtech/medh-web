@@ -186,8 +186,7 @@ const LearningResources: React.FC = () => {
   const fetchEnrolledCoursesResources = async (studentId: string): Promise<Resource[]> => {
     try {
       const response = await getQuery({
-        url: apiUrls.enrolledCourses.getEnrollmentsByStudent(studentId),
-        showLoader: false
+        url: apiUrls.enrolledCourses.getEnrollmentsByStudent(studentId)
       });
 
       if (response?.data) {
@@ -262,8 +261,7 @@ const LearningResources: React.FC = () => {
   const fetchCertificates = async (studentId: string): Promise<Resource[]> => {
     try {
       const response = await getQuery({
-        url: `${apiUrls.certificate.getCertificatesByStudentId}?studentId=${studentId}`,
-        showLoader: false
+        url: apiUrls.certificate.getCertificatesByStudentId(studentId)
       });
 
       if (response?.certificates) {
@@ -291,8 +289,7 @@ const LearningResources: React.FC = () => {
   const fetchBrochures = async (): Promise<Resource[]> => {
     try {
       const response = await getQuery({
-        url: apiUrls.brouchers.getAllBrouchers(),
-        showLoader: false
+        url: apiUrls.brouchers.getAllBrouchers()
       });
 
       if (response?.brochures) {
@@ -320,8 +317,7 @@ const LearningResources: React.FC = () => {
   const fetchSavedCourses = async (studentId: string): Promise<Resource[]> => {
     try {
       const response = await getQuery({
-        url: `${apiUrls.enrolledCourses.getSavedCourses}?studentId=${studentId}`,
-        showLoader: false
+        url: `${apiUrls.enrolledCourses.getSavedCourses}?studentId=${studentId}`
       });
 
       if (response?.savedCourses) {

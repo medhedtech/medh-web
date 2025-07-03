@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect, useCallback, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
-import { Check, ChevronRight, ArrowUp, UserPlus, FileText, Users, Shield, Award } from "lucide-react";
+import { Check, ChevronRight, ArrowUp, UserPlus, FileText, Users, Shield, Award, Workflow, Target } from "lucide-react";
 import { useRouter } from "next/navigation";
-import HiringProcessImg from "../../../assets/images/hireformmedh/hiringprocessimg.jpeg";
+import { buildAdvancedComponent, corporatePatterns, mobilePatterns } from "@/utils/designSystem";
 
 interface IProcessStep {
   title: string;
@@ -38,39 +37,39 @@ const steps: IProcessStep[] = [
   {
     title: "Company Registration",
     description:
-      "Companies interested in hiring through our placement cell need to register with us and provide comprehensive details about their organization, culture, and specific job openings to ensure the best candidate match.",
+      "Register with your requirements. We match you with pre-assessed candidates from our talent pool.",
     icon: UserPlus,
     color: "#3b82f6",
     bgColor: "bg-blue-100 dark:bg-blue-900/20"
   },
   {
-    title: "Job Description",
+    title: "Job Requirements",
     description:
-      "After registration, companies can share detailed job descriptions, requirements, and expectations with our team. We help refine these to attract the most suitable candidates from our talent pool.",
+      "Share your job specs. Our team helps refine requirements to find the perfect candidates faster.",
     icon: FileText,
     color: "#10b981",
     bgColor: "bg-emerald-100 dark:bg-emerald-900/20"
   },
   {
-    title: "Candidate Shortlisting",
+    title: "Candidate Matching",
     description:
-      "Our expert team carefully reviews and shortlists qualified candidates from our extensive pool who perfectly match the job requirements, skills, and company culture fit.",
+      "We shortlist qualified professionals who match your technical needs and company culture.",
     icon: Users,
     color: "#8b5cf6",
     bgColor: "bg-violet-100 dark:bg-violet-900/20"
   },
   {
-    title: "Pre-screening & Assessment",
+    title: "Skill Verification",
     description:
-      "The shortlisted candidates undergo comprehensive evaluation including technical assessments, behavioral interviews, and skill validation to ensure they meet the highest standards.",
+      "Candidates undergo technical assessment and skill validation. Only verified talent reaches you.",
     icon: Shield,
     color: "#f59e0b",
     bgColor: "bg-amber-100 dark:bg-amber-900/20"
   },
   {
-    title: "Final Selection & Placement",
+    title: "Hire & Onboard",
     description:
-      "Based on comprehensive evaluation results, companies can conduct final interviews, make informed hiring decisions, and extend job offers to the most qualified candidates.",
+      "Conduct final interviews with pre-screened candidates. Make confident hiring decisions quickly.",
     icon: Award,
     color: "#ec4899",
     bgColor: "bg-pink-100 dark:bg-pink-900/20"
@@ -123,15 +122,15 @@ const HiringProcess: React.FC<IHiringProcessProps> = memo(({ className = "" }) =
 
   if (isLoading) {
     return (
-      <section className={`relative bg-slate-50 dark:bg-slate-900 min-h-screen overflow-hidden w-full ${className}`}>
+      <section className={`relative bg-white dark:bg-slate-950 min-h-screen overflow-hidden w-full ${className}`}>
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
         
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-violet-50/50 via-transparent to-blue-50/50 dark:from-violet-950/20 dark:via-transparent dark:to-blue-950/20"></div>
         
-        <div className="relative z-10 w-full px-3 sm:px-4 md:px-6 lg:px-8 py-8 md:py-12">
-          <div className="animate-pulse space-y-8 max-w-6xl mx-auto">
+        <div className="relative z-10 w-full py-8 md:py-12">
+          <div className="animate-pulse space-y-8 w-full px-4 sm:px-6 md:px-8">
             {/* Header skeleton */}
             <div className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm">
               <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-2/3 mx-auto mb-4"></div>
@@ -141,12 +140,12 @@ const HiringProcess: React.FC<IHiringProcessProps> = memo(({ className = "" }) =
             {/* Content skeleton */}
             <div className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm">
               <div className="grid md:grid-cols-2 gap-8">
+                <div className="h-64 bg-slate-200 dark:bg-slate-700 rounded-xl"></div>
                 <div className="space-y-4">
-                  {[1, 2, 3, 4].map((i) => (
+                  {[1, 2, 3].map((i) => (
                     <div key={i} className="h-16 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
                   ))}
                 </div>
-                <div className="h-64 bg-slate-200 dark:bg-slate-700 rounded-xl"></div>
               </div>
             </div>
           </div>
@@ -156,140 +155,110 @@ const HiringProcess: React.FC<IHiringProcessProps> = memo(({ className = "" }) =
   }
 
   return (
-    <section className={`relative bg-slate-50 dark:bg-slate-900 min-h-screen overflow-hidden w-full ${className}`}>
-      {/* Enhanced Background Pattern */}
+    <section className={`relative bg-white dark:bg-slate-950 pt-2 md:pt-4 pb-0 md:pb-0 overflow-hidden w-full ${className}`}>
+      {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
       
       {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-violet-50/50 via-transparent to-blue-50/50 dark:from-violet-950/20 dark:via-transparent dark:to-blue-950/20"></div>
       
-      {/* Floating Elements */}
-      <div className="absolute top-20 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-violet-200/20 dark:bg-violet-800/20 rounded-full blur-3xl animate-blob"></div>
-      <div className="absolute top-40 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-      <div className="absolute bottom-20 left-1/2 w-28 h-28 sm:w-36 sm:h-36 bg-emerald-200/20 dark:bg-emerald-800/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+      {/* Floating Elements - optimized for mobile */}
+      <div className="absolute top-10 sm:top-20 left-0 w-20 h-20 sm:w-32 sm:h-32 bg-violet-200/20 dark:bg-violet-800/20 rounded-full blur-2xl sm:blur-3xl animate-blob"></div>
+      <div className="absolute bottom-10 sm:bottom-20 right-0 w-24 h-24 sm:w-40 sm:h-40 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-2xl sm:blur-3xl animate-blob animation-delay-2000"></div>
 
-      <div className="relative z-10 w-full px-3 sm:px-4 md:px-6 lg:px-8 py-8 md:py-12">
-        {/* Enhanced Header */}
+      <div className="relative z-10 w-full px-4 sm:px-6 md:px-8 lg:px-12 py-8 md:py-12">
+        {/* Enhanced Header Section */}
         <motion.div
           initial="hidden"
           animate={isVisible ? "visible" : "hidden"}
           variants={fadeInUp}
-          transition={{ duration: 0.6 }}
-          className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 mb-8 max-w-6xl mx-auto text-center"
+          transition={{ duration: 0.8 }}
+          className={buildAdvancedComponent.glassCard({ variant: 'hero', padding: 'desktop', hover: false })}
         >
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-slate-100 mb-4 leading-tight">
-            <span className="text-emerald-600 dark:text-emerald-400">Streamlined Process</span> for Hiring
-          </h1>
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4">
-            IT Professionals through Recruit@Medh
-          </h2>
-          <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-4xl mx-auto leading-relaxed">
-            Our hiring process is completely managed by our Support Team and a Dedicated Relationship Manager assigned for you
-          </p>
-        </motion.div>
-
-        {/* Main Content Section */}
-        <motion.div
-          initial="hidden"
-          animate={isVisible ? "visible" : "hidden"}
-          variants={fadeInUp}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 max-w-6xl mx-auto"
-        >
-          <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-            {/* Content Section */}
-            <div className="order-2 md:order-1">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={isVisible ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="mb-6 md:mb-8"
-              >
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-4">
-                  Our Comprehensive Hiring Process
-                </h3>
-                <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-                  Experience a seamless recruitment journey with our structured approach that ensures quality matches and successful placements.
+          <div className="text-center mb-12">
+            <div className="w-full mx-auto">
+              {/* Section Badge */}
+              <div className={corporatePatterns.sectionBadge('violet')}>
+                <Target className="w-4 h-4 text-violet-600 dark:text-violet-400 mr-2" />
+                <span>Streamlined Process</span>
+              </div>
+              
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4 leading-tight whitespace-nowrap">
+                Our Hiring <span className="text-violet-600 dark:text-violet-400">Process</span>
+              </h2>
+              
+              <div className="w-full mx-auto">
+                <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
+                  A structured approach to finding the 
+                  <span className="font-semibold text-slate-800 dark:text-slate-200"> right talent</span> for your 
+                  <span className="font-semibold text-slate-800 dark:text-slate-200"> specific needs</span>
                 </p>
-              </motion.div>
+              </div>
+            </div>
+          </div>
+            </motion.div>
 
-              <motion.div
-                variants={staggerContainer}
-                initial="hidden"
-                animate={isVisible ? "visible" : "hidden"}
-                className="space-y-4 md:space-y-6"
-              >
-                {steps.map((step, index) => {
-                  const IconComponent = step.icon;
-                  return (
-                    <motion.div
-                      key={index}
-                      variants={fadeInUp}
-                      transition={{ duration: 0.4, delay: index * 0.1 }}
-                      className="group flex items-start space-x-4 p-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all duration-300 hover:shadow-md hover:transform hover:translate-x-2"
-                    >
-                      <div className={`flex-shrink-0 w-12 h-12 rounded-xl ${step.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                        <IconComponent 
-                          className="w-6 h-6" 
-                          style={{ color: step.color }}
-                        />
+        {/* Process Steps */}
+            <motion.div
+              initial="hidden"
+              animate={isVisible ? "visible" : "hidden"}
+              variants={staggerContainer}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="w-full flex flex-col md:flex-row gap-6 md:gap-8 justify-center items-center md:items-stretch px-0"
+            >
+              {steps.map((step, index) => {
+                const IconComponent = step.icon;
+                return (
+                  <motion.div
+                    key={index}
+                    variants={fadeInUp}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    className="flex-1 min-w-[220px] max-w-xs md:max-w-sm lg:max-w-xs flex flex-col items-center text-center"
+                  >
+                    <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-600 shadow-sm w-full h-full flex flex-col items-center">
+                      <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-violet-500 to-violet-600 rounded-xl flex items-center justify-center shadow-md mb-3">
+                        <IconComponent className="w-7 h-7 text-white" />
                       </div>
-                      <div className="flex-grow">
-                        <h4 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors duration-300 mb-2">
+                      <div className="flex flex-col items-center mb-2">
+                        <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100 leading-tight mb-1">
                           {step.title}
                         </h4>
-                        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
-                          {step.description}
-                        </p>
+                        <div className="text-xs font-semibold text-violet-600 dark:text-violet-400 bg-violet-100 dark:bg-violet-900/30 px-3 py-1 rounded-full">
+                          Step {index + 1}
+                        </div>
                       </div>
-                    </motion.div>
-                  );
-                })}
-              </motion.div>
-            </div>
-
-            {/* Image Section */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={isVisible ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="relative order-1 md:order-2"
-            >
-              <div className="relative rounded-2xl overflow-hidden shadow-xl group">
-                <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 via-violet-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <Image
-                  src={HiringProcessImg}
-                  alt="Professional hiring process illustration"
-                  className="w-full h-auto object-cover rounded-2xl transform group-hover:scale-105 transition-transform duration-500"
-                  priority
-                />
-              </div>
+                      <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                        {step.description}
+                      </p>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </motion.div>
-          </div>
-        </motion.div>
 
-        {/* Call to Action Section */}
-        <motion.div
-          initial="hidden"
-          animate={isVisible ? "visible" : "hidden"}
-          variants={fadeInUp}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 text-center mt-8 max-w-6xl mx-auto"
-        >
-          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-4">
-            Ready to Start Your Hiring Journey?
-          </h3>
-          <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 mb-6 max-w-2xl mx-auto">
-            Connect with our dedicated recruitment specialists and experience our streamlined hiring process that delivers exceptional talent.
-          </p>
-          <button
-            onClick={handleContactClick}
-            className="inline-flex items-center px-6 md:px-8 py-3 md:py-4 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-semibold rounded-lg text-sm md:text-base transition-all duration-200 hover:-translate-y-1 hover:shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 min-h-[44px] touch-manipulation"
-            aria-label="Begin hiring process"
-          >
-            Begin Hiring Process
-            <ChevronRight className="ml-2 w-4 h-4 md:w-5 md:h-5" />
-          </button>
+            {/* Summary Stats - Mobile optimized */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.6, delay: 1.0 }}
+              className="mt-4 md:mt-4"
+            >
+              <div className="bg-gradient-to-r from-violet-50 to-blue-50 dark:from-violet-900/20 dark:to-blue-900/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-violet-200/50 dark:border-violet-700/50">
+                <div className="grid grid-cols-3 gap-4 sm:gap-6 text-center">
+                  <div>
+                    <div className="text-2xl sm:text-3xl font-bold text-violet-600 dark:text-violet-400 mb-1 sm:mb-2">5</div>
+                    <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">Simple Steps</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-1 sm:mb-2">100%</div>
+                    <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">Managed Process</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1 sm:mb-2">Fast</div>
+                    <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">Quick Results</div>
+                  </div>
+                </div>
+          </div>
         </motion.div>
       </div>
 

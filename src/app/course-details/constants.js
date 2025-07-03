@@ -23,7 +23,7 @@ export const GRADE_MAP = {
   'Grade 7-8': ['Grade 7', 'Grade 8', 'Grade 7', 'Grade 8', 'Grade 7-8', 'Grade 7-8'],
   'Grade 9-10': ['Grade 9', 'Grade 10', 'Grade 9', 'Grade 10', 'Grade 9-10', 'Grade 9-10'],
   'Grade 11-12': ['Grade 11', 'Grade 12', 'Grade 11', 'Grade 12', 'Grade 11-12', 'Grade 11-12'],
-  'UG/Grad/Pro': ['Undergraduate', 'UG', 'Bachelors', 'UG - Graduate', 'UG/Grad/Pro']
+  'UG - Graduate - Professionals': ['Undergraduate', 'UG', 'Bachelors', 'UG - Graduate', 'UG - Graduate - Professionals']
 };
 
 // Helper to get grade label by ID

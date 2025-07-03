@@ -341,6 +341,44 @@ export interface IRecordedLesson {
   created_by: string;
 }
 
+// Upload recorded lesson types
+export interface IUploadRecordedLessonInput {
+  base64String: string;
+  title: string;
+  recorded_date?: string;
+  metadata?: {
+    fileName: string;
+    originalSize: number;
+    encodedSize: number;
+    mimeType: string;
+    uploadedAt: string;
+  };
+  // NEW: Optional text file support for supplementary materials
+  textFile?: {
+    content: string;           // Text content (max 1MB)
+    filename: string;          // Filename with extension (.txt, .md, .rtf, .doc, .docx)
+    description?: string;      // Optional description of the text file
+  };
+}
+
+export interface IUploadRecordedLessonResponse {
+  success: boolean;
+  status: 'uploading' | 'in_progress' | 'completed' | 'failed';
+  message: string;
+  data: {
+    videoId: string;
+    uploadStatus: string;
+    batchId: string;
+    sessionId: string;
+    title: string;
+    url?: string;
+    processingJobId?: string;
+    // NEW: Text file upload status
+    hasTextFile?: boolean;
+    textFileStatus?: 'uploading' | 'completed' | 'failed';
+  };
+}
+
 /**
  * Helper function to convert time string (HH:MM) to minutes
  * @param timeString - Time in HH:MM format
@@ -1442,192 +1480,27 @@ export const batchAPI = {
       `${apiBaseUrl}/batches/individual/check-instructor-availability`,
       availabilityData
     );
-  }
-};
-
-/**
- * Instructor Assignment utilities for batches
- */
-export const instructorAssignmentUtils = {
-  /**
-   * Calculate batch utilization percentage
-   * @param enrolled - Number of enrolled students
-   * @param capacity - Total batch capacity
-   * @returns Utilization percentage
-   */
-  calculateBatchUtilization: batchUtils.calculateBatchUtilization,
-
-  /**
-   * Get instructor workload
-   * @param batches - Array of batches
-   * @param instructorId - Instructor ID
-   * @returns Instructor workload data
-   */
-  getInstructorWorkload: (batches: IBatchWithDetails[], instructorId: string) => {
-    const instructorBatches = batches.filter(batch => batch.assigned_instructor === instructorId);
-    const totalStudents = instructorBatches.reduce((sum, batch) => sum + batch.enrolled_students, 0);
-    const activeBatches = instructorBatches.filter(batch => batch.status === 'Active').length;
-    const individualBatches = instructorBatches.filter(batch => batchUtils.isIndividualBatch(batch));
-    const groupBatches = instructorBatches.filter(batch => !batchUtils.isIndividualBatch(batch));
-    
-    return {
-      total_batches: instructorBatches.length,
-      active_batches: activeBatches,
-      individual_batches: individualBatches.length,
-      group_batches: groupBatches.length,
-      total_students: totalStudents,
-      utilization: instructorBatches.length > 0 ? 
-        instructorBatches.reduce((sum, batch) => 
-          sum + batchUtils.calculateBatchUtilization(batch.enrolled_students, batch.capacity), 0
-        ) / instructorBatches.length : 0,
-      individual_students: individualBatches.length, // For individual batches, this equals batch count
-      group_students: groupBatches.reduce((sum, batch) => sum + batch.enrolled_students, 0)
-    };
   },
 
-  /**
-   * Find optimal batch for student enrollment
-   * @param batches - Available batches
-   * @param courseId - Course ID
-   * @returns Optimal batch or null
-   */
-  findOptimalBatch: (batches: IBatchWithDetails[], courseId: string): IBatchWithDetails | null => {
-    const availableBatches = batches.filter(batch => 
-      batch.course === courseId && 
-      batch.status === 'Active' && 
-      batch.batch_type === 'group' && // Only consider group batches for general enrollment
-      !batchUtils.isBatchFull(batch.enrolled_students, batch.capacity)
-    );
-
-    if (availableBatches.length === 0) return null;
-
-    // Sort by utilization (prefer batches with moderate utilization)
-    return availableBatches.sort((a, b) => {
-      const utilizationA = batchUtils.calculateBatchUtilization(a.enrolled_students, a.capacity);
-      const utilizationB = batchUtils.calculateBatchUtilization(b.enrolled_students, b.capacity);
-      
-      // Prefer batches with 50-80% utilization
-      const scoreA = Math.abs(utilizationA - 65);
-      const scoreB = Math.abs(utilizationB - 65);
-      
-      return scoreA - scoreB;
-    })[0];
-  },
-
-  /**
-   * Check if instructor can handle additional individual batch
-   * @param instructorBatches - Current instructor batches
-   * @param maxIndividualBatches - Maximum individual batches per instructor (default: 10)
-   * @returns Boolean indicating availability
-   */
-  canHandleAdditionalIndividualBatch: (
-    instructorBatches: IBatchWithDetails[], 
-    maxIndividualBatches: number = 10
-  ): boolean => {
-    const currentIndividualBatches = instructorBatches.filter(batch => 
-      batchUtils.isIndividualBatch(batch) && 
-      (batch.status === 'Active' || batch.status === 'Upcoming')
-    ).length;
+  // Upload and add a recorded lesson to a specific session with base64 video
+  uploadAndAddRecordedLesson: async (
+    batchId: string,
+    sessionId: string,
+    uploadData: IUploadRecordedLessonInput
+  ): Promise<IApiResponse<IUploadRecordedLessonResponse>> => {
+    if (!batchId || !sessionId) throw new Error('Batch ID and Session ID are required');
+    if (!uploadData.base64String) throw new Error('Base64 video data is required');
+    if (!uploadData.title) throw new Error('Video title is required');
     
-    return currentIndividualBatches < maxIndividualBatches;
-  },
-
-  /**
-   * Get instructor's individual batch statistics
-   * @param batches - All batches
-   * @param instructorId - Instructor ID
-   * @returns Individual batch statistics
-   */
-  getIndividualBatchStats: (batches: IBatchWithDetails[], instructorId: string) => {
-    const instructorBatches = batches.filter(batch => batch.assigned_instructor === instructorId);
-    const individualBatches = instructorBatches.filter(batch => batchUtils.isIndividualBatch(batch));
-    
-    const activeIndividual = individualBatches.filter(b => b.status === 'Active').length;
-    const upcomingIndividual = individualBatches.filter(b => b.status === 'Upcoming').length;
-    const completedIndividual = individualBatches.filter(b => b.status === 'Completed').length;
-    
-    return {
-      total_individual_batches: individualBatches.length,
-      active_individual_batches: activeIndividual,
-      upcoming_individual_batches: upcomingIndividual,
-      completed_individual_batches: completedIndividual,
-      individual_students: individualBatches.length, // 1:1 mapping
-      avg_session_duration: individualBatches.length > 0 ? 
-        individualBatches.reduce((sum, batch) => {
-          // Calculate average session duration from schedule
-          const sessionDurations = batch.schedule?.map(s => {
-            const start = new Date(`2000-01-01 ${s.start_time}`);
-            const end = new Date(`2000-01-01 ${s.end_time}`);
-            return (end.getTime() - start.getTime()) / (1000 * 60); // minutes
-          }) || [60]; // default 60 minutes
-          
-          return sum + (sessionDurations.reduce((a, b) => a + b, 0) / sessionDurations.length);
-        }, 0) / individualBatches.length : 0
-    };
-  },
-
-  /**
-   * Find best instructor for individual batch
-   * @param instructors - Available instructors with their batch data
-   * @param courseId - Course ID
-   * @param preferredSchedule - Preferred schedule
-   * @returns Best instructor match or null
-   */
-  findBestInstructorForIndividual: (
-    instructors: Array<{
-      instructor_id: string;
-      instructor_name: string;
-      hourly_rate?: number;
-      batches: IBatchWithDetails[];
-      availability_score?: number;
-    }>,
-    courseId: string,
-    preferredSchedule?: IBatchSchedule[]
-  ) => {
-    // Filter instructors who can handle additional individual batches
-    const availableInstructors = instructors.filter(instructor => 
-      instructorAssignmentUtils.canHandleAdditionalIndividualBatch(instructor.batches)
-    );
-
-    if (availableInstructors.length === 0) return null;
-
-    // Score instructors based on various factors
-    const scoredInstructors = availableInstructors.map(instructor => {
-      const workload = instructorAssignmentUtils.getInstructorWorkload(instructor.batches, instructor.instructor_id);
-      const individualStats = instructorAssignmentUtils.getIndividualBatchStats(instructor.batches, instructor.instructor_id);
-      
-      // Calculate score (lower is better)
-      let score = 0;
-      
-      // Factor 1: Current workload (prefer less loaded instructors)
-      score += workload.total_students * 0.3;
-      
-      // Factor 2: Individual batch experience (prefer experienced instructors)
-      score -= individualStats.total_individual_batches * 0.2;
-      
-      // Factor 3: Availability score (if provided)
-      if (instructor.availability_score) {
-        score -= instructor.availability_score * 0.4;
+    return apiClient.post(
+      `${apiBaseUrl}/batches/${batchId}/schedule/${sessionId}/upload-recorded-lesson`,
+      {
+        ...uploadData,
+        recorded_date: uploadData.recorded_date || new Date().toISOString()
       }
-      
-      // Factor 4: Course experience (check if instructor has taught this course)
-      const courseExperience = instructor.batches.filter(b => b.course === courseId).length;
-      score -= courseExperience * 0.1;
-      
-      return {
-        ...instructor,
-        score,
-        workload,
-        individualStats,
-        courseExperience
-      };
-    });
-
-    // Sort by score (ascending - lower is better)
-    scoredInstructors.sort((a, b) => a.score - b.score);
-    
-    return scoredInstructors[0] || null;
-  }
+    );
+  },
 };
 
-export default batchAPI; 
+// Export the batch API as default
+export default batchAPI;

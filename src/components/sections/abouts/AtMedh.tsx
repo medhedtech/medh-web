@@ -11,7 +11,7 @@ import {
   Heart,
   Sparkles
 } from "lucide-react";
-import AboutRight from "@/assets/images/about/AboutRight.png";
+import { mobilePatterns } from "@/utils/designSystem";
 
 interface IBelief {
   text: string;
@@ -45,30 +45,30 @@ const fadeInRight = {
 
 const beliefs: IBelief[] = [
   {
-    text: "are passionate about transforming education and empowering learners across the world."
+    text: "🌍 Passionate about transforming education globally"
   },
   {
-    text: "believe that learning should be a fun and engaging experience through a perfect amalgamation of technology and pedagogy."
+    text: "🎯 Fun learning through technology + pedagogy fusion"
   },
   {
-    text: "leverage cutting-edge technology and data-driven insights to design and deliver a wide range of educational solutions."
+    text: "⚡ Data-driven insights for innovative solutions"
   }
 ];
 
 const cards: ICard[] = [
   {
-    title: "MEDH – VISION",
-    icon: <Lightbulb className="w-5 h-5 sm:w-6 sm:h-6" />,
-    content: "Aspires to lead the EdTech industry by offering skill development solutions that empower individuals at every stage of life, from early childhood to career and homemaking readiness.",
+    title: "VISION",
+    icon: <Lightbulb className="w-5 h-5" />,
+    content: "🚀 Lead EdTech → Empower individuals → Every life stage (childhood to career)",
     color: "text-amber-600 dark:text-amber-400",
     bgColor: "bg-amber-100 dark:bg-amber-900/30",
     gradientFrom: "from-amber-600",
     gradientTo: "to-orange-600"
   },
   {
-    title: "MEDH – MISSION",
-    icon: <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6" />,
-    content: "Our mission is to empower individuals of all ages through innovative and personalized skill development courses, offering future-ready curriculum, interactive learning, AI-based technology, industry-aligned certifications, and community engagement. We prioritize excellence and innovation through collaborations with seasoned educators and subject matter experts from the relevant industry to foster personal and professional growth.",
+    title: "MISSION",
+    icon: <RefreshCw className="w-5 h-5" />,
+    content: "💡 AI-powered learning • Industry certifications • Expert collaborations = Professional growth",
     color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-100 dark:bg-blue-900/30",
     gradientFrom: "from-blue-600",
@@ -118,15 +118,15 @@ const AtMedh: React.FC = () => {
 
   if (isLoading) {
     return (
-      <section className="relative bg-slate-50 dark:bg-slate-900 min-h-screen overflow-hidden w-full">
+      <section className={`relative ${mobilePatterns.mobileSection()} overflow-hidden`}>
         {/* Enhanced Background Pattern */}
         <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
         
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-amber-50/50 via-transparent to-blue-50/50 dark:from-amber-950/20 dark:via-transparent dark:to-blue-950/20"></div>
         
-        <div className="relative z-10 w-full px-3 sm:px-4 md:px-6 lg:px-8 py-8 md:py-12">
-          <div className="animate-pulse max-w-7xl mx-auto">
+        <div className={`relative z-10 ${mobilePatterns.mobileContainer('lg')}`}>
+          <div className="animate-pulse">
             {/* Header skeleton */}
             <div className="h-12 bg-slate-200 dark:bg-slate-700 rounded-xl w-2/3 mx-auto mb-12"></div>
             
@@ -173,7 +173,7 @@ const AtMedh: React.FC = () => {
   }
 
   return (
-    <section className="relative bg-slate-50 dark:bg-slate-900 min-h-screen overflow-hidden w-full">
+    <section className="relative bg-slate-50 dark:bg-slate-900 overflow-hidden w-full">
       {/* Enhanced Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
       
@@ -185,7 +185,7 @@ const AtMedh: React.FC = () => {
       <div className="absolute top-40 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
       <div className="absolute bottom-20 left-1/2 w-28 h-28 sm:w-36 sm:h-36 bg-indigo-200/20 dark:bg-indigo-800/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
 
-      <div className="relative z-10 w-full px-3 sm:px-4 md:px-6 lg:px-8 py-8 md:py-12">
+      <div className="relative z-10 w-full px-3 sm:px-4 md:px-6 lg:px-8 py-2">
         <div className="max-w-7xl mx-auto">
           {/* Main Heading - Enhanced */}
           <motion.div
@@ -204,74 +204,36 @@ const AtMedh: React.FC = () => {
             </h2>
           </motion.div>
 
-          {/* Beliefs and Image Section */}
-          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 mb-16">
-            {/* Beliefs List - Enhanced */}
+          {/* Beliefs Section - Full Width */}
+          <div className="max-w-4xl mx-auto mb-16">
             <motion.div
               initial="hidden"
               animate={isVisible ? "visible" : "hidden"}
               variants={fadeInLeft}
               transition={{ duration: 0.6 }}
-              className="lg:w-3/5"
             >
               <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-xl md:rounded-2xl border border-white/50 dark:border-slate-600/50 p-6 md:p-8 shadow-xl shadow-slate-200/20 dark:shadow-slate-900/30">
-                <div className="space-y-4 md:space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                   {beliefs.map((belief, index) => (
                     <motion.div
                       key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 * index + 0.3 }}
-                      className="flex items-start gap-3 md:gap-4 group"
+                      className="text-center group"
                     >
                       <motion.div
-                        whileHover={{ scale: 1.2, rotate: 360 }}
+                        whileHover={{ scale: 1.1, rotate: 5 }}
                         transition={{ type: "spring", stiffness: 300 }}
-                        className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm"
+                        className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-xl flex items-center justify-center shadow-sm mx-auto mb-3"
                       >
-                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 dark:text-emerald-400" />
+                        <CheckCircle className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                       </motion.div>
-                      <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
+                      <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
                         {belief.text}
                       </p>
                     </motion.div>
                   ))}
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Image - Enhanced with Glassmorphism */}
-            <motion.div
-              initial="hidden"
-              animate={isVisible ? "visible" : "hidden"}
-              variants={fadeInRight}
-              transition={{ duration: 0.6 }}
-              className="lg:w-2/5"
-            >
-              <div className="relative group">
-                {/* Glass effect background */}
-                <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 rounded-2xl blur-2xl opacity-70 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
-                {/* Main image container */}
-                <div className="relative bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-xl md:rounded-2xl border border-white/50 dark:border-slate-600/50 p-2 sm:p-3 shadow-xl shadow-slate-200/20 dark:shadow-slate-900/30">
-                  <Image
-                    src={AboutRight}
-                    alt="About Medh"
-                    className="rounded-lg md:rounded-xl w-full h-auto"
-                  />
-                  
-                  {/* Decorative badge */}
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.8, type: "spring", stiffness: 300 }}
-                    className="absolute -bottom-4 -left-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-2 rounded-full text-xs sm:text-sm font-semibold shadow-lg"
-                  >
-                    <span className="flex items-center gap-1">
-                      <Target className="w-3 h-3 sm:w-4 sm:h-4" />
-                      Empowering Futures
-                    </span>
-                  </motion.div>
                 </div>
               </div>
             </motion.div>
@@ -335,9 +297,9 @@ const AtMedh: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
-            className="flex justify-center mt-12"
+            className="flex justify-center mt-6 md:mt-8"
           >
-            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+            <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
               <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
               <span className="text-sm sm:text-base italic">Transforming Education, Empowering Lives</span>
               <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
@@ -345,22 +307,6 @@ const AtMedh: React.FC = () => {
           </motion.div>
         </div>
       </div>
-
-      {/* Scroll to top button - Mobile Optimized */}
-      <AnimatePresence>
-        {showScrollTop && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            onClick={scrollToTop}
-            className="fixed bottom-6 right-6 md:bottom-8 md:right-8 p-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white rounded-full shadow-lg transition-all z-50 hover:shadow-xl"
-            aria-label="Scroll to top"
-          >
-            <ArrowUp className="w-4 h-4 md:w-5 md:h-5" />
-          </motion.button>
-        )}
-      </AnimatePresence>
     </section>
   );
 };

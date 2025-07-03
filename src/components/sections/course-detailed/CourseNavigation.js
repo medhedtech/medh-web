@@ -58,15 +58,6 @@ const SECTIONS = [
     indicatorColor: 'bg-blue-500 dark:bg-blue-400'
   },
   { 
-    id: 'faq', 
-    label: 'FAQ', 
-    icon: HelpCircle, 
-    mobileLabel: 'FAQ',
-    color: 'violet',
-    lightColor: 'text-violet-500 dark:text-violet-400',
-    indicatorColor: 'bg-violet-500 dark:bg-violet-400'
-  },
-  { 
     id: 'certificate', 
     label: 'Certificate', 
     icon: FileBadge, 
@@ -120,13 +111,13 @@ const CourseNavigation = ({
 
   return (
     <motion.div 
-      className={`bg-white dark:bg-gray-800 rounded-lg md:rounded-xl ${compact ? 'p-1.5 sm:p-2' : 'p-2 sm:p-2.5 md:p-3'} shadow-sm border border-gray-200 dark:border-gray-700`}
+      className={`bg-white dark:bg-gray-800 rounded-none sm:rounded-lg md:rounded-xl ${compact ? 'p-1.5 sm:p-2' : 'p-3 sm:p-2.5 md:p-3'} shadow-none sm:shadow-sm border-0 sm:border border-gray-200 dark:border-gray-700 mx-0 sm:mx-4 md:mx-6 lg:mx-8`}
       initial="initial"
       animate="animate"
       variants={fadeIn}
     >
       {/* All navigation options evenly spaced */}
-      <div className={`grid ${showDownloadBrochure ? 'grid-cols-5' : 'grid-cols-4'} sm:flex w-full justify-evenly sm:justify-between gap-1 sm:gap-2`}>
+      <div className={`grid ${showDownloadBrochure ? 'grid-cols-4' : 'grid-cols-3'} sm:flex w-full justify-evenly sm:justify-between gap-1 sm:gap-2`}>
         {visibleSections.map((section) => {
           const Icon = section.icon;
           const isActive = activeSection === section.id;

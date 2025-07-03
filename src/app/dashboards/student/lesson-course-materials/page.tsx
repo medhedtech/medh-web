@@ -1,21 +1,22 @@
-import React from "react";
-import { Metadata } from "next";
-import dynamic from "next/dynamic";
+'use client';
 
-export const metadata: Metadata = {
-  title: "Lesson Course Materials | Student Dashboard | Medh",
-  description: "Access and download course materials, resources, and study guides",
-};
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
-// Client component wrapper for the lesson-course-materials dashboard
+// Dynamically import the dashboard component
 const LessonCourseMaterialsDashboard = dynamic(
-  () => import("@/components/sections/dashboards/LessonCourseMaterialsDashboard"),
+  () => import('@/components/sections/dashboards/LessonCourseMaterialsDashboard'),
   {
-    loading: () => <div className="min-h-screen flex items-center justify-center">Loading...</div>,
+    loading: () => <LoadingSpinner size="lg" />,
+    ssr: false // Disable SSR for this component since it uses browser APIs
   }
 );
 
-// Server component
 export default function LessonCourseMaterialsPage() {
-  return <LessonCourseMaterialsDashboard />;
+  return (
+    <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+      <LessonCourseMaterialsDashboard />
+    </Suspense>
+  );
 } 

@@ -9,9 +9,10 @@ import CourseBanner from "@/components/shared/banners/CourseBanner";
 
 // Section components
 import VedicOverview from "@/components/sections/vedic-mathematics/vedicOverview";
-import VedicCource from '@/components/sections/vedic-mathematics/vedicCource';
+import VedicCourse from '@/components/sections/vedic-mathematics/vedicCourse';
 import VedicFaq from "@/components/sections/vedic-mathematics/vedicFaq";
 import AnimatedContent from './AnimatedContent';
+import VedicRalatedCource from '@/components/sections/vedic-mathematics/vedicRalatedCource';
 
 // Assets
 import Banner from '@/assets/Header-Images/Vedic-Maths/vedic-maths.png';
@@ -85,9 +86,10 @@ function VedicMathematics() {
           <AnimatedContent 
             components={{
               VedicBanner,
+              VedicCourse,
               VedicOverview,
-              VedicCource,
               VedicFaq,
+              VedicRalatedCource,
               ThemeController
             }}
             bannerProps={bannerProps}

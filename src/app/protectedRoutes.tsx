@@ -31,6 +31,14 @@ const ProtectedPage: React.FC<IProtectedPageProps> = ({ children }) => {
         }
 
         // Use our comprehensive auth validation
+        // Bypass authentication for development environment
+        if (process.env.NODE_ENV === 'development') {
+          console.warn("ProtectedPage: Bypassing authentication for development mode.");
+          setIsAuthenticated(true);
+          setAuthChecked(true);
+          return;
+        }
+
         const isValid = validateAndFixAuth();
         
         if (!isValid) {
@@ -103,4 +111,4 @@ const ProtectedPage: React.FC<IProtectedPageProps> = ({ children }) => {
   return null;
 };
 
-export default ProtectedPage; 
+export default ProtectedPage;

@@ -155,27 +155,10 @@ const VIDEO_CONFIG = {
   }
 } as const;
 
-// LCP-OPTIMIZED video source selector with aggressive timeout and local fallback
-const getOptimizedVideoSrc = (
-  isDark: boolean, 
-  isMobile: boolean, 
-  useCompressed = false, 
-  forceLocal = false
-): string => {
-  const config = isDark ? VIDEO_CONFIG.dark : VIDEO_CONFIG.light;
-  const deviceConfig = isMobile ? config.mobile : config.desktop;
-  
-  // Force local fallback for instant loading if network is slow
-  if (forceLocal) {
-    return deviceConfig.localFallback;
-  }
-  
-  return useCompressed ? deviceConfig.fallback : deviceConfig.primary;
-};
-
+// Keep poster logic for now – will be moved to edge later
 const getVideoPoster = (isDark: boolean): string => {
   return isDark ? VIDEO_CONFIG.dark.poster : VIDEO_CONFIG.light.poster;
-};
+}
 
 // Enhanced context interface with performance tracking and error recovery
 export interface VideoBackgroundContextType {
@@ -375,10 +358,24 @@ const Home1: React.FC = () => {
   
   // Memoized derived values with performance tracking and aggressive local fallback
   const isDark = useMemo(() => mounted ? theme === 'dark' : true, [mounted, theme]);
-  const videoSrc = useMemo(() => 
-    getOptimizedVideoSrc(isDark, deferredIsMobile, useCompressedVideo, useLocalVideo || videoLoadTimeout), 
-    [isDark, deferredIsMobile, useCompressedVideo, useLocalVideo, videoLoadTimeout]
-  );
+  const deviceType = useMemo(() => (isMobile ? 'mobile' : 'desktop'), [isMobile]);
+
+  // --- COMPRESSED VIDEO LOGIC ---
+  // Dynamically select the best video source for fast loading
+  const videoSrc = useMemo(() => {
+    // If video error or timeout, always use local fallback
+    if (hasVideoError || videoLoadTimeout) {
+      return VIDEO_CONFIG[isDark ? 'dark' : 'light'][deviceType].localFallback;
+    }
+    // If compressed video is requested (slow connection, low-end device, or after error), use compressed primary
+    if (useCompressedVideo) {
+      return VIDEO_CONFIG[isDark ? 'dark' : 'light'][deviceType].primary;
+    }
+    // Otherwise, use the /api/video endpoint for best-case (server-optimized)
+    return `/api/video?theme=${isDark ? 'dark' : 'light'}`;
+  }, [isDark, deviceType, useCompressedVideo, hasVideoError, videoLoadTimeout]);
+
+  // Keep existing client-side dark/light poster logic for now.
   const videoPoster = useMemo(() => getVideoPoster(isDark), [isDark]);
 
   // Enhanced video retry mechanism with exponential backoff and compression fallback
@@ -530,16 +527,14 @@ const Home1: React.FC = () => {
     // Advanced device capability detection (moved inside effect to avoid infinite loop)
     const { isLowEnd, hasSlowConnection, prefersReducedMotion } = getDeviceCapabilities();
     
-    // Adaptive video settings based on device capabilities with aggressive local fallback
+    // Adaptive video settings based on device capabilities
     if (isLowEnd || prefersReducedMotion) {
       setShouldShowVideo(false);
       setCompressionLevel('low');
     } else if (hasSlowConnection) {
-      // For slow connections, immediately use local video to prevent 15s+ load times
-      setUseLocalVideo(true);
       setUseCompressedVideo(true);
       setCompressionLevel('high');
-      console.log('Slow connection detected - using local video for optimal LCP');
+      console.log('Slow connection detected - using compressed video');
     }
     
     // Performance-optimized load timing with requestAnimationFrame
@@ -549,6 +544,7 @@ const Home1: React.FC = () => {
           if (mountedRef.current) {
             startTransition(() => {
               setIsLoaded(true);
+              setAllowVideoLoad(true); // Allow video load immediately with page load
             });
           }
         }, { timeout: 100 });
@@ -558,6 +554,7 @@ const Home1: React.FC = () => {
             if (mountedRef.current) {
               startTransition(() => {
                 setIsLoaded(true);
+                setAllowVideoLoad(true); // Allow video load immediately with page load
               });
             }
           }, 50);
@@ -567,14 +564,6 @@ const Home1: React.FC = () => {
     
     scheduleLoad();
     
-    // AGGRESSIVE LCP OPTIMIZATION: Delay video loading by 5 seconds to prioritize hero content
-    const videoDelayTimer = setTimeout(() => {
-      if (mountedRef.current) {
-        setAllowVideoLoad(true);
-        console.log('Hero content prioritized - now allowing video background');
-      }
-    }, 5000); // 5 second delay for maximum LCP optimization
-    
     // Optimized resize listener with passive events
     const resizeHandler = () => handleResize();
     window.addEventListener('resize', resizeHandler, { passive: true });
@@ -582,17 +571,10 @@ const Home1: React.FC = () => {
     // Intelligent resource preloading based on device capabilities
     if (!prefersReducedMotion && !isLowEnd) {
       const preloadVideo = () => {
-        // Use proper link preload with 'as' attribute for video
         const linkPreload = document.createElement('link');
         linkPreload.rel = 'preload';
-        linkPreload.as = 'video'; // Add missing 'as' attribute
-        linkPreload.href = getOptimizedVideoSrc(
-          theme === 'dark', 
-          window.innerWidth < 768, 
-          hasSlowConnection
-        );
-        
-        // Add type attribute for better browser hints
+        linkPreload.as = 'video';
+        linkPreload.href = `/api/video?theme=${theme === 'dark' ? 'dark' : 'light'}`;
         linkPreload.type = 'video/mp4';
         
         try {
@@ -618,7 +600,6 @@ const Home1: React.FC = () => {
     
     return () => {
       if (resizeTimeoutId) clearTimeout(resizeTimeoutId);
-      clearTimeout(videoDelayTimer);
       window.removeEventListener('resize', resizeHandler);
       mountedRef.current = false;
     };
@@ -693,7 +674,7 @@ const Home1: React.FC = () => {
 
   return (
     <VideoBackgroundContext.Provider value={contextValue}>
-      {/* LCP-optimized video background - HEAVILY delayed to prioritize hero content */}
+      {/* LCP-optimized video background - Load immediately on page load */}
       {shouldShowVideo && !hasVideoError && deferredIsLoaded && allowVideoLoad && (
         <div 
           className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0"
@@ -711,7 +692,7 @@ const Home1: React.FC = () => {
             muted
             loop
             playsInline
-            preload="none"
+            preload="auto"
             poster={videoPoster}
             className="absolute inset-0 w-full h-full object-cover"
             style={{ 
@@ -730,14 +711,13 @@ const Home1: React.FC = () => {
             onLoadStart={() => {
               videoLoadStartTime.current = performance.now();
               
-              // AGGRESSIVE TIMEOUT: Force local video after 3 seconds
+              // Reasonable timeout: Force fallback after 10 seconds if video doesn't load
               const timeoutId = setTimeout(() => {
                 if (!deferredIsPlaying && !hasVideoError && videoLoadStartTime.current > 0) {
-                  console.warn('Video loading timeout - switching to local fallback');
+                  console.warn('Video loading timeout - switching to fallback');
                   setVideoLoadTimeout(true);
-                  setUseLocalVideo(true);
                 }
-              }, 3000); // 3 second timeout for LCP optimization
+              }, 10000); // 10 second timeout
               
               // Clear timeout if video loads successfully
               const clearTimeoutOnLoad = () => {
@@ -765,7 +745,7 @@ const Home1: React.FC = () => {
         </div>
       )}
 
-      {/* INSTANT CSS background for optimal LCP - Always show until video loads */}
+      {/* CSS background for optimal LCP - Show until video loads */}
       {(!shouldShowVideo || hasVideoError || !allowVideoLoad) && (
         <div 
           className="fixed inset-0 w-full h-full pointer-events-none z-0"

@@ -59,8 +59,8 @@ const MembershipPage: NextPage = () => {
     <PageWrapper>
        <PrimeMembership />
        <MembershipFeatures />
-       <MembershipFaq />
        <Certified />
+       <MembershipFaq />
     </PageWrapper>
   );
 };

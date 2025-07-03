@@ -99,3 +99,5 @@ src/apis/index.js
 .amplify
 amplify_outputs*
 amplifyconfiguration*
+
+.config/

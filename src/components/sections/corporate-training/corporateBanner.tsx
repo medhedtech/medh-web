@@ -159,19 +159,19 @@ const categories: IValueItem[] = [
     icon: <BookOpen className="w-6 h-6" />,
     title: "Comprehensive Access",
     description: "Access to all courses and learning materials",
-    color: "from-blue-500 to-cyan-500"
+    color: "from-orange-400 to-orange-600"
   },
   {
     icon: <Crown className="w-6 h-6" />,
     title: "Premium Resources",
     description: "Exclusive content and advanced learning paths",
-    color: "from-emerald-500 to-teal-500"
+    color: "from-emerald-500 to-lime-400"
   },
   {
     icon: <Users className="w-6 h-6" />,
     title: "Expert Mentorship",
     description: "One-on-one guidance from industry professionals",
-    color: "from-purple-500 to-indigo-500"
+    color: "from-fuchsia-500 to-pink-500"
   }
 ];
 
@@ -266,7 +266,7 @@ const CorporateBanner: React.FC<CorporateBannerProps> = ({ onLearnMoreClick }) =
         <div className="flex flex-col items-center justify-center min-h-[80vh] text-center py-6">
           
           <div className={`mb-2 md:mb-3 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <div className="glass-container rounded-3xl p-4 md:p-6 lg:p-8 mb-1 transform scale-90 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
+            <div className="glass-container rounded-3xl p-4 md:p-6 lg:p-8 mb-1 transform scale-90 max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto">
               
               <div className="flex flex-wrap justify-center gap-3 mb-4">
                 <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
@@ -279,30 +279,31 @@ const CorporateBanner: React.FC<CorporateBannerProps> = ({ onLearnMoreClick }) =
                 </div>
               </div>
                
-              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-2 sm:mb-3 md:mb-4 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                <span className="block text-sm sm:text-base font-medium uppercase tracking-widest mb-3 opacity-80">Corporate Training Excellence</span>
-                <span className="block whitespace-nowrap">Elevate Your Workforce Skills</span>
-                <span className="block whitespace-nowrap">
-                  <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9)' }}>with</em>
-                  <span className="inline-flex items-center">
+              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-center tracking-tight mb-2 sm:mb-3 md:mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Elevate Your Workforce Skills
+                <span className="block mt-1 w-full text-center">
+                  <em className="font-normal inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9) translateY(2px)' }}>with</em>
                   <Image 
-                     src={medhLogo} 
-                     alt="Medh Logo" 
-                     width={128} 
-                     height={128} 
-                     unoptimized={true}
-                     className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline"
-                     style={{ 
-                         filter: 'brightness(1.1) contrast(1.2)',
-                         transform: 'scale(0.9) translateY(5px)',
-                         verticalAlign: 'baseline'
-                       }}
-                   />
-                  </span>
+                    src={medhLogo} 
+                    alt="Medh Logo" 
+                    width={128} 
+                    height={128} 
+                    unoptimized={true}
+                    className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 w-auto align-baseline"
+                    style={{ 
+                      filter: 'brightness(1.1) contrast(1.2)',
+                      transform: 'translateY(2px)',
+                      verticalAlign: 'baseline',
+                      objectFit: 'contain',
+                      imageRendering: '-webkit-optimize-contrast',
+                      backfaceVisibility: 'hidden',
+                      WebkitFontSmoothing: 'antialiased'
+                    }}
+                  />
                 </span>
               </h1>
                 
-              <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-3 sm:mb-4 md:mb-6 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
+              <p className={`text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed mb-3 sm:mb-4 md:mb-6 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
                 Transform your team's potential into performance with our customized corporate training programs designed to drive business growth and innovation.
               </p>
 
@@ -320,37 +321,13 @@ const CorporateBanner: React.FC<CorporateBannerProps> = ({ onLearnMoreClick }) =
                 </button>
               </div>
 
-              <div className={`mumkinMedh text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold mb-2 leading-tight pt-12 ${
+              <div className={`mumkinMedh text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold mb-2 leading-tight pt-8 md:pt-12 ${
                 isDark 
                   ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
                   : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
-              }`} style={{ transform: 'scaleX(1.1)', letterSpacing: '0.05em' }}>
+              }`} style={{ transform: 'scaleX(1.1)', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
                 Medh Hai Toh Mumkin Hai !
               </div>
-            </div>
-          </div>
-
-          <div className={`mb-3 md:mb-4 transition-all duration-1000 delay-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-5xl lg:max-w-6xl mx-auto">
-              {highlights.map((highlight, index) => (
-                <div
-                  key={index}
-                  className="glass-stats rounded-xl p-4 md:p-6 text-center hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
-                  <div className="relative z-10">
-                    <div className={`mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-primary-300' : 'text-primary-600'} flex justify-center`}>
-                      <div className={`bg-gradient-to-br ${highlight.color} text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform`}>
-                        <div className="w-6 h-6 md:w-8 md:h-8">
-                          {highlight.icon}
-                        </div>
-                      </div>
-                    </div>
-                    <div className={`font-semibold text-sm md:text-base group-hover:text-primary-300 transition-colors ${isDark ? 'text-white' : 'text-gray-800'}`}>{highlight.title}</div>
-                    <div className={`text-xs md:text-sm mt-1 ${isDark ? 'text-white' : 'text-gray-700'} font-medium`}>{highlight.description}</div>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
 

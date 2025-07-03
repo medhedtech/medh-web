@@ -161,10 +161,10 @@ const UpcomingClasses: React.FC<{ classes: UpcomingClass[] }> = ({ classes }) =>
     variants={itemVariants}
     className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6 border dark:border-gray-700 h-full flex flex-col"
   >
-    <div className="flex justify-between items-center mb-6">
-      <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
-        <LucideCalendar className="w-6 h-6 text-blue-500" />
-        Upcoming Classes
+    <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-2 mb-6">
+      <h2 className="relative w-full sm:w-auto text-center sm:text-left sm:flex sm:items-center sm:gap-2 sm:justify-start text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent pl-9 sm:pl-0">
+        <LucideCalendar className="absolute left-0 top-1/2 -translate-y-1/2 w-6 h-6 text-blue-500 sm:static sm:transform-none sm:mr-2" />
+        <span className="block mx-auto sm:mx-0">Upcoming Classes</span>
       </h2>
       <Link
         href="/dashboards/instructor/live-classes"
@@ -245,10 +245,10 @@ const RecentStudentSubmissions: React.FC<{ submissions: RecentSubmission[] }> = 
       variants={itemVariants}
       className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6 border dark:border-gray-700"
     >
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent flex items-center gap-2">
-          <LucideClipboardList className="w-6 h-6 text-purple-500" />
-          Recent Student Submissions
+      <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-2 mb-6">
+        <h2 className="relative w-full sm:w-auto text-center sm:text-left sm:flex sm:items-center sm:gap-2 sm:justify-start text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <LucideClipboardList className="absolute left-0 top-1/2 -translate-y-1/2 w-6 h-6 text-purple-500 sm:static sm:transform-none sm:mr-2" />
+          <span className="block mx-auto sm:mx-0">Recent Student Submissions</span>
         </h2>
         <Link
           href="/dashboards/instructor/submitted-work"
@@ -275,7 +275,7 @@ const RecentStudentSubmissions: React.FC<{ submissions: RecentSubmission[] }> = 
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <LucideFileText className="w-4 h-4 text-gray-400" />
+                    <LucideFileText className="w-6 h-6 text-gray-400" />
                     <p className="font-semibold text-gray-800 dark:text-white text-sm">
                       {submission.assignmentTitle}
                     </p>
@@ -301,7 +301,7 @@ const RecentStudentSubmissions: React.FC<{ submissions: RecentSubmission[] }> = 
                   {submission.status.charAt(0).toUpperCase() + submission.status.slice(1)}
                 </span>
                 <button className="p-2 text-gray-400 hover:text-blue-500 transition-colors">
-                  <LucideEye className="w-4 h-4" />
+                  <LucideEye className="w-6 h-6" />
                 </button>
               </div>
             </motion.div>
@@ -380,7 +380,7 @@ const QuickActions: React.FC<{ quickActions: ApiQuickAction[] }> = ({ quickActio
     {
       title: 'Settings',
       description: 'Manage your preferences',
-      icon: <LucideSettings className="w-6 h-6" />,
+      icon: <LucideSettings className="w-6 h-6 text-green-500" />,
       href: '/dashboards/instructor/settings',
       color: 'from-gray-500 to-gray-600'
     }
@@ -444,9 +444,9 @@ const QuickActions: React.FC<{ quickActions: ApiQuickAction[] }> = ({ quickActio
       variants={itemVariants}
       className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6 border dark:border-gray-700"
     >
-      <h2 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent mb-6 flex items-center gap-2">
-        <LucideSettings className="w-6 h-6 text-green-500" />
-        Quick Access to Key Features
+      <h2 className="relative w-full text-center sm:flex sm:items-center sm:gap-2 sm:justify-start text-2xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent mb-6">
+        <LucideSettings className="absolute left-0 top-1/2 -translate-y-1/2 w-6 h-6 text-green-500 sm:static sm:transform-none sm:mr-2" />
+        <span className="block mx-auto sm:mx-0 pl-10 sm:pl-0">Quick Access to Key Features</span>
       </h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -513,8 +513,9 @@ const CustomDatePicker: React.FC<{
   onChange: (date: Date) => void;
 }> = ({ selectedDate, onChange }) => (
   <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6 border dark:border-gray-700 h-full flex flex-col">
-    <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
-      Calendar
+    <h2 className="relative w-full text-center sm:flex sm:items-center sm:gap-2 sm:justify-start text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
+      <LucideCalendar className="absolute left-0 top-1/2 -translate-y-1/2 w-6 h-6 text-blue-500 sm:static sm:transform-none sm:mr-2" />
+      <span className="block mx-auto sm:mx-0">Calendar</span>
     </h2>
     <div className="flex-1 flex items-center justify-center">
       <DatePicker
@@ -691,12 +692,12 @@ const InstructorDashboard: React.FC = () => {
         variants={itemVariants}
         className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6"
       >
-        <div className="flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+        <div className="flex items-center gap-4 justify-center text-center lg:justify-start lg:text-left">
+          <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white flex-shrink-0">
             <LucideGraduationCap className="w-8 h-8" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white whitespace-nowrap lg:whitespace-normal">
               Instructor Dashboard
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -724,7 +725,7 @@ const InstructorDashboard: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </div>
-            <span className="hidden sm:inline">
+            <span>
               {refreshing ? 'Refreshing...' : 'Refresh'}
             </span>
           </motion.button>
@@ -740,7 +741,7 @@ const InstructorDashboard: React.FC = () => {
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all flex items-center gap-2 shadow-lg hover:shadow-xl"
           >
             <LucideUser className="w-4 h-4" />
-            <span className="hidden sm:inline">Profile</span>
+            <span>Profile</span>
           </motion.button>
         </div>
       </motion.div>
@@ -751,33 +752,36 @@ const InstructorDashboard: React.FC = () => {
           variants={itemVariants}
           className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 mb-6 text-white"
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-3xl font-bold mb-2">
+          {/* Convert to column on mobile, row on ≥sm */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+            <div className="flex-1">
+              <h2 className="text-3xl font-bold mb-2 text-white">
                 Welcome back, {instructorProfile.profile.full_name}!
               </h2>
-              <p className="text-blue-100">
+              <p className="text-white dark:text-white">
                 {dashboardData?.monthlyStats?.month} • {instructorProfile.profile.domain} Instructor
               </p>
-              <div className="flex items-center gap-4 mt-3">
-                <div className="flex items-center gap-2">
-                  <LucideUsers className="w-4 h-4" />
-                  <span className="text-sm">{instructorProfile.statistics.totalStudents} Students</span>
+              {/* Stats: stack on mobile, inline on sm+ */}
+              <div className="mt-4 grid grid-cols-2 xs:grid-cols-3 gap-3 sm:flex sm:items-center sm:gap-4">
+                <div className="flex items-center gap-2 text-white">
+                  <LucideUsers className="w-4 h-4 text-white" />
+                  <span className="text-sm whitespace-nowrap text-white">{instructorProfile.statistics.totalStudents} Students</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <LucideBook className="w-4 h-4" />
-                  <span className="text-sm">{instructorProfile.statistics.totalBatches} Batches</span>
+                <div className="flex items-center gap-2 text-white">
+                  <LucideBook className="w-4 h-4 text-white" />
+                  <span className="text-sm whitespace-nowrap text-white">{instructorProfile.statistics.totalBatches} Batches</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <LucidePresentation className="w-4 h-4" />
-                  <span className="text-sm">{instructorProfile.statistics.totalDemos} Demos</span>
+                <div className="flex items-center gap-2 text-white">
+                  <LucidePresentation className="w-4 h-4 text-white" />
+                  <span className="text-sm whitespace-nowrap text-white">{instructorProfile.statistics.totalDemos} Demos</span>
                 </div>
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-2xl font-bold">{instructorProfile.statistics.averageRating}/5.0</p>
-              <p className="text-blue-100 text-sm">Course Rating</p>
-              <div className="flex items-center justify-end gap-1 mt-2">
+            {/* Rating block aligns right on sm+, left on mobile */}
+            <div className="sm:text-right text-white">
+              <p className="text-2xl font-bold text-white dark:text-white">{instructorProfile.statistics.averageRating}/5.0</p>
+              <p className="text-white dark:text-white text-sm">Course Rating</p>
+              <div className="flex items-center justify-start sm:justify-end gap-1 mt-2">
                 {[...Array(5)].map((_, i) => (
                   <LucideAward 
                     key={i} 
@@ -799,7 +803,7 @@ const InstructorDashboard: React.FC = () => {
         variants={itemVariants}
         className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl border dark:border-gray-700 overflow-hidden backdrop-blur-xl bg-white/50 dark:bg-gray-800/50 mb-6"
       >
-        <h2 className="p-6 text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent border-b dark:border-gray-700">
+        <h2 className="p-6 text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent border-b dark:border-gray-700 text-center">
           Dashboard Overview
         </h2>
         <div className="p-6">
@@ -813,9 +817,9 @@ const InstructorDashboard: React.FC = () => {
           variants={itemVariants}
           className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6 border dark:border-gray-700 mb-6"
         >
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent mb-4 flex items-center gap-2">
-            <LucideBarChart className="w-6 h-6 text-green-500" />
-            Monthly Progress ({dashboardData.monthlyStats.month})
+          <h2 className="relative w-full text-center sm:flex sm:items-center sm:gap-2 sm:justify-start text-2xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent mb-4">
+            <LucideBarChart className="absolute left-0 top-1/2 -translate-y-1/2 w-6 h-6 text-green-500 sm:static sm:transform-none sm:mr-2" />
+            <span className="block mx-auto sm:mx-0 pl-8 sm:pl-0">Monthly Progress ({dashboardData.monthlyStats.month})</span>
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-4">

@@ -47,8 +47,8 @@ import CourseHeader from '@/components/sections/course-detailed/CourseHeader';
 import CourseFaq from '@/components/sections/course-detailed/courseFaq';
 import CourseCertificate from '@/components/sections/course-detailed/courseCertificate';
 import CourseRelated from '@/components/sections/course-detailed/courseRelated';
-import CourseStats from '@/components/sections/course-detailed/CourseStats';
 import DownloadBrochureModal from '@/components/shared/download-broucher';
+import CourseStats from '@/components/sections/course-detailed/CourseStats';
 
 // API and utilities
 import { apiUrls } from '@/apis';
@@ -503,15 +503,22 @@ const CourseDetailsPage = ({ ...props }) => {
 
     try {
       // Map API field names to our feature structure with better error handling
-      const features = [
-        {
+      const features = [];
+
+      // Only add duration for non-blended courses
+      if (!isBlendedCourse(courseDetails)) {
+        features.push({
           label: "Duration",
           value: formatDuration(courseDetails),
           icon: Calendar,
           color: "text-purple-500 dark:text-purple-400",
           bgColor: "bg-purple-50 dark:bg-purple-900/30",
           fillOpacity: 0.2,
-        },
+        });
+      }
+
+      // Add other features
+      features.push(
         {
           label: isBlendedCourse(courseDetails) ? "Videos" : "Live Sessions",
           value: formatLiveSessions(courseDetails),
@@ -538,8 +545,8 @@ const CourseDetailsPage = ({ ...props }) => {
           color: "text-green-500 dark:text-green-400",
           bgColor: "bg-green-50 dark:bg-green-900/30",
           fillOpacity: 0.2,
-        },
-      ];
+        }
+      );
 
       // Add optional features if data is available
       if (courseDetails.difficulty_level || courseDetails.skill_level) {
@@ -1050,24 +1057,7 @@ const CourseDetailsPage = ({ ...props }) => {
             animate="visible"
             key="about-section"
           >
-            {/* Course Stats - Hidden on mobile since we show it above navigation */}
-            <motion.div
-              className="mb-8 hidden sm:block"
-              variants={fadeIn}
-              initial="hidden"
-              animate="visible"
-            >
-              <CourseStats 
-                duration={formatDuration(courseDetails)}
-                students="75+" // Default value as enrollment count may not be available
-                sessions={courseDetails?.no_of_Sessions || "72"}
-                hasCertificate={hasCertificate()}
-                primaryColor={getCategoryColorClasses().primaryColor}
-                fillOpacity={0.2}
-                isBlended={isBlendedCourse(courseDetails)}
-                courseDetails={courseDetails}
-              />
-            </motion.div>
+
 
             {/* Course description */}
             <div className="prose prose-emerald dark:prose-invert max-w-none mb-6 sm:mb-8">
@@ -1488,29 +1478,7 @@ const CourseDetailsPage = ({ ...props }) => {
           </motion.section>
         );
         
-      case 'faq':
-        return (
-          <motion.section 
-            ref={faqRef} 
-            id="faq" 
-            className="pb-6"
-            variants={fadeIn}
-            initial="hidden"
-            animate="visible"
-            key="faq-section"
-          >
-            <div className="flex items-center mb-6">
-              <div className="w-1.5 h-6 bg-gradient-to-b from-indigo-400 to-violet-500 rounded-sm mr-3"></div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">
-                Frequently Asked Questions
-              </h2>
-            </div>
-            
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <CourseFaq courseId={props.courseId} />
-            </div>
-          </motion.section>
-        );
+
         
       case 'certificate':
         return (
@@ -1916,48 +1884,11 @@ const CourseDetailsPage = ({ ...props }) => {
   };
 
   return (
-    <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900">
+    <>
       {/* Course Header with Mobile-Optimized Design */}
       <div className="mb-3 sm:mb-6 md:mb-8">
-        <div className="relative overflow-hidden rounded-xl sm:rounded-2xl md:rounded-3xl bg-gradient-to-br from-white via-gray-50/50 to-white dark:from-gray-800 dark:via-gray-700/50 dark:to-gray-800 shadow-lg sm:shadow-xl border border-gray-200/60 dark:border-gray-600/60">
-          {/* Enhanced Background Pattern - Mobile Optimized */}
-          <div className="absolute inset-0">
-            {/* Mobile Grid Pattern */}
-            <div className="block sm:hidden">
-              <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" className="opacity-2 dark:opacity-3">
-                <defs>
-                  <pattern id="mobile-grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                    <circle cx="2" cy="2" r="0.5" fill="currentColor" opacity="0.3"/>
-                    <circle cx="18" cy="18" r="0.3" fill="currentColor" opacity="0.2"/>
-                  </pattern>
-                  <pattern id="mobile-lines" width="30" height="30" patternUnits="userSpaceOnUse">
-                    <path d="M 0 15 L 30 15" stroke="currentColor" strokeWidth="0.5" opacity="0.1"/>
-                    <path d="M 15 0 L 15 30" stroke="currentColor" strokeWidth="0.5" opacity="0.1"/>
-                  </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#mobile-grid)" />
-                <rect width="100%" height="100%" fill="url(#mobile-lines)" />
-              </svg>
-            </div>
-            
-            {/* Desktop Grid Pattern */}
-            <div className="hidden sm:block opacity-5 dark:opacity-10">
-              <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <pattern id="desktop-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="1"/>
-                    <circle cx="20" cy="20" r="1" fill="currentColor" opacity="0.3"/>
-                  </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#desktop-grid)" />
-              </svg>
-            </div>
-            
-            {/* Mobile Gradient Overlay for Better Readability */}
-            <div className="block sm:hidden absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent dark:via-gray-900/10 pointer-events-none"></div>
-          </div>
-
-          <div className="relative py-4 sm:py-8 md:py-10 px-3 sm:px-6 md:px-8">
+        <div>
+          <div className="relative py-4 sm:py-8 md:py-10 px-0 sm:px-6 md:px-8">
             {/* Course Title and Description - Mobile-First Design */}
             <motion.div
               className="relative z-10"
@@ -1965,8 +1896,8 @@ const CourseDetailsPage = ({ ...props }) => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
             >
-              {/* Glassmorphic Container - Mobile Optimized */}
-              <div className="relative backdrop-blur-lg sm:backdrop-blur-xl bg-gradient-to-br from-white/80 via-white/60 to-white/80 dark:from-gray-800/80 dark:via-gray-700/60 dark:to-gray-800/80 rounded-xl sm:rounded-2xl p-4 sm:p-8 md:p-10 shadow-lg sm:shadow-2xl border border-white/60 dark:border-gray-600/60 overflow-hidden">
+              {/* Glassmorphic Container - Mobile Optimized - Edge-to-edge mobile */}
+              <div className="relative backdrop-blur-lg sm:backdrop-blur-xl bg-gradient-to-br from-white/80 via-white/60 to-white/80 dark:from-gray-800/80 dark:via-gray-700/60 dark:to-gray-800/80 rounded-none sm:rounded-2xl p-4 sm:p-8 md:p-10 shadow-none sm:shadow-2xl border-0 sm:border border-white/60 dark:border-gray-600/60 overflow-hidden">
                 {/* Mobile-Optimized Background Elements */}
                 <div className={`absolute -top-20 -right-20 sm:-top-32 sm:-right-32 w-32 h-32 sm:w-56 sm:h-56 rounded-full bg-gradient-to-br from-${getCategoryColorClasses().primaryColor}-300/25 via-${getCategoryColorClasses().primaryColor}-400/15 to-blue-300/25 dark:from-${getCategoryColorClasses().primaryColor}-500/20 dark:via-${getCategoryColorClasses().primaryColor}-600/10 dark:to-blue-500/20 blur-2xl sm:blur-3xl animate-pulse`}></div>
                 <div className={`absolute -bottom-20 -left-20 sm:-bottom-32 sm:-left-32 w-32 h-32 sm:w-56 sm:h-56 rounded-full bg-gradient-to-tr from-purple-300/25 via-${getCategoryColorClasses().primaryColor}-300/15 to-rose-300/25 dark:from-purple-500/20 dark:via-${getCategoryColorClasses().primaryColor}-500/10 dark:to-rose-500/20 blur-2xl sm:blur-3xl animate-pulse`} style={{ animationDelay: '1s' }}></div>
@@ -1985,8 +1916,8 @@ const CourseDetailsPage = ({ ...props }) => {
                     </div>
                   </div>
                     
-                  {/* Course Video Player - Mobile Optimized */}
-                  <div className="bg-gradient-to-br from-gray-50/40 to-white/40 dark:from-gray-700/40 dark:to-gray-800/40 rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 border border-gray-200/40 dark:border-gray-600/40 shadow-sm sm:shadow-inner">
+                  {/* Course Video Player - Mobile Optimized - Edge-to-edge mobile */}
+                  <div className="bg-gradient-to-br from-gray-50/40 to-white/40 dark:from-gray-700/40 dark:to-gray-800/40 rounded-none sm:rounded-xl p-2 sm:p-3 md:p-4 border-0 sm:border border-gray-200/40 dark:border-gray-600/40 shadow-none sm:shadow-inner">
                     <CourseVideoPlayer 
                       courseId={courseId}
                       courseTitle={courseDetails?.course_title}
@@ -1995,21 +1926,36 @@ const CourseDetailsPage = ({ ...props }) => {
                     />
                   </div>
                     
-                  {/* Mobile-First Feature Indicators */}
-                  <div className="grid grid-cols-1 sm:flex sm:flex-wrap gap-2 sm:gap-3 md:gap-4 justify-center">
-                    <div className={`flex items-center justify-center sm:justify-start px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-100/70 dark:from-${getCategoryColorClasses().primaryColor}-900/30 dark:to-${getCategoryColorClasses().primaryColor}-800/30 rounded-lg sm:rounded-xl shadow-sm sm:shadow-md border border-${getCategoryColorClasses().primaryColor}-200/50 dark:border-${getCategoryColorClasses().primaryColor}-700/50 backdrop-blur-sm`}>
-                      <Clock className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400 mr-2 flex-shrink-0`} />
-                      <span className={`text-xs sm:text-sm font-semibold text-${getCategoryColorClasses().primaryColor}-700 dark:text-${getCategoryColorClasses().primaryColor}-300 text-center sm:text-left`}>
-                        {formatDuration(courseDetails)}
+                  {/* Mobile-First Feature Indicators - Two Column Layout for Mobile */}
+                  <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 md:gap-4 justify-center px-4 sm:px-0">
+                    {/* Duration - 3 months / 12 weeks - Only show for non-blended courses */}
+                    {!isBlendedCourse(courseDetails) && (
+                      <div className={`flex items-center justify-center sm:justify-start px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-100/70 dark:from-${getCategoryColorClasses().primaryColor}-900/30 dark:to-${getCategoryColorClasses().primaryColor}-800/30 rounded-lg sm:rounded-xl shadow-sm sm:shadow-md border border-${getCategoryColorClasses().primaryColor}-200/50 dark:border-${getCategoryColorClasses().primaryColor}-700/50 backdrop-blur-sm col-span-1`}>
+                        <Clock className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400 mr-2 flex-shrink-0`} />
+                        <span className={`text-xs sm:text-sm font-semibold text-${getCategoryColorClasses().primaryColor}-700 dark:text-${getCategoryColorClasses().primaryColor}-300 text-center sm:text-left`}>
+                          3 months / 12 weeks
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Sessions - 24 Sessions */}
+                    <div className="flex items-center justify-center sm:justify-start px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-purple-50 to-purple-100/70 dark:from-purple-900/30 dark:to-purple-800/30 rounded-lg sm:rounded-xl shadow-sm sm:shadow-md border border-purple-200/50 dark:border-purple-700/50 backdrop-blur-sm col-span-1">
+                      <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-600 dark:text-purple-400 mr-2 flex-shrink-0" />
+                      <span className="text-xs sm:text-sm font-semibold text-purple-700 dark:text-purple-300 text-center sm:text-left">
+                        24 Sessions
                       </span>
                     </div>
-                    <div className={`flex items-center justify-center sm:justify-start px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-emerald-50 to-emerald-100/70 dark:from-emerald-900/30 dark:to-emerald-800/30 rounded-lg sm:rounded-xl shadow-sm sm:shadow-md border border-emerald-200/50 dark:border-emerald-700/50 backdrop-blur-sm`}>
+                    
+                    {/* Certificate Included */}
+                    <div className={`flex items-center justify-center sm:justify-start px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-emerald-50 to-emerald-100/70 dark:from-emerald-900/30 dark:to-emerald-800/30 rounded-lg sm:rounded-xl shadow-sm sm:shadow-md border border-emerald-200/50 dark:border-emerald-700/50 backdrop-blur-sm col-span-1`}>
                       <Award className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600 dark:text-emerald-400 mr-2 flex-shrink-0`} />
                       <span className="text-xs sm:text-sm font-semibold text-emerald-700 dark:text-emerald-300 text-center sm:text-left">
-                        {courseDetails?.is_Certification === "Yes" || courseDetails?.certification?.is_certified === true ? "Certificate Included" : "No Certificate"}
+                        Certificate Included
                       </span>
                     </div>
-                    <div className={`flex items-center justify-center sm:justify-start px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-blue-50 to-blue-100/70 dark:from-blue-900/30 dark:to-blue-800/30 rounded-lg sm:rounded-xl shadow-sm sm:shadow-md border border-blue-200/50 dark:border-blue-700/50 backdrop-blur-sm`}>
+                    
+                    {/* Lifetime Access */}
+                    <div className={`flex items-center justify-center sm:justify-start px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-blue-50 to-blue-100/70 dark:from-blue-900/30 dark:to-blue-800/30 rounded-lg sm:rounded-xl shadow-sm sm:shadow-md border border-blue-200/50 dark:border-blue-700/50 backdrop-blur-sm col-span-1`}>
                       <BookOpen className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400 mr-2 flex-shrink-0`} />
                       <span className="text-xs sm:text-sm font-semibold text-blue-700 dark:text-blue-300 text-center sm:text-left">
                         Lifetime Access
@@ -2019,7 +1965,7 @@ const CourseDetailsPage = ({ ...props }) => {
 
                   {/* Course Selection Component - Mobile Enhanced */}
                   {props.courseSelectionComponent && (
-                    <div className="mt-4 sm:mt-6 block lg:hidden">
+                    <div className="mt-4 sm:mt-6 block lg:hidden px-4 sm:px-0">
                       <div className="bg-gradient-to-br from-gray-50/90 to-white/90 dark:from-gray-700/90 dark:to-gray-800/90 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-200/70 dark:border-gray-600/70 shadow-md backdrop-blur-sm">
                         {props.courseSelectionComponent}
                       </div>
@@ -2032,7 +1978,7 @@ const CourseDetailsPage = ({ ...props }) => {
         </div>
       </div>
 
-      {/* Navigation */}
+      {/* Navigation - Edge-to-edge mobile */}
       <div className="sticky top-14 z-40 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 py-2">
         <CourseNavigation 
           activeSection={activeSection} 
@@ -2045,25 +1991,11 @@ const CourseDetailsPage = ({ ...props }) => {
         />
       </div>
 
-      {/* Content Area */}
-      <div className="pt-2 sm:pt-4 pb-4">
+      {/* Content Area - Edge-to-edge mobile */}
+      <div className="pt-2 sm:pt-4 pb-4 px-0 sm:px-4 md:px-6 lg:px-8">
         <AnimatePresence mode="wait">
           {renderActiveSection()}
         </AnimatePresence>
-      </div>
-
-      {/* Mobile Stats */}
-      <div className="block sm:hidden mb-2">
-        <CourseStats 
-          duration={formatDuration(courseDetails)}
-          students="75+" 
-          sessions={courseDetails?.no_of_Sessions || "72"}
-          hasCertificate={hasCertificate()}
-          primaryColor={getCategoryColorClasses().primaryColor}
-          fillOpacity={0.2}
-          isBlended={isBlendedCourse(courseDetails)}
-          courseDetails={courseDetails}
-        />
       </div>
 
       {/* Class Type Info Modal */}
@@ -2111,7 +2043,7 @@ const CourseDetailsPage = ({ ...props }) => {
           ? courseDetails.brochures[0] 
           : null}
       />
-    </div>
+    </>
   );
 };
 

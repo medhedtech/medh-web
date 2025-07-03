@@ -85,7 +85,14 @@ export interface DemoClass {
   scheduledTime: string;
   status: 'pending' | 'accepted' | 'rejected' | 'completed';
   studentEmail: string;
-  studentPhone: string;
+  studentPhone?: string;
+  studentAvatar?: string;
+  courseType?: string;
+  duration?: string;
+  studentLocation?: string;
+  requestedTopics?: string[];
+  studentExperience?: 'Beginner' | 'Intermediate' | 'Advanced';
+  notes?: string;
 }
 
 export interface DemoStatusUpdate {

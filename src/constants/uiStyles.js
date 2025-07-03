@@ -5,7 +5,7 @@
 export const STYLES = {
   // Layout containers
   gridContainer: "grid grid-cols-4 gap-4 mb-6",
-  navContainer: "grid grid-cols-4 gap-3 mt-6",
+  navContainer: "grid grid-cols-4 gap-3 mt-2 sm:mt-6",
   
   // Action items
   quickActionItem: `
@@ -16,7 +16,7 @@ export const STYLES = {
   `,
   
   quickAction: `
-    flex flex-col items-center justify-center p-2
+    flex flex-col items-center justify-center p-1 sm:p-2
     rounded-lg bg-gray-50/80 dark:bg-gray-800/50
     hover:bg-white dark:hover:bg-gray-700/50
     border border-gray-100/50 dark:border-gray-700/50
@@ -26,7 +26,7 @@ export const STYLES = {
   
   // Menu items
   menuItem: `
-    relative group flex flex-col items-center justify-center p-3 rounded-xl
+    relative group flex flex-col items-center justify-center p-2 sm:p-3 rounded-xl
     bg-gray-50/80 dark:bg-gray-800/50
     hover:bg-white dark:hover:bg-gray-700/50
     border border-gray-200/50 dark:border-gray-700/50
@@ -36,7 +36,7 @@ export const STYLES = {
   
   // Icon containers
   iconWrapper: `
-    flex items-center justify-center w-10 h-10 
+    flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10
     rounded-xl transition-transform duration-300
     group-hover:-translate-y-1
   `,
@@ -51,7 +51,7 @@ export const STYLES = {
   // Headings
   sectionHeading: `
     text-sm font-medium text-gray-500 dark:text-gray-400 
-    mb-3 px-1
+    mb-1 sm:mb-3 px-1
   `,
   
   // Animation classes

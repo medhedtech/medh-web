@@ -132,7 +132,8 @@ export function useDynamicFooterHeight(contentRef: RefObject<HTMLElement | HTMLD
       );
       
       // Set min-height to viewport height minus header and footer
-      contentRef.current.style.minHeight = `calc(${windowHeight}px - ${headerHeight}px - ${footerHeight}px)`;
+      const minHeight = windowHeight - headerHeight - footerHeight;
+      contentRef.current.style.minHeight = `${Math.max(minHeight, 200)}px`;
     };
     
     // Update on resize and initial load
@@ -264,4 +265,4 @@ export function useScrollProgress() {
   }, []);
 
   return progress;
-} 
+}

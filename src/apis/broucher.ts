@@ -1,0 +1,170 @@
+import { apiBaseUrl } from './config';
+import { apiClient } from './apiClient';
+import { apiUtils } from './index';
+
+/**
+ * Brochure type definitions
+ */
+export interface IBrochure {
+  _id: string;
+  title: string;
+  description?: string;
+  fileUrl: string;
+  courseId?: string; // Optional: if brochure is associated with a specific course
+  courseName?: string; // Optional: if brochure is associated with a specific course
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IBrochureCreateInput {
+  title: string;
+  description?: string;
+  fileUrl: string;
+  courseId?: string;
+}
+
+export interface IBrochureUpdateInput extends Partial<IBrochureCreateInput> {}
+
+/**
+ * API Response Interfaces
+ */
+export interface IBrochuresResponse {
+  success: boolean;
+  message: string;
+  data: {
+    brochures: IBrochure[];
+    pagination?: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  };
+}
+
+export interface IBrochureResponse {
+  success: boolean;
+  message: string;
+  data: {
+    brochure: IBrochure;
+  };
+}
+
+/**
+ * Brochure API service
+ */
+export const brochureAPI = {
+  /**
+   * Create a new brochure
+   * @param brochureData - Brochure data to create
+   * @returns Promise with created brochure response
+   */
+  createBrochure: async (brochureData: IBrochureCreateInput) => {
+    return apiClient.post<IBrochureResponse>(
+      `${apiBaseUrl}/broucher/create`,
+      brochureData
+    );
+  },
+
+  /**
+   * Get all brochures with optional filtering
+   * @param params - Query parameters for filtering (page, limit, search)
+   * @returns Promise with brochure list response
+   */
+  getAllBrochures: async (params: { page?: number; limit?: number; search?: string } = {}) => {
+    const queryString = apiUtils.buildQueryString(params);
+    return apiClient.get<IBrochuresResponse>(
+      `${apiBaseUrl}/broucher${queryString}`
+    );
+  },
+
+  /**
+   * Get a specific brochure by ID
+   * @param id - Brochure ID
+   * @returns Promise with brochure detail response
+   */
+  getBrochureById: async (id: string) => {
+    if (!id) throw new Error('Brochure ID cannot be empty');
+    return apiClient.get<IBrochureResponse>(
+      `${apiBaseUrl}/broucher/${id}`
+    );
+  },
+
+  /**
+   * Update an existing brochure
+   * @param id - Brochure ID to update
+   * @param updateData - Updated brochure data
+   * @returns Promise with updated brochure response
+   */
+  updateBrochure: async (id: string, updateData: IBrochureUpdateInput) => {
+    if (!id) throw new Error('Brochure ID cannot be empty');
+    return apiClient.put<IBrochureResponse>(
+      `${apiBaseUrl}/broucher/update/${id}`,
+      updateData
+    );
+  },
+
+  /**
+   * Delete a brochure
+   * @param id - Brochure ID to delete
+   * @returns Promise with deletion response
+   */
+  deleteBrochure: async (id: string) => {
+    if (!id) throw new Error('Brochure ID cannot be empty');
+    return apiClient.delete<{ message: string }>(
+      `${apiBaseUrl}/broucher/delete/${id}`
+    );
+  },
+
+  /**
+   * Download a brochure for a specific course
+   * @param courseId - Course ID to download brochure for
+   * @param userData - Optional user data for tracking
+   * @returns Promise with download response
+   */
+  downloadBrochure: async (courseId: string, userData?: any) => {
+    if (!courseId) throw new Error('Course ID cannot be empty');
+    const url = `${apiBaseUrl}/broucher/download/${courseId}`;
+    if (userData) {
+      return apiClient.post<{ message: string; downloadUrl: string }>(url, userData);
+    }
+    return apiClient.get<{ message: string; downloadUrl: string }>(url);
+  },
+
+  /**
+   * Request a brochure (for public users, potentially collecting lead info)
+   * @param data - Request data including user info and brochure/course ID
+   * @returns Promise with request response
+   */
+  requestBrochure: async (data: {
+    brochure_id?: string;
+    course_id?: string;
+    full_name: string;
+    email: string;
+    phone_number: string;
+    country_code?: string;
+  }) => {
+    return apiClient.post<{ message: string }>(
+      `${apiBaseUrl}/broucher/request-download`, // Assuming a new endpoint for lead generation
+      data
+    );
+  },
+
+  /**
+   * Track a brochure download for analytics
+   * @param data - Tracking data including brochure/course ID, user ID, source, and metadata
+   * @returns Promise with tracking response
+   */
+  trackBrochureDownload: async (data: {
+    brochure_id?: string;
+    course_id?: string;
+    user_id?: string; // Optional: if user is authenticated
+    source?: string;
+    metadata?: { [key: string]: any };
+  }) => {
+    return apiClient.post<{ message: string }>(
+      `${apiBaseUrl}/broucher/track-download`,
+      data
+    );
+  },
+};

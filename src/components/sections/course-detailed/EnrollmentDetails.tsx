@@ -18,7 +18,7 @@ import axios from 'axios';
 import useGetQuery from "@/hooks/getQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook";
 import useRazorpay from "@/hooks/useRazorpay";
-import RAZORPAY_CONFIG from "@/config/razorpay";
+import RAZORPAY_CONFIG, { getCurrencySymbol } from "@/config/razorpay";
 
 // Local implementation of the price utility functions
 const getCoursePriceValue = (
@@ -520,6 +520,8 @@ const PaymentSummary: React.FC<{
   selectedInstallmentPlan?: InstallmentPlan | null;
   appliedCoupon?: Coupon | null;
   couponDiscount?: number;
+  duration?: string;
+  grade?: string;
 }> = ({ 
   courseTitle, 
   originalPrice, 
@@ -529,9 +531,62 @@ const PaymentSummary: React.FC<{
   enrollmentType,
   selectedInstallmentPlan,
   appliedCoupon,
-  couponDiscount = 0
+  couponDiscount = 0,
+  duration,
+  grade
 }) => {
   const formatPrice = (price: number) => `${currency} ${price.toLocaleString()}`;
+
+  // Compact view when there are no discounts/EMIs/coupons
+  const isCompact = !selectedInstallmentPlan && discountAmount <= 0 && (!appliedCoupon || couponDiscount <= 0);
+  if (isCompact) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 sm:p-5 space-y-4 text-sm sm:text-base"
+      >
+        {/* Header: Course Title & Enrollment Type */}
+        <div className="text-center space-y-2">
+          <h4 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white leading-tight truncate">
+            {courseTitle}
+          </h4>
+          <span className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs sm:text-sm font-medium mx-auto">
+            {enrollmentType === 'individual' ? 'Individual' : 'Batch'} Enrollment
+          </span>
+        </div>
+        {/* Divider */}
+        <hr className="border-gray-200 dark:border-gray-700 mt-2" />
+        {/* Price and Details */}
+        <div className="mt-4 pt-4 text-center space-y-4">
+          <div>
+            <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              Price
+            </p>
+            <p className="mt-1 text-4xl sm:text-5xl font-extrabold text-blue-600 dark:text-blue-400">
+              {formatPrice(finalPrice)}
+            </p>
+          </div>
+          {(duration || grade) && (
+            <div className="flex justify-center space-x-6">
+              {duration && (
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Duration</p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">{duration}</p>
+                </div>
+              )}
+              {grade && (
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Grade</p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">{grade}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -1065,118 +1120,6 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     const couponDiscount = calculateCouponDiscount();
     return Math.max(basePrice - couponDiscount, 0);
   }, [getFinalPrice, calculateCouponDiscount]);
-
-  // Format price for display with proper currency symbol
-  const getDisplayCurrencySymbol = useCallback(() => {
-    // Currency symbol mapping
-    const currencySymbols: { [key: string]: string } = {
-      'USD': '$',
-      'INR': '₹',
-      'EUR': '€',
-      'GBP': '£',
-      'JPY': '¥',
-      'CAD': 'C$',
-      'AUD': 'A$',
-      'SGD': 'S$',
-      'CHF': 'CHF',
-      'CNY': '¥',
-      'KRW': '₩',
-      'THB': '฿',
-      'MYR': 'RM',
-      'PHP': '₱',
-      'VND': '₫',
-      'IDR': 'Rp',
-      'BRL': 'R$',
-      'MXN': '$',
-      'ZAR': 'R',
-      'RUB': '₽',
-      'TRY': '₺',
-      'AED': 'د.إ',
-      'SAR': 'ر.س',
-      'QAR': 'ر.ق',
-      'KWD': 'د.ك',
-      'BHD': 'د.ب',
-      'OMR': 'ر.ع.',
-      'JOD': 'د.أ',
-      'LBP': 'ل.ل',
-      'EGP': 'ج.م',
-      'PKR': '₨',
-      'BDT': '৳',
-      'LKR': '₨',
-      'NPR': '₨',
-      'AFN': '؋',
-      'IRR': '﷼',
-      'IQD': 'ع.د',
-      'SYP': 'ل.س',
-      'YER': '﷼',
-      'MAD': 'د.م.',
-      'TND': 'د.ت',
-      'DZD': 'د.ج',
-      'LYD': 'ل.د',
-      'SDG': 'ج.س.',
-      'ETB': 'Br',
-      'KES': 'KSh',
-      'UGX': 'USh',
-      'TZS': 'TSh',
-      'RWF': 'RF',
-      'GHS': '₵',
-      'NGN': '₦',
-      'XOF': 'CFA',
-      'XAF': 'FCFA',
-      'ZMW': 'ZK',
-      'BWP': 'P',
-      'SZL': 'L',
-      'LSL': 'L',
-      'NAD': 'N$',
-      'MZN': 'MT',
-      'AOA': 'Kz',
-      'CDF': 'FC',
-      'MGA': 'Ar',
-      'SCR': '₨',
-      'MUR': '₨',
-      'MVR': '.ރ',
-      'KMF': 'CF',
-      'DJF': 'Fdj',
-      'SOS': 'S',
-      'ERN': 'Nfk'
-    };
-
-    // Prioritize currency from the first active price object
-    if (courseDetails?.prices && courseDetails.prices.length > 0) {
-      const activePrice = courseDetails.prices.find(p => p.is_active);
-      if (activePrice && activePrice.currency) {
-        return currencySymbols[activePrice.currency.toUpperCase()] || activePrice.currency;
-      }
-      // Fallback to the first price object's currency if no active one found
-      if (courseDetails.prices[0]?.currency) {
-        return currencySymbols[courseDetails.prices[0].currency.toUpperCase()] || courseDetails.prices[0].currency;
-      }
-    }
-    // Fallback to course_fee's currency if that exists (assuming it might be structured like { amount: 100, currency: 'USD'})
-    // This part is speculative, adjust if course_fee is just a number
-    if (typeof courseDetails?.course_fee === 'object' && courseDetails.course_fee !== null) {
-       // return courseDetails.course_fee.currency; // Example structure
-    }
-    return '₹'; // Default to INR symbol since this is primarily an Indian platform
-  }, [courseDetails]);
-  
-  const formatPriceDisplay = useCallback((price: number | undefined | null): string => {
-    // Check if course is free using multiple indicators
-    const courseIsActuallyFree = courseDetails?.isFree || 
-      courseDetails?.course_fee === 0 ||
-      (courseDetails?.prices && courseDetails.prices.every(p => p.individual === 0 && p.batch === 0));
-    
-    if (courseIsActuallyFree || price === 0) return "Free";
-    if (price === undefined || price === null || isNaN(price)) return "N/A";
-
-    const symbol = getDisplayCurrencySymbol();
-    // Ensure price is a number before calling toLocaleString
-    const numericPrice = Number(price);
-    if (isNaN(numericPrice)) return "N/A";
-
-    const formattedPrice = numericPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    return symbol.length > 1 ? `${symbol} ${formattedPrice}` : `${symbol}${formattedPrice}`;
-  }, [courseDetails, getDisplayCurrencySymbol]);
 
   // Get primary color from category or default
   const primaryColor = categoryInfo?.primaryColor || 'primary';
@@ -2088,7 +2031,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             <div className="flex items-start sm:items-center justify-between gap-3">
               <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-1 min-w-0">
                 <div className="flex-shrink-0">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
                     <Calculator className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
                 </div>
@@ -2626,6 +2569,23 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   // Check if current user is test user
   const isTestUser = userId === '67cfe3a9a50dbb995b4d94da';
 
+  // -------------------- Currency helpers (restored) --------------------
+  const getDisplayCurrencySymbol = useCallback(() => {
+    let currencyCode = 'INR';
+    if (courseDetails?.prices?.length) {
+      const active = courseDetails.prices.find((p) => p.is_active) || courseDetails.prices[0];
+      if (active?.currency) currencyCode = active.currency.toUpperCase();
+    }
+    return getCurrencySymbol(currencyCode);
+  }, [courseDetails]);
+
+  const formatPriceDisplay = useCallback((price: number | undefined | null): string => {
+    if (price === undefined || price === null || isNaN(price)) return 'N/A';
+    const symbol = getDisplayCurrencySymbol();
+    const numeric = Number(price);
+    return symbol.length > 1 ? `${symbol} ${numeric.toLocaleString()}` : `${symbol}${numeric.toLocaleString()}`;
+  }, [getDisplayCurrencySymbol]);
+
   return (
     <>
       {/* Test Mode Banner */}
@@ -2642,30 +2602,29 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       )}
       
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-gray-200 dark:border-gray-700 overflow-hidden enrollment-section w-full max-w-md mx-auto lg:max-w-none">
-        {/* Header section */}
-        <div className={`px-3 sm:px-5 py-2.5 sm:py-3 ${bgClass} border-b ${borderClass} flex items-center justify-between`}>
-          <h3 className="text-base font-bold text-gray-800 dark:text-gray-100 flex items-center leading-tight">
-            <CreditCard className="h-4 w-4 mr-1.5" />
-            <span className="hidden xs:inline">
+        {/* Header section - Mobile optimized */}
+        <div className={`px-4 sm:px-5 py-3 sm:py-3 ${bgClass} border-b ${borderClass} flex items-center justify-between`}>
+          <h3 className="text-lg sm:text-base font-bold text-gray-800 dark:text-gray-100 flex items-center leading-tight">
+            <CreditCard className="h-5 w-5 sm:h-4 sm:w-4 mr-2 sm:mr-1.5" />
+            <span>
               {isBlendedCourse ? 'Enrollment' : 'Enrollment Options'}
             </span>
-            <span className="xs:hidden">Enroll</span>
           </h3>
-          {/* Badge showing enrollment type */}
-          <div className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-white dark:bg-gray-700 text-xs font-medium shadow-sm">
+          {/* Badge showing enrollment type - Mobile friendly */}
+          <div className="inline-flex items-center justify-center px-3 py-1 sm:px-2 sm:py-0.5 rounded-full bg-white dark:bg-gray-700 text-sm sm:text-xs font-medium shadow-sm">
             <span className={`${colorClass} font-semibold`}>
               {isBlendedCourse ? 'Individual' : (enrollmentType === 'individual' ? 'Individual' : 'Batch')}
             </span>
           </div>
         </div>
         
-        <div className="p-3 space-y-3">
-          {/* Enrollment Type Selection - Only show for non-blended courses */}
+        <div className="p-4 sm:p-3 space-y-4 sm:space-y-3">
+          {/* Enrollment Type Selection - Enhanced mobile layout */}
           {!isBlendedCourse && (
-            <div className="flex w-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div className="flex w-full rounded-xl sm:rounded-lg overflow-hidden border-2 sm:border border-gray-200 dark:border-gray-700 shadow-sm">
               <button
                 onClick={() => handleEnrollmentTypeChange('individual')}
-                className={`flex-1 py-2.5 px-2 flex flex-col items-center justify-center transition duration-200 ${
+                className={`flex-1 py-4 sm:py-2.5 px-3 sm:px-2 flex flex-col items-center justify-center transition duration-200 ${
                   enrollmentType === 'individual' 
                     ? `${bgClass} ${colorClass} font-medium` 
                     : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
@@ -2673,17 +2632,17 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                 aria-pressed={enrollmentType === 'individual'}
                 aria-label="Select individual enrollment"
               >
-                <User className={`h-4 w-4 mb-1 ${enrollmentType === 'individual' ? colorClass : ''}`} />
-                <span className="text-xs font-medium leading-tight">Individual</span>
+                <User className={`h-6 w-6 sm:h-4 sm:w-4 mb-2 sm:mb-1 ${enrollmentType === 'individual' ? colorClass : ''}`} />
+                <span className="text-sm sm:text-xs font-medium leading-tight">Individual</span>
                 {activePricing && (
-                  <span className="text-xs mt-0.5 font-semibold leading-tight">
+                  <span className="text-sm sm:text-xs mt-1 sm:mt-0.5 font-semibold leading-tight">
                     {formatPriceDisplay(activePricing.individual)}
                   </span>
                 )}
               </button>
               <button
                 onClick={() => handleEnrollmentTypeChange('batch')}
-                className={`flex-1 py-2.5 px-2 flex flex-col items-center justify-center transition duration-200 ${
+                className={`flex-1 py-4 sm:py-2.5 px-3 sm:px-2 flex flex-col items-center justify-center transition duration-200 ${
                   enrollmentType === 'batch' 
                     ? `${bgClass} ${colorClass} font-medium` 
                     : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
@@ -2691,10 +2650,10 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                 aria-pressed={enrollmentType === 'batch'}
                 aria-label="Select batch enrollment"
               >
-                <Users className={`h-4 w-4 mb-1 ${enrollmentType === 'batch' ? colorClass : ''}`} />
-                <span className="text-xs font-medium leading-tight">Batch/Group</span>
+                <Users className={`h-6 w-6 sm:h-4 sm:w-4 mb-2 sm:mb-1 ${enrollmentType === 'batch' ? colorClass : ''}`} />
+                <span className="text-sm sm:text-xs font-medium leading-tight">Batch/Group</span>
                 {activePricing && (
-                  <span className="text-xs mt-0.5 font-semibold leading-tight">
+                  <span className="text-sm sm:text-xs mt-1 sm:mt-0.5 font-semibold leading-tight">
                     {formatPriceDisplay(activePricing.batch)} per person
                   </span>
                 )}
@@ -2702,105 +2661,87 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             </div>
           )}
           
-          {/* Individual Option Card for Blended Courses */}
+          {/* Individual Option Card for Blended Courses - Mobile enhanced */}
           {isBlendedCourse && (
-            <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
-              <div className={`py-2.5 px-3 flex flex-col items-center justify-center ${bgClass}`}>
-                <User className={`h-5 w-5 mb-1 ${colorClass}`} />
-                <span className="text-sm font-medium leading-tight">Individual Enrollment</span>
+            <div className="rounded-xl sm:rounded-lg overflow-hidden border-2 sm:border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className={`py-4 sm:py-2.5 px-4 sm:px-3 flex flex-col items-center justify-center ${bgClass}`}>
+                <User className={`h-6 w-6 sm:h-5 sm:w-5 mb-2 sm:mb-1 ${colorClass}`} />
+                <span className="text-lg sm:text-sm font-medium leading-tight">Individual Enrollment</span>
                 {activePricing && (
-                  <span className="text-xs mt-0.5 font-semibold leading-tight">
+                  <span className="text-base sm:text-xs mt-1 sm:mt-0.5 font-semibold leading-tight">
                     {formatPriceDisplay(activePricing.individual)}
                   </span>
                 )}
               </div>
-              <div className="p-2.5 bg-white dark:bg-gray-800 text-xs text-gray-600 dark:text-gray-300">
+              <div className="p-4 sm:p-2.5 bg-white dark:bg-gray-800 text-sm sm:text-xs text-gray-600 dark:text-gray-300">
                 <p className="flex items-center">
-                  <Info className="w-3 h-3 mr-1.5 text-blue-500 flex-shrink-0" />
+                  <Info className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1.5 text-blue-500 flex-shrink-0" />
                   This course is designed for individual enrollment with personalized learning experience.
                 </p>
               </div>
             </div>
           )}
           
-          {/* Course Price - Enhanced for clarity on mobile */}
-          <AnimatePresence mode="wait">
-            <motion.div 
-              key={enrollmentType}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="flex items-center justify-between p-3 bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/80 dark:to-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm"
-            >
-              <div className="flex-1 min-w-0">
-                <p className="text-gray-600 dark:text-gray-400 text-xs font-medium mb-0.5 leading-tight">
-                  {isBlendedCourse ? 'Individual Price' : (enrollmentType === 'individual' ? 'Individual Price' : 'Batch Price (per person)')}
-                </p>
-                <div className="flex items-baseline gap-1.5 flex-wrap">
-                  <h4 className="text-lg font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent leading-tight">
-                    {courseDetails?.isFree ? "Free" : formatPriceDisplay(appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice())}
-                  </h4>
-                  
-                  {originalPrice && originalPrice > getFinalPrice() && (
-                    <span className="text-xs text-gray-500 line-through">
-                      {formatPriceDisplay(originalPrice)}
-                    </span>
-                  )}
-                  
-                  {appliedCoupon && (
-                    <span className="text-xs text-gray-500 line-through">
-                      {formatPriceDisplay(getFinalPrice())}
-                    </span>
-                  )}
-                  
-                </div>
-                {/* Only show min students for batch enrollment in non-blended courses */}
-                {enrollmentType === 'batch' && !isBlendedCourse && activePricing && (
-                  <p className="text-xs text-gray-500 mt-0.5 flex items-center leading-tight">
-                    <Users className="w-3 h-3 mr-1 flex-shrink-0" />
-                    Min {activePricing.min_batch_size} students required
+          {/* Price card for FREE courses - Mobile optimized */}
+          {courseDetails?.isFree && (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={enrollmentType}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="flex items-center justify-between p-4 sm:p-3 bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/80 dark:to-gray-800 rounded-xl sm:rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-xs font-medium mb-1 sm:mb-0.5 leading-tight">
+                    Price
                   </p>
-                )}
-              </div>
-              <div className={`p-2 rounded-full ${bgClass} shadow-md flex-shrink-0`}>
-                <CreditCard className={`h-4 w-4 ${colorClass}`} />
-              </div>
-            </motion.div>
-          </AnimatePresence>
+                  <div className="flex items-baseline gap-1.5 flex-wrap">
+                    <h4 className="text-2xl sm:text-lg font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent leading-tight">
+                      {formatPriceDisplay(0)}
+                    </h4>
+                  </div>
+                </div>
+                <div className={`p-3 sm:p-2 rounded-full ${bgClass} shadow-md flex-shrink-0`}>
+                  <CreditCard className={`h-6 w-6 sm:h-4 sm:w-4 ${colorClass}`} />
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          )}
 
-          {/* Coupon Section */}
+          {/* Coupon Section - Mobile enhanced */}
           {!courseDetails?.isFree && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/10 dark:to-yellow-900/10 border border-orange-200 dark:border-orange-800/30 rounded-lg p-3"
+              className="bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/10 dark:to-yellow-900/10 border border-orange-200 dark:border-orange-800/30 rounded-xl sm:rounded-lg p-4 sm:p-3"
             >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-semibold text-orange-800 dark:text-orange-200">
+              <div className="flex items-center gap-2 mb-3 sm:mb-2">
+                <div className="w-3 h-3 sm:w-2 sm:h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                <span className="text-base sm:text-sm font-semibold text-orange-800 dark:text-orange-200">
                   🎫 Have a Coupon Code?
                 </span>
               </div>
               
               {!appliedCoupon ? (
-                <div className="space-y-2">
-                  <div className="flex gap-2">
+                <div className="space-y-3 sm:space-y-2">
+                  <div className="flex gap-3 sm:gap-2">
                     <input
                       type="text"
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                       onKeyPress={(e) => e.key === 'Enter' && applyCoupon()}
                       placeholder="Enter coupon code"
-                      className="flex-1 px-3 py-2 text-sm border border-orange-200 dark:border-orange-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      className="flex-1 px-4 py-3 sm:px-3 sm:py-2 text-base sm:text-sm border border-orange-200 dark:border-orange-700 rounded-xl sm:rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                       disabled={couponLoading}
                     />
                     <button
                       onClick={applyCoupon}
                       disabled={couponLoading || !couponCode.trim()}
-                      className="px-4 py-2 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+                      className="px-6 py-3 sm:px-4 sm:py-2 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-base sm:text-sm font-medium rounded-xl sm:rounded-lg transition-colors min-w-[80px] sm:min-w-0"
                     >
                       {couponLoading ? (
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-5 h-5 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       ) : (
                         'Apply'
                       )}
@@ -2808,34 +2749,34 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                   </div>
                   
                   {couponError && (
-                    <p className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
-                      <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                    <p className="text-sm sm:text-xs text-red-600 dark:text-red-400 flex items-center gap-2 sm:gap-1">
+                      <span className="w-2 h-2 sm:w-1 sm:h-1 bg-red-500 rounded-full"></span>
                       {couponError}
                     </p>
                   )}
                 </div>
               ) : (
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 rounded-lg p-3">
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 rounded-xl sm:rounded-lg p-4 sm:p-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-sm font-semibold text-green-800 dark:text-green-200">
+                      <div className="w-3 h-3 sm:w-2 sm:h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-base sm:text-sm font-semibold text-green-800 dark:text-green-200">
                         {appliedCoupon.code} Applied!
                       </span>
                     </div>
                     <button
                       onClick={removeCoupon}
-                      className="text-xs text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-medium"
+                      className="text-sm sm:text-xs text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-medium px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
                     >
                       Remove
                     </button>
                   </div>
                   
-                  <div className="mt-2 space-y-1">
-                    <p className="text-xs text-green-700 dark:text-green-300">
+                  <div className="mt-3 sm:mt-2 space-y-2 sm:space-y-1">
+                    <p className="text-sm sm:text-xs text-green-700 dark:text-green-300">
                       {appliedCoupon.description || `${appliedCoupon.type === 'percentage' ? `${appliedCoupon.value}% off` : `${getDisplayCurrencySymbol()}${appliedCoupon.value} off`}`}
                     </p>
-                    <p className="text-xs font-semibold text-green-800 dark:text-green-200">
+                    <p className="text-sm sm:text-xs font-semibold text-green-800 dark:text-green-200">
                       You save: {formatPriceDisplay(calculateCouponDiscount())}
                     </p>
                   </div>
@@ -2843,69 +2784,51 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               )}
             </motion.div>
           )}
-          
 
+          {/* Compact Payment Summary - Mobile enhanced */}
+          {!courseDetails?.isFree && (
+            <PaymentSummary
+              courseTitle={courseDetails?.course_title || 'Course'}
+              originalPrice={originalPrice || getFinalPrice()}
+              finalPrice={appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice()}
+              currency={getDisplayCurrencySymbol()}
+              discountAmount={originalPrice ? (originalPrice - getFinalPrice()) : 0}
+              enrollmentType={enrollmentType}
+              selectedInstallmentPlan={selectedInstallmentPlan}
+              appliedCoupon={appliedCoupon}
+              couponDiscount={appliedCoupon ? calculateCouponDiscount() : 0}
+              duration={formattedDuration}
+              grade={grade}
+            />
+          )}
           
-          {/* Course Details List - More readable on mobile */}
-          <div className="space-y-2 border-t border-gray-200 dark:border-gray-700 pt-3">
-            <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-100 dark:border-gray-700 hover:shadow-sm transition-shadow">
-              <span className="text-gray-700 dark:text-gray-300 text-xs font-medium flex items-center leading-tight">
-                <Clock className="w-3 h-3 mr-1.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-                Duration
-              </span>
-              <span className="font-semibold text-gray-900 dark:text-white text-xs leading-tight">{formattedDuration}</span>
-            </div>
-            <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-100 dark:border-gray-700 hover:shadow-sm transition-shadow">
-              <span className="text-gray-700 dark:text-gray-300 text-xs font-medium flex items-center leading-tight">
-                <GraduationCap className="w-3 h-3 mr-1.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-                Grade
-              </span>
-              <span className="font-semibold text-gray-900 dark:text-white text-xs leading-tight">
-                {grade}
-              </span>
-            </div>
-          </div>
-          
-          {/* Course Features - More compact and well structured */}
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
-            <h4 className="font-semibold text-gray-900 dark:text-white text-sm mb-2 flex items-center leading-tight">
-              <ThumbsUp className="w-3 h-3 mr-1.5 text-green-500 flex-shrink-0" />
+          {/* Course Features - Mobile-first redesign */}
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-5 sm:pt-4">
+            <h4 className="flex items-center gap-3 font-semibold text-gray-900 dark:text-white text-lg mb-4">
+              <div className="h-9 w-9 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
+                <Award className="h-5 w-5 text-emerald-500" />
+              </div>
               What you'll get
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {courseFeatures.map((feature: string, index: number) => (
-                <div 
+                <div
                   key={index}
-                  className="flex items-center text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-100 dark:border-gray-700"
+                  className="flex items-center gap-3 bg-gray-50/50 dark:bg-gray-800/50 rounded-xl border border-gray-200/50 dark:border-gray-700/50 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition-colors duration-200"
                 >
-                  <CheckCircle2 className="w-3 h-3 mr-1.5 text-green-500 flex-shrink-0" />
-                  <span className="text-xs font-medium leading-tight">{feature}</span>
+                  <div className="h-8 w-8 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  </div>
+                  <span className="leading-snug">{feature}</span>
                 </div>
               ))}
             </div>
           </div>
           
-          {/* Enhanced Payment Button with Modern Design */}
-          <motion.div className="space-y-3">
-            {/* Payment Security Features */}
-            {!courseDetails?.isFree && <PaymentSecurityFeatures />}
-            
-            {/* Payment Summary */}
-            {!courseDetails?.isFree && (
-              <PaymentSummary
-                courseTitle={courseDetails?.course_title || 'Course'}
-                originalPrice={originalPrice || getFinalPrice()}
-                finalPrice={appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice()}
-                currency={getDisplayCurrencySymbol()}
-                discountAmount={originalPrice ? (originalPrice - getFinalPrice()) : 0}
-                enrollmentType={enrollmentType}
-                selectedInstallmentPlan={selectedInstallmentPlan}
-                appliedCoupon={appliedCoupon}
-                couponDiscount={appliedCoupon ? calculateCouponDiscount() : 0}
-              />
-            )}
-            
-            {/* Modern Enroll Button */}
+          {/* Enhanced Payment Button with Modern Design - Mobile optimized */}
+          <motion.div className="space-y-4 sm:space-y-3">
+            {/* Modern Enroll Button - Enhanced for mobile */}
             <motion.button
               whileHover={{ 
                 scale: 1.02, 
@@ -2914,7 +2837,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               whileTap={{ scale: 0.98 }}
               onClick={handleEnrollClick}
               disabled={loading}
-              className={`relative w-full py-3.5 px-5 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-800 text-white font-bold text-lg rounded-xl flex items-center justify-center shadow-xl transition-all duration-300 overflow-hidden group ${
+              className={`relative w-full py-5 sm:py-3.5 px-6 sm:px-5 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-800 text-white font-bold text-xl sm:text-lg rounded-2xl sm:rounded-xl flex items-center justify-center shadow-xl transition-all duration-300 overflow-hidden group min-h-[60px] sm:min-h-0 ${
                 loading ? 'opacity-70 cursor-not-allowed' : ''
               }`}
               aria-label={isLoggedIn ? (courseDetails?.isFree ? 'Enroll for free' : 'Enroll now') : 'Login to enroll'}
@@ -2925,14 +2848,14 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               {loading ? (
                 <ModernLoadingState message="Processing your enrollment..." />
               ) : (
-                <div className="relative flex items-center gap-2.5">
+                <div className="relative flex items-center gap-3 sm:gap-2.5">
                   {isLoggedIn ? (
                     <>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3 sm:gap-2">
                         {courseDetails?.isFree ? (
-                          <GraduationCap className="w-5 h-5" />
+                          <GraduationCap className="w-7 h-7 sm:w-5 sm:h-5" />
                         ) : (
-                          <CreditCard className="w-5 h-5" />
+                          <CreditCard className="w-7 h-7 sm:w-5 sm:h-5" />
                         )}
                         <span className="leading-tight font-bold">
                           {courseDetails?.isFree 
@@ -2943,101 +2866,99 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                           }
                         </span>
                       </div>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      <ArrowRight className="w-6 h-6 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
                     </>
                   ) : (
                     <>
-                      <Lock className="w-5 h-5" />
+                      <Lock className="w-7 h-7 sm:w-5 sm:h-5" />
                       <span className="leading-tight font-bold">Login to Enroll</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-6 h-6 sm:w-4 sm:h-4" />
                     </>
                   )}
                 </div>
               )}
             </motion.button>
 
-            {/* Test Card Information for Test User */}
+            {/* Test Card Information for Test User - Mobile enhanced */}
             {!courseDetails?.isFree && isTestUser && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                className="bg-gradient-to-r from-purple-50 to-indigo-50/30 dark:from-purple-900/10 dark:to-indigo-900/10 border border-purple-200 dark:border-purple-700 rounded-lg p-3 mb-3"
+                className="bg-gradient-to-r from-purple-50 to-indigo-50/30 dark:from-purple-900/10 dark:to-indigo-900/10 border border-purple-200 dark:border-purple-700 rounded-xl sm:rounded-lg p-4 sm:p-3 mb-4 sm:mb-3"
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-semibold text-purple-800 dark:text-purple-200">
+                <div className="flex items-center gap-2 mb-3 sm:mb-2">
+                  <div className="w-3 h-3 sm:w-2 sm:h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                  <span className="text-base sm:text-sm font-semibold text-purple-800 dark:text-purple-200">
                     🧪 Test Payment Cards
                   </span>
                 </div>
                 
-                <div className="text-xs text-purple-700 dark:text-purple-300 space-y-1">
+                <div className="text-sm sm:text-xs text-purple-700 dark:text-purple-300 space-y-2 sm:space-y-1">
                   <div><strong>Success:</strong> 4111 1111 1111 1111</div>
                   <div><strong>CVV:</strong> Any 3 digits | <strong>Expiry:</strong> Any future date</div>
-                  <div className="text-purple-600 dark:text-purple-400 mt-1">
+                  <div className="text-purple-600 dark:text-purple-400 mt-2 sm:mt-1">
                     💡 Use these test cards for successful payment testing
                   </div>
                 </div>
               </motion.div>
             )}
 
-            {/* Enhanced Payment Info */}
+            {/* Enhanced Payment Info - Mobile-first design */}
             {!courseDetails?.isFree && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
-                className="bg-gradient-to-r from-gray-50 to-blue-50/30 dark:from-gray-800/50 dark:to-blue-900/10 border border-gray-200 dark:border-gray-700 rounded-lg p-3"
+                className="bg-gradient-to-r from-gray-50 to-blue-50/30 dark:from-gray-800/50 dark:to-blue-900/10 border border-gray-200 dark:border-gray-700 rounded-xl sm:rounded-lg p-4 sm:p-3"
               >
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                    {isTestUser ? "Test Payment by Razorpay" : "Secure Payment by Razorpay"}
-                  </span>
-                </div>
-                
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                  <div className="flex items-center gap-1.5 justify-center">
-                    <CreditCard className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                    <span className="text-gray-600 dark:text-gray-300 font-medium">All Cards</span>
+                <div className="text-center space-y-4 sm:space-y-3">
+                  <div className="inline-flex items-center justify-center gap-2 sm:gap-1.5">
+                    <Shield className="w-6 h-6 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400" />
+                    <span className="text-base sm:text-sm font-semibold text-gray-900 dark:text-white">
+                      {isTestUser ? "Test Payment by Razorpay" : "Secure Payment by Razorpay"}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-1.5 justify-center">
-                    <Building2 className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                    <span className="text-gray-600 dark:text-gray-300 font-medium">Net Banking</span>
+
+                  <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-center gap-3 sm:gap-2">
+                    {[
+                      { icon: CreditCard, label: 'All Cards' },
+                      { icon: Building2, label: 'Net Banking' },
+                      { icon: Smartphone, label: 'UPI' },
+                      { icon: Wallet, label: 'Wallets' }
+                    ].map(({ icon: Icon, label }) => (
+                      <div
+                        key={label}
+                        className="inline-flex items-center gap-2 sm:gap-1.5 px-4 py-2 sm:px-2.5 sm:py-1 rounded-xl sm:rounded-full bg-blue-100/60 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm sm:text-xs font-medium justify-center"
+                      >
+                        <Icon className="w-5 h-5 sm:w-3 sm:h-3" />
+                        {label}
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex items-center gap-1.5 justify-center">
-                    <Smartphone className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                    <span className="text-gray-600 dark:text-gray-300 font-medium">UPI</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 justify-center">
-                    <Wallet className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                    <span className="text-gray-600 dark:text-gray-300 font-medium">Wallets</span>
-                  </div>
-                </div>
-                
-                <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 text-center">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center justify-center gap-1.5 font-medium">
-                    <Lock className="w-3 h-3" />
-                    <span>Your payment information is encrypted and secure</span>
+
+                  <p className="flex items-center justify-center gap-2 sm:gap-1 text-sm sm:text-xs text-gray-500 dark:text-gray-400 font-medium mt-2 sm:mt-1">
+                    <Lock className="w-4 h-4 sm:w-3 sm:h-3" />
+                    Your payment information is encrypted & secure
                   </p>
                 </div>
               </motion.div>
             )}
           </motion.div>
           
-          {/* Fast Track Option - Enhanced mobile visibility */}
+          {/* Fast Track Option - Mobile enhanced */}
           <motion.div
-            className="border-t border-gray-200 dark:border-gray-700 pt-3"
+            className="border-t border-gray-200 dark:border-gray-700 pt-4 sm:pt-3"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-            <div className="bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-gray-800 dark:to-amber-900/10 p-2.5 rounded-lg border border-amber-100 dark:border-amber-800/30 text-center">
-              <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-100/80 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800/40 text-amber-700 dark:text-amber-300 text-xs font-semibold mb-2">
-                <Zap className="w-3 h-3 mr-1 flex-shrink-0" />
+            <div className="bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-gray-800 dark:to-amber-900/10 p-4 sm:p-2.5 rounded-xl sm:rounded-lg border border-amber-100 dark:border-amber-800/30 text-center">
+              <div className="inline-flex items-center px-3 py-2 sm:px-2 sm:py-0.5 rounded-full bg-amber-100/80 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800/40 text-amber-700 dark:text-amber-300 text-sm sm:text-xs font-semibold mb-3 sm:mb-2">
+                <Zap className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1 flex-shrink-0" />
                 Fast Track Available
               </div>
-              <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed font-medium">
+              <p className="text-sm sm:text-xs text-amber-800 dark:text-amber-200 leading-relaxed font-medium">
                 Fast-track options available for experienced learners.
                 Contact support for details.
               </p>

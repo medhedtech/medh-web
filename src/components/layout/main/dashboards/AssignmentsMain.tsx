@@ -54,7 +54,7 @@ const TabButton: React.FC<TabButtonProps> = ({ active, onClick, children, count 
     whileHover={{ scale: 1.02 }}
     whileTap={{ scale: 0.98 }}
     onClick={onClick}
-    className={`relative inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-300 overflow-hidden group ${
+    className={`relative inline-flex items-center justify-center w-32 sm:w-40 px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-medium rounded-xl transition-all duration-300 overflow-hidden group ${
       active
         ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg'
         : 'bg-white/60 dark:bg-gray-800/60 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-gray-700/80 border border-gray-200 dark:border-gray-700'
@@ -147,13 +147,13 @@ const AssignmentCard = ({ assignment, onViewDetails }: { assignment: Assignment;
     <motion.div
       whileHover={{ y: -4, scale: 1.02 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 group"
+      className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 group p-4 sm:p-5 md:p-6"
     >
       {/* Status Stripe */}
       <div className={`h-1 ${getStatusStripe(assignment?.status)}`}></div>
       
       <div className="p-6">
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex items-start justify-between mb-4 gap-3 sm:gap-4">
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
             {assignment?.title || "No Title Available"}
@@ -364,16 +364,50 @@ const AssignmentsMain: React.FC = () => {
         setIsLoading(true);
         setError(null);
         
-        // Get student ID from localStorage
-        const studentId = localStorage.getItem('userId');
-        if (!studentId) {
-          throw new Error('Student ID not found. Please log in again.');
+        // Fetch pending items for the logged-in student – this includes both assignments and quizzes
+        const token =
+          localStorage.getItem('authToken') ||
+          localStorage.getItem('token') ||
+          sessionStorage.getItem('token');
+
+        if (!token) {
+          throw new Error('Authentication token not found. Please log in again.');
         }
 
-        // Note: Assignment API endpoint doesn't exist yet
-        // For now, set empty assignments array until the API is implemented
-        console.log('Assignments API not yet implemented. Showing empty state.');
-        setAssignments([]);
+        const res = await fetch(apiUrls.Students.pendingItems, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP error ${res.status}`);
+        }
+
+        const json = await res.json();
+
+        if (json.status !== 'success') {
+          throw new Error(json.message || 'Unexpected API response');
+        }
+
+        const pendingItems: any[] = json?.data?.pendingItems || [];
+
+        // Map only assignment-type items into Assignment objects expected by the UI
+        const mappedAssignments: Assignment[] = pendingItems
+          .filter((item) => item.type === 'assignment')
+          .map((item) => ({
+            id: item.id,
+            title: item.title,
+            course: item.courseName,
+            dueDate: item.dueDate,
+            maxPoints: item.maxScore,
+            description: item.description,
+            status: 'pending',
+          }));
+
+        setAssignments(mappedAssignments);
       } catch (error: any) {
         console.error('Error fetching assignments:', error);
         let errorMessage = 'Failed to load assignments. Please try again.';
@@ -422,7 +456,7 @@ const AssignmentsMain: React.FC = () => {
   };
 
   const tabs = [
-    { name: "All Assignments", key: 'all' as const, icon: ClipboardList, count: tabCounts.all },
+    { name: "All", key: 'all' as const, icon: ClipboardList, count: tabCounts.all },
     { name: "Pending", key: 'pending' as const, icon: Clock, count: tabCounts.pending },
     { name: "Submitted", key: 'submitted' as const, icon: Upload, count: tabCounts.submitted },
     { name: "Graded", key: 'graded' as const, icon: Award, count: tabCounts.graded }
@@ -467,7 +501,7 @@ const AssignmentsMain: React.FC = () => {
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-6 lg:p-8 rounded-lg max-w-7xl mx-auto"
+      className="p-4 sm:p-6 lg:p-8 rounded-lg max-w-7xl mx-auto"
     >
       <div className="flex flex-col space-y-6">
         {/* Enhanced Header */}
@@ -475,17 +509,17 @@ const AssignmentsMain: React.FC = () => {
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center justify-center mb-4"
+            className="flex flex-col sm:flex-row items-center justify-center mb-4"
           >
-            <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 rounded-2xl backdrop-blur-sm mr-4">
+            <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 rounded-2xl backdrop-blur-sm mb-4 sm:mb-0 sm:mr-4">
               <ClipboardList className="w-8 h-8 text-blue-600 dark:text-blue-400" />
             </div>
-            <div className="text-left">
+            <div className="text-center sm:text-left">
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white">
-                Assignments
+              Quizzes & Assessments
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-400 mt-1">
-                Manage and track your course assignments
+              Test your knowledge and track progress
               </p>
             </div>
           </motion.div>
@@ -510,23 +544,21 @@ const AssignmentsMain: React.FC = () => {
         </div>
 
         {/* Enhanced Tabs */}
-        <div className="flex justify-center">
-          <div className="inline-flex bg-gray-100/80 dark:bg-gray-800/80 rounded-2xl p-1.5 backdrop-blur-sm">
-            {tabs.map((tab) => {
-              const TabIcon = tab.icon;
-              return (
-                <TabButton
-                  key={tab.key}
-                  active={activeTab === tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  count={tab.count}
-                >
-                  <TabIcon className="w-4 h-4" />
-                  <span className="font-medium">{tab.name}</span>
-                </TabButton>
-              );
-            })}
-          </div>
+        <div className="flex flex-wrap justify-center gap-2 bg-gray-100/80 dark:bg-gray-800/80 rounded-2xl p-1.5 backdrop-blur-sm">
+          {tabs.map((tab) => {
+            const TabIcon = tab.icon;
+            return (
+              <TabButton
+                key={tab.key}
+                active={activeTab === tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                count={tab.count}
+              >
+                <TabIcon className="w-4 h-4" />
+                <span className="font-medium">{tab.name}</span>
+              </TabButton>
+            );
+          })}
         </div>
 
         {/* Loading State */}
@@ -571,7 +603,7 @@ const AssignmentsMain: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+                className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6"
               >
                 {filteredAssignments.map((assignment, index) => (
                   <motion.div
