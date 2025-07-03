@@ -26,6 +26,25 @@ export NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL:-https://api.medh.co/api/v1}"
 echo "NODE_ENV: $NODE_ENV"
 echo "NEXT_PUBLIC_API_URL: $NEXT_PUBLIC_API_URL"
 
+# Check for critical dependencies before build
+echo ""
+echo "=== Critical Dependencies Check ==="
+echo "Checking for @radix-ui/react-avatar..."
+if [ -d "node_modules/@radix-ui/react-avatar" ]; then
+  echo "✅ @radix-ui/react-avatar found"
+else
+  echo "❌ @radix-ui/react-avatar missing - installing now..."
+  npm install @radix-ui/react-avatar --force --no-cache
+fi
+
+echo "Checking for @radix-ui/react-progress..."
+if [ -d "node_modules/@radix-ui/react-progress" ]; then
+  echo "✅ @radix-ui/react-progress found"
+else
+  echo "❌ @radix-ui/react-progress missing - installing now..."
+  npm install @radix-ui/react-progress --force --no-cache
+fi
+
 # Check for environment file
 echo ""
 echo "=== Environment File Configuration ==="

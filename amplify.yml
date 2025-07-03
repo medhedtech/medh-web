@@ -88,6 +88,7 @@ frontend:
         - echo "Cleaning up potential dependency conflicts..."
         - rm -rf node_modules/.staging 2>/dev/null || true
         - rm -rf node_modules/.cache 2>/dev/null || true
+        - rm -rf node_modules/@radix-ui 2>/dev/null || true  # Remove any corrupted Radix UI packages
         
         # Debug package.json and package-lock.json
         - echo "Checking package.json..."
@@ -96,6 +97,23 @@ frontend:
         - ls -la package-lock.json || echo "⚠️ No package-lock.json found"
         - echo "Node modules before install:"
         - ls -la node_modules/ 2>/dev/null || echo "No node_modules directory"
+        
+        # Ensure exact versions for problematic packages
+        - echo "Ensuring exact versions for Radix UI packages..."
+        - |
+          # Backup original package.json
+          cp package.json package.json.bak
+          
+          # Add exact versions for Radix UI packages
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.dependencies['@radix-ui/react-avatar'] = '1.1.10';
+            pkg.dependencies['@radix-ui/react-progress'] = '1.1.7';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+          "
+          
+          echo "Updated package.json with exact versions"
         
         # Clean install with better error handling
         - echo ""
@@ -114,9 +132,18 @@ frontend:
             npm install --no-audit --prefer-offline --no-fund --verbose
           fi
           
-          # Explicitly install critical Radix UI dependencies that might be missing
+          # Explicitly install ALL Radix UI dependencies that might be missing
           echo "Ensuring critical Radix UI dependencies are installed..."
-          npm install @radix-ui/react-avatar @radix-ui/react-progress --no-audit --prefer-offline --no-fund
+          npm install @radix-ui/react-avatar @radix-ui/react-progress @radix-ui/react-checkbox @radix-ui/react-label @radix-ui/react-roving-focus @radix-ui/react-select @radix-ui/react-separator @radix-ui/react-slot @radix-ui/react-switch @radix-ui/react-tabs --no-audit --prefer-offline --no-fund --verbose
+          
+          # Force reinstall of problematic packages
+          echo "Force reinstalling problematic packages..."
+          npm install --force @radix-ui/react-avatar @radix-ui/react-progress
+          
+          # Clear npm cache and reinstall if still failing
+          echo "Clearing npm cache and double-checking installation..."
+          npm cache clean --force
+          npm install @radix-ui/react-avatar @radix-ui/react-progress --no-cache
         
         # Verify installation
         - echo ""
@@ -126,7 +153,55 @@ frontend:
         - echo "Checking critical dependencies..."
         - npm list next react react-dom --depth=0 || echo "⚠️ Some critical dependencies missing"
         - echo "Checking Radix UI dependencies..."
-        - npm list @radix-ui/react-avatar @radix-ui/react-progress --depth=0 || echo "⚠️ Some Radix UI dependencies missing"
+        - |
+          # Detailed verification of Radix UI packages
+          echo "Verifying @radix-ui/react-avatar installation..."
+          if [ -d "node_modules/@radix-ui/react-avatar" ]; then
+            echo "✅ @radix-ui/react-avatar is installed"
+            ls -la node_modules/@radix-ui/react-avatar/
+          else
+            echo "❌ @radix-ui/react-avatar is NOT installed"
+            echo "Attempting emergency install..."
+            npm install @radix-ui/react-avatar --force --no-cache
+          fi
+          
+          echo "Verifying @radix-ui/react-progress installation..."
+          if [ -d "node_modules/@radix-ui/react-progress" ]; then
+            echo "✅ @radix-ui/react-progress is installed"
+            ls -la node_modules/@radix-ui/react-progress/
+          else
+            echo "❌ @radix-ui/react-progress is NOT installed"
+            echo "Attempting emergency install..."
+            npm install @radix-ui/react-progress --force --no-cache
+          fi
+          
+                     # Final verification with npm list
+           npm list @radix-ui/react-avatar @radix-ui/react-progress --depth=0 || {
+             echo "❌ Final verification failed - attempting manual installation"
+             
+             # Manual installation as last resort
+             mkdir -p node_modules/@radix-ui
+             
+             # Download and install avatar package manually
+             if [ ! -d "node_modules/@radix-ui/react-avatar" ]; then
+               echo "Manually downloading @radix-ui/react-avatar..."
+               curl -L "https://registry.npmjs.org/@radix-ui/react-avatar/-/react-avatar-1.1.10.tgz" -o avatar.tgz
+               mkdir -p node_modules/@radix-ui/react-avatar
+               tar -xzf avatar.tgz -C node_modules/@radix-ui/react-avatar --strip-components=1
+               rm avatar.tgz
+             fi
+             
+             # Download and install progress package manually
+             if [ ! -d "node_modules/@radix-ui/react-progress" ]; then
+               echo "Manually downloading @radix-ui/react-progress..."
+               curl -L "https://registry.npmjs.org/@radix-ui/react-progress/-/react-progress-1.1.7.tgz" -o progress.tgz
+               mkdir -p node_modules/@radix-ui/react-progress
+               tar -xzf progress.tgz -C node_modules/@radix-ui/react-progress --strip-components=1
+               rm progress.tgz
+             fi
+             
+             echo "✅ Manual installation completed"
+           }
     build:
       commands:
         - echo ""
