@@ -17,6 +17,7 @@ import {
   Zap,
   Trophy
 } from "lucide-react";
+import Link from "next/link";
 
 // Reusable components for better organization
 const ListItem = ({ feature, index }) => (
@@ -470,9 +471,34 @@ const data = {
                   </div>
                 </td>
               </tr>
-              
-              // ... existing code ...
-              
+              <tr className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
+                  <div className="font-bold">Nikhilam Navataścaramam Daśataḥ</div>
+                  <div className="text-[#727695] dark:text-gray300">
+                    All from 9 and the last from 10.
+                  </div>
+                </td>
+                <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
+                  <div className="font-bold">Anurupyena</div>
+                  <div className="text-[#727695] dark:text-gray300">
+                    Proportionally.
+                  </div>
+                </td>
+              </tr>
+              <tr className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
+                  <div className="font-bold">Urdhva-tiryagbhyam</div>
+                  <div className="text-[#727695] dark:text-gray300">
+                    Vertically and crosswise.
+                  </div>
+                </td>
+                <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
+                  <div className="font-bold">Adyamadyenantyamantyena</div>
+                  <div className="text-[#727695] dark:text-gray300">
+                    The first by the first and the last by the last.
+                  </div>
+                </td>
+              </tr>
             </tbody>
           </table>
           </motion.div>
@@ -645,30 +671,15 @@ const VedicOverview = () => {
           <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
             Join thousands of students who have transformed their mathematical skills and conquered their fear of numbers through our comprehensive Vedic Mathematics course.
           </p>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-8 py-3 bg-gradient-to-r from-primaryColor to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all font-medium"
-          >
-            Enroll Today
-          </motion.button>
-        </motion.div>
-
-        {/* Scroll to Top Button with improved styling */}
-        <AnimatePresence>
-          {showScrollTop && (
-            <motion.button
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="fixed bottom-4 right-4 bg-gradient-to-r from-primaryColor to-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-primaryColor/90 transition-all z-50"
-              onClick={() => {/* Removing scroll functionality */}}
-              aria-label="Scroll to top"
+          <Link href="/enrollment/vedic-mathematics" passHref legacyBehavior>
+            <a
+              className="px-8 py-3 bg-gradient-to-r from-primaryColor to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all font-medium inline-block"
+              tabIndex={0}
             >
-              <ArrowUp className="h-6 w-6" />
-            </motion.button>
-          )}
-        </AnimatePresence>
+              Enroll Today
+            </a>
+          </Link>
+        </motion.div>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState, useCallback, useContext, useMemo, memo } from "react";
-import CourseCard from "@/components/sections/courses/CourseCard";
+import HomeCard from "@/components/sections/courses/HomeCard";
 import { getAllCoursesWithLimits, getCoursesWithFields } from '@/apis/course/course';
 import useGetQuery from "@/hooks/getQuery.hook";
 import { BookOpen, ChevronRight, Layers, Sparkles, Video, Clock, Users, Filter, Loader2 } from "lucide-react";
@@ -62,22 +62,44 @@ const getGlassmorphismStyles = (isDark: boolean): string => {
     
     .course-grid {
       display: grid;
+      grid-template-columns: 1fr;
       gap: 1.5rem;
-      transform: translate3d(0, 0, 0);
-      will-change: transform;
+      justify-content: center;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      place-items: center;
     }
     
     @media (min-width: 640px) {
       .course-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 1.75rem;
+        gap: 1.5rem;
+        padding: 0 1.5rem;
       }
     }
     
     @media (min-width: 1024px) {
       .course-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+        padding: 0 2rem;
+      }
+    }
+    
+    @media (min-width: 1280px) {
+      .course-grid {
         grid-template-columns: repeat(4, 1fr);
         gap: 2rem;
+        padding: 0 2rem;
+      }
+    }
+    
+    @media (min-width: 1536px) {
+      .course-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2.5rem;
+        padding: 0 3rem;
       }
     }
     
@@ -100,43 +122,6 @@ const getGlassmorphismStyles = (isDark: boolean): string => {
         -webkit-transform: translate3d(0, 0, 0);
         -webkit-backface-visibility: hidden;
       }
-    }
-    
-    .live-course-card-wrapper .course-card .flex.flex-col.items-center.justify-between {
-      padding-top: 0.75rem !important;
-      padding-bottom: 0.75rem !important;
-      min-height: 120px !important;
-    }
-    
-    .live-course-card-wrapper .course-card h3 {
-      margin-top: 0.25rem !important;
-      margin-bottom: 0.5rem !important;
-    }
-    
-    .live-course-card-wrapper .course-card .text-center.mx-auto {
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      text-align: center !important;
-    }
-    
-    .live-course-card-wrapper .course-card .bg-indigo-50,
-    .live-course-card-wrapper .course-card .bg-\\[\\#379392\\]\\/10 {
-      margin-top: 0.5rem !important;
-      margin-bottom: 0.25rem !important;
-    }
-    
-    .live-course-card-wrapper .course-card > div > div.flex.flex-col.px-5.pt-3.pb-5 {
-      padding-top: 0.5rem !important;
-      padding-bottom: 1rem !important;
-    }
-    
-    .live-course-card-wrapper .course-card > div > div.flex.flex-col.px-5.pt-3.pb-5 > div {
-      gap: 0.5rem !important;
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: center !important;
-      justify-content: center !important;
     }
   `;
   
@@ -161,6 +146,7 @@ interface ICourse {
   url?: string;
   no_of_Sessions?: number | string;
   session_display?: string;
+  session_range?: string;
   effort_hours?: string;
   efforts_per_Week?: string;
   learning_points?: string[];
@@ -371,31 +357,68 @@ const FALLBACK_LIVE_COURSES: readonly ICourse[] = Object.freeze([
 // PERFORMANCE OPTIMIZATION: Utility functions
 const formatDurationRange = (durationRange: string | undefined): string => {
   if (!durationRange) return "Flexible Duration";
+  const trimmed = durationRange.trim();
+  // Convert numeric hyphen ranges (e.g., "4-18 months") to "4 to 18 months"
+  const hyphenMatch = trimmed.match(/^(\d+)\s*-\s*(\d+)(.*)$/);
+  if (hyphenMatch) {
+    const [, start, end, rest] = hyphenMatch;
+    return `${start} to ${end}${rest}`;
+  }
+  return trimmed;
+};
+
+// Add helper for session range formatting
+const formatSessionRange = (sessionRange: string | number | undefined): string => {
+  if (!sessionRange) return "";
+  const rangeStr = String(sessionRange).trim();
   
-  const range = durationRange.trim().toLowerCase();
-  if (range.includes('month')) return durationRange;
-  if (range.includes('week')) return durationRange;
-  if (range.includes('day')) return durationRange;
+  // Handle "X - Y live sessions" format
+  const sessionMatch = rangeStr.match(/^(\d+)\s*-\s*(\d+)\s*(.*sessions.*)$/i);
+  if (sessionMatch) {
+    const [, start, end, rest] = sessionMatch;
+    return `${start} to ${end} ${rest.trim()}`;
+  }
   
-  return durationRange;
+  // Handle "X-Y" format
+  const numericMatch = rangeStr.match(/^(\d+)\s*-\s*(\d+)$/);
+  if (numericMatch) {
+    const [, start, end] = numericMatch;
+    return `${start} to ${end} live sessions`;
+  }
+  
+  // If it's just a number, return it with "live sessions"
+  if (/^\d+$/.test(rangeStr)) {
+    return `${rangeStr} live sessions`;
+  }
+  
+  return rangeStr;
 };
 
 const getDisplayDurationRange = (durationRange: string | undefined, courseType: 'live' | 'blended' = 'live'): string => {
   if (!durationRange) {
-    return courseType === 'live' ? "4-18 months" : "Self-paced";
+    return courseType === 'live' ? "4 to 18 months" : "Self-paced";
   }
-  
-  return formatDurationRange(durationRange);
+  // Handle cases where duration is already in months format
+  if (durationRange.toLowerCase().includes('month')) {
+    return formatDurationRange(durationRange);
+  }
+  // Add 'months' suffix if not present
+  const formattedRange = formatDurationRange(durationRange);
+  return formattedRange.toLowerCase().includes('month') ? formattedRange : `${formattedRange} months`;
 };
 
 const getBlendedCourseSessions = (course: ICourse) => {
-  const videoCount = typeof course.video_count === 'number' 
-    ? course.video_count 
-    : (typeof course.lectures_count === 'number' ? course.lectures_count : 25);
+  // Use actual no_of_Sessions from API first, then fallback to video_count, then lectures_count
+  const actualSessions = course.no_of_Sessions;
+  const videoCount = typeof actualSessions === 'number' 
+    ? actualSessions 
+    : (typeof course.video_count === 'number' 
+      ? course.video_count 
+      : (typeof course.lectures_count === 'number' ? course.lectures_count : 20));
   
   const qnaSessions = typeof course.qa_sessions === 'number' 
     ? course.qa_sessions 
-    : 5;
+    : 0; // Default to 0 instead of 5 to match API data
   
   return { videoCount, qnaSessions };
 };
@@ -478,8 +501,8 @@ const EmptyState = memo<{ type: 'live' | 'blended'; isDark: boolean }>(({ type, 
 
 EmptyState.displayName = 'EmptyState';
 
-// PERFORMANCE OPTIMIZATION: GPU-optimized CourseCardWrapper component
-const CourseCardWrapper = memo<{
+// PERFORMANCE OPTIMIZATION: GPU-optimized HomeCardWrapper component
+const HomeCardWrapper = memo<{
   course: ICourse;
   courseType: 'live' | 'blended';
   index: number;
@@ -488,7 +511,6 @@ const CourseCardWrapper = memo<{
     if (courseType === 'live') {
       const { videoCount, qnaSessions } = getBlendedCourseSessions(course);
       const batchPrice = course.prices?.[0]?.batch || null;
-      const minBatchSize = course.prices?.[0]?.min_batch_size || 2;
       const displayPrice = batchPrice || course.prices?.[0]?.individual || null;
 
       // Process course image using safe image URL function
@@ -503,34 +525,36 @@ const CourseCardWrapper = memo<{
         course_title: course.course_title || course.title || 'Untitled Course',
         course_description: course.course_description || course.description,
         course_image: courseImage,
-        course_duration: getDisplayDurationRange(course.duration_range, 'live'),
-        duration_range: course.duration_range || course.course_duration as string || "4-18 months",
+        course_duration: getDisplayDurationRange(course.duration_range || course.course_duration, 'live'),
+        duration_range: course.duration_range || course.course_duration || "4-18 months",
         course_category: course.course_category || course.category || 'Uncategorized',
         prices: course.prices || [],
         course_fee: Number(displayPrice) || 1499,
         no_of_Sessions: (() => {
-          if (course.session_display && course.session_display.includes('sessions')) {
-            return course.session_display;
+          // First check session_display or session_range
+          if (course.session_display) {
+            return formatSessionRange(course.session_display);
+          }
+          if (course.session_range) {
+            return formatSessionRange(course.session_range);
           }
           
-          if (course.no_of_Sessions && typeof course.no_of_Sessions === 'string') {
-            const sessionsStr = String(course.no_of_Sessions).trim();
-            if (sessionsStr.includes('-')) {
-              const parts = sessionsStr.split('-');
-              if (parts.length === 2) {
-                const min = parts[0].trim();
-                const max = parts[1].trim();
-                return `${min} - ${max} live sessions`;
-              }
-            }
-            return `${sessionsStr} live sessions`;
+          // Then check no_of_Sessions
+          if (course.no_of_Sessions) {
+            return formatSessionRange(course.no_of_Sessions);
           }
           
+          // Fallback logic for pricing-based sessions
           const individualPrice = course.prices?.[0]?.individual || 0;
           if (individualPrice <= 1500) return "10 live sessions";
           if (individualPrice <= 3000) return "20 live sessions";
-
           return `${videoCount + qnaSessions} live sessions`;
+        })(),
+        session_display: (() => {
+          if (course.session_display) return course.session_display;
+          if (course.session_range) return course.session_range;
+          if (course.no_of_Sessions) return formatSessionRange(course.no_of_Sessions);
+          return "Live sessions";
         })(),
         effort_hours: typeof course.effort_hours === 'string' 
           ? parseInt(course.effort_hours, 10) || 8
@@ -538,9 +562,11 @@ const CourseCardWrapper = memo<{
             (typeof course.efforts_per_Week === 'string' ? parseInt(course.efforts_per_Week, 10) || 8 : course.efforts_per_Week || 8) 
             : 8),
         class_type: 'Live Courses',
+        classType: 'live' as const,
+        is_live_course: true,
         isFree: Boolean(course.isFree) || false,
         batchPrice: batchPrice || undefined,
-        url: course.url,
+        url: `/enrollment/${(course.course_category || course.category || course.course_title)?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`,
         learning_points: course.learning_points || [],
         prerequisites: course.prerequisites || [],
         instructor: course.instructor || null,
@@ -577,12 +603,16 @@ const CourseCardWrapper = memo<{
 
           return videoCount + qnaSessions;
         })(),
+                                session_display: course.session_display || `${course.no_of_Sessions || videoCount} video sessions`,
+                        efforts_per_Week: course.efforts_per_Week || "3-4 hrs/week",
         effort_hours: typeof course.effort_hours === 'string' 
           ? parseInt(course.effort_hours, 10) || 5
           : (course.effort_hours || course.efforts_per_Week ? 
             (typeof course.efforts_per_Week === 'string' ? parseInt(course.efforts_per_Week, 10) || 5 : course.efforts_per_Week || 5) 
             : 5),
         class_type: 'Blended Courses',
+        classType: 'blended' as const,
+        is_blended_course: true,
         isFree: course.isFree || false,
         batchPrice: course.prices?.[0]?.batch || undefined,
         course_category: course.course_category || course.category || 'Uncategorized',
@@ -595,17 +625,13 @@ const CourseCardWrapper = memo<{
   }, [course, courseType, index]);
 
   return (
-    <div className="flex flex-col h-full w-full min-w-0 gpu-accelerated hover-lift-gpu">
-      <CourseCard 
-        course={enhancedCourse}
-        classType={courseType === 'live' ? "Live Courses" : "blended"}
-        preserveClassType={courseType === 'live'}
-        showDuration={true}
-        isCompact={true}
-        index={index}
-        isLCP={index < 2}
-      />
-    </div>
+    <HomeCard 
+      course={enhancedCourse}
+      courseType={courseType}
+      index={index}
+      isLCP={index < 2}
+      variant="standard"
+    />
   );
 }, (prevProps, nextProps) => {
   return (
@@ -615,7 +641,7 @@ const CourseCardWrapper = memo<{
   );
 });
 
-CourseCardWrapper.displayName = 'CourseCardWrapper';
+HomeCardWrapper.displayName = 'HomeCardWrapper';
 
 // Define ImageWrapper props interface
 interface ImageWrapperProps {
@@ -646,7 +672,7 @@ const ImageWrapper: React.FC<ImageWrapperProps> = ({
   const validAlt = alt || 'Course Image';
 
   return (
-    <div className="relative w-full aspect-[4/3] min-h-[160px] sm:min-h-[140px] md:min-h-[150px] bg-gray-100 dark:bg-gray-800/50 overflow-hidden rounded-t-xl group">
+    <div className="relative w-full aspect-[16/9] bg-gray-100 dark:bg-gray-800/50 overflow-hidden rounded-t-xl group">
       <OptimizedImage
         src={validSrc}
         alt={validAlt}
@@ -766,6 +792,12 @@ const HomeCourseSection2 = memo<{
                   
                   // Format session range based on course type and API data
                   const getSessionRange = (course: any) => {
+                    if (course.session_display) {
+                      return course.session_display;
+                    }
+                    if (course.session_range) {
+                      return course.session_range;
+                    }
                     if (course.no_of_Sessions) {
                       const sessionsStr = String(course.no_of_Sessions).trim();
                       // Handle range format like "24-120" or "32-120"
@@ -774,13 +806,13 @@ const HomeCourseSection2 = memo<{
                         if (parts.length === 2) {
                           const min = parts[0].trim();
                           const max = parts[1].trim();
-                          return `${min} - ${max} live sessions`;
+                          return `${min} to ${max} live sessions`;
                         }
                       }
                       // Handle single number format
                       return `${sessionsStr} live sessions`;
                     }
-                    return '24 - 120 live sessions'; // Default fallback
+                    return '24 to 120 live sessions'; // Default fallback
                   };
                   
                   const sessionDisplay = getSessionRange(course);
@@ -819,12 +851,13 @@ const HomeCourseSection2 = memo<{
                     status: course.status || "Published",
                     updatedAt: course.updatedAt || new Date().toISOString(),
                     createdAt: course.createdAt || new Date().toISOString(),
-                    url: course.url,
-                    effort_hours: course.effort_hours,
-                    no_of_Sessions: sessionCount,
-                    session_display: sessionDisplay,
-                    session_range: sessionDisplay, // Add for easy access
-                    instructor: course.instructor,
+                                            url: `/enrollment/${(course.course_category || course.category || courseTitle)?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`,
+                        effort_hours: course.effort_hours,
+                        no_of_Sessions: sessionDisplay, // Use formatted display string
+                        session_display: sessionDisplay,
+                        session_range: sessionDisplay, // Add for easy access
+                        efforts_per_Week: course.efforts_per_Week || "4 hrs/week",
+                        instructor: course.instructor,
                     price_suffix: course.price_suffix
                   } as ICourse;
                 });
@@ -1097,17 +1130,17 @@ const HomeCourseSection2 = memo<{
 
   // PERFORMANCE OPTIMIZATION: GPU-optimized memoized class names
   const containerClasses = useMemo(() => {
-    return `w-full py-4 sm:py-6 md:py-8 relative overflow-hidden gpu-accelerated ${
+    return `w-full py-8 sm:py-10 md:py-12 relative overflow-hidden gpu-accelerated ${
       !isDark ? 'bg-gradient-to-br from-gray-50/30 via-white/20 to-gray-100/40' : ''
     }`;
   }, [isDark]);
 
   const headerClasses = useMemo(() => {
-    return "flex flex-col md:flex-row md:items-center justify-between mb-8 sm:mb-10 md:mb-16 lg:mb-20 px-3 sm:px-4 md:px-8 lg:px-10 relative z-10 gpu-accelerated";
+    return "flex flex-col md:flex-row md:items-center justify-center md:justify-between mb-10 sm:mb-12 md:mb-16 lg:mb-20 px-3 sm:px-4 md:px-8 lg:px-10 relative z-10 gpu-accelerated text-center md:text-left";
   }, []);
 
   const titleClasses = useMemo(() => {
-    return "text-sm md:text-2xl lg:text-base font-extrabold mb-3 sm:mb-4 md:mb-6 dark:text-gray-300 max-w-2xl font-medium transition-gpu";
+    return "text-sm md:text-2xl lg:text-base font-extrabold mb-1 sm:mb-2 md:mb-3 dark:text-gray-300 max-w-2xl font-medium transition-gpu";
   }, []);
 
   const descriptionClasses = useMemo(() => {
@@ -1143,7 +1176,7 @@ const HomeCourseSection2 = memo<{
             {CustomDescription}
           </p>
         </div>
-        <div className="mt-4 sm:mt-6 md:mt-0 hidden md:block">
+        <div className="mt-2 sm:mt-3 md:mt-0 hidden md:block">
           <ViewAllButton 
             href="/courses" 
             text="View All Courses"
@@ -1152,35 +1185,36 @@ const HomeCourseSection2 = memo<{
         </div>
       </div>
 
-      {/* GPU-optimized Live Courses Section */}
-      <div className="mb-8 sm:mb-10 md:mb-16 lg:mb-20 px-3 sm:px-4 md:px-8 lg:px-10 gpu-accelerated">
-        <div className="flex items-center justify-between mb-6 sm:mb-8 gpu-accelerated">
-          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#3bac63] dark:text-[#3bac63] transition-gpu">
-            Live Interactive Courses
-          </h3>
-        </div>
+              {/* GPU-optimized Live Courses Section */}
+        <div className="mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-3 sm:px-4 md:px-6 lg:px-8 gpu-accelerated">
+          <div className="flex items-center justify-center mb-6 sm:mb-8 gpu-accelerated">
+            <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#3bac63] dark:text-[#3bac63] transition-gpu">
+              Live Interactive Courses
+            </h3>
+          </div>
 
         {liveCourses.length > 0 ? (
-          <div className="course-grid gpu-accelerated">
-            {liveCourses.map((course, index) => (
-              <CourseCardWrapper 
-                key={course._id}
-                course={course}
-                courseType="live"
-                index={index}
-              />
-            ))}
+          <div className="relative overflow-visible">
+            <div className="course-grid gpu-accelerated">
+              {liveCourses.map((course, index) => (
+                <HomeCardWrapper 
+                  key={course._id}
+                  course={course}
+                  courseType="live"
+                  index={index}
+                />
+              ))}
+            </div>
           </div>
         ) : (
           <EmptyState type="live" isDark={isDark} />
         )}
       </div>
 
-      {/* GPU-optimized Blended Courses Section */}
-      {!showOnlyLive && (
-        <div className="mb-8 sm:mb-10 md:mb-16 lg:mb-20 px-3 sm:px-4 md:px-8 lg:px-10 gpu-accelerated">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4 gpu-accelerated">
-            <div className="gpu-accelerated">
+              {/* GPU-optimized Blended Courses Section */}
+        {!showOnlyLive && (
+          <div className="mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-3 sm:px-4 md:px-6 lg:px-8 gpu-accelerated">
+            <div className="flex flex-col items-center justify-center text-center gap-2 mb-6 sm:mb-8 gpu-accelerated">
               <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#3bac63] dark:text-[#3bac63] transition-gpu">
                 Self-Paced Blended Courses
               </h3>
@@ -1188,23 +1222,19 @@ const HomeCourseSection2 = memo<{
                 (Interactive Video Courses with live doubt-clearing sessions)
               </p>
             </div>
-            
-            {/* Filter tags hidden as per user request */}
-            {/* <div className="flex flex-wrap gap-2">
-              <FilterButton ... />
-            </div> */}
-          </div>
 
           {filteredBlendedCourses.length > 0 ? (
-            <div className="course-grid gpu-accelerated">
-              {filteredBlendedCourses.map((course, index) => (
-                <CourseCardWrapper 
-                  key={course._id}
-                  course={course}
-                  courseType="blended"
-                  index={index}
-                />
-              ))}
+            <div className="relative overflow-visible">
+              <div className="course-grid gpu-accelerated">
+                {filteredBlendedCourses.map((course, index) => (
+                  <HomeCardWrapper 
+                    key={course._id}
+                    course={course}
+                    courseType="blended"
+                    index={index}
+                  />
+                ))}
+              </div>
             </div>
           ) : (
             <EmptyState type="blended" isDark={isDark} />
@@ -1213,7 +1243,7 @@ const HomeCourseSection2 = memo<{
       )}
 
       {/* GPU-optimized Mobile View All Button */}
-      <div className="block md:hidden px-3 sm:px-4 md:px-8 lg:px-10 gpu-accelerated">
+      <div className="block md:hidden px-3 sm:px-4 md:px-6 lg:px-8 gpu-accelerated text-center mt-8">
         <ViewAllButton 
           href="/courses" 
           text="View All Courses"

@@ -7,6 +7,7 @@ import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import CareerBanner from "@/components/sections/careers/careersBanner";
 import Certified from "@/components/sections/why-medh/Certified";
 import Preloader from "@/components/shared/others/Preloader";
+import { buildComponent } from "@/utils/designSystem";
 
 // Dynamically import components for better performance
 const CareerCourceBanner = dynamic(() => import("@/components/sections/careers/careersCourseBanner"));
@@ -29,20 +30,22 @@ const CareersPage: NextPage = () => {
 
   return (
     <PageWrapper>
-      <main className="min-h-screen">
+      <main className={buildComponent.section()}>
         <CareerBanner onViewPositionsClick={scrollToJobOpenings} />
         <UniqueBenefits />
         <div ref={jobOpeningRef} id="job-openings">
           <JobOpening />
         </div>
         <CareerFaq />
-        <CareerCourceBanner />
-        <div className="bg-white dark:bg-screen-dark pb-16">
-          <Certified />
+        {/* <CareerCourceBanner /> */}
+        <div className={buildComponent.section('dark')}>
+          <div className="pb-16">
+            <Certified />
+          </div>
         </div>
       </main>
     </PageWrapper>
   );
 };
 
-export default CareersPage; 
+export default CareersPage;

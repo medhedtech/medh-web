@@ -40,8 +40,25 @@ const Header = () => {
     const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
     const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
     const scrolled = (winScroll / height) * 100;
-    setScrollProgress(scrolled);
+    
+    // Only update state if the change is significant (more than 0.5%)
+    // This prevents excessive re-renders on small scroll movements
+    setScrollProgress(prevProgress => {
+      const difference = Math.abs(scrolled - prevProgress);
+      return difference > 0.5 ? scrolled : prevProgress;
+    });
   }, []);
+
+  // Throttled scroll handler to limit updates
+  const throttledHandleScroll = useCallback(() => {
+    // Use requestAnimationFrame for smooth, throttled updates
+    if (!window.scrollThrottleFrame) {
+      window.scrollThrottleFrame = requestAnimationFrame(() => {
+        handleScroll();
+        window.scrollThrottleFrame = null;
+      });
+    }
+  }, [handleScroll]);
 
   useEffect(() => {
     // Initialize viewport width
@@ -66,14 +83,20 @@ const Header = () => {
     
     // Add event listeners
     window.addEventListener('resize', handleResize, { passive: true });
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('scroll', throttledHandleScroll, { passive: true });
     
     // Cleanup
     return () => {
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('scroll', throttledHandleScroll);
+      
+      // Clean up any pending animation frame
+      if (window.scrollThrottleFrame) {
+        cancelAnimationFrame(window.scrollThrottleFrame);
+        window.scrollThrottleFrame = null;
+      }
     };
-  }, [handleResize, handleScroll]);
+  }, [handleResize, throttledHandleScroll]);
   
   // Close mobile menu when path changes
   useEffect(() => {

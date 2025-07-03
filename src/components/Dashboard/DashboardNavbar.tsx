@@ -462,6 +462,25 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
     }
   };
 
+  // Get profile URL based on role
+  const getProfileUrl = () => {
+    const roleLower = (userRole || "").toLowerCase();
+    
+    if (roleLower === "admin" || roleLower === "super-admin") {
+      return "/dashboards/admin/profile";
+    } else if (roleLower === "instructor") {
+      return "/dashboards/instructor/profile";
+    } else if (roleLower === "student") {
+      return "/dashboards/student/profile";
+    } else if (roleLower === "coorporate") {
+      return "/dashboards/coorporate/profile";
+    } else if (roleLower === "coorporate-student") {
+      return "/dashboards/coorporate-employee/profile";
+    } else {
+      return "/dashboards/profile";
+    }
+  };
+
   // Get role icon based on user role
   const getRoleIcon = () => {
     const roleLower = (userRole || "").toLowerCase();
@@ -903,7 +922,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                 >
                   {/* User Info Section - mobile optimized */}
                   <Link 
-                    href="/dashboards/student/profile" 
+                    href={getProfileUrl()} 
                     onClick={() => setIsDropdownOpen(false)} 
                     className="block w-full"
                   >

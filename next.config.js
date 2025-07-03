@@ -11,6 +11,20 @@ const nextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
+  // Prevent build cancellation
+  staticPageGenerationTimeout: 1800, // 30 minutes
+  generateBuildId: async () => {
+    // Generate a unique build ID to prevent caching issues
+    return `build-${Date.now()}`
+  },
+  transpilePackages: [
+    '@floating-ui/core',
+    '@floating-ui/dom',
+    '@floating-ui/react-dom',
+    '@radix-ui/react-roving-focus',
+    'react-remove-scroll',
+    '@jridgewell/resolve-uri'
+  ],
   // Don't specify output mode to use the default (which supports both static and dynamic routes)
   trailingSlash: true, // Add trailing slashes to improve compatibility
   images: {
@@ -75,32 +89,6 @@ const nextConfig = {
     // Only add custom rules if absolutely necessary
     // Remove problematic CSS loader rules that cause conflicts
     
-    if (!dev && !isServer) {
-      // Optimize production builds
-      config.optimization = {
-        ...config.optimization,
-        runtimeChunk: {
-          name: 'runtime',
-        },
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            vendor: {
-              name: 'vendors',
-              test: /[\\/]node_modules[\\/]/,
-              priority: -10,
-              reuseExistingChunk: true,
-            },
-            default: {
-              minChunks: 2,
-              priority: -20,
-              reuseExistingChunk: true,
-            },
-          },
-        },
-      };
-    }
-
     return config;
   },
   // Enable production source maps for better debugging
@@ -210,3 +198,5 @@ const nextConfig = {
 };
 
 export default nextConfig;
+
+

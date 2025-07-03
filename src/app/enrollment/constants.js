@@ -11,7 +11,7 @@ export const GRADE_OPTIONS = [
   { id: 'Grade 7-8', label: 'Grade 7-8', description: 'Middle school advancement' },
   { id: 'Grade 9-10', label: 'Grade 9-10', description: 'High school preparation' },
   { id: 'Grade 11-12', label: 'Grade 11-12', description: 'College preparation' },
-  { id: 'UG - Graduate - Professionals', label: 'UG/Grad/Pro', description: 'University level' }
+  { id: 'UG - Graduate - Professionals', label: 'UG - Graduate - Professionals', description: 'University level' }
 ];
 
 // Grade mapping for filtering and validation
@@ -23,7 +23,7 @@ export const GRADE_MAP = {
   'Grade 7-8': ['Grade 7', 'Grade 8', 'Grade 7', 'Grade 8', 'Grade 7-8', 'Grade 7-8'],
   'Grade 9-10': ['Grade 9', 'Grade 10', 'Grade 9', 'Grade 10', 'Grade 9-10', 'Grade 9-10'],
   'Grade 11-12': ['Grade 11', 'Grade 12', 'Grade 11', 'Grade 12', 'Grade 11-12', 'Grade 11-12'],
-  'UG/Grad/Pro': ['Undergraduate', 'UG', 'Bachelors', 'UG - Graduate', 'UG/Grad/Pro']
+  'UG - Graduate - Professionals': ['Undergraduate', 'UG', 'Bachelors', 'UG - Graduate', 'UG - Graduate - Professionals']
 };
 
 // Helper to get grade label by ID

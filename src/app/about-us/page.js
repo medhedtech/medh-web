@@ -52,16 +52,27 @@ const jsonLd = {
   }
 };
 
+/**
+ * About Us Page Component
+ * 
+ * This page showcases MEDH's mission, vision, and comprehensive information
+ * about the company with mobile-first optimization.
+ * 
+ * @returns The complete about us page
+ */
 const About = () => {
   return (
     <PageWrapper>
-      {/* Add JSON-LD Schema */}
+      {/* Add JSON-LD Schema for SEO */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       
-      <AboutPageContent />
+      {/* Mobile-optimized main content */}
+      <main className="min-h-screen">
+        <AboutPageContent />
+      </main>
     </PageWrapper>
   );
 };

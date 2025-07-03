@@ -9,11 +9,10 @@ import PersonalityCourse from "@/components/sections/personality-development/per
 import PersonalityRelatedCourse from "@/components/sections/personality-development/relatedCourses";
 import PersonalityCourseBanner from "@/components/sections/personality-development/personalityCourseBanner";
 import ExploreJourney from "@/components/sections/explore-journey/Enroll-Form";
-import CourseBanner from "@/components/shared/banners/CourseBanner";
+import CourseBanner from "@/components/sections/personality-development/personalityCourseBanner";
 import ThemeController from "@/components/shared/others/ThemeController";
 import { UserPlus, Target, Sparkles, Star, Users, Award, Presentation } from "lucide-react";
-import Banner from "@/assets/Header-Images/Personality-Development/personality-development-course-age-18-plus-years.png";
-import DevelopmentImg from "@/assets/Header-Images/Personality-Development/multiracial-teenage-high-school-students-looking-a-2023-11-27-05-15-38-utc.jpg";
+
 import AnimatedContent from './AnimatedContent';
 
 interface IStat {
@@ -49,9 +48,8 @@ interface IBannerProps {
   enrollmentPath: string;
   stats: IStat[];
   features: IFeature[];
-  mainImage: string;
-  studentImage: string;
   themeClasses: IThemeClasses;
+  onEnrollClick?: () => void;
 }
 
 interface IExploreJourneyProps {
@@ -100,8 +98,6 @@ const PersonalityDevelopment: NextPage = () => {
         description: "Master public speaking"
       }
     ],
-    mainImage: Banner.src,
-    studentImage: DevelopmentImg.src,
     themeClasses: {
       badge: "bg-primary-500",
       badgeContainer: "bg-primary-500/10",
@@ -131,25 +127,21 @@ const PersonalityDevelopment: NextPage = () => {
               <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Personality Development
               </h1>
-              <span className="px-2 py-1 text-xs font-medium bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 rounded-full">
-                Course
-              </span>
             </div>
           </nav>
         </header>
 
         {/* Content with Header Offset */}
-        <main className="flex-grow lg:pt-12">
+        <main className="flex-grow">
           <AnimatedContent
             components={{
               CourseBanner: () => <CourseBanner {...bannerProps} />,
-              PersonalityOvereveiw,
-              PersonalityCourse,
-              PersonalityFaq,
-              PersonalityCourseBanner,
-              PersonalityRelatedCourse,
-              ExploreJourney,
-              ThemeController
+              PersonalityOvereveiw: PersonalityOvereveiw,
+              PersonalityCourse: PersonalityCourse,
+              PersonalityFaq: PersonalityFaq,
+              PersonalityRelatedCourse: PersonalityRelatedCourse,
+              ThemeController: ThemeController,
+              ExploreJourney: ExploreJourney
             }}
             exploreJourneyProps={exploreJourneyProps}
             bannerProps={bannerProps}

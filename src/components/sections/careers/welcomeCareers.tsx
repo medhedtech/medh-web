@@ -72,7 +72,7 @@ const itemVariants = {
     y: 0,
     scale: 1,
     transition: {
-      type: "spring",
+      type: "spring" as const,
       stiffness: 400,
       damping: 30,
       mass: 1
@@ -80,6 +80,14 @@ const itemVariants = {
   }
 };
 
+const getSemanticColor = (index: number): { bg: string; text: string; border: string } => {
+  const colorMap = [
+    { bg: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-200 dark:border-blue-800' },
+    { bg: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-200 dark:border-emerald-800' },
+    { bg: 'bg-purple-50 dark:bg-purple-900/20', text: 'text-purple-600 dark:text-purple-400', border: 'border-purple-200 dark:border-purple-800' }
+  ];
+  return colorMap[index % colorMap.length];
+};
 const WelcomeCard: React.FC<IWelcomeCardProps> = memo(({ icon: Icon, title, description, color, index }) => {
   const [isHovered, setIsHovered] = useState<boolean>(false);
 
@@ -357,4 +365,4 @@ const WelcomeCareers: React.FC = () => {
   );
 };
 
-export default memo(WelcomeCareers);
+export default WelcomeCareers;

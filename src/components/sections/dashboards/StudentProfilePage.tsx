@@ -1065,7 +1065,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto">
         {/* Enhanced Mobile-Optimized Fixed Header with Profile Info */}
-        <div className="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="sticky top-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
           <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4">
             <div className="flex items-center justify-between">
               {/* Mobile-optimized profile section */}
@@ -1222,7 +1222,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
-                  className="absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-lg z-40 md:hidden mobile-menu-container"
+                  className="absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-lg z-20 md:hidden mobile-menu-container"
                 >
                   <div className="p-2">
                     <div className="grid grid-cols-2 gap-1">

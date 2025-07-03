@@ -554,54 +554,164 @@ const StudentRecordedSessions: React.FC = () => {
         const recordedLessonsResponse = await Promise.race([apiCall, timeoutPromise]) as any;
         
         console.log('Recorded lessons API response received');
+        console.log('🔍 FULL API RESPONSE:', recordedLessonsResponse);
+        console.log('🔍 API RESPONSE TYPE:', typeof recordedLessonsResponse);
+        console.log('🔍 API RESPONSE KEYS:', recordedLessonsResponse ? Object.keys(recordedLessonsResponse) : 'No keys');
         
         // Check if we have a successful response with data
         if (recordedLessonsResponse && typeof recordedLessonsResponse === 'object' && 
+            (('success' in recordedLessonsResponse && recordedLessonsResponse.success) ||
+             ('status' in recordedLessonsResponse && recordedLessonsResponse.status === 'success')) &&
             'data' in recordedLessonsResponse && recordedLessonsResponse.data && 
-            typeof recordedLessonsResponse.data === 'object' &&
-            'success' in recordedLessonsResponse.data && recordedLessonsResponse.data.success &&
-            'data' in recordedLessonsResponse.data && recordedLessonsResponse.data.data) {
-          const sessionData = recordedLessonsResponse.data.data;
-          console.log(`Processing ${sessionData.length} session entries with recorded lessons`);
+            typeof recordedLessonsResponse.data === 'object') {
           
-          // Process each session entry from the API response
-          sessionData.forEach((sessionEntry: any, sessionIndex: number) => {
-            const { batch, session, recorded_lessons } = sessionEntry;
+          // Handle nested data structure - check if data.data exists
+          const responseData = recordedLessonsResponse.data.data || recordedLessonsResponse.data;
+          console.log('✅ API Response structure:', responseData);
+          console.log('✅ API Response keys:', Object.keys(responseData));
+          console.log('✅ Using nested data:', recordedLessonsResponse.data.data ? 'YES (data.data)' : 'NO (data)');
+          
+          // Process scheduled sessions
+          if (responseData.scheduled_sessions && responseData.scheduled_sessions.sessions && Array.isArray(responseData.scheduled_sessions.sessions)) {
+            const sessionData = responseData.scheduled_sessions.sessions;
+            console.log(`✅ Processing ${sessionData.length} scheduled session entries`);
+            console.log('✅ First session data:', sessionData[0]);
             
-            console.log(`Processing batch: ${batch.name} with ${recorded_lessons.length} recorded lessons`);
+            // Process each session entry from the API response
+            sessionData.forEach((sessionEntry: any, sessionIndex: number) => {
+              try {
+                const { batch, session, recorded_lessons } = sessionEntry;
+                
+                if (!batch || !batch.name || !recorded_lessons || !Array.isArray(recorded_lessons)) {
+                  console.warn(`⚠️ Skipping invalid session entry at index ${sessionIndex}:`, sessionEntry);
+                  return;
+                }
+                
+                console.log(`✅ Processing batch: ${batch.name} with ${recorded_lessons.length} recorded lessons`);
+                
+                // Process each recorded lesson in this session
+                recorded_lessons.forEach((lesson: any, lessonIndex: number) => {
+                  try {
+                    if (!lesson || !lesson._id || !lesson.title) {
+                      console.warn(`⚠️ Skipping invalid lesson at index ${lessonIndex}:`, lesson);
+                      return;
+                    }
+                    
+                    const recordedSession: RecordedSession = {
+                      id: lesson._id,
+                      title: lesson.title || `${batch.name} - Lesson ${lessonIndex + 1}`,
+                      course: {
+                        name: batch.name || 'Unknown Course',
+                        category: 'General'
+                      },
+                      instructor: {
+                        name: 'Unknown Instructor',
+                        rating: 4.5
+                      },
+                      duration: session?.start_time && session?.end_time ? 
+                        calculateDuration(session.start_time, session.end_time) : 90,
+                      recordedDate: lesson.recorded_date,
+                      status: 'available',
+                      level: 'intermediate',
+                      description: `Recorded lesson from ${batch.name}${session?.day ? ` - ${session.day}` : ''}${session?.start_time ? ` ${session.start_time}` : ''}`,
+                      batchName: batch.name,
+                      sessionNumber: lessonIndex + 1,
+                      viewCount: lesson.view_count || 0,
+                      url: lesson.url ? urlObfuscation.encode(lesson.url) : undefined,
+                      // Additional API fields
+                      batchId: batch.id,
+                      sessionId: session?.id,
+                      courseId: batch.id,
+                      enrollmentId: `enrollment_${batch.id}`
+                    };
+                    
+                    sessions.push(recordedSession);
+                    console.log(`✅ Added session: ${recordedSession.title} to batch: ${batch.name}`);
+                  } catch (lessonError) {
+                    console.error(`❌ Error processing lesson ${lessonIndex}:`, lessonError, lesson);
+                  }
+                });
+              } catch (sessionError) {
+                console.error(`❌ Error processing session ${sessionIndex}:`, sessionError, sessionEntry);
+              }
+            });
+          } else {
+            console.warn('⚠️ No scheduled_sessions.sessions found or not an array:', responseData.scheduled_sessions);
+          }
+          
+          // Process your previous sessions if available
+          if (responseData.your_previous_sessions && responseData.your_previous_sessions.videos) {
+            const previousVideos = responseData.your_previous_sessions.videos;
+            console.log(`Processing ${previousVideos.length} previous session videos`);
             
-            // Process each recorded lesson in this session
-            recorded_lessons.forEach((lesson: any, lessonIndex: number) => {
+            previousVideos.forEach((video: any, index: number) => {
               const recordedSession: RecordedSession = {
-                id: lesson._id,
-                title: lesson.title || `${batch.name} - Lesson ${lessonIndex + 1}`,
+                id: video._id || `prev_${index}`,
+                title: video.title || `Previous Session ${index + 1}`,
                 course: {
-                  name: batch.name || 'Unknown Course',
-                  category: 'General' // API doesn't provide category in this structure
+                  name: 'Personal Videos',
+                  category: 'Personal'
                 },
                 instructor: {
-                  name: 'Unknown Instructor', // API doesn't provide instructor in this structure
-                  rating: 4.5
+                  name: 'You',
+                  rating: 5.0
                 },
-                duration: session.start_time && session.end_time ? 
-                  calculateDuration(session.start_time, session.end_time) : 90,
-                recordedDate: lesson.recorded_date,
+                duration: 90, // Default duration
+                recordedDate: video.recorded_date || video.created_at,
                 status: 'available',
                 level: 'intermediate',
-                description: `Recorded lesson from ${batch.name} - ${session.day || 'Session'} ${session.start_time || ''}`,
-                batchName: batch.name,
-                sessionNumber: sessionIndex + 1,
-                viewCount: lesson.view_count || 0,
-                url: lesson.url ? urlObfuscation.encode(lesson.url) : undefined, // Obfuscate URL
-                // Additional API fields
-                batchId: batch.id,
-                sessionId: session.id,
-                courseId: batch.id, // Using batch ID as course ID since course info not separate
-                enrollmentId: `enrollment_${batch.id}`
+                description: 'Video uploaded directly to your personal folder',
+                batchName: 'Personal Videos',
+                sessionNumber: index + 1,
+                viewCount: video.view_count || 0,
+                url: video.url ? urlObfuscation.encode(video.url) : undefined,
+                // Additional fields
+                batchId: 'personal',
+                sessionId: `personal_${index}`,
+                courseId: 'personal',
+                enrollmentId: 'personal'
               };
               sessions.push(recordedSession);
             });
-          });
+          }
+        } else {
+          console.warn('⚠️ API Response does not match expected structure:');
+          console.log('⚠️ Response object:', recordedLessonsResponse);
+          console.log('⚠️ Has success property:', 'success' in recordedLessonsResponse);
+          console.log('⚠️ Success value:', recordedLessonsResponse?.success);
+          console.log('⚠️ Has data property:', 'data' in recordedLessonsResponse);
+          console.log('⚠️ Data value:', recordedLessonsResponse?.data);
+          console.log('⚠️ Data type:', typeof recordedLessonsResponse?.data);
+          
+          // Try to handle different response structures
+          if (recordedLessonsResponse && Array.isArray(recordedLessonsResponse)) {
+            console.log('🔄 Response is an array, trying to process directly...');
+            // Handle array response
+          } else if (recordedLessonsResponse && recordedLessonsResponse.data && Array.isArray(recordedLessonsResponse.data)) {
+            console.log('🔄 Response.data is an array, trying to process...');
+            // Handle data as array
+          } else if (recordedLessonsResponse && typeof recordedLessonsResponse === 'object') {
+            console.log('🔄 Response is an object, checking for any session data...');
+            console.log('🔄 All response properties:', Object.keys(recordedLessonsResponse));
+            
+            // Try to find any video/session data in the response
+            const findVideoData = (obj: any, path = ''): void => {
+              if (obj && typeof obj === 'object') {
+                Object.keys(obj).forEach(key => {
+                  const currentPath = path ? `${path}.${key}` : key;
+                  console.log(`🔍 Checking path: ${currentPath}`, obj[key]);
+                  
+                  if (Array.isArray(obj[key]) && obj[key].length > 0) {
+                    console.log(`✅ Found array at ${currentPath} with ${obj[key].length} items:`, obj[key][0]);
+                  } else if (obj[key] && typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
+                    findVideoData(obj[key], currentPath);
+                  }
+                });
+              }
+            };
+            
+            findVideoData(recordedLessonsResponse);
+          }
         }
         
       } catch (apiError: any) {
@@ -626,13 +736,24 @@ const StudentRecordedSessions: React.FC = () => {
         index === self.findIndex(s => s.id === session.id)
       );
       
+      console.log(`🔍 Debug - Total sessions before deduplication: ${sessions.length}`);
+      console.log(`🔍 Debug - Total unique sessions after deduplication: ${uniqueSessions.length}`);
+      console.log('🔍 Debug - Sample unique sessions:', uniqueSessions.slice(0, 3));
+      console.log('🔍 Debug - All sessions:', uniqueSessions.map(s => ({
+        id: s.id,
+        title: s.title,
+        batchName: s.batchName,
+        batchId: s.batchId
+      })));
+      
       // Set the final sessions
       setRecordedSessions(uniqueSessions);
       
       if (uniqueSessions.length > 0) {
-        console.log(`Successfully loaded ${uniqueSessions.length} unique recorded sessions`);
+        console.log(`✅ Successfully loaded ${uniqueSessions.length} unique recorded sessions`);
       } else {
-        console.log('No recorded sessions found');
+        console.log('❌ No recorded sessions found');
+        console.log('❌ Debug - Check if API response was processed correctly');
       }
       
     } catch (error: any) {
@@ -694,6 +815,10 @@ const StudentRecordedSessions: React.FC = () => {
     console.log(`Video progress: ${progress}% at ${currentTime}s`);
   };
 
+  // Debug: Log the recorded sessions
+  console.log('🔄 Component Render - Total recorded sessions:', recordedSessions.length);
+  console.log('🔄 Component Render - Recorded sessions data:', recordedSessions);
+
   // Group sessions by batch
   const groupedByBatch = recordedSessions.reduce((acc, session) => {
     const batchKey = session.batchName || session.batchId || 'Unknown Batch';
@@ -716,6 +841,10 @@ const StudentRecordedSessions: React.FC = () => {
     sessions: RecordedSession[];
   }>);
 
+  // Debug: Log the grouped batches
+  console.log('🔄 Component Render - Grouped by batch:', groupedByBatch);
+  console.log('🔄 Component Render - Number of batches:', Object.keys(groupedByBatch).length);
+
   // Filter batches based on search term
   const filteredBatches = Object.values(groupedByBatch).filter(batch =>
     batch.batchName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -726,7 +855,22 @@ const StudentRecordedSessions: React.FC = () => {
     )
   );
 
+  // Debug: Log the filtered batches
+  console.log('🔄 Component Render - Filtered batches:', filteredBatches);
+  console.log('🔄 Component Render - Number of filtered batches:', filteredBatches.length);
 
+  // Additional debugging - log each step
+  console.log('🔄 Component Render - recordedSessions length check:', recordedSessions.length);
+  console.log('🔄 Component Render - loading state:', loading);
+  console.log('🔄 Component Render - error state:', error);
+  console.log('🔄 Component Render - filteredBatches check:', filteredBatches.length > 0);
+
+  // Force show data for debugging if we have sessions but no batches
+  if (recordedSessions.length > 0 && filteredBatches.length === 0) {
+    console.error('❌ DATA PROCESSING ERROR: We have sessions but no batches!');
+    console.log('All sessions:', recordedSessions);
+    console.log('Grouped data:', groupedByBatch);
+  }
 
   return (
     <>
@@ -832,6 +976,47 @@ const StudentRecordedSessions: React.FC = () => {
                     />
                   </motion.div>
                 ))
+              ) : recordedSessions.length > 0 ? (
+                // Fallback: Show sessions as individual cards if grouping failed
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-4"
+                >
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl p-4 mb-6">
+                    <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-200 mb-2">
+                      Debug Mode: Data Processing Issue
+                    </h3>
+                    <p className="text-yellow-700 dark:text-yellow-300 text-sm">
+                      Found {recordedSessions.length} sessions but grouping failed. Showing individual sessions below.
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {recordedSessions.slice(0, 12).map((session, index) => (
+                      <motion.div
+                        key={session.id || index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                      >
+                        <RecordedSessionCard
+                          session={session}
+                          onWatchNow={(session) => handleWatchNow(session, session.batchName || 'Unknown Batch')}
+                          compact={false}
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
+                  
+                  {recordedSessions.length > 12 && (
+                    <div className="text-center pt-4">
+                      <p className="text-gray-600 dark:text-gray-400">
+                        Showing first 12 of {recordedSessions.length} sessions
+                      </p>
+                    </div>
+                  )}
+                </motion.div>
               ) : (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}

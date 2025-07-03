@@ -1,81 +1,46 @@
-import React from 'react';
-import { Metadata } from 'next';
-import { 
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { 
-  LucideBook,
-  LucideUsers,
-  LucideCalendar,
-  LucideBarChart,
-  LucideSettings,
-  LucideFileText,
-  LucideVideo,
-  LucideClipboardList,
-  LucideGraduationCap,
-  LucideDollarSign,
-  LucideMessageSquare,
-  LucideUpload,
-  LucideDownload,
-  LucideEye,
-  LucideEdit,
-  LucidePlus,
-  LucideRefreshCw,
-  LucideFilter,
-  LucideSearch
-} from 'lucide-react';
+"use client";
 
-export const metadata: Metadata = {
-  title: "Start/Join Live Demo | Instructor Dashboard - Medh",
-  description: "Start/Join Live Demo - Manage your start/join live demo efficiently",
-};
+import React from "react";
+import { useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { buildAdvancedComponent, typography } from "@/utils/designSystem";
+import { Video, Tv2 } from "lucide-react";
 
+const DemoLivePage = () => {
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get("sessionId");
 
-const StartJoinLiveDemoPage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Start/Join Live Demo
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Manage your start/join live demo efficiently
-          </p>
-        </div>
-
-        {/* Content */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <LucideFileText className="w-5 h-5" />
-              Start/Join Live Demo
-            </CardTitle>
-            <CardDescription>
-              View and manage your start/join live demo
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {/* Add your content here */}
-            <div className="text-center py-12">
-              <LucideFileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Start/Join Live Demo Content
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400">
-                This page will contain your start/join live demo management interface.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+    <motion.div
+      className="p-4 md:p-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      <div className={buildAdvancedComponent.headerCard()}>
+        <h1 className={typography.h1}>Live Demo Session</h1>
+        <p className={typography.lead}>
+          This is where the live video session for the demo class will take place.
+        </p>
       </div>
-    </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Session Details</CardTitle>
+        </CardHeader>
+        <CardContent className="text-center">
+            <Tv2 className="mx-auto h-24 w-24 text-gray-400" />
+            <p className="mt-4 text-lg font-semibold">Live Video Call Interface</p>
+            <p className="mt-2 text-sm text-gray-500">
+                Session ID: {sessionId ? sessionId : "Not specified"}
+            </p>
+            <p className="mt-4 text-sm text-gray-500">
+                (Zoom integration or other video service would be implemented here)
+            </p>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };
 
-export default StartJoinLiveDemoPage;
+export default DemoLivePage;

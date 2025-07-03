@@ -15,6 +15,7 @@ import {
   BookOpen as Book,
   ChevronDown
 } from "lucide-react";
+import Link from "next/link";
 
 // Create a reusable ListItem component for better UI
 const ListItem = memo(({ feature, index }) => (
@@ -422,13 +423,15 @@ const data = {
             <p className="text-gray-700 dark:text-gray-300 mb-5 md:mb-6 max-w-2xl mx-auto text-sm md:text-base">
               Join our Personality Development Course today and unlock your full potential. Develop essential skills that will benefit you personally and professionally.
             </p>
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-gradient-to-r from-primaryColor to-blue-600 text-white px-6 md:px-8 py-2 md:py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 text-sm md:text-base"
-            >
-              Enroll Now
-            </motion.button>
+            <Link href="/enrollment/personality-development">
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-gradient-to-r from-primaryColor to-blue-600 text-white px-6 md:px-8 py-2 md:py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 text-sm md:text-base"
+              >
+                Enroll Now
+              </motion.button>
+            </Link>
           </motion.div>
         </>
       ),
@@ -594,24 +597,6 @@ const PersonalityOverview = () => {
           >
             {activeContent.content}
           </motion.section>
-        </AnimatePresence>
-
-        {/* Enhanced Scroll to Top Button */}
-        <AnimatePresence>
-          {showScrollTop && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="fixed bottom-4 right-6 md:bottom-6 md:right-6 bg-gradient-to-r from-primaryColor to-blue-600 text-white p-2 md:p-3 rounded-full shadow-lg hover:shadow-xl transition-all z-50"
-              onClick={() => {/* Removing scroll functionality */}}
-              aria-label="Scroll to top"
-            >
-              <ArrowUp className="h-5 w-5 md:h-6 md:w-6" />
-            </motion.button>
-          )}
         </AnimatePresence>
       </div>
     </div>

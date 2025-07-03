@@ -20,7 +20,7 @@ const CertificateCoursesEnroll = ({ onViewCertificate, setCertificateUrl }) => {
 
   const fetchCertificateCourses = (studentId) => {
     getQuery({
-      url: `${apiUrls?.certificate?.getCertificatesByStudentId}/${studentId}`,
+      url: `${apiUrls?.certificate?.getCertificatesByStudentId(studentId)}`,
       onSuccess: (data) => {
         const formattedData = data.map((item) => ({
           id: item._id,

@@ -20,11 +20,26 @@ interface PageWrapperProps {
    * Skip to content ID for accessibility
    */
   skipToContentId?: string;
+  /**
+   * Whether to add top padding for header spacing
+   */
+  addTopPadding?: boolean;
+  /**
+   * Whether to add bottom padding
+   */
+  addBottomPadding?: boolean;
+  /**
+   * Whether to show the footer
+   */
+  showFooter?: boolean;
 }
 
 const PageWrapper: React.FC<PageWrapperProps> = ({ 
   children,
-  skipToContentId = "main-content" 
+  skipToContentId = "main-content",
+  addTopPadding = true,
+  addBottomPadding = true,
+  showFooter = true
 }) => {
   const [hasPageLoaded, setHasPageLoaded] = useState<boolean>(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -174,7 +189,11 @@ const PageWrapper: React.FC<PageWrapperProps> = ({
         id={skipToContentId}
         role="main"
         tabIndex={-1}
-        className={`flex-grow w-full transition-opacity duration-700 pt-[var(--header-height)] will-change-opacity ${hasPageLoaded ? 'opacity-100' : 'opacity-0'}`}
+        className={`flex-grow w-full transition-opacity duration-700 will-change-opacity ${
+          addTopPadding ? 'pt-[var(--header-height)]' : ''
+        } ${
+          addBottomPadding ? 'pb-8' : ''
+        } ${hasPageLoaded ? 'opacity-100' : 'opacity-0'}`}
       >
         <div className="animate-fadeIn">
           {children}
@@ -182,26 +201,7 @@ const PageWrapper: React.FC<PageWrapperProps> = ({
       </main>
       
       {/* Footer with theme prop */}
-              <Footer />
-
-      {/* Enhanced scroll to top button */}
-      <AnimatePresence>
-        {showScrollTop && (
-          <motion.button
-            className="fixed bottom-6 right-6 p-3 rounded-full bg-primary-500 hover:bg-primary-600 text-white shadow-lg z-40 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 transition-all duration-300 transform hover:scale-110 dark:focus:ring-primary-600 dark:focus:ring-offset-gray-900"
-            onClick={scrollToTop}
-            onKeyDown={(e) => e.key === 'Enter' && scrollToTop()}
-            aria-label="Scroll to top"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.2 }}
-            title="Scroll to top (Alt+↑)"
-          >
-            <ChevronUp size={24} aria-hidden="true" />
-          </motion.button>
-        )}
-      </AnimatePresence>
+      {showFooter && <Footer />}
     </div>
   );
 };

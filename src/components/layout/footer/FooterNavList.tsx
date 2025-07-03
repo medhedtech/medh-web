@@ -409,13 +409,13 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
           <div className="absolute bottom-4 right-4 w-20 h-20 bg-gradient-radial from-violet-400/15 via-transparent to-transparent rounded-full blur-xl"></div>
           
           <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-stretch">
               
               {/* Logo & Description Section - Enhanced */}
-              <div className="relative bg-white/20 dark:bg-slate-800/20 backdrop-blur-lg rounded-2xl border border-white/25 dark:border-slate-600/25 p-6 lg:p-8 shadow-lg">
+              <div className="relative bg-white/20 dark:bg-slate-800/20 backdrop-blur-lg rounded-2xl border border-white/25 dark:border-slate-600/25 p-6 lg:p-8 shadow-lg h-full flex flex-col">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-indigo-500/10 rounded-2xl"></div>
                 
-                <div className="relative z-10 space-y-6">
+                <div className="relative z-10 space-y-6 flex-1 flex flex-col">
                   <Link href="/" className="inline-block group">
                     <div className="relative w-[160px] h-[50px] group-hover:scale-105 transition-transform duration-200">
                       <Image 
@@ -449,7 +449,7 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                   </p>
                   
                   {/* Contact Info - Enhanced */}
-                  <div className="space-y-4">
+                  <div className="space-y-4 mt-auto">
                     <h3 className="text-xl font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                       <Phone className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                       Contact Us
@@ -479,10 +479,10 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
               </div>
 
               {/* QR Code Section - Enhanced */}
-              <div className="relative bg-white/20 dark:bg-slate-800/20 backdrop-blur-lg rounded-2xl border border-white/25 dark:border-slate-600/25 p-6 lg:p-8 shadow-lg">
+              <div className="relative bg-white/20 dark:bg-slate-800/20 backdrop-blur-lg rounded-2xl border border-white/25 dark:border-slate-600/25 p-6 lg:p-8 shadow-lg h-full flex flex-col">
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-teal-500/10 rounded-2xl"></div>
                 
-                <div className="relative z-10 flex flex-col items-center justify-center space-y-6">
+                <div className="relative z-10 flex flex-col items-center justify-center space-y-6 flex-1">
                   <div className="relative bg-white rounded-2xl p-4 shadow-xl shadow-slate-900/20 dark:shadow-black/30 hover:shadow-2xl hover:shadow-slate-900/30 dark:hover:shadow-black/40 transition-all duration-300 hover:scale-105">
                     <Image 
                       src={QRCode} 

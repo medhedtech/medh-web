@@ -399,7 +399,7 @@ const useJobData = () => {
         fetchingRef.current = false;
       }
     }
-  }, [state.pagination.page, state.pagination.limit, state.filters]);
+  }, []); // Removed problematic dependencies
 
   const debouncedFetch = useCallback((options: Parameters<typeof fetchJobs>[0] = {}) => {
     if (debounceTimerRef.current) {
@@ -409,7 +409,7 @@ const useJobData = () => {
     debounceTimerRef.current = setTimeout(() => {
       fetchJobs(options);
     }, 500);
-  }, [fetchJobs]);
+  }, []); // Removed fetchJobs dependency to prevent loops
 
   const updateFilters = useCallback((newFilters: Partial<IJobFilters>) => {
     setState(prev => {
@@ -425,10 +425,18 @@ const useJobData = () => {
     });
   }, []);
 
-  // Effect to handle filter changes
+  // Stable filter tracking to prevent infinite loops
+  const prevFiltersRef = useRef<string>('');
+  const prevPaginationRef = useRef<string>('');
+
+  // Effect to handle filter changes - with stable dependencies
   useEffect(() => {
-    debouncedFetch({ forceFetch: true });
-  }, [state.filters, debouncedFetch]);
+    const filtersString = JSON.stringify(state.filters);
+    if (prevFiltersRef.current !== filtersString) {
+      prevFiltersRef.current = filtersString;
+      debouncedFetch({ forceFetch: true });
+    }
+  }, [JSON.stringify(state.filters)]);
 
   const updatePagination = useCallback((newPage: number, newLimit: number = state.pagination.limit) => {
     setState(prev => ({
@@ -439,25 +447,41 @@ const useJobData = () => {
         limit: newLimit
       }
     }));
-  }, [state.pagination.limit]);
+  }, []);
 
-  // Effect to handle pagination changes
+  // Effect to handle pagination changes - with stable dependencies  
   useEffect(() => {
-    debouncedFetch({ forceFetch: true });
-  }, [state.pagination.page, state.pagination.limit, debouncedFetch]);
+    const paginationString = JSON.stringify({ page: state.pagination.page, limit: state.pagination.limit });
+    if (prevPaginationRef.current !== paginationString) {
+      prevPaginationRef.current = paginationString;
+      debouncedFetch({ forceFetch: true });
+    }
+  }, [state.pagination.page, state.pagination.limit]);
 
-  // Initial fetch only
+  // Initial fetch only - run once on mount
   useEffect(() => {
     isMounted.current = true;
-    fetchJobs();
+    
+    // Initial fetch with timeout to prevent race conditions
+    const initialFetch = async () => {
+      try {
+        await fetchJobs({ forceFetch: true });
+      } catch (error) {
+        console.error('Initial job fetch failed:', error);
+      }
+    };
+    
+    // Delay initial fetch slightly to ensure state is stable
+    const timer = setTimeout(initialFetch, 100);
 
     return () => {
       isMounted.current = false;
+      clearTimeout(timer);
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, []);
+  }, []); // Empty dependency array - run only once
 
   const setActiveJob = useCallback((jobTitle: string) => {
     setState(prev => ({ ...prev, activeJob: jobTitle }));

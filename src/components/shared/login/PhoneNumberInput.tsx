@@ -170,7 +170,42 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({ value, onChange, er
         <input
           type="tel"
           value={value.number}
-          onChange={e => onChange({ country: selectedCountry.iso2, number: e.target.value })}
+          onChange={e => {
+            // Allow only numbers, spaces, hyphens, parentheses, and plus sign
+            const sanitizedValue = e.target.value.replace(/[^0-9\s\-\(\)\+]/g, '');
+            onChange({ country: selectedCountry.iso2, number: sanitizedValue });
+          }}
+          onKeyDown={e => {
+            // Prevent alphabetic characters from being typed
+            const allowedKeys = [
+              'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+              'Home', 'End', 'Tab', 'Enter', 'Escape'
+            ];
+            
+            // Allow numbers (0-9)
+            if (e.key >= '0' && e.key <= '9') return;
+            
+            // Allow special characters commonly used in phone numbers
+            if (['+', '-', '(', ')', ' '].includes(e.key)) return;
+            
+            // Allow control keys
+            if (allowedKeys.includes(e.key)) return;
+            
+            // Allow Ctrl/Cmd combinations (copy, paste, etc.)
+            if (e.ctrlKey || e.metaKey) return;
+            
+            // Prevent all other keys (including alphabetic characters)
+            e.preventDefault();
+          }}
+          onPaste={e => {
+            // Handle paste event to filter out non-numeric characters
+            e.preventDefault();
+            const pasteData = e.clipboardData.getData('text');
+            const sanitized = pasteData.replace(/[^0-9\s\-\(\)\+]/g, '');
+            if (sanitized) {
+              onChange({ country: selectedCountry.iso2, number: sanitized });
+            }
+          }}
           placeholder={placeholder || 'Phone number'}
           className="flex-1 h-10 px-3 py-0 bg-transparent outline-none text-sm placeholder-gray-400"
         />
@@ -290,4 +325,4 @@ const CountryOption: React.FC<CountryOptionProps> = ({ country, selected, onClic
   </button>
 );
 
-export default PhoneNumberInput; 
+export default PhoneNumberInput;

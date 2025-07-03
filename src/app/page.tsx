@@ -95,13 +95,6 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <>
-
-
-      {/* Resource hints for critical assets */}
-      <link rel="preload" href="/assets/images/logo/medh.png" as="image" type="image/png" />
-      <link rel="preconnect" href="https://medhdocuments.s3.ap-south-1.amazonaws.com" />
-      <link rel="dns-prefetch" href="https://medhdocuments.s3.ap-south-1.amazonaws.com" />
-
       {/* Enhanced Structured Data with Real Company Information */}
       <script
         type="application/ld+json"

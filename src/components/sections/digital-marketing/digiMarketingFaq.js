@@ -95,34 +95,12 @@ function DigiMarketingFaq() {
   };
 
   // Custom icon mapping for different FAQ categories
-  const getIconForQuestion = (question) => {
-    const color = getCategoryColor(question);
-    
-    if (question.includes("What is Digital Marketing")) 
-      return <Laptop className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("What is meant by Data Analytics")) 
-      return <Database className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("combine")) 
-      return <PieChart className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("duration") || question.includes("long")) 
-      return <Clock className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("suitable") || question.includes("beginners") || question.includes("Who can")) 
-      return <Users className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("prerequisites")) 
-      return <BookOpen className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("career")) 
-      return <Briefcase className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("certificate")) 
-      return <Award className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("financial") || question.includes("payment")) 
-      return <DollarSign className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("interact") || question.includes("support") || question.includes("technical")) 
-      return <Headphones className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("enroll")) 
-      return <PenTool className={`w-6 h-6`} style={{ color }} />;
-    if (question.includes("online") || question.includes("delivered")) 
-      return <Laptop className={`w-6 h-6`} style={{ color }} />;
-    return <HelpCircle className={`w-6 h-6`} style={{ color }} />;
+  const getIconForQuestion = () => {
+    return (
+      <div className="hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 dark:from-gray-700 dark:to-gray-700">
+        <BookOpen className="w-6 h-6 text-medhgreen" />
+      </div>
+    );
   };
 
   const faqs = [
@@ -272,11 +250,11 @@ function DigiMarketingFaq() {
   };
 
   return (
-    <section className="w-full py-12 bg-gray-50 dark:bg-gray-900 overflow-hidden">
+    <section className="w-full px-0">
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex flex-col items-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-600 dark:from-blue-400 dark:to-violet-400 mb-4">
-            Frequently Asked Questions
+            Explore FAQs
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-violet-500 rounded-full mb-6"></div>
           <p className="text-center text-gray-700 dark:text-gray-300 max-w-3xl mx-auto">
@@ -329,11 +307,9 @@ function DigiMarketingFaq() {
                     aria-expanded={openIndex === index}
                     aria-controls={`faq-content-${index}`}
                   >
-                    <div className="flex items-center">
-                      <div className="mr-4 flex-shrink-0">
-                        {getIconForQuestion(faq.question)}
-                      </div>
-                      <h3 className="font-semibold text-gray-800 dark:text-gray-200 pr-8">
+                    <div className="flex items-center gap-3">
+                      {getIconForQuestion()}
+                      <h3 className="font-bold text-gray-800 dark:text-gray-100 text-lg">
                         {faq.question}
                       </h3>
                     </div>
@@ -373,6 +349,36 @@ function DigiMarketingFaq() {
           })}
         </motion.div>
       </div>
+
+      {/* Support Section (animated, matching Vedic Maths) */}
+      <motion.div 
+        className="mt-16 text-center bg-white dark:bg-gray-800/90 p-6 rounded-xl shadow-md transform-gpu w-full max-w-5xl mx-auto"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ 
+          duration: 0.5, 
+          delay: 0.3,
+          type: "spring",
+          stiffness: 100,
+          damping: 20
+        }}
+        style={{ 
+          willChange: "transform, opacity",
+          backfaceVisibility: "hidden"
+        }}
+      >
+        <p className="text-gray-700 dark:text-gray-300 mb-3">
+          Still have questions about Digital Marketing with Data Analytics? We're here to help!
+        </p>
+        <a
+          href="https://mail.google.com/mail/u/0/?to=care@medh.co&fs=1&tf=cm"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center px-6 py-3 font-semibold rounded-full shadow-md transition-all duration-300 transform-gpu hover:scale-105 bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 text-white hover:shadow-lg"
+        >
+          <span className="mr-2">Contact Support</span>
+        </a>
+      </motion.div>
     </section>
   );
 }

@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { ChevronDown, ChevronRight, Lightbulb, Brain, Award, Zap, Sparkles } from "lucide-react";
+import { ChevronDown, ChevronRight, Lightbulb, Brain, Award, Zap, Sparkles, BookOpen } from "lucide-react";
 import DOMPurify from "dompurify";
 
 function CourseAiFaq() {
@@ -39,16 +39,6 @@ function CourseAiFaq() {
 
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
-  };
-
-  // Custom emoji and icon mapping for different FAQ categories
-  const getIconForQuestion = (question) => {
-    if (question.includes("designed for")) return <Brain className="w-6 h-6 text-violet-500" />;
-    if (question.includes("Data Science")) return <Zap className="w-6 h-6 text-blue-500" />;
-    if (question.includes("Artificial Intelligence")) return <Sparkles className="w-6 h-6 text-amber-500" />;
-    if (question.includes("programming language")) return <Lightbulb className="w-6 h-6 text-green-500" />;
-    if (question.includes("MEDH")) return <Award className="w-6 h-6 text-pink-500" />;
-    return <Lightbulb className="w-6 h-6 text-indigo-500" />;
   };
 
   const faqs = [
@@ -222,6 +212,7 @@ function CourseAiFaq() {
             <h2 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-blue-500 dark:from-violet-400 dark:to-blue-300 inline-block mb-4">
               Explore FAQs
             </h2>
+            <div className="w-16 h-1 mx-auto rounded-full bg-gradient-to-r from-violet-600 to-blue-500 dark:from-violet-400 dark:to-blue-300"></div>
           </motion.div>
           <p className="text-gray-600 dark:text-gray-300 text-lg max-w-2xl mx-auto">
             Discover everything you need to know about our amazing AI and Data Science course!
@@ -285,7 +276,7 @@ function CourseAiFaq() {
               >
                 <div className="flex items-center gap-3">
                   <div className="hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 dark:from-gray-700 dark:to-gray-700">
-                    {getIconForQuestion(faq.question)}
+                    <BookOpen className="w-6 h-6 text-medhgreen" />
                   </div>
                   <h3 className="font-bold text-gray-800 dark:text-gray-100 text-lg">
                     {faq.question}
@@ -360,7 +351,9 @@ function CourseAiFaq() {
             Still have questions? We're here to help! 
           </p>
           <a 
-            href="mailto:care@medh.co" 
+            href="https://mail.google.com/mail/?view=cm&to=care@medh.co" 
+            target="_blank" 
+            rel="noopener noreferrer" 
             className="inline-flex items-center px-6 py-3 font-semibold rounded-full bg-gradient-to-r from-violet-500 to-blue-500 text-white hover:from-violet-600 hover:to-blue-600 transition-all duration-300 transform-gpu hover:scale-105"
             style={{ 
               willChange: "transform",
@@ -368,7 +361,6 @@ function CourseAiFaq() {
             }}
           >
             <span className="mr-2">Contact Support</span>
-            <span className="text-xl">✨</span>
           </a>
         </motion.div>
       </motion.div>

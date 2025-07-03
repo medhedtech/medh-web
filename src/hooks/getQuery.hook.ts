@@ -120,6 +120,9 @@ export function useGetQuery<T = any>(
   // Reference to cancel token source
   const cancelTokenRef = useRef<CancelTokenSource | null>(null);
 
+  // Track if we already retried current request with auth
+  const attemptedAuthRef = useRef<boolean>(false);
+
   // Create a new cancel token
   const createCancelToken = useCallback(() => {
     // Cancel any existing requests
@@ -440,7 +443,40 @@ export function useGetQuery<T = any>(
               // You could add custom handling for 404 errors here
             } else if (axiosError.response.status === 401 || axiosError.response.status === 403) {
               errorMsg = axiosError.response.status === 401 ? "Authentication required" : "Access denied";
-              // You could trigger auth flow here
+
+              // 🔒 If this was an authenticated call that failed, attempt ONE graceful fallback:
+              // 1. Clear the stored token (it may be expired).
+              // 2. Retry the request without auth headers so public endpoints still work.
+              if (requireAuth && !attemptedAuthRef.current) {
+                attemptedAuthRef.current = true;
+                // Remove token
+                localStorage.removeItem('token');
+                localStorage.removeItem('accessToken');
+                if (config.headers) {
+                  delete config.headers["Authorization"];
+                  delete config.headers["x-access-token"];
+                }
+                try {
+                  const retryResp = await apiClient.get<T>(url, {
+                    ...config,
+                    cancelToken: createCancelToken(),
+                  });
+                  const retryData = retryResp.data || retryResp;
+                  const extractedRetryData = extractData(retryData) as T;
+                  setState(prev => ({
+                    ...prev,
+                    data: extractedRetryData,
+                    loading: false,
+                    ...extractPaginationInfo(retryData),
+                  }));
+                  if (onSuccess) onSuccess(extractedRetryData);
+                  return extractedRetryData;
+                } catch (unauthErr) {
+                  if (process.env.NODE_ENV === 'development') {
+                    console.warn('Retry without auth also failed', unauthErr);
+                  }
+                }
+              }
             }
           } else if (axiosError.request) {
             // Request was made but no response received

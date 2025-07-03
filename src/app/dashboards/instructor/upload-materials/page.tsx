@@ -1,210 +1,218 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { uploadCourseMaterials } from '@/apis/instructor.api';
-import { showToast } from '@/utils/toast';
-import Preloader from '@/components/shared/others/Preloader';
-import { 
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { 
-  LucideBook,
-  LucideUsers,
-  LucideCalendar,
-  LucideBarChart,
-  LucideSettings,
-  LucideFileText,
-  LucideVideo,
-  LucideClipboardList,
-  LucideGraduationCap,
-  LucideDollarSign,
-  LucideMessageSquare,
-  LucideUpload,
-  LucideDownload,
-  LucideEye,
-  LucideEdit,
-  LucidePlus,
-  LucideRefreshCw,
-  LucideFilter,
-  LucideSearch
-} from 'lucide-react';
+import React, { useState, useCallback } from "react";
+import { motion } from "framer-motion";
+import { instructorApi, CourseMaterialUpload } from "@/apis/instructor.api";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { buildAdvancedComponent, typography, buildComponent } from "@/utils/designSystem";
+import {
+  AlertCircle,
+  UploadCloud,
+  FileText,
+  Video,
+  BookOpen,
+  Send,
+} from "lucide-react";
+import { showToast } from "@/utils/toast";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
 
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+};
 
-
-interface uploadCourseMaterialsData {
-  // Define your data interface here based on API response
-}
-
-const uploadCourseMaterialsPage: React.FC = () => {
-  const [data, setData] = useState<uploadCourseMaterialsData[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+const UploadMaterialsPage = () => {
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [courseId, setCourseId] = useState("");
+  const [materialType, setMaterialType] = useState<CourseMaterialUpload['material_type'] | ''>("");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await instructorApi.uploadCourseMaterials();
-        setData(response);
-        setError(null);
-      } catch (err: any) {
-        console.error('Error fetching upload course materials:', err);
-        setError(err?.message || 'Failed to load upload course materials');
-        showToast.error('Failed to load upload course materials');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setSelectedFile(event.target.files[0]);
+    } else {
+      setSelectedFile(null);
+    }
+  };
 
-    fetchData();
-  }, []);
+  const handleUpload = useCallback(async (event: React.FormEvent) => {
+    event.preventDefault();
+    setLoading(true);
+    setError(null);
 
-  if (loading) return <Preloader />;
+    if (!selectedFile || !title || !description || !courseId || !materialType) {
+      showToast.error("Please fill in all fields and select a file.");
+      setLoading(false);
+      return;
+    }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6 flex items-center justify-center">
-        <Card className="max-w-md w-full">
-          <CardHeader>
-            <CardTitle className="text-red-600 dark:text-red-400">Error</CardTitle>
-            <CardDescription>{error}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <button
-              onClick={() => window.location.reload()}
-              className="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-            >
-              Try Again
-            </button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+    try {
+      const materialData: CourseMaterialUpload = {
+        course_id: courseId,
+        material_type: materialType as CourseMaterialUpload['material_type'],
+        title,
+        description,
+      };
+      const formData = instructorApi.createCourseMaterialFormData(selectedFile, materialData);
+      
+      await instructorApi.uploadCourseMaterials(formData);
+      showToast.success("Course material uploaded successfully!");
+      // Clear form
+      setSelectedFile(null);
+      setTitle("");
+      setDescription("");
+      setCourseId("");
+      setMaterialType("");
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "An unknown error occurred.";
+      setError(errorMessage);
+      showToast.error("Failed to upload course material.");
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedFile, title, description, courseId, materialType]);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6"
+      className="p-4 md:p-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
     >
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                Upload Course Materials
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                Manage your upload course materials efficiently
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2">
-                <LucidePlus className="w-4 h-4" />
-                Add New
-              </button>
-              <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
-                <LucideRefreshCw className="w-4 h-4" />
-                Refresh
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <LucideFileText className="w-5 h-5" />
-                  Upload Course Materials List
-                </CardTitle>
-                <CardDescription>
-                  View and manage your upload course materials
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {/* Add your main content here */}
-                <div className="space-y-4">
-                  {data.length > 0 ? (
-                    data.map((item, index) => (
-                      <div key={index} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                        {/* Render your data item here */}
-                        <p className="text-gray-600 dark:text-gray-400">
-                          Data item {index + 1}
-                        </p>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8">
-                      <LucideFileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                      <p className="text-gray-500 dark:text-gray-400">
-                        No upload course materials found
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <LucideBarChart className="w-5 h-5" />
-                  Quick Stats
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600 dark:text-gray-400">Total</span>
-                    <span className="font-semibold">{data.length}</span>
-                  </div>
-                  {/* Add more stats here */}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <LucideFilter className="w-5 h-5" />
-                  Filters
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {/* Add filters here */}
-                <div className="space-y-3">
-                  <div className="relative">
-                    <LucideSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <input
-                      type="text"
-                      placeholder="Search..."
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+      <div className={buildAdvancedComponent.headerCard()}>
+        <h1 className={typography.h1}>Upload Course Materials</h1>
+        <p className={typography.lead}>
+          Upload various types of materials for your courses.
+        </p>
       </div>
+
+      <motion.div variants={itemVariants}>
+        <Card className={buildComponent.card('elegant')}>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <UploadCloud className="mr-2 h-5 w-5" /> Upload Material
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleUpload} className="space-y-6">
+              <div>
+                <Label htmlFor="courseId">Course ID</Label>
+                <Input
+                  id="courseId"
+                  type="text"
+                  placeholder="e.g., MEDH101"
+                  value={courseId}
+                  onChange={(e) => setCourseId(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <Label htmlFor="title">Material Title</Label>
+                <Input
+                  id="title"
+                  type="text"
+                  placeholder="e.g., Introduction to React"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Brief description of the material..."
+                  rows={3}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <Label htmlFor="materialType">Material Type</Label>
+                <Select
+                  value={materialType}
+                  onValueChange={(value: CourseMaterialUpload['material_type']) => setMaterialType(value)}
+                  disabled={loading}
+                >
+                  <SelectTrigger id="materialType">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="presentation">
+                      <div className="flex items-center">
+                        <Video className="mr-2 h-4 w-4" /> Presentation
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="document">
+                      <div className="flex items-center">
+                        <FileText className="mr-2 h-4 w-4" /> Document
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="resource">
+                      <div className="flex items-center">
+                        <BookOpen className="mr-2 h-4 w-4" /> Resource
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="file">Select File</Label>
+                <Input
+                  id="file"
+                  type="file"
+                  onChange={handleFileChange}
+                  disabled={loading}
+                />
+                {selectedFile && (
+                  <p className="text-sm text-gray-500 mt-2">
+                    Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                  </p>
+                )}
+              </div>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Uploading..." : <><Send className="mr-2 h-4 w-4" /> Upload Material</>}
+              </Button>
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+            </form>
+          </CardContent>
+        </Card>
+      </motion.div>
     </motion.div>
   );
 };
 
-export default uploadCourseMaterialsPage;
+export default UploadMaterialsPage;
