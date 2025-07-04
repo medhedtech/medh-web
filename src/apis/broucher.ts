@@ -167,4 +167,52 @@ export const brochureAPI = {
       data
     );
   },
+
+  /**
+   * Upload a brochure PDF for a course (replaces previous brochures)
+   * @param courseId - The course ID
+   * @param file - The PDF file to upload
+   * @param token - JWT token for authentication
+   * @returns Promise with upload response
+   */
+  uploadCourseBrochure: async (
+    courseId: string,
+    file: File,
+    token: string
+  ) => {
+    if (!courseId || !file || !token) throw new Error('Course ID, file, and token are required');
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await fetch(`${apiBaseUrl}/courses/${courseId}/brochures/upload?addToCourse=true`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData,
+    });
+    return response.json();
+  },
+
+  /**
+   * Get brochures for a course
+   * @param courseId - The course ID
+   * @param token - JWT token (optional)
+   * @returns Promise with brochures array
+   */
+  getCourseBrochures: async (
+    courseId: string,
+    token?: string
+  ) => {
+    if (!courseId) throw new Error('Course ID is required');
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const response = await fetch(`${apiBaseUrl}/courses/${courseId}/brochures`, {
+      method: 'GET',
+      headers,
+    });
+    return response.json();
+  },
 };
+
+export const uploadCourseBrochure = brochureAPI.uploadCourseBrochure;
+export const getCourseBrochures = brochureAPI.getCourseBrochures;

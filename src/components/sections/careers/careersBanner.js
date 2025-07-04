@@ -241,28 +241,6 @@ const values = [
   }
 ];
 
-// Key highlights for careers (reduced to 3 items)
-const highlights = [
-  {
-    icon: <Target className="w-8 h-8" />,
-    title: "Clear Mission",
-    description: "Transform education and empower learners globally",
-    color: "from-blue-500 to-cyan-500"
-  },
-  {
-    icon: <Users2 className="w-8 h-8" />,
-    title: "Dynamic Team",
-    description: "Work with passionate professionals who care about education",
-    color: "from-emerald-500 to-teal-500"
-  },
-  {
-    icon: <GraduationCap className="w-8 h-8" />,
-    title: "Learning Opportunities",
-    description: "Continuous skill development and career advancement",
-    color: "from-purple-500 to-indigo-500"
-  }
-];
-
 export default function CareerBanner({ onViewPositionsClick }) {
   const { theme } = useTheme();
   const [isLoaded, setIsLoaded] = useState(false);
@@ -420,31 +398,6 @@ export default function CareerBanner({ onViewPositionsClick }) {
               }`} style={{ transform: 'scaleX(1.1)', letterSpacing: '0.05em' }}>
                 Medh Hai Toh Mumkin Hai !
               </div>
-            </div>
-          </div>
-
-          {/* Enhanced Highlights Section */}
-          <div className={`mb-4 md:mb-6 transition-all duration-1000 delay-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-5xl lg:max-w-6xl mx-auto">
-              {highlights.map((highlight, index) => (
-                <div
-                  key={index}
-                  className="glass-stats rounded-xl p-4 md:p-6 text-center hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
-                  <div className="relative z-10">
-                    <div className={`mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-primary-300' : 'text-primary-600'} flex justify-center`}>
-                      <div className={`bg-gradient-to-br ${highlight.color} text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform`}>
-                        <div className="w-6 h-6 md:w-8 md:h-8">
-                          {highlight.icon}
-                        </div>
-                      </div>
-                    </div>
-                    <div className={`font-semibold text-sm md:text-base group-hover:text-primary-300 transition-colors ${isDark ? 'text-white' : 'text-gray-800'} text-shadow-medium`}>{highlight.title}</div>
-                    <div className={`text-xs md:text-sm mt-1 ${isDark ? 'text-white' : 'text-gray-700'} font-medium text-shadow-subtle`}>{highlight.description}</div>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
 

@@ -284,16 +284,13 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
 
           {/* Search Bar */}
           {showSearch && (
-            <div className="relative max-w-xl mx-auto mt-6 sm:mt-8 mb-6 sm:mb-8 px-2 sm:px-0">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={handleSearch}
-                placeholder="Search FAQs..."
-                className="w-full h-11 sm:h-12 md:h-14 px-3 sm:px-4 py-2 sm:py-3 pl-10 sm:pl-12 text-sm sm:text-base rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all duration-200 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-                style={{ minHeight: '44px' }}
-              />
-              <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400 dark:text-slate-500" />
+            <div className="mb-2">
+              <div
+                className="inline-block text-2xl sm:text-3xl md:text-4xl font-bold text-center bg-gradient-to-r from-emerald-400 via-lime-500 to-emerald-600 bg-clip-text text-transparent"
+              >
+                Explore FAQs
+              </div>
+              <div className="border-b-4 border-emerald-500 w-24 mx-auto mt-2 mb-0 rounded-full"></div>
             </div>
           )}
 
@@ -347,6 +344,11 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
               </div>
             </motion.div>
           )}
+
+          {/* Subtitle */}
+          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 text-center mb-4">
+            Everything you need to know about joining the Medh team and building your career with us
+          </p>
         </motion.div>
 
         {/* Loading state */}
