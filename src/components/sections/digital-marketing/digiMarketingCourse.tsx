@@ -245,33 +245,42 @@ const DigiMarketingCourse: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/30 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Enhanced Header */}
-      <div className="w-full">
-        {customHeader}
-      </div>
 
       {/* Course Discovery Section */}
       <div className="relative w-full px-0 pb-12">
         <div className="w-full">
-          {/* Section title with psychological messaging */}
-          {filteredCourses.length > 0 && (
-            <div className="w-full mb-8">
-              <div className={buildAdvancedComponent.glassCard({ variant: 'secondary', padding: 'tablet', hover: false }) + ' w-full'}>
-                <div className="flex items-center justify-center gap-3 mb-4">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-emerald-500 to-blue-500 flex items-center justify-center">
-                    <Rocket className="w-4 h-4 text-white" />
-                  </div>
-                  <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">
-                    Choose Your Success Path
-                  </h2>
-                </div>
-                <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-                  Each course is designed with real industry projects and current market demands. 
-                  Start your journey to becoming a digital marketing expert.
-                </p>
-              </div>
+          {/* New: Future-Ready Skills Section (matches AI/Data Science style) */}
+          <div className="relative text-center w-full mb-8">
+            {/* Background decoration - Full width */}
+            <div className="absolute inset-0 -z-10 overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-b from-blue-50/30 to-transparent dark:from-blue-900/10" />
             </div>
-          )}
-
+            <div className="relative space-y-4 md:space-y-6 py-6 md:py-8 lg:py-10 px-4 md:px-6 lg:px-8 max-w-6xl mx-auto">
+              {/* Badge */}
+              <div className="inline-flex items-center justify-center">
+                <span className="inline-flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1 md:py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs md:text-sm font-medium">
+                  <Brain className="w-3 h-3 md:w-4 md:h-4" />
+                  Future-Ready Marketers
+                </span>
+              </div>
+              {/* Main Heading */}
+              <div className="space-y-2 md:space-y-4">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
+                  Transform Marketing with Data-Driven Power
+                </h1>
+                <div className="flex items-center justify-center gap-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold">
+                  <span className="text-gray-900 dark:text-white">with</span>
+                  <span className="inline-flex items-center align-middle" style={{marginLeft: '0.25rem', position: 'relative', top: '3px'}}>
+                    <Image src={MedhLogo} alt="Medh Logo" className="h-6 md:h-[2.25rem] w-auto object-contain inline-block align-middle" />
+                  </span>
+                </div>
+              </div>
+              {/* Description */}
+              <p className="text-sm md:text-base lg:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
+                Comprehensive Learning Path to Master Digital Marketing and Analytics
+              </p>
+            </div>
+          </div>
           {/* Enhanced Course Grid */}
           <div className="space-y-6 w-full">
             {isLoading ? (
@@ -306,6 +315,15 @@ const DigiMarketingCourse: React.FC = () => {
                       />
                     </div>
                   ))}
+                </div>
+                {/* Explore All Courses Button */}
+                <div className="flex justify-center w-full py-6 md:py-8">
+                  <Link href="/courses">
+                    <div className="inline-flex items-center px-6 md:px-8 py-3 md:py-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white text-sm md:text-base font-medium rounded-lg md:rounded-xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-95">
+                      <ArrowRight className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                      <span>Explore All Courses</span>
+                    </div>
+                  </Link>
                 </div>
 
                 {/* Success indicators using real data */}

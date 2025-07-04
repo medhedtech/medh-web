@@ -182,33 +182,7 @@ const CourseOptions: React.FC = () => {
         <div className="w-full">
           {customHeader}
         </div>
-
-        {/* Search Section */}
-        <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6">
-          <div className="relative max-w-md mx-auto">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search AI & Data Science courses..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full pl-9 md:pl-10 pr-3 py-2 md:py-3 border border-gray-300 dark:border-gray-600 rounded-lg md:rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base transition-all duration-200"
-            />
-          </div>
-        </div>
         
-        {/* Course Section Header */}
-        <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 pb-4">
-          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white text-center mb-2">
-            AI and Data Science Courses
-          </h2>
-          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 text-center max-w-2xl mx-auto">
-            Master artificial intelligence and data science with our comprehensive courses combining cutting-edge technology with practical applications.
-          </p>
-        </div>
-
         {/* Course grid container with consistent styling from CoursesFilter */}
         <div className="px-4 md:px-6 lg:px-8">
           {filteredCourses.length > 0 ? (
