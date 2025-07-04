@@ -309,7 +309,7 @@ const WhyMedh = memo(() => {
 
   // PERFORMANCE OPTIMIZATION: Memoized class names
   const containerClasses = useMemo(() => {
-    return `w-full transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} py-8 sm:py-12 md:py-16 lg:py-20 bg-gradient-to-br from-gray-50/70 via-white to-blue-50/30 dark:from-gray-900/70 dark:via-gray-800 dark:to-blue-900/20 relative overflow-hidden`;
+    return `w-full transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} pt-8 pb-2 sm:pt-12 sm:pb-3 md:pt-16 md:pb-4 lg:pt-20 lg:pb-5 bg-gradient-to-br from-gray-50/70 via-white to-blue-50/30 dark:from-gray-900/70 dark:via-gray-800 dark:to-blue-900/20 relative overflow-hidden`;
   }, [isVisible]);
 
   const sectionClasses = useMemo(() => {
@@ -321,7 +321,7 @@ const WhyMedh = memo(() => {
   }, []);
 
   const badgeClasses = useMemo(() => {
-    return "inline-flex items-center gap-2 sm:gap-3 mb-6 sm:mb-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm px-4 sm:px-6 py-2 sm:py-3 rounded-full border border-gray-200 dark:border-gray-700 shadow-lg";
+    return "inline-flex items-center gap-2 sm:gap-3 mb-6 sm:mb-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-2 rounded-full border border-gray-200 dark:border-gray-700 shadow-lg";
   }, []);
 
   const badgeIconClasses = useMemo(() => {
@@ -329,15 +329,15 @@ const WhyMedh = memo(() => {
   }, []);
 
   const badgeTextClasses = useMemo(() => {
-    return "text-sm sm:text-base font-semibold text-primary-700 dark:text-primary-300 uppercase tracking-wide";
+    return "text-xs sm:text-sm font-semibold text-primary-700 dark:text-primary-300 uppercase tracking-wide";
   }, []);
 
   const headingClasses = useMemo(() => {
-    return "text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 sm:mb-8 text-gray-900 dark:text-white leading-tight bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white bg-clip-text text-transparent";
+    return "text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-6 sm:mb-8 text-gray-900 dark:text-white leading-tight bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white bg-clip-text text-transparent";
   }, []);
 
   const descriptionClasses = useMemo(() => {
-    return "text-lg sm:text-xl md:text-2xl text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl mx-auto font-medium";
+    return "text-sm sm:text-base md:text-lg text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl mx-auto font-medium";
   }, []);
 
   const featuresGridClasses = useMemo(() => {
@@ -430,7 +430,7 @@ const WhyMedh = memo(() => {
           <div className={headerContainerClasses}>
             <div className={badgeClasses}>
               <div className={badgeIconClasses}>
-                <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                <Sparkles className="w-2 h-2 sm:w-3 sm:h-3 text-white" />
               </div>
               <span className={badgeTextClasses}>
                 Our Approach
@@ -442,10 +442,10 @@ const WhyMedh = memo(() => {
                 <Image 
                   src={medhLogo} 
                   alt="Medh Logo" 
-                  width={128} 
-                  height={128} 
+                  width={100} 
+                  height={100} 
                   unoptimized={true}
-                  className="inline-block h-6 sm:h-8 md:h-10 lg:h-12 w-auto align-baseline mx-2"
+                  className="inline-block h-5 sm:h-6 md:h-8 lg:h-10 w-auto align-baseline mx-2"
                   style={logoStyles}
                   priority={true}
                 />
@@ -520,7 +520,7 @@ const WhyMedh = memo(() => {
 
             {/* Additional CTA Text Section */}
             <div className="mt-12 sm:mt-16 text-center px-4 sm:px-6">
-              <h3 className={certificationsTitleClasses}>Get Started Today</h3>
+              
               <p className={certificationsDescriptionClasses}>
                 These certifications ensure your learning journey is built on globally recognized standards of excellence.
               </p>

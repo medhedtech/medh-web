@@ -13,6 +13,7 @@ import { useTheme } from "next-themes";
 import { useCourseImagePreloader } from '@/components/shared/ImagePreloader';
 import { getImageProps, getSafeCourseImageUrl } from '@/utils/imageOptimization';
 import OptimizedImage from '@/components/shared/OptimizedImage';
+import { buildComponent } from '@/utils/designSystem';
 
 // PERFORMANCE OPTIMIZATION: Simplified styles without heavy caching
 const getGlassmorphismStyles = (isDark: boolean): string => {
@@ -425,18 +426,16 @@ const getBlendedCourseSessions = (course: ICourse) => {
 
 // PERFORMANCE OPTIMIZATION: GPU-optimized ViewAllButton component
 const ViewAllButton = memo<{ href: string; text: string; isDark: boolean }>(({ href, text, isDark }) => {
+  // Use design system button for high-contrast
   const buttonClasses = useMemo(() => {
-    return `inline-flex items-center px-4 py-2 glass-stats rounded-lg text-sm font-medium glass-transition hover-scale-gpu gpu-accelerated min-h-[44px] touch-manipulation ${
-      isDark 
-        ? 'text-white hover:bg-white/10' 
-        : 'text-gray-900 hover:bg-black/5'
-    }`;
-  }, [isDark]);
+    // Use primary for bold blue, or secondary for white
+    return buildComponent.button('primary', 'md') + ' shadow-lg';
+  }, []);
 
   return (
-    <Link href={href} className={buttonClasses}>
+    <Link href={href} className={buttonClasses + ' inline-flex items-center'}>
       <span>{text}</span>
-      <ChevronRight size={16} className="ml-1 transition-gpu" />
+      <ChevronRight className="ml-1 flex-shrink-0 align-baseline" />
     </Link>
   );
 });
@@ -1130,7 +1129,7 @@ const HomeCourseSection2 = memo<{
 
   // PERFORMANCE OPTIMIZATION: GPU-optimized memoized class names
   const containerClasses = useMemo(() => {
-    return `w-full py-8 sm:py-10 md:py-12 relative overflow-hidden gpu-accelerated ${
+    return `w-full pt-8 pb-1 sm:pt-10 sm:pb-1.5 md:pt-12 md:pb-2 relative overflow-hidden gpu-accelerated ${
       !isDark ? 'bg-gradient-to-br from-gray-50/30 via-white/20 to-gray-100/40' : ''
     }`;
   }, [isDark]);
@@ -1235,9 +1234,17 @@ const HomeCourseSection2 = memo<{
                   />
                 ))}
               </div>
+              <div className="hidden md:flex justify-end w-full mt-4">
+                <ViewAllButton href="/courses" text="View All Courses" isDark={isDark} />
+              </div>
             </div>
           ) : (
-            <EmptyState type="blended" isDark={isDark} />
+            <>
+              <EmptyState type="blended" isDark={isDark} />
+              <div className="hidden md:flex justify-end w-full mt-4">
+                <ViewAllButton href="/courses" text="View All Courses" isDark={isDark} />
+              </div>
+            </>
           )}
         </div>
       )}

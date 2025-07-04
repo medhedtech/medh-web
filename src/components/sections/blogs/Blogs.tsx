@@ -275,7 +275,7 @@ const Blogs = memo<IBlogsProps>(({
 
   // PERFORMANCE OPTIMIZATION: Memoized class names
   const containerClasses = useMemo(() => {
-    return `w-full transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} py-8 bg-gradient-to-br from-gray-50/50 to-white dark:from-gray-900/50 dark:to-gray-800/50`;
+    return `w-full transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} pt-8 pb-0 mb-0 bg-gradient-to-br from-gray-50/50 to-white dark:from-gray-900/50 dark:to-gray-800/50`;
   }, [isVisible]);
 
   const sectionClasses = useMemo(() => {
@@ -300,10 +300,6 @@ const Blogs = memo<IBlogsProps>(({
 
   const filtersClasses = useMemo(() => {
     return "flex flex-wrap items-center justify-center gap-3 mb-8";
-  }, []);
-
-  const viewToggleClasses = useMemo(() => {
-    return "flex items-center gap-2 mb-8 justify-center";
   }, []);
 
   // Fast loading state
@@ -347,43 +343,6 @@ const Blogs = memo<IBlogsProps>(({
             </p>
           </div>
 
-          {/* Filters */}
-          <div className={filtersClasses}>
-            {FILTER_OPTIONS.map((filter) => (
-              <FilterButton
-                key={filter.id}
-                filter={filter}
-                isActive={activeFilter === filter.id}
-                onClick={handleFilterChange}
-                isDark={isDark}
-              />
-            ))}
-          </div>
-
-          {/* View Toggle */}
-          <div className={viewToggleClasses}>
-            <button
-              onClick={() => setIsGridView(true)}
-              className={`p-2 rounded-lg transition-all duration-300 ${
-                isGridView
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/20'
-              }`}
-            >
-              <Grid3x3 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setIsGridView(false)}
-              className={`p-2 rounded-lg transition-all duration-300 ${
-                !isGridView
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/20'
-              }`}
-            >
-              <List className="w-4 h-4" />
-            </button>
-          </div>
-
           {/* Content */}
           <BlogGrid
             blogs={blogs}
@@ -394,7 +353,7 @@ const Blogs = memo<IBlogsProps>(({
 
           {/* View All Button */}
           {blogs.length > 0 && (
-            <div className="text-center mt-12">
+            <div className="text-center mt-2 mb-0">
               <Link
                 href="/blogs"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl group"

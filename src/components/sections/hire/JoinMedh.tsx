@@ -161,7 +161,7 @@ const JoinMedh: React.FC<IJoinMedhProps> = ({
                   <div className="absolute inset-0 bg-gradient-to-t from-primary-500/10 to-transparent"></div>
                   <Image
                     src={educatorImage}
-                    alt="Join as Educator"
+                    alt="Join as an Educator"
                     fill
                     className="object-cover object-center transform group-hover:scale-105 transition-transform duration-700"
                     style={{ objectPosition: '50% 30%' }}
