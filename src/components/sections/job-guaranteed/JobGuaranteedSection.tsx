@@ -227,7 +227,7 @@ const JobGuaranteedSection = memo<IJobGuaranteedProps>(({
             <div className="flex justify-center mb-4 md:mb-5">
               <div className={badgeClasses}>
                 <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                100% JOB-GUARANTEED
+                JOB-GUARANTEED
               </div>
             </div>
 

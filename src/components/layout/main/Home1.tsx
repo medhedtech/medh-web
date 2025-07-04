@@ -856,9 +856,6 @@ const Home1: React.FC = () => {
                 </section>
               </>
             )}
-
-            {/* Optimized spacer */}
-            <div className="h-20" />
           </div>
         </div>
         

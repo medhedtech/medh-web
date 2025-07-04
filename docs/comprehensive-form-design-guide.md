@@ -447,7 +447,7 @@ export const ContactFormConfig: IFormConfig = {
     },
     {
       name: "consent_terms",
-      label: "I agree to the Terms of Service and Privacy Policy",
+      label: "I agree to the Terms of Use and Privacy Policy",
       type: "checkbox",
       required: true
     }

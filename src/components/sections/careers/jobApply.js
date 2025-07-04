@@ -603,7 +603,7 @@ function JobApply({ activeJob, jobDetails }) {
                     >
                       I agree to the 
                       <a href="/terms-and-services" className="text-primary-600 dark:text-primary-400 hover:underline ml-1 font-medium">
-                        Terms of Service
+                        Terms of Use
                       </a>
                       {" "}and{" "}
                       <a href="/privacy-policy" className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
