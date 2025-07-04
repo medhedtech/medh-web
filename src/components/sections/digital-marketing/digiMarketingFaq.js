@@ -293,10 +293,11 @@ function DigiMarketingFaq() {
               >
                 <div 
                   className={`
-                    rounded-lg shadow-sm bg-white dark:bg-gray-800 
-                    border border-gray-200 dark:border-gray-700
+                    rounded-xl shadow-lg bg-gradient-to-br from-indigo-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900
+                    border border-blue-100 dark:border-gray-700/60 backdrop-blur-md
                     transition-all duration-200 ease-in-out
-                    ${hoveredIndex === index ? 'shadow-md translate-y-[-2px]' : 'shadow-sm'}
+                    ${hoveredIndex === index ? 'shadow-xl scale-[1.01]' : 'shadow-lg'}
+                    p-1 md:p-1.5
                   `}
                   onMouseEnter={() => setHoveredIndex(index)}
                   onMouseLeave={() => setHoveredIndex(null)}

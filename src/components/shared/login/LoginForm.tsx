@@ -1216,7 +1216,7 @@ const LoginForm = () => {
     // Check terms agreement first with immediate feedback
     if (!data.agree_terms) {
       trigger("agree_terms");
-      showToast.warning("📋 Please accept the Terms of Service and Privacy Policy to continue.", { duration: 4000 });
+      showToast.warning("📋 Please accept the Terms of Use and Privacy Policy to continue.", { duration: 4000 });
       return;
     }
 
@@ -2179,7 +2179,7 @@ const LoginForm = () => {
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          Terms of Service
+                          Terms of Use
                         </a>{" "}
                         and{" "}
                         <a

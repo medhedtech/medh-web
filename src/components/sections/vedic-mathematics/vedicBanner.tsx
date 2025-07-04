@@ -176,7 +176,7 @@ const VedicBanner: React.FC = memo(() => {
 
             {/* CTA Button */}
             <div className="text-center mb-4 md:mb-6 gpu-accelerated">
-              <a href="http://localhost:3000/enrollment/vedic-mathematics/?course=67c064d08a56e7688ddc5c86" className={ctaClasses} target="_blank" rel="noopener noreferrer">
+              <a href="/enrollment/vedic-mathematics/?course=67c064d08a56e7688ddc5c86" className={ctaClasses} target="_blank" rel="noopener noreferrer">
                 <span className="relative z-10 font-extrabold tracking-wide gpu-accelerated">Enroll Now</span>
                 <ArrowRight size={16} className="relative z-10 ml-2 group-hover:translate-x-1 transition-gpu gpu-accelerated" />
               </a>

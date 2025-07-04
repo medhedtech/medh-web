@@ -32,8 +32,8 @@ const HIRE_FEATURES: readonly IHireFeature[] = Object.freeze([
 const TRAINING_FEATURES: readonly IHireFeature[] = Object.freeze([
   Object.freeze({ icon: BarChart, text: "Data-driven skill gap analysis to identify high-impact training areas." }),
   Object.freeze({ icon: Award, text: "Industry practitioners delivering practical, application-focused training." }),
-  Object.freeze({ icon: BookOpen, text: "Blended learning approach combining live sessions and self-paced modules." }),
-  Object.freeze({ icon: TrendingUp, text: "Performance tracking and ROI measurement for every program." })
+  Object.freeze({ icon: BookOpen, text: "Blended learning - live sessions and self-paced modules." }),
+  Object.freeze({ icon: TrendingUp, text: "Performance tracking and ROI measurement." })
 ]);
 
 // PERFORMANCE OPTIMIZATION: Memoized FeatureList component
@@ -288,7 +288,7 @@ const Hire = memo(() => {
             <div className={badgeClasses}>
               <Briefcase className="w-6 h-6 text-blue-500" />
               <span className="text-sm font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wider">
-                Hiring Solutions
+                Corporate Solutions
               </span>
             </div>
             <h2 className={titleClasses}>
@@ -302,22 +302,7 @@ const Hire = memo(() => {
           {/* Cards Grid */}
           <div className={gridClasses}>
             
-            {/* Hire from Medh Card */}
-            <HireCard
-              title="Hire from MEDH"
-              subtitle="Access Pre-Vetted Talent, Ready to Contribute"
-              features={HIRE_FEATURES}
-              buttonText="Start Hiring Process"
-              onClick={handleHireNavigate}
-              icon={hireIcon}
-              colorClass={hireColorClass}
-              buttonColorClass={hireButtonColorClass}
-              isDark={isDark}
-              index={0}
-              isVisible={isVisible}
-            />
-
-            {/* Corporate Training Card */}
+            {/* Corporate Training Card (now first) */}
             <HireCard
               title="Corporate Training"
               subtitle="Custom Training Solutions for Measurable Growth"
@@ -331,6 +316,21 @@ const Hire = memo(() => {
               index={1}
               isVisible={isVisible}
             />
+
+            {/* Hire from Medh Card (now second) */}
+            <HireCard
+              title="Hire from MEDH"
+              subtitle="Access Pre-Vetted Talent, Ready to Contribute"
+              features={HIRE_FEATURES}
+              buttonText="Start Hiring Process"
+              onClick={handleHireNavigate}
+              icon={hireIcon}
+              colorClass={hireColorClass}
+              buttonColorClass={hireButtonColorClass}
+              isDark={isDark}
+              index={0}
+              isVisible={isVisible}
+            />
           </div>
 
           {/* Bottom CTA Section */}
@@ -340,18 +340,18 @@ const Hire = memo(() => {
             </p>
             <div className={bottomButtonsClasses}>
               <button
-                onClick={handleHireNavigate}
-                className="group inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-all duration-300 border border-blue-200 dark:border-blue-800"
-              >
-                <Users className="mr-2 w-4 h-4" />
-                Hire Talent
-              </button>
-              <button
                 onClick={handleTrainingNavigate}
                 className="group inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg transition-all duration-300 border border-purple-200 dark:border-purple-800"
               >
                 <Building className="mr-2 w-4 h-4" />
                 Corporate Training
+              </button>
+              <button
+                onClick={handleHireNavigate}
+                className="group inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-all duration-300 border border-blue-200 dark:border-blue-800"
+              >
+                <Users className="mr-2 w-4 h-4" />
+                Hire Talent
               </button>
             </div>
           </div>
