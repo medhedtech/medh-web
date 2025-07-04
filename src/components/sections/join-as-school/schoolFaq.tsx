@@ -12,7 +12,8 @@ import {
   Clock,
   Star,
   MessageCircle,
-  Award
+  Award,
+  BookOpen
 } from "lucide-react";
 import DOMPurify from "dompurify";
 
@@ -205,21 +206,8 @@ const SchoolFaq: React.FC = () => {
 
   // Function to determine appropriate icon for a FAQ based on content
   const getIconForQuestion = (question: string): React.ReactElement => {
-    const color = themeColors.primary.light;
-    const q = question.toLowerCase();
-    
-    if (q.includes("process") || q.includes("partner")) 
-      return <Building className="w-5 h-5" style={{ color }} />;
-    if (q.includes("cost") || q.includes("budget") || q.includes("payment")) 
-      return <Coins className="w-5 h-5" style={{ color }} />;
-    if (q.includes("students") || q.includes("teachers")) 
-      return <Users className="w-5 h-5" style={{ color }} />;
-    if (q.includes("time") || q.includes("duration")) 
-      return <Clock className="w-5 h-5" style={{ color }} />;
-    if (q.includes("communication") || q.includes("contact")) 
-      return <MessageCircle className="w-5 h-5" style={{ color }} />;
-    
-    return <HelpCircle className="w-5 h-5" style={{ color }} />;
+    // Always return BookOpen icon for all questions
+    return <BookOpen className="w-5 h-5" style={{ color: themeColors.primary.light }} />;
   };
 
   if (!isVisible) {
@@ -270,34 +258,16 @@ const SchoolFaq: React.FC = () => {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="flex flex-col sm:flex-row sm:items-center justify-between mb-8"
             >
-              <div className="flex items-center mb-4 sm:mb-0">
-                <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-blue-100 to-violet-100 dark:from-blue-900/30 dark:to-violet-900/30 text-blue-700 dark:text-blue-300 text-xs sm:text-sm font-semibold rounded-full mb-4 backdrop-blur-sm border border-blue-200/50 dark:border-blue-700/50">
-                  <Award className="w-3 h-3 sm:w-4 sm:h-4" />
-                  FAQ Section
-                </span>
-                <div className="ml-4">
+              <div className="flex items-center mb-4 sm:mb-0 w-full justify-center">
+                <div className="ml-0 text-center w-full">
                   <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#3bac63] to-[#F6B335] bg-clip-text text-transparent">
-                    Frequently Asked Questions
+                    Explore FAQs
                   </h2>
+                  <div className="mx-auto mt-2 mb-2 h-1 w-16 rounded-full bg-gradient-to-r from-[#3bac63] to-[#F6B335]"></div>
                   <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 mt-2">
                     Everything you need to know about partnering with Medh
                   </p>
                 </div>
-              </div>
-
-              {/* Search input */}
-              <div className="relative w-full sm:w-64 flex-shrink-0">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-4 w-4 text-slate-400" />
-                </div>
-                <input
-                  type="text"
-                  className="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3bac63] dark:focus:ring-[#3bac63] focus:border-transparent text-sm transition-all duration-200"
-                  placeholder="Search FAQs..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  aria-label="Search FAQs"
-                />
               </div>
             </motion.div>
 
@@ -348,7 +318,7 @@ const SchoolFaq: React.FC = () => {
                                 backgroundColor: openIndex === index ? 'rgba(59, 172, 99, 0.2)' : 'rgba(148, 163, 184, 0.1)'
                               }}
                               transition={{ duration: 0.3 }}
-                              className="mr-3 flex-shrink-0 p-2 rounded-lg"
+                              className="mr-3 flex-shrink-0 p-2 rounded-full"
                             >
                               {getIconForQuestion(faq.question)}
                             </motion.div>
@@ -435,7 +405,7 @@ const SchoolFaq: React.FC = () => {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="mt-8 p-6 bg-gradient-to-r from-[#3bac63]/10 via-white/50 to-[#3bac63]/10 dark:from-[#3bac63]/20 dark:via-slate-800/50 dark:to-[#3bac63]/20 rounded-xl border border-[#3bac63]/20 dark:border-[#3bac63]/30 backdrop-blur-sm"
             >
-              <p className="text-slate-700 dark:text-slate-300 flex flex-col sm:flex-row sm:items-center text-center sm:text-left">
+              <div className="text-slate-700 dark:text-slate-300 flex flex-col sm:flex-row sm:items-center text-center sm:text-left">
                 <motion.div 
                   whileHover={{ scale: 1.1, rotate: 15 }}
                   className="w-12 h-12 mx-auto sm:mx-0 sm:mr-4 mb-3 sm:mb-0 rounded-xl bg-[#3bac63]/20 flex items-center justify-center transform transition-transform duration-300"
@@ -457,7 +427,7 @@ const SchoolFaq: React.FC = () => {
                     </motion.span>
                   </a>
                 </span>
-              </p>
+              </div>
             </motion.div>
           </div>
         </motion.div>
