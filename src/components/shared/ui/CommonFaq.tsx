@@ -346,9 +346,7 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
           )}
 
           {/* Subtitle */}
-          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 text-center mb-4">
-            Everything you need to know about joining the Medh team and building your career with us
-          </p>
+        
         </motion.div>
 
         {/* Loading state */}

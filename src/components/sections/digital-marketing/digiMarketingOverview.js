@@ -258,15 +258,6 @@ const DigiMarketingOverview = () => {
 
   const handleTabChange = useCallback((tabId) => {
     setActiveTab(tabId);
-    // Scroll to the top of the content when changing tabs
-    setTimeout(() => {
-      if (contentRef.current) {
-        const yOffset = -100; // Offset to account for sticky header
-        const element = contentRef.current;
-        const y = element.getBoundingClientRect().top + window.scrollY + yOffset;
-        window.scrollTo({ top: y, behavior: 'smooth' });
-      }
-    }, 100);
   }, []);
 
   // Handle scroll to top visibility with improved debounce

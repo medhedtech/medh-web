@@ -455,7 +455,12 @@ function PersonalityFaq() {
             href="https://mail.google.com/mail/?view=cm&to=care@medh.co"
             target="_blank"
             rel="noopener noreferrer"
-            className={`inline-flex items-center px-6 py-3 font-semibold rounded-full shadow-md transition-all duration-300 transform-gpu hover:scale-105 bg-gradient-to-r ${titleGradients.light.gradient} dark:${titleGradients.dark.gradient} text-white hover:shadow-lg`}
+            className={
+              `inline-flex items-center px-6 py-3 font-semibold rounded-full shadow-md transition-all duration-300 transform-gpu hover:scale-105 
+              bg-gradient-to-r from-emerald-500 via-green-500 to-lime-500 
+              dark:from-emerald-400 dark:via-green-600 dark:to-lime-500 
+              text-white hover:shadow-lg`
+            }
           >
             <span>Contact Support</span>
           </a>
