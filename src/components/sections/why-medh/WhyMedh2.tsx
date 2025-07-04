@@ -520,7 +520,7 @@ const WhyMedh = memo(() => {
 
             {/* Additional CTA Text Section */}
             <div className="mt-12 sm:mt-16 text-center px-4 sm:px-6">
-              <h3 className={certificationsTitleClasses}>Get Started Today</h3>
+              
               <p className={certificationsDescriptionClasses}>
                 These certifications ensure your learning journey is built on globally recognized standards of excellence.
               </p>
