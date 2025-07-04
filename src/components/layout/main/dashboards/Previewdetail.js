@@ -13,7 +13,7 @@ export default function CoursePreview() {
 
   const formatCourseGrade = (grade) => {
     if (grade === "UG - Graduate - Professionals") {
-      return "UG/Grad/Pro";
+      return "Professional Grad Diploma";
     }
     return grade;
   };

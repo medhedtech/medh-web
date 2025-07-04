@@ -64,7 +64,7 @@ const EditorContent: React.FC = () => {
 
   const formatCourseGrade = (grade: string): string => {
     if (grade === "UG - Graduate - Professionals") {
-      return "UG/Grad/Pro";
+      return "Professional Grad Diploma";
     }
     return grade;
   };

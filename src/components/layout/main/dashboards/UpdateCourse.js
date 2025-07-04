@@ -1001,7 +1001,7 @@ export default function UpdateCourse() {
                   <option value="Grade 7-8">Grade 7-8</option>
                   <option value="Grade 9-10">Grade 9-10</option>
                   <option value="Grade 11-12">Grade 11-12</option>
-                  <option value="UG/Grad/Pro">UG/Grad/Pro</option>
+                  <option value="Professional Grad Diploma">Professional Grad Diploma</option>
                 </select>
                 {errors.course_grade && <p className="text-red-500 text-xs mt-1">{errors.course_grade.message}</p>}
               </div>
