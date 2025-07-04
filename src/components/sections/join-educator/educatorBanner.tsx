@@ -15,6 +15,12 @@ interface IValueItem {
   color: string;
 }
 
+interface IHighlightItem {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  color: string;
+}
 // Enhanced custom animations for the educator banner with theme-aware glassmorphism
 const getThemeStyles = (isDark: boolean): string => `
   @keyframes animate-bounce-slow {
@@ -152,7 +158,27 @@ const values: IValueItem[] = [
     color: "from-purple-500 to-indigo-500"
   }
 ];
-
+// Key highlights for educators (reduced to 3 items)
+const highlights: IHighlightItem[] = [
+  {
+    icon: <CheckCircle className="w-8 h-8" />,
+    title: "Flexible Schedule",
+    description: "Teach on your own terms with flexible timing",
+    color: "from-blue-500 to-cyan-500"
+  },
+  {
+    icon: <Target className="w-8 h-8" />,
+    title: "Competitive Rewards",
+    description: "Earn competitive compensation for your expertise",
+    color: "from-emerald-500 to-teal-500"
+  },
+  {
+    icon: <Sparkles className="w-8 h-8" />,
+    title: "Modern Tools",
+    description: "Access cutting-edge educational technologies",
+    color: "from-purple-500 to-indigo-500"
+  }
+];
 const EducatorBanner: React.FC = () => {
   const { theme } = useTheme();
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
@@ -279,30 +305,29 @@ const EducatorBanner: React.FC = () => {
             </div>
           </div>
 
-          {/* REMOVE: Key highlights section */}
-          {/* <div className={`mb-3 md:mb-4 transition-all duration-1000 delay-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}> */}
-          {/*   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-5xl lg:max-w-6xl mx-auto"> */}
-          {/*     {highlights.map((highlight, index) => ( */}
-          {/*       <div */}
-          {/*         key={index} */}
-          {/*         className="glass-stats rounded-xl p-4 md:p-6 text-center hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden" */}
-          {/*       > */}
-          {/*         <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div> */}
-          {/*         <div className="relative z-10"> */}
-          {/*           <div className={`mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-primary-300' : 'text-primary-600'} flex justify-center`}> */}
-          {/*             <div className={`bg-gradient-to-br ${highlight.color} text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform`}> */}
-          {/*               <div className="w-6 h-6 md:w-8 md:h-8"> */}
-          {/*                 {highlight.icon} */}
-          {/*               </div> */}
-          {/*             </div> */}
-          {/*           </div> */}
-          {/*           <div className={`font-semibold text-sm md:text-base group-hover:text-primary-300 transition-colors ${isDark ? 'text-white' : 'text-gray-800'}`}>{highlight.title}</div> */}
-          {/*           <div className={`text-xs md:text-sm mt-1 ${isDark ? 'text-white' : 'text-gray-700'} font-medium`}>{highlight.description}</div> */}
-          {/*         </div> */}
-          {/*       </div> */}
-          {/*     ))} */}
-          {/*   </div> */}
-          {/* </div> */}
+          <div className={`mb-3 md:mb-4 transition-all duration-1000 delay-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-5xl lg:max-w-6xl mx-auto">
+              {highlights.map((highlight, index) => (
+                <div
+                  key={index}
+                  className="glass-stats rounded-xl p-4 md:p-6 text-center hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
+                  <div className="relative z-10">
+                    <div className={`mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-primary-300' : 'text-primary-600'} flex justify-center`}>
+                      <div className={`bg-gradient-to-br ${highlight.color} text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform`}>
+                        <div className="w-6 h-6 md:w-8 md:h-8">
+                          {highlight.icon}
+                        </div>
+                      </div>
+                    </div>
+                    <div className={`font-semibold text-sm md:text-base group-hover:text-primary-300 transition-colors ${isDark ? 'text-white' : 'text-gray-800'}`}>{highlight.title}</div>
+                    <div className={`text-xs md:text-sm mt-1 ${isDark ? 'text-white' : 'text-gray-700'} font-medium`}>{highlight.description}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
           <div className={`mb-4 md:mb-6 transition-all duration-1000 delay-500 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             <div className="glass-stats rounded-2xl p-6 md:p-8 max-w-5xl lg:max-w-6xl mx-auto">
