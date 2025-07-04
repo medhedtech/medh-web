@@ -9,7 +9,7 @@ import {
 } from '../index';
 
 /**
- * Fetches all currencies
+ * Fetches all currencie
  * @returns Promise with array of currencies
  */
 export const getAllCurrencies = async (): Promise<ICurrency[]> => {
