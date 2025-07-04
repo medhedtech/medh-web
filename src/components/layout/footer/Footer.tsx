@@ -59,7 +59,7 @@ const Footer: React.FC<FooterProps> = ({ className = "" }) => {
 
   return (
     <footer 
-      className={`relative w-full min-h-[400px] overflow-hidden ${className}`}
+      className={`relative w-full min-h-[400px] overflow-hidden -mt-8 ${className}`}
       role="contentinfo"
       aria-label="Site footer"
       {...getHydrationSafeProps()}
@@ -106,7 +106,7 @@ const Footer: React.FC<FooterProps> = ({ className = "" }) => {
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-violet-500/5 dark:from-blue-400/5 dark:to-violet-400/5"></div>
           
           {/* Content */}
-          <div className="relative z-10 w-full px-3 sm:px-4 lg:px-6 pt-8 md:pt-12">
+          <div className="relative z-10 w-full px-3 sm:px-4 lg:px-6 pt-0 md:pt-0">
             <FooterNavList theme={currentTheme} />
           </div>
           

@@ -60,7 +60,7 @@ const LoginTab = (): JSX.Element => {
             {/* <div className="flex flex-wrap text-[13px] md:text-[14px] border-t-2 border-[#727695] md:w-[59%] w-full text-[#727695] pb-5 pl-2 md:pl-10 ">
               <p className="pr-1">By proceeding to login your account you are agreeing to our</p>
               <a href="#" className="text-[#252525] text-[14px] md:text-[15px]">
-              Terms of Service
+              Terms of Use
               </a>
               <span className="px-2">and</span>
               <a href="#" className="text-[#252525] text-[14px] md:text-[15px]">

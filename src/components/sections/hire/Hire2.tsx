@@ -32,8 +32,8 @@ const HIRE_FEATURES: readonly IHireFeature[] = Object.freeze([
 const TRAINING_FEATURES: readonly IHireFeature[] = Object.freeze([
   Object.freeze({ icon: BarChart, text: "Data-driven skill gap analysis to identify high-impact training areas." }),
   Object.freeze({ icon: Award, text: "Industry practitioners delivering practical, application-focused training." }),
-  Object.freeze({ icon: BookOpen, text: "Blended learning approach combining live sessions and self-paced modules." }),
-  Object.freeze({ icon: TrendingUp, text: "Performance tracking and ROI measurement for every program." })
+  Object.freeze({ icon: BookOpen, text: "Blended learning - live sessions and self-paced modules." }),
+  Object.freeze({ icon: TrendingUp, text: "Performance tracking and ROI measurement." })
 ]);
 
 // PERFORMANCE OPTIMIZATION: Memoized FeatureList component

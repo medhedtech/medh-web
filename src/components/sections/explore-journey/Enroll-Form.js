@@ -683,7 +683,7 @@ const ExploreJourney = ({
                       I agree to the 
                       <Link href="/terms-and-services">
                         <span className="text-primary-600 dark:text-primary-400 hover:underline ml-1 font-medium">
-                          Terms of Service
+                          Terms of Use
                         </span>
                       </Link>{" "}
                       and{" "}

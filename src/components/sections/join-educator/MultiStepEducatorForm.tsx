@@ -860,7 +860,7 @@ const MultiStepEducatorForm: React.FC = () => {
                         <label className="text-sm text-slate-700 dark:text-slate-300">
                           I agree to the{" "}
                           <Link href="/terms-and-services" className="text-blue-600 hover:underline">
-                            Terms of Service
+                            Terms of Use
                           </Link>{" "}
                           and{" "}
                           <Link href="/privacy-policy" className="text-blue-600 hover:underline">
