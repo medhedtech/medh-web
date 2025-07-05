@@ -3,7 +3,6 @@ import DigiMarketingBanner from '@/components/sections/digital-marketing/digiMar
 import DigiMarketingOverview from '@/components/sections/digital-marketing/digiMarketingOverview';
 import DigiMarketingCourse from '@/components/sections/digital-marketing/digiMarketingCourse';
 import DigiMarketingFaq from '@/components/sections/digital-marketing/digiMarketingFaq';
-import DigiMarketingRalatedCource from '@/components/sections/digital-marketing/digiMarketingRalatedCource';
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 
 const Page: NextPage = () => {
@@ -14,7 +13,6 @@ const Page: NextPage = () => {
       <DigiMarketingCourse />
       <DigiMarketingOverview />
       <DigiMarketingFaq />
-      <DigiMarketingRalatedCource />
       </PageWrapper>
     </main>
   );

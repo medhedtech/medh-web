@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import CommonFaq, { IFAQ } from "@/components/shared/ui/CommonFaq";
 import { 
   Users, 
@@ -83,38 +83,68 @@ const CareerFaq: React.FC = () => {
     },
   ];
 
-  // Category definitions for our filter
-  const categories = [
-    { id: "all", label: "All", count: faqs.length },
-    { id: "culture", label: "Culture", count: faqs.filter(f => f.category === "culture").length },
-    { id: "development", label: "Development", count: faqs.filter(f => f.category === "development").length },
-    { id: "benefits", label: "Benefits", count: faqs.filter(f => f.category === "benefits").length },
-    { id: "application", label: "Application", count: faqs.filter(f => f.category === "application").length },
-    { id: "process", label: "Process", count: faqs.filter(f => f.category === "process").length },
-    { id: "support", label: "Support", count: faqs.filter(f => f.category === "support").length }
-  ];
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className={layoutPatterns.sectionWrapper}>
-      <div className={layoutPatterns.containerWrapper}>
+    <section className="bg-slate-50 dark:bg-slate-900 min-h-screen px-[50px]">
         {/* FAQ Content */}
-        <div className={buildAdvancedComponent.contentCard()}>
-          <CommonFaq
-            title=""
-            subtitle=""
-            faqs={faqs}
-            theme={{
-              primaryColor: "#8b5cf6", // Violet-500 - Career theme
-              secondaryColor: "#7c3aed", // Violet-600 - Strong contrast
-              accentColor: "#a855f7", // Violet-500 - Perfect balance
-              showContactSection: true,
-              contactEmail: "care@medh.co",
-              contactText: "Have more questions about career opportunities at Medh? Contact our HR team at"
-            }}
-            showSearch={true}
-            showCategories={true}
-            defaultCategory="all"
-          />
+      <div className={buildAdvancedComponent.contentCard() + " p-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-lg rounded-none sm:rounded-2xl px-[45px] py-[28px]"}>
+        <h2 className="text-center font-semibold text-lg sm:text-xl md:text-2xl mb-4 sm:mb-6 mt-2 sm:mt-4 text-slate-800 dark:text-slate-100">Frequently Asked Questions</h2>
+        <ul className="divide-y divide-slate-200 dark:divide-slate-800">
+          {faqs.map((faq, idx) => (
+            <li key={idx} className="">
+              <button
+                className={
+                  "w-full flex items-start gap-3 py-4 focus:outline-none transition-colors min-h-[44px] " +
+                  (openIndex === idx
+                    ? "bg-slate-100 dark:bg-slate-800"
+                    : "hover:bg-slate-50 dark:hover:bg-slate-800/60")
+                }
+                aria-expanded={openIndex === idx}
+                aria-controls={`faq-panel-${idx}`}
+                onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
+              >
+                <span className="flex-shrink-0 mt-1">
+                  {faq.icon}
+                </span>
+                <span className="flex-1 text-left">
+                  <span className="block font-medium text-sm sm:text-base md:text-lg text-slate-900 dark:text-slate-100">
+                    {faq.question}
+                  </span>
+                </span>
+                <svg
+                  className={
+                    "w-5 h-5 ml-2 transition-transform duration-200 " +
+                    (openIndex === idx ? "rotate-180" : "rotate-0")
+                  }
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div
+                id={`faq-panel-${idx}`}
+                className={
+                  "overflow-hidden transition-all duration-300 " +
+                  (openIndex === idx ? "max-h-96 py-2" : "max-h-0 py-0")
+                }
+                aria-hidden={openIndex !== idx}
+              >
+                <p className="text-slate-700 dark:text-slate-200 text-xs sm:text-sm md:text-base leading-relaxed">
+                  {faq.answer}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+        {/* Contact Section (unchanged) */}
+        <div className="mt-6 sm:mt-8 border-t border-slate-200 dark:border-slate-800 pt-4 sm:pt-6 pb-4 text-center">
+          <span className="block text-slate-700 dark:text-slate-200 text-sm sm:text-base font-medium">
+            Have more questions about career opportunities at Medh? Contact our HR team at <a href="mailto:care@medh.co" className="text-[#3bac63] underline font-semibold">care@medh.co</a>
+          </span>
         </div>
       </div>
     </section>

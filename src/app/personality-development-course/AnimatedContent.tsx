@@ -61,7 +61,6 @@ const AnimatedContent: FC<IAnimatedContentProps> = ({
     CourseContent: components.PersonalityCourse,
     CourseOverview: components.PersonalityOvereveiw,
     CourseFAQ: components.PersonalityFaq,
-    CourseRelatedCourses: components.PersonalityRelatedCourse,
     ThemeController: components.ThemeController,
     ExploreJourney: components.ExploreJourney
   };

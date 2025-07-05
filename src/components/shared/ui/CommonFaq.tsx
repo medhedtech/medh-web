@@ -40,7 +40,6 @@ export interface ICommonFaqProps {
   apiEndpoint?: string;
   theme?: IFAQTheme;
   showSearch?: boolean;
-  showCategories?: boolean;
   defaultCategory?: string;
   categoriesEndpoint?: string;
   className?: string;
@@ -87,16 +86,12 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
   apiEndpoint,
   theme = defaultTheme,
   showSearch = true,
-  showCategories = false,
   defaultCategory = "all",
   categoriesEndpoint,
   className = "",
 }) => {
   const [faqItems, setFaqItems] = useState<IFAQ[]>(faqs);
-  const [categories, setCategories] = useState<string[]>(['all']);
-  const [selectedCategory, setSelectedCategory] = useState(defaultCategory);
   const [loading, setLoading] = useState(!!apiEndpoint);
-  const [categoriesLoading, setCategoriesLoading] = useState(!!categoriesEndpoint);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredFaqs, setFilteredFaqs] = useState<IFAQ[]>(faqs);
@@ -121,31 +116,6 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
     }
   };
 
-  // Fetch categories if endpoint is provided
-  useEffect(() => {
-    if (!categoriesEndpoint) return;
-
-    const fetchCategories = async () => {
-      setCategoriesLoading(true);
-      try {
-        const response = await axios.get(categoriesEndpoint);
-        if (response.data?.categories && Array.isArray(response.data.categories)) {
-          setCategories(['all', ...response.data.categories]);
-        } else {
-          setCategories(['all']);
-        }
-      } catch (err) {
-        console.error("Error fetching categories:", err);
-        setError("Failed to load categories. Please try again later.");
-        setCategories(['all']);
-      } finally {
-        setCategoriesLoading(false);
-      }
-    };
-
-    fetchCategories();
-  }, [categoriesEndpoint]);
-
   // Fetch FAQs if endpoint is provided
   useEffect(() => {
     if (!apiEndpoint) {
@@ -160,10 +130,6 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
       try {
         let url = apiEndpoint;
         
-        if (showCategories && selectedCategory !== "all") {
-          url = `${url}/${selectedCategory}`;
-        }
-        
         const response = await axios.get(url);
         const fetchedFaqs = response.data.faqs || response.data;
         
@@ -177,7 +143,7 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
     };
 
     fetchFaqs();
-  }, [apiEndpoint, selectedCategory, retrying, faqs, showCategories]);
+  }, [apiEndpoint, retrying, faqs]);
 
   // Filter FAQs based on search query
   useEffect(() => {
@@ -195,11 +161,6 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
     
     setFilteredFaqs(filtered);
   }, [searchQuery, faqItems]);
-
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
-    setSearchQuery(""); // Reset search when changing category
-  };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -222,19 +183,6 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
     if (iconIndex === 0) return <HelpCircle strokeWidth={1.75} className="w-5 h-5" />;
     if (iconIndex === 1) return <BookOpen strokeWidth={1.75} className="w-5 h-5" />;
     return <HelpingHand strokeWidth={1.75} className="w-5 h-5" />;
-  };
-
-  // Function to color code categories
-  const getCategoryColor = (category: string) => {
-    const categoryMap: Record<string, string> = {
-      'all': theme.primaryColor,
-      'general': theme.primaryColor,
-      'courses': theme.secondaryColor || theme.primaryColor,
-      'payment': theme.accentColor || theme.primaryColor,
-      'support': theme.secondaryColor || theme.primaryColor
-    };
-    
-    return categoryMap[category.toLowerCase()] || theme.primaryColor;
   };
 
   // Loading skeletons
@@ -292,57 +240,6 @@ const CommonFaq: React.FC<ICommonFaqProps> = ({
               </div>
               <div className="border-b-4 border-emerald-500 w-24 mx-auto mt-2 mb-0 rounded-full"></div>
             </div>
-          )}
-
-          {/* Category Filters */}
-          {showCategories && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="flex justify-center mb-6 sm:mb-8 px-2 sm:px-0"
-            >
-              <div className="flex flex-wrap gap-2 sm:gap-3 justify-center items-center max-w-full overflow-x-auto pb-2">
-                <AnimatePresence mode="wait">
-                  {/* Show loading skeleton for categories */}
-                  {categoriesLoading ? (
-                    <div className="flex gap-2 sm:gap-3">
-                      {[1, 2, 3, 4].map((i) => (
-                        <div
-                          key={i}
-                          className="h-9 sm:h-10 w-20 sm:w-24 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse"
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <>
-                      {categories.map((category) => (
-                        category === 'all' ? null : (
-                        <button
-                          key={category}
-                          onClick={() => handleCategoryChange(category)}
-                          suppressHydrationWarning
-                          className={`px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap hover:scale-105 ${
-                            selectedCategory === category
-                              ? `bg-[${primaryColor}] text-white shadow-md`
-                              : "bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-300"
-                          }`}
-                          style={{ 
-                            minHeight: '36px',
-                            borderBottom: selectedCategory === category 
-                              ? `3px solid ${getCategoryColor(category)}` 
-                              : 'none'
-                          }}
-                        >
-                          {category.charAt(0).toUpperCase() + category.slice(1)}
-                        </button>
-                        )
-                      ))}
-                    </>
-                  )}
-                </AnimatePresence>
-              </div>
-            </motion.div>
           )}
 
           {/* Subtitle */}

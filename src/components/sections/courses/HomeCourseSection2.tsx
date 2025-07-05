@@ -1240,7 +1240,7 @@ const HomeCourseSection2 = memo<{
             </div>
           ) : (
             <>
-              <EmptyState type="blended" isDark={isDark} />
+            <EmptyState type="blended" isDark={isDark} />
               <div className="hidden md:flex justify-end w-full mt-4">
                 <ViewAllButton href="/courses" text="View All Courses" isDark={isDark} />
               </div>
