@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useTheme } from "next-themes";
 import { BarChart, Globe, Target, ArrowRight, Shield, Award, TrendingUp } from 'lucide-react';
+import medhLogo from '@/assets/images/logo/medh.png';
 
 // Copyright-free Unsplash images for Digital Marketing
 const DIGITAL_MARKETING_IMAGES = {
@@ -162,12 +163,38 @@ const DigiMarketingBanner: React.FC = memo(() => {
               </div>
             </div>
 
+            {/* Learn Label - Plain Text (no chip) */}
+            <div className="mb-0 text-center">
+              <span className={`block text-base sm:text-lg md:text-xl lg:text-2xl font-semibold tracking-wide ${isDark ? 'text-white' : 'text-gray-700'}`}>Learn</span>
+            </div>
             {/* Main Heading - Full Title Without Truncation */}
             <h1 className={headingClasses}>
               <span className={`gpu-accelerated ${isDark ? 'text-transparent bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text' : 'text-transparent bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text'}`}>
                 Digital Marketing with Data Analytics
               </span>
             </h1>
+            {/* With Medh Logo - Pixel-perfect match to other banners */}
+            <div className="flex items-center justify-center gap-3 md:gap-4">
+              <span className={`text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold italic tracking-wide ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>with</span>
+              <span className="inline-flex items-baseline align-baseline gpu-accelerated">
+                <Image
+                  src={medhLogo}
+                  alt="Medh Logo"
+                  width={96}
+                  height={96}
+                  className="inline-block h-6 sm:h-7 md:h-8 lg:h-9 w-auto align-baseline gpu-accelerated"
+                  style={{
+                    verticalAlign: 'baseline',
+                    transform: 'translateY(-4px)',
+                    objectFit: 'contain',
+                    imageRendering: '-webkit-optimize-contrast',
+                    backfaceVisibility: 'hidden',
+                    WebkitFontSmoothing: 'antialiased',
+                    filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))'
+                  }}
+                />
+              </span>
+            </div>
 
             {/* Description */}
             <p className={descriptionClasses}>
