@@ -242,7 +242,7 @@ const CourseAiBanner: React.FC<CourseAiBannerProps> = ({ onLearnMoreClick }) => 
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
         {/* Main Content with Enhanced Glassmorphism */}
-        <div className="flex flex-col items-center justify-center min-h-screen text-center py-6">
+        <div className="flex flex-col items-center justify-center min-h-screen text-center py-4 md:py-6 lg:py-8">
           {/* Hero Text Section with Glass Container */}
           <div className={`mb-2 md:mb-3 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             <div className="glass-container rounded-3xl p-4 md:p-6 lg:p-8 mb-1 transform scale-90 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
@@ -259,30 +259,27 @@ const CourseAiBanner: React.FC<CourseAiBannerProps> = ({ onLearnMoreClick }) => 
               </div>
                
               {/* Main Heading */}
-              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-2 sm:mb-3 md:mb-4 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                <span className="block text-sm sm:text-base font-medium uppercase tracking-widest mb-3 opacity-80">Welcome to Medh</span>
-                <span className="block">Make Your Dreams Happen</span>
-                <span className="block">
-                  <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9)' }}>with</em>
-                  <span className="inline-flex items-center">
-                    <Image 
-                      src={medhLogo} 
-                      alt="Medh Logo" 
-                      width={128} 
-                      height={128} 
-                      unoptimized={true}
-                      className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline"
-                      style={{ 
-                        filter: 'brightness(1.1) contrast(1.2)',
-                        transform: 'scale(0.9) translateY(5px)',
-                        verticalAlign: 'baseline'
-                      }}
-                    />
-                  </span>
+              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-center tracking-tight mb-2 sm:mb-3 md:mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Make Your Dreams Happen
+                <span className="block mt-1 w-full text-center">
+                  <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9) translateY(2px)' }}>with</em>
+                  <Image 
+                    src={medhLogo} 
+                    alt="Medh Logo" 
+                    width={128} 
+                    height={128} 
+                    unoptimized={true}
+                    className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 w-auto align-baseline"
+                    style={{ 
+                      filter: 'brightness(1.1) contrast(1.2)',
+                      transform: 'translateY(2px)',
+                      verticalAlign: 'baseline'
+                    }}
+                  />
                 </span>
               </h1>
                 
-              <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-3 sm:mb-4 md:mb-6 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
+              <p className={`text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed mb-3 sm:mb-4 md:mb-6 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
                 At Medh, we're more than just an EdTech platform. We're a community dedicated to transforming passionate learners into industry-ready professionals.
               </p>
 
@@ -302,11 +299,11 @@ const CourseAiBanner: React.FC<CourseAiBannerProps> = ({ onLearnMoreClick }) => 
               </div>
 
               {/* Tagline - Enhanced Size - Matching Homepage */}
-              <div className={`mumkinMedh mobile-tagline-large text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold mb-2 leading-tight pt-12 whitespace-nowrap ${
+              <div className={`mumkinMedh text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold mb-2 leading-tight pt-8 md:pt-12 ${
                 isDark 
                   ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
                   : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
-              }`} style={{ transform: 'scaleX(1.1)', letterSpacing: '0.05em' }}>
+              }`} style={{ transform: 'scaleX(1.1)', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
                 Medh Hai Toh Mumkin Hai !
               </div>
             </div>
