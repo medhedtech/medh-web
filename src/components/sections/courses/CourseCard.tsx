@@ -802,7 +802,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
 
   const formatCourseGrade = (grade: any) => {
     if (grade === "UG - Graduate - Professionals") {
-      return "UG/Grad/Pro";
+      return "UG - Grad - Prof";
     }
     return grade;
   };

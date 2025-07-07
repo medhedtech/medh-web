@@ -31,7 +31,8 @@ import {
   DollarSign,
   LogOut,
   X,
-  Menu
+  Menu,
+  BarChart
 } from "lucide-react";
 
 // Context for dashboard state management
@@ -39,6 +40,12 @@ export const AdminDashboardContext = createContext<any>(null);
 
 // Dynamically import dashboard components with loading states
 const AdminDashboardMain = dynamic(() => import("@/components/layout/main/dashboards/AdminDashboardMain"), { 
+  ssr: false,
+  loading: () => <SkeletonLoader type="dashboard" />
+});
+
+// Admin2Dashboard - Enhanced dashboard with advanced analytics
+const Admin2Dashboard = dynamic(() => import("@/components/sections/dashboards/Admin2Dashboard"), { 
   ssr: false,
   loading: () => <SkeletonLoader type="dashboard" />
 });
@@ -314,6 +321,11 @@ const getComponentForView = (
     // Main Dashboard
     if (viewMatches(['overview', 'dashboard'])) {
       return { component: AdminDashboardMain, props: componentProps };
+    }
+    
+    // Admin2Dashboard - Enhanced dashboard
+    else if (viewMatches(['admin2', 'dashboard2', 'advanced-dashboard'])) {
+      return { component: Admin2Dashboard, props: componentProps };
     } 
     
     // Currency Management
@@ -714,6 +726,17 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
         onClick: () => {
           setIsLoading(true);
           setCurrentView("overview");
+          setTimeout(() => setIsLoading(false), 500);
+        }
+      },
+      {
+        name: "Advanced Dashboard",
+        path: "/dashboards/admin2",
+        icon: <BarChart className="w-4 h-4" />,
+        ariaLabel: "Advanced dashboard with analytics",
+        onClick: () => {
+          setIsLoading(true);
+          setCurrentView("admin2");
           setTimeout(() => setIsLoading(false), 500);
         }
       },
