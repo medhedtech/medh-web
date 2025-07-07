@@ -249,7 +249,7 @@ const CorporateBanner: React.FC<CorporateBannerProps> = ({ onLearnMoreClick }) =
   };
 
   return (
-    <section className="relative min-h-[80vh] overflow-hidden animate-theme-transition">
+    <section className="relative min-h-screen overflow-hidden animate-theme-transition">
       {/* Add mobile tagline styles */}
       <style jsx>{mobileTaglineStyles}</style>
       
@@ -263,10 +263,10 @@ const CorporateBanner: React.FC<CorporateBannerProps> = ({ onLearnMoreClick }) =
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
-        <div className="flex flex-col items-center justify-center min-h-[80vh] text-center py-6">
+        <div className="flex flex-col items-center justify-center min-h-screen text-center py-4 md:py-6 lg:py-8">
           
           <div className={`mb-2 md:mb-3 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <div className="glass-container rounded-3xl p-4 md:p-6 lg:p-8 mb-1 transform scale-90 max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto">
+            <div className="glass-container rounded-3xl p-4 md:p-6 lg:p-8 mb-1 transform scale-90 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
               
               <div className="flex flex-wrap justify-center gap-3 mb-4">
                 <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
@@ -282,7 +282,7 @@ const CorporateBanner: React.FC<CorporateBannerProps> = ({ onLearnMoreClick }) =
               <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-center tracking-tight mb-2 sm:mb-3 md:mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 Elevate Your Workforce Skills
                 <span className="block mt-1 w-full text-center">
-                  <em className="font-normal inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9) translateY(2px)' }}>with</em>
+                  <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9) translateY(2px)' }}>with</em>
                   <Image 
                     src={medhLogo} 
                     alt="Medh Logo" 
