@@ -177,7 +177,7 @@ const CourseOptions: React.FC = () => {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+      <div id="course-options-section" className="min-h-[80vh] bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 pb-8">
         {/* Header with controlled width */}
         <div className="w-full">
           {customHeader}
@@ -228,14 +228,6 @@ const CourseOptions: React.FC = () => {
         </div>
 
         {/* Explore More Button */}
-        <div className="flex justify-center w-full py-6 md:py-8">
-          <Link href="/courses">
-            <div className="inline-flex items-center px-6 md:px-8 py-3 md:py-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white text-sm md:text-base font-medium rounded-lg md:rounded-xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-95">
-              <Zap className="w-4 h-4 md:w-5 md:h-5 mr-2" />
-              <span>Explore All Courses</span>
-            </div>
-          </Link>
-        </div>
       </div>
     </>
   );
