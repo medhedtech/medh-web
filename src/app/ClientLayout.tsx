@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import dynamic from "next/dynamic";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 // Import centralized font config
 import { poppins, montserrat, hind } from "@/lib/fonts";
@@ -147,6 +148,8 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
             theme="colored"
             className="z-[100]"
           />
+          {/* Vercel Speed Insights */}
+          <SpeedInsights />
         </Providers>
       </body>
     </html>
