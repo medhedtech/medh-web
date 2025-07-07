@@ -61,7 +61,7 @@ const VedicCourse: FC<IVedicCourseProps> = ({
   );
 
   return (
-    <div className={`w-full bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 ${className}`}>
+    <div id="course-options-section" className="min-h-[80vh] bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/30 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <div className="w-full">
         {customHeader}
         
