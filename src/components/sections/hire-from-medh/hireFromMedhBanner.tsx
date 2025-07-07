@@ -197,6 +197,28 @@ const highlights: IHighlightItem[] = [
   }
 ];
 
+// Add value items for 'Why Choose Our Talent Pool?'
+const talentPoolValues: IValueItem[] = [
+  {
+    icon: <Award className="w-6 h-6" />, // Award icon for certification
+    title: "Certified Professionals",
+    description: "Industry-recognized certifications and validated skills",
+    color: "from-blue-500 to-cyan-500"
+  },
+  {
+    icon: <Brain className="w-6 h-6" />, // Brain icon for experience
+    title: "Real Experience",
+    description: "Hands-on project experience across industries",
+    color: "from-emerald-500 to-teal-500"
+  },
+  {
+    icon: <TrendingUp className="w-6 h-6" />, // TrendingUp icon for learning
+    title: "Continuous Learning",
+    description: "Up-to-date with latest technologies and trends",
+    color: "from-purple-500 to-indigo-500"
+  }
+];
+
 interface HireFromMedhBannerProps {
   onLearnMoreClick?: () => void;
 }
@@ -250,10 +272,9 @@ const HireFromMedhBanner: React.FC<HireFromMedhBannerProps> = ({ onLearnMoreClic
   };
 
   return (
-    <section className="relative pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-0 overflow-hidden animate-theme-transition">
+    <section className="relative min-h-screen overflow-hidden animate-theme-transition">
       {/* Add mobile tagline styles */}
       <style jsx>{mobileTaglineStyles}</style>
-      
       {/* Enhanced Background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className={`absolute top-0 right-0 w-3/4 h-3/4 ${isDark ? 'bg-gradient-to-br from-blue-500/10 via-indigo-500/10 to-purple-500/10' : 'bg-gradient-to-br from-blue-300/20 via-indigo-300/15 to-purple-300/20'} rounded-full blur-3xl transform translate-x-1/4 -translate-y-1/4 animate-float`}></div>
@@ -262,73 +283,45 @@ const HireFromMedhBanner: React.FC<HireFromMedhBannerProps> = ({ onLearnMoreClic
         <div className={`absolute bottom-1/4 right-1/3 w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-dashed ${isDark ? 'border-green-500/20' : 'border-green-400/30'} animate-pulse-slow`}></div>
         <div className={`absolute top-3/4 left-1/2 w-12 h-12 md:w-16 md:h-16 rounded-xl border-2 ${isDark ? 'border-blue-500/20' : 'border-blue-400/30'} transform rotate-45 animate-float`}></div>
       </div>
-
-      {/* Centered container matching Hero2.tsx pattern */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
-        <div className="flex flex-col items-center justify-center text-center pb-4 md:pb-6 lg:pb-8">
-          
-          {/* Hero Text Section */}
-          <div className={`mb-2 md:mb-3 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <div className="glass-container rounded-3xl p-8 md:p-12 mb-1" style={{ transform: 'scale(0.9) translate3d(0,0,0)' }}>
-              
-              {/* Certification Badges */}
-              <div className="flex flex-wrap justify-center gap-3 mb-3 sm:mb-4">
-                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
-                  <Shield size={10} className="mr-1 sm:w-3 sm:h-3" />
-                  ISO Certified
-                </div>
-                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
-                  <Award size={10} className="mr-1 sm:w-3 sm:h-3" />
-                  STEM Certified
-                </div>
+        <div className="flex flex-col items-center text-center pt-[140px] pb-0">
+          <div className={`mb-2 md:mb-3 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}> 
+            <div className="glass-container rounded-3xl p-4 md:p-6 lg:p-8 mb-1 -mt-7 transform scale-90 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
+              <div className="flex flex-wrap justify-center gap-3 mb-4">
+                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}> <Shield size={10} className="mr-1 sm:w-3 sm:h-3" /> ISO Certified </div>
+                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}> <Award size={10} className="mr-1 sm:w-3 sm:h-3" /> STEM Certified </div>
               </div>
-               
-              {/* Main Heading */}
-              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-4 md:mb-6 tracking-tight max-w-4xl mx-auto ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                <span className="block whitespace-nowrap">
-                  Hire From{' '}                                                       
-                  <span className="inline-flex items-baseline align-baseline">
-                    <Image 
-                      src={medhLogo} 
-                      alt="Medh Logo" 
-                      width={96} 
-                      height={96} 
-                      priority 
-                      quality={95}
-                      fetchPriority="high"
-                      sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, (max-width: 1024px) 96px, 112px"
-                      className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline"
-                      style={{ 
-                        transform: 'translateY(2px) translate3d(0,0,0)',
-                        verticalAlign: 'baseline',
-                        objectFit: 'contain',
-                        imageRendering: '-webkit-optimize-contrast',
-                        backfaceVisibility: 'hidden',
-                        WebkitFontSmoothing: 'antialiased'
-                      }}
-                      onLoad={() => {
-                        // Mark LCP element as loaded for performance tracking
-                        if (typeof window !== 'undefined' && 'performance' in window) {
-                          performance.mark('hero-logo-loaded');
-                        }
-                      }}
-                    />
-                  </span>
+              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-center tracking-tight mb-2 sm:mb-3 md:mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Hire Talent From
+                <span className="block mt-1 w-full text-center">
+                  <Image 
+                    src={medhLogo} 
+                    alt="Medh Logo" 
+                    width={128} 
+                    height={128} 
+                    unoptimized={true}
+                    className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 w-auto align-baseline"
+                    style={{ 
+                      filter: 'brightness(1.1) contrast(1.2)',
+                      transform: 'translateY(0px)',
+                      verticalAlign: 'middle',
+                      objectFit: 'contain',
+                      imageRendering: '-webkit-optimize-contrast',
+                      backfaceVisibility: 'hidden',
+                      WebkitFontSmoothing: 'antialiased'
+                    }}
+                  />
                 </span>
               </h1>
-                
-              {/* Description */}
-              <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                Recruit top IT professionals in areas including AI, Data Science, Digital Marketing, Analytics, Cybersecurity, and more. Save time and resources with our pre-vetted talent.
+              <p className={`text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed mb-3 sm:mb-4 md:mb-6 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
+              Recruit top IT professionals across AI, Data Science, Digital Marketing, Analytics, Cybersecurity, and more. Save time and resources with our pre-vetted talent.
               </p>
-
-              {/* CTA Button */}
-              <div className="mt-4 sm:mt-6 md:mt-8">
+              <div className="mt-4 sm:mt-6 md:mt-8 flex flex-wrap gap-4 justify-center">
                 <button 
                   onClick={handleExplore}
-                  className={`inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-all duration-300 transform hover:scale-105 group text-sm sm:text-base md:text-lg relative overflow-hidden shadow-2xl ${
-                    isDark
-                      ? 'bg-gradient-to-r from-primary-500 to-purple-500 text-white hover:shadow-2xl hover:shadow-primary-500/30 glass-stats' 
+                  className={`inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-all duration-300 hover:scale-105 group text-sm sm:text-base md:text-lg relative overflow-hidden ${
+                    isDark 
+                      ? 'bg-gradient-to-r from-primary-500 to-blue-500 text-white hover:shadow-2xl hover:shadow-primary-500/30 glass-stats' 
                       : 'bg-white/95 backdrop-blur-lg text-gray-900 border-2 border-primary-500/40 hover:border-primary-500/70 hover:bg-white shadow-2xl hover:shadow-3xl'
                   }`}
                 >
@@ -336,25 +329,38 @@ const HireFromMedhBanner: React.FC<HireFromMedhBannerProps> = ({ onLearnMoreClic
                   <ArrowRight size={16} className="relative z-10 ml-3 group-hover:translate-x-1 transition-transform sm:w-4 sm:h-4 md:w-5 md:h-5" />
                 </button>
               </div>
-
-              {/* Tagline */}
-              <div className="pt-2 mb-0 w-full overflow-hidden" style={{ paddingTop: '1rem' }}>
-                <div className={`mumkinMedh font-extrabold leading-tight ${
-                  isDark 
-                    ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
-                    : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
-                }`} style={{ 
-                  fontSize: 'clamp(2rem, 8vw, 5rem)',
-                  transform: 'scaleX(1.1) translate3d(0,0,0)', 
-                  letterSpacing: '0.05em', 
-                  whiteSpace: 'nowrap',
-                  textAlign: 'center',
-                  width: '100%'
-                }}>
-                  Medh Hai Toh Mumkin Hai !
-                </div>
+              <div className={`mumkinMedh text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold mb-2 leading-tight pt-8 md:pt-12 ${
+                isDark 
+                  ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
+                  : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
+              }`} style={{ transform: 'scaleX(1.1)', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+                Medh Hai Toh Mumkin Hai !
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+      {/* Why Choose Our Talent Pool Section */}
+      <div className={`mb-0 transition-all duration-1000 delay-500 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+        <div className="glass-stats rounded-2xl p-6 md:p-8 max-w-5xl lg:max-w-6xl mx-auto">
+          <h3 className={`text-xl md:text-2xl font-bold mb-4 md:mb-6 text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>Why Choose Our Talent Pool?</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            {talentPoolValues.map((value, index) => (
+              <div
+                key={index}
+                className="relative overflow-hidden rounded-xl p-4 md:p-6 cursor-pointer group transition-all duration-300 text-center glass-stats hover:scale-105"
+              >
+                <div className="relative z-10">
+                  <div className={`bg-gradient-to-br ${value.color} text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform`}>
+                    <div className="w-5 h-5 md:w-6 md:h-6">
+                      {value.icon}
+                    </div>
+                  </div>
+                  <h4 className={`text-base md:text-lg font-bold mb-2 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'}`}>{value.title}</h4>
+                  <p className={`text-sm md:text-base transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'}`}>{value.description}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

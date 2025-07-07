@@ -671,13 +671,12 @@ const VedicOverview = () => {
           <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
             Join thousands of students who have transformed their mathematical skills and conquered their fear of numbers through our comprehensive Vedic Mathematics course.
           </p>
-          <Link href="/enrollment/vedic-mathematics" passHref legacyBehavior>
-            <a
-              className="px-8 py-3 bg-gradient-to-r from-primaryColor to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all font-medium inline-block"
-              tabIndex={0}
-            >
-              Enroll Today
-            </a>
+          <Link
+            href="/enrollment/vedic-mathematics"
+            className="px-8 py-3 bg-gradient-to-r from-primaryColor to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all font-medium inline-block"
+            tabIndex={0}
+          >
+            Enroll Now
           </Link>
         </motion.div>
       </div>

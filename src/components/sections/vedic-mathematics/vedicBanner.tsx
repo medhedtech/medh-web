@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useTheme } from "next-themes";
 import { Calculator, Brain, Gauge, ArrowRight, Shield, Award, Zap, BookOpen, TrendingUp } from 'lucide-react';
+import medhLogo from '@/assets/images/logo/medh.png';
 
 // Copyright-free Unsplash images for Vedic Mathematics
 const VEDIC_MATHEMATICS_IMAGES = {
@@ -39,7 +40,7 @@ const FeatureCard = memo<IFeatureCard>(({ icon, title, description, isDark }) =>
   }, [isDark]);
 
   return (
-    <div className={cardClasses}>
+    <div className={cardClasses + " text-center"}>
       {/* Animated background gradient */}
       <div className="absolute inset-0 opacity-30 gpu-accelerated">
         <div className={`absolute inset-0 bg-gradient-to-br animate-pulse gpu-accelerated ${
@@ -50,11 +51,11 @@ const FeatureCard = memo<IFeatureCard>(({ icon, title, description, isDark }) =>
       </div>
       
       <div className="relative z-10 gpu-accelerated">
-        <div className="mb-3 group-hover:scale-110 transition-gpu gpu-accelerated">
+        <div className="mb-3 group-hover:scale-110 transition-gpu gpu-accelerated flex justify-center">
           {icon}
         </div>
-        <h3 className={titleClasses}>{title}</h3>
-        <p className={descriptionClasses}>{description}</p>
+        <h3 className={titleClasses + " text-center"}>{title}</h3>
+        <p className={descriptionClasses + " text-center"}>{description}</p>
       </div>
     </div>
   );
@@ -162,12 +163,38 @@ const VedicBanner: React.FC = memo(() => {
               </div>
             </div>
 
+            {/* Learn Label - Plain Text (no chip) */}
+            <div className="mb-0 text-center">
+              <span className={`block text-base sm:text-lg md:text-xl lg:text-2xl font-semibold tracking-wide ${isDark ? 'text-white' : 'text-gray-700'}`}>Learn</span>
+            </div>
             {/* Main Heading */}
             <h1 className={headingClasses}>
               <span className={`gpu-accelerated ${isDark ? 'text-transparent bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text' : 'text-transparent bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text'}`}>
                 Vedic Mathematics
               </span>
             </h1>
+            {/* With Medh Logo - Pixel-perfect match to other banners */}
+            <div className="flex items-center justify-center gap-3 md:gap-4">
+              <span className={`text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold italic tracking-wide ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>with</span>
+              <span className="inline-flex items-baseline align-baseline gpu-accelerated">
+                <Image
+                  src={medhLogo}
+                  alt="Medh Logo"
+                  width={96}
+                  height={96}
+                  className="inline-block h-6 sm:h-7 md:h-8 lg:h-9 w-auto align-baseline gpu-accelerated"
+                  style={{
+                    verticalAlign: 'baseline',
+                    transform: 'translateY(-4px)',
+                    objectFit: 'contain',
+                    imageRendering: '-webkit-optimize-contrast',
+                    backfaceVisibility: 'hidden',
+                    WebkitFontSmoothing: 'antialiased',
+                    filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))'
+                  }}
+                />
+              </span>
+            </div>
 
             {/* Description */}
             <p className={descriptionClasses}>
@@ -176,10 +203,17 @@ const VedicBanner: React.FC = memo(() => {
 
             {/* CTA Button */}
             <div className="text-center mb-4 md:mb-6 gpu-accelerated">
-              <a href="/enrollment/vedic-mathematics/?course=67c064d08a56e7688ddc5c86" className={ctaClasses} target="_blank" rel="noopener noreferrer">
+              <button
+                className={ctaClasses}
+                onClick={e => {
+                  e.preventDefault();
+                  const el = document.getElementById('course-options-section');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
                 <span className="relative z-10 font-extrabold tracking-wide gpu-accelerated">Enroll Now</span>
                 <ArrowRight size={16} className="relative z-10 ml-2 group-hover:translate-x-1 transition-gpu gpu-accelerated" />
-              </a>
+              </button>
             </div>
 
             {/* Tagline - Medh Hai Toh Mumkin Hai */}

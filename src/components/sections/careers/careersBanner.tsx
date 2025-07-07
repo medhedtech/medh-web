@@ -8,65 +8,65 @@ import { useTheme } from "next-themes";
 import Iso from "@/assets/images/courseai/iso.png";
 import medhLogo from "@/assets/images/logo/medh.png";
 
+// TypeScript interfaces
+interface ICareerValue {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  color: string;
+}
+
+interface CareerBannerProps {
+  onViewPositionsClick?: () => void;
+}
+
 // Enhanced custom animations for the careers banner with theme-aware glassmorphism
-const getThemeStyles = (isDark) => `
+const getThemeStyles = (isDark: boolean): string => `
   @keyframes animate-gradient-x {
     0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
   }
-  
   @keyframes animate-bounce-slow {
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-20px); }
   }
-  
   @keyframes animate-pulse-slow {
     0%, 100% { opacity: 0.8; }
     50% { opacity: 0.4; }
   }
-  
   @keyframes animate-float {
     0%, 100% { transform: translateY(0px) rotate(0deg); }
     50% { transform: translateY(-20px) rotate(180deg); }
   }
-  
   @keyframes shimmer {
     0% { background-position: -200% 0; }
     100% { background-position: 200% 0; }
   }
-  
   @keyframes theme-transition {
     0% { opacity: 0; }
     100% { opacity: 1; }
   }
-  
   .animate-gradient-x {
     background-size: 200% 200%;
     animation: animate-gradient-x 3s ease infinite;
   }
-  
   .animate-bounce-slow {
     animation: animate-bounce-slow 6s ease-in-out infinite;
   }
-  
   .animate-pulse-slow {
     animation: animate-pulse-slow 4s ease-in-out infinite;
   }
-  
   .animate-float {
     animation: animate-float 8s ease-in-out infinite;
   }
-  
   .animate-shimmer {
-    background: linear-gradient(90deg, transparent, ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.3)'}, transparent);
+    background: linear-gradient(90deg, transparent, ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255, 255, 255, 0.3)'}, transparent);
     background-size: 200% 100%;
     animation: shimmer 2s infinite;
   }
-  
   .animate-theme-transition {
     animation: theme-transition 0.5s ease-in-out;
   }
-  
   .glass-container {
     background: ${isDark 
       ? 'rgba(15, 23, 42, 0.08)' 
@@ -88,7 +88,6 @@ const getThemeStyles = (isDark) => `
         : 'rgba(255, 255, 255, 0.18)'};
     position: relative;
   }
-  
   .glass-container::before {
     content: '';
     position: absolute;
@@ -105,7 +104,6 @@ const getThemeStyles = (isDark) => `
     mask-composite: exclude;
     pointer-events: none;
   }
-  
   .glass-stats {
     background: ${isDark 
       ? 'rgba(15, 23, 42, 0.12)' 
@@ -127,7 +125,6 @@ const getThemeStyles = (isDark) => `
         : 'rgba(255, 255, 255, 0.25)'};
     position: relative;
   }
-  
   .glass-stats::before {
     content: '';
     position: absolute;
@@ -144,7 +141,6 @@ const getThemeStyles = (isDark) => `
     mask-composite: exclude;
     pointer-events: none;
   }
-  
   .glass-primary {
     background: ${isDark 
       ? 'rgba(15, 23, 42, 0.25)' 
@@ -166,7 +162,6 @@ const getThemeStyles = (isDark) => `
         : 'rgba(255, 255, 255, 0.3)'};
     position: relative;
   }
-  
   .glass-primary::before {
     content: '';
     position: absolute;
@@ -182,24 +177,6 @@ const getThemeStyles = (isDark) => `
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask-composite: exclude;
     pointer-events: none;
-  }
-  
-  .text-shadow-light {
-    text-shadow: ${isDark 
-      ? '2px 2px 8px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 0, 0, 0.6)' 
-      : '1px 1px 3px rgba(0, 0, 0, 0.3), 0 0 6px rgba(0, 0, 0, 0.2)'};
-  }
-  
-  .text-shadow-medium {
-    text-shadow: ${isDark 
-      ? '1px 1px 4px rgba(0, 0, 0, 0.7)' 
-      : '1px 1px 2px rgba(0, 0, 0, 0.4)'};
-  }
-  
-  .text-shadow-subtle {
-    text-shadow: ${isDark 
-      ? '1px 1px 3px rgba(0, 0, 0, 0.6)' 
-      : '0.5px 0.5px 1px rgba(0, 0, 0, 0.3)'};
   }
 `;
 
@@ -220,54 +197,40 @@ const animations = {
 };
 
 // Values data for careers
-const values = [
+const values: ICareerValue[] = [
   {
-    icon: <Rocket className="w-6 h-6" />,
-    title: "Innovation Culture",
-    description: "Drive change in education technology and shape the future",
-    color: "from-blue-500 to-cyan-500"
+    icon: <Rocket className="w-6 h-6" />, title: "Innovation Culture", description: "Drive change in education technology and shape the future", color: "from-blue-500 to-cyan-500"
   },
   {
-    icon: <Heart className="w-6 h-6" />,
-    title: "Purpose-Driven Work",
-    description: "Make a meaningful impact on students' lives worldwide",
-    color: "from-emerald-500 to-teal-500"
+    icon: <Heart className="w-6 h-6" />, title: "Purpose-Driven Work", description: "Make a meaningful impact on students' lives worldwide", color: "from-emerald-500 to-teal-500"
   },
   {
-    icon: <Sparkles className="w-6 h-6" />,
-    title: "Growth Mindset",
-    description: "Continuous learning and professional development opportunities",
-    color: "from-purple-500 to-indigo-500"
+    icon: <Sparkles className="w-6 h-6" />, title: "Growth Mindset", description: "Continuous learning and professional development opportunities", color: "from-purple-500 to-indigo-500"
   }
 ];
 
-export default function CareerBanner({ onViewPositionsClick }) {
+const CareerBanner: React.FC<CareerBannerProps> = ({ onViewPositionsClick }) => {
   const { theme } = useTheme();
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const [mounted, setMounted] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
 
-  const isDark = mounted ? theme === 'dark' : true; // Default to dark during SSR
+  const isDark: boolean = mounted ? theme === 'dark' : true;
 
-  // Mount and theme effects
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Inject theme-aware styles
   useEffect(() => {
     if (!mounted) return;
-    
     const existingStyle = document.getElementById('careers-banner-theme-styles');
     if (existingStyle) {
       existingStyle.remove();
     }
-    
     const styleSheet = document.createElement("style");
     styleSheet.id = 'careers-banner-theme-styles';
     styleSheet.innerText = getThemeStyles(isDark);
     document.head.appendChild(styleSheet);
-    
     return () => {
       const styleToRemove = document.getElementById('careers-banner-theme-styles');
       if (styleToRemove) {
@@ -276,15 +239,12 @@ export default function CareerBanner({ onViewPositionsClick }) {
     };
   }, [mounted, isDark]);
 
-  // Check for mobile view
   useEffect(() => {
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
     checkIfMobile();
     window.addEventListener('resize', checkIfMobile);
-    
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
 
@@ -299,59 +259,48 @@ export default function CareerBanner({ onViewPositionsClick }) {
         {/* Animated gradient blobs - theme aware */}
         <div className={`absolute top-0 right-0 w-3/4 h-3/4 ${isDark ? 'bg-gradient-to-br from-blue-500/10 via-indigo-500/10 to-purple-500/10' : 'bg-gradient-to-br from-blue-300/20 via-indigo-300/15 to-purple-300/20'} rounded-full blur-3xl transform translate-x-1/4 -translate-y-1/4 animate-float`}></div>
         <div className={`absolute bottom-0 left-0 w-3/4 h-3/4 ${isDark ? 'bg-gradient-to-tr from-green-500/10 via-emerald-500/5 to-transparent' : 'bg-gradient-to-tr from-green-300/15 via-emerald-300/10 to-transparent'} rounded-full blur-3xl transform -translate-x-1/4 translate-y-1/4 animate-float`} style={{ animationDelay: '2s' }}></div>
-        
         {/* Decorative elements - theme aware */}
         <div className={`absolute top-1/4 left-1/3 w-16 h-16 md:w-24 md:h-24 rounded-full border-4 ${isDark ? 'border-blue-500/20' : 'border-blue-400/30'} animate-bounce-slow`}></div>
         <div className={`absolute bottom-1/4 right-1/3 w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-dashed ${isDark ? 'border-green-500/20' : 'border-green-400/30'} animate-pulse-slow`}></div>
         <div className={`absolute top-3/4 left-1/2 w-12 h-12 md:w-16 md:h-16 rounded-xl border-2 ${isDark ? 'border-blue-500/20' : 'border-blue-400/30'} transform rotate-45 animate-float`}></div>
       </div>
-
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
         {/* Main Content with Enhanced Glassmorphism */}
-        <div className="flex flex-col items-center justify-center min-h-screen text-center py-8">
-          
+        <div className="flex flex-col items-center justify-center min-h-screen text-center py-4 md:py-6 lg:py-8">
           {/* Hero Text Section with Glass Container */}
-          <div className={`mb-2 md:mb-3 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <div className="glass-container rounded-3xl p-6 md:p-8 lg:p-12 mb-1 transform scale-90 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
+          <div className={`mb-2 md:mb-3 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}> 
+            <div className="glass-container rounded-3xl p-4 md:p-6 lg:p-8 mb-1 transform scale-90 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
               {/* Badges */}
               <div className="flex flex-wrap justify-center gap-3 mb-4">
-                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
-                  <Shield size={10} className="mr-1 sm:w-3 sm:h-3" />
-                  ISO Certified
-                </div>
-                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
-                  <Award size={10} className="mr-1 sm:w-3 sm:h-3" />
-                  STEM Certified
-                </div>
+                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}> <Shield size={10} className="mr-1 sm:w-3 sm:h-3" /> ISO Certified </div>
+                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}> <Award size={10} className="mr-1 sm:w-3 sm:h-3" /> STEM Certified </div>
               </div>
-               
-                             {/* Main Heading */}
-               <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-4 md:mb-6 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                 <span className="block text-sm sm:text-base font-medium uppercase tracking-widest mb-3 opacity-80">Careers at Medh</span>
-                 <span className="block">Grow Impact Thrive Meaningfully</span>
-                 <span className="block">
-                   <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9)' }}>with</em>
-                   <span className="inline-flex items-center">
-                   <Image 
-                     src={medhLogo} 
-                     alt="Medh Logo" 
-                     width={96} 
-                     height={96} 
-                     className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline"
-                     style={{ 
-                         filter: 'brightness(1.1) contrast(1.2)',
-                         transform: 'scale(0.9) translateY(5px)',
-                         verticalAlign: 'baseline'
-                       }}
-                   />
-                   </span>
-                 </span>
+              {/* Main Heading */}
+              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-center tracking-tight mb-2 sm:mb-3 md:mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Grow Impact Thrive Meaningfully
+                <span className="block mt-1 w-full text-center">
+                  <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9) translateY(2px)' }}>with</em>
+                  <Image 
+                    src={medhLogo} 
+                    alt="Medh Logo" 
+                    width={128} 
+                    height={128} 
+                    className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 w-auto align-baseline"
+                    style={{ 
+                      filter: 'brightness(1.1) contrast(1.2)',
+                      transform: 'translateY(2px)',
+                      verticalAlign: 'baseline',
+                      objectFit: 'contain',
+                      imageRendering: '-webkit-optimize-contrast',
+                      backfaceVisibility: 'hidden',
+                      WebkitFontSmoothing: 'antialiased'
+                    }}
+                  />
+                </span>
               </h1>
-                
-              <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
+              <p className={`text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed mb-3 sm:mb-4 md:mb-6 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
                 Join our dynamic team dedicated to transforming education and creating meaningful opportunities for learners worldwide.
               </p>
-
               {/* Enhanced CTA Buttons */}
               <div className="mt-4 sm:mt-6 md:mt-8 flex flex-wrap gap-4 justify-center">
                 <Link
@@ -371,13 +320,11 @@ export default function CareerBanner({ onViewPositionsClick }) {
                   )}
                   <span className="relative z-10 font-extrabold tracking-wide">Apply Now</span>
                   <ArrowRight size={16} className="relative z-10 ml-3 group-hover:translate-x-1 transition-transform sm:w-4 sm:h-4 md:w-5 md:h-5" />
-                  
                   {/* Shine effect for light mode */}
                   {!isDark && (
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                   )}
                 </Link>
-                
                 <button
                   onClick={onViewPositionsClick}
                   className={`inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-all duration-300 hover:scale-105 text-sm sm:text-base md:text-lg ${
@@ -386,21 +333,20 @@ export default function CareerBanner({ onViewPositionsClick }) {
                       : 'bg-gray-100/80 backdrop-blur-lg text-gray-700 border-2 border-gray-300/40 hover:border-gray-400/70 hover:bg-gray-200/80 shadow-lg hover:shadow-xl'
                   }`}
                 >
-                  View Positions
+                  <Briefcase size={16} className="mr-2" />
+                  View Open Positions
                 </button>
               </div>
-
               {/* Tagline - Enhanced Size */}
-              <div className={`mumkinMedh text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-2 leading-tight pt-12 ${
+              <div className={`mumkinMedh text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold mb-2 leading-tight pt-8 md:pt-12 ${
                 isDark 
                   ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
                   : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
-              }`} style={{ transform: 'scaleX(1.1)', letterSpacing: '0.05em' }}>
+              }`} style={{ transform: 'scaleX(1.1)', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
                 Medh Hai Toh Mumkin Hai !
               </div>
             </div>
           </div>
-
           {/* Enhanced Values Section */}
           <div className={`mb-6 md:mb-8 transition-all duration-1000 delay-500 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             <div className="glass-stats rounded-2xl p-6 md:p-8 max-w-5xl lg:max-w-6xl mx-auto">
@@ -425,7 +371,6 @@ export default function CareerBanner({ onViewPositionsClick }) {
               </div>
             </div>
           </div>
-
           {/* Scroll Indicator */}
           <div className={`flex flex-col items-center mt-6 md:mt-8 transition-all duration-1000 delay-700 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             <span className={`text-sm mb-2 ${isDark ? 'text-white' : 'text-gray-600'} font-medium text-shadow-subtle`}>Explore Career Opportunities</span>
@@ -435,8 +380,6 @@ export default function CareerBanner({ onViewPositionsClick }) {
       </div>
     </section>
   );
-}
+};
 
-
-
-
+export default CareerBanner; 

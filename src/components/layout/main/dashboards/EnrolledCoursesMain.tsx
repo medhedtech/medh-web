@@ -97,31 +97,56 @@ const EnrolledCoursesMain: React.FC = () => {
         return;
       }
 
-             await getQuery({
-         url: apiUrls.enrolledCourses.getEnrollmentsByStudent(userId),
-         onSuccess: (response: any) => {
-           console.log("Enrolled courses response:", response);
-           
-           // Handle different response structures
-           let enrollmentsData = [];
-           if (response.success && response.data) {
-             enrollmentsData = response.data;
-           } else if (Array.isArray(response)) {
-             enrollmentsData = response;
-           } else if (response.data && Array.isArray(response.data)) {
-             enrollmentsData = response.data;
-           }
-           
-           // Filter out enrollments with null course_id
-           const validEnrollments = enrollmentsData.filter((enrollment: any) => enrollment.course_id !== null);
-           setEnrollments(validEnrollments);
-           setFilteredEnrollments(validEnrollments);
-         },
-         onFail: (error: any) => {
-           console.error("Error fetching enrollments:", error);
-           setError("Failed to load enrolled courses. Please try again.");
-         }
-       });
+      await getQuery({
+        url: apiUrls.enrolledCourses.getEnrollmentsByStudent(userId),
+        onSuccess: (response: any) => {
+          console.log("Enrolled courses response:", response);
+
+          // Handle 'no enrollments found' as empty state, not error
+          if (
+            response &&
+            response.success === false &&
+            typeof response.message === "string" &&
+            response.message.toLowerCase().includes("no enrollments found")
+          ) {
+            setEnrollments([]);
+            setFilteredEnrollments([]);
+            setError(null); // Do not show error UI
+            return;
+          }
+
+          // Handle different response structures
+          let enrollmentsData = [];
+          if (response.success && response.data) {
+            enrollmentsData = response.data;
+          } else if (Array.isArray(response)) {
+            enrollmentsData = response;
+          } else if (response.data && Array.isArray(response.data)) {
+            enrollmentsData = response.data;
+          }
+
+          // Filter out enrollments with null course_id
+          const validEnrollments = enrollmentsData.filter((enrollment: any) => enrollment.course_id !== null);
+          setEnrollments(validEnrollments);
+          setFilteredEnrollments(validEnrollments);
+        },
+        onFail: (error: any) => {
+          // If error response has 'no enrollments found', treat as empty state
+          if (
+            error &&
+            error.message &&
+            typeof error.message === "string" &&
+            error.message.toLowerCase().includes("no enrollments found")
+          ) {
+            setEnrollments([]);
+            setFilteredEnrollments([]);
+            setError(null); // Do not show error UI
+            return;
+          }
+          console.error("Error fetching enrollments:", error);
+          setError("Failed to load enrolled courses. Please try again.");
+        }
+      });
     } catch (error) {
       console.error("Unexpected error:", error);
       setError("An unexpected error occurred.");
@@ -216,7 +241,8 @@ const EnrolledCoursesMain: React.FC = () => {
     );
   }
 
-  if (error) {
+  // Only show error UI for true technical errors (not for no enrollments)
+  if (error && enrollments.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-96 space-y-4">
         <AlertCircle className="w-12 h-12 text-red-500" />
@@ -390,9 +416,7 @@ const EnrolledCoursesMain: React.FC = () => {
           <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 dark:text-white">No courses found</h3>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            {searchTerm || selectedCategory !== "all" || selectedStatus !== "all" 
-              ? "Try adjusting your filters" 
-              : "You haven't enrolled in any courses yet"}
+            You haven't enrolled in any courses yet
           </p>
         </div>
       ) : (

@@ -234,7 +234,7 @@ const BannerNews: React.FC = () => {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
-        <div className="flex flex-col items-center justify-center min-h-[80vh] text-center py-6">
+        <div className="flex flex-col items-center justify-center min-h-[80vh] text-center pt-8 pb-6">
           
           <div className={`mb-2 md:mb-3 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             <div className="glass-container rounded-3xl p-4 md:p-6 lg:p-8 mb-1 transform scale-90 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
@@ -250,10 +250,9 @@ const BannerNews: React.FC = () => {
                 </div>
               </div>
                
-              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-2 sm:mb-3 md:mb-4 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                <span className="block text-sm sm:text-base font-medium uppercase tracking-widest mb-3 opacity-80">Stay Updated with Medh</span>
+              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-2 sm:mb-3 md:mb-4 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 <span className="block whitespace-nowrap">Stay Informed Grow Dynamically</span>
-                <span className="block whitespace-nowrap">
+                <span className="block mt-1 w-full text-center">
                   <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9)' }}>with</em>
                   <span className="inline-flex items-center">
                   <Image 
@@ -262,10 +261,10 @@ const BannerNews: React.FC = () => {
                      width={128} 
                      height={128} 
                      unoptimized={true}
-                     className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline"
+                     className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 w-auto align-baseline"
                      style={{ 
                          filter: 'brightness(1.1) contrast(1.2)',
-                         transform: 'scale(0.9) translateY(5px)',
+                         transform: 'translateY(2px)',
                          verticalAlign: 'baseline'
                        }}
                    />
@@ -273,7 +272,7 @@ const BannerNews: React.FC = () => {
                 </span>
               </h1>
                 
-              <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-3 sm:mb-4 md:mb-6 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
+              <p className={`text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed mb-3 sm:mb-4 md:mb-6 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
                 Become part of our mission to redefine Innovative EdTech and transform Skill Development for the future.
               </p>
 

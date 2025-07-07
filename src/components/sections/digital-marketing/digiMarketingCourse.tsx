@@ -243,11 +243,11 @@ const DigiMarketingCourse: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/30 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <div id="course-options-section" className="min-h-[80vh] bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/30 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Enhanced Header */}
 
       {/* Course Discovery Section */}
-      <div className="relative w-full px-0 pb-12">
+      <div className="relative w-full px-0 pb-6">
         <div className="w-full">
           {/* New: Future-Ready Skills Section (matches AI/Data Science style) */}
           <div className="relative text-center w-full mb-8">
@@ -316,53 +316,7 @@ const DigiMarketingCourse: React.FC = () => {
                     </div>
                   ))}
                 </div>
-                {/* Explore All Courses Button */}
-                <div className="flex justify-center w-full py-6 md:py-8">
-                  <Link href="/courses">
-                    <div className="inline-flex items-center px-6 md:px-8 py-3 md:py-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white text-sm md:text-base font-medium rounded-lg md:rounded-xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-95">
-                      <ArrowRight className="w-4 h-4 md:w-5 md:h-5 mr-2" />
-                      <span>Explore All Courses</span>
-                    </div>
-                  </Link>
-                </div>
 
-                {/* Success indicators using real data */}
-                <div className="mt-12">
-                  <div className={buildAdvancedComponent.glassCard({ variant: 'primary', padding: 'desktop', hover: false })}>
-                    <div className="text-center space-y-6">
-                      <div className="flex items-center justify-center gap-2 mb-4">
-                        <Star className="w-5 h-5 text-yellow-500" />
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">Why Choose Our Digital Marketing Program?</h3>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="text-center">
-                          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center">
-                            <Brain className="w-6 h-6 text-white" />
-                          </div>
-                          <div className="font-semibold text-slate-900 dark:text-white mb-1">Industry-Relevant Curriculum</div>
-                          <div className="text-sm text-slate-600 dark:text-slate-400">Updated with latest trends and tools</div>
-                        </div>
-                        
-                        <div className="text-center">
-                          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center">
-                            <Users className="w-6 h-6 text-white" />
-                          </div>
-                          <div className="font-semibold text-slate-900 dark:text-white mb-1">Expert Instructors</div>
-                          <div className="text-sm text-slate-600 dark:text-slate-400">Learn from industry professionals</div>
-                        </div>
-                        
-                        <div className="text-center">
-                          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-r from-violet-500 to-purple-500 flex items-center justify-center">
-                            <Briefcase className="w-6 h-6 text-white" />
-                          </div>
-                          <div className="font-semibold text-slate-900 dark:text-white mb-1">Career Support</div>
-                          <div className="text-sm text-slate-600 dark:text-slate-400">Job placement assistance included</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </>
             ) : (
               <div className="flex justify-center w-full py-12">

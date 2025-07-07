@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef, useCallback, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { 
   Users,
   Play,
@@ -71,6 +71,7 @@ const HomeCard: React.FC<HomeCardProps> = ({
   
   const cardRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (cardRef.current) {
@@ -102,6 +103,20 @@ const HomeCard: React.FC<HomeCardProps> = ({
 
   // Navigation handler
   const navigateToCourse = useCallback(() => {
+    // Home page special redirect for 4 courses
+    const homePage = pathname === "/";
+    const courseUrlMap = {
+      "AI & Data Science": "/ai-and-data-science-course",
+      "Personality Development": "/personality-development-course",
+      "Vedic Mathematics": "/vedic-mathematics-course",
+      "Digital Marketing with Data Analytics": "/digital-marketing-with-data-analytics-course"
+    };
+    const courseTitle = safeCourse?.course_title?.trim();
+    if (homePage && courseTitle && courseUrlMap[courseTitle]) {
+      router.push(courseUrlMap[courseTitle]);
+      return;
+    }
+
     if (isLiveCourse && safeCourse?._id && safeCourse?.course_category) {
       const categoryName = safeCourse.course_category.toLowerCase().replace(/\s+/g, '-');
       const enrollmentUrl = `/enrollment/${categoryName}?course=${safeCourse._id}`;
@@ -118,7 +133,7 @@ const HomeCard: React.FC<HomeCardProps> = ({
     if (safeCourse?._id) {
       window.open(`/course-details/${safeCourse._id}`, '_blank');
     }
-  }, [isLiveCourse, safeCourse, router]);
+  }, [isLiveCourse, safeCourse, router, pathname]);
 
   // Format price
   const formatPrice = useMemo(() => {
