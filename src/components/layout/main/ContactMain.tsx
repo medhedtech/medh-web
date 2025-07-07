@@ -305,7 +305,7 @@ const ContactMain: React.FC = () => {
                         By submitting this form, I accept{' '}
                         <Link href="/terms-and-services">
                           <span className="text-emerald-600 dark:text-emerald-400 hover:underline font-medium">
-                            Terms of Service
+                            Terms of Use
                           </span>
                         </Link>{" "}
                         &{" "}

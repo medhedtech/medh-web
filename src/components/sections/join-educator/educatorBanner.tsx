@@ -290,7 +290,7 @@ const EducatorBanner: React.FC = () => {
                       : 'bg-white/95 backdrop-blur-lg text-gray-900 border-2 border-primary-500/40 hover:border-primary-500/70 hover:bg-white shadow-2xl hover:shadow-3xl'
                   }`}
                 >
-                  <span className="relative z-10 font-extrabold tracking-wide">Join as Educator</span>
+                  <span className="relative z-10 font-extrabold tracking-wide">Join as an Educator</span>
                   <ArrowRight size={16} className="relative z-10 ml-3 group-hover:translate-x-1 transition-transform sm:w-4 sm:h-4 md:w-5 md:h-5" />
                 </button>
               </div>

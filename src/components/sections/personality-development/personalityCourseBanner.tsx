@@ -4,7 +4,8 @@ import React, { useMemo, memo } from "react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { Users, Star, Heart, ArrowRight, Shield, Award, Smile, TrendingUp, Zap } from 'lucide-react';
-
+import Image from 'next/image';
+import medhLogo from '@/assets/images/logo/medh.png';
 
 
 // TypeScript interfaces
@@ -157,12 +158,40 @@ const PersonalityCourseBanner: React.FC = memo(() => {
               </div>
             </div>
 
+            {/* Learn Label - Plain Text (no chip) */}
+            <div className="mb-0 text-center">
+              <span className={`block text-base sm:text-lg md:text-xl lg:text-2xl font-semibold tracking-wide ${isDark ? 'text-white' : 'text-gray-700'}`}>Learn</span>
+            </div>
             {/* Main Heading */}
             <h1 className={headingClasses}>
-              <span className={`gpu-accelerated ${isDark ? 'text-transparent bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text' : 'text-transparent bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text'}`}>
+              <span className={`gpu-accelerated ${isDark 
+                ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-teal-300 bg-clip-text' 
+                : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 bg-clip-text'}`}>
                 Personality Development
               </span>
             </h1>
+            {/* With Medh Logo - Pixel-perfect match to AI banner */}
+            <div className="flex items-center justify-center gap-3 md:gap-4">
+              <span className={`text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold italic tracking-wide ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>with</span>
+              <span className="inline-flex items-baseline align-baseline gpu-accelerated">
+                <Image
+                  src={medhLogo}
+                  alt="Medh Logo"
+                  width={96}
+                  height={96}
+                  className="inline-block h-6 sm:h-7 md:h-8 lg:h-9 w-auto align-baseline gpu-accelerated"
+                  style={{
+                    verticalAlign: 'baseline',
+                    transform: 'translateY(-4px)',
+                    objectFit: 'contain',
+                    imageRendering: '-webkit-optimize-contrast',
+                    backfaceVisibility: 'hidden',
+                    WebkitFontSmoothing: 'antialiased',
+                    filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))'
+                  }}
+                />
+              </span>
+            </div>
 
             {/* Description */}
             <p className={descriptionClasses}>

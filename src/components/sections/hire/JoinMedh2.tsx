@@ -23,17 +23,17 @@ interface IFeature {
 
 // PERFORMANCE OPTIMIZATION: Frozen feature data to prevent mutations
 const EDUCATOR_FEATURES: readonly IFeature[] = Object.freeze([
-  Object.freeze({ icon: Globe, text: "Access to global teaching opportunities with flexible scheduling" }),
-  Object.freeze({ icon: Clock, text: "Set your own hours and teach from anywhere in the world" }),
-  Object.freeze({ icon: Award, text: "Competitive compensation with performance-based incentives" }),
-  Object.freeze({ icon: BookOpen, text: "Access to comprehensive teaching resources and support" })
+  Object.freeze({ icon: Globe, text: "Access to global opportunities with flexible scheduling." }),
+  Object.freeze({ icon: Clock, text: "Set your own hours and teach from anywhere in the world." }),
+  Object.freeze({ icon: Award, text: "Competitive compensation with incentives." }),
+  Object.freeze({ icon: BookOpen, text: "Access to comprehensive teaching resources and support." })
 ]);
 
 const PARTNER_FEATURES: readonly IFeature[] = Object.freeze([
-  Object.freeze({ icon: Target, text: "Customized training solutions tailored to your institution's needs" }),
-  Object.freeze({ icon: Award, text: "Industry-aligned curriculum with cutting-edge content" }),
-  Object.freeze({ icon: Trophy, text: "Access to advanced learning technologies and platforms" }),
-  Object.freeze({ icon: Building, text: "Enhanced employability outcomes for your students" })
+  Object.freeze({ icon: Target, text: "Customized courses tailored to your institution's needs." }),
+  Object.freeze({ icon: Award, text: "Industry-aligned curriculum with cutting-edge content." }),
+  Object.freeze({ icon: Trophy, text: "Access to advanced learning technologies and platforms." }),
+  Object.freeze({ icon: Building, text: "Enhanced employability outcomes for your students." })
 ]);
 
 // PERFORMANCE OPTIMIZATION: Memoized FeatureList component
@@ -298,7 +298,7 @@ const JoinMedh = memo(() => {
           <div className={gridClasses}>
             {/* Educator Card */}
             <JoinCard
-              title="Join as Educator"
+              title="Join as an Educator"
               subtitle="Share Your Expertise"
               features={EDUCATOR_FEATURES}
               buttonText="Become an Educator"
@@ -313,8 +313,8 @@ const JoinMedh = memo(() => {
 
             {/* Partner Card */}
             <JoinCard
-              title="Partner with Us"
-              subtitle="Institutional Excellence"
+              title="School / Institute"
+              subtitle="Partner with Us"
               features={PARTNER_FEATURES}
               buttonText="Become a Partner"
               onClick={handlePartnerNavigate}
@@ -338,7 +338,7 @@ const JoinMedh = memo(() => {
                 className="group inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-all duration-300 border border-blue-200 dark:border-blue-800"
               >
                 <Users className="mr-2 w-4 h-4" />
-                Join as Educator
+                Join as an Educator
               </button>
               <button
                 onClick={handlePartnerNavigate}
