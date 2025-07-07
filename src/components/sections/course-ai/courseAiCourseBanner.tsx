@@ -79,7 +79,7 @@ const CourseAiCourseBanner: React.FC = memo(() => {
   }, [isDark]);
 
   const contentClasses = useMemo(() => {
-    return `relative z-10 max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-12 gpu-accelerated`;
+    return `relative z-10 max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-0 gpu-accelerated`;
   }, []);
 
   const headingClasses = useMemo(() => {
@@ -162,16 +162,43 @@ const CourseAiCourseBanner: React.FC = memo(() => {
               </div>
             </div>
 
-            {/* Main Heading */}
-            <h1 className={headingClasses}>
-              <span className={`gpu-accelerated ${isDark ? 'text-transparent bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text' : 'text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text'}`}>
-                AI & Data Science
-              </span>
-            </h1>
+            {/* Custom Heading with Medh Logo */}
+            <div className="text-center mb-6 md:mb-8">
+              {/* Learn Label - Plain Text (no chip) */}
+              <div className="mb-0">
+                <span className={`block text-base sm:text-lg md:text-xl lg:text-2xl font-semibold tracking-wide ${isDark ? 'text-white' : 'text-gray-700'}`}>Learn</span>
+              </div>
+              {/* Main Heading - Pixel-perfect match to Hero2.tsx */}
+              <h1 className={headingClasses}>
+                <span className={`gpu-accelerated block ${isDark ? 'text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text' : 'text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text'}`}>AI & Data Science</span>
+              </h1>
+              {/* With Medh Logo - Pixel-perfect match to Hero2.tsx */}
+              <div className="flex items-center justify-center gap-3 md:gap-4">
+                <span className={`text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold italic tracking-wide ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>with</span>
+                <span className="inline-flex items-baseline align-baseline gpu-accelerated">
+                  <Image 
+                    src={require('@/assets/images/logo/medh 2.png')} 
+                    alt="Medh Logo" 
+                    width={96} 
+                    height={96} 
+                    className="inline-block h-6 sm:h-7 md:h-8 lg:h-9 w-auto align-baseline gpu-accelerated"
+                    style={{
+                      verticalAlign: 'baseline',
+                      transform: 'translateY(-4px)',
+                      objectFit: 'contain',
+                      imageRendering: '-webkit-optimize-contrast',
+                      backfaceVisibility: 'hidden',
+                      WebkitFontSmoothing: 'antialiased',
+                      filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))'
+                    }}
+                  />
+                </span>
+              </div>
+            </div>
 
             {/* Description */}
             <p className={descriptionClasses}>
-              Supercharge your career with cutting-edge AI and Data Science skills. Master machine learning, data analysis, and AI technologies that are transforming industries worldwide.
+              Supercharge your career. Master machine learning, data analysis, and AI technologies.
             </p>
 
             {/* CTA Button */}

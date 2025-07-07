@@ -305,7 +305,7 @@ const MobileMenu: React.FC<IMobileMenuProps> = ({
                 onClick={closeMenu}
                 className="block p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
               >
-                <h3 className="font-medium">Join As Educator</h3>
+                <h3 className="font-medium">Join As An Educator</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Become a teacher</p>
               </Link>
               <Link 
