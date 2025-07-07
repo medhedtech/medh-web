@@ -197,6 +197,28 @@ const highlights: IHighlightItem[] = [
   }
 ];
 
+// Add value items for 'Why Choose Our Talent Pool?'
+const talentPoolValues: IValueItem[] = [
+  {
+    icon: <Award className="w-6 h-6" />, // Award icon for certification
+    title: "Certified Professionals",
+    description: "Industry-recognized certifications and validated skills",
+    color: "from-blue-500 to-cyan-500"
+  },
+  {
+    icon: <Brain className="w-6 h-6" />, // Brain icon for experience
+    title: "Real Experience",
+    description: "Hands-on project experience across industries",
+    color: "from-emerald-500 to-teal-500"
+  },
+  {
+    icon: <TrendingUp className="w-6 h-6" />, // TrendingUp icon for learning
+    title: "Continuous Learning",
+    description: "Up-to-date with latest technologies and trends",
+    color: "from-purple-500 to-indigo-500"
+  }
+];
+
 interface HireFromMedhBannerProps {
   onLearnMoreClick?: () => void;
 }
@@ -262,7 +284,7 @@ const HireFromMedhBanner: React.FC<HireFromMedhBannerProps> = ({ onLearnMoreClic
         <div className={`absolute top-3/4 left-1/2 w-12 h-12 md:w-16 md:h-16 rounded-xl border-2 ${isDark ? 'border-blue-500/20' : 'border-blue-400/30'} transform rotate-45 animate-float`}></div>
       </div>
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
-        <div className="flex flex-col items-center justify-center min-h-screen text-center py-4 md:py-6 lg:py-8">
+        <div className="flex flex-col items-center text-center pt-[140px] pb-0">
           <div className={`mb-2 md:mb-3 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}> 
             <div className="glass-container rounded-3xl p-4 md:p-6 lg:p-8 mb-1 -mt-7 transform scale-90 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
               <div className="flex flex-wrap justify-center gap-3 mb-4">
@@ -315,6 +337,30 @@ const HireFromMedhBanner: React.FC<HireFromMedhBannerProps> = ({ onLearnMoreClic
                 Medh Hai Toh Mumkin Hai !
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+      {/* Why Choose Our Talent Pool Section */}
+      <div className={`mb-0 transition-all duration-1000 delay-500 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+        <div className="glass-stats rounded-2xl p-6 md:p-8 max-w-5xl lg:max-w-6xl mx-auto">
+          <h3 className={`text-xl md:text-2xl font-bold mb-4 md:mb-6 text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>Why Choose Our Talent Pool?</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            {talentPoolValues.map((value, index) => (
+              <div
+                key={index}
+                className="relative overflow-hidden rounded-xl p-4 md:p-6 cursor-pointer group transition-all duration-300 text-center glass-stats hover:scale-105"
+              >
+                <div className="relative z-10">
+                  <div className={`bg-gradient-to-br ${value.color} text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform`}>
+                    <div className="w-5 h-5 md:w-6 md:h-6">
+                      {value.icon}
+                    </div>
+                  </div>
+                  <h4 className={`text-base md:text-lg font-bold mb-2 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'}`}>{value.title}</h4>
+                  <p className={`text-sm md:text-base transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'}`}>{value.description}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
