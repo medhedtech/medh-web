@@ -203,10 +203,17 @@ const CourseAiCourseBanner: React.FC = memo(() => {
 
             {/* CTA Button */}
             <div className="text-center mb-4 md:mb-6 gpu-accelerated">
-              <Link href="/enrollment/ai-and-data-science/" className={ctaClasses}>
+              <button
+                className={ctaClasses}
+                onClick={e => {
+                  e.preventDefault();
+                  const el = document.getElementById('course-options-section');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
                 <span className="relative z-10 font-extrabold tracking-wide gpu-accelerated">Enroll Now</span>
                 <ArrowRight size={16} className="relative z-10 ml-2 group-hover:translate-x-1 transition-gpu gpu-accelerated" />
-              </Link>
+              </button>
             </div>
 
             {/* Tagline - Medh Hai Toh Mumkin Hai */}
