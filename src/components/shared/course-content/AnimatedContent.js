@@ -141,13 +141,13 @@ function AnimatedContent({
     whileInView: "visible",
     viewport: { once: true, amount: 0.1 },
     variants: fadeInUp,
-    className: "w-full py-0 md:py-4 relative z-10 transform-gpu"
+    className: "w-full py-0 md:py-0 relative z-10 transform-gpu"
   };
 
   // Custom motion props for FAQ section to remove top padding
   const faqMotionSectionProps = {
     ...motionSectionProps,
-    className: "w-full py-0 md:py-4 relative z-10 transform-gpu"
+    className: "w-full py-0 md:py-0 relative z-10 transform-gpu"
   };
 
   return (

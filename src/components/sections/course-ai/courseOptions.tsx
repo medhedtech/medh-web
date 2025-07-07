@@ -177,7 +177,7 @@ const CourseOptions: React.FC = () => {
 
   return (
     <>
-      <div className="min-h-[80vh] bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 pb-8">
+      <div id="course-options-section" className="min-h-[80vh] bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 pb-8">
         {/* Header with controlled width */}
         <div className="w-full">
           {customHeader}
