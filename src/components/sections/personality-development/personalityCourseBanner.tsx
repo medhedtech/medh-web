@@ -35,7 +35,7 @@ const FeatureCard = memo<IFeatureCard>(({ icon, title, description, isDark }) =>
   }, [isDark]);
 
   return (
-    <div className={cardClasses}>
+    <div className={cardClasses + " text-center"}>
       {/* Animated background gradient */}
       <div className="absolute inset-0 opacity-30 gpu-accelerated">
         <div className={`absolute inset-0 bg-gradient-to-br animate-pulse gpu-accelerated ${
@@ -46,11 +46,11 @@ const FeatureCard = memo<IFeatureCard>(({ icon, title, description, isDark }) =>
       </div>
       
       <div className="relative z-10 gpu-accelerated">
-        <div className="mb-3 group-hover:scale-110 transition-gpu gpu-accelerated">
+        <div className="mb-3 group-hover:scale-110 transition-gpu gpu-accelerated flex justify-center">
           {icon}
         </div>
-        <h3 className={titleClasses}>{title}</h3>
-        <p className={descriptionClasses}>{description}</p>
+        <h3 className={titleClasses + " text-center"}>{title}</h3>
+        <p className={descriptionClasses + " text-center"}>{description}</p>
       </div>
     </div>
   );
@@ -200,10 +200,17 @@ const PersonalityCourseBanner: React.FC = memo(() => {
 
             {/* CTA Button */}
             <div className="text-center mb-4 md:mb-6 gpu-accelerated">
-              <Link href="/enrollment/personality-development" className={ctaClasses}>
+              <button
+                className={ctaClasses}
+                onClick={e => {
+                  e.preventDefault();
+                  const el = document.getElementById('course-options-section');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
                 <span className="relative z-10 font-extrabold tracking-wide gpu-accelerated">Enroll Now</span>
                 <ArrowRight size={16} className="relative z-10 ml-2 group-hover:translate-x-1 transition-gpu gpu-accelerated" />
-              </Link>
+              </button>
             </div>
 
             {/* Tagline - Medh Hai Toh Mumkin Hai */}

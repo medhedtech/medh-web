@@ -117,7 +117,7 @@ const PersonalityCourse: React.FC<IPersonalityCourseProps> = ({
   );
 
   return (
-    <div className="w-full px-0">
+    <div id="course-options-section" className="min-h-[80vh] bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/30 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {customHeader}
       <div className="w-full px-0">
         <CoursesFilter
