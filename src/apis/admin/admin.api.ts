@@ -648,8 +648,8 @@ export interface IZoomMeetingInput {
 
 // API Response Interfaces
 export interface IApiResponse<T = any> {
-  success: boolean;
-  message: string;
+  success?: boolean;
+  message?: string;
   data?: T;
   error?: string;
   count?: number;
@@ -965,7 +965,7 @@ export const adminCourseApi = {
     sort_by?: string;
     sort_order?: 'asc' | 'desc';
   }): Promise<IApiResponse<{ courses: ICourse[] }>> => {
-    return apiClient.get('/courses', params);
+    return apiClient.get('/tcourse/all', params);
   },
 
   // Get Course by ID
@@ -1007,6 +1007,111 @@ export const adminProfileApi = {
 };
 
 // ============================================================================
+// UNIFIED ADMIN DASHBOARD STATS
+// ============================================================================
+
+export interface IAdminDashboardStats {
+  totalStudents: {
+    value: number;
+    change: number;
+  };
+  activeEnrollments: {
+    value: number;
+    change: number;
+  };
+  activeCourses: {
+    value: number;
+    change: number;
+  };
+  monthlyRevenue: {
+    value: number;
+    change: number;
+  };
+  upcomingClasses: {
+    value: number;
+    change: number;
+  };
+  completionRate: {
+    value: number;
+    change: number;
+  };
+  studentSatisfaction: {
+    value: number;
+    change: number;
+  };
+  instructorRating: {
+    value: number;
+    change: number;
+  };
+  supportTickets: {
+    value: number;
+    change: number;
+  };
+}
+
+// New interface for the actual API response structure
+export interface IAdminDashboardStatsResponse {
+  totalStudents: {
+    total: number;
+    changes: {
+      monthly: { current: number; previous: number; change: number };
+      quarterly: { current: number; previous: number; change: number };
+      halfYearly: { current: number; previous: number; change: number };
+      yearly: { current: number; previous: number; change: number };
+    };
+  };
+  activeEnrollments: {
+    total: number;
+    changes: {
+      monthly: { current: number; previous: number; change: number };
+      quarterly: { current: number; previous: number; change: number };
+      halfYearly: { current: number; previous: number; change: number };
+      yearly: { current: number; previous: number; change: number };
+    };
+  };
+  activeCourses: {
+    total: number;
+    changes: {
+      monthly: { current: number; previous: number; change: number };
+      quarterly: { current: number; previous: number; change: number };
+      halfYearly: { current: number; previous: number; change: number };
+      yearly: { current: number; previous: number; change: number };
+    };
+  };
+  monthlyRevenue: {
+    total: number;
+    changes: {
+      monthly: { current: number; previous: number; change: number };
+      quarterly: { current: number; previous: number; change: number };
+      halfYearly: { current: number; previous: number; change: number };
+      yearly: { current: number; previous: number; change: number };
+    };
+  };
+  upcomingClasses: {
+    total: number;
+  };
+  completionRate: {
+    total: number;
+  };
+  studentSatisfaction: {
+    total: number;
+  };
+  instructorRating: {
+    total: number;
+  };
+  supportTickets: {
+    total: number;
+  };
+}
+
+export const adminDashboardApi = {
+  // Get unified admin dashboard stats
+  getDashboardStats: async (): Promise<IApiResponse<{ data: IAdminDashboardStatsResponse }>> => {
+    return apiClient.get('/admin/dashboard-stats');
+  },
+};
+
+// ============================================================================
 // EXPORT ALL APIs
 // ============================================================================
 
@@ -1019,6 +1124,7 @@ export const adminApi = {
   course: adminCourseApi,
   zoom: adminZoomApi,
   profile: adminProfileApi,
+  dashboard: adminDashboardApi,
 };
 
 export default adminApi; 

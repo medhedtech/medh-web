@@ -124,7 +124,7 @@ const CourseEducation: React.FC<CourseEducationProps> = ({ courseId, courseDetai
 
   const formatCourseGrade = (grade: string): string => {
     if (grade === "UG - Graduate - Professionals") {
-      return "Professional Grad Diploma";
+      return "UG - Grad - Prof";
     }
     return grade;
   };

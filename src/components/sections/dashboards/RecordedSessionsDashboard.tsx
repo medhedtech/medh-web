@@ -565,6 +565,10 @@ const StudentRecordedSessions: React.FC = () => {
             'data' in recordedLessonsResponse && recordedLessonsResponse.data && 
             typeof recordedLessonsResponse.data === 'object') {
           
+          console.log('✅ API Response validation passed');
+          console.log('✅ Success check:', recordedLessonsResponse.success);
+          console.log('✅ Status check:', recordedLessonsResponse.status);
+          
           // Handle nested data structure - check if data.data exists
           const responseData = recordedLessonsResponse.data.data || recordedLessonsResponse.data;
           console.log('✅ API Response structure:', responseData);
@@ -640,29 +644,33 @@ const StudentRecordedSessions: React.FC = () => {
           }
           
           // Process your previous sessions if available
+          console.log('🔍 DEBUG: Checking your_previous_sessions:', responseData.your_previous_sessions);
+          console.log('🔍 DEBUG: your_previous_sessions type:', typeof responseData.your_previous_sessions);
+          console.log('🔍 DEBUG: your_previous_sessions keys:', responseData.your_previous_sessions ? Object.keys(responseData.your_previous_sessions) : 'undefined');
+          
           if (responseData.your_previous_sessions && responseData.your_previous_sessions.videos) {
             const previousVideos = responseData.your_previous_sessions.videos;
-            console.log(`Processing ${previousVideos.length} previous session videos`);
+            console.log(`✅ Processing ${previousVideos.length} previous session videos`);
             
             previousVideos.forEach((video: any, index: number) => {
               const recordedSession: RecordedSession = {
-                id: video._id || `prev_${index}`,
-                title: video.title || `Previous Session ${index + 1}`,
+                id: video.id || `prev_${index}`,
+                title: video.displayTitle || video.title || `Session ${index + 1}`,
                 course: {
-                  name: 'Personal Videos',
+                  name: 'Personal Sessions',
                   category: 'Personal'
                 },
                 instructor: {
-                  name: 'You',
+                  name: video.student?.name || 'You',
                   rating: 5.0
                 },
                 duration: 90, // Default duration
-                recordedDate: video.recorded_date || video.created_at,
+                recordedDate: video.extractedDate || video.lastModified,
                 status: 'available',
                 level: 'intermediate',
-                description: 'Video uploaded directly to your personal folder',
-                batchName: 'Personal Videos',
-                sessionNumber: index + 1,
+                description: `Session recording from ${video.formattedDate || 'unknown date'}`,
+                batchName: video.folderPath ? video.folderPath.split('/').pop() || 'Personal Sessions' : 'Personal Sessions',
+                sessionNumber: parseInt(video.sessionNumber?.replace('Session ', '') || String(index + 1)),
                 viewCount: video.view_count || 0,
                 url: video.url ? urlObfuscation.encode(video.url) : undefined,
                 // Additional fields
@@ -673,6 +681,57 @@ const StudentRecordedSessions: React.FC = () => {
               };
               sessions.push(recordedSession);
             });
+          } else {
+            console.warn('⚠️ No your_previous_sessions.videos found or not an array:', responseData.your_previous_sessions);
+            
+            // Try to find videos in any structure
+            console.log('🔍 DEBUG: Searching for videos in response data...');
+            const findVideosInObject = (obj: any, path = ''): any[] => {
+              if (obj && typeof obj === 'object') {
+                if (Array.isArray(obj) && obj.length > 0 && obj[0] && typeof obj[0] === 'object' && obj[0].id) {
+                  console.log(`✅ Found videos array at path: ${path} with ${obj.length} items`);
+                  return obj;
+                }
+                for (const key in obj) {
+                  const result = findVideosInObject(obj[key], path ? `${path}.${key}` : key);
+                  if (result.length > 0) return result;
+                }
+              }
+              return [];
+            };
+            
+            const foundVideos = findVideosInObject(responseData);
+            if (foundVideos.length > 0) {
+              console.log(`✅ Found ${foundVideos.length} videos in alternative structure`);
+              foundVideos.forEach((video: any, index: number) => {
+                const recordedSession: RecordedSession = {
+                  id: video.id || `alt_${index}`,
+                  title: video.displayTitle || video.title || `Session ${index + 1}`,
+                  course: {
+                    name: 'Personal Sessions',
+                    category: 'Personal'
+                  },
+                  instructor: {
+                    name: video.student?.name || 'You',
+                    rating: 5.0
+                  },
+                  duration: 90,
+                  recordedDate: video.extractedDate || video.lastModified,
+                  status: 'available',
+                  level: 'intermediate',
+                  description: `Session recording from ${video.formattedDate || 'unknown date'}`,
+                  batchName: video.folderPath ? video.folderPath.split('/').pop() || 'Personal Sessions' : 'Personal Sessions',
+                  sessionNumber: parseInt(video.sessionNumber?.replace('Session ', '') || String(index + 1)),
+                  viewCount: 0,
+                  url: video.url ? urlObfuscation.encode(video.url) : undefined,
+                  batchId: video.folderPath || 'personal',
+                  sessionId: video.id,
+                  courseId: 'personal',
+                  enrollmentId: 'personal'
+                };
+                sessions.push(recordedSession);
+              });
+            }
           }
         } else {
           console.warn('⚠️ API Response does not match expected structure:');

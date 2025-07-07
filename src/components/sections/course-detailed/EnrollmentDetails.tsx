@@ -990,7 +990,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     
     // Format grade level: convert "UG - Graduate - Professionals" to "UG/Grad- Pro."
     if (gradeLevel.includes('UG') && gradeLevel.includes('Graduate') && gradeLevel.includes('Professionals')) {
-      return 'Professional Grad Diploma';
+      return 'UG - Grad - Prof';
     }
     
     return gradeLevel;

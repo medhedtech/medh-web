@@ -7,9 +7,10 @@ import * as yup from 'yup';
 import { showToast } from '@/utils/toastManager';
 import Link from "next/link";
 import { debounce } from 'lodash';
-import { ArrowLeft, Plus, Trash2, Upload, Save, Eye, CheckCircle, AlertCircle, AlertTriangle, Clock, BookOpen, Users, Award, DollarSign, Calendar, HelpCircle, Settings, Video, FileText } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Upload, Save, Eye, CheckCircle, AlertCircle, AlertTriangle, Clock, BookOpen, Users, Award, DollarSign, Calendar, HelpCircle, Settings, Video, FileText, GraduationCap, FileBadge } from "lucide-react";
 import { courseTypesAPI } from "@/apis/courses";
 import { apiUrls } from "@/apis";
+import { masterDataApi } from "@/apis/master.api";
 import usePostQuery from "@/hooks/postQuery.hook";
 import useGetQuery from "@/hooks/getQuery.hook";
 import type { ILiveCourse, IUnifiedPrice, ICourseSchedule, ILiveCourseModule, ILiveCourseSession, IToolTechnology, IFAQ } from "@/apis/courses";
@@ -18,6 +19,15 @@ import type { ILiveCourse, IUnifiedPrice, ICourseSchedule, ILiveCourseModule, IL
 interface CategoryItem {
   _id: string;
   category_name: string;
+}
+
+// Master data interfaces
+interface MasterData {
+  parentCategories: string[];
+  categories: string[];
+  certificates: string[];
+  grades: string[];
+  courseDurations: string[];
 }
 
 // Form data interface that matches the ILiveCourse API structure
@@ -61,6 +71,10 @@ interface LiveCourseFormData {
   class_type: 'Live Courses' | 'Blended Courses' | 'Self-Paced' | 'Virtual Learning' | 'Online Classes' | 'Hybrid' | 'Pre-Recorded' | '';
   course_duration: string;
   no_of_Sessions: number;
+  // New fields for grade/certificate toggle
+  use_grade: boolean;
+  course_grade?: string;
+  certificate_type?: string;
 }
 
 // Comprehensive form validation schema
@@ -159,7 +173,18 @@ const liveCourseSchema = yup.object().shape({
   class_type: yup.string().required('Class type is required')
     .oneOf(['Live Courses', 'Blended Courses', 'Self-Paced', 'Virtual Learning', 'Online Classes', 'Hybrid', 'Pre-Recorded', ''], 'Invalid class type'),
   course_duration: yup.string().required('Course duration is required'),
-  no_of_Sessions: yup.number().required('Number of sessions is required').integer().min(1)
+  no_of_Sessions: yup.number().required('Number of sessions is required').integer().min(1),
+  use_grade: yup.boolean(),
+  course_grade: yup.string().when('use_grade', {
+    is: (use_grade: boolean) => use_grade === true,
+    then: () => yup.string().required('Course grade is required when grade is enabled'),
+    otherwise: () => yup.string()
+  }),
+  certificate_type: yup.string().when('certification.is_certified', {
+    is: (is_certified: boolean) => is_certified === true,
+    then: () => yup.string().required('Certificate type is required when certification is enabled'),
+    otherwise: () => yup.string()
+  })
 });
 
 // Storage utility for auto-save functionality
@@ -224,6 +249,16 @@ export default function CreateLiveCoursePage() {
   const [validationMessage, setValidationMessage] = useState<string>('');
   const formSubmittedSuccessfully = useRef(false);
   const [classType, setClassType] = useState<'Live Courses' | 'Blended Courses' | 'Self-Paced' | 'Virtual Learning' | 'Online Classes' | 'Hybrid' | 'Pre-Recorded' | ''>('');
+  
+  // Master data state
+  const [masterData, setMasterData] = useState<MasterData>({
+    parentCategories: [],
+    categories: [],
+    certificates: [],
+    grades: [],
+    courseDurations: []
+  });
+  const [isLoadingMasterData, setIsLoadingMasterData] = useState(true);
   
   const { postQuery } = usePostQuery();
   const { getQuery } = useGetQuery();
@@ -293,7 +328,10 @@ export default function CreateLiveCoursePage() {
       is_Certification: 'Yes',
       class_type: 'Live Courses',
       course_duration: '8 weeks',
-      no_of_Sessions: 16
+      no_of_Sessions: 16,
+      use_grade: false,
+      course_grade: '',
+      certificate_type: ''
     }
   });
 
@@ -412,6 +450,54 @@ export default function CreateLiveCoursePage() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
+
+  // Fetch master data
+  useEffect(() => {
+    const fetchMasterData = async () => {
+      setIsLoadingMasterData(true);
+      try {
+        const response = await masterDataApi.getAllMasterData();
+        
+        if (response?.data) {
+          // Ensure all arrays exist with fallbacks
+          const safeMasterData = {
+            parentCategories: response.data.parentCategories || [],
+            categories: response.data.categories || [],
+            certificates: response.data.certificates || [],
+            grades: response.data.grades || [],
+            courseDurations: response.data.courseDurations || []
+          };
+          setMasterData(safeMasterData);
+        } else {
+          console.error("No data received from master data API");
+          showToast.error('No master data found. Please check the API.');
+          // Set empty arrays as fallback
+          setMasterData({
+            parentCategories: [],
+            categories: [],
+            certificates: [],
+            grades: [],
+            courseDurations: []
+          });
+        }
+      } catch (error) {
+        console.error("Error in fetchMasterData:", error);
+        showToast.error('Failed to load master data. Please check your connection.');
+        // Set empty arrays as fallback
+        setMasterData({
+          parentCategories: [],
+          categories: [],
+          certificates: [],
+          grades: [],
+          courseDurations: []
+        });
+      } finally {
+        setIsLoadingMasterData(false);
+      }
+    };
+
+    fetchMasterData();
+  }, []);
 
   // Fetch categories
   useEffect(() => {
@@ -842,7 +928,8 @@ export default function CreateLiveCoursePage() {
         // Force type casting to avoid TypeScript error
         class_type: cleanedData.class_type as 'group' | 'one-to-one' | 'both',
         course_duration: cleanedData.course_duration,
-        no_of_Sessions: cleanedData.no_of_Sessions
+        no_of_Sessions: cleanedData.no_of_Sessions,
+
       };
       
       // Submit the course data
@@ -928,6 +1015,16 @@ export default function CreateLiveCoursePage() {
                 </span>
               )}
               
+              {isLoadingMasterData && (
+                <span className="text-xs text-blue-500 dark:text-blue-400 flex items-center">
+                  <svg className="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Loading options...
+                </span>
+              )}
+              
               {hasSavedDraft && (
                 <button
                   type="button"
@@ -1005,12 +1102,21 @@ export default function CreateLiveCoursePage() {
               
               <div>
                 <label className={labelClass}>Subcategory</label>
-                <input
-                  type="text"
+                <select
                   {...register("course_subcategory")}
                   className={inputClass}
-                  placeholder="Enter subcategory (optional)"
-                />
+                >
+                  <option value="">Select a subcategory</option>
+                  {isLoadingMasterData ? (
+                    <option disabled>Loading subcategories...</option>
+                  ) : (
+                    (masterData.categories || []).map((subcategory, index) => (
+                      <option key={index} value={subcategory}>
+                        {subcategory}
+                      </option>
+                    ))
+                  )}
+                </select>
                 {errors.course_subcategory && (
                   <p className={errorClass}>{errors.course_subcategory.message}</p>
                 )}
@@ -1796,55 +1902,7 @@ export default function CreateLiveCoursePage() {
             </button>
           </div>
           
-          {/* Certification */}
-          <div className={cardClass}>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-              <Award className="h-5 w-5 mr-2" />
-              Certification
-            </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-              Configure certification requirements for this course
-            </p>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="flex items-center space-x-2 mb-4">
-                  <input
-                    type="checkbox"
-                    {...register("certification.is_certified")}
-                    className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                  />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">This course offers a completion certificate</span>
-                </label>
-              </div>
-              
-              {watchedValues.certification?.is_certified && (
-                <div>
-                  <label className={labelClass}>Attendance Required (%)</label>
-                  <input
-                    type="number"
-                    {...register("certification.attendance_required", {
-                      min: {
-                        value: 0,
-                        message: "Attendance percentage cannot be negative"
-                      },
-                      max: {
-                        value: 100,
-                        message: "Attendance percentage cannot exceed 100%"
-                      }
-                    })}
-                    className={inputClass}
-                    placeholder="Minimum attendance required for certification"
-                    min="0"
-                    max="100"
-                  />
-                  {errors.certification?.attendance_required && (
-                    <p className={errorClass}>{errors.certification.attendance_required.message}</p>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+
           
           {/* Tools and Technologies */}
           <div className={cardClass}>
@@ -2113,12 +2171,21 @@ export default function CreateLiveCoursePage() {
                 <label className={labelClass}>
                   Course Duration *
                 </label>
-                <input
-                  type="text"
+                <select
                   {...register("course_duration", { required: "Course duration is required" })}
                   className={inputClass}
-                  placeholder="e.g., 8 weeks"
-                />
+                >
+                  <option value="">Select course duration</option>
+                  {isLoadingMasterData ? (
+                    <option disabled>Loading durations...</option>
+                  ) : (
+                    (masterData.courseDurations || []).map((duration, index) => (
+                      <option key={index} value={duration}>
+                        {duration}
+                      </option>
+                    ))
+                  )}
+                </select>
                 {errors.course_duration && (
                   <p className={errorClass}>{errors.course_duration.message}</p>
                 )}
@@ -2209,6 +2276,117 @@ export default function CreateLiveCoursePage() {
               </div>
             </div>
           </div>
+
+                     {/* Grade/Certificate Toggle */}
+           <div className={cardClass}>
+             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+               <GraduationCap className="h-5 w-5 mr-2" />
+               Grade/Certificate Configuration
+             </h2>
+             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+               Configure whether this course offers grades or certificates. You can enable both options if needed.
+             </p>
+             
+             <div className="space-y-6">
+               {/* Grade Toggle */}
+               <div>
+                 <label className="flex items-center space-x-2 mb-4">
+                   <input
+                     type="checkbox"
+                     {...register("use_grade")}
+                     className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                   />
+                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">This course offers grades</span>
+                 </label>
+                 
+                 {watchedValues.use_grade && (
+                   <div className="ml-6">
+                     <label className={labelClass}>Course Grade *</label>
+                     <select
+                       {...register("course_grade", { required: watchedValues.use_grade ? "Course grade is required when grade is enabled" : false })}
+                       className={inputClass}
+                     >
+                       <option value="">Select a grade</option>
+                                                {isLoadingMasterData ? (
+                           <option disabled>Loading grades...</option>
+                         ) : (
+                           (masterData.grades || []).map((grade, index) => (
+                             <option key={index} value={grade}>
+                               {grade}
+                             </option>
+                           ))
+                         )}
+                     </select>
+                     {errors.course_grade && (
+                       <p className={errorClass}>{errors.course_grade.message}</p>
+                     )}
+                   </div>
+                 )}
+               </div>
+               
+               {/* Certificate Toggle */}
+               <div>
+                 <label className="flex items-center space-x-2 mb-4">
+                   <input
+                     type="checkbox"
+                     {...register("certification.is_certified")}
+                     className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                   />
+                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">This course offers a completion certificate</span>
+                 </label>
+                 
+                 {watchedValues.certification?.is_certified && (
+                   <div className="ml-6 space-y-4">
+                     <div>
+                       <label className={labelClass}>Certificate Type *</label>
+                       <select
+                         {...register("certificate_type", { required: watchedValues.certification?.is_certified ? "Certificate type is required when certification is enabled" : false })}
+                         className={inputClass}
+                       >
+                         <option value="">Select certificate type</option>
+                         {isLoadingMasterData ? (
+                           <option disabled>Loading certificate types...</option>
+                         ) : (
+                           (masterData.certificates || []).map((certificate, index) => (
+                             <option key={index} value={certificate}>
+                               {certificate}
+                             </option>
+                           ))
+                         )}
+                       </select>
+                       {errors.certificate_type && (
+                         <p className={errorClass}>{errors.certificate_type.message}</p>
+                       )}
+                     </div>
+                     
+                     <div>
+                       <label className={labelClass}>Attendance Required (%)</label>
+                       <input
+                         type="number"
+                         {...register("certification.attendance_required", {
+                           min: {
+                             value: 0,
+                             message: "Attendance percentage cannot be negative"
+                           },
+                           max: {
+                             value: 100,
+                             message: "Attendance percentage cannot exceed 100%"
+                           }
+                         })}
+                         className={inputClass}
+                         placeholder="Minimum attendance required for certification"
+                         min="0"
+                         max="100"
+                       />
+                       {errors.certification?.attendance_required && (
+                         <p className={errorClass}>{errors.certification.attendance_required.message}</p>
+                       )}
+                     </div>
+                   </div>
+                 )}
+               </div>
+             </div>
+           </div>
 
           {/* Submit buttons */}
           <div className="flex justify-end space-x-4">

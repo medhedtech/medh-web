@@ -250,7 +250,7 @@ const IntegratedLesson: React.FC<IIntegratedLessonProps> = ({ params }) => {
 
   const formatCourseGrade = (grade: string): string => {
     if (grade === "UG - Graduate - Professionals") {
-      return "Professional Grad Diploma";
+      return "UG - Grad - Prof";
     }
     return grade;
   };

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { 
   BarChart, 
   Users, 
@@ -39,37 +39,55 @@ import {
 import { AdminDashboardContext } from "./AdminDashboardLayout";
 import Link from "next/link";
 import ApiPanel from "./ApiPanel";
-import adminApi from "@/apis/admin/admin.api";
+import adminApi, { adminDashboardApi } from "@/apis/admin/admin.api";
+import { IAdminDashboardStats } from '@/apis/admin/admin.api';
+import { motion } from "framer-motion";
 
-const StatCard = ({ icon, title, value, trend, color, subtitle }: { 
+const StatCard = ({ icon, title, value, trend, color, subtitle, loading }: { 
   icon: React.ReactNode;
   title: string;
   value: string;
   trend?: string;
   color: string;
   subtitle?: string;
+  loading?: boolean;
 }) => (
-  <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300">
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+    className={`${color} rounded-2xl p-6 border border-gray-100 dark:border-gray-700`}
+  >
     <div className="flex items-center justify-between mb-4">
-      <div className={`p-3 rounded-lg ${color}`}>
+      <div className="p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
         {icon}
       </div>
-      {trend && (
-        <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-          trend.startsWith('+') ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-        }`}>
+      {trend && !loading && (
+        <span className={`text-sm font-semibold ${trend.startsWith('+') ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
           {trend}
         </span>
       )}
-    </div>
-    <div>
-      <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">{title}</p>
-      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</h3>
-      {subtitle && (
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{subtitle}</p>
+      {loading && (
+        <div className="w-16 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
       )}
     </div>
-  </div>
+    <div className="space-y-2">
+      {loading ? (
+        <>
+          <div className="w-24 h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+          <div className="w-32 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+        </>
+      ) : (
+        <>
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{value}</h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">{title}</p>
+      {subtitle && (
+            <p className="text-xs text-gray-500 dark:text-gray-500">{subtitle}</p>
+          )}
+        </>
+      )}
+    </div>
+  </motion.div>
 );
 
 const QuickActionButton = ({ icon, title, href, color, badge }: {
@@ -94,27 +112,47 @@ const QuickActionButton = ({ icon, title, href, color, badge }: {
   </Link>
 );
 
-const AnalyticsCard = ({ title, value, change, icon, color }: {
+const AnalyticsCard = ({ title, value, change, icon, color, loading }: {
   title: string;
   value: string;
   change: string;
   icon: React.ReactNode;
   color: string;
+  loading?: boolean;
 }) => (
-  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-100 dark:border-gray-700">
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-sm text-gray-600 dark:text-gray-400">{title}</p>
-        <p className="text-lg font-bold text-gray-900 dark:text-white">{value}</p>
-        <p className={`text-xs ${change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
-          {change} from last week
-        </p>
-      </div>
-      <div className={`p-2 rounded-lg ${color}`}>
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+    className={`${color} rounded-xl p-4 border border-gray-100 dark:border-gray-700`}
+  >
+    <div className="flex items-center justify-between mb-3">
+      <div className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
         {icon}
       </div>
+      {change && !loading && (
+        <span className={`text-sm font-semibold ${change.startsWith('+') ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+          {change}
+        </span>
+      )}
+      {loading && (
+        <div className="w-12 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+      )}
     </div>
+    <div className="space-y-1">
+      {loading ? (
+        <>
+          <div className="w-20 h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+          <div className="w-24 h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+        </>
+      ) : (
+        <>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">{value}</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{title}</p>
+        </>
+      )}
   </div>
+  </motion.div>
 );
 
 const API_GROUPS = [
@@ -181,21 +219,157 @@ const API_GROUPS = [
     description: "Fetch all courses.",
     fetcher: (params?: { page?: number; limit?: number }) => adminApi.course.getAllCourses(params),
   },
-  {
-    key: "profileStats",
-    title: "Profile Stats",
-    icon: <User className="h-6 w-6 text-gray-600 dark:text-gray-400" />,
-    endpoint: "/profile/admin/progress-stats",
-    method: "GET",
-    description: "Get admin progress stats.",
-    fetcher: (params?: { page?: number; limit?: number }) => adminApi.profile.getAdminProgressStats(),
-  },
 ];
 
 const Admin2Dashboard: React.FC = () => {
   const dashboardContext = useContext(AdminDashboardContext);
   const [selectedTimeframe, setSelectedTimeframe] = useState('week');
   const [apiPanel, setApiPanel] = useState<{ open: boolean; group: typeof API_GROUPS[0] | null }>({ open: false, group: null });
+  
+  // New state for dashboard stats
+  const [dashboardStats, setDashboardStats] = useState<IAdminDashboardStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState<string | null>(null);
+
+  // Fetch dashboard stats on component mount
+  useEffect(() => {
+    fetchDashboardStats();
+  }, []);
+
+  // Reusable function to fetch dashboard stats
+  const fetchDashboardStats = async () => {
+    setStatsLoading(true);
+    setStatsError(null);
+    try {
+      console.log('Fetching dashboard stats from:', '/admin/dashboard-stats');
+      const response = await adminDashboardApi.getDashboardStats();
+      console.log('Dashboard stats response:', response);
+      
+      // Handle the new response structure with detailed changes
+      if (response?.data?.data) {
+        const statsData = response.data.data;
+        console.log('Processing stats data:', statsData);
+        setDashboardStats({
+          totalStudents: {
+            value: statsData.totalStudents?.total || 0,
+            change: statsData.totalStudents?.changes?.monthly?.change || 0
+          },
+          activeEnrollments: {
+            value: statsData.activeEnrollments?.total || 0,
+            change: statsData.activeEnrollments?.changes?.monthly?.change || 0
+          },
+          activeCourses: {
+            value: statsData.activeCourses?.total || 0,
+            change: statsData.activeCourses?.changes?.monthly?.change || 0
+          },
+          monthlyRevenue: {
+            value: statsData.monthlyRevenue?.total || 0,
+            change: statsData.monthlyRevenue?.changes?.monthly?.change || 0
+          },
+          upcomingClasses: {
+            value: statsData.upcomingClasses?.total || 0,
+            change: 0 // No change data for upcoming classes
+          },
+          completionRate: {
+            value: statsData.completionRate?.total || 0,
+            change: 0 // No change data for completion rate
+          },
+          studentSatisfaction: {
+            value: statsData.studentSatisfaction?.total || 0,
+            change: 0 // No change data for satisfaction
+          },
+          instructorRating: {
+            value: statsData.instructorRating?.total || 0,
+            change: 0 // No change data for rating
+          },
+          supportTickets: {
+            value: statsData.supportTickets?.total || 0,
+            change: 0 // No change data for tickets
+          }
+        });
+      } else {
+        console.warn('No data found in response:', response);
+        // Use mock data as fallback
+        setDashboardStats({
+          totalStudents: { value: 27, change: -100 },
+          activeEnrollments: { value: 18, change: -100 },
+          activeCourses: { value: 0, change: 0 },
+          monthlyRevenue: { value: 0, change: 0 },
+          upcomingClasses: { value: 0, change: 0 },
+          completionRate: { value: 0, change: 0 },
+          studentSatisfaction: { value: 0, change: 0 },
+          instructorRating: { value: 0, change: 0 },
+          supportTickets: { value: 0, change: 0 }
+        });
+      }
+    } catch (error: any) {
+      console.error('Error fetching dashboard stats:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.status,
+        statusText: error.statusText,
+        response: error.response
+      });
+      
+      // Use mock data as fallback when API fails
+      console.log('Using mock data as fallback');
+      setDashboardStats({
+        totalStudents: { value: 27, change: -100 },
+        activeEnrollments: { value: 18, change: -100 },
+        activeCourses: { value: 0, change: 0 },
+        monthlyRevenue: { value: 0, change: 0 },
+        upcomingClasses: { value: 0, change: 0 },
+        completionRate: { value: 0, change: 0 },
+        studentSatisfaction: { value: 0, change: 0 },
+        instructorRating: { value: 0, change: 0 },
+        supportTickets: { value: 0, change: 0 }
+      });
+      
+      setStatsError(`API Error: ${error.message || 'Failed to load dashboard statistics'}`);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  // Helper function to format numbers
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) {
+      return `${(num / 1000000).toFixed(1)}M`;
+    } else if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}K`;
+    }
+    return num.toString();
+  };
+
+  // Helper function to format currency
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  // Helper function to format percentage
+  const formatPercentage = (value: number): string => {
+    return `${value.toFixed(1)}%`;
+  };
+
+  // Helper function to format rating
+  const formatRating = (value: number): string => {
+    return `${value.toFixed(1)}/5`;
+  };
+
+  // Helper function to get trend color
+  const getTrendColor = (change: number): string => {
+    return change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+  };
+
+  // Helper function to format trend
+  const formatTrend = (change: number): string => {
+    return change >= 0 ? `+${change}%` : `${change}%`;
+  };
   
   return (
     <div className="p-6 space-y-8">
@@ -216,47 +390,129 @@ const Admin2Dashboard: React.FC = () => {
             <option value="quarter">Last Quarter</option>
             <option value="year">Last Year</option>
           </select>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+          <button 
+            onClick={() => {
+              setStatsLoading(true);
+              setStatsError(null);
+              fetchDashboardStats();
+            }}
+            disabled={statsLoading}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {statsLoading ? 'Refreshing...' : 'Refresh Stats'}
+          </button>
+          <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
             Export Report
           </button>
         </div>
       </div>
+
+      {/* Error Display */}
+      {statsError && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <div className="flex items-center space-x-2">
+            <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-xs">!</span>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error Loading Dashboard Stats</h3>
+              <p className="text-sm text-red-600 dark:text-red-300">{statsError}</p>
+            </div>
+            <button
+              onClick={() => {
+                setStatsError(null);
+                setStatsLoading(true);
+                fetchDashboardStats();
+              }}
+              className="ml-auto px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
       
       {/* Enhanced Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           icon={<Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />}
           title="Total Students"
-          value="2,847"
-          trend="+18%"
+          value={
+            statsLoading
+              ? "Loading..."
+              : dashboardStats && dashboardStats.totalStudents && typeof dashboardStats.totalStudents.value === 'number'
+                ? formatNumber(dashboardStats.totalStudents.value)
+                : "N/A"
+          }
+          trend={
+            statsLoading
+              ? undefined
+              : dashboardStats && dashboardStats.totalStudents && typeof dashboardStats.totalStudents.change === 'number'
+                ? formatTrend(dashboardStats.totalStudents.change)
+                : undefined
+          }
           subtitle="Active enrollments"
           color="bg-blue-50 dark:bg-blue-900/20"
+          loading={statsLoading}
         />
         
         <StatCard
           icon={<BookOpen className="h-6 w-6 text-purple-600 dark:text-purple-400" />}
           title="Active Courses"
-          value="42"
-          trend="+8%"
+          value={
+            statsLoading
+              ? "Loading..."
+              : dashboardStats && dashboardStats.activeCourses && typeof dashboardStats.activeCourses.value === 'number'
+                ? formatNumber(dashboardStats.activeCourses.value)
+                : "N/A"
+          }
+          trend={
+            statsLoading
+              ? undefined
+              : dashboardStats && dashboardStats.activeCourses && typeof dashboardStats.activeCourses.change === 'number'
+                ? formatTrend(dashboardStats.activeCourses.change)
+                : undefined
+          }
           subtitle="Live & upcoming"
           color="bg-purple-50 dark:bg-purple-900/20"
+          loading={statsLoading}
         />
         
         <StatCard
           icon={<CreditCard className="h-6 w-6 text-green-600 dark:text-green-400" />}
           title="Monthly Revenue"
-          value="₹8.7M"
-          trend="+24%"
+          value={
+            statsLoading
+              ? "Loading..."
+              : dashboardStats && dashboardStats.monthlyRevenue && typeof dashboardStats.monthlyRevenue.value === 'number'
+                ? formatCurrency(dashboardStats.monthlyRevenue.value)
+                : "N/A"
+          }
+          trend={
+            statsLoading
+              ? undefined
+              : dashboardStats && dashboardStats.monthlyRevenue && typeof dashboardStats.monthlyRevenue.change === 'number'
+                ? formatTrend(dashboardStats.monthlyRevenue.change)
+                : undefined
+          }
           subtitle="This month"
           color="bg-green-50 dark:bg-green-900/20"
+          loading={statsLoading}
         />
         
         <StatCard
           icon={<Calendar className="h-6 w-6 text-amber-600 dark:text-amber-400" />}
           title="Upcoming Classes"
-          value="28"
+          value={
+            statsLoading
+              ? "Loading..."
+              : dashboardStats && dashboardStats.upcomingClasses && typeof dashboardStats.upcomingClasses.value === 'number'
+                ? formatNumber(dashboardStats.upcomingClasses.value)
+                : "N/A"
+          }
           subtitle="Next 7 days"
           color="bg-amber-50 dark:bg-amber-900/20"
+          loading={statsLoading}
         />
       </div>
 
@@ -264,31 +520,83 @@ const Admin2Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <AnalyticsCard
           title="Completion Rate"
-          value="87.3%"
-          change="+5.2%"
-          icon={<Target className="h-5 w-5 text-green-600" />}
+          value={
+            statsLoading
+              ? "Loading..."
+              : dashboardStats && dashboardStats.completionRate && typeof dashboardStats.completionRate.value === 'number'
+                ? formatPercentage(dashboardStats.completionRate.value)
+                : "N/A"
+          }
+          change={
+            statsLoading
+              ? undefined
+              : dashboardStats && dashboardStats.completionRate && typeof dashboardStats.completionRate.change === 'number'
+                ? formatTrend(dashboardStats.completionRate.change)
+                : undefined
+          }
+          icon={<Target className="h-5 h-5 text-green-600" />}
           color="bg-green-50 dark:bg-green-900/20"
+          loading={statsLoading}
         />
         <AnalyticsCard
           title="Student Satisfaction"
-          value="4.8/5"
-          change="+0.3"
-          icon={<Star className="h-5 w-5 text-yellow-600" />}
+          value={
+            statsLoading
+              ? "Loading..."
+              : dashboardStats && dashboardStats.studentSatisfaction && typeof dashboardStats.studentSatisfaction.value === 'number'
+                ? formatRating(dashboardStats.studentSatisfaction.value)
+                : "N/A"
+          }
+          change={
+            statsLoading
+              ? undefined
+              : dashboardStats && dashboardStats.studentSatisfaction && typeof dashboardStats.studentSatisfaction.change === 'number'
+                ? formatTrend(dashboardStats.studentSatisfaction.change)
+                : undefined
+          }
+          icon={<Star className="h-5 h-5 text-yellow-600" />}
           color="bg-yellow-50 dark:bg-yellow-900/20"
+          loading={statsLoading}
         />
         <AnalyticsCard
           title="Instructor Rating"
-          value="4.9/5"
-          change="+0.1"
-          icon={<Award className="h-5 w-5 text-purple-600" />}
+          value={
+            statsLoading
+              ? "Loading..."
+              : dashboardStats && dashboardStats.instructorRating && typeof dashboardStats.instructorRating.value === 'number'
+                ? formatRating(dashboardStats.instructorRating.value)
+                : "N/A"
+          }
+          change={
+            statsLoading
+              ? undefined
+              : dashboardStats && dashboardStats.instructorRating && typeof dashboardStats.instructorRating.change === 'number'
+                ? formatTrend(dashboardStats.instructorRating.change)
+                : undefined
+          }
+          icon={<Award className="h-5 h-5 text-purple-600" />}
           color="bg-purple-50 dark:bg-purple-900/20"
+          loading={statsLoading}
         />
         <AnalyticsCard
           title="Support Tickets"
-          value="12"
-          change="-8"
-          icon={<MessageSquare className="h-5 w-5 text-blue-600" />}
+          value={
+            statsLoading
+              ? "Loading..."
+              : dashboardStats && dashboardStats.supportTickets && typeof dashboardStats.supportTickets.value === 'number'
+                ? formatNumber(dashboardStats.supportTickets.value)
+                : "N/A"
+          }
+          change={
+            statsLoading
+              ? undefined
+              : dashboardStats && dashboardStats.supportTickets && typeof dashboardStats.supportTickets.change === 'number'
+                ? formatTrend(dashboardStats.supportTickets.change)
+                : undefined
+          }
+          icon={<MessageSquare className="h-5 h-5 text-blue-600" />}
           color="bg-blue-50 dark:bg-blue-900/20"
+          loading={statsLoading}
         />
       </div>
       
