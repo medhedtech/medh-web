@@ -1338,7 +1338,7 @@ export const getAllInstructors = async (params: IInstructorQueryParams = {}): Pr
     }
   });
   
-  return apiClient.get(`${apiBaseUrl}/instructors?${queryString.toString()}`);
+  return apiClient.get(`${apiBaseUrl}/instructors/get?${queryString.toString()}`);
 };
 
 /**

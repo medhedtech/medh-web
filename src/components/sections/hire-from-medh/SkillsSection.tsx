@@ -189,43 +189,6 @@ const SkillsSection: React.FC<ISkillsSectionProps> = memo(({ className = "" }) =
             </div>
           </motion.div>
         </motion.div>
-
-        {/* Additional Value Proposition - Mobile optimized */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ duration: 0.6, delay: 1.2 }}
-          className="text-center"
-        >
-          <div className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-800 dark:to-blue-900/20 rounded-lg sm:rounded-xl p-4 sm:p-6">
-            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4 md:mb-6">
-              Why Choose Our Talent Pool?
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 w-full">
-              <div className="text-center">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                  <Check className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                </div>
-                <h4 className="text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100 mb-1 sm:mb-2">Certified Professionals</h4>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Industry-recognized certifications and validated skills</p>
-              </div>
-              <div className="text-center">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg sm:rounded-xl flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                  <Briefcase className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                </div>
-                <h4 className="text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100 mb-1 sm:mb-2">Real Experience</h4>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Hands-on project experience across industries</p>
-              </div>
-              <div className="text-center">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-violet-500 to-violet-600 rounded-lg sm:rounded-xl flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                  <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                </div>
-                <h4 className="text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100 mb-1 sm:mb-2">Continuous Learning</h4>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Up-to-date with latest technologies and trends</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
       </div>
     </section>
   );
