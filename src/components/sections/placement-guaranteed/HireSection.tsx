@@ -1,13 +1,18 @@
-"use client";
 import { useState, useEffect } from "react";
 import { apiBaseUrl } from "@/apis";
 import CourseCard from "../courses/CourseCard";
 import Preloader2 from "@/components/shared/others/Preloader2";
 
-const HireSectionPlacement = () => {
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+interface ICourse {
+  _id: string;
+  features?: string[];
+  [key: string]: any;
+}
+
+const HireSectionPlacement: React.FC = () => {
+  const [courses, setCourses] = useState<ICourse[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -22,7 +27,7 @@ const HireSectionPlacement = () => {
 
         const data = await response.json();
         // Add class_type and other live course specific properties
-        const liveCourses = (data.courses || []).map(course => ({
+        const liveCourses = (data.courses || []).map((course: ICourse) => ({
           ...course,
           class_type: "live",
           is_live: true,
@@ -35,7 +40,7 @@ const HireSectionPlacement = () => {
           ]
         }));
         setCourses(liveCourses);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching courses:', err);
         setError(err.message);
       } finally {
@@ -48,13 +53,11 @@ const HireSectionPlacement = () => {
 
   return (
     <section className="pb-20 relative">
-
-
       {/* Professional Edge Section */}
       <div className="bg-gray-100 dark:bg-gray-800 py-8">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-[#7ECA9D] font-bold text-2xl md:text-3xl mb-4">
+            <h2 className="text-emerald-700 dark:text-emerald-400 font-bold text-2xl md:text-3xl mb-4">
               Live Interactive Professional Diploma Courses
             </h2>
             <p className="text-gray-600 dark:text-gray-300">
@@ -66,7 +69,6 @@ const HireSectionPlacement = () => {
           </div>
         </div>
       </div>
-
       {/* Courses Section */}
       <div className="container mx-auto px-4 mt-8">
         {loading ? (
@@ -93,7 +95,6 @@ const HireSectionPlacement = () => {
           </div>
         )}
       </div>
-
       {/* Duration Breakdown */}
       <div className="container mx-auto px-4 mt-12">
         <div className="max-w-4xl mx-auto text-center bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
@@ -102,13 +103,13 @@ const HireSectionPlacement = () => {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <h4 className="font-semibold text-[#7ECA9D] mb-2">15 Months</h4>
+              <h4 className="font-semibold text-emerald-700 dark:text-emerald-400 mb-2">15 Months</h4>
               <p className="text-gray-600 dark:text-gray-300">
                 Intensive Live Interactive Learning
               </p>
             </div>
             <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <h4 className="font-semibold text-[#7ECA9D] mb-2">3 Months</h4>
+              <h4 className="font-semibold text-emerald-700 dark:text-emerald-400 mb-2">3 Months</h4>
               <p className="text-gray-600 dark:text-gray-300">
                 Corporate Internship
               </p>
@@ -116,7 +117,6 @@ const HireSectionPlacement = () => {
           </div>
         </div>
       </div>
-
       {/* Bottom Description */}
       <div className="container mx-auto px-4 mt-12">
         <div className="max-w-4xl mx-auto text-center">
@@ -133,4 +133,4 @@ const HireSectionPlacement = () => {
   );
 };
 
-export default HireSectionPlacement;
+export { HireSectionPlacement }; 

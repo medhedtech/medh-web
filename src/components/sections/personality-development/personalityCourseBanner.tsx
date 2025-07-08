@@ -75,7 +75,7 @@ const PersonalityCourseBanner: React.FC = memo(() => {
   }, [isDark]);
 
   const contentClasses = useMemo(() => {
-    return `relative z-10 max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-12 gpu-accelerated`;
+    return `relative z-10 max-w-6xl mx-auto px-4 sm:px-6 md:px-8 pt-8 gpu-accelerated`;
   }, []);
 
   const headingClasses = useMemo(() => {
@@ -124,7 +124,7 @@ const PersonalityCourseBanner: React.FC = memo(() => {
         <div className="absolute top-1/2 right-1/3 w-24 h-24 bg-blue-400/10 rounded-full blur-xl animate-pulse gpu-accelerated" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      <div className={contentClasses} style={{ paddingTop: 'calc(80px + 1rem)' }}>
+      <div className={contentClasses}>
         
         {/* Main Content Card - Enhanced Glassmorphism */}
         <div className={mainCardClasses}>
