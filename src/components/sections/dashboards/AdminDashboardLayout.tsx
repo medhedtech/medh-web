@@ -45,7 +45,7 @@ const AdminDashboardMain = dynamic(() => import("@/components/layout/main/dashbo
 });
 
 // Admin2Dashboard - Enhanced dashboard with advanced analytics
-const Admin2Dashboard = dynamic(() => import("@/components/sections/dashboards/Admin2Dashboard"), { 
+const Admin2Dashboard = dynamic(() => import("@/components/sections/dashboards/AdminDashboard"), { 
   ssr: false,
   loading: () => <SkeletonLoader type="dashboard" />
 });

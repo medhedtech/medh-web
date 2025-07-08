@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { X, RefreshCw, Copy, AlertTriangle, Table, FileText, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, HelpCircle, ChevronDown, ArrowUp, ArrowDown, Filter, Maximize2, Minimize2, Search, Download, BarChart3, TrendingUp, Info, PieChart, Users, UserCheck } from "lucide-react";
+import React, { useEffect, useState, useMemo, Fragment } from "react";
+import { X, RefreshCw, Copy, AlertTriangle, Table, FileText, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, HelpCircle, ChevronDown, ArrowUp, ArrowDown, Filter, Maximize2, Minimize2, Search, Download, BarChart3, TrendingUp, Info, PieChart, Users, UserCheck, Eye, EyeOff, ChevronUp, Hash, Type, Calendar, ToggleLeft, List, MapPin, Link2, Layers, Code, Settings, Database, Grid } from "lucide-react";
 import { buildAdvancedComponent } from '@/utils/designSystem';
 
 /**
@@ -60,14 +60,17 @@ interface ApiPanelProps {
   endpoint: string;
   method: string;
   description: string;
-  fetcher: (params?: { page?: number; limit?: number }) => Promise<any>;
+  fetcher?: (params?: { page?: number; limit?: number }) => Promise<any>;
+  hub?: any; // Smart API Hub data
+  selectedAction?: any; // Currently selected action from the hub
 }
 
-const ApiPanel: React.FC<ApiPanelProps> = ({ open, onClose, title, endpoint, method, description, fetcher }) => {
+const ApiPanel: React.FC<ApiPanelProps> = ({ open, onClose, title, endpoint, method, description, fetcher, hub, selectedAction }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<any>(null);
   const [copied, setCopied] = useState(false);
+  const [currentAction, setCurrentAction] = useState(selectedAction || (hub?.actions?.[0]));
   const [viewMode, setViewMode] = useState<'table' | 'json' | 'dashboard'>('table');
   
   // Enhanced pagination state for courses
@@ -113,16 +116,151 @@ const ApiPanel: React.FC<ApiPanelProps> = ({ open, onClose, title, endpoint, met
   const [showColumnSettings, setShowColumnSettings] = useState(false);
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
   const [resizingColumn, setResizingColumn] = useState<string | null>(null);
+  
+  // Enhanced table state for dynamic data types and nested objects
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+  const [expandedNestedFields, setExpandedNestedFields] = useState<Set<string>>(new Set());
+  const [dataTypeFilters, setDataTypeFilters] = useState<Set<string>>(new Set());
+  const [showDataTypeIndicators, setShowDataTypeIndicators] = useState(true);
 
   // Store all users for role filtering regardless of pagination
   const [allUsers, setAllUsers] = useState<any[]>([]);
+
+  // Helper function to detect data type with enhanced type detection
+  const getDataType = (value: any): string => {
+    if (value === null || value === undefined) return 'null';
+    if (typeof value === 'boolean') return 'boolean';
+    if (typeof value === 'number') return 'number';
+    if (typeof value === 'string') {
+      // Enhanced string type detection
+      if (value.match(/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2})?/)) return 'date';
+      if (value.match(/^https?:\/\//)) return 'url';
+      if (value.match(/^[a-fA-F0-9]{24}$/)) return 'objectId';
+      if (value.includes('@') && value.includes('.')) return 'email';
+      if (value.match(/^\+?[\d\s\-\(\)]+$/)) return 'phone';
+      if (value.length > 100) return 'text';
+      return 'string';
+    }
+    if (Array.isArray(value)) {
+      if (value.length === 0) return 'array';
+      const firstType = getDataType(value[0]);
+      const allSameType = value.every(item => getDataType(item) === firstType);
+      return allSameType ? `array<${firstType}>` : 'array<mixed>';
+    }
+    if (typeof value === 'object') {
+      if (Object.keys(value).length === 0) return 'object';
+      return 'object';
+    }
+    return 'unknown';
+  };
+  
+  // Helper function to get data type icon
+  const getDataTypeIcon = (dataType: string) => {
+    const iconMap = {
+      'string': <Type className="w-3 h-3" />,
+      'text': <FileText className="w-3 h-3" />,
+      'number': <Hash className="w-3 h-3" />,
+      'boolean': <ToggleLeft className="w-3 h-3" />,
+      'date': <Calendar className="w-3 h-3" />,
+      'url': <Link2 className="w-3 h-3" />,
+      'email': <Users className="w-3 h-3" />,
+      'phone': <Users className="w-3 h-3" />,
+      'objectId': <Code className="w-3 h-3" />,
+      'array': <List className="w-3 h-3" />,
+      'array<string>': <List className="w-3 h-3" />,
+      'array<object>': <Layers className="w-3 h-3" />,
+      'array<mixed>': <List className="w-3 h-3" />,
+      'object': <Layers className="w-3 h-3" />,
+      'null': <Eye className="w-3 h-3" />,
+      'unknown': <HelpCircle className="w-3 h-3" />
+    };
+    return iconMap[dataType] || <Type className="w-3 h-3" />;
+  };
+  
+  // Helper function to get data type color
+  const getDataTypeColor = (dataType: string) => {
+    const colorMap = {
+      'string': 'text-blue-600 dark:text-blue-400',
+      'text': 'text-indigo-600 dark:text-indigo-400',
+      'number': 'text-green-600 dark:text-green-400',
+      'boolean': 'text-purple-600 dark:text-purple-400',
+      'date': 'text-orange-600 dark:text-orange-400',
+      'url': 'text-cyan-600 dark:text-cyan-400',
+      'email': 'text-pink-600 dark:text-pink-400',
+      'phone': 'text-pink-600 dark:text-pink-400',
+      'objectId': 'text-gray-600 dark:text-gray-400',
+      'array': 'text-teal-600 dark:text-teal-400',
+      'array<string>': 'text-teal-600 dark:text-teal-400',
+      'array<object>': 'text-emerald-600 dark:text-emerald-400',
+      'array<mixed>': 'text-teal-600 dark:text-teal-400',
+      'object': 'text-red-600 dark:text-red-400',
+      'null': 'text-gray-400 dark:text-gray-500',
+      'unknown': 'text-gray-600 dark:text-gray-400'
+    };
+    return colorMap[dataType] || 'text-gray-600 dark:text-gray-400';
+  };
+  
+  // Toggle row expansion
+  const toggleRowExpansion = (rowIndex: number) => {
+    setExpandedRows(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(rowIndex)) {
+        newSet.delete(rowIndex);
+      } else {
+        newSet.add(rowIndex);
+      }
+      return newSet;
+    });
+  };
+  
+  // Toggle nested field expansion
+  const toggleNestedFieldExpansion = (fieldKey: string) => {
+    setExpandedNestedFields(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(fieldKey)) {
+        newSet.delete(fieldKey);
+      } else {
+        newSet.add(fieldKey);
+      }
+      return newSet;
+    });
+  };
+  
+  // Check if row has nested data
+  const hasNestedData = (row: any): boolean => {
+    return Object.values(row).some(value => 
+      (typeof value === 'object' && value !== null && !Array.isArray(value)) ||
+      (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object')
+    );
+  };
+  
+  // Get unique data types in current data
+  const getUniqueDataTypes = (): string[] => {
+    if (!currentPageData.length) return [];
+    const types = new Set<string>();
+    currentPageData.forEach(row => {
+      Object.values(row).forEach(value => {
+        types.add(getDataType(value));
+      });
+    });
+    return Array.from(types).sort();
+  };
 
   const fetchData = async (page?: number, limit?: number) => {
     setLoading(true);
     setError(null);
     try {
-      const params = page && limit ? { page, limit } : undefined;
-      const res = await fetcher(params);
+      // Use current action's fetcher if available, otherwise use the passed fetcher
+      const activeFetcher = currentAction?.fetcher || fetcher;
+      if (!activeFetcher) {
+        throw new Error('No fetcher function available');
+      }
+
+      // Merge default params with pagination params
+      const defaultParams = currentAction?.defaultParams || {};
+      const params = page && limit ? { ...defaultParams, page, limit } : defaultParams;
+      
+      const res = await activeFetcher(params);
       setData(res);
       
       // Extract table data to check if it's analytics data
@@ -656,47 +794,89 @@ const ApiPanel: React.FC<ApiPanelProps> = ({ open, onClose, title, endpoint, met
     return null;
   };
 
-  // Enhanced formatValue for better UX with improved nested object handling
-  const formatValue = (value: any, column: string): string | JSX.Element => {
-    if (value === null || value === undefined) return '-';
+  // Enhanced formatValue with dynamic data type support and nested structure handling
+  const formatValue = (value: any, column: string, rowIndex?: number, isExpanded?: boolean): string | JSX.Element => {
+    if (value === null || value === undefined) {
+      return (
+        <div className="flex items-center space-x-2">
+          {showDataTypeIndicators && (
+            <span className={`inline-flex items-center ${getDataTypeColor('null')}`}>
+              {getDataTypeIcon('null')}
+            </span>
+          )}
+          <span className="text-gray-400 dark:text-gray-500 italic">null</span>
+        </div>
+      );
+    }
     
-    // Boolean values with status badges
+    // Enhanced boolean values with data type indicators
     if (typeof value === 'boolean') {
       const isPositive = ['is_active', 'email_verified', 'phone_verified', 'identity_verified', 'two_factor_enabled', 'isSticky', 'isRead'].includes(column);
       const isNegative = ['is_banned', 'trial_used', 'temp_password_verified'].includes(column);
       
-      if (isPositive) {
-        return value ? (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-            ✓ Yes
-          </span>
-        ) : (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
-            ✗ No
-          </span>
-        );
-      } else if (isNegative) {
-        return value ? (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
-            ✗ Yes
-          </span>
-        ) : (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-            ✓ No
-          </span>
-        );
-      }
-      
-      return value ? (
-        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-          ✓ Yes
-        </span>
-      ) : (
-        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
-          ✗ No
-        </span>
+      return (
+        <div className="flex items-center space-x-2">
+          {showDataTypeIndicators && (
+            <span className={`inline-flex items-center ${getDataTypeColor('boolean')}`}>
+              {getDataTypeIcon('boolean')}
+            </span>
+          )}
+          {isPositive ? (
+            value ? (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                ✓ Yes
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
+                ✗ No
+              </span>
+            )
+          ) : isNegative ? (
+            value ? (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                ✗ Yes
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                ✓ No
+              </span>
+            )
+          ) : (
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+              value 
+                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+                : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+            }`}>
+              {value ? 'true' : 'false'}
+            </span>
+          )}
+        </div>
       );
     }
+    
+    // Enhanced number values with data type indicators and smart formatting
+    if (typeof value === 'number') {
+      const dataType = getDataType(value);
+      return (
+        <div className="flex items-center space-x-2">
+          {showDataTypeIndicators && (
+            <span className={`inline-flex items-center ${getDataTypeColor(dataType)}`}>
+              {getDataTypeIcon(dataType)}
+            </span>
+          )}
+          <span className="font-mono text-sm">
+            {column.includes('percentage') || column.includes('rate') ? 
+              `${value.toFixed(2)}%` :
+             column.includes('amount') || column.includes('fee') || column.includes('price') || column.includes('revenue') ? 
+              `$${value.toLocaleString()}` :
+             value % 1 === 0 ? 
+              value.toLocaleString() : 
+              value.toFixed(2)}
+          </span>
+        </div>
+      );
+    }
+    
     
     // Phone number formatting
     if (column === 'phone_number' && typeof value === 'string') {
@@ -2374,56 +2554,39 @@ const ApiPanel: React.FC<ApiPanelProps> = ({ open, onClose, title, endpoint, met
 
   const renderTable = () => {
     if (!tableData || tableData.length === 0) {
-      // If server pagination and not on first page, offer to reset to page 1
-      if (paginationInfo?.hasServerPagination && currentPage > 1) {
-        return (
-          <div className="flex flex-col items-center justify-center py-12 px-6">
-            <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-4">
-              <AlertTriangle className="w-8 h-8 text-amber-600 dark:text-amber-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Data for This Page</h3>
-            <p className="text-gray-600 dark:text-gray-400 text-center mb-6 max-w-md">
-              The API returned no data for page {currentPage}. This might be the last page or there might be an issue with the pagination.
-            </p>
-            <div className="flex items-center space-x-3">
-              <button 
-                onClick={() => goToPage(1)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Go to First Page
-              </button>
-              <button 
-                onClick={handleRefresh}
-                className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              >
-                Refresh
-              </button>
-            </div>
-            <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg max-w-2xl w-full">
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">API Response for debugging:</p>
-              <pre className="text-xs text-gray-600 dark:text-gray-300 overflow-auto max-h-32">
-                {JSON.stringify(data, null, 2)}
-              </pre>
-            </div>
-          </div>
-        );
-      }
-      // Otherwise, show standard no data message
       return (
-        <div className="flex flex-col items-center justify-center py-12 px-6">
-          <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-            <Table className="w-8 h-8 text-gray-400" />
+        <div className="flex flex-col items-center justify-center py-16 px-6">
+          <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+            <Table className="w-10 h-10 text-gray-400" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Data Available</h3>
-          <p className="text-gray-600 dark:text-gray-400 text-center mb-6 max-w-md">
-            No data is available to display in table format. The API response might be empty or in an unexpected format.
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">No Data Available</h3>
+          <p className="text-gray-600 dark:text-gray-400 text-center mb-8 max-w-md leading-relaxed">
+            No data is currently available to display. The API response might be empty or in an unexpected format.
           </p>
           {data && (
-            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg max-w-2xl w-full">
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Response structure: {Object.keys(data).join(', ')}</p>
-              <pre className="text-xs text-gray-600 dark:text-gray-300 overflow-auto max-h-32">
-                {JSON.stringify(data, null, 2)}
-              </pre>
+            <div className="w-full max-w-4xl">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-100 dark:border-blue-800">
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                  <AlertTriangle className="w-4 h-4 mr-2 text-blue-600" />
+                  Response Debug Information
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-4 text-sm">
+                    <span className="text-gray-600 dark:text-gray-400">Structure:</span>
+                    <span className="px-2 py-1 bg-white dark:bg-gray-800 rounded font-mono text-xs">
+                      {Object.keys(data).join(', ')}
+                    </span>
+                  </div>
+                  <details className="group">
+                    <summary className="cursor-pointer text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
+                      View Raw Response
+                    </summary>
+                    <pre className="mt-3 p-4 bg-white dark:bg-gray-900 rounded-lg text-xs text-gray-600 dark:text-gray-300 overflow-auto max-h-40 border">
+                      {JSON.stringify(data, null, 2)}
+                    </pre>
+                  </details>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -2431,91 +2594,237 @@ const ApiPanel: React.FC<ApiPanelProps> = ({ open, onClose, title, endpoint, met
     }
 
     const firstItem = currentPageData[0];
-    console.log('First item:', firstItem);
-    console.log('First item type:', typeof firstItem);
-    console.log('First item keys:', firstItem ? Object.keys(firstItem) : 'null');
-    
     const columns = getFilteredColumns(firstItem);
-    console.log('Filtered columns:', columns);
     
-    // If no columns found, show a message with debugging info
     if (columns.length === 0) {
       return (
-        <div className="flex flex-col items-center justify-center py-12 px-6">
-          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4">
-            <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
+        <div className="flex flex-col items-center justify-center py-16 px-6">
+          <div className="w-20 h-20 bg-gradient-to-br from-red-100 to-red-200 dark:from-red-900/30 dark:to-red-800/30 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+            <AlertTriangle className="w-10 h-10 text-red-500" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Invalid Data Structure</h3>
-          <p className="text-gray-600 dark:text-gray-400 text-center mb-6 max-w-md">
-            The data structure could not be parsed for table display. This might be due to unexpected data format.
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Invalid Data Structure</h3>
+          <p className="text-gray-600 dark:text-gray-400 text-center mb-8 max-w-md leading-relaxed">
+            The data structure could not be parsed for table display. Please check the data format.
           </p>
-          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg max-w-2xl w-full space-y-2">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Debug Information:</p>
-            <div className="text-xs text-gray-600 dark:text-gray-300 space-y-1">
-              <p>Table data length: {tableData.length}</p>
-              <p>Current page data length: {currentPageData.length}</p>
-              <p>First item type: {typeof firstItem}</p>
-              <p>First item keys: {firstItem ? Object.keys(firstItem).join(', ') : 'null'}</p>
-              <p>Filtered columns count: {columns.length}</p>
-            </div>
-            {firstItem && (
-              <div className="mt-4">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Sample first item values:</p>
-                <pre className="text-xs text-gray-600 dark:text-gray-300 overflow-auto max-h-32 bg-white dark:bg-gray-900 p-2 rounded">
-                  {JSON.stringify(Object.fromEntries(
-                    Object.entries(firstItem).slice(0, 5).map(([key, value]) => [
-                      key, 
-                      typeof value === 'object' ? `[${typeof value}]` : value
-                    ])
-                  ), null, 2)}
-                </pre>
+          <div className="w-full max-w-4xl">
+            <div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-xl p-6 border border-red-100 dark:border-red-800">
+              <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                <Settings className="w-4 h-4 mr-2 text-red-600" />
+                Debug Information
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Table data length:</span>
+                    <span className="font-mono">{tableData.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Current page data:</span>
+                    <span className="font-mono">{currentPageData.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">First item type:</span>
+                    <span className="font-mono">{typeof firstItem}</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Columns found:</span>
+                    <span className="font-mono">{columns.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">First item keys:</span>
+                    <span className="font-mono text-xs">{firstItem ? Object.keys(firstItem).length : 0}</span>
+                  </div>
+                </div>
               </div>
-            )}
+              {firstItem && (
+                <details className="mt-4 group">
+                  <summary className="cursor-pointer text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
+                    View Sample Data
+                  </summary>
+                  <pre className="mt-3 p-4 bg-white dark:bg-gray-900 rounded-lg text-xs text-gray-600 dark:text-gray-300 overflow-auto max-h-40 border">
+                    {JSON.stringify(Object.fromEntries(
+                      Object.entries(firstItem).slice(0, 5).map(([key, value]) => [
+                        key, 
+                        typeof value === 'object' ? `[${typeof value}]` : value
+                      ])
+                    ), null, 2)}
+                  </pre>
+                </details>
+              )}
+            </div>
           </div>
         </div>
       );
     }
 
     return (
-      <div className="h-full flex flex-col">
+      <div className="h-full flex flex-col bg-white dark:bg-gray-900">
+        {/* Enhanced Table Header */}
+        <div className="flex-shrink-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200 dark:border-gray-600">
+          <div className="px-6 py-4">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-blue-600 rounded-lg">
+                    <Database className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                      Data Table
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {currentPageData.length} of {totalRecords} records
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-sm font-medium">
+                    {getVisibleColumns().length} columns
+                  </span>
+                  
+                  {currentPageData.some(row => hasNestedData(row)) && (
+                    <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full text-sm font-medium">
+                      {currentPageData.filter(row => hasNestedData(row)).length} with nested data
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => setShowDataTypeIndicators(!showDataTypeIndicators)}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 flex items-center space-x-2 ${
+                    showDataTypeIndicators
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 shadow-sm'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <Type className="w-4 h-4" />
+                  <span>Data Types</span>
+                </button>
+                
+                <button 
+                  onClick={handleCopy}
+                  className="px-4 py-2 text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 flex items-center space-x-2"
+                >
+                  <Copy className="w-4 h-4" />
+                  <span>Export</span>
+                </button>
+                
+                <button
+                  onClick={() => setShowColumnSettings(!showColumnSettings)}
+                  className="px-4 py-2 text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 flex items-center space-x-2"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>Columns</span>
+                </button>
+              </div>
+            </div>
+            
+            {/* Data Type Filters */}
+            {showDataTypeIndicators && getUniqueDataTypes().length > 0 && (
+              <div className="flex items-center space-x-3 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter by type:</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  {getUniqueDataTypes().slice(0, 6).map(dataType => (
+                    <button
+                      key={dataType}
+                      onClick={() => {
+                        setDataTypeFilters(prev => {
+                          const newSet = new Set(prev);
+                          if (newSet.has(dataType)) {
+                            newSet.delete(dataType);
+                          } else {
+                            newSet.add(dataType);
+                          }
+                          return newSet;
+                        });
+                      }}
+                      className={`flex items-center space-x-2 px-3 py-1.5 text-sm rounded-lg transition-all duration-200 ${
+                        dataTypeFilters.has(dataType)
+                          ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 shadow-sm'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      }`}
+                    >
+                      <span className={getDataTypeColor(dataType)}>
+                        {getDataTypeIcon(dataType)}
+                      </span>
+                      <span className="font-medium">{dataType}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+                         {/* Sort Indicator */}
+             {sortColumn && (
+               <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-lg border border-blue-200 dark:border-blue-700">
+                 <div className="flex items-center space-x-2">
+                   {sortDirection === 'asc' ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
+                   <span className="text-sm font-medium">
+                     Sorted by: {getColumnDisplayName(sortColumn)} ({sortDirection})
+                   </span>
+                 </div>
+                <button
+                  onClick={() => {
+                    setSortColumn(null);
+                    setSortDirection('asc');
+                  }}
+                  className="p-1 hover:bg-blue-100 dark:hover:bg-blue-800 rounded transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Column Settings Panel */}
         {showColumnSettings && (
-          <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex-shrink-0 px-6 py-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
-              <h4 className="text-sm font-medium text-gray-900 dark:text-white">Column Settings</h4>
+              <h4 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
+                <Settings className="w-4 h-4" />
+                <span>Column Configuration</span>
+              </h4>
               <div className="flex items-center space-x-2">
                 <button
                   onClick={resetColumnSettings}
-                  className="px-3 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+                  className="px-3 py-1.5 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                 >
-                  Reset
+                  Reset All
                 </button>
                 <button
                   onClick={() => setShowColumnSettings(false)}
-                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
               {getFilteredColumns(firstItem).map((column) => (
-                <div key={column} className="flex items-center space-x-2 p-2 bg-white dark:bg-gray-700 rounded border">
+                <div key={column} className="flex items-center space-x-3 p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
                   <input
                     type="checkbox"
                     checked={columnSettings[column]?.visible !== false}
                     onChange={() => toggleColumnVisibility(column)}
-                    className="rounded"
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="text-xs text-gray-700 dark:text-gray-300 truncate">
-                    {getColumnDisplayName(column)}
-                  </span>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate block">
+                      {getColumnDisplayName(column)}
+                    </span>
+                  </div>
                   <button
                     onClick={() => toggleColumnFreeze(column)}
-                    className={`p-1 rounded text-xs ${
+                    className={`p-1.5 rounded text-xs transition-all duration-200 ${
                       columnSettings[column]?.frozen 
-                        ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' 
-                        : 'text-gray-400 hover:text-gray-600'
+                        ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 shadow-sm' 
+                        : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
                     }`}
                     title={columnSettings[column]?.frozen ? 'Unfreeze column' : 'Freeze column'}
                   >
@@ -2527,67 +2836,29 @@ const ApiPanel: React.FC<ApiPanelProps> = ({ open, onClose, title, endpoint, met
           </div>
         )}
 
-        {/* Table Header with Actions */}
-        <div className="px-6 py-4 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Data Table ({currentPageData.length} items)
-              </h3>
-              <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-xs font-medium">
-                {getVisibleColumns().length} columns
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              {sortColumn && (
-                <div className="flex items-center space-x-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-lg text-sm">
-                  <span>Sorted by: {getColumnDisplayName(sortColumn)}</span>
-                  <button
-                    onClick={() => {
-                      setSortColumn(null);
-                      setSortDirection('asc');
-                    }}
-                    className="ml-2 p-1 hover:bg-blue-100 dark:hover:bg-blue-800 rounded transition-colors"
-                    title="Clear sorting"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              )}
-              <button 
-                onClick={handleCopy}
-                className="px-3 py-2 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              >
-                <Copy className="w-4 h-4 inline mr-2" />
-                Export
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Role Filter Navigation for Users */}
+        {/* Role Filter Navigation */}
         {tableData && tableData.length > 0 && (tableData[0]?.full_name || tableData[0]?.email || tableData[0]?.phone_number) && Object.keys(roleStats).length > 1 && (
-          <div className="px-6 py-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
+          <div className="flex-shrink-0 px-6 py-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-1">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-3">Filter by Role:</span>
-                <div className="flex items-center space-x-1 bg-white dark:bg-gray-700 rounded-lg p-1 border border-gray-200 dark:border-gray-600">
+              <div className="flex items-center space-x-4">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter by Role:</span>
+                <div className="flex items-center space-x-2 bg-white dark:bg-gray-700 rounded-xl p-1 border border-gray-200 dark:border-gray-600 shadow-sm">
                   {Object.entries(roleStats)
                     .sort(([a], [b]) => a === 'all' ? -1 : b === 'all' ? 1 : a.localeCompare(b))
                     .map(([role, count]) => (
                     <button
                       key={role}
                       onClick={() => setSelectedRole(role)}
-                      className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 flex items-center space-x-2 ${
+                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 flex items-center space-x-2 ${
                         selectedRole === role
-                          ? 'bg-blue-600 text-white shadow-sm'
+                          ? 'bg-blue-600 text-white shadow-md'
                           : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600 hover:text-gray-900 dark:hover:text-white'
                       }`}
                     >
                       <span className="capitalize">
                         {role === 'all' ? 'All Users' : role}
                       </span>
-                      <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium ${
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
                         selectedRole === role
                           ? 'bg-blue-500 text-white'
                           : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
@@ -2601,7 +2872,7 @@ const ApiPanel: React.FC<ApiPanelProps> = ({ open, onClose, title, endpoint, met
               {selectedRole !== 'all' && (
                 <button
                   onClick={() => setSelectedRole('all')}
-                  className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors"
                 >
                   Clear Filter
                 </button>
@@ -2610,17 +2881,24 @@ const ApiPanel: React.FC<ApiPanelProps> = ({ open, onClose, title, endpoint, met
           </div>
         )}
 
-        {/* Enhanced Flexible Table */}
-        <div className="flex-1 overflow-auto min-h-0">
+        {/* Enhanced Table Container */}
+        <div className="flex-1 overflow-auto bg-white dark:bg-gray-900">
           <div className="min-w-full">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0 z-10">
+            <table className="min-w-full">
+              <thead className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 sticky top-0 z-10 shadow-sm">
                 <tr>
+                  {/* Expand/Collapse Header */}
+                  <th className="px-4 py-4 text-center text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider border-b-2 border-gray-200 dark:border-gray-600 w-16">
+                    <div className="flex items-center justify-center">
+                      <Layers className="w-4 h-4" />
+                    </div>
+                  </th>
+                  
                   {getVisibleColumns().map((column, index) => (
                     <th
                       key={column}
-                      className={`px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap border-b border-gray-200 dark:border-gray-700 cursor-pointer group hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-150 ${
-                        columnSettings[column]?.frozen ? 'sticky left-0 bg-gray-50 dark:bg-gray-800 z-20' : ''
+                      className={`px-6 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider border-b-2 border-gray-200 dark:border-gray-600 cursor-pointer group hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 ${
+                        columnSettings[column]?.frozen ? 'sticky left-16 bg-gray-50 dark:bg-gray-800 z-20 shadow-md' : ''
                       }`}
                       style={{ 
                         width: columnSettings[column]?.width || getDefaultColumnWidth(column),
@@ -2634,113 +2912,192 @@ const ApiPanel: React.FC<ApiPanelProps> = ({ open, onClose, title, endpoint, met
                           setSortDirection('asc');
                         }
                       }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          if (sortColumn === column) {
-                            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                          } else {
-                            setSortColumn(column);
-                            setSortDirection('asc');
-                          }
-                        }
-                      }}
-                      tabIndex={0}
-                      aria-sort={sortColumn === column ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
-                      title={`Click to sort by ${getColumnDisplayName(column)}`}
                     >
-                      <div className="flex items-center space-x-1">
-                        <span className="flex items-center space-x-1">
-                          {getColumnDisplayName(column)}
-                          {/* Sort indicator */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-semibold">{getColumnDisplayName(column)}</span>
+                          {showDataTypeIndicators && (
+                            <span className={`${getDataTypeColor(getDataType(currentPageData[0]?.[column]))}`}>
+                              {getDataTypeIcon(getDataType(currentPageData[0]?.[column]))}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-1">
                           {sortColumn === column ? (
                             sortDirection === 'asc' ? 
-                              <ArrowUp className="w-4 h-4 text-blue-600 dark:text-blue-400 ml-1" /> : 
-                              <ArrowDown className="w-4 h-4 text-blue-600 dark:text-blue-400 ml-1" />
+                              <ArrowUp className="w-4 h-4 text-blue-600 dark:text-blue-400" /> : 
+                              <ArrowDown className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                           ) : (
-                            <div className="w-4 h-4 ml-1 opacity-0 group-hover:opacity-50 transition-opacity">
-                              <ArrowUp className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                            <div className="flex flex-col items-center">
+                              <ArrowUp className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-50 transition-opacity -mb-1" />
+                              <ArrowDown className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-50 transition-opacity" />
                             </div>
                           )}
-                        </span>
-                        {/* Column resize handle */}
-                        <div
-                          className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-500 transition-colors"
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            setResizingColumn(column);
-                            const startX = e.clientX;
-                            const startWidth = columnSettings[column]?.width || getDefaultColumnWidth(column);
-                            
-                            const handleMouseMove = (moveEvent: MouseEvent) => {
-                              const deltaX = moveEvent.clientX - startX;
-                              const newWidth = startWidth + deltaX;
-                              resizeColumn(column, newWidth);
-                            };
-                            
-                            const handleMouseUp = () => {
-                              setResizingColumn(null);
-                              document.removeEventListener('mousemove', handleMouseMove);
-                              document.removeEventListener('mouseup', handleMouseUp);
-                            };
-                            
-                            document.addEventListener('mousemove', handleMouseMove);
-                            document.addEventListener('mouseup', handleMouseUp);
-                          }}
-                        />
+                        </div>
                       </div>
                     </th>
                   ))}
                 </tr>
               </thead>
-                             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                 {currentPageData.map((row: any, rowIndex: number) => (
-                  <tr
-                    key={rowIndex}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                  >
-                    {getVisibleColumns().map((column) => (
-                      <td
-                        key={column}
-                        className={`px-6 py-3 text-sm text-gray-900 dark:text-gray-100 border-b border-gray-100 dark:border-gray-800 ${
-                          columnSettings[column]?.frozen ? 'sticky left-0 bg-white dark:bg-gray-900 z-10' : ''
-                        }`}
-                        style={{ 
-                          width: columnSettings[column]?.width || getDefaultColumnWidth(column),
-                          minWidth: columnSettings[column]?.width || getDefaultColumnWidth(column)
-                        }}
-                      >
-                        {formatValue(row[column], column)}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
+              <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                {currentPageData.map((row: any, rowIndex: number) => {
+                  const isRowExpanded = expandedRows.has(rowIndex);
+                  const hasNested = hasNestedData(row);
+                  
+                  return (
+                    <React.Fragment key={rowIndex}>
+                      <tr className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-150 group">
+                        {/* Expand/Collapse Button Column */}
+                        <td className="px-4 py-4 text-center w-16">
+                          {hasNested ? (
+                            <button
+                              onClick={() => toggleRowExpansion(rowIndex)}
+                              className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200"
+                              title={isRowExpanded ? 'Collapse nested data' : 'Expand nested data'}
+                            >
+                              {isRowExpanded ? (
+                                <ChevronUp className="w-4 h-4" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4" />
+                              )}
+                            </button>
+                          ) : (
+                            <div className="w-8 h-8 flex items-center justify-center">
+                              <div className="w-2 h-2 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+                            </div>
+                          )}
+                        </td>
+                        
+                        {getVisibleColumns().map((column) => (
+                          <td
+                            key={column}
+                            className={`px-6 py-4 text-sm text-gray-900 dark:text-gray-100 ${
+                              columnSettings[column]?.frozen ? 'sticky left-16 bg-white dark:bg-gray-900 z-10 shadow-md' : ''
+                            }`}
+                            style={{ 
+                              width: columnSettings[column]?.width || getDefaultColumnWidth(column),
+                              minWidth: columnSettings[column]?.width || getDefaultColumnWidth(column)
+                            }}
+                          >
+                            <div className="max-w-xs">
+                              {formatValue(row[column], column, rowIndex, expandedNestedFields.has(`${rowIndex}-${column}`))}
+                            </div>
+                          </td>
+                        ))}
+                      </tr>
+                      
+                      {/* Expanded Row for Nested Data */}
+                      {isRowExpanded && hasNested && (
+                        <tr className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700">
+                          <td colSpan={getVisibleColumns().length + 1} className="px-6 py-6">
+                            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                              <div className="flex items-center space-x-3 mb-6">
+                                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                                  <Layers className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <div>
+                                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                    Nested Data Structure
+                                  </h4>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    Detailed view of complex data fields
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                                {Object.entries(row).map(([key, value]) => {
+                                  if (typeof value !== 'object' || value === null) return null;
+                                  
+                                  return (
+                                    <div key={key} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                                      <div className="flex items-center space-x-2 mb-3">
+                                        <span className={`inline-flex items-center ${getDataTypeColor(getDataType(value))}`}>
+                                          {getDataTypeIcon(getDataType(value))}
+                                        </span>
+                                        <h5 className="text-sm font-semibold text-gray-900 dark:text-white">
+                                          {getColumnDisplayName(key)}
+                                        </h5>
+                                        <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded text-xs font-medium">
+                                          {getDataType(value)}
+                                        </span>
+                                      </div>
+                                      
+                                      <div className="text-sm">
+                                        {Array.isArray(value) ? (
+                                          <div className="space-y-2 max-h-48 overflow-y-auto">
+                                            <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                                              Array with {value.length} items
+                                            </div>
+                                            {value.slice(0, 5).map((item, index) => (
+                                              <div key={index} className="p-3 bg-white dark:bg-gray-900 rounded border border-gray-200 dark:border-gray-600">
+                                                {typeof item === 'object' ? (
+                                                  <pre className="whitespace-pre-wrap text-xs text-gray-600 dark:text-gray-300 overflow-auto">
+                                                    {JSON.stringify(item, null, 2)}
+                                                  </pre>
+                                                ) : (
+                                                  <span className="text-gray-900 dark:text-gray-100">{String(item)}</span>
+                                                )}
+                                              </div>
+                                            ))}
+                                            {value.length > 5 && (
+                                              <div className="text-xs text-gray-500 dark:text-gray-400 text-center py-2">
+                                                ... and {value.length - 5} more items
+                                              </div>
+                                            )}
+                                          </div>
+                                        ) : (
+                                          <pre className="whitespace-pre-wrap text-xs text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-900 p-3 rounded border border-gray-200 dark:border-gray-600 max-h-48 overflow-auto">
+                                            {JSON.stringify(value, null, 2)}
+                                          </pre>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         </div>
         
-        {/* Modern Pagination */}
-        <div className="flex-shrink-0">
+        {/* Enhanced Pagination */}
+        <div className="flex-shrink-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-t border-gray-200 dark:border-gray-600">
           {renderPagination()}
         </div>
         
-        {/* Table Footer */}
-        <div className="px-6 py-3 bg-gray-50 dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 flex-shrink-0">
-          <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-            <div className="flex items-center space-x-4">
-              <span>Total records: {totalRecords}</span>
-              <span>Columns: {columns.length}</span>
-              <span>Page {currentPage} of {totalPages}</span>
+        {/* Enhanced Table Footer */}
+        <div className="flex-shrink-0 px-6 py-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center space-x-6 text-gray-600 dark:text-gray-400">
+              <div className="flex items-center space-x-2">
+                <Database className="w-4 h-4" />
+                <span className="font-medium">{totalRecords} total records</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Grid className="w-4 h-4" />
+                <span>{columns.length} columns</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <FileText className="w-4 h-4" />
+                <span>Page {currentPage} of {totalPages}</span>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-4">
               {paginationInfo?.hasServerPagination && (
-                <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-xs">
-                  Server paginated
+                <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-xs font-medium">
+                  Server Paginated
                 </span>
               )}
-              <span className="text-xs">
-                Data: {tableData.length} items | Current page: {currentPageData.length} items
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                Showing {currentPageData.length} items
               </span>
             </div>
           </div>
@@ -3726,12 +4083,55 @@ const ApiPanel: React.FC<ApiPanelProps> = ({ open, onClose, title, endpoint, met
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{hub ? hub.title : title}</h2>
+              {hub && (
+                <span className={`text-xs px-2 py-1 rounded-full font-medium ${hub.badgeColor}`}>
+                  {hub.badgeCount} APIs
+                </span>
+              )}
             </div>
             <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
-              <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-md font-mono text-xs">{method}</span>
-              <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">{endpoint}</span>
+              <span className={`px-2 py-1 rounded-md font-mono text-xs ${
+                (currentAction?.method || method) === 'GET' 
+                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                  : (currentAction?.method || method) === 'POST'
+                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                  : (currentAction?.method || method) === 'PUT'
+                  ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                  : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+              }`}>
+                {currentAction?.method || method}
+              </span>
+              <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                {currentAction?.endpoint || endpoint}
+              </span>
             </div>
+            
+            {/* Hub Action Selector */}
+            {hub && hub.actions && hub.actions.length > 1 && (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-500 dark:text-gray-400">Action:</span>
+                <select
+                  value={currentAction?.key || ''}
+                  onChange={(e) => {
+                    const selectedAction = hub.actions.find(action => action.key === e.target.value);
+                    if (selectedAction) {
+                      setCurrentAction(selectedAction);
+                      // Clear existing data to force refresh
+                      setData(null);
+                      setError(null);
+                    }
+                  }}
+                  className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-sm"
+                >
+                  {hub.actions.map((action) => (
+                    <option key={action.key} value={action.key}>
+                      {action.title} ({action.method})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             {/* Show All Courses button in header for course endpoints */}
             {(endpoint.includes('/courses') || endpoint.includes('/tcourse')) && (
               <button
@@ -3860,8 +4260,18 @@ const ApiPanel: React.FC<ApiPanelProps> = ({ open, onClose, title, endpoint, met
           </div>
         </div>
 
+        {/* Action Description */}
+        {(currentAction?.description || description) && (
+          <div className="px-6 py-3 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-100 dark:border-gray-800">
+            <div className="flex items-start space-x-2">
+              <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                {currentAction?.description || description}
+              </p>
+            </div>
+          </div>
+        )}
 
-        
         {/* Advanced Controls */}
         <div className="px-6 py-4 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-center justify-between">

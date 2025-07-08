@@ -13,6 +13,9 @@ import { apiUrls } from "@/apis";
 import usePostQuery from "@/hooks/postQuery.hook";
 import useGetQuery from "@/hooks/getQuery.hook";
 import type { IBlendedCourse, IUnifiedPrice, IBlendedCurriculumSection, IBlendedCourseLesson, IToolTechnology, IFAQ } from "@/apis/courses";
+import { masterDataApi } from "@/apis/master.api";
+import instructorAPI from '@/apis/instructor';
+import { uploadService } from '@/services/uploadService';
 
 // Comprehensive form validation schema
 const blendedCourseSchema = yup.object().shape({
@@ -20,9 +23,7 @@ const blendedCourseSchema = yup.object().shape({
   course_subtitle: yup.string(),
   course_category: yup.string().required('Course category is required'),
   course_subcategory: yup.string(),
-  course_tag: yup.string(),
-  course_level: yup.string().required('Course level is required'),
-  course_image: yup.string().required('Course image is required'),
+  course_tag: yup.array().of(yup.string()),
   course_description: yup.object().shape({
     program_overview: yup.string().required('Program overview is required').min(50, 'Overview must be at least 50 characters'),
     benefits: yup.string().required('Benefits are required').min(30, 'Benefits must be at least 30 characters'),
@@ -30,8 +31,6 @@ const blendedCourseSchema = yup.object().shape({
     course_requirements: yup.array().of(yup.string()),
     target_audience: yup.array().of(yup.string())
   }),
-  course_duration: yup.string().required('Course duration is required'),
-  session_duration: yup.string().required('Session duration is required'),
   prices: yup.array().of(
     yup.object().shape({
       currency: yup.string().required('Currency is required'),
@@ -109,9 +108,20 @@ const blendedCourseSchema = yup.object().shape({
       min_attendance: yup.number().min(0).max(100)
     })
   }),
-  status: yup.string(),
-  language: yup.string(),
-  brochures: yup.array().of(yup.string())
+  brochures: yup.array().of(
+    yup.object().shape({
+      name: yup.string(),
+      url: yup.string()
+    })
+  ),
+  preview_video: yup.object().shape({
+    title: yup.string().required('Preview title is required'),
+    url: yup.string().required('Preview URL is required'),
+    previewUrl: yup.string(),
+    duration: yup.string().required('Preview duration is required'),
+    description: yup.string().required('Preview description is required'),
+  }),
+  course_level: yup.string().oneOf(['Beginner', 'Intermediate', 'Advanced', 'All Levels']).required('Course level is required'),
 });
 
 // Extended curriculum section interface for form
@@ -126,9 +136,7 @@ interface BlendedCourseFormData {
   course_subtitle?: string;
   course_category: string;
   course_subcategory?: string;
-  course_tag?: string;
-  course_level: 'Beginner' | 'Intermediate' | 'Advanced' | 'All Levels';
-  course_image: string;
+  course_tag?: string[];
   course_description: {
     program_overview: string;
     benefits: string;
@@ -136,8 +144,6 @@ interface BlendedCourseFormData {
     course_requirements?: string[];
     target_audience?: string[];
   };
-  course_duration: string;
-  session_duration: string;
   prices: IUnifiedPrice[];
   doubt_session_schedule?: {
     frequency?: 'daily' | 'weekly' | 'bi-weekly' | 'monthly' | 'on-demand';
@@ -163,7 +169,21 @@ interface BlendedCourseFormData {
   };
   status?: 'Draft' | 'Published' | 'Upcoming';
   language?: string;
-  brochures?: string[];
+  brochures?: { name: string, url: string }[];
+  gradeOrCertificate: 'grade' | 'certificate';
+  grade: string;
+  certificateType: string;
+  course_image: string;
+  course_duration: string;
+  preview_video?: {
+    title: string;
+    url: string;
+    previewUrl?: string;
+    duration: string;
+    description: string;
+  };
+  session_duration?: string;
+  course_level: 'Beginner' | 'Intermediate' | 'Advanced' | 'All Levels';
 }
 
 interface CategoryItem {
@@ -234,7 +254,7 @@ export default function CreateBlendedCoursePage() {
     resolver: yupResolver(blendedCourseSchema) as any,
     mode: 'onChange',
     defaultValues: {
-      course_level: 'Beginner',
+      course_tag: [''], // Ensure course_tag is always an array
       course_description: {
         program_overview: '',
         benefits: '',
@@ -275,11 +295,20 @@ export default function CreateBlendedCoursePage() {
           min_attendance: 80
         }
       },
-      status: 'Draft',
       prerequisites: [''],
       instructors: [],
-      language: 'English',
-      brochures: []
+      brochures: [],
+      course_image: '',
+      course_duration: '',
+      preview_video: {
+        title: '',
+        url: '',
+        previewUrl: '',
+        duration: '',
+        description: ''
+      },
+      session_duration: '',
+      course_level: 'Beginner'
     }
   });
 
@@ -302,12 +331,6 @@ export default function CreateBlendedCoursePage() {
     control,
     name: "faqs"
   });
-
-  // Handle prerequisites manually since it's a simple string array
-  // const { fields: prerequisiteFields, append: appendPrerequisite, remove: removePrerequisite } = useFieldArray({
-  //   control,
-  //   name: "prerequisites"
-  // });
 
   const watchedValues = watch();
 
@@ -438,45 +461,27 @@ export default function CreateBlendedCoursePage() {
       showToast.error('Please select a valid image file');
       return;
     }
-
     setImageUploading(true);
     try {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = async () => {
-        const base64 = reader.result?.toString().split(',')[1];
-        if (base64) {
-          const postData = { base64String: base64, fileType: "image" };
-          await postQuery({
-            url: apiUrls?.upload?.uploadImage,
-            postData,
-            onSuccess: async (response) => {
-              if (response?.data?.url && typeof response.data.url === 'string') {
-                const imageUrl = response.data.url;
-                setValue('course_image', imageUrl, {
-                  shouldValidate: true,
-                  shouldDirty: true,
-                  shouldTouch: true
-                });
-                showToast.success('Image uploaded successfully');
-              } else {
-                console.error("Unexpected image upload response format:", response);
-                showToast.error('Invalid image upload response format');
-              }
-            },
-            onFail: (error) => {
-              console.error("Image upload error:", error);
-              showToast.error('Image upload failed. Please try again.');
-            },
+        const base64WithPrefix = reader.result?.toString();
+        if (base64WithPrefix) {
+          const uploadRes = await uploadService.uploadBase64(base64WithPrefix, 'image', file.name);
+          if (!uploadRes?.data?.url) throw new Error('Upload failed');
+          setValue('course_image', uploadRes.data.url, {
+            shouldValidate: true,
+            shouldDirty: true,
+            shouldTouch: true
           });
+          showToast.success('Image uploaded successfully');
         }
       };
-      
       reader.onerror = () => {
         showToast.error('Failed to read image file');
       };
     } catch (error) {
-      console.error("Error in handleImageUpload:", error);
       showToast.error('Failed to upload image');
     } finally {
       setImageUploading(false);
@@ -491,60 +496,43 @@ export default function CreateBlendedCoursePage() {
       showToast.error('Please select a valid PDF file');
       return;
     }
-
-    // Validate file type
     if (file.type !== 'application/pdf') {
       showToast.error('Only PDF files are allowed for brochures');
       return;
     }
-
     // Validate file size (e.g., max 10MB)
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
       showToast.error('File size must be less than 10MB');
       return;
     }
-
     setBrochureUploading(true);
     try {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = async () => {
-        const base64 = reader.result?.toString().split(',')[1];
-        if (base64) {
-          const postData = { base64String: base64, fileType: "document" };
-          await postQuery({
-            url: apiUrls?.upload?.uploadDocument,
-            postData,
-            onSuccess: async (response) => {
-              if (response?.data?.url && typeof response.data.url === 'string') {
-                const brochureUrl = response.data.url;
-                const currentBrochures = watchedValues.brochures || [];
-                const newBrochures = [...currentBrochures, brochureUrl];
-                setValue('brochures', newBrochures, {
-                  shouldValidate: true,
-                  shouldDirty: true,
-                  shouldTouch: true
-                });
-                showToast.success('Brochure uploaded successfully');
-              } else {
-                console.error("Unexpected brochure upload response format:", response);
-                showToast.error('Invalid brochure upload response format');
-              }
-            },
-            onFail: (error) => {
-              console.error("Brochure upload error:", error);
-              showToast.error('Brochure upload failed. Please try again.');
-            },
+        const base64WithPrefix = reader.result?.toString();
+        if (base64WithPrefix) {
+          const uploadRes = await uploadService.uploadBase64(base64WithPrefix, 'document', file.name);
+          if (!uploadRes?.data?.url) throw new Error('Upload failed');
+          let displayName = window.prompt('Enter a display name for this brochure:', file.name.replace(/\.[^.]+$/, ''));
+          if (!displayName || !displayName.trim()) {
+            displayName = file.name.replace(/\.[^.]+$/, '');
+          }
+          const currentBrochures = Array.isArray(watchedValues.brochures) ? watchedValues.brochures : [];
+          const newBrochures = [...currentBrochures, { name: displayName, url: uploadRes.data.url }];
+          setValue('brochures', newBrochures, {
+            shouldValidate: true,
+            shouldDirty: true,
+            shouldTouch: true
           });
+          showToast.success('Brochure uploaded successfully');
         }
       };
-      
       reader.onerror = () => {
         showToast.error('Failed to read PDF file');
       };
     } catch (error) {
-      console.error("Error in handleBrochureUpload:", error);
       showToast.error('Failed to upload brochure');
     } finally {
       setBrochureUploading(false);
@@ -553,7 +541,7 @@ export default function CreateBlendedCoursePage() {
 
   // Remove brochure
   const removeBrochure = (index: number) => {
-    const currentBrochures = watchedValues.brochures || [];
+    const currentBrochures = Array.isArray(watchedValues.brochures) ? watchedValues.brochures : [];
     const newBrochures = currentBrochures.filter((_, i) => i !== index);
     setValue('brochures', newBrochures);
   };
@@ -610,15 +598,6 @@ export default function CreateBlendedCoursePage() {
     }
     if (!data.course_image?.trim()) {
       errors.push('Course Image is required');
-    }
-    if (!data.course_level?.trim()) {
-      errors.push('Course Level is required');
-    }
-    if (!data.course_duration?.trim()) {
-      errors.push('Course Duration is required');
-    }
-    if (!data.session_duration?.trim()) {
-      errors.push('Session Duration is required');
     }
 
     // Course description validation
@@ -840,6 +819,7 @@ export default function CreateBlendedCoursePage() {
       // Filter out empty items from arrays
       const cleanedData = {
         ...data,
+        course_level: data.course_level || 'Beginner',
         course_description: {
           ...data.course_description,
           learning_objectives: data.course_description?.learning_objectives?.filter(obj => obj?.trim()) || [],
@@ -852,8 +832,8 @@ export default function CreateBlendedCoursePage() {
       };
 
       // Transform curriculum to include weekTitle for API (backend requires it)
-      const transformedCurriculum = cleanedData.curriculum.map(section => ({
-        id: section.id || `section_${sectionIndex + 1}`,
+      const transformedCurriculum = cleanedData.curriculum.map((section, idx) => ({
+        id: section.id || `section_${idx + 1}`,
         title: section.title,
         weekTitle: section.weekTitle, // Include weekTitle as required by backend
         description: section.description,
@@ -870,12 +850,8 @@ export default function CreateBlendedCoursePage() {
         course_subtitle: cleanedData.course_subtitle,
         course_category: cleanedData.course_category,
         course_subcategory: cleanedData.course_subcategory,
-        course_tag: cleanedData.course_tag,
-        course_level: cleanedData.course_level,
-        course_image: cleanedData.course_image,
+        course_tag: cleanedData.course_tag?.join(','),
         course_description: cleanedData.course_description,
-        course_duration: cleanedData.course_duration,
-        session_duration: cleanedData.session_duration,
         prices: cleanedData.prices,
         curriculum: transformedCurriculum,
         doubt_session_schedule: cleanedData.doubt_session_schedule,
@@ -885,18 +861,28 @@ export default function CreateBlendedCoursePage() {
         prerequisites: cleanedData.prerequisites,
         certification: cleanedData.certification,
         status: cleanedData.status,
-        language: cleanedData.language,
-        brochures: cleanedData.brochures
+        brochures: (cleanedData.brochures || []).map(b => b.url),
+        course_image: cleanedData.course_image,
+        course_duration: cleanedData.course_duration,
+        course_level: cleanedData.course_level || 'Beginner',
+        session_duration: cleanedData.session_duration || ''
       };
 
-      console.log('Sending course data to API:', blendedCourseData);
+      // Compose the final payload with assigned_instructor and preview_video as separate properties
+      const payload = {
+        ...blendedCourseData,
+        assigned_instructor: cleanedData.instructors,
+        preview_video: cleanedData.preview_video
+      };
+
+      console.log('Sending course data to API:', payload);
 
       // Show loading toast
       const loadingToast = showToast.loading('Creating blended course...');
 
       try {
         // Create the course using the new API
-        const response = await courseTypesAPI.createCourse(blendedCourseData);
+        const response = await courseTypesAPI.createCourse(payload);
         
         console.log('API Response:', response);
 
@@ -906,9 +892,7 @@ export default function CreateBlendedCoursePage() {
                  // Check for successful response
          if (response?.data?.success) {
            formSubmittedSuccessfully.current = true;
-           showToast.success(`Blended course "${blendedCourseData.course_title}" created successfully!`, {
-             autoClose: 4000,
-           });
+           showToast.success(`Blended course "${blendedCourseData.course_title}" created successfully!`);
           
           // Clear the saved draft
           storageUtil.removeItem(STORAGE_KEY);
@@ -941,9 +925,7 @@ export default function CreateBlendedCoursePage() {
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred while creating the course';
       
              setValidationMessage(errorMessage);
-       showToast.error(errorMessage, {
-         autoClose: 6000,
-       });
+       showToast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -1029,6 +1011,183 @@ export default function CreateBlendedCoursePage() {
     return null;
   };
 
+  // [START OF FULL REFACTOR]
+  // 1. Fix masterData types for state
+  const [masterData, setMasterData] = useState<{
+    parentCategories: string[];
+    categories: string[];
+    certificates: string[];
+    grades: string[];
+    courseDurations: string[];
+  }>({
+    parentCategories: [],
+    categories: [],
+    certificates: [],
+    grades: [],
+    courseDurations: []
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchMasterData() {
+      setIsLoading(true);
+      setApiError(null);
+      try {
+        const response = await masterDataApi.getAllMasterData();
+        // Accept either response.data or response.data.data as the payload
+        const raw = response && typeof response === 'object' && 'data' in response ? (response as any).data : response;
+        const data = raw && typeof raw === 'object' && 'data' in raw ? raw.data : raw;
+        setMasterData({
+          parentCategories: Array.isArray(data?.parentCategories) ? data.parentCategories : [],
+          categories: Array.isArray(data?.categories) ? data.categories : [],
+          certificates: Array.isArray(data?.certificates) ? data.certificates : [],
+          grades: Array.isArray(data?.grades) ? data.grades : [],
+          courseDurations: Array.isArray(data?.courseDurations) ? data.courseDurations : []
+        });
+      } catch (error) {
+        setApiError("Failed to load form options. Please refresh the page.");
+        setMasterData({
+          parentCategories: ["Children & Teens", "Professionals", "Homemakers", "Lifelong Learners"],
+          categories: ["AI and Data Science", "Business And Management", "Career Development", "Digital Marketing"],
+          certificates: ["Professional Certificate", "Advanced Certificate", "Foundational Certificate"],
+          grades: ["Grade 1-2", "Grade 3-4", "Grade 5-6", "Grade 7-8", "Grade 9-10", "Grade 11-12"],
+          courseDurations: ["4 months 16 weeks", "6 months 24 weeks", "8 months 32 weeks", "12 months 48 weeks"]
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchMasterData();
+  }, []);
+  // [END OF FULL REFACTOR]
+
+  const currencies = [
+    { code: "USD", name: "US Dollar" },
+    { code: "EUR", name: "Euro" },
+    { code: "INR", name: "Indian Rupee" },
+    { code: "GBP", name: "British Pound" },
+    { code: "AUD", name: "Australian Dollar" },
+    { code: "CAD", name: "Canadian Dollar" }
+  ];
+
+  const gradeOrCertificate = watch('gradeOrCertificate');
+
+  const [videoUploading, setVideoUploading] = useState(false);
+
+  // Preview video upload handler
+  const handlePreviewVideoUpload = async (file: File) => {
+    if (!file) {
+      showToast.error('Please select a valid video file');
+      return;
+    }
+    setVideoUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        const base64 = reader.result?.toString().split(',')[1];
+        if (base64) {
+          const postData = { base64String: base64, fileType: "video" };
+          await postQuery({
+            url: apiUrls?.upload?.uploadVideo(),
+            postData,
+            onSuccess: async (response) => {
+              if (response?.data?.url && typeof response.data.url === 'string') {
+                setValue('preview_video', {
+                  title: file.name,
+                  url: response.data.url,
+                  previewUrl: response.data.previewUrl || response.data.url,
+                  duration: '',
+                  description: ''
+                }, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+                showToast.success('Preview video uploaded successfully');
+              } else {
+                showToast.error('Invalid video upload response format');
+              }
+            },
+            onFail: (error) => {
+              showToast.error('Video upload failed. Please try again.');
+            },
+          });
+        }
+      };
+      reader.onerror = () => {
+        showToast.error('Failed to read video file');
+      };
+    } catch (error) {
+      showToast.error('Failed to upload video');
+    } finally {
+      setVideoUploading(false);
+    }
+  };
+
+  // Migrate any string URLs in brochures to objects with default name
+  useEffect(() => {
+    if (Array.isArray(watchedValues.brochures) && watchedValues.brochures.length > 0 && typeof (watchedValues.brochures[0] as any) === 'string') {
+      const migrated = (watchedValues.brochures as unknown as string[]).map((url, i) => ({
+        name: `Brochure ${i + 1}`,
+        url
+      }));
+      setValue('brochures', migrated);
+    }
+  }, [watchedValues.brochures, setValue]);
+
+  // Fetch instructors for dropdown
+  const [instructorOptions, setInstructorOptions] = useState<{ label: string, value: string }[]>([]);
+  const [isLoadingInstructors, setIsLoadingInstructors] = useState(false);
+
+  useEffect(() => {
+    async function fetchInstructors() {
+      setIsLoadingInstructors(true);
+      try {
+        const response = await instructorAPI.getAll();
+        if (response?.data && Array.isArray(response.data)) {
+          setInstructorOptions(
+            response.data.map((inst: any) => ({
+              label: inst.full_name || inst.name || inst.email,
+              value: inst._id || inst.user_id || inst.id
+            }))
+          );
+        } else if (response?.data?.data && Array.isArray(response.data.data)) {
+          setInstructorOptions(
+            response.data.data.map((inst: any) => ({
+              label: inst.full_name || inst.name || inst.email,
+              value: inst._id || inst.user_id || inst.id
+            }))
+          );
+        }
+      } catch (e) {
+        showToast.error('Failed to load instructors');
+      } finally {
+        setIsLoadingInstructors(false);
+      }
+    }
+    fetchInstructors();
+  }, []);
+
+  // Add state for dropdown open/close
+  const [instructorDropdownOpen, setInstructorDropdownOpen] = useState(false);
+  const selectedInstructorLabels = instructorOptions
+    .filter(opt => (watchedValues.instructors || []).includes(opt.value))
+    .map(opt => opt.label);
+
+  // Add click outside handler to close dropdown
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      const dropdown = document.getElementById('instructor-dropdown-root');
+      if (dropdown && !dropdown.contains(e.target as Node)) {
+        setInstructorDropdownOpen(false);
+      }
+    }
+    if (instructorDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [instructorDropdownOpen]);
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -1102,27 +1261,15 @@ export default function CreateBlendedCoursePage() {
               </div>
 
               <div>
-                <label className={labelClass}>Course Subtitle</label>
-                <input
-                  type="text"
-                  {...register("course_subtitle")}
-                  className={inputClass}
-                  placeholder="Enter course subtitle"
-                />
-              </div>
-
-              <div>
                 <label className={labelClass}>Category *</label>
                 <select
                   {...register("course_category", { required: "Category is required" })}
                   className={inputClass}
-                  disabled={isLoadingCategories}
+                  disabled={isLoading}
                 >
-                  <option value="">Select a category</option>
-                  {categories.map((category) => (
-                    <option key={category._id} value={category.category_name}>
-                      {category.category_name}
-                    </option>
+                  <option value="">Select category</option>
+                  {masterData.categories.map((cat, i) => (
+                    <option key={i} value={cat}>{cat}</option>
                   ))}
                 </select>
                 {errors.course_category && (
@@ -1131,77 +1278,110 @@ export default function CreateBlendedCoursePage() {
               </div>
 
               <div>
-                <label className={labelClass}>Course Level</label>
-                <select
-                  {...register("course_level")}
-                  className={inputClass}
-                >
+                <label className={labelClass}>Parent Category (Subcategory) *</label>
+                <div className="space-y-2">
+                  {masterData.parentCategories.map((cat, i) => (
+                    <div key={i} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        value={cat}
+                        {...register("course_subcategory")}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{cat}</span>
+                    </div>
+                  ))}
+                </div>
+                {errors.course_subcategory && (
+                  <p className={errorClass}>{errors.course_subcategory.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label className={labelClass}>Course Tags</label>
+                <div className="flex flex-wrap gap-2">
+                  {(Array.isArray(watchedValues.course_tag) ? watchedValues.course_tag : []).map((tag, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <input
+                        type="text"
+                        value={tag}
+                        onChange={(e) => {
+                          const newTags = [...(Array.isArray(watchedValues.course_tag) ? watchedValues.course_tag : [])];
+                          newTags[index] = e.target.value;
+                          setValue('course_tag', newTags);
+                        }}
+                        className={inputClass}
+                        placeholder="Enter tag"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newTags = [...(Array.isArray(watchedValues.course_tag) ? watchedValues.course_tag : [])];
+                          newTags.splice(index, 1);
+                          setValue('course_tag', newTags);
+                        }}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newTags = [...(Array.isArray(watchedValues.course_tag) ? watchedValues.course_tag : []), ''];
+                      setValue('course_tag', newTags);
+                    }}
+                    className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Tag
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className={labelClass}>Grade/Certificate Toggle *</label>
+                <select {...register("gradeOrCertificate")} className={inputClass}>
+                  <option value="grade">Grade</option>
+                  <option value="certificate">Certificate</option>
+                </select>
+                {errors.gradeOrCertificate && typeof errors.gradeOrCertificate.message === 'string' && <p className={errorClass}>{errors.gradeOrCertificate.message}</p>}
+              </div>
+              {gradeOrCertificate === "grade" && (
+                <div>
+                  <label className={labelClass}>Grade *</label>
+                  <select {...register("grade")} className={inputClass}>
+                    <option value="">Select grade</option>
+                    {masterData.grades.map((g, i) => (
+                      <option key={i} value={g}>{g}</option>
+                    ))}
+                  </select>
+                  {errors.grade && typeof errors.grade.message === 'string' && <p className={errorClass}>{errors.grade.message}</p>}
+                </div>
+              )}
+              {gradeOrCertificate === "certificate" && (
+                <div>
+                  <label className={labelClass}>Certificate Type *</label>
+                  <select {...register("certificateType")} className={inputClass}>
+                    <option value="">Select certificate type</option>
+                    {masterData.certificates.map((c, i) => (
+                      <option key={i} value={c}>{c}</option>
+                    ))}
+                  </select>
+                  {errors.certificateType && typeof errors.certificateType.message === 'string' && <p className={errorClass}>{errors.certificateType.message}</p>}
+                </div>
+              )}
+
+              <div>
+                <label className={labelClass}>Course Level *</label>
+                <select {...register("course_level")} className={inputClass}>
                   <option value="Beginner">Beginner</option>
                   <option value="Intermediate">Intermediate</option>
                   <option value="Advanced">Advanced</option>
                   <option value="All Levels">All Levels</option>
                 </select>
-              </div>
-
-              <div>
-                <label className={labelClass}>Subcategory</label>
-                <input
-                  type="text"
-                  {...register("course_subcategory")}
-                  className={inputClass}
-                  placeholder="e.g., Frontend Development"
-                />
-              </div>
-
-              <div>
-                <label className={labelClass}>Course Tags</label>
-                <input
-                  type="text"
-                  {...register("course_tag")}
-                  className={inputClass}
-                  placeholder="e.g., javascript,react,frontend"
-                />
-              </div>
-
-              <div>
-                <label className={labelClass}>Language</label>
-                <select
-                  {...register("language")}
-                  className={inputClass}
-                >
-                  <option value="English">English</option>
-                  <option value="Spanish">Spanish</option>
-                  <option value="French">French</option>
-                  <option value="Hindi">Hindi</option>
-                  <option value="Mandarin">Mandarin</option>
-                  <option value="Arabic">Arabic</option>
-                </select>
-              </div>
-
-              <div>
-                <label className={labelClass}>Course Duration *</label>
-                <input
-                  type="text"
-                  {...register("course_duration", { required: "Course duration is required" })}
-                  className={inputClass}
-                  placeholder="e.g., 8 weeks, 3 months"
-                />
-                {errors.course_duration && (
-                  <p className={errorClass}>{errors.course_duration.message}</p>
-                )}
-              </div>
-
-              <div>
-                <label className={labelClass}>Session Duration *</label>
-                <input
-                  type="text"
-                  {...register("session_duration", { required: "Session duration is required" })}
-                  className={inputClass}
-                  placeholder="e.g., 2 hours, 90 minutes"
-                />
-                {errors.session_duration && (
-                  <p className={errorClass}>{errors.session_duration.message}</p>
-                )}
+                {errors.course_level && <p className={errorClass}>{errors.course_level.message}</p>}
               </div>
             </div>
 
@@ -1252,6 +1432,68 @@ export default function CreateBlendedCoursePage() {
               </div>
               {imageUploading && (
                 <p className="text-sm text-blue-600 mt-2">Uploading image...</p>
+              )}
+            </div>
+
+            {/* Preview Video Upload */}
+            <div className="mt-6">
+              <label className={labelClass}>Preview Video</label>
+              <div className="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg">
+                <div className="space-y-1 text-center">
+                  {watchedValues.preview_video?.url ? (
+                    <div className="relative">
+                      <video
+                        src={watchedValues.preview_video.previewUrl || watchedValues.preview_video.url}
+                        controls
+                        className="mx-auto h-32 w-auto rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setValue('preview_video', { title: '', url: '', previewUrl: '', duration: '', description: '' })}
+                        className="absolute top-0 right-0 -mt-2 -mr-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                      <div className="mt-2 text-left">
+                        <p className="text-sm text-gray-700 dark:text-gray-200"><strong>Title:</strong> {watchedValues.preview_video.title}</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-200"><strong>Duration:</strong> {watchedValues.preview_video.duration}</p>
+                        <label className={labelClass + ' mt-2'}>Description</label>
+                        <textarea
+                          value={watchedValues.preview_video.description}
+                          onChange={e => setValue('preview_video.description', e.target.value)}
+                          className={inputClass}
+                          rows={2}
+                          placeholder="A short preview of the course"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                      <div className="flex text-sm text-gray-600 dark:text-gray-400">
+                        <label className="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                          <span>Upload a video</span>
+                          <input
+                            type="file"
+                            className="sr-only"
+                            accept="video/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handlePreviewVideoUpload(file);
+                            }}
+                          />
+                        </label>
+                        <p className="pl-1">or drag and drop</p>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        MP4, WebM up to 100MB
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+              {videoUploading && (
+                <p className="text-sm text-blue-600 mt-2">Uploading video...</p>
               )}
             </div>
           </div>
@@ -1423,132 +1665,63 @@ export default function CreateBlendedCoursePage() {
             </div>
           </div>
 
-          {/* Prerequisites */}
+          {/* Pricing Configuration */}
           <div className={cardClass}>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-              <BookOpen className="h-5 w-5 mr-2" />
-              Prerequisites
+              <DollarSign className="h-5 w-5 mr-2" />
+              Pricing Configuration
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              Additional prerequisites beyond the basic course requirements
+              Set up multi-currency pricing with individual rates, including discounts
             </p>
             
-            {(watchedValues.prerequisites || ['']).map((prerequisite, index) => (
-              <div key={index} className="flex items-center space-x-2 mb-2">
-                <input
-                  value={prerequisite}
-                  onChange={(e) => {
-                    const newPrerequisites = [...(watchedValues.prerequisites || [''])];
-                    newPrerequisites[index] = e.target.value;
-                    setValue('prerequisites', newPrerequisites);
-                  }}
-                  className={inputClass}
-                  placeholder="e.g., Completed Intro to JavaScript course"
-                />
-                {(watchedValues.prerequisites || ['']).length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const newPrerequisites = [...(watchedValues.prerequisites || [''])];
-                      newPrerequisites.splice(index, 1);
-                      setValue('prerequisites', newPrerequisites);
-                    }}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => {
-                const newPrerequisites = [...(watchedValues.prerequisites || ['']), ''];
-                setValue('prerequisites', newPrerequisites);
-              }}
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add Prerequisite
-            </button>
-          </div>
-
-          {/* Tools & Technologies */}
-          <div className={cardClass}>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-              <Settings className="h-5 w-5 mr-2" />
-              Tools & Technologies
-            </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              Technologies, frameworks, and tools covered in this course
-            </p>
-            
-            {toolsFields.map((field, index) => (
+            {priceFields.map((field, index) => (
               <div key={field.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 mb-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Tool/Technology Name *
+                      Currency *
                     </label>
-                    <input
-                      {...register(`tools_technologies.${index}.name` as const, { required: "Tool name is required" })}
+                    <select
+                      {...register(`prices.${index}.currency` as const, { required: "Currency is required" })}
                       className={inputClass}
-                      placeholder="e.g., React"
-                    />
-                    {errors.tools_technologies?.[index]?.name && (
-                      <p className={errorClass}>{errors.tools_technologies[index]?.name?.message}</p>
+                    >
+                      <option value="">Select currency</option>
+                      {currencies.map((currency) => (
+                        <option key={currency.code} value={currency.code}>
+                          {currency.code} - {currency.name}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.prices?.[index]?.currency && (
+                      <p className={errorClass}>{errors.prices[index]?.currency?.message}</p>
                     )}
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Category
-                    </label>
-                    <select
-                      {...register(`tools_technologies.${index}.category` as const)}
-                      className={inputClass}
-                    >
-                      <option value="">Select category</option>
-                      <option value="programming_language">Programming Language</option>
-                      <option value="framework">Framework</option>
-                      <option value="library">Library</option>
-                      <option value="tool">Tool</option>
-                      <option value="platform">Platform</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Description
+                      Individual Price *
                     </label>
                     <input
-                      {...register(`tools_technologies.${index}.description` as const)}
+                      {...register(`prices.${index}.individual` as const, { required: "Individual price is required" })}
+                      type="number"
                       className={inputClass}
-                      placeholder="e.g., UI library for building user interfaces"
+                      placeholder="0"
                     />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Logo URL
-                    </label>
-                    <input
-                      {...register(`tools_technologies.${index}.logo_url` as const)}
-                      className={inputClass}
-                      placeholder="https://example.com/logo.png"
-                    />
+                    {errors.prices?.[index]?.individual && (
+                      <p className={errorClass}>{errors.prices[index]?.individual?.message}</p>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex justify-end mt-4">
                   <button
                     type="button"
-                    onClick={() => removeTool(index)}
+                    onClick={() => removePrice(index)}
                     className="text-red-500 hover:text-red-700 flex items-center"
                   >
                     <Trash2 className="h-4 w-4 mr-1" />
-                    Remove Tool
+                    Remove Pricing
                   </button>
                 </div>
               </div>
@@ -1556,32 +1729,28 @@ export default function CreateBlendedCoursePage() {
 
             <button
               type="button"
-              onClick={() => appendTool({
-                name: '',
-                category: 'other',
-                description: '',
-                logo_url: ''
-              })}
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
+              onClick={() => appendPrice({ currency: 'USD', individual: 0, batch: 0, min_batch_size: 2, max_batch_size: 10, early_bird_discount: 0, group_discount: 0, is_active: true })}
+              disabled={isSubmitting}
+              className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-blue-700 dark:hover:bg-blue-800"
             >
-              <Plus className="h-4 w-4 mr-1" />
-              Add Tool/Technology
+              <Plus className="h-4 w-4 mr-2" />
+              Add Pricing Configuration
             </button>
           </div>
 
           {/* Doubt Session Schedule */}
           <div className={cardClass}>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-              <Calendar className="h-5 w-5 mr-2" />
+              <Clock className="h-5 w-5 mr-2" />
               Doubt Session Schedule
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              Configure when doubt clarification sessions will be available
+              Set up the frequency and preferred time slots for doubt sessions
             </p>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className={labelClass}>Frequency</label>
+                <label className={labelClass}>Doubt Session Frequency</label>
                 <select
                   {...register("doubt_session_schedule.frequency")}
                   className={inputClass}
@@ -1597,431 +1766,197 @@ export default function CreateBlendedCoursePage() {
 
               <div>
                 <label className={labelClass}>Preferred Days</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
-                    <label key={day} className="flex items-center">
+                <div className="flex flex-wrap gap-2">
+                  {(watchedValues.doubt_session_schedule?.preferred_days || []).map((day, index) => (
+                    <div key={index} className="flex items-center space-x-2">
                       <input
-                        type="checkbox"
+                        type="text"
                         value={day}
-                        checked={watchedValues.doubt_session_schedule?.preferred_days?.includes(day) || false}
                         onChange={(e) => {
-                          const currentDays = watchedValues.doubt_session_schedule?.preferred_days || [];
-                          let newDays;
-                          if (e.target.checked) {
-                            newDays = [...currentDays, day];
-                          } else {
-                            newDays = currentDays.filter(d => d !== day);
-                          }
+                          const newDays = [...(watchedValues.doubt_session_schedule?.preferred_days || [])];
+                          newDays[index] = e.target.value;
                           setValue('doubt_session_schedule.preferred_days', newDays);
                         }}
-                        className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                        className={inputClass}
+                        placeholder="e.g., Monday, Wednesday"
                       />
-                      <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{day}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Time Slots */}
-            <div className="mt-6">
-              <label className={labelClass}>Preferred Time Slots</label>
-              {(watchedValues.doubt_session_schedule?.preferred_time_slots || []).map((slot, index) => (
-                <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Start Time</label>
-                    <input
-                      type="time"
-                      value={slot.start_time || ''}
-                      onChange={(e) => {
-                        const newSlots = [...(watchedValues.doubt_session_schedule?.preferred_time_slots || [])];
-                        newSlots[index] = { ...newSlots[index], start_time: e.target.value };
-                        setValue('doubt_session_schedule.preferred_time_slots', newSlots);
-                      }}
-                      className={inputClass}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">End Time</label>
-                    <input
-                      type="time"
-                      value={slot.end_time || ''}
-                      onChange={(e) => {
-                        const newSlots = [...(watchedValues.doubt_session_schedule?.preferred_time_slots || [])];
-                        newSlots[index] = { ...newSlots[index], end_time: e.target.value };
-                        setValue('doubt_session_schedule.preferred_time_slots', newSlots);
-                      }}
-                      className={inputClass}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Timezone</label>
-                    <select
-                      value={slot.timezone || ''}
-                      onChange={(e) => {
-                        const newSlots = [...(watchedValues.doubt_session_schedule?.preferred_time_slots || [])];
-                        newSlots[index] = { ...newSlots[index], timezone: e.target.value };
-                        setValue('doubt_session_schedule.preferred_time_slots', newSlots);
-                      }}
-                      className={inputClass}
-                    >
-                      <option value="">Select timezone</option>
-                      <option value="UTC">UTC</option>
-                      <option value="America/New_York">EST/EDT</option>
-                      <option value="America/Los_Angeles">PST/PDT</option>
-                      <option value="Europe/London">GMT/BST</option>
-                      <option value="Asia/Kolkata">IST</option>
-                      <option value="Asia/Tokyo">JST</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-end">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const newSlots = [...(watchedValues.doubt_session_schedule?.preferred_time_slots || [])];
-                        newSlots.splice(index, 1);
-                        setValue('doubt_session_schedule.preferred_time_slots', newSlots);
-                      }}
-                      className="text-red-500 hover:text-red-700 p-2"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-
-              <button
-                type="button"
-                onClick={() => {
-                  const newSlots = [...(watchedValues.doubt_session_schedule?.preferred_time_slots || []), {
-                    start_time: '',
-                    end_time: '',
-                    timezone: 'UTC'
-                  }];
-                  setValue('doubt_session_schedule.preferred_time_slots', newSlots);
-                }}
-                className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                Add Time Slot
-              </button>
-            </div>
-          </div>
-
-          {/* Pricing */}
-          <div className={cardClass}>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-              <DollarSign className="h-5 w-5 mr-2" />
-              Pricing Configuration
-            </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-              Set up multi-currency pricing with individual and batch rates, including discounts
-            </p>
-            
-            {priceFields.map((field, index) => (
-              <div key={field.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-6 mb-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                    Currency #{index + 1}
-                  </h3>
-                  {priceFields.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removePrice(index)}
-                      className="text-red-500 hover:text-red-700 flex items-center"
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Remove Currency
-                    </button>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div>
-                    <label className={labelClass}>Currency *</label>
-                    <select
-                      {...register(`prices.${index}.currency` as const, { required: "Currency is required" })}
-                      className={inputClass}
-                    >
-                      <option value="">Select currency</option>
-                      <option value="USD">USD - US Dollar</option>
-                      <option value="EUR">EUR - Euro</option>
-                      <option value="INR">INR - Indian Rupee</option>
-                      <option value="GBP">GBP - British Pound</option>
-                      <option value="AUD">AUD - Australian Dollar</option>
-                      <option value="CAD">CAD - Canadian Dollar</option>
-                    </select>
-                    {errors.prices?.[index]?.currency && (
-                      <p className={errorClass}>{errors.prices[index]?.currency?.message}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>Individual Price *</label>
-                    <input
-                      type="number"
-                      {...register(`prices.${index}.individual` as const, { 
-                        required: "Individual price is required",
-                        valueAsNumber: true,
-                        min: { value: 0, message: "Price cannot be negative" }
-                      })}
-                      className={inputClass}
-                      min="0"
-                      step="0.01"
-                      placeholder="299.00"
-                    />
-                    {errors.prices?.[index]?.individual && (
-                      <p className={errorClass}>{errors.prices[index]?.individual?.message}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>Batch Price *</label>
-                    <input
-                      type="number"
-                      {...register(`prices.${index}.batch` as const, { 
-                        required: "Batch price is required",
-                        valueAsNumber: true,
-                        min: { value: 0, message: "Price cannot be negative" }
-                      })}
-                      className={inputClass}
-                      min="0"
-                      step="0.01"
-                      placeholder="249.00"
-                    />
-                    {errors.prices?.[index]?.batch && (
-                      <p className={errorClass}>{errors.prices[index]?.batch?.message}</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className={labelClass}>Min Batch Size</label>
-                    <input
-                      type="number"
-                      {...register(`prices.${index}.min_batch_size` as const, { valueAsNumber: true })}
-                      className={inputClass}
-                      min="2"
-                      defaultValue={2}
-                    />
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>Max Batch Size</label>
-                    <input
-                      type="number"
-                      {...register(`prices.${index}.max_batch_size` as const, { valueAsNumber: true })}
-                      className={inputClass}
-                      min="2"
-                      defaultValue={10}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className={labelClass}>Early Bird Discount (%)</label>
-                    <input
-                      type="number"
-                      {...register(`prices.${index}.early_bird_discount` as const, { valueAsNumber: true })}
-                      className={inputClass}
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      placeholder="15"
-                    />
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>Group Discount (%)</label>
-                    <input
-                      type="number"
-                      {...register(`prices.${index}.group_discount` as const, { valueAsNumber: true })}
-                      className={inputClass}
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      placeholder="20"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        {...register(`prices.${index}.is_active` as const)}
-                        className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                      />
-                      <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Active Pricing</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            <button
-              type="button"
-              onClick={() => appendPrice({
-                currency: 'USD',
-                individual: 0,
-                batch: 0,
-                min_batch_size: 2,
-                max_batch_size: 10,
-                early_bird_discount: 0,
-                group_discount: 0,
-                is_active: true
-              })}
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add Another Currency
-            </button>
-          </div>
-
-          {/* Curriculum */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-              Curriculum
-            </h2>
-            
-            {curriculumFields.map((field, sectionIndex) => (
-              <div key={field.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 mb-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                    Section {sectionIndex + 1}
-                  </h3>
-                  {curriculumFields.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeCurriculum(sectionIndex)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div>
-                    <label className={labelClass}>Section Title</label>
-                    <input
-                      {...register(`curriculum.${sectionIndex}.title` as const)}
-                      className={inputClass}
-                      placeholder="Enter section title"
-                    />
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>Week Title *</label>
-                    <input
-                      {...register(`curriculum.${sectionIndex}.weekTitle` as const, { required: "Week title is required" })}
-                      className={inputClass}
-                      placeholder="e.g., Week 1"
-                    />
-                    {errors.curriculum?.[sectionIndex]?.weekTitle && (
-                      <p className={errorClass}>{errors.curriculum[sectionIndex]?.weekTitle?.message}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>Order</label>
-                    <input
-                      type="number"
-                      {...register(`curriculum.${sectionIndex}.order` as const, { valueAsNumber: true })}
-                      className={inputClass}
-                      min="1"
-                    />
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <label className={labelClass}>Description</label>
-                  <textarea
-                    {...register(`curriculum.${sectionIndex}.description` as const)}
-                    rows={2}
-                    className={inputClass}
-                    placeholder="Describe this section"
-                  />
-                </div>
-
-                {/* Lessons */}
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-md font-medium text-gray-900 dark:text-white">Lessons</h4>
-                    <button
-                      type="button"
-                      onClick={() => addLessonToCurriculum(sectionIndex)}
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add Lesson
-                    </button>
-                  </div>
-
-                  {watchedValues.curriculum?.[sectionIndex]?.lessons?.map((lesson, lessonIndex) => (
-                    <div key={lessonIndex} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 mb-3">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div>
-                          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Lesson Title
-                          </label>
-                          <input
-                            value={lesson.title}
-                            onChange={(e) => updateLesson(sectionIndex, lessonIndex, 'title', e.target.value)}
-                            className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                            placeholder="Enter lesson title"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Content Type
-                          </label>
-                          <select
-                            value={lesson.content_type}
-                            onChange={(e) => updateLesson(sectionIndex, lessonIndex, 'content_type', e.target.value)}
-                            className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                          >
-                            <option value="video">Video</option>
-                            <option value="text">Text</option>
-                            <option value="quiz">Quiz</option>
-                          </select>
-                        </div>
-
-                        <div className="flex items-end">
-                          <button
-                            type="button"
-                            onClick={() => removeLessonFromCurriculum(sectionIndex, lessonIndex)}
-                            className="text-red-500 hover:text-red-700 p-1"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </button>
-                        </div>
-                      </div>
+                      {(watchedValues.doubt_session_schedule?.preferred_days || []).length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newDays = [...(watchedValues.doubt_session_schedule?.preferred_days || [])];
+                            newDays.splice(index, 1);
+                            setValue('doubt_session_schedule.preferred_days', newDays);
+                          }}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newDays = [...(watchedValues.doubt_session_schedule?.preferred_days || []), ''];
+                      setValue('doubt_session_schedule.preferred_days', newDays);
+                    }}
+                    className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Day
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className={labelClass}>Preferred Time Slots</label>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                  Select time slots during which students can book doubt sessions
+                </p>
+                {(watchedValues.doubt_session_schedule?.preferred_time_slots || []).map((slot, index) => (
+                  <div key={index} className="flex items-center space-x-2 mb-2">
+                    <input
+                      type="text"
+                      value={slot.start_time}
+                      onChange={(e) => {
+                        const newSlots = [...(watchedValues.doubt_session_schedule?.preferred_time_slots || [])];
+                        newSlots[index].start_time = e.target.value;
+                        setValue('doubt_session_schedule.preferred_time_slots', newSlots);
+                      }}
+                      className={inputClass}
+                      placeholder="e.g., 10:00 AM"
+                    />
+                    <span className="text-gray-500 dark:text-gray-400">to</span>
+                    <input
+                      type="text"
+                      value={slot.end_time}
+                      onChange={(e) => {
+                        const newSlots = [...(watchedValues.doubt_session_schedule?.preferred_time_slots || [])];
+                        newSlots[index].end_time = e.target.value;
+                        setValue('doubt_session_schedule.preferred_time_slots', newSlots);
+                      }}
+                      className={inputClass}
+                      placeholder="e.g., 11:00 AM"
+                    />
+                    {(watchedValues.doubt_session_schedule?.preferred_time_slots || []).length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newSlots = [...(watchedValues.doubt_session_schedule?.preferred_time_slots || [])];
+                          newSlots.splice(index, 1);
+                          setValue('doubt_session_schedule.preferred_time_slots', newSlots);
+                        }}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newSlots = [...(watchedValues.doubt_session_schedule?.preferred_time_slots || []), { start_time: '', end_time: '', timezone: '' }];
+                    setValue('doubt_session_schedule.preferred_time_slots', newSlots);
+                  }}
+                  className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Time Slot
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Tools and Technologies */}
+          <div className={cardClass}>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+              <BookOpen className="h-5 w-5 mr-2" />
+              Tools and Technologies
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              List the tools and technologies used in this blended course
+            </p>
+            
+            {toolsFields.map((field, index) => (
+              <div key={field.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Tool/Technology Name *
+                    </label>
+                    <input
+                      {...register(`tools_technologies.${index}.name` as const, { required: "Tool/Technology name is required" })}
+                      type="text"
+                      className={inputClass}
+                      placeholder="e.g., Zoom, Google Meet, Miro"
+                    />
+                    {errors.tools_technologies?.[index]?.name && (
+                      <p className={errorClass}>{errors.tools_technologies[index]?.name?.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Category
+                    </label>
+                    <input
+                      {...register(`tools_technologies.${index}.category` as const)}
+                      type="text"
+                      className={inputClass}
+                      placeholder="e.g., Communication, Collaboration, Design"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Description
+                    </label>
+                    <textarea
+                      {...register(`tools_technologies.${index}.description` as const)}
+                      rows={2}
+                      className={inputClass}
+                      placeholder="Brief description of how this tool is used"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Logo URL
+                    </label>
+                    <input
+                      {...register(`tools_technologies.${index}.logo_url` as const)}
+                      type="text"
+                      className={inputClass}
+                      placeholder="e.g., https://example.com/logo.png"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end mt-4">
+                  <button
+                    type="button"
+                    onClick={() => removeTool(index)}
+                    className="text-red-500 hover:text-red-700 flex items-center"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Remove Tool/Technology
+                  </button>
                 </div>
               </div>
             ))}
 
             <button
               type="button"
-              onClick={() => appendCurriculum({
-                id: `section_${curriculumFields.length + 1}`,
-                title: `Section ${curriculumFields.length + 1}`,
-                weekTitle: `Week ${curriculumFields.length + 1}`,
-                description: '',
-                order: curriculumFields.length + 1,
-                lessons: []
-              })}
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
+              onClick={() => appendTool({ name: '', category: undefined, description: '', logo_url: '' })}
+              disabled={isSubmitting}
+              className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-blue-700 dark:hover:bg-blue-800"
             >
-              <Plus className="h-4 w-4 mr-1" />
-              Add Section
+              <Plus className="h-4 w-4 mr-2" />
+              Add Tool/Technology
             </button>
           </div>
 
@@ -2029,18 +1964,47 @@ export default function CreateBlendedCoursePage() {
           <div className={cardClass}>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
               <HelpCircle className="h-5 w-5 mr-2" />
-              Frequently Asked Questions
+              FAQs
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              Add common questions and answers about this course
+              Frequently asked questions for students
             </p>
             
             {faqFields.map((field, index) => (
               <div key={field.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 mb-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                    FAQ #{index + 1}
-                  </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Question *
+                    </label>
+                    <input
+                      {...register(`faqs.${index}.question` as const, { required: "Question is required" })}
+                      type="text"
+                      className={inputClass}
+                      placeholder="e.g., What is the course duration?"
+                    />
+                    {errors.faqs?.[index]?.question && (
+                      <p className={errorClass}>{errors.faqs[index]?.question?.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Answer *
+                    </label>
+                    <textarea
+                      {...register(`faqs.${index}.answer` as const, { required: "Answer is required" })}
+                      rows={3}
+                      className={inputClass}
+                      placeholder="Provide a detailed answer to the question"
+                    />
+                    {errors.faqs?.[index]?.answer && (
+                      <p className={errorClass}>{errors.faqs[index]?.answer?.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-end mt-4">
                   <button
                     type="button"
                     onClick={() => removeFaq(index)}
@@ -2050,117 +2014,223 @@ export default function CreateBlendedCoursePage() {
                     Remove FAQ
                   </button>
                 </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className={labelClass}>Question *</label>
-                    <input
-                      {...register(`faqs.${index}.question` as const, { required: "Question is required" })}
-                      className={inputClass}
-                      placeholder="e.g., What are the prerequisites for this course?"
-                    />
-                    {errors.faqs?.[index]?.question && (
-                      <p className={errorClass}>{errors.faqs[index]?.question?.message}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>Answer *</label>
-                    <textarea
-                      {...register(`faqs.${index}.answer` as const, { required: "Answer is required" })}
-                      rows={3}
-                      className={inputClass}
-                      placeholder="Provide a detailed answer to the question..."
-                    />
-                    {errors.faqs?.[index]?.answer && (
-                      <p className={errorClass}>{errors.faqs[index]?.answer?.message}</p>
-                    )}
-                  </div>
-                </div>
               </div>
             ))}
 
             <button
               type="button"
-              onClick={() => appendFaq({
-                question: '',
-                answer: ''
-              })}
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
+              onClick={() => appendFaq({ question: '', answer: '' })}
+              disabled={isSubmitting}
+              className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-blue-700 dark:hover:bg-blue-800"
             >
-              <Plus className="h-4 w-4 mr-1" />
+              <Plus className="h-4 w-4 mr-2" />
               Add FAQ
             </button>
           </div>
 
-          {/* Certification Settings */}
+          {/* Instructors */}
+          <div className={cardClass}>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+              <Users className="h-5 w-5 mr-2" />
+              Instructors
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              Select one or more instructors for this blended course
+            </p>
+            <div>
+              <label className={labelClass}>Instructors</label>
+              <div className="relative">
+                <button
+                  type="button"
+                  className={inputClass + ' flex items-center justify-between cursor-pointer min-h-[44px]'}
+                  onClick={() => setInstructorDropdownOpen(open => !open)}
+                  aria-haspopup="listbox"
+                  aria-expanded={instructorDropdownOpen}
+                >
+                  <span className={selectedInstructorLabels.length ? '' : 'text-gray-400'}>
+                    {selectedInstructorLabels.length
+                      ? selectedInstructorLabels.join(', ')
+                      : 'Select instructors...'}
+                  </span>
+                  <svg className="w-4 h-4 ml-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                {instructorDropdownOpen && (
+                  <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    <ul className="py-1" role="listbox" aria-multiselectable="true">
+                      {instructorOptions.length === 0 && (
+                        <li className="px-4 py-2 text-gray-400">No instructors found</li>
+                      )}
+                      {instructorOptions.map(option => (
+                        <li key={option.value} className="px-4 py-2 hover:bg-blue-50 dark:hover:bg-gray-700 flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            id={`instructor-${option.value}`}
+                            checked={(watchedValues.instructors || []).includes(option.value)}
+                            onChange={e => {
+                              const current = Array.isArray(watchedValues.instructors) ? watchedValues.instructors : [];
+                              let newSelected;
+                              if (e.target.checked) {
+                                newSelected = [...current, option.value];
+                              } else {
+                                newSelected = current.filter(val => val !== option.value);
+                              }
+                              setValue('instructors', newSelected, { shouldValidate: true, shouldDirty: true });
+                            }}
+                            className="mr-2"
+                          />
+                          <label htmlFor={`instructor-${option.value}`} className="cursor-pointer select-none">
+                            {option.label}
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+              {errors.instructors && (
+                <p className={errorClass}>{errors.instructors.message as string}</p>
+              )}
+              {isLoadingInstructors && <p className="text-sm text-gray-400 mt-2">Loading instructors...</p>}
+            </div>
+          </div>
+
+          {/* Prerequisites */}
+          <div className={cardClass}>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+              <CheckCircle className="h-5 w-5 mr-2" />
+              Prerequisites
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              List the prerequisites for this course
+            </p>
+            
+            {(watchedValues.prerequisites || []).map((prerequisite, index) => (
+              <div key={index} className="flex items-center space-x-2 mb-2">
+                <input
+                  type="text"
+                  value={prerequisite}
+                  onChange={(e) => {
+                    const newPrerequisites = [...(watchedValues.prerequisites || [])];
+                    newPrerequisites[index] = e.target.value;
+                    setValue('prerequisites', newPrerequisites);
+                  }}
+                  className={inputClass}
+                  placeholder="e.g., Basic HTML, CSS, and JavaScript knowledge"
+                />
+                {(watchedValues.prerequisites || []).length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newPrerequisites = [...(watchedValues.prerequisites || [])];
+                      newPrerequisites.splice(index, 1);
+                      setValue('prerequisites', newPrerequisites);
+                    }}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => {
+                const newPrerequisites = [...(watchedValues.prerequisites || []), ''];
+                setValue('prerequisites', newPrerequisites);
+              }}
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add Prerequisite
+            </button>
+          </div>
+
+          {/* Certification */}
           <div className={cardClass}>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
               <Award className="h-5 w-5 mr-2" />
-              Certification Settings
+              Certification
             </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-              Configure certification requirements and criteria
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              Set up certification criteria for this course
             </p>
             
-            <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    {...register("certification.is_certified")}
-                    className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                  />
-                  <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Offer Course Completion Certificate
-                  </span>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Is Certified?
                 </label>
+                <select
+                  {...register("certification.is_certified")}
+                  className={inputClass}
+                >
+                  <option value="">Select option</option>
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
               </div>
 
-              {watchedValues.certification?.is_certified && (
-                <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              {watchedValues.certification?.is_certified === true && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Certification Criteria
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                    Set minimum requirements for students to earn the certificate
-                  </p>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className={labelClass}>Min Assignments Score (%)</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Minimum Assignments Score (%)
+                      </label>
                       <input
+                        {...register("certification.certification_criteria.min_assignments_score", {
+                          valueAsNumber: true,
+                          min: 0,
+                          max: 100
+                        })}
                         type="number"
-                        {...register("certification.certification_criteria.min_assignments_score", { valueAsNumber: true })}
                         className={inputClass}
-                        min="0"
-                        max="100"
-                        placeholder="70"
+                        placeholder="0"
                       />
+                      {errors.certification?.certification_criteria?.min_assignments_score && (
+                        <p className={errorClass}>{errors.certification.certification_criteria.min_assignments_score.message}</p>
+                      )}
                     </div>
 
                     <div>
-                      <label className={labelClass}>Min Quizzes Score (%)</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Minimum Quizzes Score (%)
+                      </label>
                       <input
+                        {...register("certification.certification_criteria.min_quizzes_score", {
+                          valueAsNumber: true,
+                          min: 0,
+                          max: 100
+                        })}
                         type="number"
-                        {...register("certification.certification_criteria.min_quizzes_score", { valueAsNumber: true })}
                         className={inputClass}
-                        min="0"
-                        max="100"
-                        placeholder="70"
+                        placeholder="0"
                       />
+                      {errors.certification?.certification_criteria?.min_quizzes_score && (
+                        <p className={errorClass}>{errors.certification.certification_criteria.min_quizzes_score.message}</p>
+                      )}
                     </div>
 
                     <div>
-                      <label className={labelClass}>Min Attendance (%)</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Minimum Attendance (%)
+                      </label>
                       <input
+                        {...register("certification.certification_criteria.min_attendance", {
+                          valueAsNumber: true,
+                          min: 0,
+                          max: 100
+                        })}
                         type="number"
-                        {...register("certification.certification_criteria.min_attendance", { valueAsNumber: true })}
                         className={inputClass}
-                        min="0"
-                        max="100"
-                        placeholder="80"
+                        placeholder="0"
                       />
+                      {errors.certification?.certification_criteria?.min_attendance && (
+                        <p className={errorClass}>{errors.certification.certification_criteria.min_attendance.message}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -2168,164 +2238,73 @@ export default function CreateBlendedCoursePage() {
             </div>
           </div>
 
-          {/* Course Settings */}
+          {/* Brochures */}
           <div className={cardClass}>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-              <Settings className="h-5 w-5 mr-2" />
-              Course Settings
+              <Calendar className="h-5 w-5 mr-2" />
+              Brochures
             </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className={labelClass}>Course Status</label>
-                <select
-                  {...register("status")}
-                  className={inputClass}
-                >
-                  <option value="Draft">Draft</option>
-                  <option value="Published">Published</option>
-                  <option value="Upcoming">Upcoming</option>
-                </select>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Draft courses are not visible to students
-                </p>
-              </div>
-
-              <div>
-                <label className={labelClass}>Course Brochures</label>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-                  Upload PDF brochures for your course (max 10MB each)
-                </p>
-                
-                {/* Upload Area */}
-                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
-                  <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <div className="space-y-2">
-                    <label className="cursor-pointer">
-                      <span className="mt-2 block text-sm font-medium text-blue-600 hover:text-blue-500">
-                        {brochureUploading ? 'Uploading...' : 'Upload PDF Brochure'}
-                      </span>
-                      <input
-                        type="file"
-                        className="sr-only"
-                        accept=".pdf,application/pdf"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleBrochureUpload(file);
-                        }}
-                        disabled={brochureUploading}
-                      />
-                    </label>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      PDF files up to 10MB
-                    </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              Upload PDF brochures for this course
+            </p>
+            {/* Brochure Upload Button */}
+            <div className="mt-4">
+              <label className={labelClass}>Upload Brochure (PDF)</label>
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleBrochureUpload(file);
+                }}
+                className="block w-full text-sm text-gray-500
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-full file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100"
+              />
+              {brochureUploading && (
+                <p className="text-sm text-blue-600 mt-2">Uploading brochure...</p>
+              )}
+            </div>
+            {/* Uploaded Brochures List */}
+            <div className="mt-4 space-y-2">
+              {(watchedValues.brochures || []).length === 0 && (
+                <p className="text-sm text-gray-400">No brochures uploaded yet.</p>
+              )}
+              {(watchedValues.brochures || []).map((brochure, index) => {
+                const fileName = brochure.name || `Brochure ${index + 1}`;
+                return (
+                  <div key={index} className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 rounded px-3 py-2">
+                    <a
+                      href={brochure.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 dark:text-blue-400 underline truncate max-w-xs"
+                      title={fileName}
+                    >
+                      {fileName}
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => removeBrochure(index)}
+                      className="text-red-500 hover:text-red-700 ml-2"
+                      aria-label="Remove brochure"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
-                </div>
-
-                {/* Uploaded Brochures List */}
-                {watchedValues.brochures && watchedValues.brochures.length > 0 && (
-                  <div className="mt-4 space-y-2">
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Uploaded Brochures ({watchedValues.brochures.length})
-                    </h4>
-                    {watchedValues.brochures.map((brochure, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className="flex-shrink-0">
-                            <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center">
-                              <span className="text-red-600 dark:text-red-400 text-xs font-medium">PDF</span>
-                            </div>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                              Brochure {index + 1}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
-                              {brochure}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <a
-                            href={brochure}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800 text-sm"
-                          >
-                            View
-                          </a>
-                          <button
-                            type="button"
-                            onClick={() => removeBrochure(index)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                );
+              })}
             </div>
           </div>
 
-          {/* Validation Messages */}
+          {/* Validation Message */}
           {validationMessage && (
-            <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg p-4">
-              <div className="flex">
-                <AlertCircle className="h-5 w-5 text-red-400 mr-3 mt-0.5" />
-                <div>
-                  <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
-                    Validation Error
-                  </h3>
-                  <div className="text-sm text-red-700 dark:text-red-300 mt-1">
-                    {validationMessage.includes('\n') ? (
-                      <div className="whitespace-pre-line">{validationMessage}</div>
-                    ) : (
-                      <p>{validationMessage}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Debug: Form Errors (only show in development) */}
-          {process.env.NODE_ENV === 'development' && Object.keys(errors).length > 0 && (
-            <div className="bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
-              <div className="flex">
-                <AlertTriangle className="h-5 w-5 text-yellow-400 mr-3 mt-0.5" />
-                <div>
-                  <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                    Development Debug: Form Validation Errors
-                  </h3>
-                  <div className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-                    <pre className="whitespace-pre-wrap text-xs">
-                      {(() => {
-                        try {
-                          return JSON.stringify(
-                            Object.fromEntries(
-                              Object.entries(errors).map(([key, error]) => [
-                                key,
-                                {
-                                  type: error?.type,
-                                  message: error?.message,
-                                  ref: error?.ref?.name || '[DOM Element]'
-                                }
-                              ])
-                            ),
-                            null,
-                            2
-                          );
-                        } catch (err) {
-                          return `Error serializing form errors: ${err instanceof Error ? err.message : 'Unknown error'}`;
-                        }
-                      })()}
-                    </pre>
-                  </div>
-                </div>
-              </div>
+            <div className="bg-yellow-100 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200 px-4 py-3 rounded relative" role="alert">
+              <strong className="font-bold">Warning!</strong>
+              <span className="block sm:inline"> {validationMessage}</span>
             </div>
           )}
 
@@ -2335,42 +2314,22 @@ export default function CreateBlendedCoursePage() {
               type="button"
               onClick={() => handleFormSubmit('Draft')}
               disabled={isSubmitting}
-              className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors duration-200"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-blue-700 dark:hover:bg-blue-800"
             >
-              {isSubmitting ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-500 mr-2"></div>
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save as Draft
-                </>
-              )}
+              <Save className="h-5 w-5 mr-2" />
+              Save as Draft
             </button>
-            
             <button
-              type="button"
-              onClick={() => handleFormSubmit('Published')}
+              type="submit"
               disabled={isSubmitting}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 flex items-center transition-colors duration-200"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:bg-green-700 dark:hover:bg-green-800"
             >
-              {isSubmitting ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Creating...
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Create Blended Course
-                </>
-              )}
+              <CheckCircle className="h-5 w-5 mr-2" />
+              {isSubmitting ? 'Creating...' : 'Create Blended Course'}
             </button>
           </div>
         </form>
       </div>
     </div>
   );
-} 
+}
