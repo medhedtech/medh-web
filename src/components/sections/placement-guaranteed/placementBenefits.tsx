@@ -1,4 +1,3 @@
-"use client";
 import React from "react";
 import { motion } from "framer-motion";
 import {
@@ -9,9 +8,15 @@ import {
   FaHandsHelping,
   FaChevronRight,
 } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
-// Earning Potential Data
-const earningPotentialData = [
+interface IBenefitItem {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}
+
+const earningPotentialData: IBenefitItem[] = [
   {
     icon: <FaHourglass className="text-5xl" />,
     title: "Job Assurance",
@@ -38,29 +43,29 @@ const earningPotentialData = [
   },
 ];
 
-const PlacementBenefits = () => {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.2 }
-    }
-  };
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.2 }
+  }
+};
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5 }
-    }
-  };
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5 }
+  }
+};
 
+const PlacementBenefits: React.FC = () => {
+  const router = useRouter();
   return (
     <section className="relative py-20 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-      
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <motion.div
@@ -79,7 +84,6 @@ const PlacementBenefits = () => {
             and personal growth as an educator with Medh EdTech.
           </p>
         </motion.div>
-
         {/* Benefits Grid */}
         <motion.div
           variants={containerVariants}
@@ -96,33 +100,28 @@ const PlacementBenefits = () => {
             >
               <div className="h-full bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 relative overflow-hidden">
                 {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-[#7ECA9D]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-700/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 {/* Content */}
                 <div className="relative z-10">
                   {/* Icon Container */}
-                  <div className="mb-6 w-16 h-16 rounded-lg bg-[#7ECA9D]/10 flex items-center justify-center text-[#7ECA9D] group-hover:scale-110 transition-transform duration-300">
+                  <div className="mb-6 w-16 h-16 rounded-lg bg-emerald-700/10 flex items-center justify-center text-emerald-700 group-hover:scale-110 transition-transform duration-300">
                     {item.icon}
                   </div>
-
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 group-hover:text-[#7ECA9D] transition-colors duration-300">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 group-hover:text-emerald-700 transition-colors duration-300">
                     {item.title}
                   </h3>
-
                   <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                     {item.description}
                   </p>
-
                   {/* Hover Arrow */}
                   <div className="absolute bottom-8 right-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <FaChevronRight className="text-[#7ECA9D] text-xl animate-bounce" />
+                    <FaChevronRight className="text-emerald-700 text-xl animate-bounce" />
                   </div>
                 </div>
               </div>
             </motion.div>
           ))}
         </motion.div>
-
         {/* Featured Benefit */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -131,16 +130,14 @@ const PlacementBenefits = () => {
           transition={{ duration: 0.5, delay: 0.4 }}
           className="max-w-4xl mx-auto"
         >
-          <div className="bg-[#7ECA9D]/10 backdrop-blur-sm rounded-2xl p-8 border border-[#7ECA9D]/20">
+          <div className="bg-emerald-700/10 backdrop-blur-sm rounded-2xl p-8 border border-emerald-700/20">
             <div className="flex flex-col items-center text-center">
               <div className="w-20 h-20 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center mb-6">
-                <FaHandsHelping className="text-[#7ECA9D] text-4xl" />
+                <FaHandsHelping className="text-emerald-700 text-4xl" />
               </div>
-
               <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
                 Practical Experience Through Corporate Internships
               </h3>
-
               <p className="text-gray-600 dark:text-gray-300 leading-relaxed max-w-2xl">
                 By engaging in hands-on projects, industry simulations, and
                 corporate internships, learners acquire practical experience,
@@ -150,7 +147,6 @@ const PlacementBenefits = () => {
             </div>
           </div>
         </motion.div>
-
         {/* CTA Button */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -159,7 +155,10 @@ const PlacementBenefits = () => {
           transition={{ duration: 0.5, delay: 0.6 }}
           className="text-center mt-12"
         >
-          <button className="bg-[#7ECA9D] text-white px-8 py-3 rounded-lg hover:bg-[#66b588] transition-all transform hover:-translate-y-1 shadow-lg shadow-[#7ECA9D]/25">
+          <button
+            className="bg-emerald-700 text-white px-8 py-3 rounded-lg hover:bg-emerald-800 transition-all transform hover:-translate-y-1 shadow-lg shadow-emerald-700/25"
+            onClick={() => router.push('/courses/')}
+          >
             Start Your Career Journey
           </button>
         </motion.div>
@@ -168,4 +167,4 @@ const PlacementBenefits = () => {
   );
 };
 
-export default PlacementBenefits;
+export { PlacementBenefits }; 
