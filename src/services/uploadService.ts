@@ -18,9 +18,9 @@ export interface UploadError {
   error: string;
 }
 
-export const MAX_FILE_SIZE = 10000 * 1024 * 1024; // 10MB
+export const MAX_FILE_SIZE = 10 * 1024 * 1024 * 1024; // 10GB
 export const MAX_FILES = 10;
-export const ALLOWED_MIME_TYPES = {
+export const ALLOWED_MIME_TYPES: { [key: string]: string } = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
   'image/gif': 'gif',
@@ -122,14 +122,14 @@ class UploadService {
   /**
    * Uploads a file using base64 string
    */
-  async uploadBase64(base64String: string, fileType: 'image' | 'document'): Promise<UploadResponse> {
+  async uploadBase64(base64String: string, fileType: 'image' | 'document' | 'video'): Promise<UploadResponse> {
     try {
       if (!base64String) {
         throw new Error('No file data provided');
       }
 
-      if (!['image', 'document'].includes(fileType)) {
-        throw new Error('Invalid file type. Must be either "image" or "document"');
+      if (!['image', 'document', 'video'].includes(fileType)) {
+        throw new Error('Invalid file type. Must be either "image", "document", or "video"');
       }
 
       // If the base64 string doesn't start with 'data:', add the appropriate prefix
