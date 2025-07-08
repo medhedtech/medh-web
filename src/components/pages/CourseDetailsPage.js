@@ -60,7 +60,16 @@ import Pdf from '@/assets/images/course-detailed/pdf-icon.svg';
 import { getCourseById } from '@/apis/course/course';
 
 // Course Video Player Component
-const CourseVideoPlayer = ({ courseId, courseTitle, courseVideos, primaryColor }) => {
+/**
+ * CourseVideoPlayer Props
+ * @param courseId - string | undefined
+ * @param courseTitle - string | undefined
+ * @param courseVideos - array | undefined
+ * @param previewVideo - { url?: string; thumbnail?: string; title?: string; duration?: string; description?: string } | undefined
+ * @param courseImage - string | undefined
+ * @param primaryColor - string
+ */
+const CourseVideoPlayer = ({ courseId, courseTitle, courseVideos, previewVideo, courseImage, primaryColor }) => {
   const [isPlaying, setIsPlaying] = useState(true); // Start with playing state
   const [isMuted, setIsMuted] = useState(true); // Start muted for autoplay
   const [showControls, setShowControls] = useState(false); // Hide controls by default
@@ -69,16 +78,16 @@ const CourseVideoPlayer = ({ courseId, courseTitle, courseVideos, primaryColor }
   const videoRef = useRef(null);
   const containerRef = useRef(null);
 
-  // Extract video URL from course videos or use a default promotional video
+  // Extract video URL from previewVideo or course videos or use a default promotional video
   useEffect(() => {
-    if (courseVideos && courseVideos.length > 0) {
-      // Use the first course video as promotional video
+    if (previewVideo && previewVideo.url) {
+      setVideoUrl(previewVideo.url);
+    } else if (courseVideos && courseVideos.length > 0) {
       setVideoUrl(courseVideos[0].video_url || courseVideos[0].url);
     } else {
-      // You can set a default promotional video URL here
-      setVideoUrl('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4');
+      setVideoUrl(''); // No video, fallback to image
     }
-  }, [courseVideos]);
+  }, [previewVideo, courseVideos]);
 
   const togglePlay = async () => {
     if (!videoRef.current) return;
@@ -138,13 +147,26 @@ const CourseVideoPlayer = ({ courseId, courseTitle, courseVideos, primaryColor }
   };
 
   if (!videoUrl) {
+    // Fallback: show course image if available, else show placeholder
     return (
-      <div className="relative w-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-xl flex items-center justify-center" style={{ aspectRatio: '21/9' }}>
-        <div className="text-center">
+      <div className="relative w-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-xl flex items-center justify-center overflow-hidden" style={{ aspectRatio: '21/9' }}>
+        {courseImage ? (
+          <img
+            src={courseImage}
+            alt={courseTitle || 'Course Preview'}
+            className="w-full h-full object-cover rounded-xl"
+            style={{ aspectRatio: '21/9' }}
+          />
+        ) : (
           <div className={`w-16 h-16 bg-${primaryColor}-100 dark:bg-${primaryColor}-900/30 rounded-full flex items-center justify-center mb-3`}>
             <Play className={`w-8 h-8 text-${primaryColor}-600 dark:text-${primaryColor}-400`} />
           </div>
-          <p className="text-gray-600 dark:text-gray-400">Course preview video coming soon</p>
+        )}
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30">
+          <div className={`w-16 h-16 bg-${primaryColor}-100 dark:bg-${primaryColor}-900/30 rounded-full flex items-center justify-center mb-3`}>
+            <Play className={`w-8 h-8 text-${primaryColor}-600 dark:text-${primaryColor}-400`} />
+          </div>
+          <p className="text-gray-100 dark:text-gray-200 font-semibold text-base">Course preview coming soon</p>
         </div>
       </div>
     );
@@ -1922,6 +1944,8 @@ const CourseDetailsPage = ({ ...props }) => {
                       courseId={courseId}
                       courseTitle={courseDetails?.course_title}
                       courseVideos={courseDetails?.course_videos}
+                      previewVideo={courseDetails?.preview_video}
+                      courseImage={courseDetails?.course_image}
                       primaryColor={getCategoryColorClasses().primaryColor}
                     />
                   </div>

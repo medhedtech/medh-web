@@ -1104,10 +1104,74 @@ export interface IAdminDashboardStatsResponse {
   };
 }
 
+// Recent Enrollments Interface (matching actual API response)
+export interface IRecentEnrollment {
+  enrollment_id: string;
+  student: {
+    id: string;
+    name: string;
+    email: string;
+    user_image?: string;
+  };
+  course: {
+    id: string;
+    title: string;
+    course_image?: string;
+    course_category?: string;
+  };
+  payment: {
+    _id: string;
+    amount: number;
+    currency: string;
+    status: 'pending' | 'paid' | 'failed' | 'refunded';
+    payment_date: string;
+    payment_method?: string;
+  } | null;
+  enrollment_date: string;
+  status?: 'active' | 'inactive' | 'completed' | 'dropped';
+  platform?: 'web' | 'mobile' | 'tablet';
+}
+
+// Recent Users Interface (matching actual API response)
+export interface IRecentUser {
+  id: string;
+  full_name: string;
+  email: string;
+  role: string[];
+  signup_date?: string;
+  status?: TUserStatus;
+  user_image?: string;
+  phone_numbers?: Array<{
+    country: string;
+    number: string;
+  }>;
+  last_login?: string;
+}
+
 export const adminDashboardApi = {
   // Get unified admin dashboard stats
   getDashboardStats: async (): Promise<IApiResponse<{ data: IAdminDashboardStatsResponse }>> => {
     return apiClient.get('/admin/dashboard-stats');
+  },
+
+  // Get recent enrollments
+  getRecentEnrollments: async (params?: {
+    limit?: number;
+    page?: number;
+    status?: string;
+    course_id?: string;
+  }): Promise<IApiResponse<IRecentEnrollment[]>> => {
+    return apiClient.get('/admin/recent-enrollments', params);
+  },
+
+  // Get recent users
+  getRecentUsers: async (params?: {
+    limit?: number;
+    page?: number;
+    role?: string;
+    status?: string;
+  }): Promise<IApiResponse<IRecentUser[]>> => {
+    return apiClient.get('/admin/recent-users', params);
   },
 };
 
