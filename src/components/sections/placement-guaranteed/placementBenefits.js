@@ -72,7 +72,7 @@ const PlacementBenefits = () => {
         >
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
             Why Choose{" "}
-            <span className="text-[#7ECA9D]">Medh-Placement-Assurance</span>?
+            <span className="text-emerald-700 dark:text-emerald-400">Medh-Placement-Assurance</span>?
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300">
             Embark on an exhilarating journey of knowledge sharing, empowerment,
