@@ -69,6 +69,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [bookmarkLabel, setBookmarkLabel] = useState('');
   const [showSettings, setShowSettings] = useState(false);
   const [activeTranscription, setActiveTranscription] = useState<string | null>(null);
+  const [userGestureRequired, setUserGestureRequired] = useState(false);
 
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -118,10 +119,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       
       // Handle autoplay
       if (autoplay) {
-        videoRef.current.play().catch((err) => {
-          console.warn('Autoplay failed:', err);
-          // Don't treat autoplay failure as an error, just show play button
-        });
+        // Only autoplay if muted (browser policy)
+        if (videoRef.current.muted || videoRef.current.volume === 0) {
+          videoRef.current.play().catch((err) => {
+            console.warn('Autoplay failed:', err);
+            setUserGestureRequired(true);
+          });
+        } else {
+          // If not muted, require user gesture
+          setUserGestureRequired(true);
+        }
       }
     }
   };
@@ -207,8 +214,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (isPlaying) {
       videoRef.current.pause();
     } else {
-      videoRef.current.play().catch((err) => {
+      videoRef.current.play().then(() => {
+        setUserGestureRequired(false);
+      }).catch((err) => {
         setError(`Playback failed: ${err.message}`);
+        setUserGestureRequired(true);
         onError?.(err.message);
       });
     }
@@ -508,10 +518,27 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         preload="metadata"
         controls={false} // We use custom controls
         style={{ display: 'block' }} // Ensure video is displayed
+        onClick={() => {
+          if (userGestureRequired) {
+            togglePlayPause();
+          }
+        }}
       >
         <source src={getVideoSource()} type="video/mp4" />
         Your browser does not support the video tag.
       </video>
+
+      {/* Overlay for user gesture required */}
+      {userGestureRequired && !error && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-20">
+          <button
+            onClick={togglePlayPause}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-semibold shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+          >
+            Click to Play
+          </button>
+        </div>
+      )}
 
       {/* Controls overlay */}
       <div 

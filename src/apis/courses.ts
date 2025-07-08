@@ -429,6 +429,8 @@ export interface IBlendedCourse {
   };
   createdAt?: string;
   updatedAt?: string;
+  // Add preview video support
+  preview_video_url?: string;
 }
 
 export interface ILiveCourseSession {
