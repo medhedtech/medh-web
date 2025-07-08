@@ -20,10 +20,11 @@ import medhLogo from "@/assets/images/logo/medh 2.png";
 import iso9001Emblem from "@/assets/images/certifications/ISO_9001-2015_Emblem.jpg";
 import iso10002Emblem from "@/assets/images/certifications/ISO_10002-2018_Emblem.jpg";
 import iso20000Emblem from "@/assets/images/certifications/ISO_20000-2018_Emblem.jpg";
-import iso21001Emblem from "@/assets/images/certifications/ISO_22301-2019_Emblem.jpg";
+import iso22301Emblem from "@/assets/images/certifications/ISO_22301-2019_Emblem.jpg";
 import iso27001Emblem from "@/assets/images/certifications/ISO_27001-2022_Emblem.jpg";
 import iso27701Emblem from "@/assets/images/certifications/ISO_27701-2019_Emblem.jpg";
 import stemAccreditation from "@/assets/images/certifications/medh-stem-accreditation-logo (1).png";
+import isoLogo from "@/assets/images/certifications/ISOlogo.png";
 
 // Simplified interfaces
 interface IWhyMedhFeature {
@@ -391,7 +392,7 @@ const WhyMedh = memo(() => {
 
   const serviceReliabilityCerts = useMemo(() => [
     { image: iso20000Emblem, alt: "ISO 20000", label: "ISO 20000" },
-    { image: iso21001Emblem, alt: "ISO 21001", label: "ISO 21001" }
+    { image: iso22301Emblem, alt: "ISO 22301", label: "ISO 22301" }
   ], []);
 
   // Enhanced loading state with mobile-optimized skeleton
@@ -490,7 +491,7 @@ const WhyMedh = memo(() => {
                 
                 {/* ISO Certified */}
                 <CertificationCard
-                  image={iso9001Emblem}
+                  image={isoLogo}
                   alt="ISO Certified"
                   title="ISO Certified"
                   description="International standards for quality management and continuous improvement in educational services."
