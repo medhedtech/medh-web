@@ -162,12 +162,6 @@ const CourseVideoPlayer = ({ courseId, courseTitle, courseVideos, previewVideo, 
             <Play className={`w-8 h-8 text-${primaryColor}-600 dark:text-${primaryColor}-400`} />
           </div>
         )}
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30">
-          <div className={`w-16 h-16 bg-${primaryColor}-100 dark:bg-${primaryColor}-900/30 rounded-full flex items-center justify-center mb-3`}>
-            <Play className={`w-8 h-8 text-${primaryColor}-600 dark:text-${primaryColor}-400`} />
-          </div>
-          <p className="text-gray-100 dark:text-gray-200 font-semibold text-base">Course preview coming soon</p>
-        </div>
       </div>
     );
   }
