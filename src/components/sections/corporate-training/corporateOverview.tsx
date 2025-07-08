@@ -30,8 +30,8 @@ const coreFeatures: IFeature[] = [
   {
     icon: <Target className="w-6 h-6" />,
     title: "Tailored Solutions",
-    description: "Custom programs designed for your specific industry challenges and objectives.",
-    benefit: "Immediate relevance to your business needs"
+    description: "Custom programs designed for your industry challenges and objectives.",
+    benefit: "Directly relevant to your business"
   },
   {
     icon: <Users className="w-6 h-6" />,
@@ -148,30 +148,27 @@ const CorporateOverview: React.FC = () => {
                 transition={{ duration: 0.6, delay: index * 0.2 }}
                 className="h-full"
               >
-                <div className="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl md:rounded-2xl p-5 sm:p-6 md:p-8 border border-slate-200 dark:border-slate-600 shadow-lg h-full min-h-[340px] flex flex-col justify-between">
-                  {/* Icon Header - Mobile optimized */}
-                  <div className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl md:rounded-2xl mb-4 sm:mb-5 md:mb-6 mx-auto">
-                    <div className="text-white">
-                      {feature.icon}
+                <div className="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl md:rounded-2xl p-4 sm:p-5 md:p-6 border border-slate-200 dark:border-slate-600 shadow-lg h-full min-h-[240px] flex flex-col justify-between items-center">
+                  {/* Icon, Title, Description - Vertically Centered & Equidistant */}
+                  <div className="flex-1 flex flex-col items-center justify-center w-full gap-y-4">
+                    <div className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl md:rounded-2xl mx-auto">
+                      <div className="text-white">
+                        {feature.icon}
+                      </div>
                     </div>
-                  </div>
-                  
-                  {/* Content - Mobile optimized */}
-                  <div className="text-center">
-                    <h3 className="text-base sm:text-lg md:text-xl font-bold text-slate-900 dark:text-slate-100 mb-3 md:mb-4">
+                    <h3 className="text-base sm:text-lg md:text-xl font-bold text-slate-900 dark:text-slate-100 text-center">
                       {feature.title}
                     </h3>
-                    <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed mb-4 md:mb-6">
+                    <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed text-center">
                       {feature.description}
                     </p>
-                    
-                    {/* Benefit Badge - Mobile friendly */}
-                    <div className="inline-flex items-center bg-emerald-50 dark:bg-emerald-900/30 px-3 sm:px-4 py-2 rounded-full">
-                      <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-2 text-emerald-600 dark:text-emerald-400" />
-                      <span className="text-xs sm:text-sm font-medium text-emerald-700 dark:text-emerald-300">
-                        {feature.benefit}
-                      </span>
-                    </div>
+                  </div>
+                  {/* Benefit Badge - Mobile friendly */}
+                  <div className="inline-flex items-center bg-emerald-50 dark:bg-emerald-900/30 px-3 sm:px-4 py-2 rounded-full mt-auto mx-auto">
+                    <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-2 text-emerald-600 dark:text-emerald-400" />
+                    <span className="text-xs sm:text-sm font-medium text-emerald-700 dark:text-emerald-300 text-center">
+                      {feature.benefit}
+                    </span>
                   </div>
                 </div>
               </motion.div>

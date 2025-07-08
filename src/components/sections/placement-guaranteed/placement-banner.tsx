@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useTheme } from "next-themes";
-import { Briefcase, GraduationCap, Award, Users, Clock, Target, ChevronRight, Shield } from "lucide-react";
+import { Briefcase, GraduationCap, Award, Users, Clock, Target, ChevronRight, Shield, BookOpen, Star } from "lucide-react";
 import stemImg from "@/assets/images/herobanner/Background.png";
 import family from "@/assets/images/placement/medh-placement-courses.jpg";
 import medhLogo from "@/assets/images/logo/medh.png";
@@ -97,72 +97,120 @@ const PlacementGauranteedBanner: React.FC = () => {
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
-          <div className="flex flex-col items-center justify-start text-center pt-4 md:pt-6 lg:pt-8">
+          <div className="flex flex-col items-center justify-start text-center pt-8">
             
                         {/* Hero Text Section */}
-            <div className={`mb-2 md:mb-3 transition-all duration-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-              <div className="glass-container rounded-3xl p-4 sm:p-6" style={{ transform: 'scale(0.9)' }}>
-                
+            <div className={`mb-0 md:mb-0 transition-all duration-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+              <div
+                className="glass-container rounded-3xl p-4 md:p-6 lg:p-8 transform scale-90 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto border border-white/10 backdrop-blur-xl shadow-md"
+                style={{ background: 'rgba(255,255,255,0.03)', marginBottom: '20px' }}
+              >
                 {/* Certification Badges */}
                 <div className="flex flex-wrap justify-center gap-3 mb-3 sm:mb-4">
-                  <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                  <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/20 dark:border-slate-700/30 rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}> 
                     <Shield size={10} className="mr-1 sm:w-3 sm:h-3" />
                     ISO Certified
                   </div>
-                  <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
+                  <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/20 dark:border-slate-700/30 rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}> 
                     <Award size={10} className="mr-1 sm:w-3 sm:h-3" />
                     STEM Certified
                   </div>
                 </div>
-                 
                 {/* Main Heading */}
-                <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-4 md:mb-6 tracking-tight max-w-4xl mx-auto ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  Secure Your Career Journey <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9)' }}>with</em>
-                  <span className="inline-flex items-baseline align-baseline">
+                <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight tracking-tight text-center mb-2 sm:mb-3 md:mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}> 
+                  Secure Your Career Journey
+                  <span className="block mt-1 w-full text-center"> 
+                    <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9) translateY(2px)' }}>with</em>
                     <Image 
                       src={medhLogo} 
                       alt="Medh Logo" 
                       width={128} 
                       height={128} 
                       unoptimized={true}
-                      className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline"
+                      className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 w-auto align-baseline"
                       style={{ 
                         filter: 'brightness(1.1) contrast(1.2)',
-                        transform: 'scale(0.9) translateY(2px)',
-                        verticalAlign: 'baseline'
+                        transform: 'translateY(2px)',
+                        verticalAlign: 'baseline',
+                        objectFit: 'contain',
+                        imageRendering: '-webkit-optimize-contrast',
+                        backfaceVisibility: 'hidden',
+                        WebkitFontSmoothing: 'antialiased'
                       }}
                     />
                   </span>
                 </h1>
-                
                 {/* Description */}
-                <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
+                <p className={`text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed mb-3 sm:mb-4 md:mb-6 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}> 
                   Transform your skills into guaranteed employment opportunities with our industry-leading placement programs and expert career guidance.
                 </p>
-
                 {/* CTA Section */}
-                <div className="mt-4 sm:mt-6 md:mt-8">
-                  <button
-                    onClick={openForm}
-                    className={`inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-all duration-300 hover:scale-105 group text-sm sm:text-base md:text-lg relative overflow-hidden ${
-                      isDark 
-                        ? 'bg-gradient-to-r from-primary-500 to-purple-500 text-white hover:shadow-2xl hover:shadow-primary-500/30 glass-stats' 
-                        : 'bg-white/95 backdrop-blur-lg text-gray-900 border-2 border-primary-500/40 hover:border-primary-500/70 hover:bg-white shadow-2xl hover:shadow-3xl'
-                    }`}
+                <div className="mt-4 sm:mt-6 md:mt-8 flex flex-wrap gap-4 justify-center"> 
+                  <button 
+                    onClick={() => {
+                      const el = document.getElementById('courses-section');
+                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className={`inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-all duration-300 hover:scale-105 group text-sm sm:text-base md:text-lg relative overflow-hidden bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/20 dark:border-slate-700/30 shadow-lg ${isDark ? 'text-white' : 'text-gray-900'}`}
                   >
                     <span className="relative z-10 font-extrabold tracking-wide">Start Your Career</span>
                     <ChevronRight size={16} className="relative z-10 ml-3 group-hover:translate-x-1 transition-transform sm:w-4 sm:h-4 md:w-5 md:h-5" />
                   </button>
                 </div>
-
                 {/* Tagline */}
-                <div className="pt-8 mb-2">
-                  <div className={`mumkinMedh text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold leading-tight ${
-                    isDark 
-                      ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
-                      : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
-                  }`} style={{ transform: 'scaleX(1.1)', letterSpacing: '0.05em' }}>
-                    Medh Hai Toh Mumkin Hai !
+                <div className={`mumkinMedh text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold mb-2 leading-tight pt-8 md:pt-12 ${
+                  isDark 
+                    ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text' 
+                    : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 bg-clip-text'
+                }`} style={{ transform: 'scaleX(1.1)', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+                  Medh Hai Toh Mumkin Hai !
+                </div>
+              </div>
+            </div>
+
+            {/* Why Choose Medh Job Assurance Programs? */}
+            <div className="mt-0 text-center pb-8">
+              <div className="rounded-2xl p-6 md:p-8 max-w-5xl lg:max-w-6xl mx-auto">
+                <h3 className={`text-xl md:text-2xl font-bold mb-4 md:mb-6 text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>Why Choose Medh Job Assurance Programs?</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                  {/* Card 1 */}
+                  <div
+                    className="relative overflow-hidden rounded-xl p-4 md:p-6 group transition-all duration-300 text-center border border-white/10 backdrop-blur-xl shadow-md"
+                    style={{ background: 'rgba(255,255,255,0.03)' }}
+                  >
+                    <div className="relative z-10">
+                      <div className="bg-gradient-to-br from-blue-500 to-purple-500 text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform">
+                        <Briefcase className="w-5 h-5 md:w-6 md:h-6" />
+                      </div>
+                      <h4 className={`text-base md:text-lg font-bold mb-2 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'}`}>100% Job Guarantee</h4>
+                      <p className={`text-sm md:text-base transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'}`}>We guarantee job placement or provide a full refund</p>
+                    </div>
+                  </div>
+                  {/* Card 2 */}
+                  <div
+                    className="relative overflow-hidden rounded-xl p-4 md:p-6 group transition-all duration-300 text-center border border-white/10 backdrop-blur-xl shadow-md"
+                    style={{ background: 'rgba(255,255,255,0.03)' }}
+                  >
+                    <div className="relative z-10">
+                      <div className="bg-gradient-to-br from-green-500 to-emerald-500 text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform">
+                        <Users className="w-5 h-5 md:w-6 md:h-6" />
+                      </div>
+                      <h4 className={`text-base md:text-lg font-bold mb-2 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'}`}>Industry Experts</h4>
+                      <p className={`text-sm md:text-base transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'}`}>Learn from professionals with 10+ years of experience</p>
+                    </div>
+                  </div>
+                  {/* Card 3 */}
+                  <div
+                    className="relative overflow-hidden rounded-xl p-4 md:p-6 group transition-all duration-300 text-center border border-white/10 backdrop-blur-xl shadow-md"
+                    style={{ background: 'rgba(255,255,255,0.03)' }}
+                  >
+                    <div className="relative z-10">
+                      <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform">
+                        <Target className="w-5 h-5 md:w-6 md:h-6" />
+                      </div>
+                      <h4 className={`text-base md:text-lg font-bold mb-2 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'}`}>Corporate Internship</h4>
+                      <p className={`text-sm md:text-base transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'}`}>3 months of hands-on experience with our partner companies</p>
+                    </div>
                   </div>
                 </div>
               </div>

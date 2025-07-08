@@ -951,7 +951,7 @@ const MultiStepCorporateForm: React.FC<{
                     {...register("country")}
                   >
                     {countriesData.map((country: any) => (
-                      <option key={country.code} value={country.code}>
+                      <option key={country.code} value={country.code.toLowerCase()}>
                         {country.name}
                       </option>
                     ))}
@@ -978,6 +978,7 @@ const MultiStepCorporateForm: React.FC<{
                       onChange={val => field.onChange(val)}
                       placeholder="Enter your phone number"
                       error={fieldState.error?.message}
+                      fixedCountry={watchedFields.country}
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       Country code is set based on your selected location.
