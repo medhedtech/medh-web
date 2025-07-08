@@ -8,8 +8,8 @@ import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import React from "react";
 import { HireSectionPlacement } from '../../components/sections/placement-guaranteed/HireSection';
 import { WorkProcessPlacement } from '../../components/sections/placement-guaranteed/workProcessPlacement';
-import PlacementBenefits from "@/components/sections/placement-guaranteed/placementBenefits";
-import PlacementFaq from "@/components/sections/placement-guaranteed/PlacementFaq";
+import { PlacementBenefits } from '../../components/sections/placement-guaranteed/placementBenefits';
+import { PlacementFaq } from "@/components/sections/placement-guaranteed/PlacementFaq";
 import PlacementCourseBanner from "@/components/sections/placement-guaranteed/PlacementCourseBanner";
 import PlacementCourseDetails from "@/components/sections/placement-guaranteed/placement-course-details";
 
@@ -21,10 +21,10 @@ const PlacementGauranty: React.FC = () => {
       <HireSectionPlacement/>
       <WorkProcessPlacement/>
       <PlacementBenefits/>
-      <PlacementFaq />
       <div>
         <Certified />
       </div>
+      <PlacementFaq />
       <PlacementCourseBanner />
       {/* <SkillsSection /> */}
       {/* <HiringProcess />
