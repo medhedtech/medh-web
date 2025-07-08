@@ -1275,44 +1275,44 @@ const Admin2Dashboard: React.FC = () => {
           <QuickActionButton 
             icon={<UserPlus className="h-6 w-6 text-blue-600 dark:text-blue-400" />}
             title="Enroll Student"
-            href="http://localhost:3000/dashboards/admin/students/"
+            href="/dashboards/admin/students/"
             color="hover:bg-blue-50 dark:hover:bg-blue-900/10"
           />
           <QuickActionButton 
             icon={<Edit className="h-6 w-6 text-purple-600 dark:text-purple-400" />}
             title="Manage Instructors"
-            href="http://localhost:3000/dashboards/admin/Instuctoremange/"
+            href="/dashboards/admin/Instuctoremange/"
             color="hover:bg-purple-50 dark:hover:bg-purple-900/10"
           />
           <QuickActionButton 
             icon={<Calendar className="h-6 w-6 text-amber-600 dark:text-amber-400" />}
             title="Live Classes"
-            href="http://localhost:3000/dashboards/admin/online-class/"
+            href="/dashboards/admin/online-class/"
             color="hover:bg-amber-50 dark:hover:bg-amber-900/10"
           />
           <QuickActionButton 
             icon={<Calendar className="h-6 w-6 text-amber-700 dark:text-amber-300" />}
             title="Batch Management"
-            href="http://localhost:3000/dashboards/admin/online-class/live/batch-management/"
+            href="/dashboards/admin/online-class/live/batch-management/"
             color="hover:bg-amber-100 dark:hover:bg-amber-800/10"
           />
           <QuickActionButton 
             icon={<Award className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />}
             title="Course Pricing"
-            href="http://localhost:3000/dashboards/admin/course-fee/"
+            href="/dashboards/admin/course-fee/"
             color="hover:bg-indigo-50 dark:hover:bg-indigo-900/10"
             badge="5"
           />
           <QuickActionButton 
             icon={<Settings className="h-6 w-6 text-gray-600 dark:text-gray-400" />}
             title="Blog Management"
-            href="http://localhost:3000/dashboards/admin/blogs/"
+            href="/dashboards/admin/blogs/"
             color="hover:bg-gray-50 dark:hover:bg-gray-900/10"
           />
           <QuickActionButton 
             icon={<Megaphone className="h-6 w-6 text-green-600 dark:text-green-400" />}
             title="Send Announcements"
-            href="http://localhost:3000/dashboards/admin/announcements/"
+            href="/dashboards/admin/announcements/"
             color="hover:bg-green-50 dark:hover:bg-green-900/10"
           />
           <QuickActionButton 
