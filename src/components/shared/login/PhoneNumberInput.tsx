@@ -19,6 +19,7 @@ export interface PhoneNumberInputProps {
   error?: string;
   placeholder?: string;
   className?: string;
+  fixedCountry?: string;
 }
 
 // Comprehensive country list with dial codes
@@ -98,75 +99,23 @@ export const phoneNumberSchema = Joi.object({
   }),
 });
 
-const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({ value, onChange, error, placeholder, className }) => {
-  const [open, setOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  
-  // Make India the default country
-  const indiaCountry = countryOptions.find(c => c.iso2 === 'in');
-  const selectedCountry = countryOptions.find(c => c.iso2 === value.country) || indiaCountry || countryOptions[0];
-
-  // Initialize with India as default if no country is specified
-  useEffect(() => {
-    if (!value.country && indiaCountry) {
-      onChange({ country: 'in', number: value.number });
-    }
-  }, []);
-
-  // Get preferred countries (those with priority)
-  const preferredCountries = sortedCountries.filter(c => c.priority);
-  // Get remaining countries sorted alphabetically
-  const otherCountries = sortedCountries.filter(c => !c.priority);
-
-  const filteredOptions = searchTerm
-    ? sortedCountries.filter(c => 
-        c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        c.dialCode.includes(searchTerm) ||
-        c.iso2.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : [...preferredCountries, ...otherCountries];
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  // Focus search input when dropdown opens
-  useEffect(() => {
-    if (open && searchInputRef.current) {
-      setTimeout(() => {
-        searchInputRef.current?.focus();
-      }, 100);
-    }
-  }, [open]);
+const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({ value, onChange, error, placeholder, className, fixedCountry }) => {
+  // If fixedCountry is set, use it for the country code and flag
+  const country = fixedCountry || value.country;
+  const selectedCountry = countryOptions.find(c => c.iso2 === country) || countryOptions.find(c => c.iso2 === 'in') || countryOptions[0];
 
   return (
-    <div className={`relative ${className || ''}`}> 
+    <div className={`relative ${className || ''}`}>
       <div className={`flex items-stretch border rounded-lg sm:rounded-xl overflow-hidden focus-within:ring-1 ${
-          error 
-            ? 'border-red-500 ring-red-500/30 bg-red-50/30 dark:bg-red-900/10' 
-            : 'border-gray-200 dark:border-gray-600 focus-within:border-primary-500 focus-within:ring-primary-500/20 bg-gray-50/50 dark:bg-gray-700/30'
-        }`}>  
-        <button
-          type="button"
-          onClick={() => setOpen(prev => !prev)}
-          className="flex items-center h-10 px-3 bg-gray-100/80 dark:bg-gray-700/50 border-r border-gray-200 dark:border-gray-600"
-        >
+        error
+          ? 'border-red-500 ring-red-500/30 bg-red-50/30 dark:bg-red-900/10'
+          : 'border-gray-200 dark:border-gray-600 focus-within:border-primary-500 focus-within:ring-primary-500/20 bg-gray-50/50 dark:bg-gray-700/30'
+      }`}>
+        {/* Static country code and flag if fixedCountry is set */}
+        <span className="flex items-center h-10 px-3 bg-gray-100/80 dark:bg-gray-700/50 border-r border-gray-200 dark:border-gray-600 select-none">
           <span className="text-lg">{selectedCountry.flag}</span>
           <span className="ml-1 text-sm font-medium">+{selectedCountry.dialCode}</span>
-          <ChevronDown className="ml-1 h-3.5 w-3.5 text-gray-500" />
-        </button>
+        </span>
         <input
           type="tel"
           value={value.number}
@@ -181,19 +130,14 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({ value, onChange, er
               'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
               'Home', 'End', 'Tab', 'Enter', 'Escape'
             ];
-            
             // Allow numbers (0-9)
             if (e.key >= '0' && e.key <= '9') return;
-            
             // Allow special characters commonly used in phone numbers
             if (['+', '-', '(', ')', ' '].includes(e.key)) return;
-            
             // Allow control keys
             if (allowedKeys.includes(e.key)) return;
-            
             // Allow Ctrl/Cmd combinations (copy, paste, etc.)
             if (e.ctrlKey || e.metaKey) return;
-            
             // Prevent all other keys (including alphabetic characters)
             e.preventDefault();
           }}
@@ -220,83 +164,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({ value, onChange, er
         </p>
       )}
       
-      {open && (
-        <div 
-          ref={dropdownRef}
-          className="absolute z-20 mt-1 w-80 max-h-64 overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg sm:rounded-xl shadow-lg scrollbar-thin"
-          style={{ 
-            scrollbarWidth: 'thin',
-            scrollbarColor: 'rgba(156, 163, 175, 0.5) transparent'
-          }}
-        >
-          {/* Search bar */}
-          <div className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 p-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                placeholder="Search country or code..."
-                className="w-full h-9 pl-9 pr-9 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-              />
-              {searchTerm && (
-                <button
-                  type="button"
-                  onClick={() => setSearchTerm('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                >
-                  <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
-                </button>
-              )}
-            </div>
-          </div>
-          
-          {/* Country list */}
-          <div className="py-1">
-            {filteredOptions.length === 0 ? (
-              <div className="px-3 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                No countries match your search
-              </div>
-            ) : (
-              <>
-                {/* Preferred countries section */}
-                {!searchTerm && preferredCountries.length > 0 && (
-                  <div className="mb-1 pb-1 border-b border-gray-200 dark:border-gray-700">
-                    {preferredCountries.map(c => (
-                      <CountryOption
-                        key={c.iso2}
-                        country={c}
-                        selected={c.iso2 === selectedCountry.iso2}
-                        onClick={() => {
-                          onChange({ country: c.iso2, number: value.number });
-                          setOpen(false);
-                          setSearchTerm('');
-                        }}
-                      />
-                    ))}
-                  </div>
-                )}
-                
-                {/* All countries or search results */}
-                {(searchTerm ? filteredOptions : otherCountries).map(c => (
-                  <CountryOption
-                    key={c.iso2}
-                    country={c}
-                    selected={c.iso2 === selectedCountry.iso2}
-                    onClick={() => {
-                      onChange({ country: c.iso2, number: value.number });
-                      setOpen(false);
-                      setSearchTerm('');
-                    }}
-                  />
-                ))}
-              </>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Removed dropdown logic as fixedCountry is set */}
     </div>
   );
 };

@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { CheckCircle, ArrowRight, Briefcase, Award, Users, TrendingUp } from "lucide-react";
-import placementImage from "@/assets/images/iso/Placement.png";
+import placementImage from "@/assets/images/logo/medh_logo_100percent_PNG.png";
+import placementImageDark from "@/assets/images/logo/medh_logo_100percent_DARK_png.png";
 import medhLogo from "@/assets/images/logo/medh 2.png";
 import "@/styles/glassmorphism.css";
 
@@ -235,7 +236,7 @@ const JobGuaranteedSection = memo<IJobGuaranteedProps>(({
             <div className="flex justify-center mb-5 md:mb-6">
               <div className={placementContainerClasses}>
                 <Image
-                  src={placementImage}
+                  src={isDark ? placementImageDark : placementImage}
                   alt="Medh Placement 100% Guarantee"
                   width={240}
                   height={160}
