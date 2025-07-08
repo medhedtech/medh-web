@@ -2928,13 +2928,10 @@ const ApiPanel: React.FC<ApiPanelProps> = ({ open, onClose, title, endpoint, met
                               <ArrowUp className="w-4 h-4 text-blue-600 dark:text-blue-400" /> : 
                               <ArrowDown className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                           ) : (
-                            {sortColumn === key ? 
-                            (sortDirection === 'asc' ? <ArrowUp className="w-4 h-4 text-blue-500" /> : <ArrowDown className="w-4 h-4 text-blue-500" />) : 
                             <div className="flex flex-col items-center">
                               <ArrowUp className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-50 transition-opacity -mb-1" />
                               <ArrowDown className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-50 transition-opacity" />
                             </div>
-                          }
                           )}
                         </div>
                       </div>
