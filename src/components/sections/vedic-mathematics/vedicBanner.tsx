@@ -80,7 +80,7 @@ const VedicBanner: React.FC = memo(() => {
   }, [isDark]);
 
   const contentClasses = useMemo(() => {
-    return `relative z-10 max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-12 gpu-accelerated`;
+    return `relative z-10 max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-0 pt-8 gpu-accelerated`;
   }, []);
 
   const headingClasses = useMemo(() => {
@@ -88,7 +88,7 @@ const VedicBanner: React.FC = memo(() => {
   }, [isDark]);
 
   const descriptionClasses = useMemo(() => {
-    return `text-sm md:text-base lg:text-lg leading-relaxed mb-4 md:mb-6 text-center max-w-2xl mx-auto gpu-accelerated ${isDark ? 'text-gray-300' : 'text-gray-700'} font-medium`;
+    return `text-sm md:text-base lg:text-lg leading-relaxed mb-4 md:mb-6 text-center max-w-4xl mx-auto gpu-accelerated ${isDark ? 'text-gray-300' : 'text-gray-700'} font-medium`;
   }, [isDark]);
 
   const ctaClasses = useMemo(() => {
@@ -108,7 +108,7 @@ const VedicBanner: React.FC = memo(() => {
   }, [isDark]);
 
   const mainCardClasses = useMemo(() => {
-    return `relative group gpu-accelerated backdrop-blur-xl border rounded-2xl p-4 md:p-8 mb-6 md:mb-8 max-w-4xl mx-auto overflow-hidden ${
+    return `relative group gpu-accelerated backdrop-blur-xl border rounded-2xl p-4 md:p-8 mb-16 overflow-hidden ${
       isDark 
         ? 'bg-white/5 border-white/10 hover:bg-white/10' 
         : 'bg-white/50 border-white/40 hover:bg-white/70 shadow-2xl hover:shadow-3xl'
@@ -129,7 +129,7 @@ const VedicBanner: React.FC = memo(() => {
         <div className="absolute top-1/2 right-1/3 w-24 h-24 bg-yellow-400/10 rounded-full blur-xl animate-pulse gpu-accelerated" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      <div className={contentClasses} style={{ paddingTop: 'calc(80px + 1rem)' }}>
+      <div className={contentClasses}>
         
         {/* Main Content Card - Enhanced Glassmorphism */}
         <div className={mainCardClasses}>
@@ -165,11 +165,11 @@ const VedicBanner: React.FC = memo(() => {
 
             {/* Learn Label - Plain Text (no chip) */}
             <div className="mb-0 text-center">
-              <span className={`block text-base sm:text-lg md:text-xl lg:text-2xl font-semibold tracking-wide ${isDark ? 'text-white' : 'text-gray-700'}`}>Learn</span>
+              <span className={`block text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold tracking-wide ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Learn</span>
             </div>
             {/* Main Heading */}
             <h1 className={headingClasses}>
-              <span className={`gpu-accelerated ${isDark ? 'text-transparent bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text' : 'text-transparent bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text'}`}>
+              <span className={`gpu-accelerated text-[1.78rem] sm:text-[2.14rem] md:text-[2.85rem] lg:text-[3.56rem] ${isDark ? 'text-transparent bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text' : 'text-transparent bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text'}`}>
                 Vedic Mathematics
               </span>
             </h1>
@@ -197,7 +197,7 @@ const VedicBanner: React.FC = memo(() => {
             </div>
 
             {/* Description */}
-            <p className={descriptionClasses}>
+            <p className={descriptionClasses + " mt-10"}>
               Ancient Wisdom, Modern Techniques. Eliminate Math Phobia and Transform It into a Joyful and Engaging Experience with time-tested Vedic methods.
             </p>
 
