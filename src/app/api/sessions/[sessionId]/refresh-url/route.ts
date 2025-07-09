@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authUtils } from '@/apis/auth.api';
 
 // This is a placeholder for AWS S3 SDK - you would import the actual SDK
 // import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
@@ -22,10 +21,13 @@ export async function POST(
   { params }: { params: { sessionId: string } }
 ): Promise<NextResponse<RefreshUrlResponse>> {
   try {
-    // Get the session to verify authentication
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
+    // JWT-based authentication using authUtils
+    const authHeader = request.headers.get('authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    const user = token ? authUtils.getUserFromToken(token) : null;
+    const userId = user?.id || user?._id;
+
+    if (!userId) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
@@ -42,13 +44,13 @@ export async function POST(
     }
 
     // Validate that the user has access to this session
-    const userId = session.user?.id;
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'User ID not found' },
-        { status: 401 }
-      );
-    }
+    // const userId = session.user?.id;
+    // if (!userId) {
+    //   return NextResponse.json(
+    //     { success: false, error: 'User ID not found' },
+    //     { status: 401 }
+    //   );
+    // }
 
     // TODO: Implement actual session ownership validation
     // const hasAccess = await validateSessionAccess(userId, sessionId);
