@@ -79,15 +79,15 @@ const CourseAiCourseBanner: React.FC = memo(() => {
   }, [isDark]);
 
   const contentClasses = useMemo(() => {
-    return `relative z-10 max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-0 gpu-accelerated`;
+    return `relative z-10 max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-0 pt-8 gpu-accelerated`;
   }, []);
 
   const headingClasses = useMemo(() => {
-    return `text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-3 md:mb-4 text-center max-w-5xl mx-auto gpu-accelerated ${isDark ? 'text-white' : 'text-gray-900'}`;
+    return `text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-3 md:mb-4 text-center max-w-5xl mx-auto gpu-accelerated ${isDark ? 'text-white' : 'text-gray-900'}`;
   }, [isDark]);
 
   const descriptionClasses = useMemo(() => {
-    return `text-sm md:text-base lg:text-lg leading-relaxed mb-4 md:mb-6 text-center max-w-2xl mx-auto gpu-accelerated ${isDark ? 'text-gray-300' : 'text-gray-700'} font-medium`;
+    return `text-sm md:text-base lg:text-lg leading-relaxed mb-4 md:mb-6 text-center max-w-4xl mx-auto gpu-accelerated ${isDark ? 'text-gray-300' : 'text-gray-700'} font-medium`;
   }, [isDark]);
 
   const ctaClasses = useMemo(() => {
@@ -107,11 +107,11 @@ const CourseAiCourseBanner: React.FC = memo(() => {
   }, [isDark]);
 
   const mainCardClasses = useMemo(() => {
-    return `relative group gpu-accelerated backdrop-blur-xl border rounded-2xl p-4 md:p-8 mb-6 md:mb-8 max-w-4xl mx-auto overflow-hidden ${
-      isDark 
-        ? 'bg-white/5 border-white/10 hover:bg-white/10' 
-        : 'bg-white/50 border-white/40 hover:bg-white/70 shadow-2xl hover:shadow-3xl'
-    }`;
+    return `relative group gpu-accelerated backdrop-blur-xl border rounded-2xl p-4 md:p-8 overflow-hidden ${
+      isDark
+        ? 'bg-slate-900/60 border-white/20 hover:bg-slate-900/80'
+        : 'bg-white/50 border-white/40 hover:bg-white/70'
+    } shadow-2xl hover:shadow-3xl`;
   }, [isDark]);
 
   return (
@@ -128,15 +128,15 @@ const CourseAiCourseBanner: React.FC = memo(() => {
         <div className="absolute top-1/2 right-1/3 w-24 h-24 bg-indigo-400/10 rounded-full blur-xl animate-pulse gpu-accelerated" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      <div className={contentClasses} style={{ paddingTop: 'calc(80px + 1rem)' }}>
+      <div className={contentClasses}>
         
         {/* Main Content Card - Enhanced Glassmorphism */}
         <div className={mainCardClasses}>
           {/* Animated background gradient inside card */}
           <div className="absolute inset-0 opacity-40 gpu-accelerated">
             <div className={`absolute inset-0 bg-gradient-to-br animate-pulse gpu-accelerated ${
-              isDark 
-                ? 'from-blue-500/10 via-purple-500/5 to-indigo-500/10' 
+              isDark
+                ? 'from-blue-900/30 via-purple-900/20 to-indigo-900/30'
                 : 'from-blue-200/30 via-purple-200/20 to-indigo-200/30'
             }`}></div>
           </div>
@@ -166,15 +166,15 @@ const CourseAiCourseBanner: React.FC = memo(() => {
             <div className="text-center mb-6 md:mb-8">
               {/* Learn Label - Plain Text (no chip) */}
               <div className="mb-0">
-                <span className={`block text-base sm:text-lg md:text-xl lg:text-2xl font-semibold tracking-wide ${isDark ? 'text-white' : 'text-gray-700'}`}>Learn</span>
+                <span className={`block text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold tracking-wide ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Learn</span>
               </div>
               {/* Main Heading - Pixel-perfect match to Hero2.tsx */}
               <h1 className={headingClasses}>
-                <span className={`gpu-accelerated block ${isDark ? 'text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text' : 'text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text'}`}>AI & Data Science</span>
+                <span className={`gpu-accelerated block text-[1.78rem] sm:text-[2.14rem] md:text-[2.85rem] lg:text-[3.56rem] ${isDark ? 'text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text' : 'text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text'}`}>AI & Data Science</span>
               </h1>
               {/* With Medh Logo - Pixel-perfect match to Hero2.tsx */}
               <div className="flex items-center justify-center gap-3 md:gap-4">
-                <span className={`text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold italic tracking-wide ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>with</span>
+                <span className={`-mt-1 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold italic tracking-wide ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>with</span>
                 <span className="inline-flex items-baseline align-baseline gpu-accelerated">
                   <Image 
                     src={require('@/assets/images/logo/medh 2.png')} 
@@ -198,7 +198,7 @@ const CourseAiCourseBanner: React.FC = memo(() => {
 
             {/* Description */}
             <p className={descriptionClasses}>
-              Supercharge your career. Master machine learning, data analysis, and AI technologies.
+            Supercharge your career with cutting-edge AI and Data Science skills. Master machine learning, data analysis, and AI technologies that are transforming industries worldwide.
             </p>
 
             {/* CTA Button */}
@@ -234,7 +234,7 @@ const CourseAiCourseBanner: React.FC = memo(() => {
 
         {/* Features Section - Enhanced Glass Effect */}
         <div className="mb-6 md:mb-8 gpu-accelerated">
-          <h2 className={`text-xl md:text-2xl font-bold text-center mb-4 md:mb-6 gpu-accelerated ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <h2 className={`text-xl md:text-2xl font-bold text-center mb-4 md:mb-6 pt-16 gpu-accelerated ${isDark ? 'text-white' : 'text-gray-900'}`}>
             What You'll Master
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 max-w-4xl mx-auto gpu-accelerated">
