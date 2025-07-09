@@ -99,7 +99,7 @@ const MembershipFeatures: React.FC = () => {
   };
 
   return (
-    <section className="bg-gray-50 dark:bg-gray-900 py-12">
+    <section className="bg-gray-50 dark:bg-gray-900 pt-[20px] pb-12">
       <div className="w-full">
         {/* Main Container */}
         <div className="bg-white dark:bg-gray-800 shadow-xl border-t border-b border-gray-200 dark:border-gray-700">
@@ -109,105 +109,66 @@ const MembershipFeatures: React.FC = () => {
               <Star className="w-3 h-3 fill-current" />
               Premium Features
             </div>
-            
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
               What's Included
             </h2>
           </div>
-
           {/* Compact Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-6 md:px-8 lg:px-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-6 md:px-8 lg:px-10 pb-6">
             {features.map((feature: IFeature, index: number) => {
               const colors = getSemanticColor(feature.category);
               const isHovered = hoveredIndex === index;
-
               return (
                 <div
                   key={index}
                   className="relative bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-100 dark:border-gray-600 p-5"
                 >
-                {/* Top Section */}
-                <div className="flex items-center justify-between mb-4">
-                  {/* Icon */}
-                  <div className={`w-10 h-10 rounded-lg ${colors.bg} ${colors.text} flex items-center justify-center`}>
-                    <feature.icon className="w-5 h-5" strokeWidth={2} />
-                  </div>
-
-                  {/* Stats Badge */}
-                  {feature.stats && (
-                    <div className={`px-2 py-1 rounded-md text-xs font-medium ${colors.bg} ${colors.text}`}>
-                      {feature.stats}
+                  {/* Top Section */}
+                  <div className="flex items-center justify-between mb-4">
+                    {/* Icon */}
+                    <div className={`w-10 h-10 rounded-lg ${colors.bg} ${colors.text} flex items-center justify-center`}>
+                      <feature.icon className="w-5 h-5" strokeWidth={2} />
                     </div>
-                  )}
-                </div>
 
-                {/* Content */}
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white leading-tight">
-                      {feature.title}
-                    </h3>
-                    
-                    {feature.highlight && (
-                      <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium border ${colors.text} ${colors.bg} ${colors.border}`}>
-                        {feature.highlight}
-                      </span>
+                    {/* Stats Badge */}
+                    {feature.stats && (
+                      <div className={`px-2 py-1 rounded-md text-xs font-medium ${colors.bg} ${colors.text}`}>
+                        {feature.stats}
+                      </div>
                     )}
                   </div>
 
-                  <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                    {feature.description}
-                  </p>
-
-                  {/* Benefit */}
-                  {feature.benefit && (
-                    <div className="flex items-center gap-2 pt-2">
-                      <CheckCircle className={`w-4 h-4 ${colors.text}`} />
-                      <span className={`text-sm font-medium ${colors.text}`}>
-                        {feature.benefit}
-                      </span>
+                  {/* Content */}
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white leading-tight">
+                        {feature.title}
+                      </h3>
+                      
+                      {feature.highlight && (
+                        <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium border ${colors.text} ${colors.bg} ${colors.border}`}>
+                          {feature.highlight}
+                        </span>
+                      )}
                     </div>
-                  )}
-                </div>
 
-              </div>
-            );
-          })}
-        </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                      {feature.description}
+                    </p>
 
-          {/* Bottom Trust Indicators */}
-          <div className="mt-12 text-center px-6 md:px-8 lg:px-10 pb-6 md:pb-8 lg:pb-10">
-            <div className="w-full">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-                Trusted by Professionals Worldwide
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-100 dark:border-gray-600">
-                  <div className="flex items-center justify-center mb-2">
-                    <TrendingUp className="w-8 h-8 text-emerald-500" />
+                    {/* Benefit */}
+                    {feature.benefit && (
+                      <div className="flex items-center gap-2 pt-2">
+                        <CheckCircle className={`w-4 h-4 ${colors.text}`} />
+                        <span className={`text-sm font-medium ${colors.text}`}>
+                          {feature.benefit}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">95%</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Career Growth Rate</div>
                 </div>
-                
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-100 dark:border-gray-600">
-                  <div className="flex items-center justify-center mb-2">
-                    <Award className="w-8 h-8 text-amber-500" />
-                  </div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">100%</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Industry Recognized</div>
-                </div>
-                
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-100 dark:border-gray-600">
-                  <div className="flex items-center justify-center mb-2">
-                    <CheckCircle className="w-8 h-8 text-green-500" />
-                  </div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">24/7</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Support Available</div>
-                </div>
-              </div>
-            </div>
+              );
+            })}
           </div>
         </div>
       </div>
