@@ -28,7 +28,7 @@ export class RememberedAccountsManager {
   private static readonly MAX_ACCOUNTS = 5;
   private static readonly ENCRYPTION_KEY = 'medh_remember_key_2024';
   private static readonly DATA_VERSION = 1;
-  private static readonly AUTO_PASSWORD_THRESHOLD = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
+  private static readonly AUTO_PASSWORD_THRESHOLD = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
 
   /**
    * Get all remembered accounts
