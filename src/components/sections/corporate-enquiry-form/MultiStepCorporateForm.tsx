@@ -49,7 +49,10 @@ import {
 // Hooks and Utilities
 import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls } from "@/apis";
-import countriesData from "@/utils/countrycode.json";
+// Remove static import and hardcoded options:
+// import countriesData from "@/utils/countrycode.json";
+// const countryOptions: CountryOption[] = [...];
+import * as countryCodesList from 'country-codes-list';
 
 // Phone Number Component
 import PhoneNumberInput, { CountryOption } from '../../shared/login/PhoneNumberInput';
@@ -64,13 +67,20 @@ const phoneNumberYupSchema = yup.object({
     .required('Phone number is required'),
 });
 
-// Hardcoded country options to resolve import issue
-const countryOptions: CountryOption[] = [
-  { name: 'India', iso2: 'in', dialCode: '91', flag: '🇮🇳', priority: 1 },
-  { name: 'United States', iso2: 'us', dialCode: '1', flag: '🇺🇸', priority: 2 },
-  { name: 'United Kingdom', iso2: 'gb', dialCode: '44', flag: '🇬🇧', priority: 2 },
-  // Add more countries as needed
-];
+// Add countriesData generation (place near top of component or file):
+// const countriesData = React.useMemo(() => {
+//   const allCountries = countryCodesList.all() as Record<string, any>;
+//   const countryList = countryCodesList.customList('countryCode', '{countryNameEn}') as Record<string, string>;
+//   return Object.entries(countryList).map(([code, name]: [string, string]) => {
+//     const rawDialCode = allCountries[code]?.countryCallingCode;
+//     const dial_code = rawDialCode ? `+${rawDialCode}` : undefined;
+//     return {
+//       code: code.toLowerCase(),
+//       name,
+//       dial_code,
+//     };
+//   });
+// }, []);
 
 // Toast notifications
 import { toast } from 'react-toastify';
@@ -461,7 +471,7 @@ const FormInput: React.FC<IFormInputProps> = ({
           onBlur={() => setIsFocused(false)}
           className={`
             w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 rounded-lg sm:rounded-xl border-2 transition-all duration-200
-            bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm
+            bg-white dark:bg-slate-800
             text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400
             font-medium text-sm sm:text-base
             min-h-[44px] sm:min-h-[48px]
@@ -910,6 +920,20 @@ const MultiStepCorporateForm: React.FC<{
     }
   };
 
+  const countriesData = React.useMemo(() => {
+    const allCountries = countryCodesList.all() as Record<string, any>;
+    const countryList = countryCodesList.customList('countryCode', '{countryNameEn}') as Record<string, string>;
+    return Object.entries(countryList).map(([code, name]: [string, string]) => {
+      const rawDialCode = allCountries[code]?.countryCallingCode;
+      const dial_code = rawDialCode ? `+${rawDialCode}` : undefined;
+      return {
+        code: code.toLowerCase(),
+        name,
+        dial_code,
+      };
+    });
+  }, []);
+
   const renderStep = () => {
     const step = FORM_STEPS[currentStep];
     
@@ -942,7 +966,7 @@ const MultiStepCorporateForm: React.FC<{
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <MapPin className="h-5 w-5 text-gray-400 group-focus-within:text-primary-500 transition-colors" />
+                    <MapPin className="h-5 w-5 text-gray-400 group-focus-within:text-primary-500 transition-colors shrink-0 inline-block align-middle" />
                   </div>
                   <select
                     className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
@@ -952,7 +976,7 @@ const MultiStepCorporateForm: React.FC<{
                   >
                     {countriesData.map((country: any) => (
                       <option key={country.code} value={country.code.toLowerCase()}>
-                        {country.name}
+                        {country.name}{country.dial_code ? ` (${country.dial_code})` : ""}
                       </option>
                     ))}
                   </select>
