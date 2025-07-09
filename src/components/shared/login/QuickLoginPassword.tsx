@@ -1,6 +1,6 @@
 /**
  * Quick Login Password Component
- * For accounts that need password verification (after 3 days)
+ * For accounts that need password verification (after 30 days)
  */
 
 "use client";

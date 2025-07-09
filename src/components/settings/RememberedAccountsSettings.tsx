@@ -230,8 +230,8 @@ const RememberedAccountsSettings: React.FC<RememberedAccountsSettingsProps> = ({
             </h4>
             <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
               <li>• Accounts are stored securely on your device</li>
-              <li>• Quick login is available for 3 days after last use</li>
-              <li>• After 3 days, password entry is required for security</li>
+              <li>• Quick login is available for 30 days after last use</li>
+              <li>• After 30 days, password entry is required for security</li>
               <li>• Maximum of 5 accounts can be remembered</li>
             </ul>
           </div>
