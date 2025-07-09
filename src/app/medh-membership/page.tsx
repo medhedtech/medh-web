@@ -1,8 +1,6 @@
 import React, { Suspense } from "react";
 import { NextPage } from "next";
 import dynamic from "next/dynamic";
-import { buildAdvancedComponent, getResponsive } from "@/utils/designSystem";
-import Image from "next/image";
 
 // Dynamic imports with loading priority
 const MembershipBanner = dynamic(() => import("@/components/sections/membership/membershipBanner"), {
@@ -59,30 +57,7 @@ const SectionLoader: React.FC<ISectionLoaderProps> = ({ text }) => (
 const MembershipPage: NextPage = () => {
   return (
     <PageWrapper>
-      {/* Glassmorphic Hero Section */}
-      <section className="relative min-h-[320px] flex items-center justify-center bg-slate-50 dark:bg-slate-900 py-8 sm:py-12 md:py-16">
-        <div className="absolute inset-0 pointer-events-none select-none">
-          {/* Optional: background pattern or gradient */}
-        </div>
-        <div className="relative z-10 max-w-2xl w-full mx-auto px-4">
-          <div className="backdrop-blur-xl bg-white/60 dark:bg-slate-900/60 border border-white/20 dark:border-slate-800/40 rounded-2xl shadow-lg p-6 sm:p-10 flex flex-col items-center text-center">
-            <Image
-              src="/assets/images/membership/medh-membership.svg"
-              alt="Medh Membership"
-              width={80}
-              height={80}
-              className="mb-4"
-              priority
-            />
-            <h1 className={getResponsive.fluidText('heading') + " font-bold text-slate-900 dark:text-slate-100 mb-2"}>
-              Unlock <span className="text-[#3bac63]">Medh Membership</span>
-            </h1>
-            <p className="text-base sm:text-lg text-slate-700 dark:text-slate-300 mb-2 max-w-xl mx-auto">
-              Exclusive benefits, premium resources, and a thriving community—designed to help you grow, learn, and succeed with Medh.
-            </p>
-          </div>
-        </div>
-      </section>
+      <MembershipBanner />
       <PrimeMembership />
       <MembershipFeatures />
       <Certified />

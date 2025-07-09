@@ -1216,9 +1216,6 @@ const StudentDashboardMain: React.FC = () => {
               </motion.section>
             )}
 
-            {/* Quick Actions Section */}
-            <QuickActionCard courseCards={courseCards} />
-            
             {/* Progress Overview */}
             <motion.section 
               variants={itemVariants}
@@ -1444,87 +1441,6 @@ const WeeklyActivityChart = memo(() => {
         )}
       </div>
     </div>
-  );
-});
-
-// Quick action component - Memoized
-const QuickActionCard = memo(({ courseCards }: { courseCards: any[] }) => {
-  const mostRecentCourse = courseCards.length > 0 ? courseCards[0] : null;
-  
-  return (
-    <motion.div
-      variants={itemVariants}
-      className="col-span-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
-    >
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-            <LayoutDashboard className="w-5 h-5 mr-2 text-primary-500" />
-            Quick Actions
-          </h2>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {/* Continue Learning */}
-          <Link href={mostRecentCourse ? `/course/${mostRecentCourse.id}` : "/courses"} passHref>
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors cursor-pointer group">
-              <div className="bg-primary-500 rounded-full p-2 text-white">
-                <PlayCircle className="w-5 h-5" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-medium text-primary-900 dark:text-primary-100">Continue Learning</h3>
-                <p className="text-sm text-primary-700 dark:text-primary-300 line-clamp-1">
-                  {mostRecentCourse?.title || "Browse courses"}
-                </p>
-              </div>
-              <ArrowRight className="w-4 h-4 text-primary-500 transition-transform group-hover:translate-x-1" />
-            </div>
-          </Link>
-          
-          {/* Join Next Class */}
-          <Link href="/dashboards/student/join-live" passHref>
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors cursor-pointer group">
-              <div className="bg-blue-500 rounded-full p-2 text-white">
-                <Calendar className="w-5 h-5" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-medium text-blue-900 dark:text-blue-100">Join Next Class</h3>
-                <p className="text-sm text-blue-700 dark:text-blue-300">Today's sessions</p>
-              </div>
-              <ArrowRight className="w-4 h-4 text-blue-500 transition-transform group-hover:translate-x-1" />
-            </div>
-          </Link>
-          
-          {/* View Assignments */}
-          <Link href="/dashboards/student/assignments" passHref>
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors cursor-pointer group">
-              <div className="bg-amber-500 rounded-full p-2 text-white">
-                <FileText className="w-5 h-5" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-medium text-amber-900 dark:text-amber-100">Assignments</h3>
-                <p className="text-sm text-amber-700 dark:text-amber-300">View pending work</p>
-              </div>
-              <ArrowRight className="w-4 h-4 text-amber-500 transition-transform group-hover:translate-x-1" />
-            </div>
-          </Link>
-          
-          {/* Check Progress */}
-          <Link href="/dashboards/student/progress" passHref>
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors cursor-pointer group">
-              <div className="bg-green-500 rounded-full p-2 text-white">
-                <BarChart2 className="w-5 h-5" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-medium text-green-900 dark:text-green-100">My Progress</h3>
-                <p className="text-sm text-green-700 dark:text-green-300">Track your learning</p>
-              </div>
-              <ArrowRight className="w-4 h-4 text-green-500 transition-transform group-hover:translate-x-1" />
-            </div>
-          </Link>
-        </div>
-      </div>
-    </motion.div>
   );
 });
 
