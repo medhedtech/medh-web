@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import Toast from '@/components/shared/ui/Toast';
 
-type ToastType = 'success' | 'error' | 'info';
+type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 interface ToastMessage {
   id: number;
@@ -31,10 +31,10 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const id = Date.now();
     setToasts((prev) => [...prev, { id, message, type }]);
 
-    // Auto remove toast after 3 seconds
+    // Auto remove toast after 5 seconds
     setTimeout(() => {
       setToasts((prev) => prev.filter((toast) => toast.id !== id));
-    }, 3000);
+    }, 5000);
   }, []);
 
   return (
