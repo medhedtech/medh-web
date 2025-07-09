@@ -10,6 +10,7 @@ import { ThemeProvider } from "next-themes";
 import { ToastContainer } from "react-toastify";
 import { ReactNode, useEffect } from "react";
 import { showToast } from "@/utils/toastManager";
+import { ToastProvider } from "@/components/shared/ui/ToastProvider";
 
 interface ProvidersProps {
   children: ReactNode;
@@ -42,19 +43,21 @@ export default function Providers({ children }: ProvidersProps) {
             >
               <CartContextProvider>
                 <PlacementFormProvider>
-                  {children}
-                  <ToastContainer
-                    position="top-right"
-                    autoClose={5000}
-                    hideProgressBar={false}
-                    newestOnTop
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                    theme="light"
-                  />
+                  <ToastProvider>
+                    {children}
+                    <ToastContainer
+                      position="top-right"
+                      autoClose={5000}
+                      hideProgressBar={false}
+                      newestOnTop
+                      closeOnClick
+                      rtl={false}
+                      pauseOnFocusLoss
+                      draggable
+                      pauseOnHover
+                      theme="light"
+                    />
+                  </ToastProvider>
                 </PlacementFormProvider>
               </CartContextProvider>
             </ServerLoadingProvider>

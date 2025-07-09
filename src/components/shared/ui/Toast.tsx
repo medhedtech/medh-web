@@ -42,14 +42,14 @@ const Toast: React.FC<ToastProps> = ({
   const getBackgroundColor = () => {
     switch (type) {
       case 'success':
-        return 'bg-green-50 border-green-200';
+        return 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800';
       case 'error':
-        return 'bg-red-50 border-red-200';
+        return 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800';
       case 'warning':
-        return 'bg-amber-50 border-amber-200';
+        return 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800';
       case 'info':
       default:
-        return 'bg-blue-50 border-blue-200';
+        return 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800';
     }
   };
 
@@ -57,19 +57,19 @@ const Toast: React.FC<ToastProps> = ({
 
   return (
     <div
-      className={`fixed bottom-4 right-4 z-50 max-w-sm rounded-lg border p-4 shadow-md transition-opacity duration-300 ${getBackgroundColor()} ${
-        visible ? 'opacity-100' : 'opacity-0'
+      className={`relative max-w-sm rounded-lg border p-4 shadow-md transition-all duration-300 ${getBackgroundColor()} ${
+        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
       }`}
       role="alert"
     >
       <div className="flex items-start">
         <div className="flex-shrink-0">{getIcon()}</div>
         <div className="ml-3 flex-1">
-          <p className="text-sm font-medium text-gray-900">{message}</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{message}</p>
         </div>
         <button
           type="button"
-          className="ml-auto -mx-1.5 -my-1.5 inline-flex h-8 w-8 items-center justify-center rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 focus:ring-2 focus:ring-gray-300"
+          className="ml-auto -mx-1.5 -my-1.5 inline-flex h-8 w-8 items-center justify-center rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600"
           onClick={() => {
             setVisible(false);
             setTimeout(onClose, 300);
