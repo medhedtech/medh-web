@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import CommonFaq, { IFAQ } from "@/components/shared/ui/CommonFaq";
+import MinimalEdgeFaq from "@/components/shared/ui/MinimalEdgeFaq";
 import { CreditCard, AlertCircle, Award, Download, BookOpen, Settings, Clock, Users, Gift, HelpCircle } from "lucide-react";
 
 const MembershipFaq: React.FC = () => {
@@ -121,43 +121,12 @@ const MembershipFaq: React.FC = () => {
   ];
 
   return (
-    <section className="bg-gray-50 dark:bg-gray-900 py-12">
-      <div className="w-full">
-        {/* Main Container */}
-        <div className="bg-white dark:bg-gray-800 shadow-xl border-t border-b border-gray-200 dark:border-gray-700">
-          {/* Compact Header */}
-          <div className="text-center mb-8 px-6 md:px-8 lg:px-10 pt-6 md:pt-8 lg:pt-10">
-            <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-blue-500 dark:from-violet-400 dark:to-blue-300 inline-block mb-4">
-              Explore FAQs
-            </h1>
-            <div className="w-16 h-1 mx-auto rounded-full bg-gradient-to-r from-violet-600 to-blue-500 dark:from-violet-400 dark:to-blue-300 mb-2"></div>
-            <p className="text-gray-600 dark:text-gray-400">
-              Everything you need to know about MEDH memberships
-            </p>
-          </div>
-
-          {/* FAQ Content */}
-          <div className="w-full px-6 md:px-8 lg:px-10 pb-6 md:pb-8 lg:pb-10">
-            <CommonFaq
-              title=""
-              subtitle=""
-              faqs={faqs}
-              theme={{
-                primaryColor: "#3b82f6", // Blue-500 - Excellent contrast in both themes
-                secondaryColor: "#1e40af", // Blue-800 - Strong contrast for text
-                accentColor: "#2563eb", // Blue-600 - Perfect balance
-                showContactSection: true,
-                contactEmail: "care@medh.co",
-                contactText: "Have more questions about our membership program? Contact our team at"
-              }}
-              showSearch={false}
-              showCategories={true}
-              defaultCategory="all"
-            />
-          </div>
-        </div>
-      </div>
-    </section>
+    <MinimalEdgeFaq
+      faqs={faqs}
+      title="Frequently Asked Questions"
+      contactText="Have more questions about our membership program? Contact our team at"
+      contactEmail="care@medh.co"
+    />
   );
 };
 

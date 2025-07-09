@@ -303,12 +303,12 @@ const PrimeMembership: React.FC = () => {
   }
 
   return (
-    <section className="bg-gray-50 dark:bg-gray-900 py-8">
+    <section className="bg-gray-50 dark:bg-gray-900 pt-8 pb-0">
       <div className="w-full">
         {/* Main Container */}
-        <div className="bg-white dark:bg-gray-800 shadow-xl border-t border-b border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 border-t border-b border-gray-200 dark:border-gray-700">
           {/* Compact Header with Urgency */}
-          <div className="text-center mb-8 px-6 md:px-8 lg:px-10 pt-6 md:pt-8 lg:pt-10">
+          <div id="membership-section" className="text-center mb-8 px-6 md:px-8 lg:px-10 pt-6 md:pt-8 lg:pt-10">
             <div className="inline-flex items-center gap-2 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 px-3 py-1 rounded-full text-sm font-medium mb-3">
               <Zap className="w-3 h-3" />
               Limited Time Offer - 65% OFF
@@ -322,7 +322,7 @@ const PrimeMembership: React.FC = () => {
           </div>
 
         {/* Compact Membership Cards */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8 px-6 md:px-8 lg:px-10">
+        <div id="membership-cards" className="grid md:grid-cols-2 gap-6 mb-8 px-6 md:px-8 lg:px-10">
           {membershipData.map((membership: IMembershipData, index: number) => {
             const selectedPlanDuration = membership.type === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
             const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
@@ -359,38 +359,34 @@ const PrimeMembership: React.FC = () => {
                   membership.type === 'gold' 
                     ? 'bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20' 
                     : 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20'
-                } rounded-t-xl`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className={`p-1.5 rounded-lg ${
+                } rounded-t-xl relative`}>
+                  <div className="flex flex-col items-center text-center w-full mb-2">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <span className={`p-1.5 rounded-lg ${
                         membership.type === 'gold'
                           ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
                           : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                       }`}>
                         {membership.icon}
-                      </div>
-                      <div>
-                        <h2 className="text-lg font-bold text-gray-900 dark:text-white capitalize">
-                          {membership.type}
-                        </h2>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {membership.description}
-                        </p>
-                      </div>
+                      </span>
+                      <h2 className="text-lg font-bold text-gray-900 dark:text-white capitalize">
+                        {membership.type}
+                      </h2>
                     </div>
-                    <div className="text-right">
-                      <div className={`text-xs font-medium ${
-                        membership.color === 'amber' 
-                          ? 'text-amber-600 dark:text-amber-400' 
-                          : 'text-blue-600 dark:text-blue-400'
-                      }`}>
-                        {membership.discount}
-                      </div>
-                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {membership.description}
+                    </p>
                   </div>
-                  
+                  {/* Discount Top Right */}
+                  <div className={`absolute top-2 right-3 text-xs font-medium ${
+                    membership.color === 'amber' 
+                      ? 'text-amber-600 dark:text-amber-400' 
+                      : 'text-blue-600 dark:text-blue-400'
+                  }`}>
+                    {membership.discount}
+                  </div>
                   {/* Social Proof */}
-                  <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center justify-center gap-1 text-xs text-gray-600 dark:text-gray-400 mt-2">
                     <Users className="w-3 h-3" />
                     <span>{membership.socialProof}</span>
                     <TrendingUp className="w-3 h-3 ml-1 text-green-500" />
@@ -399,57 +395,43 @@ const PrimeMembership: React.FC = () => {
 
                 {/* Content */}
                 <div className="p-4">
-                  {/* Price Section */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <div className="flex items-end gap-1">
-                        <span className="text-xs text-gray-500">₹</span>
-                        <span className={`text-2xl font-bold ${
-                          membership.color === 'amber'
-                            ? 'text-amber-600 dark:text-amber-400'
-                            : 'text-blue-600 dark:text-blue-400'
-                        }`}>
-                          {selectedPlan ? parseFloat(selectedPlan.price.replace(/[^0-9.]/g, '')).toLocaleString('en-IN') : '0'}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        {selectedPlan?.period || 'per month'}
-                      </p>
-                    </div>
-                    
-                    {savings > 0 && (
-                      <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-1 rounded-lg text-xs font-medium">
-                        Save ₹{Math.round(savings).toLocaleString()}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Compact Plan Selection */}
+                  {/* Compact Plan Selection - replaced with plan cards */}
                   <div className="mb-4">
-                    <select
-                      value={selectedPlanDuration}
-                      onChange={(e) => handlePlanSelection(membership.type, e.target.value)}
-                      className={`w-full p-3 rounded-lg border bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 transition-all appearance-none cursor-pointer text-sm ${
-                        membership.color === 'amber'
-                          ? 'border-amber-200 dark:border-amber-800 focus:border-amber-400 focus:ring-amber-500/20'
-                          : 'border-blue-200 dark:border-blue-800 focus:border-blue-400 focus:ring-blue-500/20'
-                      }`}
-                    >
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       {membership.plans.map((plan: IPlan, idx: number) => {
-                        const monthlyPrice = membership.plans.find(p => p.duration === "MONTHLY")?.price || "";
-                        const monthlyNum = parseFloat(monthlyPrice.replace(/[^0-9.]/g, ''));
+                        const monthlyPlan = membership.plans.find(p => p.duration === "MONTHLY");
+                        const monthlyNum = monthlyPlan ? parseFloat(monthlyPlan.price.replace(/[^0-9.]/g, '')) : 0;
                         const currentNum = parseFloat(plan.price.replace(/[^0-9.]/g, ''));
                         const totalMonthlyPrice = monthlyNum * plan.duration_months;
                         const planSavings = plan.duration_months > 1 ? totalMonthlyPrice - currentNum : 0;
-                        
+                        const isSelected = selectedPlanDuration === plan.duration;
+                        const isBestValue = plan.duration === "ANNUALLY";
                         return (
-                          <option key={idx} value={plan.duration}>
-                            {plan.duration.replace('-', ' ')} - ₹{currentNum.toLocaleString()}
-                            {planSavings > 0 ? ` (Save ₹${Math.round(planSavings).toLocaleString()})` : ''}
-                          </option>
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => handlePlanSelection(membership.type, plan.duration)}
+                            className={`flex-1 min-w-0 rounded-lg border-2 px-4 py-3 text-left transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500/50
+                              text-center flex flex-col items-center
+                              ${isSelected ? (membership.color === 'amber' ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/10' : 'border-blue-500 bg-blue-50 dark:bg-blue-900/10') : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'}
+                              hover:scale-105 relative`}
+                          >
+                            {isBestValue && (
+                              <span className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full z-10">Best Value</span>
+                            )}
+                            <div className="font-bold text-base sm:text-lg mb-1 capitalize">{plan.duration.replace('-', ' ')}</div>
+                            <div className="flex items-end gap-1 mb-1">
+                              <span className="text-xs text-gray-500">₹</span>
+                              <span className={`text-xl font-bold ${membership.color === 'amber' ? 'text-amber-600 dark:text-amber-400' : 'text-blue-600 dark:text-blue-400'}`}>{parseFloat(plan.price.replace(/[^0-9.]/g, '')).toLocaleString('en-IN')}</span>
+                            </div>
+                            <div className="text-xs text-gray-500 mb-1">{plan.period}</div>
+                            {planSavings > 0 && (
+                              <div className="text-xs text-green-600 dark:text-green-400 font-medium">Save ₹{Math.round(planSavings).toLocaleString()}</div>
+                            )}
+                          </button>
                         );
                       })}
-                    </select>
+                    </div>
                   </div>
 
                   {/* Compact Features */}
