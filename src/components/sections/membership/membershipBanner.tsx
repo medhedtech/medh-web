@@ -219,7 +219,7 @@ const MembershipBanner: React.FC = () => {
   }, []);
 
   const handleExplore = (): void => {
-    const element = document.getElementById('choose-membership');
+    const element = document.getElementById('membership-section');
     if (element) {
       element.scrollIntoView({ 
         behavior: 'smooth',
@@ -240,10 +240,10 @@ const MembershipBanner: React.FC = () => {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
-        <div className="flex flex-col items-center justify-center min-h-[80vh] text-center py-6">
+        <div className="flex flex-col items-center justify-center min-h-screen text-center py-6">
           
           <div className={`mb-2 md:mb-3 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <div className="glass-container rounded-3xl p-4 md:p-6 lg:p-8 mb-1 transform scale-90 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
+            <div className="glass-container rounded-3xl p-4 md:p-6 lg:p-8 mb-1 transform scale-90 max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto">
               
               <div className="flex flex-wrap justify-center gap-3 mb-4">
                 <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
@@ -256,31 +256,34 @@ const MembershipBanner: React.FC = () => {
                 </div>
               </div>
                
-              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-2 sm:mb-3 md:mb-4 tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                <span className="block text-sm sm:text-base font-medium uppercase tracking-widest mb-3 opacity-80">Tailored Resources for Success</span>
+              <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-center tracking-tight mb-2 sm:mb-3 md:mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 <span className="block whitespace-nowrap">Unlock Your Learning Potential</span>
-                <span className="block whitespace-nowrap">
-                  <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9)' }}>with</em>
+                <span className="block mt-1 w-full text-center">
+                  <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9) translateY(2px)' }}>with</em>
                   <span className="inline-flex items-center">
-                  <Image 
-                     src={medhLogo} 
-                     alt="Medh Logo" 
-                     width={128} 
-                     height={128} 
-                     unoptimized={true}
-                     className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 xl:h-14 w-auto align-baseline"
-                     style={{ 
-                         filter: 'brightness(1.1) contrast(1.2)',
-                         transform: 'scale(0.9) translateY(5px)',
-                         verticalAlign: 'baseline'
-                       }}
-                   />
+                    <Image 
+                      src={medhLogo} 
+                      alt="Medh Logo" 
+                      width={128} 
+                      height={128} 
+                      unoptimized={true}
+                      className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 w-auto align-baseline"
+                      style={{ 
+                        filter: 'brightness(1.1) contrast(1.2)',
+                        transform: 'translateY(2px)',
+                        verticalAlign: 'baseline',
+                        objectFit: 'contain',
+                        imageRendering: '-webkit-optimize-contrast',
+                        backfaceVisibility: 'hidden',
+                        WebkitFontSmoothing: 'antialiased'
+                      }}
+                    />
                   </span>
                 </span>
               </h1>
                 
               <p className={`text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-3 sm:mb-4 md:mb-6 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
-                Take Your Skills to New Heights! Become a MEDH Member Today and Unlock Your Full Potential for Success.
+                Access hundreds of courses at an Unbeatable Value with <br></br>Medh Membership.
               </p>
 
               <div className="mt-4 sm:mt-6 md:mt-8 flex flex-wrap gap-4 justify-center">
