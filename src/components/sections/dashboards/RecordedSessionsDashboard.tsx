@@ -22,10 +22,13 @@ import batchAPI, { IRecordedLesson, IBatchWithDetails } from "@/apis/batch";
 import EnrollmentAPI, { IEnrollment } from "@/apis/enrollment";
 import { PageLoading } from "@/components/ui/loading";
 import VideoPlayer from "@/components/shared/lessons/VideoPlayer";
+import { buildComponent, buildAdvancedComponent, getResponsive, getAnimations, getEnhancedSemanticColor } from '@/utils/designSystem';
+import clsx from 'clsx';
 
 interface RecordedSession {
   id: string;
   title: string;
+  displayTitle?: string;
   course?: {
     name: string;
     category: string;
@@ -34,20 +37,28 @@ interface RecordedSession {
     name: string;
     rating?: number;
   };
-  duration?: number;
+  duration?: string;
   recordedDate?: string;
-  status?: 'available' | 'processing' | 'unavailable';
+  formattedDate?: string;
+  formattedTime?: string;
+  status?: 'Available' | 'available' | 'processing' | 'unavailable';
   level?: 'beginner' | 'intermediate' | 'advanced';
   url?: string;
   description?: string;
   batchName?: string;
   sessionNumber?: number;
   viewCount?: number;
+  fileSize?: number;
   // Additional fields from API
   batchId?: string;
   sessionId?: string;
   courseId?: string;
   enrollmentId?: string;
+  source?: string;
+  student?: {
+    id: string;
+    name: string;
+  };
 }
 
 interface CurrentVideo {
@@ -90,8 +101,10 @@ const VideoPlayerModal: React.FC<{
   currentVideo: CurrentVideo | null;
   onClose: () => void;
   onProgress?: (progress: number, currentTime: number) => void;
-}> = ({ currentVideo, onClose, onProgress }) => {
+  onMiniPlayerToggle?: (isMinimized: boolean) => void;
+}> = ({ currentVideo, onClose, onProgress, onMiniPlayerToggle }) => {
   const [videoError, setVideoError] = useState<string | null>(null);
+  const [isMiniPlayer, setIsMiniPlayer] = useState(false);
 
   if (!currentVideo) return null;
 
@@ -132,113 +145,159 @@ const VideoPlayerModal: React.FC<{
     return 0;
   };
 
+  // Function to refresh S3 URL for expired signed URLs
+  const refreshS3Url = async (): Promise<string> => {
+    try {
+      // In a real application, this would call your API to get a new signed URL
+      // For now, we'll simulate the refresh by calling the batch API again
+      console.log('Refreshing S3 URL for session:', currentVideo.session.id);
+      
+      // You would implement this API call based on your backend
+      const response = await fetch(`/api/sessions/${currentVideo.session.id}/refresh-url`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to refresh URL');
+      }
+      
+      const data = await response.json();
+      return data.url;
+    } catch (error) {
+      console.error('Error refreshing S3 URL:', error);
+      throw error;
+    }
+  };
+
+  const handleMiniPlayerToggle = (isMinimized: boolean) => {
+    setIsMiniPlayer(isMinimized);
+    onMiniPlayerToggle?.(isMinimized);
+  };
+
+  const handleClose = () => {
+    setIsMiniPlayer(false);
+    onClose();
+  };
+
   return (
     <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-        onClick={onClose}
-      >
+      {!isMiniPlayer && (
         <motion.div
-          initial={{ scale: 0.9, opacity: 0, y: 50 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.9, opacity: 0, y: 50 }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="w-full max-w-6xl bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-2xl"
-          onClick={(e) => e.stopPropagation()}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={handleClose}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-4 flex-1 min-w-0">
-              <motion.div 
-                whileHover={{ scale: 1.05 }}
-                className="p-3 bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/40 dark:to-primary-800/40 rounded-xl"
-              >
-                <Play className="w-6 h-6 text-primary-600 dark:text-primary-400" />
-              </motion.div>
-              <div className="flex-1 min-w-0">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1 truncate">
-                  {currentVideo.session.title}
-                </h2>
-                <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                  <span className="flex items-center gap-1">
-                    <MonitorPlay className="w-4 h-4" />
-                    {currentVideo.batchName}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    {currentVideo.session.recordedDate ? new Date(currentVideo.session.recordedDate).toLocaleDateString() : 'Unknown date'}
-                  </span>
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0, y: 50 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 50 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="w-full max-w-6xl bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-4 flex-1 min-w-0">
+                <motion.div 
+                  whileHover={{ scale: 1.05 }}
+                  className="p-3 bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/40 dark:to-primary-800/40 rounded-xl"
+                >
+                  <Play className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+                </motion.div>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1 truncate">
+                    {currentVideo.session.title}
+                  </h2>
+                  <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                    <span className="flex items-center gap-1">
+                      <MonitorPlay className="w-4 h-4" />
+                      {currentVideo.batchName}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      {currentVideo.session.recordedDate ? new Date(currentVideo.session.recordedDate).toLocaleDateString() : 'Unknown date'}
+                    </span>
+                  </div>
                 </div>
               </div>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={handleClose}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
+              >
+                <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+              </motion.button>
             </div>
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
-            >
-              <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
-            </motion.button>
-          </div>
 
-          {/* Video Player */}
-          <div className="p-6">
-            {videoError ? (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
-                <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-red-700 dark:text-red-400 mb-2">
-                  Video Error
-                </h3>
-                <p className="text-red-600 dark:text-red-300 mb-4">
-                  {videoError}
-                </p>
-                <button
-                  onClick={() => setVideoError(null)}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  Try Again
-                </button>
-              </div>
-            ) : decodedUrl ? (
-              <VideoPlayer
-                src={decodedUrl}
-                autoplay={true}
-                onProgress={handleVideoProgress}
-                onError={handleVideoError}
-                initialTime={getSavedProgress()}
-                allowDownload={false}
-                quality="auto"
-              />
-            ) : (
-              <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 text-center">
-                <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  No Video URL
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  This session doesn't have a video URL available.
-                </p>
-              </div>
-            )}
-          </div>
+            {/* Video Player */}
+            <div className="p-6">
+              {videoError ? (
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
+                  <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-red-700 dark:text-red-400 mb-2">
+                    Video Error
+                  </h3>
+                  <p className="text-red-600 dark:text-red-300 mb-4">
+                    {videoError}
+                  </p>
+                  <button
+                    onClick={() => setVideoError(null)}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : decodedUrl ? (
+                <VideoPlayer
+                  src={decodedUrl}
+                  autoplay={false} // Removed autoplay for better UX
+                  onProgress={handleVideoProgress}
+                  onError={handleVideoError}
+                  initialTime={getSavedProgress()}
+                  allowDownload={false}
+                  allowMiniPlayer={true}
+                  onMiniPlayerToggle={handleMiniPlayerToggle}
+                  onRefreshUrl={refreshS3Url}
+                  quality="auto"
+                  sessionId={currentVideo.session.id}
+                  sessionTitle={currentVideo.session.title}
+                  onClose={handleClose}
+                />
+              ) : (
+                <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 text-center">
+                  <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    No Video URL
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    This session doesn't have a video URL available.
+                  </p>
+                </div>
+              )}
+            </div>
 
-          {/* Footer */}
-          <div className="px-6 pb-6">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={onClose}
-              className="flex items-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Sessions
-            </motion.button>
-          </div>
+            {/* Footer */}
+            <div className="px-6 pb-6">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleClose}
+                className="flex items-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Sessions
+              </motion.button>
+            </div>
+          </motion.div>
         </motion.div>
-      </motion.div>
+      )}
     </AnimatePresence>
   );
 };
@@ -346,7 +405,7 @@ const BatchCard = ({
   );
 };
 
-// Recorded Session Card Component (Updated for compact mode)
+// Updated Recorded Session Card Component with minimalistic design
 const RecordedSessionCard = ({ 
   session, 
   onWatchNow,
@@ -356,18 +415,15 @@ const RecordedSessionCard = ({
   onWatchNow: (session: RecordedSession) => void;
   compact?: boolean;
 }) => {
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "Date not available";
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+  const formatFileSize = (bytes?: number) => {
+    if (!bytes) return '';
+    const mb = bytes / (1024 * 1024);
+    return mb > 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${mb.toFixed(0)} MB`;
   };
 
   const getStatusColor = (status?: string) => {
     switch (status) {
+      case 'Available':
       case 'available':
         return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
       case 'processing':
@@ -379,131 +435,101 @@ const RecordedSessionCard = ({
     }
   };
 
-  const getLevelColor = (level?: string) => {
-    switch (level) {
-      case 'beginner':
-        return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
-      case 'intermediate':
-        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
-      case 'advanced':
-        return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
-      default:
-        return 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300';
-    }
-  };
+  const isAvailable = session?.status === 'Available' || session?.status === 'available';
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 ${
-      compact ? 'p-4' : 'p-6'
-    }`}>
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
-          <h3 className={`font-semibold text-gray-900 dark:text-gray-100 mb-2 ${
-            compact ? 'text-base' : 'text-lg'
+    <motion.div
+      whileHover={{ scale: 1.02, y: -2 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className={clsx(
+        buildAdvancedComponent.glassCard({ 
+          variant: 'primary', 
+          hover: true, 
+          padding: compact ? 'mobile' : 'tablet' 
+        }),
+        'flex flex-col h-full relative group'
+      )}
+    >
+      {/* Session Number Badge */}
+      <div className="absolute top-4 right-4 z-10">
+        <div className="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-semibold rounded-full">
+          Session {session?.sessionNumber || 'N/A'}
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 space-y-4">
+        {/* Header */}
+        <div className="pr-16">
+          <h3 className={`font-bold text-gray-900 dark:text-gray-100 line-clamp-2 ${
+            compact ? 'text-lg' : 'text-xl'
           }`}>
-            {session?.title || "No Title Available"}
+            {session?.displayTitle || session?.title || "Session Recording"}
           </h3>
-          {!compact && (
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-              {session?.course?.name || "Unknown Course"} • by {session?.instructor?.name || "Unknown Instructor"}
+          {session?.student?.name && (
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              by {session.student.name}
             </p>
           )}
-          <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
-            <div className="flex items-center">
-              <Calendar className="w-3 h-3 mr-1" />
-              {formatDate(session?.recordedDate)}
+        </div>
+
+        {/* Session Details */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Date & Time */}
+          <div className="space-y-1">
+            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+              <Calendar className="w-4 h-4 mr-2" />
+              <span>{session?.formattedDate || 'Unknown Date'}</span>
             </div>
-            <div className="flex items-center">
-              <Clock className="w-3 h-3 mr-1" />
-              {session?.duration ? `${session.duration} min` : "Duration TBD"}
+            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+              <Clock className="w-4 h-4 mr-2" />
+              <span>{session?.formattedTime || session?.duration || '90 min'}</span>
             </div>
-            {session?.viewCount && (
-              <div className="flex items-center">
-                <Eye className="w-3 h-3 mr-1" />
-                {session.viewCount} views
+          </div>
+
+          {/* File Info */}
+          <div className="space-y-1">
+            {session?.fileSize && (
+              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                <Video className="w-4 h-4 mr-2" />
+                <span>{formatFileSize(session.fileSize)}</span>
               </div>
             )}
+            <div className="flex items-center">
+              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(session?.status)}`}>
+                {session?.status === 'Available' ? 'Ready' : session?.status || 'Unknown'}
+              </span>
+            </div>
           </div>
         </div>
-        <div className={`flex items-center justify-center bg-blue-100 dark:bg-blue-900/30 rounded-full ${
-          compact ? 'w-8 h-8' : 'w-10 h-10'
-        }`}>
-          <MonitorPlay className={`text-blue-600 dark:text-blue-400 ${
-            compact ? 'w-4 h-4' : 'w-5 h-5'
-          }`} />
-        </div>
-      </div>
-        
-      {/* Course, Status and Level */}
-      <div className="mb-4">
-        <div className="flex flex-wrap gap-2">
-          {session?.course?.category && (
-            <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs rounded-full">
-              {session.course.category}
-            </span>
-          )}
-          {session?.batchName && (
-            <span className="px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs rounded-full">
-              {session.batchName}
-            </span>
-          )}
-          {session?.status && (
-            <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(session.status)}`}>
-              {session.status === 'processing' && <span className="inline-block w-2 h-2 bg-yellow-500 rounded-full mr-1 animate-pulse"></span>}
-              {session.status.charAt(0).toUpperCase() + session.status.slice(1)}
-            </span>
-          )}
-          {session?.level && (
-            <span className={`px-2 py-1 text-xs rounded-full ${getLevelColor(session.level)}`}>
-              {session.level.charAt(0).toUpperCase() + session.level.slice(1)}
-            </span>
-          )}
-        </div>
-      </div>
 
-      {/* Rating and Session Info */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center">
-          <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {session?.instructor?.rating || "4.5"}
-          </span>
-        </div>
-        {session?.sessionNumber && (
-          <div className="flex items-center text-purple-600 dark:text-purple-400">
-            <MonitorPlay className="w-4 h-4 mr-1" />
-            <span className="text-sm font-medium">
-              Session {session.sessionNumber}
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* Description */}
-      {session?.description && (
-        <div className="mb-4">
+        {/* Description */}
+        {session?.description && (
           <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
             {session.description}
           </p>
-        </div>
-      )}
-
-      {/* Actions */}
-      <div className="flex">
-        <button
-          onClick={() => onWatchNow(session)}
-          disabled={session?.status !== 'available'}
-          className={`w-full flex items-center justify-center px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
-            session?.status === 'available'
-              ? 'bg-purple-600 hover:bg-purple-700 text-white'
-              : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-          }`}
-        >
-          <Play className="w-4 h-4 mr-2" />
-          {session?.status === 'available' ? 'Watch Now' : 'Unavailable'}
-        </button>
+        )}
       </div>
-    </div>
+
+      {/* Action Button */}
+      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => onWatchNow(session)}
+          disabled={!isAvailable}
+          className={clsx(
+            'w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all duration-200',
+            isAvailable
+              ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25'
+              : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+          )}
+        >
+          <Play className="w-4 h-4" />
+          {isAvailable ? 'Watch Now' : 'Unavailable'}
+        </motion.button>
+      </div>
+    </motion.div>
   );
 };
 
@@ -515,6 +541,7 @@ const StudentRecordedSessions: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [enrollments, setEnrollments] = useState<IEnrollment[]>([]);
   const [currentVideo, setCurrentVideo] = useState<CurrentVideo | null>(null);
+  const [miniPlayerActive, setMiniPlayerActive] = useState(false);
 
   useEffect(() => {
     fetchRecordedSessions();
@@ -535,7 +562,7 @@ const StudentRecordedSessions: React.FC = () => {
       
       // Add a timeout to prevent infinite loading
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout - API took too long to respond')), 30000); // 30 seconds
+        setTimeout(() => reject(new Error('Request timeout - API took too long to respond')), 30000);
       });
       
       const sessions: RecordedSession[] = [];
@@ -550,270 +577,176 @@ const StudentRecordedSessions: React.FC = () => {
           sort_order: 'desc'
         });
         
-        // Race between API call and timeout
         const recordedLessonsResponse = await Promise.race([apiCall, timeoutPromise]) as any;
         
-        console.log('Recorded lessons API response received');
-        console.log('🔍 FULL API RESPONSE:', recordedLessonsResponse);
-        console.log('🔍 API RESPONSE TYPE:', typeof recordedLessonsResponse);
-        console.log('🔍 API RESPONSE KEYS:', recordedLessonsResponse ? Object.keys(recordedLessonsResponse) : 'No keys');
+        console.log('Recorded lessons API response received:', recordedLessonsResponse);
+        console.log('API Response success:', recordedLessonsResponse?.success);
+        console.log('API Response status:', recordedLessonsResponse?.status);
+        console.log('API Response data keys:', recordedLessonsResponse?.data ? Object.keys(recordedLessonsResponse.data) : 'No data');
         
         // Check if we have a successful response with data
-        if (recordedLessonsResponse && typeof recordedLessonsResponse === 'object' && 
-            (('success' in recordedLessonsResponse && recordedLessonsResponse.success) ||
-             ('status' in recordedLessonsResponse && recordedLessonsResponse.status === 'success')) &&
-            'data' in recordedLessonsResponse && recordedLessonsResponse.data && 
-            typeof recordedLessonsResponse.data === 'object') {
-          
-          console.log('✅ API Response validation passed');
-          console.log('✅ Success check:', recordedLessonsResponse.success);
-          console.log('✅ Status check:', recordedLessonsResponse.status);
-          
-          // Handle nested data structure - check if data.data exists
+        if ((recordedLessonsResponse?.success || recordedLessonsResponse?.status === 'success') && recordedLessonsResponse?.data) {
+          // Handle nested data structure - the actual data we want is in recordedLessonsResponse.data.data
           const responseData = recordedLessonsResponse.data.data || recordedLessonsResponse.data;
-          console.log('✅ API Response structure:', responseData);
-          console.log('✅ API Response keys:', Object.keys(responseData));
-          console.log('✅ Using nested data:', recordedLessonsResponse.data.data ? 'YES (data.data)' : 'NO (data)');
+          console.log('Response data structure:', responseData);
+          console.log('Response data keys:', Object.keys(responseData));
           
-          // Process scheduled sessions
-          if (responseData.scheduled_sessions && responseData.scheduled_sessions.sessions && Array.isArray(responseData.scheduled_sessions.sessions)) {
-            const sessionData = responseData.scheduled_sessions.sessions;
-            console.log(`✅ Processing ${sessionData.length} scheduled session entries`);
-            console.log('✅ First session data:', sessionData[0]);
+          // Process personal sessions
+          if (responseData.personal_sessions?.videos && Array.isArray(responseData.personal_sessions.videos)) {
+            const personalVideos = responseData.personal_sessions.videos;
+            console.log(`Processing ${personalVideos.length} personal session videos`);
+            console.log('First video sample:', personalVideos[0]);
             
-            // Process each session entry from the API response
-            sessionData.forEach((sessionEntry: any, sessionIndex: number) => {
+            personalVideos.forEach((video: any, index: number) => {
               try {
-                const { batch, session, recorded_lessons } = sessionEntry;
-                
-                if (!batch || !batch.name || !recorded_lessons || !Array.isArray(recorded_lessons)) {
-                  console.warn(`⚠️ Skipping invalid session entry at index ${sessionIndex}:`, sessionEntry);
-                  return;
-                }
-                
-                console.log(`✅ Processing batch: ${batch.name} with ${recorded_lessons.length} recorded lessons`);
-                
-                // Process each recorded lesson in this session
-                recorded_lessons.forEach((lesson: any, lessonIndex: number) => {
-                  try {
-                    if (!lesson || !lesson._id || !lesson.title) {
-                      console.warn(`⚠️ Skipping invalid lesson at index ${lessonIndex}:`, lesson);
-                      return;
-                    }
-                    
-                    const recordedSession: RecordedSession = {
-                      id: lesson._id,
-                      title: lesson.title || `${batch.name} - Lesson ${lessonIndex + 1}`,
-                      course: {
-                        name: batch.name || 'Unknown Course',
-                        category: 'General'
-                      },
-                      instructor: {
-                        name: 'Unknown Instructor',
-                        rating: 4.5
-                      },
-                      duration: session?.start_time && session?.end_time ? 
-                        calculateDuration(session.start_time, session.end_time) : 90,
-                      recordedDate: lesson.recorded_date,
-                      status: 'available',
-                      level: 'intermediate',
-                      description: `Recorded lesson from ${batch.name}${session?.day ? ` - ${session.day}` : ''}${session?.start_time ? ` ${session.start_time}` : ''}`,
-                      batchName: batch.name,
-                      sessionNumber: lessonIndex + 1,
-                      viewCount: lesson.view_count || 0,
-                      url: lesson.url ? urlObfuscation.encode(lesson.url) : undefined,
-                      // Additional API fields
-                      batchId: batch.id,
-                      sessionId: session?.id,
-                      courseId: batch.id,
-                      enrollmentId: `enrollment_${batch.id}`
-                    };
-                    
-                    sessions.push(recordedSession);
-                    console.log(`✅ Added session: ${recordedSession.title} to batch: ${batch.name}`);
-                  } catch (lessonError) {
-                    console.error(`❌ Error processing lesson ${lessonIndex}:`, lessonError, lesson);
-                  }
+                console.log(`Processing video ${index + 1}:`, {
+                  id: video.id,
+                  displayTitle: video.displayTitle,
+                  sessionNumber: video.session?.number,
+                  status: video.session?.status
                 });
-              } catch (sessionError) {
-                console.error(`❌ Error processing session ${sessionIndex}:`, sessionError, sessionEntry);
-              }
-            });
-          } else {
-            console.warn('⚠️ No scheduled_sessions.sessions found or not an array:', responseData.scheduled_sessions);
-          }
-          
-          // Process your previous sessions if available
-          console.log('🔍 DEBUG: Checking your_previous_sessions:', responseData.your_previous_sessions);
-          console.log('🔍 DEBUG: your_previous_sessions type:', typeof responseData.your_previous_sessions);
-          console.log('🔍 DEBUG: your_previous_sessions keys:', responseData.your_previous_sessions ? Object.keys(responseData.your_previous_sessions) : 'undefined');
-          
-          if (responseData.your_previous_sessions && responseData.your_previous_sessions.videos) {
-            const previousVideos = responseData.your_previous_sessions.videos;
-            console.log(`✅ Processing ${previousVideos.length} previous session videos`);
-            
-            previousVideos.forEach((video: any, index: number) => {
-              const recordedSession: RecordedSession = {
-                id: video.id || `prev_${index}`,
-                title: video.displayTitle || video.title || `Session ${index + 1}`,
-                course: {
-                  name: 'Personal Sessions',
-                  category: 'Personal'
-                },
-                instructor: {
-                  name: video.student?.name || 'You',
-                  rating: 5.0
-                },
-                duration: 90, // Default duration
-                recordedDate: video.extractedDate || video.lastModified,
-                status: 'available',
-                level: 'intermediate',
-                description: `Session recording from ${video.formattedDate || 'unknown date'}`,
-                batchName: video.folderPath ? video.folderPath.split('/').pop() || 'Personal Sessions' : 'Personal Sessions',
-                sessionNumber: parseInt(video.sessionNumber?.replace('Session ', '') || String(index + 1)),
-                viewCount: video.view_count || 0,
-                url: video.url ? urlObfuscation.encode(video.url) : undefined,
-                // Additional fields
-                batchId: 'personal',
-                sessionId: `personal_${index}`,
-                courseId: 'personal',
-                enrollmentId: 'personal'
-              };
-              sessions.push(recordedSession);
-            });
-          } else {
-            console.warn('⚠️ No your_previous_sessions.videos found or not an array:', responseData.your_previous_sessions);
-            
-            // Try to find videos in any structure
-            console.log('🔍 DEBUG: Searching for videos in response data...');
-            const findVideosInObject = (obj: any, path = ''): any[] => {
-              if (obj && typeof obj === 'object') {
-                if (Array.isArray(obj) && obj.length > 0 && obj[0] && typeof obj[0] === 'object' && obj[0].id) {
-                  console.log(`✅ Found videos array at path: ${path} with ${obj.length} items`);
-                  return obj;
-                }
-                for (const key in obj) {
-                  const result = findVideosInObject(obj[key], path ? `${path}.${key}` : key);
-                  if (result.length > 0) return result;
-                }
-              }
-              return [];
-            };
-            
-            const foundVideos = findVideosInObject(responseData);
-            if (foundVideos.length > 0) {
-              console.log(`✅ Found ${foundVideos.length} videos in alternative structure`);
-              foundVideos.forEach((video: any, index: number) => {
+                
                 const recordedSession: RecordedSession = {
-                  id: video.id || `alt_${index}`,
-                  title: video.displayTitle || video.title || `Session ${index + 1}`,
+                  id: video.id,
+                  title: video.title || 'Session Recording',
+                  displayTitle: video.displayTitle || video.title,
                   course: {
                     name: 'Personal Sessions',
                     category: 'Personal'
                   },
                   instructor: {
-                    name: video.student?.name || 'You',
-                    rating: 5.0
+                    name: video.student?.name || 'Unknown',
+                    rating: video.session?.rating || 5.0
                   },
-                  duration: 90,
-                  recordedDate: video.extractedDate || video.lastModified,
-                  status: 'available',
-                  level: 'intermediate',
-                  description: `Session recording from ${video.formattedDate || 'unknown date'}`,
-                  batchName: video.folderPath ? video.folderPath.split('/').pop() || 'Personal Sessions' : 'Personal Sessions',
-                  sessionNumber: parseInt(video.sessionNumber?.replace('Session ', '') || String(index + 1)),
+                  duration: video.session?.duration || '90 min',
+                  recordedDate: video.session?.date || video.lastModified,
+                  formattedDate: video.session?.formattedDate,
+                  formattedTime: video.session?.formattedTime,
+                  status: video.session?.status || 'Available',
+                  level: video.session?.level || 'Intermediate',
+                  description: video.session?.description,
+                  batchName: 'Personal Sessions',
+                  sessionNumber: video.session?.number || parseInt(video.displayTitle?.replace('Session ', '') || '1'),
                   viewCount: 0,
+                  fileSize: video.fileSize,
                   url: video.url ? urlObfuscation.encode(video.url) : undefined,
-                  batchId: video.folderPath || 'personal',
+                  source: video.source,
+                  student: video.student,
+                  // Additional fields
+                  batchId: 'personal',
                   sessionId: video.id,
                   courseId: 'personal',
                   enrollmentId: 'personal'
                 };
+                
                 sessions.push(recordedSession);
-              });
-            }
-          }
-        } else {
-          console.warn('⚠️ API Response does not match expected structure:');
-          console.log('⚠️ Response object:', recordedLessonsResponse);
-          console.log('⚠️ Has success property:', 'success' in recordedLessonsResponse);
-          console.log('⚠️ Success value:', recordedLessonsResponse?.success);
-          console.log('⚠️ Has data property:', 'data' in recordedLessonsResponse);
-          console.log('⚠️ Data value:', recordedLessonsResponse?.data);
-          console.log('⚠️ Data type:', typeof recordedLessonsResponse?.data);
-          
-          // Try to handle different response structures
-          if (recordedLessonsResponse && Array.isArray(recordedLessonsResponse)) {
-            console.log('🔄 Response is an array, trying to process directly...');
-            // Handle array response
-          } else if (recordedLessonsResponse && recordedLessonsResponse.data && Array.isArray(recordedLessonsResponse.data)) {
-            console.log('🔄 Response.data is an array, trying to process...');
-            // Handle data as array
-          } else if (recordedLessonsResponse && typeof recordedLessonsResponse === 'object') {
-            console.log('🔄 Response is an object, checking for any session data...');
-            console.log('🔄 All response properties:', Object.keys(recordedLessonsResponse));
-            
-            // Try to find any video/session data in the response
-            const findVideoData = (obj: any, path = ''): void => {
-              if (obj && typeof obj === 'object') {
-                Object.keys(obj).forEach(key => {
-                  const currentPath = path ? `${path}.${key}` : key;
-                  console.log(`🔍 Checking path: ${currentPath}`, obj[key]);
-                  
-                  if (Array.isArray(obj[key]) && obj[key].length > 0) {
-                    console.log(`✅ Found array at ${currentPath} with ${obj[key].length} items:`, obj[key][0]);
-                  } else if (obj[key] && typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
-                    findVideoData(obj[key], currentPath);
-                  }
-                });
+                console.log(`✅ Added personal session: ${recordedSession.displayTitle} (${recordedSession.id})`);
+              } catch (videoError) {
+                console.error(`❌ Error processing video ${index}:`, videoError, video);
               }
-            };
+            });
             
-            findVideoData(recordedLessonsResponse);
+            console.log(`✅ Processed ${personalVideos.length} personal videos, sessions array now has ${sessions.length} items`);
+          } else {
+            console.warn('⚠️ No personal_sessions.videos found or not an array:', responseData.personal_sessions);
           }
+          
+          // Process scheduled sessions
+          if (responseData.scheduled_sessions?.sessions && Array.isArray(responseData.scheduled_sessions.sessions)) {
+            const scheduledSessions = responseData.scheduled_sessions.sessions;
+            console.log(`Processing ${scheduledSessions.length} scheduled session entries`);
+            
+            scheduledSessions.forEach((sessionEntry: any) => {
+              try {
+                const { batch, session, recorded_lessons } = sessionEntry;
+                
+                if (!batch || !recorded_lessons || !Array.isArray(recorded_lessons)) {
+                  return;
+                }
+                
+                recorded_lessons.forEach((lesson: any, lessonIndex: number) => {
+                  if (!lesson || !lesson._id) return;
+                  
+                  const recordedSession: RecordedSession = {
+                    id: lesson._id,
+                    title: lesson.title || `${batch.name} - Lesson ${lessonIndex + 1}`,
+                    displayTitle: lesson.displayTitle || lesson.title,
+                    course: {
+                      name: batch.name || 'Unknown Course',
+                      category: batch.category || 'General'
+                    },
+                    instructor: {
+                      name: batch.instructor?.name || 'Unknown Instructor',
+                      rating: 4.5
+                    },
+                    duration: lesson.duration || '90 min',
+                    recordedDate: lesson.recorded_date,
+                    formattedDate: lesson.formattedDate,
+                    formattedTime: lesson.formattedTime,
+                    status: lesson.status || 'Available',
+                    level: lesson.level || 'Intermediate',
+                    description: lesson.description || `Recorded lesson from ${batch.name}`,
+                    batchName: batch.name,
+                    sessionNumber: lessonIndex + 1,
+                    viewCount: lesson.view_count || 0,
+                    fileSize: lesson.fileSize,
+                    url: lesson.url ? urlObfuscation.encode(lesson.url) : undefined,
+                    source: 'scheduled_sessions',
+                    // Additional API fields
+                    batchId: batch.id,
+                    sessionId: session?.id,
+                    courseId: batch.id,
+                    enrollmentId: `enrollment_${batch.id}`
+                  };
+                  
+                  sessions.push(recordedSession);
+                  console.log(`✅ Added scheduled session: ${recordedSession.displayTitle}`);
+                });
+              } catch (sessionError) {
+                console.error('❌ Error processing scheduled session:', sessionError);
+              }
+            });
+          } else {
+            console.log('ℹ️ No scheduled sessions found:', responseData.scheduled_sessions);
+          }
+          
+          console.log(`🔍 Total sessions collected before deduplication: ${sessions.length}`);
+        } else {
+          console.warn('❌ API Response does not match expected structure:');
+          console.log('Response success:', recordedLessonsResponse?.success);
+          console.log('Response data:', recordedLessonsResponse?.data);
+          console.log('Full response:', recordedLessonsResponse);
         }
         
       } catch (apiError: any) {
         console.error('Error calling recorded lessons API:', apiError);
         
-        // Handle specific API errors
         if (apiError?.response?.status === 404) {
-          throw new Error(
-            'Recorded sessions endpoint not found. Please ensure your backend server is running and the batch endpoints are configured properly.'
-          );
+          throw new Error('Recorded sessions endpoint not found. Please ensure your backend server is running.');
         } else if (apiError?.code === 'ECONNREFUSED' || apiError?.message?.includes('Network Error')) {
-          throw new Error(
-            'Cannot connect to the API server. Please ensure your backend server is running at the configured URL.'
-          );
+          throw new Error('Cannot connect to the API server. Please ensure your backend is running.');
         } else {
-          throw new Error(`API Error: ${apiError?.message || 'Unknown error occurred while fetching recorded sessions'}`);
+          throw new Error(`API Error: ${apiError?.message || 'Unknown error occurred'}`);
         }
       }
       
-      // Remove any duplicate sessions based on ID
-      const uniqueSessions = sessions.filter((session, index, self) => 
-        index === self.findIndex(s => s.id === session.id)
-      );
+      // Remove duplicates and sort by session number
+      const uniqueSessions = sessions
+        .filter((session, index, self) => 
+          index === self.findIndex(s => s.id === session.id)
+        )
+        .sort((a, b) => (b.sessionNumber || 0) - (a.sessionNumber || 0));
       
-      console.log(`🔍 Debug - Total sessions before deduplication: ${sessions.length}`);
-      console.log(`🔍 Debug - Total unique sessions after deduplication: ${uniqueSessions.length}`);
-      console.log('🔍 Debug - Sample unique sessions:', uniqueSessions.slice(0, 3));
-      console.log('🔍 Debug - All sessions:', uniqueSessions.map(s => ({
+      console.log(`🔍 Total sessions after deduplication: ${uniqueSessions.length}`);
+      console.log(`✅ Successfully loaded ${uniqueSessions.length} unique recorded sessions`);
+      console.log('Sample sessions:', uniqueSessions.slice(0, 3).map(s => ({
         id: s.id,
-        title: s.title,
-        batchName: s.batchName,
-        batchId: s.batchId
+        displayTitle: s.displayTitle,
+        sessionNumber: s.sessionNumber,
+        status: s.status
       })));
       
-      // Set the final sessions
       setRecordedSessions(uniqueSessions);
-      
-      if (uniqueSessions.length > 0) {
-        console.log(`✅ Successfully loaded ${uniqueSessions.length} unique recorded sessions`);
-      } else {
-        console.log('❌ No recorded sessions found');
-        console.log('❌ Debug - Check if API response was processed correctly');
-      }
       
     } catch (error: any) {
       console.error('Error fetching recorded sessions:', error);
@@ -855,7 +788,7 @@ const StudentRecordedSessions: React.FC = () => {
   };
 
   const handleWatchNow = (session: RecordedSession, batchName: string) => {
-    if (session.status === 'available' && session.url) {
+    if ((session.status === 'Available' || session.status === 'available') && session.url) {
       setCurrentVideo({ session, batchName });
       console.log(`Opening video player for: ${session.title}`);
     } else if (!session.url) {
@@ -867,6 +800,7 @@ const StudentRecordedSessions: React.FC = () => {
 
   const handleCloseVideo = () => {
     setCurrentVideo(null);
+    setMiniPlayerActive(false);
   };
 
   const handleVideoProgress = (progress: number, currentTime: number) => {
@@ -874,23 +808,28 @@ const StudentRecordedSessions: React.FC = () => {
     console.log(`Video progress: ${progress}% at ${currentTime}s`);
   };
 
+  const handleMiniPlayerToggle = (isMinimized: boolean) => {
+    setMiniPlayerActive(isMinimized);
+    console.log(`Mini player ${isMinimized ? 'activated' : 'deactivated'}`);
+  };
+
   // Debug: Log the recorded sessions
   console.log('🔄 Component Render - Total recorded sessions:', recordedSessions.length);
   console.log('🔄 Component Render - Recorded sessions data:', recordedSessions);
 
-  // Group sessions by batch
-  const groupedByBatch = recordedSessions.reduce((acc, session) => {
-    const batchKey = session.batchName || session.batchId || 'Unknown Batch';
-    if (!acc[batchKey]) {
-      acc[batchKey] = {
-        batchName: session.batchName || 'Unknown Batch',
+  // Group sessions by source/type instead of batch
+  const groupedBySource = recordedSessions.reduce((acc, session) => {
+    const sourceKey = session.source === 'your_previous_sessions' ? 'Personal Sessions' : session.batchName || 'Unknown';
+    if (!acc[sourceKey]) {
+      acc[sourceKey] = {
+        batchName: sourceKey,
         batchId: session.batchId,
         course: session.course,
         instructor: session.instructor,
         sessions: []
       };
     }
-    acc[batchKey].sessions.push(session);
+    acc[sourceKey].sessions.push(session);
     return acc;
   }, {} as Record<string, {
     batchName: string;
@@ -900,35 +839,36 @@ const StudentRecordedSessions: React.FC = () => {
     sessions: RecordedSession[];
   }>);
 
-  // Debug: Log the grouped batches
-  console.log('🔄 Component Render - Grouped by batch:', groupedByBatch);
-  console.log('🔄 Component Render - Number of batches:', Object.keys(groupedByBatch).length);
-
-  // Filter batches based on search term
-  const filteredBatches = Object.values(groupedByBatch).filter(batch =>
-    batch.batchName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    batch.course?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    batch.instructor?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    batch.sessions.some(session =>
-      session?.title?.toLowerCase().includes(searchTerm.toLowerCase())
+  // Filter groups based on search term
+  const filteredGroups = Object.values(groupedBySource).filter(group =>
+    group.batchName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    group.course?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    group.instructor?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    group.sessions.some(session =>
+      session?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      session?.displayTitle?.toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
 
+  // Debug: Log the grouped batches
+  console.log('🔄 Component Render - Grouped by batch:', groupedBySource);
+  console.log('🔄 Component Render - Number of batches:', Object.keys(groupedBySource).length);
+
   // Debug: Log the filtered batches
-  console.log('🔄 Component Render - Filtered batches:', filteredBatches);
-  console.log('🔄 Component Render - Number of filtered batches:', filteredBatches.length);
+  console.log('🔄 Component Render - Filtered batches:', filteredGroups);
+  console.log('🔄 Component Render - Number of filtered batches:', filteredGroups.length);
 
   // Additional debugging - log each step
   console.log('🔄 Component Render - recordedSessions length check:', recordedSessions.length);
   console.log('🔄 Component Render - loading state:', loading);
   console.log('🔄 Component Render - error state:', error);
-  console.log('🔄 Component Render - filteredBatches check:', filteredBatches.length > 0);
+  console.log('🔄 Component Render - filteredBatches check:', filteredGroups.length > 0);
 
   // Force show data for debugging if we have sessions but no batches
-  if (recordedSessions.length > 0 && filteredBatches.length === 0) {
+  if (recordedSessions.length > 0 && filteredGroups.length === 0) {
     console.error('❌ DATA PROCESSING ERROR: We have sessions but no batches!');
     console.log('All sessions:', recordedSessions);
-    console.log('Grouped data:', groupedByBatch);
+    console.log('Grouped data:', groupedBySource);
   }
 
   return (
@@ -954,7 +894,7 @@ const StudentRecordedSessions: React.FC = () => {
                   Recorded Sessions
                 </h1>
                 <p className="text-lg text-gray-600 dark:text-gray-400 mt-1">
-                  Access your past class recordings
+                  Access your past class recordings{miniPlayerActive && ' • Mini player active'}
                 </p>
               </div>
             </motion.div>
@@ -1014,67 +954,48 @@ const StudentRecordedSessions: React.FC = () => {
             </motion.div>
           )}
 
-          {/* Content - Batches */}
+          {/* Content - Session Groups */}
           {!loading && !error && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="space-y-6"
             >
-              {filteredBatches.length > 0 ? (
-                filteredBatches.map((batch, index) => (
+              {filteredGroups.length > 0 ? (
+                filteredGroups.map((group, index) => (
                   <motion.div
-                    key={batch.batchId || batch.batchName || index}
+                    key={group.batchId || group.batchName || index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                   >
                     <BatchCard
-                      batch={batch}
+                      batch={group}
                       onWatchNow={handleWatchNow}
                     />
                   </motion.div>
                 ))
               ) : recordedSessions.length > 0 ? (
-                // Fallback: Show sessions as individual cards if grouping failed
+                // Fallback: Show sessions as individual cards
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="space-y-4"
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                 >
-                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl p-4 mb-6">
-                    <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-200 mb-2">
-                      Debug Mode: Data Processing Issue
-                    </h3>
-                    <p className="text-yellow-700 dark:text-yellow-300 text-sm">
-                      Found {recordedSessions.length} sessions but grouping failed. Showing individual sessions below.
-                    </p>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {recordedSessions.slice(0, 12).map((session, index) => (
-                      <motion.div
-                        key={session.id || index}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                      >
-                        <RecordedSessionCard
-                          session={session}
-                          onWatchNow={(session) => handleWatchNow(session, session.batchName || 'Unknown Batch')}
-                          compact={false}
-                        />
-                      </motion.div>
-                    ))}
-                  </div>
-                  
-                  {recordedSessions.length > 12 && (
-                    <div className="text-center pt-4">
-                      <p className="text-gray-600 dark:text-gray-400">
-                        Showing first 12 of {recordedSessions.length} sessions
-                      </p>
-                    </div>
-                  )}
+                  {recordedSessions.slice(0, 12).map((session, index) => (
+                    <motion.div
+                      key={session.id || index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <RecordedSessionCard
+                        session={session}
+                        onWatchNow={(session) => handleWatchNow(session, session.batchName || 'Unknown')}
+                        compact={false}
+                      />
+                    </motion.div>
+                  ))}
                 </motion.div>
               ) : (
                 <motion.div
@@ -1105,6 +1026,7 @@ const StudentRecordedSessions: React.FC = () => {
         currentVideo={currentVideo}
         onClose={handleCloseVideo}
         onProgress={handleVideoProgress}
+        onMiniPlayerToggle={handleMiniPlayerToggle}
       />
     </>
   );

@@ -75,15 +75,15 @@ const PersonalityCourseBanner: React.FC = memo(() => {
   }, [isDark]);
 
   const contentClasses = useMemo(() => {
-    return `relative z-10 max-w-6xl mx-auto px-4 sm:px-6 md:px-8 pt-8 gpu-accelerated`;
+    return `relative z-10 max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-0 pt-8 gpu-accelerated`;
   }, []);
 
   const headingClasses = useMemo(() => {
-    return `text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-3 md:mb-4 text-center max-w-5xl mx-auto gpu-accelerated ${isDark ? 'text-white' : 'text-gray-900'}`;
+    return `text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-3 md:mb-4 text-center max-w-5xl mx-auto gpu-accelerated ${isDark ? 'text-white' : 'text-gray-900'}`;
   }, [isDark]);
 
   const descriptionClasses = useMemo(() => {
-    return `text-sm md:text-base lg:text-lg leading-relaxed mb-4 md:mb-6 text-center max-w-2xl mx-auto gpu-accelerated ${isDark ? 'text-gray-300' : 'text-gray-700'} font-medium`;
+    return `text-sm md:text-base lg:text-lg leading-relaxed mb-4 md:mb-6 text-center max-w-4xl mx-auto gpu-accelerated ${isDark ? 'text-gray-300' : 'text-gray-700'} font-medium`;
   }, [isDark]);
 
   const ctaClasses = useMemo(() => {
@@ -103,7 +103,7 @@ const PersonalityCourseBanner: React.FC = memo(() => {
   }, [isDark]);
 
   const mainCardClasses = useMemo(() => {
-    return `relative group gpu-accelerated backdrop-blur-xl border rounded-2xl p-4 md:p-8 mb-6 md:mb-8 max-w-4xl mx-auto overflow-hidden ${
+    return `relative group gpu-accelerated backdrop-blur-xl border rounded-2xl p-4 md:p-8 mb-16 overflow-hidden ${
       isDark 
         ? 'bg-white/5 border-white/10 hover:bg-white/10' 
         : 'bg-white/50 border-white/40 hover:bg-white/70 shadow-2xl hover:shadow-3xl'
@@ -160,11 +160,11 @@ const PersonalityCourseBanner: React.FC = memo(() => {
 
             {/* Learn Label - Plain Text (no chip) */}
             <div className="mb-0 text-center">
-              <span className={`block text-base sm:text-lg md:text-xl lg:text-2xl font-semibold tracking-wide ${isDark ? 'text-white' : 'text-gray-700'}`}>Learn</span>
+              <span className={`block text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold tracking-wide ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Learn</span>
             </div>
             {/* Main Heading */}
             <h1 className={headingClasses}>
-              <span className={`gpu-accelerated ${isDark 
+              <span className={`gpu-accelerated text-[1.78rem] sm:text-[2.14rem] md:text-[2.85rem] lg:text-[3.56rem] ${isDark 
                 ? 'text-transparent bg-gradient-to-r from-emerald-400 via-green-400 to-teal-300 bg-clip-text' 
                 : 'text-transparent bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 bg-clip-text'}`}>
                 Personality Development
@@ -172,7 +172,7 @@ const PersonalityCourseBanner: React.FC = memo(() => {
             </h1>
             {/* With Medh Logo - Pixel-perfect match to AI banner */}
             <div className="flex items-center justify-center gap-3 md:gap-4">
-              <span className={`text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold italic tracking-wide ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>with</span>
+              <span className={`-mt-1 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold italic tracking-wide ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>with</span>
               <span className="inline-flex items-baseline align-baseline gpu-accelerated">
                 <Image
                   src={medhLogo}
@@ -194,7 +194,7 @@ const PersonalityCourseBanner: React.FC = memo(() => {
             </div>
 
             {/* Description */}
-            <p className={descriptionClasses}>
+            <p className={descriptionClasses + " mt-10"}>
               Transform your personality and unlock your potential with expert-led training that builds confidence, communication skills, and leadership qualities.
             </p>
 
