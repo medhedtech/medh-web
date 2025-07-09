@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown, Search, X, Check } from 'lucide-react';
 import Joi from 'joi';
+// @ts-ignore: No type declarations for country-codes-list
+const countryCodesList = require('country-codes-list');
 
 export interface CountryOption {
   name: string;
@@ -22,57 +24,17 @@ export interface PhoneNumberInputProps {
   fixedCountry?: string;
 }
 
-// Comprehensive country list with dial codes
-const countryOptions: CountryOption[] = [
-  { name: 'Afghanistan', iso2: 'af', dialCode: '93', flag: '🇦🇫' },
-  { name: 'Albania', iso2: 'al', dialCode: '355', flag: '🇦🇱' },
-  { name: 'Algeria', iso2: 'dz', dialCode: '213', flag: '🇩🇿' },
-  { name: 'Andorra', iso2: 'ad', dialCode: '376', flag: '🇦🇩' },
-  { name: 'Angola', iso2: 'ao', dialCode: '244', flag: '🇦🇴' },
-  { name: 'Anguilla', iso2: 'ai', dialCode: '1264', flag: '🇦🇮' },
-  { name: 'Antigua and Barbuda', iso2: 'ag', dialCode: '1268', flag: '🇦🇬' },
-  { name: 'Argentina', iso2: 'ar', dialCode: '54', flag: '🇦🇷' },
-  { name: 'Armenia', iso2: 'am', dialCode: '374', flag: '🇦🇲' },
-  { name: 'Australia', iso2: 'au', dialCode: '61', flag: '🇦🇺', priority: 2 },
-  { name: 'Austria', iso2: 'at', dialCode: '43', flag: '🇦🇹' },
-  { name: 'Azerbaijan', iso2: 'az', dialCode: '994', flag: '🇦🇿' },
-  { name: 'Bahamas', iso2: 'bs', dialCode: '1242', flag: '🇧🇸' },
-  { name: 'Bahrain', iso2: 'bh', dialCode: '973', flag: '🇧🇭' },
-  { name: 'Bangladesh', iso2: 'bd', dialCode: '880', flag: '🇧🇩' },
-  { name: 'Barbados', iso2: 'bb', dialCode: '1246', flag: '🇧🇧' },
-  { name: 'Belarus', iso2: 'by', dialCode: '375', flag: '🇧🇾' },
-  { name: 'Belgium', iso2: 'be', dialCode: '32', flag: '🇧🇪' },
-  { name: 'Belize', iso2: 'bz', dialCode: '501', flag: '🇧🇿' },
-  { name: 'Benin', iso2: 'bj', dialCode: '229', flag: '🇧🇯' },
-  { name: 'Bermuda', iso2: 'bm', dialCode: '1441', flag: '🇧🇲' },
-  { name: 'Brazil', iso2: 'br', dialCode: '55', flag: '🇧🇷' },
-  { name: 'Canada', iso2: 'ca', dialCode: '1', flag: '🇨🇦', priority: 2 },
-  { name: 'China', iso2: 'cn', dialCode: '86', flag: '🇨🇳', priority: 3 },
-  { name: 'France', iso2: 'fr', dialCode: '33', flag: '🇫🇷', priority: 3 },
-  { name: 'Germany', iso2: 'de', dialCode: '49', flag: '🇩🇪', priority: 3 },
-  { name: 'India', iso2: 'in', dialCode: '91', flag: '🇮🇳', priority: 1 },
-  { name: 'Italy', iso2: 'it', dialCode: '39', flag: '🇮🇹' },
-  { name: 'Japan', iso2: 'jp', dialCode: '81', flag: '🇯🇵', priority: 3 },
-  { name: 'Malaysia', iso2: 'my', dialCode: '60', flag: '🇲🇾' },
-  { name: 'Mexico', iso2: 'mx', dialCode: '52', flag: '🇲🇽' },
-  { name: 'Netherlands', iso2: 'nl', dialCode: '31', flag: '🇳🇱' },
-  { name: 'New Zealand', iso2: 'nz', dialCode: '64', flag: '🇳🇿' },
-  { name: 'Nigeria', iso2: 'ng', dialCode: '234', flag: '🇳🇬' },
-  { name: 'Pakistan', iso2: 'pk', dialCode: '92', flag: '🇵🇰', priority: 3 },
-  { name: 'Russia', iso2: 'ru', dialCode: '7', flag: '🇷🇺' },
-  { name: 'Saudi Arabia', iso2: 'sa', dialCode: '966', flag: '🇸🇦' },
-  { name: 'Singapore', iso2: 'sg', dialCode: '65', flag: '🇸🇬', priority: 3 },
-  { name: 'South Africa', iso2: 'za', dialCode: '27', flag: '🇿🇦' },
-  { name: 'South Korea', iso2: 'kr', dialCode: '82', flag: '🇰🇷' },
-  { name: 'Spain', iso2: 'es', dialCode: '34', flag: '🇪🇸' },
-  { name: 'Sweden', iso2: 'se', dialCode: '46', flag: '🇸🇪' },
-  { name: 'Switzerland', iso2: 'ch', dialCode: '41', flag: '🇨🇭' },
-  { name: 'Turkey', iso2: 'tr', dialCode: '90', flag: '🇹🇷' },
-  { name: 'United Arab Emirates', iso2: 'ae', dialCode: '971', flag: '🇦🇪', priority: 3 },
-  { name: 'United Kingdom', iso2: 'gb', dialCode: '44', flag: '🇬🇧', priority: 2 },
-  { name: 'United States', iso2: 'us', dialCode: '1', flag: '🇺🇸', priority: 2 },
-  // Many more countries would be added in a real implementation
-];
+// Use country-codes-list to generate countryOptions
+const rawCountryList = countryCodesList.customList('countryCode', '{countryNameEn}|{countryCode}|{countryCallingCode}|{flag}');
+const countryOptions: CountryOption[] = (Object.values(rawCountryList) as string[]).map((entry) => {
+  const [name, iso2, dialCode, flag] = entry.split('|');
+  return {
+    name,
+    iso2: iso2.toLowerCase(),
+    dialCode: dialCode.replace('+', ''),
+    flag,
+  };
+});
 
 // Sort countries by priority (highest first) and then by name
 const sortedCountries = [...countryOptions].sort((a, b) => {
@@ -102,7 +64,7 @@ export const phoneNumberSchema = Joi.object({
 const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({ value, onChange, error, placeholder, className, fixedCountry }) => {
   // If fixedCountry is set, use it for the country code and flag
   const country = fixedCountry || value.country;
-  const selectedCountry = countryOptions.find(c => c.iso2 === country) || countryOptions.find(c => c.iso2 === 'in') || countryOptions[0];
+  const selectedCountry = countryOptions.find(c => c.iso2 === (country || '').toLowerCase()) || countryOptions.find(c => c.iso2 === 'in') || countryOptions[0];
 
   return (
     <div className={`relative ${className || ''}`}>
@@ -113,8 +75,8 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({ value, onChange, er
       }`}>
         {/* Static country code and flag if fixedCountry is set */}
         <span className="flex items-center h-10 px-3 bg-gray-100/80 dark:bg-gray-700/50 border-r border-gray-200 dark:border-gray-600 select-none">
-          <span className="text-lg">{selectedCountry.flag}</span>
-          <span className="ml-1 text-sm font-medium">+{selectedCountry.dialCode}</span>
+          <span className="text-base font-semibold leading-none align-middle">{selectedCountry.iso2.toUpperCase()}</span>
+          <span className="ml-1 text-base font-medium leading-none align-middle" style={{ position: 'relative', top: '1px' }}>+{selectedCountry.dialCode}</span>
         </span>
         <input
           type="tel"

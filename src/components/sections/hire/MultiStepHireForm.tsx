@@ -52,7 +52,7 @@ import {
 } from "lucide-react";
 
 // Hooks and Utilities
-import countriesData from "@/utils/countrycode.json";
+import * as countryCodesList from 'country-codes-list';
 import PhoneNumberInput, { CountryOption } from '../../shared/login/PhoneNumberInput';
 import { apiClient } from '@/apis/apiClient';
 import { submitContactForm, IContactFormData } from '@/apis/form.api';
@@ -328,15 +328,9 @@ const FormInput: React.FC<IFormInputProps> = ({
         {label}
       </label>
       <div className="relative group">
-        <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
-          <Icon className={`h-5 w-5 sm:h-6 sm:w-6 transition-colors duration-200 ${
-            error 
-              ? 'text-red-500 dark:text-red-400' 
-              : isFocused 
-                ? 'text-blue-500 dark:text-blue-400' 
-                : 'text-slate-400 dark:text-slate-500'
-          }`} />
-        </div>
+        {Icon && (
+          <Icon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 transition-colors duration-200 pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-blue-500 dark:group-focus-within:text-blue-400" />
+        )}
         <input
           {...registerProps}
           type={type || registerProps.type || 'text'}
@@ -357,7 +351,6 @@ const FormInput: React.FC<IFormInputProps> = ({
             touch-manipulation
           `}
         />
-        
         {/* Enhanced Mobile-Friendly Autocomplete */}
         <AnimatePresence>
           {showSuggestions && (
@@ -381,7 +374,6 @@ const FormInput: React.FC<IFormInputProps> = ({
           )}
         </AnimatePresence>
       </div>
-      
       <AnimatePresence mode="wait">
         {error && (
           <motion.div
@@ -593,20 +585,21 @@ const MultiStepHireForm: React.FC = () => {
     control,
     getValues,
     formState: { errors, isValid },
-    reset
+    reset,
+    setValue
   } = useForm<IFormData>({
     resolver: yupResolver<IFormData>(completeFormSchema),
     mode: 'onChange',
     defaultValues: {
       full_name: '',
       email: '',
-      country: 'in',
-      phone_number: { country: 'in', number: '' },
+      country: 'in', // Default country is India
+      phone_number: { country: 'in', number: '' }, // Default phone code is India
       company_name: '',
       company_website: null,
       department: '',
       team_size: '',
-      requirement_type: 'hire-candidates', // Default to "Hire Medh-trained Candidates"
+      requirement_type: 'hire-candidates',
       training_domain: '',
       detailed_requirements: '',
       terms_accepted: false
@@ -624,6 +617,35 @@ const MultiStepHireForm: React.FC = () => {
 
   // Form Data Watching
   const watchedFields = watch();
+
+  // Generate countriesData from country-codes-list
+  const countriesData = useMemo(() => {
+    const allCountries = countryCodesList.all() as Record<string, any>;
+    const countryList = countryCodesList.customList('countryCode', '{countryNameEn}') as Record<string, string>;
+    return Object.entries(countryList).map(([code, name]: [string, string]) => {
+      const rawDialCode = allCountries[code]?.countryCallingCode;
+      const dial_code = rawDialCode ? `+${rawDialCode}` : undefined;
+      return {
+        code: code.toLowerCase(),
+        name,
+        dial_code,
+      };
+    });
+  }, []);
+
+  // Sync phone_number.country with country selection
+  useEffect(() => {
+    if (watchedFields.country && watchedFields.phone_number?.country !== watchedFields.country) {
+      // Update only if different to avoid unnecessary rerenders
+      // Use setValue from react-hook-form
+      if (typeof watchedFields.phone_number === 'object') {
+        setValue('phone_number', {
+          ...watchedFields.phone_number,
+          country: watchedFields.country
+        });
+      }
+    }
+  }, [watchedFields.country]);
 
   // Step Validation
   const isCurrentStepValid = useCallback(() => {
@@ -807,21 +829,80 @@ const MultiStepHireForm: React.FC = () => {
               </div>
             </motion.div>
 
-            <FormInput
-              label="Full Name"
-              icon={User}
-              error={errors.full_name?.message}
-              {...register('full_name')}
-              placeholder="Enter your full name"
-            />
-            <FormInput
-              label="Email Address"
-              icon={Mail}
-              type="email"
-              error={errors.email?.message}
-              {...register('email')}
-              placeholder="Enter your work email"
-            />
+            <motion.div className="relative space-y-3">
+              <label className="block text-sm sm:text-base font-semibold text-slate-700 dark:text-slate-200">
+                Full Name
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-6 w-6 text-slate-400 z-10" />
+                <input
+                  {...register('full_name')}
+                  placeholder="Enter your full name"
+                  className={`w-full pl-12 pr-3 py-3 rounded-lg border-2 transition-all duration-200
+                    bg-white dark:bg-slate-800
+                    text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400
+                    font-medium text-sm
+                    min-h-[44px]
+                    ${errors.full_name?.message 
+                      ? 'border-red-500 dark:border-red-400 bg-red-50/50 dark:bg-red-900/10 focus:border-red-500 dark:focus:border-red-400 focus:ring-4 focus:ring-red-500/10 dark:focus:ring-red-400/10' 
+                      : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-blue-400/10'
+                    }
+                    focus:outline-none
+                    touch-manipulation`}
+                />
+                <AnimatePresence mode="wait">
+                  {errors.full_name?.message && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs sm:text-sm font-medium"
+                    >
+                      <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                      <span className="leading-tight">{errors.full_name.message}</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+
+            <motion.div className="relative space-y-3">
+              <label className="block text-sm sm:text-base font-semibold text-slate-700 dark:text-slate-200">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-6 w-6 text-slate-400 z-10" />
+                <input
+                  {...register('email')}
+                  type="email"
+                  placeholder="Enter your work email"
+                  className={`w-full pl-12 pr-3 py-3 rounded-lg border-2 transition-all duration-200
+                    bg-white dark:bg-slate-800
+                    text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400
+                    font-medium text-sm
+                    min-h-[44px]
+                    ${errors.email?.message 
+                      ? 'border-red-500 dark:border-red-400 bg-red-50/50 dark:bg-red-900/10 focus:border-red-500 dark:focus:border-red-400 focus:ring-4 focus:ring-red-500/10 dark:focus:ring-red-400/10' 
+                      : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-blue-400/10'
+                    }
+                    focus:outline-none
+                    touch-manipulation`}
+                />
+                <AnimatePresence mode="wait">
+                  {errors.email?.message && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs sm:text-sm font-medium"
+                    >
+                      <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                      <span className="leading-tight">{errors.email.message}</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <motion.div 
@@ -842,11 +923,10 @@ const MultiStepHireForm: React.FC = () => {
                   </div>
                   <select
                     className={`
-                      w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 rounded-lg sm:rounded-xl border-2 transition-all duration-200
-                      bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm
+                      w-full h-10 pl-10 sm:pl-12 pr-3 sm:pr-4 py-0 rounded-lg border transition-all duration-200
+                      bg-white dark:bg-slate-800
                       text-slate-900 dark:text-white
-                      font-medium text-sm sm:text-base
-                      min-h-[44px] sm:min-h-[48px]
+                      font-medium text-base
                       ${errors.country 
                         ? 'border-red-500 dark:border-red-400 bg-red-50/50 dark:bg-red-900/10 focus:border-red-500 dark:focus:border-red-400 focus:ring-4 focus:ring-red-500/10 dark:focus:ring-red-400/10' 
                         : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-blue-400/10'
@@ -858,7 +938,7 @@ const MultiStepHireForm: React.FC = () => {
                   >
                     {countriesData.map((country: any) => (
                       <option key={country.code} value={country.code}>
-                        {country.name}
+                        {country.name}{country.dial_code ? ` (${country.dial_code})` : ""}
                       </option>
                     ))}
                   </select>
@@ -888,16 +968,22 @@ const MultiStepHireForm: React.FC = () => {
                       Phone Number
                     </label>
                     <PhoneNumberInput
-                      value={{ 
-                        country: watchedFields.country || 'in', 
-                        number: typeof field.value === 'string' ? field.value : field.value?.number || '' 
+                      value={{
+                        country: watchedFields.country || 'in',
+                        number: typeof field.value === 'string' ? field.value : field.value?.number || ''
                       }}
-                      onChange={val => field.onChange(val)}
+                      onChange={val => {
+                        // Only update the number, always use the selected country
+                        field.onChange({
+                          country: watchedFields.country || 'in',
+                          number: val.number || ''
+                        });
+                      }}
                       placeholder="Enter your phone number"
                       error={fieldState.error?.message}
                     />
                     <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-                      Country code is automatically set based on your selected location.
+                      Country code is set based on your selected location.
                     </p>
                     <AnimatePresence mode="wait">
                       {fieldState.error && (

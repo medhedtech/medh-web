@@ -5,6 +5,7 @@ import {
   BookOpen,
   HelpCircle
 } from "lucide-react";
+import MinimalEdgeFaq from "@/components/shared/ui/MinimalEdgeFaq";
 
 const HireFromMedhFaq: React.FC = () => {
   const faqs: IFAQ[] = [
@@ -117,43 +118,13 @@ const HireFromMedhFaq: React.FC = () => {
   ];
 
   return (
-    <section className="bg-slate-50 dark:bg-slate-900 pt-16 md:pt-24 relative overflow-hidden">
-      {/* Background elements */}
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/30 via-transparent to-blue-50/30 dark:from-emerald-950/10 dark:via-transparent dark:to-blue-950/10"></div>
-      <div className="absolute top-10 left-10 w-32 h-32 bg-emerald-100/20 dark:bg-emerald-800/10 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-10 right-10 w-40 h-40 bg-blue-100/20 dark:bg-blue-800/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-
-      <div className="relative w-full px-4 sm:px-6 lg:px-8">
-        {/* Edge-to-Edge FAQ Content with Glass Effect */}
-        <div className="bg-gradient-to-r from-white/80 to-slate-50/80 dark:from-slate-800/80 dark:to-slate-900/80 backdrop-blur-xl rounded-3xl border border-white/40 dark:border-slate-600/40 shadow-2xl overflow-hidden">
-          <div className="p-6 sm:p-8 md:p-12 lg:p-16 pb-0">
-            <h2 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-blue-500 dark:from-violet-400 dark:to-blue-300 inline-block mb-4 text-center w-full">
-              Explore FAQs
-            </h2>
-            <div className="w-16 h-1 mx-auto rounded-full bg-gradient-to-r from-violet-600 to-blue-500 dark:from-violet-400 dark:to-blue-300"></div>
-            <p className="text-lg md:text-xl font-medium text-slate-600 dark:text-slate-300 leading-relaxed text-center mb-6">
-              Everything you need to know about hiring from Medh
-            </p>
-            <CommonFaq
-              title=""
-              subtitle=""
-              faqs={faqs}
-              theme={{
-                primaryColor: "#10b981", // Emerald-500 - Perfect for hiring/recruitment theme
-                secondaryColor: "#047857", // Emerald-700 - Strong contrast for text
-                accentColor: "#059669", // Emerald-600 - Perfect balance
-                showContactSection: true,
-                contactEmail: "care@medh.co",
-                contactText: "Have more questions about hiring? Contact our recruitment team at"
-              }}
-              showSearch={false}
-              showCategories={true}
-              defaultCategory="all"
-            />
-          </div>
-        </div>
-        
-      </div>
+    <section className="bg-slate-50 dark:bg-slate-900 pt-0 pb-[20px]">
+      <MinimalEdgeFaq
+        faqs={faqs}
+        title="Frequently Asked Questions"
+        contactText="Have more questions about hiring? Contact our recruitment team at"
+        contactEmail="care@medh.co"
+      />
     </section>
   );
 };
