@@ -37,7 +37,7 @@ const steps: IProcessStep[] = [
   {
     title: "Company Registration",
     description:
-      "Register with your requirements. We match you with pre-assessed candidates from our talent pool.",
+      "Register your requirements. We match you with pre-assessed candidates from our talent pool.",
     icon: UserPlus,
     color: "#3b82f6",
     bgColor: "bg-blue-100 dark:bg-blue-900/20"
@@ -187,7 +187,7 @@ const HiringProcess: React.FC<IHiringProcessProps> = memo(({ className = "" }) =
                 Our Hiring <span className="text-violet-600 dark:text-violet-400">Process</span>
               </h2>
               
-              <div className="w-full mx-auto">
+              <div className="w-full mx-auto mb-8">
                 <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
                   A structured approach to finding the 
                   <span className="font-semibold text-slate-800 dark:text-slate-200"> right talent</span> for your 
@@ -196,69 +196,69 @@ const HiringProcess: React.FC<IHiringProcessProps> = memo(({ className = "" }) =
               </div>
             </div>
           </div>
-            </motion.div>
 
-        {/* Process Steps */}
-            <motion.div
-              initial="hidden"
-              animate={isVisible ? "visible" : "hidden"}
-              variants={staggerContainer}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="w-full flex flex-col md:flex-row gap-6 md:gap-8 justify-center items-center md:items-stretch px-0"
-            >
-              {steps.map((step, index) => {
-                const IconComponent = step.icon;
-                return (
-                  <motion.div
-                    key={index}
-                    variants={fadeInUp}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className="flex-1 min-w-[220px] max-w-xs md:max-w-sm lg:max-w-xs flex flex-col items-center text-center"
-                  >
-                    <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-600 shadow-sm w-full h-full flex flex-col items-center">
-                      <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-violet-500 to-violet-600 rounded-xl flex items-center justify-center shadow-md mb-3">
-                        <IconComponent className="w-7 h-7 text-white" />
-                      </div>
-                      <div className="flex flex-col items-center mb-2">
-                        <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100 leading-tight mb-1">
-                          {step.title}
-                        </h4>
-                        <div className="text-xs font-semibold text-violet-600 dark:text-violet-400 bg-violet-100 dark:bg-violet-900/30 px-3 py-1 rounded-full">
-                          Step {index + 1}
-                        </div>
-                      </div>
-                      <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                        {step.description}
-                      </p>
+          {/* Process Steps - moved inside glassCard */}
+          <motion.div
+            initial="hidden"
+            animate={isVisible ? "visible" : "hidden"}
+            variants={staggerContainer}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="w-full flex flex-col md:flex-row gap-6 md:gap-8 justify-center items-center md:items-stretch px-0 mb-8"
+          >
+            {steps.map((step, index) => {
+              const IconComponent = step.icon;
+              return (
+                <motion.div
+                  key={index}
+                  variants={fadeInUp}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="flex-1 min-w-[220px] max-w-xs md:max-w-sm lg:max-w-xs flex flex-col items-center text-center"
+                >
+                  <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-600 shadow-sm w-full h-full flex flex-col items-center">
+                    <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-violet-500 to-violet-600 rounded-xl flex items-center justify-center shadow-md mb-3">
+                      <IconComponent className="w-7 h-7 text-white" />
                     </div>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
+                    <div className="flex flex-col items-center mb-2">
+                      <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100 leading-tight mb-1 whitespace-nowrap">
+                        {step.title}
+                      </h4>
+                      <div className="text-xs font-semibold text-violet-600 dark:text-violet-400 bg-violet-100 dark:bg-violet-900/30 px-3 py-1 rounded-full">
+                        Step {index + 1}
+                      </div>
+                    </div>
+                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                      {step.description}
+                    </p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </motion.div>
 
-            {/* Summary Stats - Mobile optimized */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-              transition={{ duration: 0.6, delay: 1.0 }}
-              className="mt-4 md:mt-4"
-            >
-              <div className="bg-gradient-to-r from-violet-50 to-blue-50 dark:from-violet-900/20 dark:to-blue-900/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-violet-200/50 dark:border-violet-700/50">
-                <div className="grid grid-cols-3 gap-4 sm:gap-6 text-center">
-                  <div>
-                    <div className="text-2xl sm:text-3xl font-bold text-violet-600 dark:text-violet-400 mb-1 sm:mb-2">5</div>
-                    <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">Simple Steps</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-1 sm:mb-2">100%</div>
-                    <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">Managed Process</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1 sm:mb-2">Fast</div>
-                    <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">Quick Results</div>
-                  </div>
+          {/* Summary Stats - moved inside glassCard */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ duration: 0.6, delay: 1.0 }}
+            className="mt-4 md:mt-4"
+          >
+            <div className="bg-gradient-to-r from-violet-50 to-blue-50 dark:from-violet-900/20 dark:to-blue-900/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-violet-200/50 dark:border-violet-700/50">
+              <div className="grid grid-cols-3 gap-4 sm:gap-6 text-center">
+                <div>
+                  <div className="text-2xl sm:text-3xl font-bold text-violet-600 dark:text-violet-400 mb-1 sm:mb-2">5</div>
+                  <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">Simple Steps</div>
                 </div>
-          </div>
+                <div>
+                  <div className="text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-1 sm:mb-2">100%</div>
+                  <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">Managed Process</div>
+                </div>
+                <div>
+                  <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1 sm:mb-2">Fast</div>
+                  <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">Quick Results</div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </motion.div>
       </div>
 

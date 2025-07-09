@@ -123,6 +123,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "compression-webpack-plugin": "^11.1.0",
+    "country-codes-list": "^2.0.0",
     "create-react-class": "^15.7.0",
     "critters": "^0.0.23",
     "crypto-js": "^4.2.0",

@@ -22,7 +22,7 @@ import { mobilePatterns } from "@/utils/designSystem";
  */
 const CorporateTraining: NextPage = () => {
   return (
-    <PageWrapper>
+    <PageWrapper addBottomPadding={false}>
       <main className="min-h-screen">
         {/* Mobile-optimized sections container */}
         <div className="space-y-0">
