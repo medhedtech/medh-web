@@ -149,13 +149,13 @@ const CourseVideoPlayer = ({ courseId, courseTitle, courseVideos, previewVideo, 
   if (!videoUrl) {
     // Fallback: show course image if available, else show placeholder
     return (
-      <div className="relative w-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-xl flex items-center justify-center overflow-hidden" style={{ aspectRatio: '21/9' }}>
+      <div className="relative w-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-xl flex items-center justify-center overflow-hidden" style={{ aspectRatio: '16/9' }}>
         {courseImage ? (
           <img
             src={courseImage}
             alt={courseTitle || 'Course Preview'}
             className="w-full h-full object-cover rounded-xl"
-            style={{ aspectRatio: '21/9' }}
+            style={{ aspectRatio: '16/9' }}
           />
         ) : (
           <div className={`w-16 h-16 bg-${primaryColor}-100 dark:bg-${primaryColor}-900/30 rounded-full flex items-center justify-center mb-3`}>
@@ -172,7 +172,7 @@ const CourseVideoPlayer = ({ courseId, courseTitle, courseVideos, previewVideo, 
       <div 
         ref={containerRef}
         className="relative w-full bg-black rounded-xl overflow-hidden shadow-lg group cursor-pointer"
-        style={{ aspectRatio: '21/9' }}
+        style={{ aspectRatio: '16/9' }}
         onMouseEnter={() => setShowControls(true)}
         onMouseLeave={() => setShowControls(false)}
       >
@@ -1902,18 +1902,15 @@ const CourseDetailsPage = ({ ...props }) => {
   return (
     <>
       {/* Course Header with Mobile-Optimized Design */}
-      <div className="mb-3 sm:mb-6 md:mb-8">
-        <div>
-          <div className="relative py-4 sm:py-8 md:py-10 px-0 sm:px-6 md:px-8">
-            {/* Course Title and Description - Mobile-First Design */}
-            <motion.div
-              className="relative z-10"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-            >
-              {/* Glassmorphic Container - Mobile Optimized - Edge-to-edge mobile */}
-              <div className="relative backdrop-blur-lg sm:backdrop-blur-xl bg-gradient-to-br from-white/80 via-white/60 to-white/80 dark:from-gray-800/80 dark:via-gray-700/60 dark:to-gray-800/80 rounded-none sm:rounded-2xl p-4 sm:p-8 md:p-10 shadow-none sm:shadow-2xl border-0 sm:border border-white/60 dark:border-gray-600/60 overflow-hidden">
+      <div className="relative py-4 sm:py-8 md:py-10 px-0 sm:px-6 md:px-8 mb-3 sm:mb-6 md:mb-8">
+        <motion.div
+          className="relative z-10"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
+          {/* Glassmorphic Container - Mobile Optimized - Edge-to-edge mobile */}
+          <div className="relative backdrop-blur-lg sm:backdrop-blur-xl bg-gradient-to-br from-white/80 via-white/60 to-white/80 dark:from-gray-800/80 dark:via-gray-700/60 dark:to-gray-800/80 rounded-none sm:rounded-2xl p-4 sm:p-8 md:p-10 shadow-none sm:shadow-2xl border-0 sm:border border-white/60 dark:border-gray-600/60 overflow-hidden">
                 {/* Mobile-Optimized Background Elements */}
                 <div className={`absolute -top-20 -right-20 sm:-top-32 sm:-right-32 w-32 h-32 sm:w-56 sm:h-56 rounded-full bg-gradient-to-br from-${getCategoryColorClasses().primaryColor}-300/25 via-${getCategoryColorClasses().primaryColor}-400/15 to-blue-300/25 dark:from-${getCategoryColorClasses().primaryColor}-500/20 dark:via-${getCategoryColorClasses().primaryColor}-600/10 dark:to-blue-500/20 blur-2xl sm:blur-3xl animate-pulse`}></div>
                 <div className={`absolute -bottom-20 -left-20 sm:-bottom-32 sm:-left-32 w-32 h-32 sm:w-56 sm:h-56 rounded-full bg-gradient-to-tr from-purple-300/25 via-${getCategoryColorClasses().primaryColor}-300/15 to-rose-300/25 dark:from-purple-500/20 dark:via-${getCategoryColorClasses().primaryColor}-500/10 dark:to-rose-500/20 blur-2xl sm:blur-3xl animate-pulse`} style={{ animationDelay: '1s' }}></div>
@@ -1989,11 +1986,9 @@ const CourseDetailsPage = ({ ...props }) => {
                       </div>
                     </div>
                   )}
-                </div>
-              </div>
-            </motion.div>
+            </div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Navigation - Edge-to-edge mobile */}

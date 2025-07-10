@@ -102,28 +102,6 @@ const CourseSelection: React.FC<CourseSelectionProps> = ({
     return durationStr;
   };
 
-  // Get batch pricing from course data
-  const getBatchPrice = (course: Course) => {
-    if (course.prices && course.prices.length > 0) {
-      const activePrice = course.prices.find((p: any) => p.is_active);
-      if (activePrice && activePrice.batch) {
-        return activePrice.batch;
-      }
-    }
-    // Fallback: assume batch is 25% less than individual
-    return Math.round(course.course_fee * 0.75);
-  };
-
-  const getIndividualPrice = (course: Course) => {
-    if (course.prices && course.prices.length > 0) {
-      const activePrice = course.prices.find((p: any) => p.is_active);
-      if (activePrice && activePrice.individual) {
-        return activePrice.individual;
-      }
-    }
-    return course.course_fee;
-  };
-
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
   };
@@ -245,15 +223,6 @@ const CourseSelection: React.FC<CourseSelectionProps> = ({
                       )}
 
                       <div className="flex flex-col space-y-3">
-                        {/* Course Title */}
-                        <h4 className={`font-bold text-base pr-10 transition-colors duration-200 ${
-                          selectedCourse?._id === course._id
-                            ? 'text-blue-900 dark:text-blue-100'
-                            : 'text-gray-900 dark:text-white'
-                        }`}>
-                          {course.title}
-                        </h4>
-                        
                         {/* Course Duration and Grade */}
                         <div className="flex flex-wrap gap-2">
                           <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${
@@ -271,56 +240,6 @@ const CourseSelection: React.FC<CourseSelectionProps> = ({
                             }`}>
                               {course.grade}
                             </span>
-                          )}
-                        </div>
-
-                        {/* Pricing Section */}
-                        <div className="space-y-2">
-                          {course.isFree ? (
-                            <span className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                              Free Course
-                            </span>
-                          ) : (
-                            <div className="flex flex-col space-y-2">
-                              {/* Individual Pricing */}
-                              <div className={`flex items-center justify-between rounded-lg px-3 py-2 transition-colors duration-200 ${
-                                selectedCourse?._id === course._id
-                                  ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800'
-                                  : 'bg-gray-50 dark:bg-gray-700/50'
-                              }`}>
-                                <div className="flex items-center space-x-2">
-                                  <Users className={`h-4 w-4 ${
-                                    selectedCourse?._id === course._id
-                                      ? 'text-blue-600 dark:text-blue-400'
-                                      : 'text-blue-600 dark:text-blue-400'
-                                  }`} />
-                                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Individual</span>
-                                </div>
-                                <span className="text-lg font-bold text-gray-900 dark:text-white">
-                                  {formatPriceFunc(getIndividualPrice(course))}
-                                </span>
-                              </div>
-
-                              {/* Batch Pricing */}
-                              <div className={`flex items-center justify-between rounded-lg px-3 py-2 border transition-colors duration-200 ${
-                                selectedCourse?._id === course._id
-                                  ? 'bg-emerald-100 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700'
-                                  : 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
-                              }`}>
-                                <div className="flex items-center space-x-2">
-                                  <Users className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                                  <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Batch (2+ students)</span>
-                                </div>
-                                <div className="flex flex-col items-end">
-                                  <span className="text-lg font-bold text-emerald-900 dark:text-emerald-100">
-                                    {formatPriceFunc(getBatchPrice(course))}
-                                  </span>
-                                  <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                                    Save {Math.round(((getIndividualPrice(course) - getBatchPrice(course)) / getIndividualPrice(course)) * 100)}%
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
                           )}
                         </div>
                       </div>
