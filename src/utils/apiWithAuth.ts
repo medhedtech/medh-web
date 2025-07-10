@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { apiBaseUrl } from '@/apis';
+import { apiBaseUrl, PUBLIC_ENDPOINTS, requiresAuthentication } from '@/apis';
 import { getAuthToken, saveAuthToken, getRefreshToken, saveRefreshToken } from './auth';
 import { jwtDecode } from 'jwt-decode';
 
@@ -19,6 +19,38 @@ const isTokenExpired = (token: string, thresholdSeconds = 300): boolean => {
     console.error('Error decoding token:', error);
     return true; // Assume expired if we can't decode it
   }
+};
+
+// Check if the endpoint is public (doesn't require authentication)
+const isPublicEndpoint = (url: string): boolean => {
+  if (!url) return false;
+  
+  // Check against the PUBLIC_ENDPOINTS array
+  const isPublic = PUBLIC_ENDPOINTS.some(endpoint => 
+    url.includes(endpoint) || url.endsWith(endpoint)
+  );
+  
+  // Additional check for auth endpoints that should be public
+  const authPublicEndpoints = [
+    '/auth/login',
+    '/auth/register',
+    '/auth/verify-email',
+    '/auth/resend-verification',
+    '/auth/forgot-password',
+    '/auth/reset-password',
+    '/auth/refresh-token',
+    '/auth/oauth',
+    '/auth/check-user-status',
+    '/auth/check-availability',
+    '/auth/complete-mfa-login',
+    '/auth/verify-temp-password'
+  ];
+  
+  const isAuthPublic = authPublicEndpoints.some(endpoint => 
+    url.includes(endpoint) || url.endsWith(endpoint)
+  );
+  
+  return isPublic || isAuthPublic;
 };
 
 // Refresh token if needed
@@ -148,17 +180,40 @@ const refreshTokenIfNeeded = async (token: string): Promise<string | null> => {
  * Creates an axios instance with authentication headers
  * and automatic token refresh capability
  */
-export const createAuthClient = (): AxiosInstance => {
+export const createAuthClient = (customTimeout?: number): AxiosInstance => {
   const axiosInstance = axios.create({
     baseURL: apiBaseUrl,
-    timeout: 30000 // Default 30 second timeout
+    timeout: customTimeout || 30000 // Default 30 second timeout, but allow override
   });
   
   // Request interceptor to add auth headers and refresh token if needed
   axiosInstance.interceptors.request.use(
     async (config) => {
       try {
-        // More robust token retrieval with multiple fallbacks
+        const requestUrl = config.url || '';
+        const fullUrl = `${config.baseURL || ''}${requestUrl}`;
+        
+        console.log('🔐 apiWithAuth interceptor debug:', {
+          url: requestUrl,
+          fullUrl: fullUrl,
+          method: config.method?.toUpperCase(),
+          isPublic: isPublicEndpoint(fullUrl),
+          requiresAuth: requiresAuthentication(fullUrl)
+        });
+        
+        // Skip authentication for public endpoints
+        if (isPublicEndpoint(fullUrl)) {
+          console.log('✅ Public endpoint detected - skipping authentication:', requestUrl);
+          return config;
+        }
+        
+        // Only add authentication for private endpoints
+        if (!requiresAuthentication(fullUrl)) {
+          console.log('✅ Endpoint does not require authentication - skipping:', requestUrl);
+          return config;
+        }
+        
+        // Get token for private endpoints
         let token = getAuthToken();
         
         // Additional fallbacks if getAuthToken() returns null
@@ -180,12 +235,10 @@ export const createAuthClient = (): AxiosInstance => {
           }
         }
         
-        console.log('🔐 apiWithAuth interceptor debug:', {
+        console.log('🔐 Authentication check for private endpoint:', {
           hasToken: !!token,
           tokenLength: token?.length,
           tokenStart: token?.substring(0, 10),
-          url: config.url,
-          method: config.method?.toUpperCase(),
           storageCheck: {
             localStorage: typeof window !== 'undefined' ? !!localStorage.getItem('token') : false,
             sessionStorage: typeof window !== 'undefined' ? !!sessionStorage.getItem('token') : false,
@@ -193,61 +246,81 @@ export const createAuthClient = (): AxiosInstance => {
           }
         });
         
-        if (token) {
-          // Try to refresh token if it's expired or close to expiring
-          try {
-            const refreshedToken = await refreshTokenIfNeeded(token);
-            
-            // Only use the refreshed token if it's valid
-            if (refreshedToken) {
-              token = refreshedToken;
-              console.log('✅ Using refreshed token');
-            } else {
-              console.warn('⚠️ Token refresh returned null, using original token');
-              // Use original token if refresh returned null but we had a token
-            }
-          } catch (refreshError) {
-            console.warn('Token refresh attempt failed:', refreshError instanceof Error ? refreshError.message : 'Unknown error');
-            console.log('🔄 Using original token after refresh failure');
-            // Use original token even if refresh failed
+        if (!token) {
+          console.warn('❌ No authentication token found for private endpoint:', requestUrl);
+          // Don't automatically reject - let the backend handle it
+          // This allows for graceful error handling in the frontend
+          return config;
+        }
+        
+        // Try to refresh token if it's expired or close to expiring
+        try {
+          const refreshedToken = await refreshTokenIfNeeded(token);
+          
+          if (refreshedToken) {
+            config.headers = config.headers || {};
+            config.headers.Authorization = `Bearer ${refreshedToken}`;
+            console.log('✅ Authentication header added to private endpoint:', requestUrl);
+          } else {
+            console.warn('❌ Token refresh failed for private endpoint:', requestUrl);
+            // Don't automatically reject - let the backend handle it
           }
-          
-          // Always add headers if we have a token
-          config.headers['Authorization'] = `Bearer ${token}`;
-          config.headers['x-access-token'] = token;
-          
-          console.log('📤 Added auth headers:', {
-            hasAuthHeader: !!config.headers['Authorization'],
-            hasAccessTokenHeader: !!config.headers['x-access-token'],
-            authHeaderStart: config.headers['Authorization']?.substring(0, 20)
-          });
-        } else {
-          console.warn('❌ No auth token found - request will fail with 401');
-          // Could optionally reject the request here:
-          // return Promise.reject(new Error('No authentication token available'));
+        } catch (refreshError) {
+          console.error('❌ Error during token refresh:', refreshError);
+          // If refresh fails, still try with the original token
+          if (token) {
+            config.headers = config.headers || {};
+            config.headers.Authorization = `Bearer ${token}`;
+            console.log('⚠️ Using original token despite refresh failure:', requestUrl);
+          }
         }
         
         return config;
       } catch (error) {
-        console.error('Error in auth interceptor:', error instanceof Error ? error.message : 'Unknown error');
-        // Continue with the request even if token refresh fails
-        return config;
+        console.error('❌ Error in auth interceptor:', error);
+        return config; // Return config even if there's an error
       }
     },
     (error) => {
-      console.error('Request interceptor error:', error);
+      console.error('❌ Request interceptor error:', error);
       return Promise.reject(error);
     }
   );
-
-  // Add response interceptor to handle common errors
+  
+  // Response interceptor to handle auth errors
   axiosInstance.interceptors.response.use(
-    (response) => response,
-    (error) => {
-      // Handle authentication errors (401)
-      if (error.response?.status === 401) {
-        console.warn('Authentication failed or token expired');
-        // Could emit an event or trigger a logout here if needed
+    (response) => {
+      // Any status code that lies within the range of 2xx causes this function to trigger
+      return response;
+    },
+    async (error) => {
+      const originalRequest = error.config;
+      
+      // If the error is 401 and we haven't already tried to refresh
+      if (error.response?.status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true;
+        
+        // Skip refresh for public endpoints
+        if (isPublicEndpoint(originalRequest.url)) {
+          console.log('🔓 401 on public endpoint - not attempting refresh:', originalRequest.url);
+          return Promise.reject(error);
+        }
+        
+        try {
+          const token = getAuthToken();
+          if (token) {
+            const refreshedToken = await refreshTokenIfNeeded(token);
+            
+            if (refreshedToken) {
+              originalRequest.headers = originalRequest.headers || {};
+              originalRequest.headers.Authorization = `Bearer ${refreshedToken}`;
+              console.log('🔄 Retrying request with refreshed token:', originalRequest.url);
+              return axiosInstance(originalRequest);
+            }
+          }
+        } catch (refreshError) {
+          console.error('❌ Token refresh failed in response interceptor:', refreshError);
+        }
       }
       
       return Promise.reject(error);
@@ -257,70 +330,36 @@ export const createAuthClient = (): AxiosInstance => {
   return axiosInstance;
 };
 
-// Helper for GET requests
+// Create the default authenticated axios instance
+export const authClient = createAuthClient();
+
+// Convenience methods for common HTTP operations
 export const authGet = async <T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> => {
-  const client = createAuthClient();
-  return client.get<T>(url, config);
+  return authClient.get<T>(url, config);
 };
 
-// Helper for POST requests
 export const authPost = async <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> => {
-  const client = createAuthClient();
-  return client.post<T>(url, data, config);
+  return authClient.post<T>(url, data, config);
 };
 
-// Helper for PUT requests
+export const authLoginPost = async <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> => {
+  return authClient.post<T>(url, data, config);
+};
+
 export const authPut = async <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> => {
-  const client = createAuthClient();
-  return client.put<T>(url, data, config);
+  return authClient.put<T>(url, data, config);
 };
 
-// Helper for PATCH requests
 export const authPatch = async <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> => {
-  const client = createAuthClient();
-  return client.patch<T>(url, data, config);
+  return authClient.patch<T>(url, data, config);
 };
 
-// Helper for DELETE requests
 export const authDelete = async <T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> => {
-  const client = createAuthClient();
-  return client.delete<T>(url, config);
+  return authClient.delete<T>(url, config);
 };
 
-// Default export with all methods
-const apiWithAuth = {
-  get: authGet,
-  post: authPost,
-  put: authPut,
-  patch: authPatch,
-  delete: authDelete,
-  createClient: createAuthClient,
-  
-  // Manual token injection for debugging
-  setDebugToken: (token: string) => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('token', token);
-      sessionStorage.setItem('token', token);
-      console.log('🔧 Debug token set:', { tokenLength: token.length, tokenStart: token.substring(0, 10) });
-    }
-  },
-  
-  // Check current token status
-  checkTokenStatus: () => {
-    if (typeof window === 'undefined') return { error: 'Not in browser environment' };
-    
-    const localToken = localStorage.getItem('token');
-    const sessionToken = sessionStorage.getItem('token');
-    const authUtilToken = getAuthToken();
-    
-    return {
-      localStorage: !!localToken,
-      sessionStorage: !!sessionToken,
-      authUtil: !!authUtilToken,
-      tokensMatch: localToken === sessionToken && localToken === authUtilToken,
-      tokenLength: authUtilToken?.length || 0
-    };
-  }
-};
+// Export the main auth client as default
+export default authClient;
 
-export default apiWithAuth; 
+// Export utility functions
+export { isPublicEndpoint, requiresAuthentication }; 

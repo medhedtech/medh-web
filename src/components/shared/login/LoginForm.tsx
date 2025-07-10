@@ -632,6 +632,7 @@ const LoginForm = () => {
             password: formData.password,
             agree_terms: formData.agree_terms,
           },
+          requireAuth: false, // Login endpoints are public and don't require authentication
           onSuccess: (res: LoginResponse) => {
             console.log('Login after verification successful:', res);
             showToast.dismiss(loadingToastId);
@@ -1239,6 +1240,8 @@ const LoginForm = () => {
       await postQuery({
         url: authAPI.local.login,
         postData: loginData,
+        requireAuth: false, // Login endpoints are public and don't require authentication
+        isLoginRequest: true, // Enable extended timeout for login operations
         onSuccess: (res: any) => {
           console.log('Login response:', res);
           
@@ -1361,9 +1364,20 @@ const LoginForm = () => {
           setRecaptchaError(false);
           setRecaptchaValue(null);
         },
-        onFail: (error) => {
+        onFail: async (error) => {
           console.log('Login error:', error);
           showToast.dismiss(loadingToastId);
+          
+          // Check if this is a timeout or network error and allow retry
+          const isTimeoutError = error?.message?.includes('timeout') || error?.code === 'ECONNABORTED';
+          const isNetworkError = error?.message?.includes('Network Error') || error?.code === 'NETWORK_ERROR';
+          
+          if (isTimeoutError || isNetworkError) {
+            showToast.error("⏱️ Connection timeout. Please check your internet connection and try again.", { 
+              duration: 6000
+            });
+            return;
+          }
           
           // Check if this is an email verification error
           const errorResponse = error?.response?.data;
@@ -1511,9 +1525,13 @@ const LoginForm = () => {
     }
   };
 
-  // Perform quick login
-  const performQuickLogin = async (account: RememberedAccount, password?: string): Promise<void> => {
-    const loadingToastId = showToast.loading("🔐 Signing you in...", { duration: 15000 });
+  // Perform quick login with retry logic
+  const performQuickLogin = async (account: RememberedAccount, password?: string, retryCount = 0): Promise<void> => {
+    const maxRetries = 2;
+    const loadingToastId = showToast.loading(
+      retryCount > 0 ? `🔄 Retrying login (${retryCount}/${maxRetries})...` : "🔐 Signing you in...", 
+      { duration: 15000 }
+    );
     
     try {
       const loginData: ILoginData = {
@@ -1524,6 +1542,8 @@ const LoginForm = () => {
       await postQuery({
         url: authAPI.local.login,
         postData: loginData,
+        requireAuth: false, // Login endpoints are public and don't require authentication
+        isLoginRequest: true, // Enable extended timeout for login operations
         onSuccess: (res: any) => {
           showToast.dismiss(loadingToastId);
           
@@ -1576,9 +1596,25 @@ const LoginForm = () => {
           
           completeLoginProcess(loginResponseData);
         },
-        onFail: (error) => {
+        onFail: async (error) => {
           showToast.dismiss(loadingToastId);
           console.error('Quick login error:', error);
+          
+          // Check if this is a timeout or network error and retry if possible
+          const isTimeoutError = error?.message?.includes('timeout') || error?.code === 'ECONNABORTED';
+          const isNetworkError = error?.message?.includes('Network Error') || error?.code === 'NETWORK_ERROR';
+          
+          if ((isTimeoutError || isNetworkError) && retryCount < maxRetries) {
+            console.log(`Retrying login due to ${isTimeoutError ? 'timeout' : 'network'} error (attempt ${retryCount + 1}/${maxRetries})`);
+            showToast.info(`🔄 Connection issue detected. Retrying... (${retryCount + 1}/${maxRetries})`, { duration: 3000 });
+            
+            // Wait a bit before retrying
+            await new Promise(resolve => setTimeout(resolve, 1000 + (retryCount * 1000)));
+            
+            // Retry the login
+            await performQuickLogin(account, password, retryCount + 1);
+            return;
+          }
           
           const enhancedError = getEnhancedErrorMessage(error);
           setQuickLoginError(enhancedError);
