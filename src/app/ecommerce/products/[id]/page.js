@@ -1,7 +1,7 @@
 import ProductDetailsMain from "@/components/layout/main/ecommerce/ProductDetailsMain";
 
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
-import products from "@/../public/fakedata/products.json";
+// import products from "@/../public/fakedata/products.json";
 export const metadata = {
   title: "Product Details | Medh - Education LMS Template",
   description: "Product Details | Medh - Education LMS Template",

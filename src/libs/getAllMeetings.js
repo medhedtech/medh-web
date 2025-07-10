@@ -1,4 +1,4 @@
-import allMeetings from "@/../public/fakedata/meetings.json";
+// import allMeetings from "../../public/fakedata/meetings.json";
 import zoomImage1 from "@/assets/images/zoom/1.jpg";
 import zoomImage2 from "@/assets/images/zoom/2.jpg";
 import zoomImage3 from "@/assets/images/zoom/3.jpg";
@@ -33,6 +33,9 @@ const getAllMeetings = () => {
     zoomSpeakerImage4,
     zoomSpeakerImage1,
   ];
+  // TODO: Replace with proper API call
+  const allMeetings = [];
+  
   const meetings = allMeetings?.map((meeting, idx) => ({
     id: meeting.id.toString(),
     title: meeting.title,
@@ -47,7 +50,7 @@ const getAllMeetings = () => {
     joinUrl: meeting.meetingLink,
     status: meeting.status
   }));
-  return meetings;
+  return meetings || [];
 };
 
 export default getAllMeetings;

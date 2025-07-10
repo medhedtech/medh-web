@@ -1,4 +1,3 @@
-import allCourses from "@/../public/fakedata/courses.json";
 import gridImage1 from "@/assets/images/grid/grid_1.png";
 import gridImage2 from "@/assets/images/grid/grid_2.png";
 import gridImage3 from "@/assets/images/grid/grid_3.png";
@@ -22,126 +21,13 @@ import gridSmallImg4 from "@/assets/images/grid/grid_small_4.jpg";
 import gridSmallImg5 from "@/assets/images/grid/grid_small_5.jpg";
 
 const getAllCourses = () => {
-  const images = [
-    gridImage1,
-    gridImage2,
-    gridImage3,
-    gridImage4,
-    gridImage5,
-    gridImage6,
-    gridImage7,
-    gridImage8,
-    gridImage9,
-    gridImage10,
-    gridImage11,
-    gridImage12,
-    gridImage13,
-    gridImage14,
-    gridImage15,
-    gridImage16,
-    gridImage2,
-    gridImage3,
-    gridImage4,
-    gridImage5,
-    gridImage6,
-    gridImage7,
-    gridImage8,
-    gridImage9,
-    gridImage10,
-    gridImage11,
-    gridImage12,
-    gridImage13,
-    gridImage14,
-    gridImage15,
-    gridImage1,
-    gridImage2,
-    gridImage3,
-    gridImage4,
-    gridImage5,
-    gridImage6,
-    gridImage7,
-    gridImage8,
-    gridImage9,
-    gridImage10,
-    gridImage11,
-    gridImage12,
-    gridImage13,
-    gridImage14,
-    gridImage15,
-    gridImage1,
-    gridImage2,
-    gridImage3,
-    gridImage4,
-    gridImage5,
-    gridImage6,
-    gridImage7,
-    gridImage8,
-    gridImage9,
-  ];
-  const insImages = [
-    gridSmallImg1,
-    gridSmallImg2,
-    gridSmallImg3,
-    gridSmallImg4,
-    gridSmallImg5,
-    gridSmallImg5,
-    gridSmallImg1,
-    gridSmallImg2,
-    gridSmallImg1,
-    gridSmallImg4,
-    gridSmallImg5,
-    gridSmallImg5,
-    gridSmallImg1,
-    gridSmallImg2,
-    gridSmallImg1,
-    gridSmallImg1,
-    gridSmallImg2,
-    gridSmallImg3,
-    gridSmallImg4,
-    gridSmallImg5,
-    gridSmallImg5,
-    gridSmallImg1,
-    gridSmallImg2,
-    gridSmallImg1,
-    gridSmallImg4,
-    gridSmallImg5,
-    gridSmallImg5,
-    gridSmallImg1,
-    gridSmallImg2,
-    gridSmallImg1,
-    gridSmallImg1,
-    gridSmallImg2,
-    gridSmallImg3,
-    gridSmallImg4,
-    gridSmallImg5,
-    gridSmallImg5,
-    gridSmallImg1,
-    gridSmallImg2,
-    gridSmallImg1,
-    gridSmallImg4,
-    gridSmallImg5,
-    gridSmallImg5,
-    gridSmallImg1,
-    gridSmallImg2,
-    gridSmallImg1,
-    gridSmallImg1,
-    gridSmallImg2,
-    gridSmallImg3,
-    gridSmallImg4,
-    gridSmallImg5,
-    gridSmallImg5,
-    gridSmallImg1,
-    gridSmallImg2,
-    gridSmallImg1,
-  ];
-  const courses = [...allCourses]?.map((course, idx) => ({
-    ...course,
-
-    image: images[idx],
-    insImg: insImages[idx],
-  }));
-
-  return courses;
+  // TODO: Replace with actual API call to fetch courses
+  // This function should fetch courses from the backend API
+  // For now, returning empty array until API integration is complete
+  
+  console.warn('getAllCourses: Mock data removed. Please implement proper API integration.');
+  
+  return [];
 };
 
 export default getAllCourses;

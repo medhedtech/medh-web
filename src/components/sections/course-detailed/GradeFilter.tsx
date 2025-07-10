@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { 
   ChevronDown, GraduationCap, Info, RefreshCw, 
   BookOpen, Clock, CheckCircle2, Award, AlertTriangle, 
-  Filter 
+  Filter, CheckCircle 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -67,6 +67,8 @@ interface CategoryInfo {
   bgClass?: string;
   colorClass?: string;
   borderClass?: string;
+  displayName?: string;
+  primaryColor?: string;
 }
 
 interface ErrorFallbackProps {
@@ -85,29 +87,31 @@ interface GradeFilterProps {
   setSelectedGrade: (grade: string) => void;
   hideGradeSelector?: boolean;
   showOnlyGradeFilter?: boolean;
+  loading?: boolean;
 }
 
 // Error Boundary Component
 const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetErrorBoundary }) => (
-  <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-xl text-center">
-    <div className="flex justify-center mb-4">
-      <AlertTriangle className="h-12 w-12 text-red-500" />
+  <div className="bg-red-50 dark:bg-red-900/20 p-4 sm:p-6 rounded-xl text-center">
+    <div className="flex justify-center mb-3 sm:mb-4">
+      <AlertTriangle className="h-8 w-8 sm:h-12 sm:w-12 text-red-500" />
     </div>
-    <h2 className="text-xl font-semibold text-red-700 dark:text-red-400 mb-3">
+    <h2 className="text-lg sm:text-xl font-semibold text-red-700 dark:text-red-400 mb-2 sm:mb-3">
       Filter Error
     </h2>
-    <p className="text-gray-700 dark:text-gray-300 mb-4">
+    <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 mb-3 sm:mb-4">
       {error || "We couldn't apply the filters. Please try again."}
     </p>
     <button
       onClick={resetErrorBoundary}
-      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg"
+      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg text-sm sm:text-base"
     >
       Reset Filters
     </button>
   </div>
 );
 
+// Animation variants
 const fadeIn = {
   initial: { opacity: 0, y: 10 },
   animate: { 
@@ -141,11 +145,14 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
   categoryInfo = {},
   setSelectedGrade,
   hideGradeSelector = false,
-  showOnlyGradeFilter = false
+  showOnlyGradeFilter = false,
+  loading = false
 }) => {
-  const [dropdownVisible, setDropdownVisible] = useState<boolean>(false);
+  const [isGradeExpanded, setIsGradeExpanded] = useState<boolean>(false);
+  const [isCourseExpanded, setIsCourseExpanded] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [lastProcessedCoursesLength, setLastProcessedCoursesLength] = useState<number>(0);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
 
   // Stable refs to prevent infinite loops
   const handleCourseSelectionRef = useRef(handleCourseSelection);
@@ -157,78 +164,123 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
     handleGradeChangeRef.current = handleGradeChange;
   }, [handleCourseSelection, handleGradeChange]);
 
+  // Check if mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Memoize courses with stable dependencies
   const memoizedCourses = useMemo(() => {
     return filteredCourses || [];
   }, [filteredCourses?.length, filteredCourses?.map(c => c._id).join(',')]);
 
+  // Format duration to show months and weeks
+  const formatDuration = (durationStr: string) => {
+    if (!durationStr) return '';
+    
+    const monthsMatch = durationStr.match(/(\d+)\s*months?/i);
+    const weeksMatch = durationStr.match(/(\d+)\s*weeks?/i);
+    
+    if (monthsMatch && weeksMatch) {
+      return `${monthsMatch[1]}m ${weeksMatch[1]}w`;
+    } else if (monthsMatch) {
+      const months = parseInt(monthsMatch[1]);
+      const weeks = months * 4;
+      return `${months}m ${weeks}w`;
+    } else if (weeksMatch) {
+      const weeks = parseInt(weeksMatch[1]);
+      const months = Math.floor(weeks / 4);
+      return months > 0 ? `${months}m ${weeks}w` : `${weeks}w`;
+    }
+    
+    return durationStr;
+  };
+
   // Optimized course auto-selection - only when courses change significantly
   useEffect(() => {
     const coursesLength = memoizedCourses.length;
     
-    // Skip if courses haven't changed significantly
     if (coursesLength === lastProcessedCoursesLength) {
       return;
     }
     
     setLastProcessedCoursesLength(coursesLength);
     
-    // Don't interfere with course selection - let parent component handle auto-selection
-    // This component should only handle the dropdown display and user interactions
-    
-  }, [memoizedCourses.length]); // Minimal dependencies - removed auto-selection logic
+  }, [memoizedCourses.length]);
 
-  // Handle clicks outside the courses dropdown
+  // Handle clicks outside dropdowns
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent): void => {
-      const dropdown = document.getElementById('courses-dropdown');
-      const dropdownTrigger = document.getElementById('courses-dropdown-trigger');
-      
-      if (dropdown && dropdownTrigger &&
-          event.target instanceof Node &&
-          !dropdown.contains(event.target) && 
-          !dropdownTrigger.contains(event.target)) {
-        setDropdownVisible(false);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!(event.target as Element).closest('.grade-filter-dropdown')) {
+        setIsGradeExpanded(false);
+        setIsCourseExpanded(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Stable grade change handler
+  // Stable handlers
   const handleGradeChangeWithReset = useCallback((gradeId: string) => {
     if (handleGradeChangeRef.current) {
       handleGradeChangeRef.current(gradeId);
     }
-    // Reset dropdown visibility
-    setDropdownVisible(false);
+    setIsGradeExpanded(false);
   }, []);
 
-  // Stable course selection handler
   const handleCourseClick = useCallback((course: Course) => {
     if (handleCourseSelectionRef.current) {
       handleCourseSelectionRef.current(course);
     }
-    setDropdownVisible(false);
+    setIsCourseExpanded(false);
   }, []);
 
-  // Toggle dropdown with error handling
-  const toggleDropdown = useCallback((): void => {
-    setDropdownVisible(prev => !prev);
+  const toggleGradeDropdown = useCallback(() => {
+    setIsGradeExpanded(prev => !prev);
+    setIsCourseExpanded(false);
   }, []);
 
-  // Reset error state - stable version
-  const resetErrorState = useCallback((): void => {
+  const toggleCourseDropdown = useCallback(() => {
+    setIsCourseExpanded(prev => !prev);
+    setIsGradeExpanded(false);
+  }, []);
+
+  const resetErrorState = useCallback(() => {
     setError(null);
     if (typeof setSelectedGrade === 'function') {
       setSelectedGrade('all');
     }
   }, [setSelectedGrade]);
 
-  // If there's an error, show error fallback
+  // Get selected grade label
+  const selectedGradeLabel = useMemo(() => {
+    if (selectedGrade === 'all') return 'All Grades';
+    return availableGrades.find(g => g.id === selectedGrade)?.label || 'Select Grade';
+  }, [selectedGrade, availableGrades]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="space-y-3 sm:space-y-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+          <div className="animate-pulse space-y-3 sm:space-y-4">
+            <div className="h-5 sm:h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+            <div className="h-10 sm:h-12 bg-gray-100 dark:bg-gray-700 rounded-lg"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
   if (error) {
     return (
       <ErrorFallback 
@@ -238,265 +290,400 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
     );
   }
 
-  // If showOnlyGradeFilter is true, only show the grade filter
+  // Show only grade filter
   if (showOnlyGradeFilter) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-          <Filter className="w-4 h-4 mr-2" />
-          Filter by Grade Level
-        </label>
-        <div className="relative group">
-          <select
-            value={selectedGrade}
-            onChange={(e) => handleGradeChangeWithReset(e.target.value)}
-            className="appearance-none block w-full px-4 py-3 text-base transition-all duration-200 ease-in-out
-            border-2 dark:border-gray-600 rounded-xl
-            bg-white dark:bg-gray-700 
-            text-gray-900 dark:text-white
-            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900
-            focus:border-primary-500 dark:focus:border-primary-400
-            hover:border-gray-400 dark:hover:border-gray-500
-            shadow-sm hover:shadow-md
-            cursor-pointer
-            group-hover:border-gray-400 dark:group-hover:border-gray-500"
-            aria-label="Select grade level"
+      <div className="relative grade-filter-dropdown">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
+        >
+          <button
+            onClick={toggleGradeDropdown}
+            className={`w-full ${categoryInfo?.bgClass || 'bg-blue-50 dark:bg-blue-900/20'} border-b ${categoryInfo?.borderClass || 'border-gray-200 dark:border-gray-700'} px-3 sm:px-4 py-3 sm:py-4 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 touch-manipulation`}
           >
-            <option value="all">All Grades</option>
-            {availableGrades.map((option) => (
-              <option 
-                key={option.id} 
-                value={option.id}
-                className="py-2"
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+                <div className={`p-1.5 sm:p-2 rounded-lg ${categoryInfo?.bgClass || 'bg-blue-50 dark:bg-blue-900/20'} border ${categoryInfo?.borderClass || 'border-gray-200'}`}>
+                  <Filter className={`h-4 w-4 sm:h-5 sm:w-5 ${categoryInfo?.colorClass || 'text-blue-600 dark:text-blue-400'}`} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate">
+                    {selectedGradeLabel}
+                  </h3>
+                  <div className="flex items-center space-x-2 sm:space-x-4 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                    <span className="font-medium">
+                      {memoizedCourses.length} {memoizedCourses.length === 1 ? 'course' : 'courses'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <motion.div
+                animate={{ rotate: isGradeExpanded ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+                className="p-1 sm:p-1.5"
               >
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
-            <div className="border-l border-gray-200 dark:border-gray-600 pl-3 py-2">
-              <ChevronDown className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
+                <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 dark:text-gray-400" />
+              </motion.div>
             </div>
-          </div>
-        </div>
-        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center">
-          <Info className="w-3 h-3 mr-1" />
-          {memoizedCourses.length} {memoizedCourses.length === 1 ? 'course' : 'courses'} available
-        </p>
+          </button>
+
+          <AnimatePresence>
+            {isGradeExpanded && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="absolute z-50 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-b-xl shadow-lg max-h-64 overflow-hidden"
+              >
+                <div className="p-3 sm:p-4 space-y-2 max-h-64 overflow-y-auto">
+                  <motion.div
+                    key="all"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    onClick={() => handleGradeChangeWithReset('all')}
+                    className={`p-2.5 sm:p-3 rounded-lg cursor-pointer transition-all duration-300 touch-manipulation ${
+                      selectedGrade === 'all'
+                        ? `${categoryInfo?.bgClass || 'bg-blue-50 dark:bg-blue-900/20'} shadow-lg ring-2 ring-blue-500/20 dark:ring-blue-400/20`
+                        : 'border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md active:scale-95'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">
+                        All Grades
+                      </span>
+                      {selectedGrade === 'all' && (
+                        <motion.div
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          className="p-1 rounded-full bg-blue-500"
+                        >
+                          <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                        </motion.div>
+                      )}
+                    </div>
+                  </motion.div>
+
+                  {availableGrades.map((grade, index) => (
+                    <motion.div
+                      key={grade.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      onClick={() => handleGradeChangeWithReset(grade.id)}
+                      className={`p-2.5 sm:p-3 rounded-lg cursor-pointer transition-all duration-300 touch-manipulation ${
+                        selectedGrade === grade.id
+                          ? `${categoryInfo?.bgClass || 'bg-blue-50 dark:bg-blue-900/20'} shadow-lg ring-2 ring-blue-500/20 dark:ring-blue-400/20`
+                          : 'border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md active:scale-95'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">
+                          {grade.label}
+                        </span>
+                        {selectedGrade === grade.id && (
+                          <motion.div
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="p-1 rounded-full bg-blue-500"
+                          >
+                            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                          </motion.div>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {/* Special header for categories without grade selector */}
-      {hideGradeSelector && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700 mb-4">
-          <div className="flex items-center space-x-2">
-            <div className={`p-2 rounded-full ${categoryInfo?.bgClass || 'bg-primary-50 dark:bg-primary-900/20'}`}>
-              <BookOpen className={`w-5 h-5 ${categoryInfo?.colorClass || 'text-primary-600 dark:text-primary-400'}`} />
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                Course Selection
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Choose from our available courses
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-      
+    <div className="space-y-3 sm:space-y-4">
       {/* Grade Level Selector - Only show if hideGradeSelector is false */}
       {!hideGradeSelector && (
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-            <GraduationCap className="w-4 h-4 mr-2" />
-            Grade Level
-          </label>
-          <div className="relative group">
-            <select
-              value={selectedGrade}
-              onChange={(e) => handleGradeChangeWithReset(e.target.value)}
-              className="appearance-none block w-full px-4 py-3 text-base transition-all duration-200 ease-in-out
-              border-2 dark:border-gray-600 rounded-xl
-              bg-white dark:bg-gray-700 
-              text-gray-900 dark:text-white
-              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900
-              focus:border-primary-500 dark:focus:border-primary-400
-              hover:border-gray-400 dark:hover:border-gray-500
-              shadow-sm hover:shadow-md
-              cursor-pointer
-              group-hover:border-gray-400 dark:group-hover:border-gray-500"
-              aria-label="Select grade level"
+        <div className="relative grade-filter-dropdown">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
+          >
+            <button
+              onClick={toggleGradeDropdown}
+              className={`w-full ${categoryInfo?.bgClass || 'bg-blue-50 dark:bg-blue-900/20'} border-b ${categoryInfo?.borderClass || 'border-gray-200 dark:border-gray-700'} px-3 sm:px-4 py-3 sm:py-4 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 touch-manipulation`}
             >
-              <option value="all">All Grades</option>
-              {availableGrades.map((option) => (
-                <option 
-                  key={option.id} 
-                  value={option.id}
-                  className="py-2"
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+                  <div className={`p-1.5 sm:p-2 rounded-lg ${categoryInfo?.bgClass || 'bg-blue-50 dark:bg-blue-900/20'} border ${categoryInfo?.borderClass || 'border-gray-200'}`}>
+                    <GraduationCap className={`h-4 w-4 sm:h-5 sm:w-5 ${categoryInfo?.colorClass || 'text-blue-600 dark:text-blue-400'}`} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate">
+                      {selectedGradeLabel}
+                    </h3>
+                    <div className="flex items-center space-x-2 sm:space-x-4 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                      <span className="font-medium">
+                        Grade Level Selection
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <motion.div
+                  animate={{ rotate: isGradeExpanded ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="p-1 sm:p-1.5"
                 >
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
-              <div className="border-l border-gray-200 dark:border-gray-600 pl-3 py-2">
-                <ChevronDown className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
+                  <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 dark:text-gray-400" />
+                </motion.div>
               </div>
-            </div>
-          
-            <div className="absolute inset-x-0 h-1/2 bottom-0 rounded-b-xl bg-gradient-to-t from-gray-50 dark:from-gray-800/50 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          </div>
-         
-          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center">
-            <Info className="w-3 h-3 mr-1" />
-            Select a grade level to filter available courses
-          </p>
+            </button>
+
+            <AnimatePresence>
+              {isGradeExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="absolute z-50 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-b-xl shadow-lg max-h-64 overflow-hidden"
+                >
+                  <div className="p-3 sm:p-4 space-y-2 max-h-64 overflow-y-auto">
+                    <motion.div
+                      key="all"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      onClick={() => handleGradeChangeWithReset('all')}
+                      className={`p-2.5 sm:p-3 rounded-lg cursor-pointer transition-all duration-300 touch-manipulation ${
+                        selectedGrade === 'all'
+                          ? `${categoryInfo?.bgClass || 'bg-blue-50 dark:bg-blue-900/20'} shadow-lg ring-2 ring-blue-500/20 dark:ring-blue-400/20`
+                          : 'border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md active:scale-95'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">
+                          All Grades
+                        </span>
+                        {selectedGrade === 'all' && (
+                          <motion.div
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="p-1 rounded-full bg-blue-500"
+                          >
+                            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                          </motion.div>
+                        )}
+                      </div>
+                    </motion.div>
+
+                    {availableGrades.map((grade, index) => (
+                      <motion.div
+                        key={grade.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                        onClick={() => handleGradeChangeWithReset(grade.id)}
+                        className={`p-2.5 sm:p-3 rounded-lg cursor-pointer transition-all duration-300 touch-manipulation ${
+                          selectedGrade === grade.id
+                            ? `${categoryInfo?.bgClass || 'bg-blue-50 dark:bg-blue-900/20'} shadow-lg ring-2 ring-blue-500/20 dark:ring-blue-400/20`
+                            : 'border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md active:scale-95'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">
+                            {grade.label}
+                          </span>
+                          {selectedGrade === grade.id && (
+                            <motion.div
+                              initial={{ scale: 0, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              className="p-1 rounded-full bg-blue-500"
+                            >
+                              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                            </motion.div>
+                          )}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         </div>
       )}
 
       {/* Course Selection */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="mb-4 border-b border-gray-100 dark:border-gray-700 pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <BookOpen className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white flex items-center">
-                {hideGradeSelector 
-                  ? `Available Courses` 
-                  : selectedGrade === 'all' 
-                    ? 'All Grades' 
-                    : `Courses for ${availableGrades.find(g => g.id === selectedGrade)?.label || 'Selected Grade'}`
-                }
-              </h3>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              {!hideGradeSelector && selectedGrade !== 'all' && (
-                <button
-                  onClick={() => handleGradeChangeWithReset('all')}
-                  className="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
-                >
-                  View All
-                </button>
-              )}
-              <span className="text-xs text-gray-400 dark:text-gray-500 mx-1">•</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                {memoizedCourses.length} {memoizedCourses.length === 1 ? 'course' : 'courses'}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Course Selection or Empty State */}
-        {memoizedCourses.length > 0 ? (
-          <div className="relative">
-            {/* Selected course display */}
-            <div 
-              id="courses-dropdown-trigger"
-              className={`flex items-center justify-between p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                selectedCourse 
-                  ? `${categoryInfo?.borderClass || 'border-primary-300 dark:border-primary-700'} ${categoryInfo?.bgClass || 'bg-primary-50 dark:bg-primary-900/20'}`
-                  : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600'
-              }`}
-              onClick={toggleDropdown}
-            >
-              {selectedCourse ? (
-                <div className="flex items-center min-w-0">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                      {selectedCourse.title}
-                    </p>
-                    <div className="flex flex-wrap items-center mt-1 gap-2">
-                      <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                        <Clock className="w-3 h-3 mr-1" />
-                        {selectedCourse.course_duration || 'Flexible'}
+      <div className="relative grade-filter-dropdown">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: hideGradeSelector ? 0 : 0.1 }}
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
+        >
+          <button
+            onClick={toggleCourseDropdown}
+            disabled={memoizedCourses.length === 0}
+            className={`w-full ${categoryInfo?.bgClass || 'bg-blue-50 dark:bg-blue-900/20'} border-b ${categoryInfo?.borderClass || 'border-gray-200 dark:border-gray-700'} px-3 sm:px-4 py-3 sm:py-4 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation`}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+                <div className={`p-1.5 sm:p-2 rounded-lg ${categoryInfo?.bgClass || 'bg-blue-50 dark:bg-blue-900/20'} border ${categoryInfo?.borderClass || 'border-gray-200'}`}>
+                  <BookOpen className={`h-4 w-4 sm:h-5 sm:w-5 ${categoryInfo?.colorClass || 'text-blue-600 dark:text-blue-400'}`} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  {selectedCourse ? (
+                    <>
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate">
+                        {selectedCourse.title}
+                      </h3>
+                      <div className="flex items-center space-x-2 sm:space-x-4 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                        <span className="text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 px-2 py-0.5 rounded-full">
+                          Selected
+                        </span>
+                        <span className="font-medium">
+                          {formatDuration(selectedCourse.course_duration)}
+                        </span>
                       </div>
-                      {selectedCourse.is_Certification && (
-                        <div className="text-xs text-green-600 dark:text-green-400 flex items-center">
-                          <Award className="w-3 h-3 mr-1" />
-                          Certificate
-                        </div>
+                    </>
+                  ) : (
+                    <>
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                        Select a Course
+                      </h3>
+                      <div className="flex items-center space-x-2 sm:space-x-4 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                        <span className="font-medium">
+                          {memoizedCourses.length} {memoizedCourses.length === 1 ? 'course' : 'courses'}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+              
+              <motion.div
+                animate={{ rotate: isCourseExpanded ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+                className="p-1 sm:p-1.5"
+              >
+                <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 dark:text-gray-400" />
+              </motion.div>
+            </div>
+          </button>
+
+          <AnimatePresence>
+            {isCourseExpanded && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="absolute z-50 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-b-xl shadow-lg max-h-96 overflow-hidden"
+              >
+                <div className="p-3 sm:p-4 space-y-2 sm:space-y-3 max-h-96 overflow-y-auto">
+                  {memoizedCourses.length === 0 ? (
+                    <div className="text-center py-6 sm:py-8">
+                      <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                        <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2">Coming Soon</h3>
+                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">New courses for this grade are launching soon. Stay tuned!</p>
+                      {!hideGradeSelector && selectedGrade !== 'all' && (
+                        <button
+                          onClick={() => handleGradeChangeWithReset('all')}
+                          className="mt-3 sm:mt-4 text-xs sm:text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full"
+                        >
+                          View All Grades
+                        </button>
                       )}
                     </div>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Select a course to begin...
-                </p>
-              )}
-              <ChevronDown className={`h-5 w-5 text-gray-400 dark:text-gray-500 transition-transform duration-200 ${dropdownVisible ? 'transform rotate-180' : ''}`} />
-            </div>
-            
-            {/* Course Dropdown */}
-            {dropdownVisible && (
-              <motion.div
-                id="courses-dropdown"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                className="absolute z-20 mt-1 w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-h-64 overflow-y-auto"
-              >
-                <div className="p-1">
-                  {memoizedCourses.map((course) => (
-                    <div
-                      key={course._id}
-                      className={`p-2 cursor-pointer rounded-md transition-colors ${
-                        selectedCourse?._id === course._id 
-                          ? `${categoryInfo?.bgClass || 'bg-primary-50 dark:bg-primary-900/20'} ${categoryInfo?.colorClass || 'text-primary-600 dark:text-primary-400'}`
-                          : 'hover:bg-gray-50 dark:hover:bg-gray-750'
-                      }`}
-                      onClick={() => handleCourseClick(course)}
-                    >
-                      <div className="flex items-center">
-                        <div className="min-w-0 flex-1">
-                          <p className={`text-sm font-medium truncate ${selectedCourse?._id === course._id ? categoryInfo?.colorClass || 'text-primary-600 dark:text-primary-400' : 'text-gray-900 dark:text-white'}`}>
-                            {course.title}
-                          </p>
-                          <div className="flex flex-wrap items-center mt-0.5 gap-2">
-                            <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                              <Clock className="w-3 h-3 mr-1" />
-                              {course.course_duration || 'Flexible'}
+                  ) : (
+                    <AnimatePresence mode="wait">
+                      {memoizedCourses.map((course, index) => (
+                        <motion.div
+                          key={course._id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.3, delay: index * 0.05 }}
+                          onClick={() => handleCourseClick(course)}
+                          whileHover={{ scale: isMobile ? 1 : 1.01 }}
+                          whileTap={{ scale: 0.98 }}
+                          className={`relative p-3 sm:p-4 rounded-xl cursor-pointer transition-all duration-300 touch-manipulation ${
+                            selectedCourse?._id === course._id
+                              ? `${categoryInfo?.bgClass || 'bg-blue-50 dark:bg-blue-900/20'} shadow-lg ring-2 ring-blue-500/20 dark:ring-blue-400/20 transform scale-[1.01]`
+                              : 'border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md active:scale-95'
+                          }`}
+                        >
+                          {/* Selection Indicator */}
+                          {selectedCourse?._id === course._id && (
+                            <motion.div 
+                              initial={{ scale: 0, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              className="absolute top-2 sm:top-3 right-2 sm:right-3 p-1 sm:p-1.5 rounded-full bg-blue-500 shadow-md"
+                            >
+                              <CheckCircle className="h-3 w-3 sm:h-5 sm:w-5 text-white" />
+                            </motion.div>
+                          )}
+
+                          <div className="flex flex-col space-y-2 sm:space-y-3">
+                            {/* Course Title */}
+                            <h4 className="font-medium text-sm sm:text-base text-gray-900 dark:text-white truncate pr-6 sm:pr-8">
+                              {course.title}
+                            </h4>
+                            
+                            {/* Course Duration and Grade */}
+                            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                              <span className={`inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-medium border ${
+                                selectedCourse?._id === course._id
+                                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200 border-blue-200 dark:border-blue-700'
+                                  : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800'
+                              }`}>
+                                <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
+                                {formatDuration(course.course_duration)}
+                              </span>
+                              {selectedGrade === 'all' && course.grade && (
+                                <span className={`inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-medium border ${
+                                  selectedCourse?._id === course._id
+                                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200 border-emerald-200 dark:border-emerald-700'
+                                    : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border-green-200 dark:border-green-800'
+                                }`}>
+                                  <GraduationCap className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
+                                  {course.grade}
+                                </span>
+                              )}
+                              {course.is_Certification && (
+                                <span className={`inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-medium border ${
+                                  selectedCourse?._id === course._id
+                                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 border-amber-200 dark:border-amber-700'
+                                    : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+                                }`}>
+                                  <Award className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
+                                  Certificate
+                                </span>
+                              )}
                             </div>
-                            {course.is_Certification && (
-                              <div className="text-xs text-green-600 dark:text-green-400 flex items-center">
-                                <Award className="w-3 h-3 mr-1" />
-                                Certificate
-                              </div>
-                            )}
                           </div>
-                        </div>
-                        {selectedCourse?._id === course._id && (
-                          <CheckCircle2 className={`h-4 w-4 ml-2 ${categoryInfo?.colorClass || 'text-primary-600 dark:text-primary-400'}`} />
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  )}
                 </div>
               </motion.div>
             )}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-100 dark:border-gray-700">
-            <Filter className="h-6 w-6 text-gray-300 dark:text-gray-600 mb-2" />
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              No courses available
-            </p>
-            {!hideGradeSelector && selectedGrade !== 'all' && (
-              <button
-                onClick={() => handleGradeChangeWithReset('all')}
-                className="mt-3 text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 bg-primary-50 dark:bg-primary-900/20 px-3 py-1.5 rounded-full"
-              >
-                Reset Filters
-              </button>
-            )}
-          </div>
-        )}
+          </AnimatePresence>
+        </motion.div>
       </div>
     </div>
   );
