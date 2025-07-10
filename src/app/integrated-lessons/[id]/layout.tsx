@@ -1,4 +1,4 @@
-import lessons from "@/../public/fakedata/lessons.json";
+// import lessons from "../../../public/fakedata/lessons.json";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id: paramId } = await params;

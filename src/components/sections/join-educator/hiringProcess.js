@@ -125,30 +125,7 @@ const HiringProcess = () => {
             })}
           </div>
           
-          {/* Primary CTA - Only CTA on the entire page */}
-          <motion.div variants={itemVariants} className="text-center">
-            <div className={buildComponent.card('premium', 'tablet') + " max-w-2xl mx-auto"}>
-              <h3 className={mobilePatterns.mobileTypography.subheading + " mb-6"}>
-                Ready to start your <span className="text-indigo-600 dark:text-indigo-400">teaching journey</span>?
-              </h3>
-              
-              <p className={mobilePatterns.mobileTypography.body + " mb-8"}>
-                Join our community of educators and make a lasting impact on students worldwide.
-              </p>
-              
-              <a
-                href="#registration-section"
-                className={mobilePatterns.mobileButton('primary', 'lg') + " inline-flex items-center gap-3 text-lg group"}
-              >
-                Begin Application Process
-                <ArrowRight className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" />
-              </a>
-              
-              <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
-                Takes only 5 minutes to get started
-              </p>
-            </div>
-          </motion.div>
+
         </motion.div>
       </div>
     </section>

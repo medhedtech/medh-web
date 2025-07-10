@@ -122,8 +122,6 @@ const blendedCourseSchema = yup.object().shape({
     description: yup.string().required('Preview description is required'),
   }),
   course_level: yup.string().oneOf(['Beginner', 'Intermediate', 'Advanced', 'All Levels']).required('Course level is required'),
-  course_duration: yup.string().required('Course duration is required'),
-  numberOfSessions: yup.number().required('Number of sessions is required').min(1, 'At least 1 session required'),
   includeQuizzes: yup.string().oneOf(['Yes', 'No']).required('Quizzes status is required'),
   includeProjects: yup.string().oneOf(['Yes', 'No']).required('Projects status is required'),
   includeAssignments: yup.string().oneOf(['Yes', 'No']).required('Assignments status is required'),
@@ -191,8 +189,6 @@ interface BlendedCourseFormData {
   grade: string;
   certificateType: string;
   course_image: string;
-  course_duration: string;
-  numberOfSessions: number;
   includeQuizzes: 'Yes' | 'No';
   includeProjects: 'Yes' | 'No';
   includeAssignments: 'Yes' | 'No';
@@ -331,8 +327,6 @@ export default function CreateBlendedCoursePage() {
       instructors: [],
       brochures: [],
       course_image: '',
-      course_duration: '',
-      numberOfSessions: 1,
       includeQuizzes: 'Yes',
       includeProjects: 'Yes',
       includeAssignments: 'Yes',
@@ -639,12 +633,6 @@ export default function CreateBlendedCoursePage() {
     if (!data.course_image?.trim()) {
       errors.push('Course Image is required');
     }
-    if (!data.course_duration?.trim()) {
-      errors.push('Course Duration is required');
-    }
-    if (!data.numberOfSessions || data.numberOfSessions < 1) {
-      errors.push('Number of Sessions is required and must be at least 1');
-    }
 
     // Course description validation
     if (!data.course_description?.program_overview?.trim()) {
@@ -915,15 +903,14 @@ export default function CreateBlendedCoursePage() {
         status: cleanedData.status,
         brochures: (cleanedData.brochures || []).map(b => b.url),
         course_image: cleanedData.course_image,
-        course_duration: cleanedData.course_duration,
+        course_duration: '', // Set to empty string since it's required by API but not in form
         course_level: cleanedData.course_level || 'Beginner',
         session_duration: cleanedData.session_duration || '',
         // Add new fields for course features
         is_Quizes: cleanedData.includeQuizzes as 'Yes' | 'No',
         is_Projects: cleanedData.includeProjects as 'Yes' | 'No',
         is_Assignments: cleanedData.includeAssignments as 'Yes' | 'No',
-        is_Certification: cleanedData.includeCertification as 'Yes' | 'No',
-        no_of_Sessions: cleanedData.numberOfSessions
+        is_Certification: cleanedData.includeCertification as 'Yes' | 'No'
       };
 
       // Add grade or certificate information
@@ -952,12 +939,14 @@ export default function CreateBlendedCoursePage() {
         const response = await courseTypesAPI.createCourse(payload);
         
         console.log('API Response:', response);
+        console.log('Response Status:', response?.status);
+        console.log('Response Data:', response?.data);
 
         // Dismiss loading toast
         toast.dismiss(loadingToast);
 
-                 // Check for successful response
-         if (response?.data?.success) {
+                 // Check for successful response (API client returns IApiResponse with status, data contains ICourseTypesResponse)
+         if (response?.status === 'success' && response?.data?.success) {
            formSubmittedSuccessfully.current = true;
            showToast.success(`Blended course "${blendedCourseData.course_title}" created successfully!`);
           
@@ -976,8 +965,16 @@ export default function CreateBlendedCoursePage() {
           }, 2000);
         } else {
           // Handle API error response
-          const apiError = parseAPIError(response);
-          throw new Error(apiError);
+          console.log('API Error Response:', response);
+          let errorMessage = 'Failed to create course';
+          
+          if (response?.status === 'error') {
+            errorMessage = response?.error || response?.message || errorMessage;
+          } else if (response?.data?.success === false) {
+            errorMessage = response?.data?.message || errorMessage;
+          }
+          
+          throw new Error(errorMessage);
         }
       } catch (apiError) {
         // Dismiss loading toast
@@ -1446,22 +1443,6 @@ export default function CreateBlendedCoursePage() {
                 {errors.course_level && <p className={errorClass}>{errors.course_level.message}</p>}
               </div>
 
-              <div>
-                <label className={labelClass}>Course Duration *</label>
-                <select {...register("course_duration")} className={inputClass}>
-                  <option value="">Select course duration</option>
-                  {masterData.courseDurations.map((d, i) => (
-                    <option key={i} value={d}>{d}</option>
-                  ))}
-                </select>
-                {errors.course_duration && <p className={errorClass}>{errors.course_duration.message}</p>}
-              </div>
-              
-              <div>
-                <label className={labelClass}>Number of Sessions *</label>
-                <input type="number" {...register("numberOfSessions")} className={inputClass} min={1} placeholder="Enter number of sessions" />
-                {errors.numberOfSessions && <p className={errorClass}>{errors.numberOfSessions.message}</p>}
-              </div>
             </div>
 
             {/* Course Image */}

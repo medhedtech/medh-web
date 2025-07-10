@@ -76,7 +76,6 @@ interface SignUpFormData {
   age_group: AgeGroup;
   status: string;
   meta: {
-    gender?: string;
     age_group?: AgeGroup;
   };
   phone_numbers?: {
@@ -94,11 +93,6 @@ type FormFields = {
   agree_terms: boolean;
   role: "student";
   full_name: string;
-  meta: {
-    gender: "male" | "female" | "other";
-    age_group?: AgeGroup;
-  };
-  status: string;
   age_group: AgeGroup;
   phone_numbers: {
     country: string;
@@ -140,15 +134,6 @@ const schema = yup
     age_group: yup.string()
       .oneOf(["Under 18", "18-24", "25-34", "35-44", "45-54", "55-64", "65+"])
       .required("Age group is required"),
-    status: yup.string()
-      .default("Active"),
-    meta: yup.object({
-      gender: yup.string()
-        .oneOf(["male", "female", "other"])
-        .required("Gender is required"),
-      age_group: yup.string()
-        .oneOf(["Under 18", "18-24", "25-34", "35-44", "45-54", "55-64", "65+"])
-    }),
     phone_numbers: yup.array()
       .of(
         yup.object({
@@ -298,13 +283,8 @@ const SignUpForm: React.FC = () => {
     resolver: yupResolver(schema) as Resolver<FormFields>,
     defaultValues: {
       role: "student",
-      status: "Active",
       age_group: "18-24",
       agree_terms: true, // Pre-accept terms and privacy policy
-      meta: {
-        gender: "Male",
-        age_group: "18-24"
-      },
       phone_numbers: [{
         country: "in",
         number: ""
@@ -403,10 +383,8 @@ const SignUpForm: React.FC = () => {
       country: phoneData.country,
       number: phoneData.number
     }], { shouldValidate: true });
-    
     // Set default age group
     setValue('age_group', selectedAgeGroup);
-    setValue('meta.age_group', selectedAgeGroup, { shouldValidate: false });
   }, [setValue, phoneData.number, phoneData.country, selectedAgeGroup]);
 
   // Add entrance animation effect
@@ -564,7 +542,6 @@ const SignUpForm: React.FC = () => {
         agree_terms: watch('agree_terms'),
         role: ["student"],
         meta: {
-          gender: watch('meta.gender') || "male",
           age_group: watch('age_group'),
         }
       };
@@ -782,7 +759,6 @@ const SignUpForm: React.FC = () => {
     const value = e.target.value as AgeGroup;
     setSelectedAgeGroup(value);
     setValue('age_group', value);
-    setValue('meta.age_group', value, { shouldValidate: false });
   };
 
   const onSubmit = async (data: FormFields): Promise<void> => {
@@ -1140,9 +1116,9 @@ const SignUpForm: React.FC = () => {
           <div className="signup-card bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300 overflow-hidden">
             
             {/* Form Container */}
-            <div className="p-5 md:p-8">
+            <div className="p-4 md:p-8">
               {/* Logo and Header */}
-              <div className="text-center mb-3">
+              <div className="text-center mb-2">
                 <Link href="/" className="inline-block mb-2">
                   <Image 
                     src={theme === 'dark' ? logo1 : logo2} 
@@ -1162,7 +1138,7 @@ const SignUpForm: React.FC = () => {
               </div>
               
               {/* Compact Stepper UI */}
-              <div className="mb-5">
+              <div className="mb-3">
                 <div className="flex items-center justify-between max-w-md mx-auto">
                   <div className="flex flex-col items-center">
                     <div className={`w-8 h-8 rounded-full ${currentStep === 1 ? 'bg-primary-500 text-white' : 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'} flex items-center justify-center`}>
@@ -1183,12 +1159,11 @@ const SignUpForm: React.FC = () => {
               </div>
 
               {/* Form */}
-              <form className="space-y-3">
+              <form className="space-y-1.5 md:space-y-2">
                 {/* Two-column layout for personal info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 md:gap-2">
                   {/* Email - First column */}
                   <div className="form-group">
-                    <label className="block mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Email <span className="text-red-500">*</span></label>
                     <div className="relative">
                       <input
                         {...register("email")}
@@ -1197,7 +1172,7 @@ const SignUpForm: React.FC = () => {
                         aria-required="true"
                         aria-invalid={!!errors.email || apiError?.includes("email")}
                         autoComplete="email"
-                        placeholder="you@example.com"
+                        placeholder="Enter your email address"
                         className={`w-full h-10 px-3 py-0 ${apiError?.includes("email") ? 'bg-red-50 dark:bg-red-900/10 border-red-300 dark:border-red-800 ring-red-400/30' : 'bg-gray-50/50 dark:bg-gray-700/30 border-gray-200 dark:border-gray-600'} rounded-lg sm:rounded-xl border focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-9 text-sm`}
                         onBlur={handleEmailBlur}
                       />
@@ -1234,7 +1209,6 @@ const SignUpForm: React.FC = () => {
 
                   {/* Full Name - Second column */}
                   <div className="form-group">
-                    <label className="block mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Full Name <span className="text-red-500">*</span></label>
                     <div className="relative">
                       <input
                         {...register("full_name")}
@@ -1242,7 +1216,7 @@ const SignUpForm: React.FC = () => {
                         aria-required="true"
                         aria-invalid={!!errors.full_name}
                         autoComplete="name"
-                        placeholder="John Smith"
+                        placeholder="Enter your full name"
                         className="w-full h-10 px-3 py-0 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-9 text-sm"
                       />
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -1261,7 +1235,7 @@ const SignUpForm: React.FC = () => {
                 {/* Contact Info Section */}
                 <div className="form-section">
                   {/* Two-column layout for Phone and Age Group */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 md:gap-2">
                     {/* Phone Number Field */}
                     <Controller
                       name="phone_numbers"
@@ -1271,13 +1245,11 @@ const SignUpForm: React.FC = () => {
                           console.log('Validating phone_numbers:', items);
                           const item = Array.isArray(items) && items[0] ? items[0] : { country: '', number: '' };
                           console.log('Phone item to validate:', item);
-                          
                           // If number is present, validate it properly
                           if (!item.number || item.number === '+') {
                             console.log('Phone validation failed: number empty or just +');
                             return 'Phone number is required';
                           }
-                          
                           // Validate with Joi schema but handle empty state better
                           const { error } = phoneNumberSchema.validate(item);
                           console.log('Joi validation result:', { error: error?.message });
@@ -1286,48 +1258,18 @@ const SignUpForm: React.FC = () => {
                       }}
                       render={({ field, fieldState }) => (
                         <div className="form-group">
-                          <label className="block mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Phone <span className="text-red-500">*</span></label>
                           <PhoneNumberInput
                             value={{ country: field.value[0]?.country || 'in', number: field.value[0]?.number || '' }}
                             onChange={val => field.onChange([val])}
-                            placeholder="Enter phone number"
+                            placeholder="Enter your phone number"
                             error={fieldState.error?.message}
                           />
                         </div>
                       )}
                     />
 
-                    {/* Gender Dropdown */}
-                    <div className="form-group">
-                      <label className="block mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Gender <span className="text-red-500">*</span></label>
-                      <div className="relative">
-                        <select
-                          {...register("meta.gender")}
-                          aria-required="true"
-                          className="w-full h-10 px-2 py-0 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-8 appearance-none text-sm"
-                        >
-                          <option value="male">Male</option>
-                          <option value="female">Female</option>
-                          <option value="other">Other</option>
-                        </select>
-                        <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                          <UserCircle className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                        </div>
-                        <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                          <ChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                        </div>
-                      </div>
-                      {errors.meta?.gender && (
-                        <p className="error-message text-red-500 flex items-start">
-                          <AlertCircle className="h-3 w-3 mt-0.5 mr-1 flex-shrink-0" />
-                          <span>{errors.meta.gender?.message}</span>
-                        </p>
-                      )}
-                    </div>
-
                     {/* Age Group Dropdown */}
                     <div className="form-group">
-                      <label className="block mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Age Group <span className="text-red-500">*</span></label>
                       <div className="relative">
                         <select
                           {...register("age_group")}
@@ -1356,15 +1298,14 @@ const SignUpForm: React.FC = () => {
                 </div>
 
                 {/* Two-column layout for password fields */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 md:gap-2">
                   {/* Password with Strength Meter */}
                   <div>
-                    <label className="block mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Password <span className="text-red-500">*</span></label>
                     <div className="relative">
                       <input
                         {...register("password")}
                         type={showPassword ? "text" : "password"}
-                        placeholder="Password"
+                        placeholder="Enter your password"
                         className="w-full h-10 px-3 py-0 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-9 pr-9 text-sm"
                       />
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -1418,12 +1359,11 @@ const SignUpForm: React.FC = () => {
 
                   {/* Confirm Password */}
                   <div>
-                    <label className="block mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Confirm Password <span className="text-red-500">*</span></label>
                     <div className="relative">
                       <input
                         {...register("confirm_password")}
                         type={showConfirmPassword ? "text" : "password"}
-                        placeholder="Confirm Password"
+                        placeholder="Confirm your password"
                         className="w-full h-10 px-3 py-0 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-9 pr-9 text-sm"
                       />
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -1451,9 +1391,9 @@ const SignUpForm: React.FC = () => {
                 </div>
 
                 {/* Enhanced section for reCAPTCHA and Terms with centered layout */}
-                <div className="mt-6 space-y-3">
+                <div className="mt-3 md:mt-4 space-y-1.5 md:space-y-2">
                   {/* Two-column layout for captcha and terms on larger screens */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-3 md:gap-x-4 gap-y-1.5 md:gap-y-2">
                     {/* reCAPTCHA */}
                     <div className="w-full mx-auto md:mx-0 max-w-md">
                       <CustomReCaptcha
@@ -1520,7 +1460,7 @@ const SignUpForm: React.FC = () => {
                 </div>
                 
                 {/* Submit Button - Register & Verify */}
-                <div className="mt-6">
+                <div className="mt-3 md:mt-4">
                   <button
                     type="button"
                     onClick={proceedToVerification}
@@ -1604,7 +1544,7 @@ const SignUpForm: React.FC = () => {
                 */}
 
                 {/* Sign In Link */}
-                <div className="text-center mt-3">
+                <div className="text-center mt-2">
                   <p className="text-xs text-gray-600 dark:text-gray-400">
                     Already have an account?{" "}
                     <Link

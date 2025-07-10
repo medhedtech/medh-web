@@ -147,6 +147,7 @@
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
+    "jsqr": "^1.4.0",
     "jwt-decode": "^4.0.0",
     "libphonenumber-js": "^1.12.4",
     "lucide-react": "^0.487.0",
