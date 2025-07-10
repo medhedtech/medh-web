@@ -37,6 +37,8 @@ export interface PostQueryParams<T = any> {
   resetErrorOnRequest?: boolean;
   /** Whether to enable debug logging */
   debug?: boolean;
+  /** Whether this is a login request (uses extended timeout) */
+  isLoginRequest?: boolean;
 }
 
 export interface PostQueryResult<T = any> {
@@ -92,6 +94,7 @@ export const usePostQuery = <T = any>(): UsePostQueryResult<T> => {
     errorMessage = "Operation failed",
     resetErrorOnRequest = true,
     debug = false,
+    isLoginRequest = false,
   }: PostQueryParams<D>): Promise<PostQueryResult<T>> => {
     // Set loading and optionally reset error
     setLoading(true);
@@ -129,9 +132,27 @@ export const usePostQuery = <T = any>(): UsePostQueryResult<T> => {
       };
       
       if (requireAuth) {
-        response = await apiWithAuth.post<T>(url, postData, requestConfig);
+        if (isLoginRequest) {
+          // Use extended timeout for login operations
+          const loginConfig = {
+            ...requestConfig,
+            timeout: 60000 // 60 seconds for login requests
+          };
+          response = await apiWithAuth.post<T>(url, postData, loginConfig);
+        } else {
+          response = await apiWithAuth.post<T>(url, postData, requestConfig);
+        }
       } else {
-        response = await apiClient.post<T>(url, postData, requestConfig);
+        if (isLoginRequest) {
+          // Use extended timeout for login operations with non-auth client
+          const loginConfig = {
+            ...requestConfig,
+            timeout: 60000 // 60 seconds for login requests
+          };
+          response = await apiClient.post<T>(url, postData, loginConfig);
+        } else {
+          response = await apiClient.post<T>(url, postData, requestConfig);
+        }
       }
 
       // Extract and set the response data
@@ -173,10 +194,20 @@ export const usePostQuery = <T = any>(): UsePostQueryResult<T> => {
       // Determine the most appropriate error message
       const axiosError = error as AxiosError;
       const responseData = axiosError?.response?.data as Record<string, any> | undefined;
-      const message =
-        responseData?.message ||
-        error.message ||
-        errorMessage;
+      
+      // Handle timeout errors specifically
+      let message = errorMessage;
+      if (axiosError?.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        message = "⏱️ Request timed out. The server is taking longer than expected to respond. Please check your connection and try again.";
+      } else if (axiosError?.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
+        message = "🌐 Network error. Please check your internet connection and try again.";
+      } else if (axiosError?.response?.status === 503) {
+        message = "🔧 Service temporarily unavailable. The server is currently under maintenance. Please try again in a few minutes.";
+      } else if (axiosError?.response?.status === 500) {
+        message = "⚠️ Internal server error. Something went wrong on our end. Please try again later.";
+      } else {
+        message = responseData?.message || error.message || errorMessage;
+      }
 
       // Show error toast if configured
       if (enableToast) {
