@@ -381,34 +381,6 @@ const EnrollmentTypeSelector: React.FC<{
   return (
     <div className="grid grid-cols-2 gap-3 mb-6">
       <button
-        onClick={() => onTypeChange('individual')}
-        className={`group relative p-4 rounded-xl border-2 transition-all duration-300 ${
-          enrollmentType === 'individual' 
-            ? `${bgClass} border-blue-500 shadow-lg transform scale-105` 
-            : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-300 hover:shadow-md'
-        }`}
-        aria-pressed={enrollmentType === 'individual'}
-      >
-        <div className="text-center">
-          <div className="flex justify-center mb-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-              enrollmentType === 'individual' 
-                ? 'bg-blue-500 text-white' 
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-            }`}>
-              <User className="w-5 h-5" />
-            </div>
-          </div>
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Individual</h3>
-          {activePricing && (
-            <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
-              {formatPriceDisplay(activePricing.individual)}
-            </p>
-          )}
-        </div>
-      </button>
-
-      <button
         onClick={() => onTypeChange('batch')}
         className={`group relative p-4 rounded-xl border-2 transition-all duration-300 ${
           enrollmentType === 'batch' 
@@ -432,6 +404,34 @@ const EnrollmentTypeSelector: React.FC<{
             <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
               {formatPriceDisplay(activePricing.batch)}
               <span className="text-sm text-gray-500 dark:text-gray-400 block">per person</span>
+            </p>
+          )}
+        </div>
+      </button>
+
+      <button
+        onClick={() => onTypeChange('individual')}
+        className={`group relative p-4 rounded-xl border-2 transition-all duration-300 ${
+          enrollmentType === 'individual' 
+            ? `${bgClass} border-blue-500 shadow-lg transform scale-105` 
+            : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-300 hover:shadow-md'
+        }`}
+        aria-pressed={enrollmentType === 'individual'}
+      >
+        <div className="text-center">
+          <div className="flex justify-center mb-3">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+              enrollmentType === 'individual' 
+                ? 'bg-blue-500 text-white' 
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+            }`}>
+              <User className="w-5 h-5" />
+            </div>
+          </div>
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Individual</h3>
+          {activePricing && (
+            <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+              {formatPriceDisplay(activePricing.individual)}
             </p>
           )}
         </div>

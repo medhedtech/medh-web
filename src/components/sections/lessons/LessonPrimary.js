@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import lessons from "@/../public/fakedata/lessons.json";
+// import lessons from "@/../public/fakedata/lessons.json";
 import LessonAccordion from "@/components/shared/lessons/LessonAccordion";
 import { ChevronUp, Play, Download, Clock, CheckCircle, ChevronLeft, Menu } from "lucide-react";
 import Link from "next/link";
