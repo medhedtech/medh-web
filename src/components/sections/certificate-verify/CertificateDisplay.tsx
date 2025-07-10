@@ -176,6 +176,47 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
     });
   };
 
+  // Check if certificate is valid and active
+  const isValidCertificate = certificate.isValid && certificate.isActive && 
+    (!certificate.validUntil || new Date(certificate.validUntil) >= new Date());
+
+  // If certificate is valid, show simple verification message
+  if (isValidCertificate) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className={buildAdvancedComponent.glassCard({ variant: 'primary', padding: 'desktop' })}
+      >
+        <div className="text-center py-12">
+          <div className="flex justify-center mb-6">
+            <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+              <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+          
+          <h2 className={`${typography.h1} text-green-600 dark:text-green-400 mb-4`}>
+            Certificate Verified
+          </h2>
+          
+          <p className="text-slate-600 dark:text-slate-400 text-lg">
+            This certificate is valid and authentic.
+          </p>
+          
+          {/* Certificate ID for reference */}
+          <div className="mt-8 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg inline-block">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Certificate ID</p>
+            <p className="font-mono text-slate-900 dark:text-slate-100 font-medium">
+              {certificate.certificateId || certificate._id || 'N/A'}
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // If certificate is invalid, show detailed error information
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

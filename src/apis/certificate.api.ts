@@ -62,6 +62,46 @@ export interface IVerifiedCertificate {
   };
 }
 
+// Real API response format
+export interface IRealCertificateResponse {
+  success: boolean;
+  message: string;
+  data: {
+    isValid: boolean;
+    certificate: {
+      id: string;
+      certificateNumber: string;
+      issueDate: string;
+      status: string;
+      grade: string;
+      finalScore: number;
+      completionDate: string;
+    };
+    student: {
+      id: string;
+      name: string;
+      email: string;
+    };
+    course: {
+      id: string;
+      title: string;
+      description?: {
+        program_overview?: string;
+        benefits?: string;
+        learning_objectives?: string[];
+        course_requirements?: string[];
+        target_audience?: string[];
+      };
+    };
+    enrollment?: null;
+    metadata: {
+      issuedBy: string;
+      issuerTitle: string;
+      verificationDate: string;
+    };
+  };
+}
+
 export interface ICertificateSearchRequest {
   query: string;
   searchType: 'id' | 'student_name' | 'course_name' | 'email';
@@ -219,6 +259,53 @@ export interface IDemoEnrollmentResponse {
     };
   };
 }
+
+// Transform real API response to expected format
+export const transformCertificateResponse = (realResponse: IRealCertificateResponse): IVerifiedCertificate => {
+  const { data } = realResponse;
+  
+  return {
+    _id: data.certificate.id,
+    certificateId: data.certificate.certificateNumber,
+    isValid: data.isValid,
+    isActive: data.certificate.status === 'active',
+    student: {
+      _id: data.student.id,
+      full_name: data.student.name,
+      email: data.student.email,
+      profile_picture: undefined
+    },
+    course: {
+      _id: data.course.id,
+      course_title: data.course.title,
+      course_image: undefined,
+      category: 'General',
+      duration: 'N/A',
+      instructor: undefined
+    },
+    issueDate: data.certificate.issueDate,
+    completionDate: data.certificate.completionDate,
+    validUntil: undefined,
+    grade: data.certificate.grade,
+    score: data.certificate.finalScore,
+    certificateUrl: '',
+    verificationDetails: {
+      verifiedAt: data.metadata.verificationDate,
+      verificationMethod: 'id',
+      digitalSignature: undefined,
+      blockchainHash: undefined
+    },
+    additionalInfo: {
+      courseDuration: 'N/A',
+      skillsAcquired: [],
+      certificateType: 'completion',
+      accreditation: {
+        body: data.metadata.issuedBy,
+        accreditationNumber: data.certificate.certificateNumber
+      }
+    }
+  };
+};
 
 // Certificate verification API
 export const certificateAPI = {
@@ -608,6 +695,8 @@ verifyCertificateByNumber: async (certificateNumber: string): Promise<ICertifica
   try {
     const response = await apiClient.get(`/certificates/verify/${certificateNumber.trim()}`);
 
+    console.log('API Response for certificate verification:', response.data);
+
     // Handle the case where API returns {"success":false,"message":"Certificate not found","isValid":false}
     // This might come as a successful HTTP response (200 status) rather than an error
     if (response.data.success === false || response.data.isValid === false) {
@@ -617,11 +706,15 @@ verifyCertificateByNumber: async (certificateNumber: string): Promise<ICertifica
       };
     }
 
-    // Handle successful response
-    if (response.data.success === true && response.data.data?.certificate) {
+    // Handle successful response - check for the real API format first
+    if (response.data.success === true && response.data.data) {
+      // Return the raw response data so the component can transform it
+      return response.data as any;
+    } else if (response.data.status === 'success' && response.data.data) {
+      // Handle old format
       return {
         status: 'success',
-        data: response.data.data.certificate,
+        data: response.data.data,
         message: response.data.message || 'Certificate verified successfully'
       };
     } else {
