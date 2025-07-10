@@ -80,6 +80,9 @@ const CertificateVerify: React.FC = () => {
 
   // Load search history from localStorage on component mount
   useEffect(() => {
+    // Only run on client-side to avoid hydration issues
+    if (typeof window === 'undefined') return;
+    
     const savedHistory = localStorage.getItem('certificateSearchHistory');
     if (savedHistory) {
       try {
@@ -116,7 +119,9 @@ const CertificateVerify: React.FC = () => {
 
   // Save search history to localStorage
   const saveSearchHistory = (history: SearchHistoryItem[]) => {
-    localStorage.setItem('certificateSearchHistory', JSON.stringify(history));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('certificateSearchHistory', JSON.stringify(history));
+    }
   };
 
   // Add search to history
@@ -456,7 +461,9 @@ const CertificateVerify: React.FC = () => {
   // Clear search history
   const clearHistory = () => {
     setSearchHistory([]);
-    localStorage.removeItem('certificateSearchHistory');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('certificateSearchHistory');
+    }
     setShowHistory(false);
     toast.success('Search history cleared');
   };
