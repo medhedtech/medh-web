@@ -12,6 +12,7 @@ import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls } from "@/apis";
 import { uploadService } from '@/services/uploadService';
 import { Control, UseFormRegister, FieldErrors } from 'react-hook-form';
+import { showToast } from "@/components/Toast";
 
 // Helper to format seconds to mm:ss
 const formatTime = (seconds: number): string => {
@@ -270,6 +271,7 @@ export default function Live2CourseForm() {
   const [imageUploading, setImageUploading] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [brochureUploading, setBrochureUploading] = useState(false);
+  const [videoUploading, setVideoUploading] = useState(false); // Add videoUploading state
   const [previewProcessing, setPreviewProcessing] = useState(false);
 
   const { postQuery } = usePostQuery();
@@ -609,38 +611,50 @@ export default function Live2CourseForm() {
     setValue('brochures', newBrochures);
   };
 
-  const handlePreviewVideoFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setPreviewProcessing(true);
+  // Preview video upload handler
+  const handlePreviewVideoUpload = async (file: File) => {
+    if (!file) {
+      showToast.error('Please select a valid video file');
+      return;
+    }
+    setVideoUploading(true);
     try {
-      // Get full data URL with MIME type prefix
-      const base64WithPrefix = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = (error) => reject(error);
-      });
-      // Upload to server
-      const uploadRes = await uploadService.uploadBase64(base64WithPrefix, 'video', file.name);
-      if (!uploadRes?.data?.url) throw new Error('Upload failed');
-      const url = uploadRes.data.url;
-      const previewUrl = uploadRes.data.previewUrl || url;
-      setValue('previewVideo.url', url);
-      setValue('previewVideo.title', file.name);
-      setValue('previewVideo.previewUrl', previewUrl);
-      // Extract duration from uploaded video
-      const videoEl = document.createElement('video');
-      videoEl.src = previewUrl;
-      videoEl.onloadedmetadata = () => {
-        setValue('previewVideo.duration', formatTime(videoEl.duration));
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        const base64 = reader.result?.toString().split(',')[1];
+        if (base64) {
+          const postData = { base64String: base64, fileType: "video" };
+          await postQuery({
+            url: apiUrls?.upload?.uploadVideo(),
+            postData,
+            onSuccess: async (response) => {
+              if (response?.data?.url && typeof response.data.url === 'string') {
+                setValue('previewVideo', {
+                  title: file.name,
+                  url: response.data.url,
+                  previewUrl: response.data.previewUrl || response.data.url,
+                  duration: '',
+                  description: ''
+                }, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+                showToast.success('Preview video uploaded successfully');
+              } else {
+                showToast.error('Invalid video upload response format');
+              }
+            },
+            onFail: (error) => {
+              showToast.error('Video upload failed. Please try again.');
+            },
+          });
+        }
       };
-    } catch (err) {
-      console.error(err);
-      alert('Failed to upload/process preview video');
+      reader.onerror = () => {
+        showToast.error('Failed to read video file');
+      };
+    } catch (error) {
+      showToast.error('Failed to upload video');
     } finally {
-      setPreviewProcessing(false);
-      e.target.value = '';
+      setVideoUploading(false);
     }
   };
 
@@ -1489,24 +1503,64 @@ export default function Live2CourseForm() {
           {/* Preview Video Section */}
           <div className={sectionClass}>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Preview Video</h2>
-            <div>
-              <input id="preview-video-upload" type="file" accept="video/*" className="hidden" onChange={handlePreviewVideoFileSelect} />
-              <label htmlFor="preview-video-upload" className={secondaryButtonClass}>
-                {previewProcessing ? 'Processing...' : 'Upload Video'}
-              </label>
-            </div>
-            {(watch('previewVideo.previewUrl') || watch('previewVideo.url')) && (
-              <div className="mt-4 space-y-2">
-                <p><strong>Title:</strong> {watch('previewVideo.title')}</p>
-                <p><strong>Duration:</strong> {watch('previewVideo.duration')}</p>
-                <video src={watch('previewVideo.previewUrl') || watch('previewVideo.url')} controls className="w-full max-h-64 rounded-lg" />
+            <div className="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg">
+                <div className="space-y-1 text-center">
+                  {watch('previewVideo.url') ? (
+                    <div className="relative">
+                      <video
+                        src={watch('previewVideo.previewUrl') || watch('previewVideo.url')}
+                        controls
+                        className="mx-auto h-32 w-auto rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setValue('previewVideo', { title: '', url: '', previewUrl: '', duration: '', description: '' })}
+                        className="absolute top-0 right-0 -mt-2 -mr-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                      <div className="mt-2 text-left">
+                        <p className="text-sm text-gray-700 dark:text-gray-200"><strong>Title:</strong> {watch('previewVideo.title')}</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-200"><strong>Duration:</strong> {watch('previewVideo.duration')}</p>
+                        <label className={labelClass + ' mt-2'}>Description</label>
+                        <textarea
+                          value={watch('previewVideo.description')}
+                          onChange={e => setValue('previewVideo.description', e.target.value)}
+                          className={inputClass}
+                          rows={2}
+                          placeholder="A short preview of the course"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                      <div className="flex text-sm text-gray-600 dark:text-gray-400">
+                        <label className="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                          <span>Upload a video</span>
+                          <input
+                            type="file"
+                            className="sr-only"
+                            accept="video/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handlePreviewVideoUpload(file);
+                            }}
+                          />
+                        </label>
+                        <p className="pl-1">or drag and drop</p>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        MP4, WebM up to 100MB
+                      </p>
+                    </>
+                  )}
+                </div>
               </div>
-            )}
-            <div className="mt-4">
-              <label className={labelClass}>Description</label>
-              <textarea {...register("previewVideo.description")} className={inputClass} rows={2} placeholder="A short preview of the course" />
+              {videoUploading && (
+                <p className="text-sm text-blue-600 mt-2">Uploading video...</p>
+              )}
             </div>
-          </div>
 
           {/* Brochures Section */}
           <div className={sectionClass}>
