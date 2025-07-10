@@ -136,15 +136,21 @@ class UploadService {
       let formattedBase64 = base64String;
       if (!base64String.startsWith('data:')) {
         // Detect MIME type from the base64 string
-        let mimeType = 'image/jpeg'; // Default to JPEG
-        if (base64String.charAt(0) === 'i') {
-          mimeType = 'image/png';
-        } else if (base64String.charAt(0) === 'R') {
-          mimeType = 'image/gif';
-        } else if (base64String.charAt(0) === 'U') {
-          mimeType = 'image/webp';
-        } else if (base64String.charAt(0) === 'J') {
-          mimeType = 'application/pdf';
+        let mimeType = '';
+        if (fileType === 'image') {
+          if (base64String.charAt(0) === 'i') {
+            mimeType = 'image/png';
+          } else if (base64String.charAt(0) === 'R') {
+            mimeType = 'image/gif';
+          } else if (base64String.charAt(0) === 'U') {
+            mimeType = 'image/webp';
+          } else {
+            mimeType = 'image/jpeg'; // Default for images
+          }
+        } else if (fileType === 'document') {
+          mimeType = 'application/pdf'; // Assuming documents are PDFs
+        } else if (fileType === 'video') {
+          mimeType = 'video/mp4'; // Explicitly set to video/mp4 for video uploads
         }
         formattedBase64 = `data:${mimeType};base64,${base64String}`;
       }
