@@ -41,12 +41,21 @@ const indicatorVariants = {
 const SECTIONS = [
   { 
     id: 'about', 
-    label: 'About Program', 
+    label: 'About', 
     icon: GraduationCap, 
     mobileLabel: 'About',
     color: 'emerald',
     lightColor: 'text-emerald-500 dark:text-emerald-400',
     indicatorColor: 'bg-emerald-500 dark:bg-emerald-400'
+  },
+  {
+    id: 'benefits',
+    label: 'Benefits',
+    icon: HelpCircle,
+    mobileLabel: 'Benefits',
+    color: 'amber',
+    lightColor: 'text-amber-500 dark:text-amber-400',
+    indicatorColor: 'bg-amber-500 dark:bg-amber-400'
   },
   { 
     id: 'curriculum', 
@@ -117,7 +126,7 @@ const CourseNavigation = ({
       variants={fadeIn}
     >
       {/* All navigation options evenly spaced */}
-      <div className={`grid ${showDownloadBrochure ? 'grid-cols-4' : 'grid-cols-3'} sm:flex w-full justify-evenly sm:justify-between gap-1 sm:gap-2`}>
+      <div className={`grid ${showDownloadBrochure ? 'grid-cols-5' : 'grid-cols-4'} sm:flex w-full justify-evenly sm:justify-between gap-1 sm:gap-2`}>
         {visibleSections.map((section) => {
           const Icon = section.icon;
           const isActive = activeSection === section.id;
