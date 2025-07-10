@@ -1734,6 +1734,7 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
           </motion.section>
         );
         
+      case 'benefits': {
       case 'benefits':
         return (
           <motion.section 
