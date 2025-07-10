@@ -1,6 +1,6 @@
 import InstructorDetailsMain from "@/components/layout/main/InstructorDetailsMain";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
-import instructors from "@/../public/fakedata/instructors.json";
+// import instructors from "@/../public/fakedata/instructors.json";
 import { notFound } from "next/navigation";
 import type { NextPage } from "next";
 
@@ -22,12 +22,6 @@ interface Instructor {
 
 const Instructor_Details: NextPage<InstructorDetailsProps> = async ({ params }) => {
   const { id } = await params;
-  const isExistinstructor = (instructors as Instructor[])?.find(
-    ({ id: instructorId }) => instructorId === parseInt(id)
-  );
-  if (!isExistinstructor) {
-    notFound();
-  }
   return (
     <PageWrapper>
       <main>

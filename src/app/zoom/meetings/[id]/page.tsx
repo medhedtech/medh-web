@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import { ZoomMeetingDetails } from "@/components/layout/main/zoom/ZoomMeetingDetails";
 import { Meeting } from "@/types/meetings";
-import meetings from "@/../public/fakedata/meetings.json";
+// import meetings from "../../../../public/fakedata/meetings.json";
 
 export const metadata: Metadata = {
   title: "Zoom Meeting Details | Medh - Education LMS Template",

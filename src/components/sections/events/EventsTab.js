@@ -1,5 +1,5 @@
 "use client";
-import allEvents from "@/../public/fakedata/events.json";
+// import allEvents from "@/../public/fakedata/events.json";
 import TabButtonPrimary from "@/components/shared/buttons/TabButtonPrimary";
 import EventsTabItems from "@/components/shared/events/EventsTabItems";
 import HeadingPrimary from "@/components/shared/headings/HeadingPrimary";
@@ -8,6 +8,8 @@ import TabContentWrapper from "@/components/shared/wrappers/TabContentWrapper";
 import useTab from "@/hooks/useTab";
 
 const EventsTab = () => {
+  // TODO: Replace with proper API call
+  const allEvents = [];
   const events = allEvents?.slice(0, 4);
   const { currentIdx, handleTabClick } = useTab();
   const reverseEvents = [...events].reverse();
