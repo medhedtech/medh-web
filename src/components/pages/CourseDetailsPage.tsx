@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { NextPage } from 'next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   GraduationCap, 
@@ -59,6 +60,77 @@ import Preloader from '@/components/shared/others/Preloader';
 import Pdf from '@/assets/images/course-detailed/pdf-icon.svg';
 import { getCourseById } from '@/apis/course/course';
 
+// TypeScript Interfaces
+interface ICourseDetails {
+  _id: string;
+  course_title: string;
+  course_description?: string | { program_overview?: string; benefits?: string };
+  course_duration?: string;
+  course_image?: string;
+  course_videos?: Array<{ video_url?: string; url?: string; thumbnail?: string }>;
+  preview_video?: { url?: string; thumbnail?: string; title?: string; duration?: string; description?: string };
+  course_type?: string;
+  course_category?: string;
+  category?: string;
+  class_type?: string;
+  classType?: string;
+  delivery_format?: string;
+  delivery_type?: string;
+  curriculum?: Array<{ weekTitle: string; weekDescription: string }>;
+  tools_technologies?: Array<{ name: string }>;
+  bonus_modules?: Array<{ title: string; description?: string }>;
+  highlights?: Array<{ title: string; description: string; iconName?: string }>;
+  reviews?: Array<any>;
+  brochures?: Array<any>;
+  is_Certification?: string;
+  certification_details?: string;
+  certification?: { is_certified: boolean };
+  difficulty_level?: string;
+  skill_level?: string;
+  no_of_Sessions?: number;
+  session_duration?: string;
+  live_session_duration?: string;
+  class_duration?: string;
+  efforts_per_Week?: string;
+  time_commitment?: string;
+  hours_per_week?: string;
+  weekly_hours?: string;
+  downloadBrochure?: string;
+  features?: Array<{ title: string; description: string }>;
+}
+
+interface ICourseVideoPlayerProps {
+  courseId?: string;
+  courseTitle?: string;
+  courseVideos?: Array<{ video_url?: string; url?: string; thumbnail?: string }>;
+  previewVideo?: { url?: string; thumbnail?: string; title?: string; duration?: string; description?: string };
+  courseImage?: string;
+  primaryColor: string;
+}
+
+interface ICourseDetailsPageProps {
+  courseId?: string;
+  courseDetails?: ICourseDetails;
+  initialActiveSection?: string;
+  classType?: string;
+  courseSelectionComponent?: React.ReactNode;
+}
+
+interface ICategoryColorClasses {
+  primaryColor: string;
+  secondaryColor: string;
+  color: string;
+}
+
+interface ICourseFeature {
+  label: string;
+  value: string;
+  icon: React.ComponentType<any>;
+  color: string;
+  bgColor: string;
+  fillOpacity: number;
+}
+
 // Course Video Player Component
 /**
  * CourseVideoPlayer Props
@@ -69,21 +141,21 @@ import { getCourseById } from '@/apis/course/course';
  * @param courseImage - string | undefined
  * @param primaryColor - string
  */
-const CourseVideoPlayer = ({ courseId, courseTitle, courseVideos, previewVideo, courseImage, primaryColor }) => {
+const CourseVideoPlayer: React.FC<ICourseVideoPlayerProps> = ({ courseId, courseTitle, courseVideos, previewVideo, courseImage, primaryColor }) => {
   const [isPlaying, setIsPlaying] = useState(true); // Start with playing state
   const [isMuted, setIsMuted] = useState(true); // Start muted for autoplay
   const [showControls, setShowControls] = useState(false); // Hide controls by default
   const [isLoading, setIsLoading] = useState(false);
-  const [videoUrl, setVideoUrl] = useState('');
-  const videoRef = useRef(null);
-  const containerRef = useRef(null);
+  const [videoUrl, setVideoUrl] = useState<string>('');
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Extract video URL from previewVideo or course videos or use a default promotional video
   useEffect(() => {
     if (previewVideo && previewVideo.url) {
-      setVideoUrl(previewVideo.url);
+      setVideoUrl(previewVideo.url || '');
     } else if (courseVideos && courseVideos.length > 0) {
-      setVideoUrl(courseVideos[0].video_url || courseVideos[0].url);
+      setVideoUrl(courseVideos[0].video_url || courseVideos[0].url || '');
     } else {
       setVideoUrl(''); // No video, fallback to image
     }
@@ -279,22 +351,22 @@ const CourseVideoPlayer = ({ courseId, courseTitle, courseVideos, previewVideo, 
   );
 };
 
-const CourseDetailsPage = ({ ...props }) => {
+const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
   // State for active section and navigation
-  const [activeSection, setActiveSection] = useState(props.initialActiveSection || 'about');
-  const [courseDetails, setCourseDetails] = useState(props.courseDetails || null);
-  const [curriculum, setCurriculum] = useState([]);
-  const [reviews, setReviews] = useState([]);
-  const [toolsTechnologies, setToolsTechnologies] = useState([]);
-  const [bonusModules, setBonusModules] = useState([]);
-  const [openAccordions, setOpenAccordions] = useState(null);
+  const [activeSection, setActiveSection] = useState<string>(props.initialActiveSection || 'about');
+  const [courseDetails, setCourseDetails] = useState<ICourseDetails | null>(props.courseDetails || null);
+  const [curriculum, setCurriculum] = useState<Array<{ weekTitle: string; weekDescription: string }>>([]);
+  const [reviews, setReviews] = useState<Array<any>>([]);
+  const [toolsTechnologies, setToolsTechnologies] = useState<Array<{ name: string }>>([]);
+  const [bonusModules, setBonusModules] = useState<Array<{ title: string; description?: string }>>([]);
+  const [openAccordions, setOpenAccordions] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showClassTypeInfo, setShowClassTypeInfo] = useState(false);
   const [theme, setTheme] = useState('light');
   const [showBrochureModal, setShowBrochureModal] = useState(false);
   const [courseId, setCourseId] = useState(props.courseId);
-  const [activeOverviewTab, setActiveOverviewTab] = useState('about');
+
   
   // Refs for component structure - we don't use these for scrolling anymore
   const aboutRef = useRef(null);
@@ -330,7 +402,7 @@ const CourseDetailsPage = ({ ...props }) => {
   const isClient = useIsClient();
 
   // Fetch course details from API
-  const fetchCourseDetails = async (id) => {
+  const fetchCourseDetails = async (id: string) => {
     setLoading(true);
     try {
       console.log("Fetching course details for ID:", id);
@@ -479,7 +551,7 @@ const CourseDetailsPage = ({ ...props }) => {
   }, [showClassTypeInfo, theme]);
 
   // Enhanced modal toggle with debug logging
-  const toggleClassTypeInfo = (event) => {
+  const toggleClassTypeInfo = (event?: React.MouseEvent) => {
     if (event) {
       event.preventDefault();
       event.stopPropagation();
@@ -489,7 +561,7 @@ const CourseDetailsPage = ({ ...props }) => {
   };
 
   // Enhanced modal close with debug logging
-  const handleCloseModal = (event, source = 'button') => {
+  const handleCloseModal = (event?: React.MouseEvent, source: string = 'button') => {
     if (event) {
       event.preventDefault();
       event.stopPropagation();
@@ -498,24 +570,16 @@ const CourseDetailsPage = ({ ...props }) => {
     setShowClassTypeInfo(false);
   };
 
-  const toggleAccordion = (index) => {
+  const toggleAccordion = (index: number) => {
     setOpenAccordions(openAccordions === index ? null : index);
   };
 
   // Updated to just change the active section state without scrolling
-  const scrollToSection = (sectionId) => {
-    if (sectionId === 'benefits') {
-      setActiveOverviewTab('benefits');
-    } else if (sectionId === 'about') {
-      setActiveOverviewTab('about');
-    }
-
+  const scrollToSection = (sectionId: string) => {
     setActiveSection(sectionId);
   };
   
-  // Modal controls
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  // Modal controls (removed unused modal functions)
   
   // Generate course features from course details
   const getCourseFeatures = () => {
@@ -636,7 +700,7 @@ const CourseDetailsPage = ({ ...props }) => {
   };
   
   // Helper function to detect if course is blended
-  const isBlendedCourse = (details) => {
+  const isBlendedCourse = (details: ICourseDetails | null | undefined): boolean => {
     if (!details) return false;
     
     return (
@@ -651,7 +715,7 @@ const CourseDetailsPage = ({ ...props }) => {
   };
 
   // Helper functions to format course details
-  const formatDuration = (details) => {
+  const formatDuration = (details: ICourseDetails | null | undefined): string => {
     if (!details) return "9 months / 36 weeks";
     
     // For blended courses, show "Self Paced + Live Q&A sessions"
@@ -661,7 +725,7 @@ const CourseDetailsPage = ({ ...props }) => {
     
     try {
       // Try different possible field names
-      const duration = details.duration || details.course_duration;
+      const duration = details.course_duration;
       
       if (duration) {
         // Check if the duration string only contains weeks (no months)
@@ -719,26 +783,17 @@ const CourseDetailsPage = ({ ...props }) => {
     return "9 months / 36 weeks"; // Default fallback
   };
   
-  const formatLiveSessions = (details) => {
+  const formatLiveSessions = (details: ICourseDetails | null | undefined): string => {
     if (!details) return "72";
     
     // For blended courses, show "Videos" instead of "Sessions"
     if (isBlendedCourse(details)) {
       try {
         // Get video count (could be from various fields)
-        const videoCount = details.no_of_Sessions || 
-                          details.video_count || 
-                          details.recorded_videos?.length ||
-                          details.course_videos?.length ||
-                          details.session_count || 
-                          details.live_sessions || 
-                          "72";
+        const videoCount = details.no_of_Sessions || details.course_videos?.length || "72";
         
         // Get video duration if available
-        const videoDuration = details.session_duration || 
-                             details.video_duration || 
-                             details.live_session_duration || 
-                             details.class_duration;
+        const videoDuration = details.session_duration || details.live_session_duration || details.class_duration;
         
         // If we have both count and duration, combine them
         if (videoDuration) {
@@ -770,7 +825,7 @@ const CourseDetailsPage = ({ ...props }) => {
     // For non-blended courses, show sessions as before
     try {
       // Get session count - using the field from the example API
-      const sessionCount = details.no_of_Sessions || details.session_count || details.live_sessions || "72";
+      const sessionCount = details.no_of_Sessions || "72";
       
       // Get session duration - using the field from the example API
       const sessionDuration = details.session_duration || 
@@ -804,7 +859,7 @@ const CourseDetailsPage = ({ ...props }) => {
     }
   };
   
-  const formatTimeCommitment = (details) => {
+  const formatTimeCommitment = (details: ICourseDetails | null | undefined): string => {
     if (!details) return "3 - 4 hours / week";
     
     try {
@@ -895,7 +950,7 @@ const CourseDetailsPage = ({ ...props }) => {
   };
 
   // Function to get icon based on iconName
-  const getHighlightIcon = (iconName) => {
+  const getHighlightIcon = (iconName: string | undefined): JSX.Element => {
     const colorClass = `text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`;
     
     switch(iconName?.toLowerCase()) {
@@ -925,7 +980,7 @@ const CourseDetailsPage = ({ ...props }) => {
   };
 
   // Add this improved helper function to parse course description
-  const parseDescription = (description) => {
+  const parseDescription = (description: string): { overview: string; sections: Array<any> } => {
     if (!description) return { overview: '', sections: [] };
 
     // Convert to string in case it's not already
@@ -956,7 +1011,7 @@ const CourseDetailsPage = ({ ...props }) => {
       const pattern = new RegExp(`\\b${keyword}\\b`, 'i');
       const match = descText.match(pattern);
       
-      if (match) {
+      if (match && typeof match.index !== 'undefined') {
         const matchIndex = match.index;
         const beforeSection = descText.substring(0, matchIndex).trim();
         
@@ -976,7 +1031,7 @@ const CourseDetailsPage = ({ ...props }) => {
           const nextPattern = new RegExp(`\\b${nextKeyword}\\b`, 'i');
           const nextMatch = descText.substring(matchIndex + keyword.length).match(nextPattern);
           
-          if (nextMatch) {
+          if (nextMatch && typeof nextMatch.index !== 'undefined') {
             const nextMatchFullIndex = matchIndex + keyword.length + nextMatch.index;
             if (nextMatchFullIndex < endIndex) {
               endIndex = nextMatchFullIndex;
@@ -988,7 +1043,7 @@ const CourseDetailsPage = ({ ...props }) => {
         let sectionContent = descText.substring(matchIndex + keyword.length, endIndex).trim();
         
         // Parse the bullets in this section
-        const bullets = [];
+        const bullets: string[] = [];
         
         // Try all bullet formats
         for (const regex of bulletRegexes) {
@@ -1080,14 +1135,57 @@ const CourseDetailsPage = ({ ...props }) => {
             animate="visible"
             key="about-section"
           >
-
+            {/* Course Key Info Row - Only show details not already in header/nav */}
+            <div className="mb-6">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 items-start sm:items-center">
+                {/* No. of Sessions (Live only) */}
+                {(() => {
+                  const isLive = getClassType().toLowerCase().includes('live') && !isBlendedCourse(courseDetails);
+                  const sessions = courseDetails?.no_of_Sessions || courseDetails?.session_count || courseDetails?.live_sessions;
+                  if (isLive && sessions) {
+                    return (
+                      <div className={`flex items-center bg-blue-50 dark:bg-blue-900/20 rounded-lg px-3 py-2 text-sm font-medium text-blue-700 dark:text-blue-300`}>
+                        <Users className="w-4 h-4 mr-2 text-blue-500 dark:text-blue-300" aria-label="No. of Sessions" />
+                        <span className="mr-1">No. of Sessions:</span>
+                        <span>{sessions}</span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+                {/* Course Duration */}
+                {(() => {
+                  const duration = formatDuration(courseDetails);
+                  if (duration) {
+                    return (
+                      <div className={`flex items-center bg-purple-50 dark:bg-purple-900/20 rounded-lg px-3 py-2 text-sm font-medium text-purple-700 dark:text-purple-300`}>
+                        <Calendar className="w-4 h-4 mr-2 text-purple-500 dark:text-purple-300" aria-label="Course Duration" />
+                        <span className="mr-1">Duration:</span>
+                        <span>{duration}</span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+                {/* Effort Required */}
+                {(() => {
+                  const effort = formatTimeCommitment(courseDetails);
+                  if (effort) {
+                    return (
+                      <div className={`flex items-center bg-green-50 dark:bg-green-900/20 rounded-lg px-3 py-2 text-sm font-medium text-green-700 dark:text-green-300`}>
+                        <Clock className="w-4 h-4 mr-2 text-green-500 dark:text-green-300" aria-label="Effort Required" />
+                        <span className="mr-1">Effort:</span>
+                        <span>{effort}</span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+            </div>
 
             {/* Course description */}
             <div className="prose prose-emerald dark:prose-invert max-w-none mb-6 sm:mb-8">
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-100 mb-3 sm:mb-4 inline-flex items-center">
-                <div className={`w-1.5 h-6 ${getCategoryColorClasses().bg} mr-2 rounded-sm`}></div>
-                Course Overview
-              </h3>
               {(() => {
                 // Get description from various possible fields
                 // Handle both string and object formats for course_description
@@ -1097,14 +1195,11 @@ const CourseDetailsPage = ({ ...props }) => {
                 } else if (typeof courseDetails?.course_description === 'object' && courseDetails?.course_description?.program_overview) {
                   description = courseDetails.course_description.program_overview;
                 } else {
-                  description = courseDetails?.description || 
-                               courseDetails?.about || 
-                               courseDetails?.long_description || 
-                               courseDetails?.short_description || '';
+                  description = courseDetails?.course_title || '';
                 }
                 
                 // Parse the description into overview and sections
-                const { overview, sections } = parseDescription(description);
+                const { overview } = parseDescription(description);
                 
                 // Define icons for different section types
                 const sectionIcons = {
@@ -1134,89 +1229,34 @@ const CourseDetailsPage = ({ ...props }) => {
                     {/* Overview section with improved styling */}
                     {overview ? (
                       <div className="mb-8">
-                        {/* Navigation Switch */}
-                        <div className="flex items-center justify-center mb-6 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg max-w-sm mx-auto">
-                          <button
-                            onClick={() => setActiveOverviewTab('about')}
-                            className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                              activeOverviewTab === 'about'
-                                ? `bg-white dark:bg-gray-700 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400 shadow-sm`
-                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                            }`}
-                          >
-                            About This Course
-                          </button>
-                          <button
-                            onClick={() => setActiveOverviewTab('benefits')}
-                            className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                              activeOverviewTab === 'benefits'
-                                ? `bg-white dark:bg-gray-700 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400 shadow-sm`
-                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                            }`}
-                          >
-                            Benefits
-                          </button>
-                        </div>
-
-                        {/* Content based on active tab */}
-                        {activeOverviewTab === 'about' ? (
-                          <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50/70 to-${getCategoryColorClasses().primaryColor}-50/20 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 p-5 sm:p-6 rounded-xl border border-${getCategoryColorClasses().primaryColor}-100 dark:border-${getCategoryColorClasses().primaryColor}-800/30 shadow-sm`}>
-                            <div className="flex items-start sm:items-center mb-4">
-                              <div className={`flex-shrink-0 p-2 rounded-full bg-${getCategoryColorClasses().primaryColor}-100 dark:bg-${getCategoryColorClasses().primaryColor}-900/50 mr-3 shadow-sm`}>
-                                <BookOpen className={`h-5 w-5 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
-                          </div>
-                              <h4 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100">
+                        {/* Course Overview Content - controlled by activeSection */}
+                        {activeSection === 'about' && (
+                          <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50/70 to-${getCategoryColorClasses().primaryColor}-50/20 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 p-3 sm:p-4 rounded-xl border border-${getCategoryColorClasses().primaryColor}-100 dark:border-${getCategoryColorClasses().primaryColor}-800/30 shadow-sm`}>
+                            <div className="flex items-start sm:items-center mb-2 sm:mb-3">
+                              <div className={`flex-shrink-0 p-1.5 rounded-full bg-${getCategoryColorClasses().primaryColor}-100 dark:bg-${getCategoryColorClasses().primaryColor}-900/50 mr-2 sm:mr-3 shadow-sm`}>
+                                <BookOpen className={`h-4 w-4 sm:h-5 sm:w-5 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
+                              </div>
+                              <h4 className="text-sm sm:text-base font-semibold text-gray-800 dark:text-gray-100">
                                 About This Course
                               </h4>
                             </div>
                             <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed">{overview}</p>
                           </div>
-                        ) : (
-                          <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50/70 to-${getCategoryColorClasses().primaryColor}-50/20 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 p-5 sm:p-6 rounded-xl border border-${getCategoryColorClasses().primaryColor}-100 dark:border-${getCategoryColorClasses().primaryColor}-800/30 shadow-sm`}>
-                            <div className="flex items-start sm:items-center mb-4">
-                              <div className={`flex-shrink-0 p-2 rounded-full bg-${getCategoryColorClasses().primaryColor}-100 dark:bg-${getCategoryColorClasses().primaryColor}-900/50 mr-3 shadow-sm`}>
-                                <Star className={`h-5 w-5 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
+                        )}
+                        {/* What you'll get section (default features) */}
+                        {activeSection === 'about' && (!courseDetails?.features || courseDetails.features.length === 0) && (
+                          <div className="mt-8">
+                            <div className={`bg-gradient-to-r from-emerald-50/70 to-emerald-50/20 dark:from-emerald-900/20 dark:to-emerald-900/10 p-3 sm:p-4 rounded-xl border border-emerald-100 dark:border-emerald-800/30 shadow-sm mb-4`}>
+                              <div className="flex items-center mb-2">
+                                <Award className="h-5 w-5 text-emerald-500 dark:text-emerald-400 mr-2" />
+                                <h4 className="text-base sm:text-lg font-bold text-emerald-700 dark:text-emerald-300">What you'll get</h4>
                               </div>
-                              <h4 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100">
-                                Course Benefits
-                              </h4>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                              {(() => {
-                                // Get benefits from parsed sections or from the course_description.benefits field
-                                let benefitsList = sections.filter(section => section.title === 'Benefits' || section.title === 'What You\'ll Learn')
-                                  .flatMap(section => section.bullets || []);
-                                
-                                // If no benefits found in parsed sections, try to get from course_description.benefits
-                                if (benefitsList.length === 0 && courseDetails?.course_description?.benefits) {
-                                  // Split benefits by common separators and clean up
-                                  benefitsList = courseDetails.course_description.benefits
-                                    .split(/[,;.]/)
-                                    .map(benefit => benefit.trim())
-                                    .filter(benefit => benefit.length > 0);
-                                }
-                                
-                                // If still no benefits, show default message
-                                if (benefitsList.length === 0) {
-                                  benefitsList = ['Enhanced skills and knowledge', 'Industry-relevant expertise', 'Practical hands-on experience'];
-                                }
-                                
-                                return benefitsList.map((bullet, index) => (
-                                  <motion.div 
-                                    key={`benefit-${index}`}
-                                    className={`flex items-start p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-${getCategoryColorClasses().primaryColor}-200 dark:hover:border-${getCategoryColorClasses().primaryColor}-700/50 transition-all duration-300`}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.05 }}
-                                    whileHover={{ y: -2 }}
-                                  >
-                                    <div className={`p-2 rounded-full bg-${getCategoryColorClasses().primaryColor}-100 dark:bg-${getCategoryColorClasses().primaryColor}-900/30 mr-3 flex-shrink-0`}>
-                                      <Check className={`h-4 w-4 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
-                                    </div>
-                                    <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300">{bullet}</p>
-                                  </motion.div>
-                                ));
-                              })()}
+                              <ul className="grid gap-3 sm:grid-cols-2 mt-2">
+                                <li className="flex items-center gap-2 text-gray-700 dark:text-gray-200"><Check className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />Live interactive sessions</li>
+                                <li className="flex items-center gap-2 text-gray-700 dark:text-gray-200"><Check className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />Certificate of completion</li>
+                                <li className="flex items-center gap-2 text-gray-700 dark:text-gray-200"><Check className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />Lifetime access to recordings</li>
+                                <li className="flex items-center gap-2 text-gray-700 dark:text-gray-200"><Check className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />Hands-on projects & assignments</li>
+                              </ul>
                             </div>
                           </div>
                         )}
@@ -1371,6 +1411,8 @@ const CourseDetailsPage = ({ ...props }) => {
                 )}
               </div>
             </div>
+
+
 
             {/* Tools & Technologies Section */}
             {toolsTechnologies && toolsTechnologies.length > 0 && (
@@ -1551,18 +1593,7 @@ const CourseDetailsPage = ({ ...props }) => {
                   <motion.div 
                     key={index}
                     className="flex bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-300"
-                    variants={fadeIn}
-                    initial="hidden"
-                    animate="visible"
-                    custom={index}
-                    whileHover={{ y: -4 }}
-                    whileTap={{ scale: 0.98 }}
                   >
-                    <div>
-                      <span className={`flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-${getCategoryColorClasses().primaryColor}-100 to-${getCategoryColorClasses().primaryColor}-200 dark:from-${getCategoryColorClasses().primaryColor}-900/30 dark:to-${getCategoryColorClasses().primaryColor}-800/30 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400 mb-3 shadow-sm`}>
-                        {getHighlightIcon(highlight.iconName)}
-                      </span>
-                    </div>
                     <div className="ml-4 flex-1">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                         {highlight.title}
@@ -1627,7 +1658,7 @@ const CourseDetailsPage = ({ ...props }) => {
         );
         
       case 'overview':
-        const { parsedOverview, benefits } = parseDescription(description);
+        const { overview } = parseDescription(description);
         
         return (
           <motion.section 
@@ -1637,18 +1668,11 @@ const CourseDetailsPage = ({ ...props }) => {
             initial="hidden"
             animate="visible"
             key="overview-section"
-          >
-            <div className="flex items-center mb-6">
-              <div className={`w-1.5 h-6 bg-gradient-to-b from-${getCategoryColorClasses().primaryColor}-400 to-${getCategoryColorClasses().primaryColor}-500 rounded-sm mr-3`}></div>
-              <h2 className={`text-2xl font-bold bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-600 to-${getCategoryColorClasses().primaryColor}-500 bg-clip-text text-transparent`}>
-                Course Overview
-              </h2>
-            </div>
-            
+          >            
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 overflow-hidden mb-8 shadow-sm">
               <div className="p-6">
                 <div className="prose dark:prose-invert max-w-none prose-headings:font-semibold prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-700 dark:prose-p:text-gray-300">
-                  {parsedOverview.map((item, index) => {
+                  {overview.map((item, index) => {
                     if (item.type === 'paragraph') {
                       return (
                         <motion.p 
@@ -1666,55 +1690,6 @@ const CourseDetailsPage = ({ ...props }) => {
                 </div>
               </div>
             </div>
-
-            {benefits && benefits.length > 0 && (
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 overflow-hidden mb-8 shadow-sm">
-                <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-50/70 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 px-6 py-4 border-b border-gray-200 dark:border-gray-600`}>
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
-                    <CheckCircle className={`w-5 h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
-                    What You'll Learn
-                  </h3>
-                </div>
-                <div className="p-6">
-                  <ul className="space-y-4">
-                    {benefits.map((benefit, index) => {
-                      if (benefit.type === 'bullet') {
-                        return (
-                          <motion.li 
-                            key={index} 
-                            className="flex gap-3"
-                            variants={fadeIn}
-                            transition={{ delay: index * 0.08 }}
-                          >
-                            <span className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5 bg-${getCategoryColorClasses().primaryColor}-50 dark:bg-${getCategoryColorClasses().primaryColor}-900/30`}>
-                              <Check className={`h-3.5 w-3.5 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
-                            </span>
-                            <span className="text-gray-700 dark:text-gray-300">
-                              {benefit.content}
-                            </span>
-                          </motion.li>
-                        );
-                      } else if (benefit.type === 'section') {
-                        return (
-                          <motion.div 
-                            key={index} 
-                            className="mt-6 mb-3"
-                            variants={fadeIn}
-                            transition={{ delay: index * 0.08 }}
-                          >
-                            <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
-                              <span className={`inline-block w-1 h-4 bg-${getCategoryColorClasses().primaryColor}-500 dark:bg-${getCategoryColorClasses().primaryColor}-400 mr-2 rounded-sm`}></span>
-                              {benefit.content}
-                            </h4>
-                          </motion.div>
-                        );
-                      }
-                      return null;
-                    })}
-                  </ul>
-                </div>
-              </div>
-            )}
           </motion.section>
         );
         
@@ -1759,6 +1734,97 @@ const CourseDetailsPage = ({ ...props }) => {
           </motion.section>
         );
         
+      case 'benefits':
+        return (
+          <motion.section 
+            ref={aboutRef} 
+            id="benefits" 
+            className="pb-6"
+            variants={fadeIn}
+            initial="hidden"
+            animate="visible"
+            key="benefits-section"
+          >
+            {/* Course Key Info Row - Only show details not already in header/nav */}
+            <div className="mb-6">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 items-start sm:items-center">
+                {/* No. of Sessions (Live only) */}
+                {(() => {
+                  const isLive = getClassType().toLowerCase().includes('live') && !isBlendedCourse(courseDetails);
+                  const sessions = courseDetails?.no_of_Sessions;
+                  if (isLive && sessions) {
+                    return (
+                      <div className={`flex items-center bg-blue-50 dark:bg-blue-900/20 rounded-lg px-3 py-2 text-sm font-medium text-blue-700 dark:text-blue-300`}>
+                        <Users className="w-4 h-4 mr-2 text-blue-500 dark:text-blue-300" aria-label="No. of Sessions" />
+                        <span className="mr-1">No. of Sessions:</span>
+                        <span>{sessions}</span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+                {/* Course Duration */}
+                {(() => {
+                  const duration = formatDuration(courseDetails);
+                  if (duration) {
+                    return (
+                      <div className={`flex items-center bg-purple-50 dark:bg-purple-900/20 rounded-lg px-3 py-2 text-sm font-medium text-purple-700 dark:text-purple-300`}>
+                        <Calendar className="w-4 h-4 mr-2 text-purple-500 dark:text-purple-300" aria-label="Course Duration" />
+                        <span className="mr-1">Duration:</span>
+                        <span>{duration}</span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+                {/* Effort Required */}
+                {(() => {
+                  const effort = formatTimeCommitment(courseDetails);
+                  if (effort) {
+                    return (
+                      <div className={`flex items-center bg-green-50 dark:bg-green-900/20 rounded-lg px-3 py-2 text-sm font-medium text-green-700 dark:text-green-300`}>
+                        <Clock className="w-4 h-4 mr-2 text-green-500 dark:text-green-300" aria-label="Effort Required" />
+                        <span className="mr-1">Effort:</span>
+                        <span>{effort}</span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+            </div>
+
+            {/* Benefits/Features List */}
+            <div className={`bg-gradient-to-r from-emerald-50/70 to-emerald-50/20 dark:from-emerald-900/20 dark:to-emerald-900/10 p-3 sm:p-4 rounded-xl border border-emerald-100 dark:border-emerald-800/30 shadow-sm mb-4`}>
+              <div className="flex items-center mb-2">
+                <Award className="h-5 w-5 text-emerald-500 dark:text-emerald-400 mr-2" />
+                <h4 className="text-base sm:text-lg font-bold text-emerald-700 dark:text-emerald-300">Course Benefits</h4>
+              </div>
+              <ul className="grid gap-3 sm:grid-cols-2 mt-2">
+                {(courseDetails?.features && courseDetails.features.length > 0
+                  ? courseDetails.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
+                        <Check className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+                        {typeof feature === 'string' ? feature : feature.title || ''}
+                      </li>
+                    ))
+                  : [
+                      'Live interactive sessions',
+                      'Certificate of completion',
+                      'Lifetime access to recordings',
+                      'Hands-on projects & assignments',
+                    ].map((item, idx) => (
+                      <li key={idx} className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
+                        <Check className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+                        {item}
+                      </li>
+                    ))
+                )}
+              </ul>
+            </div>
+          </motion.section>
+        );
+        
       default:
         return (
           <motion.div 
@@ -1780,7 +1846,7 @@ const CourseDetailsPage = ({ ...props }) => {
   return (
     <>
       {/* Course Header with Mobile-Optimized Design */}
-      <div className="relative py-4 sm:py-8 md:py-10 px-0 sm:px-6 md:px-8 mb-3 sm:mb-6 md:mb-8">
+      <div className="relative py-2 sm:py-4 md:py-6 px-0 sm:px-4 md:px-6 mb-2 sm:mb-4 md:mb-6">
         <motion.div
           className="relative z-10"
           initial={{ opacity: 0, y: 10 }}
@@ -1788,27 +1854,27 @@ const CourseDetailsPage = ({ ...props }) => {
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
           {/* Glassmorphic Container - Mobile Optimized - Edge-to-edge mobile */}
-          <div className="relative backdrop-blur-lg sm:backdrop-blur-xl bg-gradient-to-br from-white/80 via-white/60 to-white/80 dark:from-gray-800/80 dark:via-gray-700/60 dark:to-gray-800/80 rounded-none sm:rounded-2xl p-4 sm:p-8 md:p-10 shadow-none sm:shadow-2xl border-0 sm:border border-white/60 dark:border-gray-600/60 overflow-hidden">
+          <div className="relative backdrop-blur-lg sm:backdrop-blur-xl bg-gradient-to-br from-white/80 via-white/60 to-white/80 dark:from-gray-800/80 dark:via-gray-700/60 dark:to-gray-800/80 rounded-none sm:rounded-2xl p-3 sm:p-5 md:p-6 shadow-none sm:shadow-2xl border-0 sm:border border-white/60 dark:border-gray-600/60 overflow-hidden">
                 {/* Mobile-Optimized Background Elements */}
                 <div className={`absolute -top-20 -right-20 sm:-top-32 sm:-right-32 w-32 h-32 sm:w-56 sm:h-56 rounded-full bg-gradient-to-br from-${getCategoryColorClasses().primaryColor}-300/25 via-${getCategoryColorClasses().primaryColor}-400/15 to-blue-300/25 dark:from-${getCategoryColorClasses().primaryColor}-500/20 dark:via-${getCategoryColorClasses().primaryColor}-600/10 dark:to-blue-500/20 blur-2xl sm:blur-3xl animate-pulse`}></div>
                 <div className={`absolute -bottom-20 -left-20 sm:-bottom-32 sm:-left-32 w-32 h-32 sm:w-56 sm:h-56 rounded-full bg-gradient-to-tr from-purple-300/25 via-${getCategoryColorClasses().primaryColor}-300/15 to-rose-300/25 dark:from-purple-500/20 dark:via-${getCategoryColorClasses().primaryColor}-500/10 dark:to-rose-500/20 blur-2xl sm:blur-3xl animate-pulse`} style={{ animationDelay: '1s' }}></div>
                 
                 {/* Content with Mobile-First Spacing */}
-                <div className="relative z-10 space-y-4 sm:space-y-6">
+                <div className="relative z-10 space-y-3 sm:space-y-4">
                   {/* Mobile-Optimized Title Section */}
                   <div className="text-center">
-                    <h1 className={`text-xl sm:text-3xl lg:text-4xl xl:text-5xl font-black mb-2 sm:mb-3 leading-tight bg-gradient-to-r from-gray-900 via-${getCategoryColorClasses().primaryColor}-800 to-gray-900 dark:from-white dark:via-${getCategoryColorClasses().primaryColor}-200 dark:to-white bg-clip-text text-transparent`}>
+                    <h1 className={`text-xl sm:text-3xl lg:text-4xl xl:text-5xl font-black mb-1 sm:mb-2 leading-tight bg-gradient-to-r from-gray-900 via-${getCategoryColorClasses().primaryColor}-800 to-gray-900 dark:from-white dark:via-${getCategoryColorClasses().primaryColor}-200 dark:to-white bg-clip-text text-transparent`}>
                       {courseDetails?.course_title}
                     </h1>
                     
                     {/* Mobile-Friendly Separator */}
-                    <div className="flex justify-center my-3 sm:my-4">
+                    <div className="flex justify-center my-2 sm:my-3">
                       <div className={`w-16 sm:w-24 md:w-32 h-0.5 sm:h-1 bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-500 via-${getCategoryColorClasses().primaryColor}-400 to-${getCategoryColorClasses().primaryColor}-500 rounded-full shadow-sm sm:shadow-lg`}></div>
                     </div>
                   </div>
                     
                   {/* Course Video Player - Mobile Optimized - Edge-to-edge mobile */}
-                  <div className="bg-gradient-to-br from-gray-50/40 to-white/40 dark:from-gray-700/40 dark:to-gray-800/40 rounded-none sm:rounded-xl p-2 sm:p-3 md:p-4 border-0 sm:border border-gray-200/40 dark:border-gray-600/40 shadow-none sm:shadow-inner">
+                  <div className="bg-gradient-to-br from-gray-50/40 to-white/40 dark:from-gray-700/40 dark:to-gray-800/40 rounded-none sm:rounded-xl p-1 sm:p-2 md:p-3 border-0 sm:border border-gray-200/40 dark:border-gray-600/40 shadow-none sm:shadow-inner">
                     <CourseVideoPlayer 
                       courseId={courseId}
                       courseTitle={courseDetails?.course_title}
@@ -1819,24 +1885,24 @@ const CourseDetailsPage = ({ ...props }) => {
                     />
                   </div>
                     
-                  {/* Mobile-First Feature Indicators - Two Column Layout for Mobile */}
-                  <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 md:gap-4 justify-center px-4 sm:px-0">
-                    {/* Duration - 3 months / 12 weeks - Only show for non-blended courses */}
-                    {!isBlendedCourse(courseDetails) && (
-                      <div className={`flex items-center justify-center sm:justify-start px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-100/70 dark:from-${getCategoryColorClasses().primaryColor}-900/30 dark:to-${getCategoryColorClasses().primaryColor}-800/30 rounded-lg sm:rounded-xl shadow-sm sm:shadow-md border border-${getCategoryColorClasses().primaryColor}-200/50 dark:border-${getCategoryColorClasses().primaryColor}-700/50 backdrop-blur-sm col-span-1`}>
-                        <Clock className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400 mr-2 flex-shrink-0`} />
-                        <span className={`text-xs sm:text-sm font-semibold text-${getCategoryColorClasses().primaryColor}-700 dark:text-${getCategoryColorClasses().primaryColor}-300 text-center sm:text-left`}>
-                          {courseDetails?.course_duration}
-                        </span>
-                      </div>
-                    )}
-
+                  {/* Course Navigation - Replacing Duration Display */}
+                  <div className="px-2 sm:px-0">
+                    <CourseNavigation 
+                      activeSection={activeSection} 
+                      scrollToSection={scrollToSection} 
+                      showCertificate={hasCertificate()}
+                      primaryColor={getCategoryColorClasses().primaryColor}
+                      categoryColorClasses={getCategoryColorClasses()}
+                      showDownloadBrochure={hasBrochure()}
+                      onDownloadBrochure={() => setShowBrochureModal(true)}
+                      compact={true}
+                    />
                   </div>
 
                   {/* Course Selection Component - Mobile Enhanced */}
                   {props.courseSelectionComponent && (
-                    <div className="mt-4 sm:mt-6 block lg:hidden px-4 sm:px-0">
-                      <div className="bg-gradient-to-br from-gray-50/90 to-white/90 dark:from-gray-700/90 dark:to-gray-800/90 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-200/70 dark:border-gray-600/70 shadow-md backdrop-blur-sm">
+                    <div className="mt-2 sm:mt-3 block lg:hidden px-2 sm:px-0">
+                      <div className="bg-gradient-to-br from-gray-50/90 to-white/90 dark:from-gray-700/90 dark:to-gray-800/90 rounded-lg sm:rounded-xl p-2 sm:p-3 border border-gray-200/70 dark:border-gray-600/70 shadow-md backdrop-blur-sm">
                         {props.courseSelectionComponent}
                       </div>
                     </div>
@@ -1846,18 +1912,7 @@ const CourseDetailsPage = ({ ...props }) => {
         </motion.div>
       </div>
 
-      {/* Navigation - Edge-to-edge mobile */}
-      <div className="sticky top-14 z-40 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 py-2">
-        <CourseNavigation 
-          activeSection={activeSection} 
-          scrollToSection={scrollToSection} 
-          showCertificate={hasCertificate()}
-          primaryColor={getCategoryColorClasses().primaryColor}
-          categoryColorClasses={getCategoryColorClasses()}
-          showDownloadBrochure={hasBrochure()}
-          onDownloadBrochure={() => setShowBrochureModal(true)}
-        />
-      </div>
+
 
       {/* Content Area - Edge-to-edge mobile */}
       <div className="pt-2 sm:pt-4 pb-4 px-0 sm:px-4 md:px-6 lg:px-8">
