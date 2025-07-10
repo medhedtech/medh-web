@@ -504,6 +504,12 @@ const CourseDetailsPage = ({ ...props }) => {
 
   // Updated to just change the active section state without scrolling
   const scrollToSection = (sectionId) => {
+    if (sectionId === 'benefits') {
+      setActiveOverviewTab('benefits');
+    } else if (sectionId === 'about') {
+      setActiveOverviewTab('about');
+    }
+
     setActiveSection(sectionId);
   };
   
@@ -1063,6 +1069,7 @@ const CourseDetailsPage = ({ ...props }) => {
   const renderActiveSection = () => {
     switch(activeSection) {
       case 'about':
+      case 'benefits':
         return (
           <motion.section 
             ref={aboutRef} 
@@ -1724,149 +1731,20 @@ const CourseDetailsPage = ({ ...props }) => {
             <div className="flex items-center mb-6">
               <div className={`w-1.5 h-6 bg-gradient-to-b from-${getCategoryColorClasses().primaryColor}-400 to-${getCategoryColorClasses().primaryColor}-500 rounded-sm mr-3`}></div>
               <h2 className={`text-2xl font-bold bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-600 to-${getCategoryColorClasses().primaryColor}-500 bg-clip-text text-transparent`}>
-                Enrollment Details
+                Enrollment
               </h2>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 mb-8">
-              <motion.div 
-                className="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow"
-                variants={fadeIn}
-                transition={{ delay: 0.1 }}
-                whileHover={{ y: -4 }}
-              >
-                <div className={`w-12 h-12 rounded-full bg-${getCategoryColorClasses().primaryColor}-50 dark:bg-${getCategoryColorClasses().primaryColor}-900/30 flex items-center justify-center mb-4`}>
-                  <Calendar className={`h-6 w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Duration</h3>
-                <p className="text-gray-600 dark:text-gray-300">{duration || 'Flexible'}</p>
-              </motion.div>
-              
-              <motion.div 
-                className="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow"
-                variants={fadeIn}
-                transition={{ delay: 0.2 }}
-                whileHover={{ y: -4 }}
-              >
-                <div className={`w-12 h-12 rounded-full bg-${getCategoryColorClasses().primaryColor}-50 dark:bg-${getCategoryColorClasses().primaryColor}-900/30 flex items-center justify-center mb-4`}>
-                  <Clock className={`h-6 w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Time Commitment</h3>
-                <p className="text-gray-600 dark:text-gray-300">{commitment || '10-15 hours/week'}</p>
-              </motion.div>
-              
-              <motion.div 
-                className="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow"
-                variants={fadeIn}
-                transition={{ delay: 0.3 }}
-                whileHover={{ y: -4 }}
-              >
-                <div className={`w-12 h-12 rounded-full bg-${getCategoryColorClasses().primaryColor}-50 dark:bg-${getCategoryColorClasses().primaryColor}-900/30 flex items-center justify-center mb-4`}>
-                  <Banknote className={`h-6 w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Price</h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  {price ? (
-                    <>
-                      {price !== originalPrice && originalPrice ? (
-                        <>
-                          <span className="inline-block bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-2 py-1 rounded text-sm font-medium mr-2">
-                            Save {Math.round(100 - (price / originalPrice * 100))}%
-                          </span>
-                          <span className="text-base font-bold text-gray-800 dark:text-white mr-2">₹{price.toLocaleString()}</span>
-                          <span className="text-sm text-gray-500 dark:text-gray-400 line-through">₹{originalPrice.toLocaleString()}</span>
-                        </>
-                      ) : (
-                        <span className="text-base font-bold text-gray-800 dark:text-white">₹{price.toLocaleString()}</span>
-                      )}
-                    </>
-                  ) : (
-                    'Contact for pricing'
-                  )}
-                </p>
-              </motion.div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-              <motion.div 
-                className="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow"
-                variants={fadeIn}
-                transition={{ delay: 0.4 }}
-              >
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-                  <Users className={`h-5 w-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
-                  Prerequisites
-                </h3>
-                {prerequisites && prerequisites.length > 0 ? (
-                  <ul className="space-y-2">
-                    {prerequisites.map((prereq, index) => (
-                      <motion.li 
-                        key={index} 
-                        className="flex items-start gap-3"
-                        variants={fadeIn}
-                        transition={{ delay: 0.4 + (index * 0.1) }}
-                      >
-                        <ArrowRight className={`h-4 w-4 mt-1 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400 flex-shrink-0`} fill="currentColor" fillOpacity={0.2} />
-                        <span className="text-gray-600 dark:text-gray-300">
-                          {prereq}
-                        </span>
-                      </motion.li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-gray-600 dark:text-gray-300">No specific prerequisites required.</p>
-                )}
-              </motion.div>
-              
-              <motion.div 
-                className="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow"
-                variants={fadeIn}
-                transition={{ delay: 0.5 }}
-              >
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-                  <Award className={`h-5 w-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
-                  Certification
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300 mb-4">
-                  {certification || 'Upon successful completion of the course, you will receive a verified certificate of achievement.'}
-                </p>
-                {hasCertificate && (
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-${getCategoryColorClasses().primaryColor}-50 dark:bg-${getCategoryColorClasses().primaryColor}-900/30 text-${getCategoryColorClasses().primaryColor}-700 dark:text-${getCategoryColorClasses().primaryColor}-300`}>
-                    <CheckCircle className="w-4 h-4 mr-1.5" fill="currentColor" fillOpacity={0.2} />
-                    Industry Recognized Certificate
-                  </span>
-                )}
-              </motion.div>
-            </div>
-
-            {enrollmentDeadline && (
-              <motion.div 
-                className={`bg-${getCategoryColorClasses().primaryColor}-50 dark:bg-${getCategoryColorClasses().primaryColor}-900/10 border border-${getCategoryColorClasses().primaryColor}-100 dark:border-${getCategoryColorClasses().primaryColor}-900/20 rounded-lg p-4 mb-8 flex items-center`}
-                variants={fadeIn}
-                transition={{ delay: 0.6 }}
-              >
-                <div className={`p-2 rounded-full bg-${getCategoryColorClasses().primaryColor}-100 dark:bg-${getCategoryColorClasses().primaryColor}-900/30 mr-3`}>
-                  <Clock className={`h-5 w-5 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
-                </div>
-                <div>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    <strong className="font-medium">Enrollment Deadline:</strong> {enrollmentDeadline}
-                  </p>
-                </div>
-              </motion.div>
-            )}
             
-            <div className="flex flex-col md:flex-row gap-4">
-              <motion.button
-                className={`flex-1 inline-flex justify-center items-center px-6 py-3.5 bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-600 to-${getCategoryColorClasses().primaryColor}-500 hover:from-${getCategoryColorClasses().primaryColor}-700 hover:to-${getCategoryColorClasses().primaryColor}-600 text-white font-medium text-base rounded-lg shadow-sm hover:shadow-md transition-all duration-300`}
-                onClick={handleEnroll}
-                variants={fadeIn}
-                transition={{ delay: 0.7 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                Enroll Now
-              </motion.button>
-              
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 p-6 text-center">
+              <div className="inline-flex items-center justify-center p-3 bg-gray-50 dark:bg-gray-700 rounded-full mb-4">
+                <Users className={`h-6 w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                Ready to Enroll?
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-6">
+                Join thousands of students who have transformed their careers with this course.
+              </p>
               <motion.button
                 className="flex-1 md:flex-none inline-flex justify-center items-center px-6 py-3.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 font-medium text-base rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300"
                 onClick={() => showToast.success("Added to wishlist!", { icon: "❤️" })}
@@ -1956,29 +1834,6 @@ const CourseDetailsPage = ({ ...props }) => {
                       </div>
                     )}
 
-                    {/* Sessions - 24 Sessions */}
-                    <div className="flex items-center justify-center sm:justify-start px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-purple-50 to-purple-100/70 dark:from-purple-900/30 dark:to-purple-800/30 rounded-lg sm:rounded-xl shadow-sm sm:shadow-md border border-purple-200/50 dark:border-purple-700/50 backdrop-blur-sm col-span-1">
-                      <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-600 dark:text-purple-400 mr-2 flex-shrink-0" />
-                      <span className="text-xs sm:text-sm font-semibold text-purple-700 dark:text-purple-300 text-center sm:text-left">
-                        24 Sessions
-                      </span>
-                    </div>
-                    
-                    {/* Certificate Included */}
-                    <div className={`flex items-center justify-center sm:justify-start px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-emerald-50 to-emerald-100/70 dark:from-emerald-900/30 dark:to-emerald-800/30 rounded-lg sm:rounded-xl shadow-sm sm:shadow-md border border-emerald-200/50 dark:border-emerald-700/50 backdrop-blur-sm col-span-1`}>
-                      <Award className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600 dark:text-emerald-400 mr-2 flex-shrink-0`} />
-                      <span className="text-xs sm:text-sm font-semibold text-emerald-700 dark:text-emerald-300 text-center sm:text-left">
-                        Certificate Included
-                      </span>
-                    </div>
-                    
-                    {/* Lifetime Access */}
-                    <div className={`flex items-center justify-center sm:justify-start px-3 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-blue-50 to-blue-100/70 dark:from-blue-900/30 dark:to-blue-800/30 rounded-lg sm:rounded-xl shadow-sm sm:shadow-md border border-blue-200/50 dark:border-blue-700/50 backdrop-blur-sm col-span-1`}>
-                      <BookOpen className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400 mr-2 flex-shrink-0`} />
-                      <span className="text-xs sm:text-sm font-semibold text-blue-700 dark:text-blue-300 text-center sm:text-left">
-                        Lifetime Access
-                      </span>
-                    </div>
                   </div>
 
                   {/* Course Selection Component - Mobile Enhanced */}
