@@ -765,194 +765,192 @@ const JobPositions: React.FC<IJobPositionsProps> = ({ positions }) => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        {/* Header Section */}
-        <div className="text-center mb-16">
-          <motion.h2 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 dark:from-white dark:via-gray-200 dark:to-white bg-clip-text text-transparent mb-6"
-          >
-            Current Openings
-          </motion.h2>
-          <motion.p 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed"
-          >
-            Find your perfect role and join our mission to transform education through innovation
-          </motion.p>
-        </div>
+    <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-0 mb-12 mx-4 md:mx-16">
+      {/* Header Section */}
+      <div className="text-center mb-16">
+        <motion.h2 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 dark:from-white dark:via-gray-200 dark:to-white bg-clip-text text-transparent mb-6 pt-6"
+        >
+          Current Openings
+        </motion.h2>
+        <motion.p 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed"
+        >
+          Find your perfect role and join our mission to transform education through innovation
+        </motion.p>
+      </div>
 
-        {/* Main Content Grid - Form and Search */}
-        <div className="grid grid-cols-1 gap-8 lg:gap-12">
-          {/* Search and Job Listings - Full Width */}
-          <div className="w-full">
-            {/* Search and Filters */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl p-6 mb-8 shadow-lg border border-gray-200/20 dark:border-gray-700/20"
-            >
-              <div className="flex flex-col lg:flex-row gap-4">
-                <div className="relative flex-1">
-                  <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
-                  <input
-                    type="text"
-                    placeholder="Search positions..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
-                  />
-                </div>
-                <div className="flex flex-col sm:flex-row gap-4 lg:w-auto">
-                  <select
-                    value={selectedDepartment}
-                    onChange={(e) => setSelectedDepartment(e.target.value)}
-                    className="px-4 py-4 rounded-xl border border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm min-w-[140px]"
-                  >
-                    {departments.map(dept => (
-                      <option key={dept} value={dept}>{dept}</option>
-                    ))}
-                  </select>
-                  <select
-                    value={selectedLocation}
-                    onChange={(e) => setSelectedLocation(e.target.value)}
-                    className="px-4 py-4 rounded-xl border border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm min-w-[140px]"
-                  >
-                    {locations.map(loc => (
-                      <option key={loc} value={loc}>{loc}</option>
-                    ))}
-                  </select>
-                </div>
+      {/* Main Content Grid - Form and Search */}
+      <div className="grid grid-cols-1 gap-8 lg:gap-12">
+        {/* Search and Job Listings - Full Width */}
+        <div className="w-full">
+          {/* Search and Filters */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl p-6 mb-8 shadow-lg border border-gray-200/20 dark:border-gray-700/20"
+          >
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="relative flex-1">
+                <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
+                <input
+                  type="text"
+                  placeholder="Search positions..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                />
               </div>
-            </motion.div>
-
-            {/* Job Listings */}
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="grid gap-6 md:grid-cols-2 xl:grid-cols-3"
-            >
-              {jobs.map((job, index) => (
-                <motion.div
-                  key={job.id}
-                  variants={itemVariants}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200/20 dark:border-gray-700/20 group hover:-translate-y-1"
+              <div className="flex flex-col sm:flex-row gap-4 lg:w-auto">
+                <select
+                  value={selectedDepartment}
+                  onChange={(e) => setSelectedDepartment(e.target.value)}
+                  className="px-4 py-4 rounded-xl border border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm min-w-[140px]"
                 >
-                  <div className="p-8">
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6">
-                      <div className="flex items-center gap-3 mb-4 sm:mb-0">
-                        <div className="w-12 h-12 bg-gradient-to-r from-primary-500 to-blue-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                          <FaBriefcase className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                          <span className="inline-block px-4 py-2 text-sm font-semibold text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/40 rounded-full mb-2">
-                            {job.employmentType}
-                          </span>
-                        </div>
-                      </div>
-                      <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                        {job.postedDate}
-                      </span>
-                    </div>
-                    
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                      {job.title}
-                    </h3>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                      <div className="flex items-center text-gray-600 dark:text-gray-300">
-                        <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mr-3">
-                          <FaBriefcase className="w-4 h-4" />
-                        </div>
-                        <span className="font-medium">{job.department}</span>
-                      </div>
-                      <div className="flex items-center text-gray-600 dark:text-gray-300">
-                        <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mr-3">
-                          <FaMapMarkerAlt className="w-4 h-4" />
-                        </div>
-                        <span className="font-medium">{job.location}</span>
-                      </div>
-                      {job.salary && (
-                        <div className="flex items-center text-gray-600 dark:text-gray-300 sm:col-span-2">
-                          <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mr-3">
-                            <FaDollarSign className="w-4 h-4" />
-                          </div>
-                          <span className="font-medium">{job.salary}</span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <p className="text-gray-600 dark:text-gray-300 mb-8 leading-relaxed line-clamp-3">
-                      {job.description}
-                    </p>
-                    
-                    <div className="flex flex-col gap-3">
-                      <Link 
-                        href={`/careers/${job.id}`}
-                        className="w-full inline-flex items-center justify-center px-6 py-4 bg-gradient-to-r from-primary-500 to-blue-500 text-white rounded-xl hover:from-primary-600 hover:to-blue-600 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl group/btn"
-                      >
-                        View Details
-                        <FaChevronRightIcon className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-                      </Link>
-                      <button
-                        onClick={() => handleApply(job.id)}
-                        className="w-full inline-flex items-center justify-center px-6 py-4 border-2 border-primary-500 text-primary-500 rounded-xl hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all duration-200 font-semibold hover:border-primary-600 hover:text-primary-600"
-                      >
-                        Quick Apply
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-
-            {/* No Results Message */}
-            {jobs.length === 0 && !isLoading && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="text-center py-16"
-              >
-                <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <FaSearch className="w-10 h-10 text-gray-400" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-                  No positions found
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300 text-lg">
-                  Try adjusting your search criteria or check back later for new opportunities
-                </p>
-              </motion.div>
-            )}
-
-            {/* Loading State */}
-            {isLoading && (
-              <div className="text-center py-16">
-                <Preloader />
+                  {departments.map(dept => (
+                    <option key={dept} value={dept}>{dept}</option>
+                  ))}
+                </select>
+                <select
+                  value={selectedLocation}
+                  onChange={(e) => setSelectedLocation(e.target.value)}
+                  className="px-4 py-4 rounded-xl border border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm min-w-[140px]"
+                >
+                  {locations.map(loc => (
+                    <option key={loc} value={loc}>{loc}</option>
+                  ))}
+                </select>
               </div>
-            )}
+            </div>
+          </motion.div>
 
-            {/* Error State */}
-            {error && (
+          {/* Job Listings */}
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid gap-6 md:grid-cols-2 xl:grid-cols-3"
+          >
+            {jobs.map((job, index) => (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-16"
+                key={job.id}
+                variants={itemVariants}
+                transition={{ delay: index * 0.1 }}
+                className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200/20 dark:border-gray-700/20 group hover:-translate-y-1"
               >
-                <div className="w-24 h-24 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <FaTimes className="w-10 h-10 text-red-500" />
+                <div className="p-8">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6">
+                    <div className="flex items-center gap-3 mb-4 sm:mb-0">
+                      <div className="w-12 h-12 bg-gradient-to-r from-primary-500 to-blue-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <FaBriefcase className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <span className="inline-block px-4 py-2 text-sm font-semibold text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/40 rounded-full mb-2">
+                          {job.employmentType}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                      {job.postedDate}
+                    </span>
+                  </div>
+                  
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                    {job.title}
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <div className="flex items-center text-gray-600 dark:text-gray-300">
+                      <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mr-3">
+                        <FaBriefcase className="w-4 h-4" />
+                      </div>
+                      <span className="font-medium">{job.department}</span>
+                    </div>
+                    <div className="flex items-center text-gray-600 dark:text-gray-300">
+                      <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mr-3">
+                        <FaMapMarkerAlt className="w-4 h-4" />
+                      </div>
+                      <span className="font-medium">{job.location}</span>
+                    </div>
+                    {job.salary && (
+                      <div className="flex items-center text-gray-600 dark:text-gray-300 sm:col-span-2">
+                        <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mr-3">
+                          <FaDollarSign className="w-4 h-4" />
+                        </div>
+                        <span className="font-medium">{job.salary}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <p className="text-gray-600 dark:text-gray-300 mb-8 leading-relaxed line-clamp-3">
+                    {job.description}
+                  </p>
+                  
+                  <div className="flex flex-col gap-3">
+                    <Link 
+                      href={`/careers/${job.id}`}
+                      className="w-full inline-flex items-center justify-center px-6 py-4 bg-gradient-to-r from-primary-500 to-blue-500 text-white rounded-xl hover:from-primary-600 hover:to-blue-600 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl group/btn"
+                    >
+                      View Details
+                      <FaChevronRightIcon className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
+                    </Link>
+                    <button
+                      onClick={() => handleApply(job.id)}
+                      className="w-full inline-flex items-center justify-center px-6 py-4 border-2 border-primary-500 text-primary-500 rounded-xl hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all duration-200 font-semibold hover:border-primary-600 hover:text-primary-600"
+                    >
+                      Quick Apply
+                    </button>
+                  </div>
                 </div>
-                <p className="text-red-500 text-lg font-medium">{error}</p>
               </motion.div>
-            )}
-          </div>
+            ))}
+          </motion.div>
+
+          {/* No Results Message */}
+          {jobs.length === 0 && !isLoading && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-16"
+            >
+              <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FaSearch className="w-10 h-10 text-gray-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                No positions found
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300 text-lg">
+                Try adjusting your search criteria or check back later for new opportunities
+              </p>
+            </motion.div>
+          )}
+
+          {/* Loading State */}
+          {isLoading && (
+            <div className="text-center py-16">
+              <Preloader />
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-16"
+            >
+              <div className="w-24 h-24 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FaTimes className="w-10 h-10 text-red-500" />
+              </div>
+              <p className="text-red-500 text-lg font-medium">{error}</p>
+            </motion.div>
+          )}
         </div>
       </div>
 

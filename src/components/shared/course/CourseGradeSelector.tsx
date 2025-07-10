@@ -193,16 +193,16 @@ const CourseGradeSelector: React.FC<CourseGradeSelectorProps> = ({
       {/* Dropdown */}
       <AnimatePresence>
         {isOpen && !loading && courses.length > 0 && (
-                     <motion.div
-             initial={{ height: 0, opacity: 0 }}
-             animate={{ height: 'auto', opacity: 1 }}
-             exit={{ height: 0, opacity: 0 }}
-             transition={{ duration: 0.3 }}
-             className="absolute z-50 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-b-xl shadow-lg max-h-96 overflow-hidden"
-           >
-                         {/* Header with search and filters */}
-             {(showSearch || showGradeFilter) && (
-               <div className="p-4 border-b border-gray-200 dark:border-gray-700 space-y-3">
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="absolute z-50 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-b-xl shadow-lg max-h-96 overflow-hidden"
+          >
+            {/* Header with search and filters */}
+            {(showSearch || showGradeFilter) && (
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700 space-y-3">
                 {/* Search Input */}
                 {showSearch && (
                   <div className="relative">
@@ -259,25 +259,25 @@ const CourseGradeSelector: React.FC<CourseGradeSelectorProps> = ({
               </div>
             )}
 
-                         {/* Course List */}
-             <div className="p-4 space-y-3 max-h-96 overflow-y-auto">
-               {filteredCourses.length > 0 ? (
-                 <AnimatePresence mode="wait">
-                   {filteredCourses.map((course, index) => (
-                     <motion.div
-                       key={course._id}
-                       initial={{ opacity: 0, y: 10 }}
-                       animate={{ opacity: 1, y: 0 }}
-                       exit={{ opacity: 0, y: -10 }}
-                       transition={{ duration: 0.3, delay: index * 0.05 }}
-                       onClick={() => handleCourseSelect(course._id)}
-                       whileHover={{ scale: 1.01 }}
-                       whileTap={{ scale: 0.99 }}
-                       className={`relative p-4 rounded-xl cursor-pointer transition-all duration-300 ${
-                         selectedCourse === course._id
-                           ? 'bg-blue-50 dark:bg-blue-900/20 shadow-lg ring-2 ring-blue-500/20 dark:ring-blue-400/20 transform scale-[1.01]'
-                           : 'border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md'
-                       }`}
+            {/* Course List */}
+            <div className="p-4 space-y-3 max-h-96 overflow-y-auto">
+              {filteredCourses.length > 0 ? (
+                <AnimatePresence mode="wait">
+                  {filteredCourses.map((course, index) => (
+                    <motion.div
+                      key={course._id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      onClick={() => handleCourseSelect(course._id)}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                      className={`relative p-4 rounded-xl cursor-pointer transition-all duration-300 ${
+                        selectedCourse === course._id
+                          ? 'bg-blue-50 dark:bg-blue-900/20 shadow-lg ring-2 ring-blue-500/20 dark:ring-blue-400/20 transform scale-[1.01]'
+                          : 'border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md'
+                      }`}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
@@ -285,14 +285,14 @@ const CourseGradeSelector: React.FC<CourseGradeSelectorProps> = ({
                             {course.course_title}
                           </h4>
                           
-                                                     {/* Course Grade - Prominently displayed */}
-                           {course.course_grade && (
-                             <div className="mb-3">
-                               <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200 border-emerald-200 dark:border-emerald-700">
-                                 {formatCourseGrade(course.course_grade)}
-                               </span>
-                             </div>
-                           )}
+                          {/* Course Grade - Prominently displayed */}
+                          {course.course_grade && (
+                            <div className="mb-3">
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200 border-emerald-200 dark:border-emerald-700">
+                                {formatCourseGrade(course.course_grade)}
+                              </span>
+                            </div>
+                          )}
                           
                           {/* Course Details */}
                           <div className="flex flex-wrap items-center gap-3 text-xs text-gray-600 dark:text-gray-400 mb-3">
