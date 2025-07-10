@@ -45,13 +45,13 @@ const fadeInRight = {
 
 const beliefs: IBelief[] = [
   {
-    text: "🌍 Passionate about transforming education globally"
+    text: "Passionate about transforming education globally"
   },
   {
-    text: "🎯 Fun learning through technology + pedagogy fusion"
+    text: "Fun learning through technology + pedagogy fusion"
   },
   {
-    text: "⚡ Data-driven insights for innovative solutions"
+    text: "Data-driven insights for innovative solutions"
   }
 ];
 
@@ -59,7 +59,7 @@ const cards: ICard[] = [
   {
     title: "VISION",
     icon: <Lightbulb className="w-5 h-5" />,
-    content: "🚀 Lead EdTech → Empower individuals → Every life stage (childhood to career)",
+    content: "Lead EdTech → Empower individuals → Every life stage (childhood to career)",
     color: "text-amber-600 dark:text-amber-400",
     bgColor: "bg-amber-100 dark:bg-amber-900/30",
     gradientFrom: "from-amber-600",
@@ -68,7 +68,7 @@ const cards: ICard[] = [
   {
     title: "MISSION",
     icon: <RefreshCw className="w-5 h-5" />,
-    content: "💡 AI-powered learning • Industry certifications • Expert collaborations = Professional growth",
+    content: "AI-powered learning • Industry certifications • Expert collaborations = Professional growth",
     color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-100 dark:bg-blue-900/30",
     gradientFrom: "from-blue-600",
@@ -243,34 +243,12 @@ const AtMedh: React.FC = () => {
             {/* Vision and Mission Cards - Enhanced */}
             <div className="grid md:grid-cols-2 gap-6 md:gap-8">
               {cards.map((card, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 + index * 0.1 }}
-                  whileHover={{ scale: 1.02 }}
-                  onHoverStart={() => setHoveredCard(index)}
-                  onHoverEnd={() => setHoveredCard(null)}
-                  className="relative"
-                >
-                  <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-xl md:rounded-2xl border border-white/50 dark:border-slate-600/50 p-6 md:p-8 shadow-xl shadow-slate-200/20 dark:shadow-slate-900/30 hover:shadow-2xl transition-all duration-300 h-full">
-                    {/* Animated background gradient */}
-                    <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br ${card.gradientFrom} ${card.gradientTo} opacity-10 rounded-full blur-3xl transform translate-x-10 -translate-y-10 ${hoveredCard === index ? 'scale-125' : 'scale-100'} transition-transform duration-500`}></div>
-                    
+                <div key={index} className="relative">
+                  <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-xl md:rounded-2xl border border-white/50 dark:border-slate-600/50 p-6 md:p-8 h-full">
                     <div className="relative flex items-start gap-4 md:gap-6">
-                      {/* Icon Container */}
-                      <motion.div
-                        animate={{
-                          scale: hoveredCard === index ? 1.1 : 1,
-                          rotate: hoveredCard === index ? 360 : 0
-                        }}
-                        transition={{ duration: 0.3 }}
-                        className={`w-12 h-12 sm:w-14 sm:h-14 ${card.bgColor} rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0 ${card.color} shadow-sm`}
-                      >
+                      <div className={`w-12 h-12 sm:w-14 sm:h-14 ${card.bgColor} rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0 ${card.color} shadow-sm`}>
                         {card.icon}
-                      </motion.div>
-                      
-                      {/* Content */}
+                      </div>
                       <div className="flex-1">
                         <h3 className={`text-xl sm:text-2xl font-bold mb-3 md:mb-4 bg-gradient-to-r ${card.gradientFrom} ${card.gradientTo} bg-clip-text text-transparent`}>
                           {card.title}
@@ -280,16 +258,8 @@ const AtMedh: React.FC = () => {
                         </p>
                       </div>
                     </div>
-                    
-                    {/* Decorative corner element */}
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: hoveredCard === index ? 1 : 0 }}
-                      transition={{ duration: 0.3 }}
-                      className={`absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-br ${card.gradientFrom} ${card.gradientTo} opacity-10 rounded-tl-full`}
-                    />
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
 
