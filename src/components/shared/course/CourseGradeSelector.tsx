@@ -59,7 +59,7 @@ const CourseGradeSelector: React.FC<CourseGradeSelectorProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [gradeFilter, setGradeFilter] = useState<string>('all');
+  const [gradeFilter, setGradeFilter] = useState<string[]>([]);
 
   // Get unique course grades for filtering
   const uniqueGrades = React.useMemo(() => {
@@ -83,9 +83,9 @@ const CourseGradeSelector: React.FC<CourseGradeSelectorProps> = ({
       );
     }
 
-    // Apply grade filter
-    if (gradeFilter !== 'all') {
-      filtered = filtered.filter(course => course.course_grade === gradeFilter);
+    // Apply grade filter (multi-select)
+    if (gradeFilter.length > 0) {
+      filtered = filtered.filter(course => gradeFilter.includes(course.course_grade || ''));
     }
 
     return filtered;
@@ -194,18 +194,35 @@ const CourseGradeSelector: React.FC<CourseGradeSelectorProps> = ({
 
             {/* Grade Filter */}
             {showGradeFilter && uniqueGrades.length > 0 && (
-              <select
-                value={gradeFilter}
-                onChange={(e) => setGradeFilter(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              >
-                <option value="all">All Grades</option>
+              <div className="flex flex-wrap gap-2">
+                <label className="text-sm font-medium mr-2">Grades:</label>
+                <label className="inline-flex items-center mr-2">
+                  <input
+                    type="checkbox"
+                    checked={gradeFilter.length === 0}
+                    onChange={() => setGradeFilter([])}
+                    className="form-checkbox accent-blue-600 mr-1"
+                  />
+                  All
+                </label>
                 {uniqueGrades.map((grade) => (
-                  <option key={grade} value={grade}>
+                  <label key={grade} className="inline-flex items-center mr-2">
+                    <input
+                      type="checkbox"
+                      checked={gradeFilter.includes(grade)}
+                      onChange={() => {
+                        if (gradeFilter.includes(grade)) {
+                          setGradeFilter(gradeFilter.filter(g => g !== grade));
+                        } else {
+                          setGradeFilter([...gradeFilter.filter(g => uniqueGrades.includes(g)), grade]);
+                        }
+                      }}
+                      className="form-checkbox accent-blue-600 mr-1"
+                    />
                     {grade}
-                  </option>
+                  </label>
                 ))}
-              </select>
+              </div>
             )}
 
             {/* Results count */}
@@ -287,7 +304,7 @@ const CourseGradeSelector: React.FC<CourseGradeSelectorProps> = ({
               ))
             ) : (
               <div className="p-4 text-center text-gray-500 dark:text-gray-400">
-                {searchQuery || gradeFilter !== 'all' ? 'No courses match your criteria' : 'No courses available'}
+                {searchQuery || gradeFilter.length > 0 ? 'No courses match your criteria' : 'No courses available'}
               </div>
             )}
           </div>

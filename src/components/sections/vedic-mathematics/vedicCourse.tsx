@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import type { FC } from 'react';
 import CoursesFilter from "../courses/CoursesFilter";
 import { Calculator, Brain } from "lucide-react";
@@ -22,6 +22,14 @@ const ExploreButton: FC = () => (
 const VedicCourse: FC<IVedicCourseProps> = ({
   className = ""
 }) => {
+  // Add this useEffect to open the grade filter dropdown by default
+  useEffect(() => {
+    const gradeDropdown = document.querySelector('[data-testid="grade-filter-dropdown"]');
+    if (gradeDropdown && typeof window !== 'undefined') {
+      gradeDropdown.dispatchEvent(new Event('click', { bubbles: true }));
+    }
+  }, []);
+
   const customHeader = (
     <div className="w-full text-center">
       <div className="relative space-y-4 md:space-y-6 pb-4 md:pb-6 lg:pb-8 pt-0">
