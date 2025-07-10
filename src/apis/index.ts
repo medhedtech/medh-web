@@ -32,6 +32,9 @@ export * from './demo-booking.api';
 export * from './progress.api';
 export * from './progress-utils.api';
 
+// Import wishlist interfaces and functions
+export * from './wishlist.api';
+
 export { apiBaseUrl };
 
 import { IUpdateCourseData } from '@/types/course.types';

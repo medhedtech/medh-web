@@ -193,51 +193,7 @@ const AboutContent: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* UPD Section - Mobile optimized */}
-        <motion.div
-          initial="hidden"
-          animate={isVisible ? "visible" : "hidden"}
-          variants={fadeInUp}
-          transition={{ delay: 0.4, duration: 0.6 }}
-          className="relative"
-        >
-          <div className="bg-gradient-to-br from-amber-50 via-blue-50/50 to-emerald-50 dark:from-slate-800 dark:via-slate-800/50 dark:to-slate-800 rounded-lg sm:rounded-xl md:rounded-2xl p-4 sm:p-6 md:p-8 border border-slate-200/50 dark:border-slate-600/50 shadow-xl shadow-slate-200/20 dark:shadow-slate-900/30 backdrop-blur-sm">
-            <div className="flex flex-col md:flex-row items-center gap-4 sm:gap-6 md:gap-8">
-              {/* Bell Icon Container - Mobile optimized */}
-              <motion.div 
-                className="relative flex-shrink-0"
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 to-blue-500/20 rounded-full blur-xl sm:blur-2xl animate-pulse"></div>
-                <div className="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-full p-2 sm:p-3 md:p-4 border border-amber-200/50 dark:border-amber-700/50 shadow-lg">
-                  <Image
-                    src={Bell}
-                    alt="bell icon"
-                    width={60}
-                    height={60}
-                    className="relative z-10 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16"
-                  />
-                </div>
-              </motion.div>
 
-              <div className="flex-1 text-center md:text-left">
-                <div className="flex items-center justify-center md:justify-start gap-2 mb-4">
-                  <Shield className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100">
-                    Our Unique Approach
-                  </h2>
-                </div>
-                <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
-                  Seamless skill development courses with tailored learning pathways 
-                  for every developmental stage - from early childhood to professional 
-                  readiness. Our holistic approach ensures complete preparation for 
-                  success at every life stage.
-                </p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
       </div>
 
       {/* Scroll to top button - Mobile Optimized */}

@@ -116,7 +116,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
           {/* Main Content - No Width Constraints */}
           <div 
             id={MAIN_CONTENT_ID}
-            className="relative flex flex-col min-h-screen w-full z-10"
+            className="relative flex flex-col min-h-screen w-full z-10 pt-6"
             tabIndex={-1}
           >
             {children}

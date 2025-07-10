@@ -24,79 +24,14 @@ interface Coupon {
   excludedCourses?: string[];
 }
 
-// Mock coupon data - In production, this would come from your database
-const mockCoupons: Coupon[] = [
-  {
-    _id: '1',
-    code: 'WELCOME10',
-    type: 'percentage',
-    value: 10,
-    description: '10% off for new students',
-    minAmount: 100,
-    maxDiscount: 1000,
-    isActive: true,
-    usageLimit: 1000,
-    usedCount: 50
-  },
-  {
-    _id: '2',
-    code: 'SAVE500',
-    type: 'fixed',
-    value: 500,
-    description: '₹500 off on any course',
-    minAmount: 2000,
-    isActive: true,
-    usageLimit: 500,
-    usedCount: 25
-  },
-  {
-    _id: '3',
-    code: 'STUDENT25',
-    type: 'percentage',
-    value: 25,
-    description: '25% off for students',
-    minAmount: 500,
-    maxDiscount: 2000,
-    isActive: true,
-    usageLimit: 200,
-    usedCount: 75
-  },
-  {
-    _id: '4',
-    code: 'EARLYBIRD',
-    type: 'percentage',
-    value: 15,
-    description: 'Early bird special - 15% off',
-    minAmount: 1000,
-    maxDiscount: 1500,
-    isActive: true,
-    validUntil: '2024-12-31T23:59:59.999Z',
-    usageLimit: 300,
-    usedCount: 120
-  },
-  {
-    _id: '5',
-    code: 'TESTMODE',
-    type: 'fixed',
-    value: 100,
-    description: 'Test coupon for development',
-    minAmount: 1,
-    isActive: true,
-    usageLimit: 999,
-    usedCount: 0
-  },
-  {
-    _id: '6',
-    code: 'WELCOME50',
-    type: 'percentage',
-    value: 50,
-    description: '50% off welcome discount for test users',
-    minAmount: 1,
-    isActive: true,
-    usageLimit: 100,
-    usedCount: 0
-  }
-];
+// TODO: Replace with actual database integration
+// This should connect to your database to fetch coupon data
+const getCouponFromDatabase = async (code: string): Promise<Coupon | null> => {
+  // TODO: Implement actual database query
+  // Example: return await db.collection('coupons').findOne({ code: code.toUpperCase(), isActive: true });
+  console.warn('getCouponFromDatabase: Mock data removed. Please implement database integration.');
+  return null;
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -114,8 +49,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find the coupon
-    const coupon = mockCoupons.find(c => c.code.toUpperCase() === code.toUpperCase());
+    // Find the coupon from database
+    const coupon = await getCouponFromDatabase(code);
 
     if (!coupon) {
       return NextResponse.json(
@@ -252,27 +187,15 @@ export async function POST(request: NextRequest) {
 // GET endpoint to list all coupons (for admin management)
 export async function GET() {
   try {
-    // Return all coupons with complete data for admin management
+    // TODO: Implement actual database query to fetch all coupons
+    // const coupons = await db.collection('coupons').find({}).toArray();
+    
+    console.warn('GET /api/coupons/validate: Mock data removed. Please implement database integration.');
+    
     return NextResponse.json({
       success: true,
-      coupons: mockCoupons.map(coupon => ({
-        _id: coupon._id,
-        code: coupon.code,
-        type: coupon.type,
-        value: coupon.value,
-        description: coupon.description,
-        minAmount: coupon.minAmount,
-        maxDiscount: coupon.maxDiscount,
-        validFrom: coupon.validFrom || new Date().toISOString().split('T')[0],
-        validUntil: coupon.validUntil || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        usageLimit: coupon.usageLimit,
-        usedCount: coupon.usedCount,
-        isActive: coupon.isActive,
-        applicableCourses: coupon.applicableCourses || [],
-        excludedCourses: coupon.excludedCourses || [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }))
+      coupons: [],
+      message: 'Database integration required'
     });
   } catch (error) {
     console.error('Error fetching coupons:', error);

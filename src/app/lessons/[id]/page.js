@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { notFound } from "next/navigation";
-import lessons from "@/../public/fakedata/lessons.json";
+// import lessons from "@/../public/fakedata/lessons.json";
 
 export async function generateMetadata({ params }) {
   const { id } = lessons?.find(({ id }) => id == params.id) || { id: 1 };

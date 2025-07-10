@@ -58,6 +58,15 @@ const PersonalityCourse: React.FC<IPersonalityCourseProps> = ({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Add this useEffect to open the grade filter dropdown by default
+  useEffect(() => {
+    const gradeDropdown = document.querySelector('[data-testid="grade-filter-dropdown"]');
+    if (gradeDropdown && typeof window !== 'undefined') {
+      // Simulate a click to open the dropdown if needed
+      gradeDropdown.dispatchEvent(new Event('click', { bubbles: true }));
+    }
+  }, []);
+
   // Define the grades for personality development courses
   const grades: string[] = [
     "Preschool",

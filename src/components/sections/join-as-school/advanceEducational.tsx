@@ -96,114 +96,94 @@ const itemVariants = {
 const AdvanceEducational: React.FC = () => {
   return (
     <>
-      <section className="bg-slate-50 dark:bg-slate-900 min-h-screen overflow-hidden w-full">
-        {/* Enhanced Background Pattern */}
-        <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
+      <section className="w-full bg-slate-50 dark:bg-slate-900 py-12 md:py-16 lg:py-20">
+        {/* Simplified background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-transparent to-violet-50/30 dark:from-blue-950/10 dark:via-transparent dark:to-violet-950/10 pointer-events-none" />
         
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-violet-50/50 dark:from-blue-950/20 dark:via-transparent dark:to-violet-950/20"></div>
-        
-        {/* Floating Elements */}
-        <div className="absolute top-20 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-3xl animate-blob"></div>
-        <div className="absolute top-40 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-violet-200/20 dark:bg-violet-800/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-20 left-1/2 w-28 h-28 sm:w-36 sm:h-36 bg-emerald-200/20 dark:bg-emerald-800/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+        <div className="relative z-10 w-full px-4 sm:px-6 md:px-8 lg:px-12">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={containerVariants}
+          >
+            {/* Header Section */}
+            <motion.div 
+              variants={itemVariants}
+              className="text-center mb-12 md:mb-16"
+            >
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-blue-100 to-violet-100 dark:from-blue-900/30 dark:to-violet-900/30 text-blue-700 dark:text-blue-300 text-xs sm:text-sm font-semibold rounded-full mb-6 backdrop-blur-sm border border-blue-200/50 dark:border-blue-700/50">
+                <Award className="w-3 h-3 sm:w-4 sm:h-4" />
+                Future-Ready Education
+              </span>
+              
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-slate-100 leading-tight">
+                Creating future-ready students through{" "}
+                <span className="text-[#3bac63]">advanced educational approaches</span>
+              </h2>
+            </motion.div>
 
-        <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-12">
-          {/* OUTER CONTAINER FOR ALL TEXT CONTENT */}
-          <div className="relative rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-xl overflow-hidden px-2 py-4 sm:px-6 md:px-10 md:py-10 mb-8">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/60 via-white/40 to-emerald-50/60 dark:from-blue-900/30 dark:via-slate-900/40 dark:to-emerald-900/30 pointer-events-none" />
-            <div className="absolute inset-0 bg-[url('/backgrounds/grid-pattern.svg')] opacity-10 dark:opacity-10 pointer-events-none" />
-            <div className="relative z-10">
+            {/* Content Section */}
+            <motion.div 
+              variants={itemVariants}
+              className="mb-10 md:mb-12"
+            >
+              <div className="max-w-4xl mx-auto text-center mb-8 md:mb-10">
+                <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 leading-relaxed">
+                Education is no longer confined to textbooks and exam preparation. Today, educators focus on developing lifelong skills that go beyond jobs and technology. Here's why skill-based learning is now essential in schools and institutes:
+                </p>
+              </div>
+
+              {/* Skills Grid */}
               <motion.div 
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
                 variants={containerVariants}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-10 md:mb-12"
               >
-                {/* Header Section */}
-                <motion.div 
-                  variants={itemVariants}
-                  className="bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 p-4 sm:p-6 md:p-8 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 mb-6 md:mb-8 text-center"
-                >
-                  <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-blue-100 to-violet-100 dark:from-blue-900/30 dark:to-violet-900/30 text-blue-700 dark:text-blue-300 text-xs sm:text-sm font-semibold rounded-full mb-4 backdrop-blur-sm border border-blue-200/50 dark:border-blue-700/50">
-                    <Award className="w-3 h-3 sm:w-4 sm:h-4" />
-                    Future-Ready Education
-                  </span>
-                  
-                  <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-slate-100 leading-tight mb-4 md:mb-6">
-                    Creating future-ready students through
-                    <span className="block text-[#3bac63] mt-2">advanced educational approaches</span>
-                  </h2>
-                </motion.div>
-
-                {/* Content Section */}
-                <motion.div 
-                  variants={itemVariants}
-                  className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-lg sm:rounded-xl md:rounded-2xl border border-white/50 dark:border-slate-600/50 p-4 sm:p-6 md:p-8 shadow-lg shadow-slate-200/20 dark:shadow-slate-900/30 mb-6 md:mb-8"
-                >
-                  <div className="prose prose-lg dark:prose-invert max-w-none">
-                    <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-                      Gone are the days when education was limited to the pages of a
-                      book and students memorised information solely to pass an
-                      examination. Educators are pushing the envelope and helping
-                      students possess skills that go beyond jobs and technology – and
-                      will last them a lifetime. Here are some of the reasons why
-                      skill-based learning has become imperative in schools/institutes:
-                    </p>
-                  </div>
-
-                  {/* Skills Grid */}
-                  <motion.div 
-                    variants={containerVariants}
-                    className="mt-6 md:mt-8 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4"
-                  >
-                    {skillsList.map((skill, index) => (
-                      <motion.div
-                        key={skill.id}
-                        variants={itemVariants}
-                        whileHover={{ scale: 1.02 }}
-                        className="flex items-start space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg sm:rounded-xl bg-white/70 dark:bg-slate-700/50 backdrop-blur-sm border border-slate-200/50 dark:border-slate-600/50 group hover:bg-blue-50/80 dark:hover:bg-blue-900/20 hover:border-blue-200/70 dark:hover:border-blue-700/50 transition-all duration-300 shadow-sm hover:shadow-md"
-                      >
-                        <div className="w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-br from-blue-100 to-emerald-100 dark:from-blue-900/30 dark:to-emerald-900/30 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-300">
-                          <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <span className="text-sm sm:text-base text-slate-700 dark:text-slate-200 font-medium leading-relaxed">
-                          {skill.text}
-                        </span>
-                      </motion.div>
-                    ))}
-                  </motion.div>
-
-                  {/* Future-Ready Cards Grid */}
+                {skillsList.map((skill, index) => (
                   <motion.div
-                    variants={containerVariants}
-                    className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6"
+                    key={skill.id}
+                    variants={itemVariants}
+                    whileHover={{ scale: 1.02 }}
+                    className="flex items-start space-x-3 sm:space-x-4 p-4 sm:p-5 rounded-xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 group hover:bg-blue-50/80 dark:hover:bg-blue-900/20 hover:border-blue-200/70 dark:hover:border-blue-700/50 transition-all duration-300 shadow-sm hover:shadow-lg"
                   >
-                    {futureReadyCards.map((card, idx) => (
-                      <motion.div
-                        key={card.title}
-                        variants={itemVariants}
-                        whileHover={{ scale: 1.02 }}
-                        className="flex items-start space-x-4 p-4 rounded-xl bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-xl transition-all duration-300 group"
-                      >
-                        <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-br from-blue-100 to-emerald-100 dark:from-blue-900/30 dark:to-emerald-900/30 group-hover:scale-110 transition-transform duration-300 mt-1">
-                          <card.icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div>
-                          <h4 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">
-                            {card.title}
-                          </h4>
-                          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300">
-                            {card.description}
-                          </p>
-                        </div>
-                      </motion.div>
-                    ))}
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-emerald-100 dark:from-blue-900/30 dark:to-emerald-900/30 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                      <CheckCircle2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <span className="text-sm sm:text-base text-slate-700 dark:text-slate-200 font-medium leading-relaxed">
+                      {skill.text}
+                    </span>
                   </motion.div>
-                </motion.div>
+                ))}
               </motion.div>
-            </div>
-          </div>
+
+              {/* Future-Ready Cards Grid */}
+              <motion.div
+                variants={containerVariants}
+                className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6"
+              >
+                {futureReadyCards.map((card, idx) => (
+                  <motion.div
+                    key={card.title}
+                    variants={itemVariants}
+                    whileHover={{ scale: 1.02 }}
+                    className="flex items-start space-x-4 p-5 rounded-xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 shadow-sm hover:shadow-lg transition-all duration-300 group"
+                  >
+                    <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-gradient-to-br from-blue-100 to-emerald-100 dark:from-blue-900/30 dark:to-emerald-900/30 group-hover:scale-110 transition-transform duration-300 mt-1">
+                      <card.icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
+                        {card.title}
+                      </h4>
+                      <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300">
+                        {card.description}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 

@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 
-// Mock course data for testing - in production this would come from a database
+// TODO: Replace with actual database integration
+const getCourseFromDatabase = async (courseId: string) => {
+  // TODO: Implement actual database query
+  // Example: return await db.collection('courses').findOne({ _id: courseId });
+  console.warn('getCourseFromDatabase: Mock data removed. Please implement database integration.');
+  return null;
+};
+
+// Removed mock course data - implement database integration instead
 const mockCourseData = {
   "68527b906f58dac6f32a0958": {
     "_id": "68527b906f58dac6f32a0958",
@@ -255,9 +263,8 @@ export async function GET(
     const currency = searchParams.get('currency') || 'INR';
     const studentId = searchParams.get('studentId');
 
-    // In a real application, you would fetch from a database
-    // For now, we'll use mock data or return the mock course
-    const courseData = mockCourseData[courseId as keyof typeof mockCourseData];
+    // Fetch course data from database
+    const courseData = await getCourseFromDatabase(courseId);
     
     if (!courseData) {
       return NextResponse.json(

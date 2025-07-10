@@ -12,7 +12,7 @@ import usePostQuery from "@/hooks/postQuery.hook";
 import { apiUrls } from "@/apis";
 import { uploadService } from '@/services/uploadService';
 import { Control, UseFormRegister, FieldErrors } from 'react-hook-form';
-import { showToast } from "@/components/Toast";
+import { showToast } from "@/utils/toastManager";
 
 // Helper to format seconds to mm:ss
 const formatTime = (seconds: number): string => {
