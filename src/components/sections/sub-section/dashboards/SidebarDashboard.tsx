@@ -1010,9 +1010,25 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       ]
     },
     {
-      name: "Certificates",
-      path: formatRoute("admin", "GenrateCertificate"),
-      icon: <Award className="w-5 h-5" />
+      name: "Certificate Management",
+      icon: <Award className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Certificate Management",
+          path: formatRoute("admin", "certificate-management"),
+          icon: <Award className="w-4 h-4" />
+        },
+        {
+          name: "Generate Certificate",
+          path: formatRoute("admin", "GenrateCertificate"),
+          icon: <FileCheck className="w-4 h-4" />
+        },
+        {
+          name: "Certificate Verification",
+          path: "/certificate-verify",
+          icon: <Eye className="w-4 h-4" />
+        }
+      ]
     },
     {
       name: "Content",

@@ -48,7 +48,7 @@ import CourseHeader from '@/components/sections/course-detailed/CourseHeader';
 import CourseFaq from '@/components/sections/course-detailed/courseFaq';
 import CourseCertificate from '@/components/sections/course-detailed/courseCertificate';
 import CourseRelated from '@/components/sections/course-detailed/courseRelated';
-import DownloadBrochureModal from '@/components/shared/download-broucher';
+import DownloadBrochureModal from '@/components/shared/download-broucher.js';
 import CourseStats from '@/components/sections/course-detailed/CourseStats';
 
 // API and utilities
@@ -147,8 +147,21 @@ const CourseVideoPlayer: React.FC<ICourseVideoPlayerProps> = ({ courseId, course
   const [showControls, setShowControls] = useState(false); // Hide controls by default
   const [isLoading, setIsLoading] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string>('');
+  const [isMobile, setIsMobile] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Check if mobile on mount
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Extract video URL from previewVideo or course videos or use a default promotional video
   useEffect(() => {
@@ -219,19 +232,19 @@ const CourseVideoPlayer: React.FC<ICourseVideoPlayerProps> = ({ courseId, course
   };
 
   if (!videoUrl) {
-    // Fallback: show course image if available, else show placeholder
+    // Mobile-optimized fallback
     return (
-      <div className="relative w-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-xl flex items-center justify-center overflow-hidden" style={{ aspectRatio: '16/9' }}>
+      <div className={`relative w-full ${isMobile ? 'rounded-none' : 'rounded-xl'} bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center overflow-hidden`} style={{ aspectRatio: isMobile ? '16/9' : '16/9' }}>
         {courseImage ? (
           <img
             src={courseImage}
             alt={courseTitle || 'Course Preview'}
-            className="w-full h-full object-cover rounded-xl"
+            className={`w-full h-full object-cover ${isMobile ? 'rounded-none' : 'rounded-xl'}`}
             style={{ aspectRatio: '16/9' }}
           />
         ) : (
-          <div className={`w-16 h-16 bg-${primaryColor}-100 dark:bg-${primaryColor}-900/30 rounded-full flex items-center justify-center mb-3`}>
-            <Play className={`w-8 h-8 text-${primaryColor}-600 dark:text-${primaryColor}-400`} />
+          <div className={`w-12 h-12 sm:w-16 sm:h-16 bg-${primaryColor}-100 dark:bg-${primaryColor}-900/30 rounded-full flex items-center justify-center mb-3`}>
+            <Play className={`w-6 h-6 sm:w-8 sm:h-8 text-${primaryColor}-600 dark:text-${primaryColor}-400`} />
           </div>
         )}
       </div>
@@ -240,13 +253,15 @@ const CourseVideoPlayer: React.FC<ICourseVideoPlayerProps> = ({ courseId, course
 
   return (
     <div className="relative w-full group">
-      {/* Video Container */}
+      {/* Video Container - Mobile optimized */}
       <div 
         ref={containerRef}
-        className="relative w-full bg-black rounded-xl overflow-hidden shadow-lg group cursor-pointer"
+        className={`relative w-full bg-black ${isMobile ? 'rounded-none' : 'rounded-xl'} overflow-hidden ${isMobile ? 'shadow-none' : 'shadow-lg'} group cursor-pointer`}
         style={{ aspectRatio: '16/9' }}
-        onMouseEnter={() => setShowControls(true)}
-        onMouseLeave={() => setShowControls(false)}
+        onMouseEnter={() => !isMobile && setShowControls(true)}
+        onMouseLeave={() => !isMobile && setShowControls(false)}
+        onTouchStart={() => isMobile && setShowControls(true)}
+        onTouchEnd={() => isMobile && setTimeout(() => setShowControls(false), 3000)}
       >
         <video
           ref={videoRef}
@@ -266,87 +281,85 @@ const CourseVideoPlayer: React.FC<ICourseVideoPlayerProps> = ({ courseId, course
           Your browser does not support the video tag.
         </video>
 
-        {/* Video Controls Overlay - Show on hover with play/pause icon */}
+        {/* Video Controls Overlay - Mobile optimized */}
         <motion.div 
           className={`absolute inset-0 bg-black/30 flex items-center justify-center transition-all duration-300 ${
-            showControls ? 'opacity-100' : 'opacity-0'
+            showControls || isMobile ? 'opacity-100' : 'opacity-0'
           }`}
           initial={{ opacity: 0 }}
-          animate={{ opacity: showControls ? 1 : 0 }}
+          animate={{ opacity: showControls || isMobile ? 1 : 0 }}
           onClick={togglePlay}
         >
-          {/* Play/Pause Icon */}
+          {/* Play/Pause Icon - Mobile optimized */}
           <motion.div
-            className="flex items-center justify-center w-20 h-20 bg-white/90 dark:bg-gray-900/90 rounded-full shadow-xl hover:bg-white dark:hover:bg-gray-800 transition-all duration-300 backdrop-blur-sm"
+            className={`flex items-center justify-center ${isMobile ? 'w-16 h-16' : 'w-20 h-20'} bg-white/90 dark:bg-gray-900/90 rounded-full shadow-xl hover:bg-white dark:hover:bg-gray-800 transition-all duration-300 backdrop-blur-sm`}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ 
-              scale: showControls ? 1 : 0.8, 
-              opacity: showControls ? 1 : 0 
+              scale: showControls || isMobile ? 1 : 0.8, 
+              opacity: showControls || isMobile ? 1 : 0 
             }}
             transition={{ duration: 0.3 }}
           >
             {isLoading ? (
-              <Loader className="w-10 h-10 text-gray-600 dark:text-gray-300 animate-spin" />
+              <Loader className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} text-gray-600 dark:text-gray-300 animate-spin`} />
             ) : isPlaying ? (
-              <Pause className="w-10 h-10 text-gray-800 dark:text-gray-200" />
+              <Pause className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} text-gray-800 dark:text-gray-200`} />
             ) : (
-              <Play className="w-10 h-10 text-gray-800 dark:text-gray-200 ml-1" />
+              <Play className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} text-gray-800 dark:text-gray-200 ml-1`} />
             )}
           </motion.div>
         </motion.div>
 
-        {/* Bottom Controls */}
+        {/* Bottom Controls - Mobile optimized */}
         <motion.div 
-          className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 transition-opacity duration-300 ${
-            showControls ? 'opacity-100' : 'opacity-0'
+          className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent ${isMobile ? 'p-3' : 'p-4'} transition-opacity duration-300 ${
+            showControls || isMobile ? 'opacity-100' : 'opacity-0'
           }`}
           initial={{ opacity: 0 }}
-          animate={{ opacity: showControls ? 1 : 0 }}
+          animate={{ opacity: showControls || isMobile ? 1 : 0 }}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <button
                 onClick={toggleMute}
-                className="text-white hover:text-gray-300 transition-colors"
+                className={`text-white hover:text-gray-300 transition-colors ${isMobile ? 'p-2' : 'p-1'}`}
               >
                 {isMuted ? (
-                  <VolumeX className="w-5 h-5" />
+                  <VolumeX className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
                 ) : (
-                  <Volume2 className="w-5 h-5" />
+                  <Volume2 className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
                 )}
               </button>
             </div>
             
-            {/* Fullscreen Button */}
+            {/* Fullscreen Button - Mobile optimized */}
             <div className="flex items-center">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   toggleFullscreen();
                 }}
-                className="text-white hover:text-gray-300 transition-colors p-1 rounded hover:bg-white/20"
+                className={`text-white hover:text-gray-300 transition-colors ${isMobile ? 'p-2' : 'p-1'} rounded hover:bg-white/20`}
                 title="Toggle Fullscreen"
               >
-                <Maximize className="w-5 h-5" />
+                <Maximize className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
               </button>
             </div>
           </div>
         </motion.div>
 
-        {/* Loading Overlay */}
+        {/* Loading Overlay - Mobile optimized */}
         {isLoading && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
             <div className="text-center text-white">
-              <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
-              <p className="text-sm">Loading video...</p>
+              <Loader className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} animate-spin mx-auto mb-2`} />
+              <p className={`${isMobile ? 'text-xs' : 'text-sm'}`}>Loading video...</p>
             </div>
           </div>
         )}
       </div>
-
-
     </div>
   );
 };
@@ -1091,6 +1104,21 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
     return { about, benefits };
   }
 
+  // Helper to parse Overview and Relevance from curriculum weekDescription
+  function parseOverviewAndRelevance(desc: string): { overview: string; relevance: string } {
+    let overview = '';
+    let relevance = '';
+    // Try to split at 'Relevance' (case-insensitive, with or without leading/trailing newlines)
+    const match = desc.match(/Overview\s*\n([\s\S]*?)(?:\nRelevance\n([\s\S]*))?$/i);
+    if (match) {
+      overview = (match[1] || '').trim();
+      relevance = (match[2] || '').trim();
+    } else {
+      overview = desc.trim();
+    }
+    return { overview, relevance };
+  }
+
   // Loading state
   if (loading) {
     return (
@@ -1136,19 +1164,21 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
             animate="visible"
             key="about-section"
           >
-            {/* Course Key Info Row - Only show details not already in header/nav */}
-            <div className="mb-6">
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 items-start sm:items-center">
+            {/* Course Key Info Row - Mobile: Improved layout, Desktop: Contained */}
+            <div className="mb-6 px-4 sm:px-0">
+              <div className="grid grid-cols-1 sm:flex sm:flex-row gap-2 sm:gap-6 items-start sm:items-center">
                 {/* No. of Sessions (Live only) */}
                 {(() => {
                   const isLive = getClassType().toLowerCase().includes('live') && !isBlendedCourse(courseDetails);
                   const sessions = courseDetails?.no_of_Sessions;
                   if (isLive && sessions) {
                     return (
-                      <div className={`flex items-center bg-blue-50 dark:bg-blue-900/20 rounded-lg px-3 py-2 text-sm font-medium text-blue-700 dark:text-blue-300`}>
-                        <Users className="w-4 h-4 mr-2 text-blue-500 dark:text-blue-300" aria-label="No. of Sessions" />
-                        <span className="mr-1">No. of Sessions:</span>
-                        <span>{sessions}</span>
+                      <div className={`flex items-center justify-between sm:justify-start bg-blue-50 dark:bg-blue-900/20 rounded-lg px-3 py-2.5 sm:py-2 text-sm font-medium text-blue-700 dark:text-blue-300 w-full sm:w-auto`}>
+                        <div className="flex items-center">
+                          <Users className="w-4 h-4 mr-2 text-blue-500 dark:text-blue-300" aria-label="No. of Sessions" />
+                          <span>No. of Sessions:</span>
+                        </div>
+                        <span className="font-semibold">{sessions}</span>
                       </div>
                     );
                   }
@@ -1159,10 +1189,12 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
                   const duration = formatDuration(courseDetails);
                   if (duration) {
                     return (
-                      <div className={`flex items-center bg-purple-50 dark:bg-purple-900/20 rounded-lg px-3 py-2 text-sm font-medium text-purple-700 dark:text-purple-300`}>
-                        <Calendar className="w-4 h-4 mr-2 text-purple-500 dark:text-purple-300" aria-label="Course Duration" />
-                        <span className="mr-1">Duration:</span>
-                        <span>{duration}</span>
+                      <div className={`flex items-center justify-between sm:justify-start bg-purple-50 dark:bg-purple-900/20 rounded-lg px-3 py-2.5 sm:py-2 text-sm font-medium text-purple-700 dark:text-purple-300 w-full sm:w-auto`}>
+                        <div className="flex items-center">
+                          <Calendar className="w-4 h-4 mr-2 text-purple-500 dark:text-purple-300" aria-label="Course Duration" />
+                          <span>Duration:</span>
+                        </div>
+                        <span className="font-semibold text-right sm:text-left">{duration}</span>
                       </div>
                     );
                   }
@@ -1173,10 +1205,12 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
                   const effort = formatTimeCommitment(courseDetails);
                   if (effort) {
                     return (
-                      <div className={`flex items-center bg-green-50 dark:bg-green-900/20 rounded-lg px-3 py-2 text-sm font-medium text-green-700 dark:text-green-300`}>
-                        <Clock className="w-4 h-4 mr-2 text-green-500 dark:text-green-300" aria-label="Effort Required" />
-                        <span className="mr-1">Effort:</span>
-                        <span>{effort}</span>
+                      <div className={`flex items-center justify-between sm:justify-start bg-green-50 dark:bg-green-900/20 rounded-lg px-3 py-2.5 sm:py-2 text-sm font-medium text-green-700 dark:text-green-300 w-full sm:w-auto`}>
+                        <div className="flex items-center">
+                          <Clock className="w-4 h-4 mr-2 text-green-500 dark:text-green-300" aria-label="Effort Required" />
+                          <span>Effort:</span>
+                        </div>
+                        <span className="font-semibold">{effort}</span>
                       </div>
                     );
                   }
@@ -1185,8 +1219,8 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
               </div>
             </div>
 
-            {/* Course description */}
-            <div className="prose prose-emerald dark:prose-invert max-w-none mb-6 sm:mb-8">
+            {/* Course description - Mobile: Edge-to-edge, Desktop: Contained */}
+            <div className="prose prose-emerald dark:prose-invert max-w-none mb-6 sm:mb-8 px-4 sm:px-0">
               {(() => {
                 // Get description from various possible fields
                 // Handle both string and object formats for course_description
@@ -1301,14 +1335,17 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
             animate="visible"
             key="curriculum-section"
           >
-            <div className="flex items-center mb-4 sm:mb-6">
+            {/* Section Header - Mobile: Edge-to-edge, Desktop: Contained */}
+            <div className="flex items-center mb-4 sm:mb-6 px-4 sm:px-0">
               <div className={`w-1.5 h-6 bg-gradient-to-b from-${getCategoryColorClasses().primaryColor}-400 to-${getCategoryColorClasses().primaryColor}-500 rounded-sm mr-2 sm:mr-3`}></div>
               <h2 className={`text-xl sm:text-2xl font-bold bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-600 to-${getCategoryColorClasses().primaryColor}-500 bg-clip-text text-transparent`}>
                 Curriculum
               </h2>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden mb-6 sm:mb-8">
+            {/* Main Content - Mobile: Edge-to-edge, Desktop: Contained */}
+            <div className="sm:px-0">
+              <div className="bg-white dark:bg-gray-800 rounded-none sm:rounded-lg border-0 sm:border border-gray-200 dark:border-gray-700 overflow-hidden mb-6 sm:mb-8 shadow-sm">
               <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-100/30 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200 dark:border-gray-600`}>
                 <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
                   <GraduationCap className={`w-4 h-4 sm:w-5 sm:h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
@@ -1318,73 +1355,90 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
                         
               <div className="divide-y divide-gray-200 dark:divide-gray-700">
                 {curriculum && curriculum.length > 0 ? (
-                  curriculum.map((item, index) => (
-                    <div key={index} className="transition-all duration-200">
-                      <motion.button
-                        className="w-full px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                        onClick={() => toggleAccordion(index)}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <div className="flex items-center flex-1 min-w-0">
+                  curriculum.map((item, index) => {
+                    const { overview, relevance } = parseOverviewAndRelevance(item.weekDescription || '');
+                    return (
+                      <div key={index} className="transition-all duration-200">
+                        <motion.button
+                          className="w-full px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                          onClick={() => toggleAccordion(index)}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <div className="flex items-center flex-1 min-w-0">
+                            <motion.div 
+                              className={`flex-shrink-0 p-1.5 sm:p-2 rounded-full mr-2 sm:mr-4 ${
+                                openAccordions === index 
+                                  ? `bg-${getCategoryColorClasses().primaryColor}-100 dark:bg-${getCategoryColorClasses().primaryColor}-900/50 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400` 
+                                  : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
+                              }`}
+                              whileHover={{ 
+                                scale: [1, 1.1, 1],
+                                transition: { duration: 0.5 }
+                              }}
+                            >
+                              {openAccordions === index ? (
+                                <BookOpen size={16} className="sm:w-[18px] sm:h-[18px]" fill="currentColor" fillOpacity={0.2} />
+                              ) : (
+                                <Calendar size={16} className="sm:w-[18px] sm:h-[18px]" fill="currentColor" fillOpacity={0.2} />
+                              )}
+                            </motion.div>
+                            <span className={`text-xs sm:text-sm md:text-base font-medium truncate ${
+                              openAccordions === index 
+                                ? `text-${getCategoryColorClasses().primaryColor}-700 dark:text-${getCategoryColorClasses().primaryColor}-400` 
+                                : "text-gray-800 dark:text-gray-200"
+                            }`}>
+                              {item.weekTitle}
+                            </span>
+                          </div>
                           <motion.div 
-                            className={`flex-shrink-0 p-1.5 sm:p-2 rounded-full mr-2 sm:mr-4 ${
+                            className={`flex-shrink-0 ml-2 sm:ml-3 p-1 sm:p-1.5 rounded-full ${
                               openAccordions === index 
                                 ? `bg-${getCategoryColorClasses().primaryColor}-100 dark:bg-${getCategoryColorClasses().primaryColor}-900/50 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400` 
                                 : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
                             }`}
-                            whileHover={{ 
-                              scale: [1, 1.1, 1],
-                              transition: { duration: 0.5 }
-                            }}
-                          >
-                            {openAccordions === index ? (
-                              <BookOpen size={16} className="sm:w-[18px] sm:h-[18px]" fill="currentColor" fillOpacity={0.2} />
-                            ) : (
-                              <Calendar size={16} className="sm:w-[18px] sm:h-[18px]" fill="currentColor" fillOpacity={0.2} />
-                            )}
-                          </motion.div>
-                          <span className={`text-xs sm:text-sm md:text-base font-medium truncate ${
-                            openAccordions === index 
-                              ? `text-${getCategoryColorClasses().primaryColor}-700 dark:text-${getCategoryColorClasses().primaryColor}-400` 
-                              : "text-gray-800 dark:text-gray-200"
-                          }`}>
-                            {item.weekTitle}
-                          </span>
-                                </div>
-                        <motion.div 
-                          className={`flex-shrink-0 ml-2 sm:ml-3 p-1 sm:p-1.5 rounded-full ${
-                            openAccordions === index 
-                              ? `bg-${getCategoryColorClasses().primaryColor}-100 dark:bg-${getCategoryColorClasses().primaryColor}-900/50 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400` 
-                              : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
-                          }`}
-                          animate={openAccordions === index ? { rotate: 180 } : { rotate: 0 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <ChevronDown size={14} className="sm:w-4 sm:h-4" fill="currentColor" fillOpacity={0.2} />
-                        </motion.div>
-                      </motion.button>
-                      
-                      <AnimatePresence>
-                        {openAccordions === index && (
-                          <motion.div 
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
+                            animate={openAccordions === index ? { rotate: 180 } : { rotate: 0 }}
                             transition={{ duration: 0.3 }}
-                            className="overflow-hidden"
                           >
-                            <div className={`px-3 sm:px-6 py-3 sm:py-5 bg-${getCategoryColorClasses().primaryColor}-50/50 dark:bg-${getCategoryColorClasses().primaryColor}-900/10 border-t border-gray-200 dark:border-gray-700`}>
-                              <div className="pl-6 sm:pl-10 space-y-2 sm:space-y-4">
-                                <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-line">
-                                  {item.weekDescription}
-                                </p>
-                              </div>
-                            </div>
+                            <ChevronDown size={14} className="sm:w-4 sm:h-4" fill="currentColor" fillOpacity={0.2} />
                           </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  ))
+                        </motion.button>
+                        <AnimatePresence>
+                          {openAccordions === index && (
+                            <motion.div 
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="overflow-hidden"
+                            >
+                              <div className={`px-3 sm:px-6 py-3 sm:py-5 bg-${getCategoryColorClasses().primaryColor}-50/50 dark:bg-${getCategoryColorClasses().primaryColor}-900/10 border-t border-gray-200 dark:border-gray-700`}>
+                                <div className="pl-6 sm:pl-10 space-y-4">
+                                  {overview && (
+                                    <div>
+                                      <div className="flex items-center mb-1">
+                                        <BookOpen className="w-4 h-4 mr-2 text-blue-500 dark:text-blue-300" />
+                                        <span className="font-semibold text-gray-800 dark:text-gray-100 text-sm">Overview</span>
+                                      </div>
+                                      <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-line">{overview}</p>
+                                    </div>
+                                  )}
+                                  {relevance && (
+                                    <div>
+                                      <div className="flex items-center mb-1 mt-3">
+                                        <Star className="w-4 h-4 mr-2 text-emerald-500 dark:text-emerald-400" />
+                                        <span className="font-semibold text-emerald-700 dark:text-emerald-300 text-sm">Relevance</span>
+                                      </div>
+                                      <p className="text-xs sm:text-sm md:text-base text-gray-700 dark:text-gray-200 leading-relaxed whitespace-pre-line">{relevance}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  })
                 ) : (
                   <div className="p-4 sm:p-6 text-center">
                     <div className="inline-flex items-center justify-center p-2 sm:p-3 bg-gray-50 dark:bg-gray-700 rounded-full mb-3 sm:mb-4">
@@ -1399,16 +1453,16 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
                   </div>
                 )}
               </div>
+              </div>
             </div>
 
-
-
-            {/* Tools & Technologies Section */}
+            {/* Tools & Technologies Section - Mobile: Edge-to-edge, Desktop: Contained */}
             {toolsTechnologies && toolsTechnologies.length > 0 && (
-              <motion.div 
-                className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden mb-6 sm:mb-8"
-                variants={fadeIn}
-              >
+              <div className="sm:px-0">
+                <motion.div 
+                  className="bg-white dark:bg-gray-800 rounded-none sm:rounded-lg border-0 sm:border border-gray-200 dark:border-gray-700 overflow-hidden mb-6 sm:mb-8 shadow-sm"
+                  variants={fadeIn}
+                >
                 <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-50/70 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200 dark:border-gray-600`}>
                   <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
                     <Sparkles className={`w-4 h-4 sm:w-5 sm:h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
@@ -1437,15 +1491,17 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
                     ))}
                   </motion.div>
                 </div>
-              </motion.div>
+                </motion.div>
+              </div>
             )}
 
-            {/* Bonus Modules Section */}
+            {/* Bonus Modules Section - Mobile: Edge-to-edge, Desktop: Contained */}
             {bonusModules && bonusModules.length > 0 && (
-              <motion.div 
-                className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden mb-6 sm:mb-8"
-                variants={fadeIn}
-              >
+              <div className="sm:px-0">
+                <motion.div 
+                  className="bg-white dark:bg-gray-800 rounded-none sm:rounded-lg border-0 sm:border border-gray-200 dark:border-gray-700 overflow-hidden mb-6 sm:mb-8 shadow-sm"
+                  variants={fadeIn}
+                >
                 <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-100/30 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200 dark:border-gray-600`}>
                   <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
                     <Star className={`w-4 h-4 sm:w-5 sm:h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
@@ -1481,7 +1537,8 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
                     ))}
                   </ul>
                 </div>
-              </motion.div>
+                </motion.div>
+              </div>
             )}
           </motion.section>
         );
@@ -1497,14 +1554,16 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
             animate="visible"
             key="reviews-section"
           >
-            <div className="flex items-center mb-6">
+            {/* Section Header - Mobile: Edge-to-edge, Desktop: Contained */}
+            <div className="flex items-center mb-6 px-4 sm:px-0">
               <div className="w-1.5 h-6 bg-gradient-to-b from-amber-400 to-yellow-500 rounded-sm mr-3"></div>
               <h2 className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">
                 Reviews
               </h2>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+            {/* Content - Mobile: Edge-to-edge, Desktop: Contained */}
+            <div className="bg-white dark:bg-gray-800 rounded-none sm:rounded-lg border-0 sm:border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-sm">
               {reviews && reviews.length > 0 ? (
                 <div className="space-y-6">
                   {/* Reviews content would go here */}
@@ -1545,14 +1604,16 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
             animate="visible"
             key="certificate-section"
           >
-            <div className="flex items-center mb-6">
+            {/* Section Header - Mobile: Edge-to-edge, Desktop: Contained */}
+            <div className="flex items-center mb-6 px-4 sm:px-0">
               <div className="w-1.5 h-6 bg-gradient-to-b from-green-400 to-teal-500 rounded-sm mr-3"></div>
               <h2 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-teal-500 bg-clip-text text-transparent">
                 Certificate
               </h2>
             </div>
             
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            {/* Content - Mobile: Edge-to-edge, Desktop: Contained */}
+            <div className="bg-white dark:bg-gray-800 rounded-none sm:rounded-lg border-0 sm:border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
               <CourseCertificate />
             </div>
           </motion.section>
@@ -1578,75 +1639,151 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
 
   return (
     <>
-      {/* Course Header with Mobile-Optimized Design */}
-      <div className="relative py-2 sm:py-4 md:py-6 px-0 sm:px-4 md:px-6 mb-2 sm:mb-4 md:mb-6">
+      {/* Course Header - Completely Mobile-First Design */}
+      <div className="relative mb-4 sm:mb-6">
         <motion.div
           className="relative z-10"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
-          {/* Glassmorphic Container - Mobile Optimized - Edge-to-edge mobile */}
-          <div className="relative backdrop-blur-lg sm:backdrop-blur-xl bg-gradient-to-br from-white/80 via-white/60 to-white/80 dark:from-gray-800/80 dark:via-gray-700/60 dark:to-gray-800/80 rounded-none sm:rounded-2xl p-3 sm:p-5 md:p-6 shadow-none sm:shadow-2xl border-0 sm:border border-white/60 dark:border-gray-600/60 overflow-hidden">
-                {/* Mobile-Optimized Background Elements */}
-                <div className={`absolute -top-20 -right-20 sm:-top-32 sm:-right-32 w-32 h-32 sm:w-56 sm:h-56 rounded-full bg-gradient-to-br from-${getCategoryColorClasses().primaryColor}-300/25 via-${getCategoryColorClasses().primaryColor}-400/15 to-blue-300/25 dark:from-${getCategoryColorClasses().primaryColor}-500/20 dark:via-${getCategoryColorClasses().primaryColor}-600/10 dark:to-blue-500/20 blur-2xl sm:blur-3xl animate-pulse`}></div>
-                <div className={`absolute -bottom-20 -left-20 sm:-bottom-32 sm:-left-32 w-32 h-32 sm:w-56 sm:h-56 rounded-full bg-gradient-to-tr from-purple-300/25 via-${getCategoryColorClasses().primaryColor}-300/15 to-rose-300/25 dark:from-purple-500/20 dark:via-${getCategoryColorClasses().primaryColor}-500/10 dark:to-rose-500/20 blur-2xl sm:blur-3xl animate-pulse`} style={{ animationDelay: '1s' }}></div>
-                
-                {/* Content with Mobile-First Spacing */}
-                <div className="relative z-10 space-y-3 sm:space-y-4">
-                  {/* Mobile-Optimized Title Section */}
-                  <div className="text-center">
-                    <h1 className={`text-xl sm:text-3xl lg:text-4xl xl:text-5xl font-black mb-1 sm:mb-2 leading-tight bg-gradient-to-r from-gray-900 via-${getCategoryColorClasses().primaryColor}-800 to-gray-900 dark:from-white dark:via-${getCategoryColorClasses().primaryColor}-200 dark:to-white bg-clip-text text-transparent`}>
-                      {courseDetails?.course_title}
-                    </h1>
-                    
-                    {/* Mobile-Friendly Separator */}
-                    <div className="flex justify-center my-2 sm:my-3">
-                      <div className={`w-16 sm:w-24 md:w-32 h-0.5 sm:h-1 bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-500 via-${getCategoryColorClasses().primaryColor}-400 to-${getCategoryColorClasses().primaryColor}-500 rounded-full shadow-sm sm:shadow-lg`}></div>
-                    </div>
-                  </div>
-                    
-                  {/* Course Video Player - Mobile Optimized - Edge-to-edge mobile */}
-                  <div className="bg-gradient-to-br from-gray-50/40 to-white/40 dark:from-gray-700/40 dark:to-gray-800/40 rounded-none sm:rounded-xl p-1 sm:p-2 md:p-3 border-0 sm:border border-gray-200/40 dark:border-gray-600/40 shadow-none sm:shadow-inner">
-                    <CourseVideoPlayer 
-                      courseId={courseId}
-                      courseTitle={courseDetails?.course_title}
-                      courseVideos={courseDetails?.course_videos}
-                      previewVideo={courseDetails?.preview_video}
-                      courseImage={courseDetails?.course_image}
-                      primaryColor={getCategoryColorClasses().primaryColor}
-                    />
-                  </div>
-                    
-                  {/* Course Navigation - Replacing Duration Display */}
-                  <div className="px-2 sm:px-0">
-                    <CourseNavigation 
-                      activeSection={activeSection} 
-                      scrollToSection={scrollToSection} 
-                      showCertificate={hasCertificate()}
-                      showDownloadBrochure={hasBrochure()}
-                      onDownloadBrochure={() => setShowBrochureModal(true)}
-                      compact={true}
-                    />
-                  </div>
+          {/* Mobile: Edge-to-edge container, Desktop: Normal container */}
+          <div className="sm:mx-0 md:mx-4 lg:mx-4 pt-4">
+            <div className="relative bg-white dark:bg-gray-800 sm:backdrop-blur-xl sm:bg-gradient-to-br sm:from-white/95 sm:via-white/90 sm:to-white/95 sm:dark:from-gray-800/95 sm:dark:via-gray-700/90 sm:dark:to-gray-800/95 rounded-none sm:rounded-2xl shadow-none sm:shadow-xl border-0 sm:border sm:border-gray-200/50 sm:dark:border-gray-600/50 overflow-hidden">
+              {/* Background Elements - Desktop only */}
+              <div className={`hidden sm:block absolute -top-32 -right-32 w-56 h-56 rounded-full bg-gradient-to-br from-${getCategoryColorClasses().primaryColor}-300/20 via-${getCategoryColorClasses().primaryColor}-400/10 to-blue-300/20 dark:from-${getCategoryColorClasses().primaryColor}-500/15 dark:via-${getCategoryColorClasses().primaryColor}-600/8 dark:to-blue-500/15 blur-3xl animate-pulse`}></div>
+              <div className={`hidden sm:block absolute -bottom-32 -left-32 w-56 h-56 rounded-full bg-gradient-to-tr from-purple-300/20 via-${getCategoryColorClasses().primaryColor}-300/10 to-rose-300/20 dark:from-purple-500/15 dark:via-${getCategoryColorClasses().primaryColor}-500/8 dark:to-rose-500/15 blur-3xl animate-pulse`} style={{ animationDelay: '1s' }}></div>
+              
+                        {/* Mobile: Direct content, Desktop: Padded content */}
+          <div className="relative z-10 sm:p-5 md:p-6 pt-6 sm:pt-10">
+                {/* Title Section - Enhanced Mobile Design */}
+                <div className="text-center px-3 py-2 sm:px-0 sm:py-4">
+                  {/* Course Category Badge - Mobile Only */}
+                  <motion.div 
+                    className="block sm:hidden mb-3"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                  >
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-100 text-${getCategoryColorClasses().primaryColor}-700 dark:from-${getCategoryColorClasses().primaryColor}-900/30 dark:to-${getCategoryColorClasses().primaryColor}-900/20 dark:text-${getCategoryColorClasses().primaryColor}-300 border border-${getCategoryColorClasses().primaryColor}-200 dark:border-${getCategoryColorClasses().primaryColor}-800/30 shadow-sm`}>
+                      <motion.div
+                        animate={{ rotate: [0, 360] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                      >
+                        <Sparkles className="w-3 h-3 mr-1" />
+                      </motion.div>
+                      {courseDetails?.course_category || courseDetails?.category || 'Professional Course'}
+                    </span>
+                  </motion.div>
 
-                  {/* Course Selection Component - Mobile Enhanced */}
-                  {props.courseSelectionComponent && (
-                    <div className="mt-2 sm:mt-3 block lg:hidden px-2 sm:px-0">
-                      <div className="bg-gradient-to-br from-gray-50/90 to-white/90 dark:from-gray-700/90 dark:to-gray-800/90 rounded-lg sm:rounded-xl p-2 sm:p-3 border border-gray-200/70 dark:border-gray-600/70 shadow-md backdrop-blur-sm">
-                        {props.courseSelectionComponent}
-                      </div>
+                  {/* Enhanced Mobile Title */}
+                  <motion.h1 
+                    className={`text-xl leading-tight sm:text-3xl lg:text-4xl xl:text-5xl font-black mb-2 sm:mb-2 bg-gradient-to-r from-gray-900 via-${getCategoryColorClasses().primaryColor}-800 to-gray-900 dark:from-white dark:via-${getCategoryColorClasses().primaryColor}-200 dark:to-white bg-clip-text text-transparent px-1 sm:px-0`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                  >
+                    {courseDetails?.course_title}
+                  </motion.h1>
+
+                  {/* Mobile Course Type & Duration Info - Hidden as requested */}
+                  {/* Commented out to hide course info cards in mobile view
+                  <motion.div 
+                    className="block sm:hidden mb-3"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.4 }}
+                  >
+                    <div className="flex flex-wrap justify-center gap-2 text-xs">
+                      <motion.div 
+                        className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-2 py-1 shadow-sm"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Users className="w-3 h-3 mr-1 text-gray-500 dark:text-gray-400" />
+                        <span className="text-gray-600 dark:text-gray-300 font-medium">
+                          {getClassType()}
+                        </span>
+                      </motion.div>
+                      
+                      <motion.div 
+                        className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-2 py-1 shadow-sm"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Clock className="w-3 h-3 mr-1 text-gray-500 dark:text-gray-400" />
+                        <span className="text-gray-600 dark:text-gray-300 font-medium">
+                          {formatDuration(courseDetails)}
+                        </span>
+                      </motion.div>
+
+                      {courseDetails?.no_of_Sessions && (
+                        <motion.div 
+                          className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-2 py-1 shadow-sm"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <GraduationCap className="w-3 h-3 mr-1 text-gray-500 dark:text-gray-400" />
+                          <span className="text-gray-600 dark:text-gray-300 font-medium">
+                            {courseDetails.no_of_Sessions} Sessions
+                          </span>
+                        </motion.div>
+                      )}
                     </div>
-                  )}
+                  </motion.div>
+                  */}
+                  
+                  {/* Enhanced Separator */}
+                  <div className="flex justify-center my-3 sm:my-3">
+                    <motion.div 
+                      className={`w-16 sm:w-24 md:w-32 h-0.5 sm:h-1 bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-500 via-${getCategoryColorClasses().primaryColor}-400 to-${getCategoryColorClasses().primaryColor}-500 rounded-full shadow-sm sm:shadow-lg`}
+                      initial={{ width: 0 }}
+                      animate={{ width: 'auto' }}
+                      transition={{ duration: 0.8, delay: 0.3 }}
+                    ></motion.div>
+                  </div>
+                </div>
+                
+                {/* Video Player - Mobile: Edge-to-edge, Desktop: Contained */}
+                <div className="sm:bg-gray-50/50 sm:dark:bg-gray-700/50 sm:rounded-xl sm:p-2 md:p-3 sm:border sm:border-gray-200/50 sm:dark:border-gray-600/50">
+                  <CourseVideoPlayer 
+                    courseId={courseId}
+                    courseTitle={courseDetails?.course_title}
+                    courseVideos={courseDetails?.course_videos}
+                    previewVideo={courseDetails?.preview_video}
+                    courseImage={courseDetails?.course_image}
+                    primaryColor={getCategoryColorClasses().primaryColor}
+                  />
+                </div>
+                
+                {/* Navigation - Mobile optimized */}
+                <div className="px-4 py-3 sm:px-0 sm:py-0 sm:mt-4">
+                  <CourseNavigation 
+                    activeSection={activeSection} 
+                    scrollToSection={scrollToSection} 
+                    showCertificate={hasCertificate()}
+                    showDownloadBrochure={hasBrochure()}
+                    onDownloadBrochure={() => setShowBrochureModal(true)}
+                    compact={true}
+                  />
+                </div>
+
+                {/* Course Selection Component - Mobile Enhanced */}
+                {props.courseSelectionComponent && (
+                  <div className="px-4 py-2 sm:px-0 sm:py-0 sm:mt-3 block lg:hidden">
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 border border-gray-200 dark:border-gray-600 shadow-sm">
+                      {props.courseSelectionComponent}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </motion.div>
       </div>
 
-
-
-      {/* Content Area - Edge-to-edge mobile */}
-      <div className="pt-2 sm:pt-4 pb-4 px-0 sm:px-4 md:px-6 lg:px-8">
+      {/* Content Area - Mobile: Edge-to-edge, Desktop: Contained */}
+      <div className="relative z-20 pt-4 pb-4 sm:px-4 md:px-6 lg:px-8 bg-white dark:bg-gray-900">
         <AnimatePresence mode="wait">
           {renderActiveSection()}
         </AnimatePresence>
@@ -1688,10 +1825,15 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
       )}
 
       {/* Download Brochure Modal */}
-      {/* <DownloadBrochureModal
-        isOpen={showBrochureModal}
-        onClose={() => setShowBrochureModal(false)}
-      /> */}
+      {showBrochureModal && (
+        <DownloadBrochureModal
+          isOpen={showBrochureModal}
+          onClose={() => setShowBrochureModal(false)}
+          courseId={courseDetails?._id}
+          courseTitle={courseDetails?.course_title}
+          course={courseDetails}
+        />
+      )}
     </>
   );
 };
