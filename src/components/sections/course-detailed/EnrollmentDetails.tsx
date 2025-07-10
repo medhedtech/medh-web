@@ -1720,7 +1720,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       
       // Check if user is logged in
       if (!isLoggedIn) {
-        router.push(`/login?redirect=/courses/${courseDetails?._id}`);
+        router.push(`/login?redirect=/course-details/${courseDetails?._id}`);
         return;
       }
 

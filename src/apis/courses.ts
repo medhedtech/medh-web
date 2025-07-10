@@ -431,6 +431,14 @@ export interface IBlendedCourse {
   updatedAt?: string;
   // Add preview video support
   preview_video_url?: string;
+  // Course features matching live course interface
+  is_Quizes?: 'Yes' | 'No';
+  is_Projects?: 'Yes' | 'No';
+  is_Assignments?: 'Yes' | 'No';
+  is_Certification?: 'Yes' | 'No';
+  class_type?: 'Live Courses' | 'Blended Courses' | 'Self-Paced' | 'Virtual Learning' | 'Online Classes' | 'Hybrid' | 'Pre-Recorded';
+  no_of_Sessions?: number;
+  course_grade?: string;
 }
 
 export interface ILiveCourseSession {

@@ -1427,11 +1427,13 @@ const LoginForm = () => {
   // Handle MFA verification success
   const handleMFASuccess = (loginResponse: ILoginResponse): void => {
     if (loginResponse.success && loginResponse.data) {
+      const userRole = getUserRoleFromToken(loginResponse.data.token);
+
       const loginResponseData: LoginResponseData = {
         id: loginResponse.data.user.id,
         email: loginResponse.data.user.email,
         full_name: loginResponse.data.user.full_name,
-        role: Array.isArray(loginResponse.data.user.role) ? loginResponse.data.user.role : [],
+        role: userRole ? [userRole] : [], // Use the extracted role, ensure it's an array
         permissions: [],
         access_token: loginResponse.data.token,
         refresh_token: loginResponse.data.session_id,
