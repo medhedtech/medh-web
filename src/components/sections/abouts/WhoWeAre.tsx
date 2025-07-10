@@ -37,7 +37,7 @@ const sections: ISection[] = [
   {
     title: "Who We Are",
     icon: <Users className="w-5 h-5" />,
-    content: "🚀 Tech innovators + Educators = Future-ready learning platform for all ages",
+    content: "Tech innovators + Educators = Future-ready learning platform for all ages",
     color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-100 dark:bg-blue-900/30",
     gradientFrom: "from-blue-600",
@@ -46,7 +46,7 @@ const sections: ISection[] = [
   {
     title: "Quality First",
     icon: <Shield className="w-5 h-5" />,
-    content: "✨ Industry-standard content • Expert-crafted materials • Always current",
+    content: "Industry-standard content • Expert-crafted materials • Always current",
     color: "text-emerald-600 dark:text-emerald-400",
     bgColor: "bg-emerald-100 dark:bg-emerald-900/30",
     gradientFrom: "from-emerald-600",
@@ -55,7 +55,7 @@ const sections: ISection[] = [
   {
     title: "Lifelong Growth",
     icon: <BookOpen className="w-5 h-5" />,
-    content: "📚 Student → Professional → Expert: Your learning journey, our expertise",
+    content: "Student → Professional → Expert: Your learning journey, our expertise",
     color: "text-violet-600 dark:text-violet-400",
     bgColor: "bg-violet-100 dark:bg-violet-900/30",
     gradientFrom: "from-violet-600",

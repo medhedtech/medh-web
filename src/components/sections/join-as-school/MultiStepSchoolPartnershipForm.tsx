@@ -443,7 +443,7 @@ const MultiStepSchoolPartnershipForm: React.FC = () => {
                 <School className="w-6 h-6 text-white" />
               </div>
               <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-50 leading-tight">
-                School Partnership Application
+                School/Institutes Partnership Application
               </h1>
             </motion.div>
             <motion.p 
