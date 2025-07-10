@@ -179,7 +179,7 @@ const CourseViewClient: React.FC<CourseViewClientProps> = ({ initialCourse, stru
   // Handle enrollment button click
   const handleEnrollClick = async () => {
     if (!isLoggedIn) {
-      router.push(`/login?redirect=/course-details/${courseId}`);
+      router.push(`/login?redirect=/courses-course-details/${courseId}`);
       return;
     }
     
