@@ -7,7 +7,7 @@ import * as yup from 'yup';
 import { showToast, toast } from '@/utils/toastManager';
 import Link from "next/link";
 import { debounce } from 'lodash';
-import { ArrowLeft, Plus, Trash2, Upload, Save, Eye, CheckCircle, AlertCircle, AlertTriangle, Clock, BookOpen, Users, Award, DollarSign, Calendar, HelpCircle, Settings } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Upload, Save, Eye, CheckCircle, AlertCircle, AlertTriangle, Clock, BookOpen, Users, Award, DollarSign, Calendar, HelpCircle, Settings, FileText } from "lucide-react";
 import { courseTypesAPI } from "@/apis/courses";
 import { apiUrls } from "@/apis";
 import usePostQuery from "@/hooks/postQuery.hook";
@@ -22,7 +22,7 @@ const blendedCourseSchema = yup.object().shape({
   course_title: yup.string().required('Course title is required').min(5, 'Title must be at least 5 characters'),
   course_subtitle: yup.string(),
   course_category: yup.string().required('Course category is required'),
-  course_subcategory: yup.string(),
+  course_subcategory: yup.array().of(yup.string()).optional(),
   course_tag: yup.array().of(yup.string()),
   course_description: yup.object().shape({
     program_overview: yup.string().required('Program overview is required').min(50, 'Overview must be at least 50 characters'),
@@ -42,11 +42,11 @@ const blendedCourseSchema = yup.object().shape({
           const min = this.parent.min_batch_size;
           return !min || !max || max >= min;
         }),
-      early_bird_discount: yup.number().min(0).max(100),
-      group_discount: yup.number().min(0).max(100),
+      early_bird_discount: yup.number().min(0, 'Discount cannot be negative').max(100, 'Discount cannot exceed 100%'),
+      group_discount: yup.number().min(0, 'Discount cannot be negative').max(100, 'Discount cannot exceed 100%'),
       is_active: yup.boolean()
     })
-  ),
+  ).required('At least one pricing configuration is required'),
   curriculum: yup.array().of(
     yup.object().shape({
       title: yup.string().required('Section title is required'),
@@ -122,6 +122,23 @@ const blendedCourseSchema = yup.object().shape({
     description: yup.string().required('Preview description is required'),
   }),
   course_level: yup.string().oneOf(['Beginner', 'Intermediate', 'Advanced', 'All Levels']).required('Course level is required'),
+  course_duration: yup.string().required('Course duration is required'),
+  numberOfSessions: yup.number().required('Number of sessions is required').min(1, 'At least 1 session required'),
+  includeQuizzes: yup.string().oneOf(['Yes', 'No']).required('Quizzes status is required'),
+  includeProjects: yup.string().oneOf(['Yes', 'No']).required('Projects status is required'),
+  includeAssignments: yup.string().oneOf(['Yes', 'No']).required('Assignments status is required'),
+  includeCertification: yup.string().oneOf(['Yes', 'No']).required('Certification status is required'),
+  gradeOrCertificate: yup.string().oneOf(['grade', 'certificate']).required('Grade or certificate selection is required'),
+  grade: yup.string().when('gradeOrCertificate', {
+    is: 'grade',
+    then: () => yup.string().required('Grade is required when grade is selected'),
+    otherwise: () => yup.string().optional()
+  }),
+  certificateType: yup.string().when('gradeOrCertificate', {
+    is: 'certificate',
+    then: () => yup.string().required('Certificate type is required when certificate is selected'),
+    otherwise: () => yup.string().optional()
+  }),
 });
 
 // Extended curriculum section interface for form
@@ -135,7 +152,7 @@ interface BlendedCourseFormData {
   course_title: string;
   course_subtitle?: string;
   course_category: string;
-  course_subcategory?: string;
+  course_subcategory?: string[];
   course_tag?: string[];
   course_description: {
     program_overview: string;
@@ -175,6 +192,11 @@ interface BlendedCourseFormData {
   certificateType: string;
   course_image: string;
   course_duration: string;
+  numberOfSessions: number;
+  includeQuizzes: 'Yes' | 'No';
+  includeProjects: 'Yes' | 'No';
+  includeAssignments: 'Yes' | 'No';
+  includeCertification: 'Yes' | 'No';
   preview_video?: {
     title: string;
     url: string;
@@ -264,12 +286,12 @@ export default function CreateBlendedCoursePage() {
       },
       prices: [{
         currency: 'USD',
-        individual: 0,
-        batch: 0,
-        min_batch_size: 2,
-        max_batch_size: 10,
-        early_bird_discount: 0,
-        group_discount: 0,
+        individual: 299,
+        batch: 249,
+        min_batch_size: 5,
+        max_batch_size: 20,
+        early_bird_discount: 15,
+        group_discount: 20,
         is_active: true
       }],
       curriculum: [{
@@ -278,7 +300,17 @@ export default function CreateBlendedCoursePage() {
         weekTitle: 'Week 1',
         description: '',
         order: 1,
-        lessons: []
+        lessons: [
+          {
+            title: 'Introduction',
+            description: '',
+            duration: 30,
+            content_type: 'video',
+            content_url: '',
+            is_preview: false,
+            order: 1
+          }
+        ]
       }],
       doubt_session_schedule: {
         frequency: 'weekly',
@@ -300,6 +332,14 @@ export default function CreateBlendedCoursePage() {
       brochures: [],
       course_image: '',
       course_duration: '',
+      numberOfSessions: 1,
+      includeQuizzes: 'Yes',
+      includeProjects: 'Yes',
+      includeAssignments: 'Yes',
+      includeCertification: 'Yes',
+      gradeOrCertificate: 'grade',
+      grade: '',
+      certificateType: '',
       preview_video: {
         title: '',
         url: '',
@@ -468,7 +508,7 @@ export default function CreateBlendedCoursePage() {
       reader.onload = async () => {
         const base64WithPrefix = reader.result?.toString();
         if (base64WithPrefix) {
-          const uploadRes = await uploadService.uploadBase64(base64WithPrefix, 'image', file.name);
+          const uploadRes = await uploadService.uploadBase64(base64WithPrefix, 'image');
           if (!uploadRes?.data?.url) throw new Error('Upload failed');
           setValue('course_image', uploadRes.data.url, {
             shouldValidate: true,
@@ -513,7 +553,7 @@ export default function CreateBlendedCoursePage() {
       reader.onload = async () => {
         const base64WithPrefix = reader.result?.toString();
         if (base64WithPrefix) {
-          const uploadRes = await uploadService.uploadBase64(base64WithPrefix, 'document', file.name);
+          const uploadRes = await uploadService.uploadBase64(base64WithPrefix, 'document');
           if (!uploadRes?.data?.url) throw new Error('Upload failed');
           let displayName = window.prompt('Enter a display name for this brochure:', file.name.replace(/\.[^.]+$/, ''));
           if (!displayName || !displayName.trim()) {
@@ -552,7 +592,7 @@ export default function CreateBlendedCoursePage() {
     const newLesson: IBlendedCourseLesson = {
       title: '',
       description: '',
-      duration: 0,
+      duration: 30,
       content_type: 'video',
       content_url: '',
       is_preview: false,
@@ -599,6 +639,12 @@ export default function CreateBlendedCoursePage() {
     if (!data.course_image?.trim()) {
       errors.push('Course Image is required');
     }
+    if (!data.course_duration?.trim()) {
+      errors.push('Course Duration is required');
+    }
+    if (!data.numberOfSessions || data.numberOfSessions < 1) {
+      errors.push('Number of Sessions is required and must be at least 1');
+    }
 
     // Course description validation
     if (!data.course_description?.program_overview?.trim()) {
@@ -632,6 +678,12 @@ export default function CreateBlendedCoursePage() {
         }
         if (!price.max_batch_size || price.max_batch_size < price.min_batch_size) {
           errors.push(`Maximum batch size must be greater than minimum batch size for pricing #${index + 1}`);
+        }
+        if (price.early_bird_discount && (price.early_bird_discount < 0 || price.early_bird_discount > 100)) {
+          errors.push(`Early bird discount must be between 0 and 100 for pricing #${index + 1}`);
+        }
+        if (price.group_discount && (price.group_discount < 0 || price.group_discount > 100)) {
+          errors.push(`Group discount must be between 0 and 100 for pricing #${index + 1}`);
         }
       });
     }
@@ -849,7 +901,7 @@ export default function CreateBlendedCoursePage() {
         course_title: cleanedData.course_title,
         course_subtitle: cleanedData.course_subtitle,
         course_category: cleanedData.course_category,
-        course_subcategory: cleanedData.course_subcategory,
+        course_subcategory: cleanedData.course_subcategory?.map(sub => sub.replace(/\"/g, '')).join(',') || '',
         course_tag: cleanedData.course_tag?.join(','),
         course_description: cleanedData.course_description,
         prices: cleanedData.prices,
@@ -865,8 +917,22 @@ export default function CreateBlendedCoursePage() {
         course_image: cleanedData.course_image,
         course_duration: cleanedData.course_duration,
         course_level: cleanedData.course_level || 'Beginner',
-        session_duration: cleanedData.session_duration || ''
+        session_duration: cleanedData.session_duration || '',
+        // Add new fields for course features
+        is_Quizes: cleanedData.includeQuizzes as 'Yes' | 'No',
+        is_Projects: cleanedData.includeProjects as 'Yes' | 'No',
+        is_Assignments: cleanedData.includeAssignments as 'Yes' | 'No',
+        is_Certification: cleanedData.includeCertification as 'Yes' | 'No',
+        no_of_Sessions: cleanedData.numberOfSessions
       };
+
+      // Add grade or certificate information
+      if (cleanedData.gradeOrCertificate === 'grade' && cleanedData.grade) {
+        (blendedCourseData as any).course_grade = cleanedData.grade;
+      }
+      if (cleanedData.gradeOrCertificate === 'certificate' && cleanedData.certificateType) {
+        (blendedCourseData as any).course_certificate_type = cleanedData.certificateType;
+      }
 
       // Compose the final payload with assigned_instructor and preview_video as separate properties
       const payload = {
@@ -876,6 +942,7 @@ export default function CreateBlendedCoursePage() {
       };
 
       console.log('Sending course data to API:', payload);
+      console.log('Course Subcategory in payload:', payload.course_subcategory);
 
       // Show loading toast
       const loadingToast = showToast.loading('Creating blended course...');
@@ -973,11 +1040,14 @@ export default function CreateBlendedCoursePage() {
     await handleSubmit(onSubmit)();
   };
 
-  // CSS classes
-  const inputClass = "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200";
-  const labelClass = "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2";
-  const errorClass = "text-red-500 text-sm mt-1";
-  const cardClass = "bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200";
+  // CSS classes - standardized to match live course form
+  const labelClass = "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1";
+  const inputClass = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm";
+  const errorClass = "mt-1 text-sm text-red-600 dark:text-red-500";
+  const sectionClass = "bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6";
+  const buttonClass = "inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2";
+  const primaryButtonClass = `${buttonClass} text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500`;
+  const secondaryButtonClass = `${buttonClass} text-gray-700 bg-white hover:bg-gray-50 border-gray-300 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:border-gray-600`;
 
   // Auto-save status indicator
   const AutoSaveIndicator = () => {
@@ -1088,28 +1158,20 @@ export default function CreateBlendedCoursePage() {
       reader.onload = async () => {
         const base64 = reader.result?.toString().split(',')[1];
         if (base64) {
-          const postData = { base64String: base64, fileType: "video" };
-          await postQuery({
-            url: apiUrls?.upload?.uploadVideo(),
-            postData,
-            onSuccess: async (response) => {
-              if (response?.data?.url && typeof response.data.url === 'string') {
-                setValue('preview_video', {
-                  title: file.name,
-                  url: response.data.url,
-                  previewUrl: response.data.previewUrl || response.data.url,
-                  duration: '',
-                  description: ''
-                }, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
-                showToast.success('Preview video uploaded successfully');
-              } else {
-                showToast.error('Invalid video upload response format');
-              }
-            },
-            onFail: (error) => {
-              showToast.error('Video upload failed. Please try again.');
-            },
-          });
+          // Use uploadService.uploadBase64 instead of postQuery with apiUrls
+          const uploadRes = await uploadService.uploadBase64(base64, 'video');
+          if (uploadRes?.data?.url && typeof uploadRes.data.url === 'string') {
+            setValue('preview_video', {
+              title: file.name,
+              url: uploadRes.data.url,
+              previewUrl: uploadRes.data.previewUrl || uploadRes.data.url,
+              duration: '',
+              description: ''
+            }, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+            showToast.success('Preview video uploaded successfully');
+          } else {
+            showToast.error('Invalid video upload response format');
+          }
         }
       };
       reader.onerror = () => {
@@ -1241,7 +1303,7 @@ export default function CreateBlendedCoursePage() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           {/* Basic Information */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className={sectionClass}>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
               Basic Information
             </h2>
@@ -1265,11 +1327,11 @@ export default function CreateBlendedCoursePage() {
                 <select
                   {...register("course_category", { required: "Category is required" })}
                   className={inputClass}
-                  disabled={isLoading}
+                  disabled={isLoadingCategories}
                 >
                   <option value="">Select category</option>
-                  {masterData.categories.map((cat, i) => (
-                    <option key={i} value={cat}>{cat}</option>
+                  {categories.map((cat, i) => (
+                    <option key={i} value={cat.category_name}>{cat.category_name}</option>
                   ))}
                 </select>
                 {errors.course_category && (
@@ -1286,7 +1348,7 @@ export default function CreateBlendedCoursePage() {
                         type="checkbox"
                         value={cat}
                         {...register("course_subcategory")}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2 dark:bg-gray-700 dark:border-gray-600"
                       />
                       <span className="text-sm text-gray-700 dark:text-gray-300">{cat}</span>
                     </div>
@@ -1320,7 +1382,7 @@ export default function CreateBlendedCoursePage() {
                           newTags.splice(index, 1);
                           setValue('course_tag', newTags);
                         }}
-                        className="text-red-500 hover:text-red-700"
+                        className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -1332,7 +1394,7 @@ export default function CreateBlendedCoursePage() {
                       const newTags = [...(Array.isArray(watchedValues.course_tag) ? watchedValues.course_tag : []), ''];
                       setValue('course_tag', newTags);
                     }}
-                    className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
+                    className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center dark:text-blue-400 dark:hover:text-blue-300"
                   >
                     <Plus className="h-4 w-4 mr-1" />
                     Add Tag
@@ -1348,7 +1410,7 @@ export default function CreateBlendedCoursePage() {
                 </select>
                 {errors.gradeOrCertificate && typeof errors.gradeOrCertificate.message === 'string' && <p className={errorClass}>{errors.gradeOrCertificate.message}</p>}
               </div>
-              {gradeOrCertificate === "grade" && (
+              {watchedValues.gradeOrCertificate === "grade" && (
                 <div>
                   <label className={labelClass}>Grade *</label>
                   <select {...register("grade")} className={inputClass}>
@@ -1360,7 +1422,7 @@ export default function CreateBlendedCoursePage() {
                   {errors.grade && typeof errors.grade.message === 'string' && <p className={errorClass}>{errors.grade.message}</p>}
                 </div>
               )}
-              {gradeOrCertificate === "certificate" && (
+              {watchedValues.gradeOrCertificate === "certificate" && (
                 <div>
                   <label className={labelClass}>Certificate Type *</label>
                   <select {...register("certificateType")} className={inputClass}>
@@ -1383,6 +1445,23 @@ export default function CreateBlendedCoursePage() {
                 </select>
                 {errors.course_level && <p className={errorClass}>{errors.course_level.message}</p>}
               </div>
+
+              <div>
+                <label className={labelClass}>Course Duration *</label>
+                <select {...register("course_duration")} className={inputClass}>
+                  <option value="">Select course duration</option>
+                  {masterData.courseDurations.map((d, i) => (
+                    <option key={i} value={d}>{d}</option>
+                  ))}
+                </select>
+                {errors.course_duration && <p className={errorClass}>{errors.course_duration.message}</p>}
+              </div>
+              
+              <div>
+                <label className={labelClass}>Number of Sessions *</label>
+                <input type="number" {...register("numberOfSessions")} className={inputClass} min={1} placeholder="Enter number of sessions" />
+                {errors.numberOfSessions && <p className={errorClass}>{errors.numberOfSessions.message}</p>}
+              </div>
             </div>
 
             {/* Course Image */}
@@ -1395,12 +1474,12 @@ export default function CreateBlendedCoursePage() {
                       <img
                         src={watchedValues.course_image}
                         alt="Course preview"
-                        className="mx-auto h-32 w-auto rounded-lg"
+                        className="mx-auto h-32 w-auto rounded-lg object-cover"
                       />
                       <button
                         type="button"
                         onClick={() => setValue('course_image', '')}
-                        className="absolute top-0 right-0 -mt-2 -mr-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        className="absolute top-0 right-0 -mt-2 -mr-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -1409,7 +1488,7 @@ export default function CreateBlendedCoursePage() {
                     <>
                       <Upload className="mx-auto h-12 w-12 text-gray-400" />
                       <div className="flex text-sm text-gray-600 dark:text-gray-400">
-                        <label className="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                        <label className="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
                           <span>Upload a file</span>
                           <input
                             type="file"
@@ -1431,7 +1510,7 @@ export default function CreateBlendedCoursePage() {
                 </div>
               </div>
               {imageUploading && (
-                <p className="text-sm text-blue-600 mt-2">Uploading image...</p>
+                <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">Uploading image...</p>
               )}
             </div>
 
@@ -1445,12 +1524,12 @@ export default function CreateBlendedCoursePage() {
                       <video
                         src={watchedValues.preview_video.previewUrl || watchedValues.preview_video.url}
                         controls
-                        className="mx-auto h-32 w-auto rounded-lg"
+                        className="mx-auto h-32 w-auto rounded-lg object-cover"
                       />
                       <button
                         type="button"
                         onClick={() => setValue('preview_video', { title: '', url: '', previewUrl: '', duration: '', description: '' })}
-                        className="absolute top-0 right-0 -mt-2 -mr-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        className="absolute top-0 right-0 -mt-2 -mr-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -1471,7 +1550,7 @@ export default function CreateBlendedCoursePage() {
                     <>
                       <Upload className="mx-auto h-12 w-12 text-gray-400" />
                       <div className="flex text-sm text-gray-600 dark:text-gray-400">
-                        <label className="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                        <label className="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
                           <span>Upload a video</span>
                           <input
                             type="file"
@@ -1493,13 +1572,55 @@ export default function CreateBlendedCoursePage() {
                 </div>
               </div>
               {videoUploading && (
-                <p className="text-sm text-blue-600 mt-2">Uploading video...</p>
+                <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">Uploading video...</p>
               )}
             </div>
           </div>
 
+          {/* Course Features Section */}
+          <div className={sectionClass}>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Course Features</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className={labelClass}>Include Quizzes *</label>
+                <select {...register("includeQuizzes")} className={inputClass}>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+                {errors.includeQuizzes && <p className={errorClass}>{errors.includeQuizzes.message}</p>}
+              </div>
+              
+              <div>
+                <label className={labelClass}>Include Projects *</label>
+                <select {...register("includeProjects")} className={inputClass}>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+                {errors.includeProjects && <p className={errorClass}>{errors.includeProjects.message}</p>}
+              </div>
+              
+              <div>
+                <label className={labelClass}>Include Assignments *</label>
+                <select {...register("includeAssignments")} className={inputClass}>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+                {errors.includeAssignments && <p className={errorClass}>{errors.includeAssignments.message}</p>}
+              </div>
+              
+              <div>
+                <label className={labelClass}>Include Certification *</label>
+                <select {...register("includeCertification")} className={inputClass}>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+                {errors.includeCertification && <p className={errorClass}>{errors.includeCertification.message}</p>}
+              </div>
+            </div>
+          </div>
+
           {/* Course Description */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className={sectionClass}>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
               Course Description
             </h2>
@@ -1535,27 +1656,27 @@ export default function CreateBlendedCoursePage() {
               <div>
                 <label className={labelClass}>Learning Objectives</label>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Specific, measurable outcomes students will achieve</p>
-                {(watchedValues.course_description?.learning_objectives || ['']).map((objective, index) => (
+                {(watchedValues.course_description?.learning_objectives || []).map((objective, index) => (
                   <div key={index} className="flex items-center space-x-2 mb-2">
                     <input
                       value={objective}
                       onChange={(e) => {
-                        const newObjectives = [...(watchedValues.course_description?.learning_objectives || [''])];
+                        const newObjectives = [...(watchedValues.course_description?.learning_objectives || [])];
                         newObjectives[index] = e.target.value;
                         setValue('course_description.learning_objectives', newObjectives);
                       }}
                       className={inputClass}
                       placeholder="e.g., Master ES6+ features and syntax"
                     />
-                    {(watchedValues.course_description?.learning_objectives || ['']).length > 1 && (
+                    {(watchedValues.course_description?.learning_objectives || []).length > 1 && (
                       <button
                         type="button"
                         onClick={() => {
-                          const newObjectives = [...(watchedValues.course_description?.learning_objectives || [''])];
+                          const newObjectives = [...(watchedValues.course_description?.learning_objectives || [])];
                           newObjectives.splice(index, 1);
                           setValue('course_description.learning_objectives', newObjectives);
                         }}
-                        className="text-red-500 hover:text-red-700"
+                        className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -1565,10 +1686,10 @@ export default function CreateBlendedCoursePage() {
                 <button
                   type="button"
                   onClick={() => {
-                    const newObjectives = [...(watchedValues.course_description?.learning_objectives || ['']), ''];
+                    const newObjectives = [...(watchedValues.course_description?.learning_objectives || []), ''];
                     setValue('course_description.learning_objectives', newObjectives);
                   }}
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
+                  className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center dark:text-blue-400 dark:hover:text-blue-300"
                 >
                   <Plus className="h-4 w-4 mr-1" />
                   Add Learning Objective
@@ -1579,27 +1700,27 @@ export default function CreateBlendedCoursePage() {
               <div>
                 <label className={labelClass}>Course Requirements</label>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Prerequisites and technical requirements</p>
-                {(watchedValues.course_description?.course_requirements || ['']).map((requirement, index) => (
+                {(watchedValues.course_description?.course_requirements || []).map((requirement, index) => (
                   <div key={index} className="flex items-center space-x-2 mb-2">
                     <input
                       value={requirement}
                       onChange={(e) => {
-                        const newRequirements = [...(watchedValues.course_description?.course_requirements || [''])];
+                        const newRequirements = [...(watchedValues.course_description?.course_requirements || [])];
                         newRequirements[index] = e.target.value;
                         setValue('course_description.course_requirements', newRequirements);
                       }}
                       className={inputClass}
                       placeholder="e.g., Basic JavaScript knowledge"
                     />
-                    {(watchedValues.course_description?.course_requirements || ['']).length > 1 && (
+                    {(watchedValues.course_description?.course_requirements || []).length > 1 && (
                       <button
                         type="button"
                         onClick={() => {
-                          const newRequirements = [...(watchedValues.course_description?.course_requirements || [''])];
+                          const newRequirements = [...(watchedValues.course_description?.course_requirements || [])];
                           newRequirements.splice(index, 1);
                           setValue('course_description.course_requirements', newRequirements);
                         }}
-                        className="text-red-500 hover:text-red-700"
+                        className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -1609,10 +1730,10 @@ export default function CreateBlendedCoursePage() {
                 <button
                   type="button"
                   onClick={() => {
-                    const newRequirements = [...(watchedValues.course_description?.course_requirements || ['']), ''];
+                    const newRequirements = [...(watchedValues.course_description?.course_requirements || []), ''];
                     setValue('course_description.course_requirements', newRequirements);
                   }}
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
+                  className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center dark:text-blue-400 dark:hover:text-blue-300"
                 >
                   <Plus className="h-4 w-4 mr-1" />
                   Add Requirement
@@ -1623,27 +1744,27 @@ export default function CreateBlendedCoursePage() {
               <div>
                 <label className={labelClass}>Target Audience</label>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Who should take this course?</p>
-                {(watchedValues.course_description?.target_audience || ['']).map((audience, index) => (
+                {(watchedValues.course_description?.target_audience || []).map((audience, index) => (
                   <div key={index} className="flex items-center space-x-2 mb-2">
                     <input
                       value={audience}
                       onChange={(e) => {
-                        const newAudience = [...(watchedValues.course_description?.target_audience || [''])];
+                        const newAudience = [...(watchedValues.course_description?.target_audience || [])];
                         newAudience[index] = e.target.value;
                         setValue('course_description.target_audience', newAudience);
                       }}
                       className={inputClass}
                       placeholder="e.g., Intermediate developers wanting to advance skills"
                     />
-                    {(watchedValues.course_description?.target_audience || ['']).length > 1 && (
+                    {(watchedValues.course_description?.target_audience || []).length > 1 && (
                       <button
                         type="button"
                         onClick={() => {
-                          const newAudience = [...(watchedValues.course_description?.target_audience || [''])];
+                          const newAudience = [...(watchedValues.course_description?.target_audience || [])];
                           newAudience.splice(index, 1);
                           setValue('course_description.target_audience', newAudience);
                         }}
-                        className="text-red-500 hover:text-red-700"
+                        className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -1653,10 +1774,10 @@ export default function CreateBlendedCoursePage() {
                 <button
                   type="button"
                   onClick={() => {
-                    const newAudience = [...(watchedValues.course_description?.target_audience || ['']), ''];
+                    const newAudience = [...(watchedValues.course_description?.target_audience || []), ''];
                     setValue('course_description.target_audience', newAudience);
                   }}
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
+                  className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center dark:text-blue-400 dark:hover:text-blue-300"
                 >
                   <Plus className="h-4 w-4 mr-1" />
                   Add Target Audience
@@ -1665,8 +1786,148 @@ export default function CreateBlendedCoursePage() {
             </div>
           </div>
 
+          {/* Modules and Sessions Section */}
+          <div className={sectionClass}>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Course Modules and Sessions</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Organize your course content into modules and sessions</p>
+            
+            {curriculumFields.map((module, moduleIdx) => (
+              <div key={module.id} className="mb-8 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Module #{moduleIdx + 1}</h3>
+                  {curriculumFields.length > 1 && (
+                    <button type="button" onClick={() => removeCurriculum(moduleIdx)} className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  )}
+                </div>
+                
+                <div className="mb-4">
+                  <label className={labelClass}>Module Title</label>
+                  <input 
+                    type="text" 
+                    {...register(`curriculum.${moduleIdx}.title`)} 
+                    className={inputClass} 
+                    placeholder={`Module ${moduleIdx + 1}: Introduction`} 
+                  />
+                  {errors.curriculum && Array.isArray(errors.curriculum) && errors.curriculum[moduleIdx]?.title && (
+                    <p className={errorClass}>{errors.curriculum[moduleIdx]?.title?.message}</p>
+                  )}
+                </div>
+                
+                <div className="mb-4">
+                  <label className={labelClass}>Week Title</label>
+                  <input 
+                    type="text" 
+                    {...register(`curriculum.${moduleIdx}.weekTitle`)} 
+                    className={inputClass} 
+                    placeholder={`Week ${moduleIdx + 1}`} 
+                  />
+                </div>
+                
+                <div className="mb-4">
+                  <label className={labelClass}>Module Description</label>
+                  <textarea 
+                    {...register(`curriculum.${moduleIdx}.description`)} 
+                    className={inputClass} 
+                    rows={2} 
+                    placeholder="Getting started with the course" 
+                  />
+                  {errors.curriculum && Array.isArray(errors.curriculum) && errors.curriculum[moduleIdx]?.description && (
+                    <p className={errorClass}>{errors.curriculum[moduleIdx]?.description?.message}</p>
+                  )}
+                </div>
+
+                <div className="mb-4">
+                  <h4 className="text-md font-semibold text-gray-800 dark:text-gray-200 mb-2">Lessons</h4>
+                  {watchedValues.curriculum?.[moduleIdx]?.lessons?.map((lesson, lessonIdx) => (
+                    <div key={lessonIdx} className="mb-3 border border-gray-100 dark:border-gray-700 rounded p-3 bg-gray-50 dark:bg-gray-800">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-medium text-gray-700 dark:text-gray-300">Lesson #{lessonIdx + 1}</span>
+                        {watchedValues.curriculum?.[moduleIdx]?.lessons && watchedValues.curriculum[moduleIdx].lessons!.length > 1 && (
+                          <button type="button" onClick={() => removeLessonFromCurriculum(moduleIdx, lessonIdx)} className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                      
+                      <div className="mb-2">
+                        <label className={labelClass}>Lesson Title</label>
+                        <input 
+                          type="text" 
+                          value={lesson.title} 
+                          onChange={(e) => updateLesson(moduleIdx, lessonIdx, 'title', e.target.value)}
+                          className={inputClass} 
+                          placeholder={`Lesson ${lessonIdx + 1} Title`} 
+                        />
+                      </div>
+                      
+                      <div className="mb-2">
+                        <label className={labelClass}>Content Type</label>
+                        <select 
+                          value={lesson.content_type} 
+                          onChange={(e) => updateLesson(moduleIdx, lessonIdx, 'content_type', e.target.value)}
+                          className={inputClass}
+                        >
+                          <option value="video">Video</option>
+                          <option value="text">Text</option>
+                          <option value="assignment">Assignment</option>
+                          <option value="quiz">Quiz</option>
+                        </select>
+                      </div>
+                      
+                      <div className="mb-2">
+                        <label className={labelClass}>Content URL</label>
+                        <input 
+                          type="text" 
+                          value={lesson.content_url} 
+                          onChange={(e) => updateLesson(moduleIdx, lessonIdx, 'content_url', e.target.value)}
+                          className={inputClass} 
+                          placeholder="https://example.com/video.mp4" 
+                        />
+                      </div>
+                      
+                      {lesson.content_type === 'video' && (
+                        <div className="mb-2">
+                          <label className={labelClass}>Duration (minutes)</label>
+                          <input 
+                            type="number" 
+                            value={lesson.duration} 
+                            onChange={(e) => updateLesson(moduleIdx, lessonIdx, 'duration', parseInt(e.target.value))}
+                            className={inputClass} 
+                            placeholder="30" 
+                            min="1"
+                          />
+                        </div>
+                      )}
+                      
+                      <div>
+                        <label className={labelClass}>Lesson Description</label>
+                        <textarea 
+                          value={lesson.description} 
+                          onChange={(e) => updateLesson(moduleIdx, lessonIdx, 'description', e.target.value)}
+                          className={inputClass} 
+                          rows={1} 
+                          placeholder="Lesson description (optional)" 
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <button type="button" onClick={() => addLessonToCurriculum(moduleIdx)} className={`${secondaryButtonClass} mt-2`}>
+                    <Plus className="h-4 w-4 mr-2" /> Add Lesson
+                  </button>
+                </div>
+              </div>
+            ))}
+            
+            <button type="button" onClick={() => appendCurriculum({ title: '', weekTitle: '', description: '', order: curriculumFields.length + 1, lessons: [] })} className={`${primaryButtonClass} mt-2`}>
+              <Plus className="h-4 w-4 mr-2" /> Add Module
+            </button>
+          </div>
+
           {/* Pricing Configuration */}
-          <div className={cardClass}>
+          <div className={sectionClass}>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
               <DollarSign className="h-5 w-5 mr-2" />
               Pricing Configuration
@@ -1679,7 +1940,7 @@ export default function CreateBlendedCoursePage() {
               <div key={field.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 mb-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className={labelClass}>
                       Currency *
                     </label>
                     <select
@@ -1699,7 +1960,7 @@ export default function CreateBlendedCoursePage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className={labelClass}>
                       Individual Price *
                     </label>
                     <input
@@ -1707,11 +1968,107 @@ export default function CreateBlendedCoursePage() {
                       type="number"
                       className={inputClass}
                       placeholder="0"
+                      min="0"
+                      step="0.01"
                     />
                     {errors.prices?.[index]?.individual && (
                       <p className={errorClass}>{errors.prices[index]?.individual?.message}</p>
                     )}
                   </div>
+
+                  <div>
+                    <label className={labelClass}>
+                      Batch Price (per student) *
+                    </label>
+                    <input
+                      {...register(`prices.${index}.batch` as const, { required: "Batch price is required" })}
+                      type="number"
+                      className={inputClass}
+                      placeholder="0"
+                      min="0"
+                      step="0.01"
+                    />
+                    {errors.prices?.[index]?.batch && (
+                      <p className={errorClass}>{errors.prices[index]?.batch?.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>
+                      Minimum Batch Size *
+                    </label>
+                    <input
+                      {...register(`prices.${index}.min_batch_size` as const, { required: "Minimum batch size is required" })}
+                      type="number"
+                      className={inputClass}
+                      placeholder="2"
+                      min="2"
+                    />
+                    {errors.prices?.[index]?.min_batch_size && (
+                      <p className={errorClass}>{errors.prices[index]?.min_batch_size?.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>
+                      Maximum Batch Size *
+                    </label>
+                    <input
+                      {...register(`prices.${index}.max_batch_size` as const, { required: "Maximum batch size is required" })}
+                      type="number"
+                      className={inputClass}
+                      placeholder="10"
+                      min="2"
+                    />
+                    {errors.prices?.[index]?.max_batch_size && (
+                      <p className={errorClass}>{errors.prices[index]?.max_batch_size?.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>
+                      Early Bird Discount (%)
+                    </label>
+                    <input
+                      {...register(`prices.${index}.early_bird_discount` as const)}
+                      type="number"
+                      className={inputClass}
+                      placeholder="0"
+                      min="0"
+                      max="100"
+                    />
+                    {errors.prices?.[index]?.early_bird_discount && (
+                      <p className={errorClass}>{errors.prices[index]?.early_bird_discount?.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>
+                      Group Discount (%)
+                    </label>
+                    <input
+                      {...register(`prices.${index}.group_discount` as const)}
+                      type="number"
+                      className={inputClass}
+                      placeholder="0"
+                      min="0"
+                      max="100"
+                    />
+                    {errors.prices?.[index]?.group_discount && (
+                      <p className={errorClass}>{errors.prices[index]?.group_discount?.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      {...register(`prices.${index}.is_active` as const)}
+                      className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Active pricing configuration</span>
+                  </label>
                 </div>
 
                 <div className="flex justify-end mt-4">
@@ -1729,7 +2086,7 @@ export default function CreateBlendedCoursePage() {
 
             <button
               type="button"
-              onClick={() => appendPrice({ currency: 'USD', individual: 0, batch: 0, min_batch_size: 2, max_batch_size: 10, early_bird_discount: 0, group_discount: 0, is_active: true })}
+              onClick={() => appendPrice({ currency: 'USD', individual: 299, batch: 249, min_batch_size: 5, max_batch_size: 20, early_bird_discount: 15, group_discount: 20, is_active: true })}
               disabled={isSubmitting}
               className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-blue-700 dark:hover:bg-blue-800"
             >
@@ -1739,7 +2096,7 @@ export default function CreateBlendedCoursePage() {
           </div>
 
           {/* Doubt Session Schedule */}
-          <div className={cardClass}>
+          <div className={sectionClass}>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
               <Clock className="h-5 w-5 mr-2" />
               Doubt Session Schedule
@@ -1870,7 +2227,7 @@ export default function CreateBlendedCoursePage() {
           </div>
 
           {/* Tools and Technologies */}
-          <div className={cardClass}>
+          <div className={sectionClass}>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
               <BookOpen className="h-5 w-5 mr-2" />
               Tools and Technologies
@@ -1883,7 +2240,7 @@ export default function CreateBlendedCoursePage() {
               <div key={field.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 mb-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className={labelClass}>
                       Tool/Technology Name *
                     </label>
                     <input
@@ -1898,7 +2255,7 @@ export default function CreateBlendedCoursePage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className={labelClass}>
                       Category
                     </label>
                     <input
@@ -1912,7 +2269,7 @@ export default function CreateBlendedCoursePage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className={labelClass}>
                       Description
                     </label>
                     <textarea
@@ -1924,7 +2281,7 @@ export default function CreateBlendedCoursePage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className={labelClass}>
                       Logo URL
                     </label>
                     <input
@@ -1961,7 +2318,7 @@ export default function CreateBlendedCoursePage() {
           </div>
 
           {/* FAQs */}
-          <div className={cardClass}>
+          <div className={sectionClass}>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
               <HelpCircle className="h-5 w-5 mr-2" />
               FAQs
@@ -1974,7 +2331,7 @@ export default function CreateBlendedCoursePage() {
               <div key={field.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 mb-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className={labelClass}>
                       Question *
                     </label>
                     <input
@@ -1989,7 +2346,7 @@ export default function CreateBlendedCoursePage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className={labelClass}>
                       Answer *
                     </label>
                     <textarea
@@ -2029,7 +2386,7 @@ export default function CreateBlendedCoursePage() {
           </div>
 
           {/* Instructors */}
-          <div className={cardClass}>
+          <div className={sectionClass}>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
               <Users className="h-5 w-5 mr-2" />
               Instructors
@@ -2095,7 +2452,7 @@ export default function CreateBlendedCoursePage() {
           </div>
 
           {/* Prerequisites */}
-          <div className={cardClass}>
+          <div className={sectionClass}>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
               <CheckCircle className="h-5 w-5 mr-2" />
               Prerequisites
@@ -2146,7 +2503,7 @@ export default function CreateBlendedCoursePage() {
           </div>
 
           {/* Certification */}
-          <div className={cardClass}>
+          <div className={sectionClass}>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
               <Award className="h-5 w-5 mr-2" />
               Certification
@@ -2157,7 +2514,7 @@ export default function CreateBlendedCoursePage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className={labelClass}>
                   Is Certified?
                 </label>
                 <select
@@ -2172,12 +2529,12 @@ export default function CreateBlendedCoursePage() {
 
               {watchedValues.certification?.is_certified === true && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className={labelClass}>
                     Certification Criteria
                   </label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className={labelClass}>
                         Minimum Assignments Score (%)
                       </label>
                       <input
@@ -2196,7 +2553,7 @@ export default function CreateBlendedCoursePage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className={labelClass}>
                         Minimum Quizzes Score (%)
                       </label>
                       <input
@@ -2215,7 +2572,7 @@ export default function CreateBlendedCoursePage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className={labelClass}>
                         Minimum Attendance (%)
                       </label>
                       <input
@@ -2239,9 +2596,9 @@ export default function CreateBlendedCoursePage() {
           </div>
 
           {/* Brochures */}
-          <div className={cardClass}>
+          <div className={sectionClass}>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-              <Calendar className="h-5 w-5 mr-2" />
+              <FileText className="h-5 w-5 mr-2" />
               Brochures
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
@@ -2308,24 +2665,31 @@ export default function CreateBlendedCoursePage() {
             </div>
           )}
 
-          {/* Submit Buttons */}
+          {/* Submit Section */}
           <div className="flex justify-end space-x-4">
-            <button
-              type="button"
-              onClick={() => handleFormSubmit('Draft')}
-              disabled={isSubmitting}
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-blue-700 dark:hover:bg-blue-800"
+            <button 
+              type="button" 
+              onClick={() => window.history.back()} 
+              className={secondaryButtonClass}
             >
-              <Save className="h-5 w-5 mr-2" />
-              Save as Draft
+              Cancel
             </button>
-            <button
-              type="submit"
+            <button 
+              type="submit" 
+              className={primaryButtonClass}
               disabled={isSubmitting}
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:bg-green-700 dark:hover:bg-green-800"
             >
-              <CheckCircle className="h-5 w-5 mr-2" />
-              {isSubmitting ? 'Creating...' : 'Create Blended Course'}
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Creating Course...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Create Course
+                </>
+              )}
             </button>
           </div>
         </form>
