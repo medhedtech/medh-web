@@ -201,47 +201,25 @@ const Courses = () => {
   }, [activeTab]);
 
   // Animation variants
-  const containerVariants = useMemo(() => ({
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  }), []);
-
-  const itemVariants = useMemo(() => ({
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 12
-      }
-    }
-  }), []);
 
   // Features with modern icons
-  const features = useMemo(() => [
-    {
-      icon: <Target className="w-6 h-6 text-purple-500" />,
-      title: "Skill-Focused",
-      description: "Learn exactly what you need for your career goals"
-    },
-    {
-      icon: <Globe className="w-6 h-6 text-indigo-500" />,
-      title: "Global Access",
-      description: "Study from anywhere, anytime with our platform"
-    },
-    {
-      icon: <Award className="w-6 h-6 text-green-500" />,
-      title: "Recognized Certifications",
-      description: "Get certificates that matter to employers"
-    }
-  ], []);
+  // const features = useMemo(() => [
+  //   {
+  //     icon: <Target className="w-6 h-6 text-purple-500" />,
+  //     title: "Skill-Focused",
+  //     description: "Learn exactly what you need for your career goals"
+  //   },
+  //   {
+  //     icon: <Globe className="w-6 h-6 text-indigo-500" />,
+  //     title: "Global Access",
+  //     description: "Study from anywhere, anytime with our platform"
+  //   },
+  //   {
+  //     icon: <Award className="w-6 h-6 text-green-500" />,
+  //     title: "Recognized Certifications",
+  //     description: "Get certificates that matter to employers"
+  //   }
+  // ], []);
 
   const handleTabChange = useCallback((tab: "all" | "live" | "blended") => {
     setActiveTab(tab);
@@ -451,34 +429,11 @@ const Courses = () => {
       </section>
 
       {/* Minimalist Features Section - Edge to Edge */}
-      <section className="w-full py-20 bg-gray-50 dark:bg-gray-900/50 relative z-10">
+      <section className="w-full py-0 bg-gray-50 dark:bg-gray-900/50 relative z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
-          >
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                variants={itemVariants}
-                className="text-center p-8 bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 hover:shadow-lg transition-all duration-300"
-              >
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl mb-6">
-                  <div className="text-gray-600 dark:text-gray-400">
-                    {feature.icon}
-                  </div>
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                  {feature.description}
-                </p>
-              </motion.div>
-            ))}
-          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* The features section has been removed as per the user's request. */}
+          </div>
         </div>
       </section>
     </div>
