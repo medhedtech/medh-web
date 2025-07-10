@@ -1112,6 +1112,48 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   const [isBlendedLearningDropdownOpen, setIsBlendedLearningDropdownOpen] = useState<boolean>(false);
   const [isFreeCoursesDropdownOpen, setIsFreeCoursesDropdownOpen] = useState<boolean>(false);
 
+  // Add these handler functions near the dropdown state declarations:
+  const handleOpenGradeDropdown = () => {
+    setIsGradeDropdownOpen((open) => {
+      if (!open) {
+        setIsLiveCoursesDropdownOpen(false);
+        setIsBlendedLearningDropdownOpen(false);
+        setIsFreeCoursesDropdownOpen(false);
+      }
+      return !open;
+    });
+  };
+  const handleOpenLiveCoursesDropdown = () => {
+    setIsLiveCoursesDropdownOpen((open) => {
+      if (!open) {
+        setIsGradeDropdownOpen(false);
+        setIsBlendedLearningDropdownOpen(false);
+        setIsFreeCoursesDropdownOpen(false);
+      }
+      return !open;
+    });
+  };
+  const handleOpenBlendedLearningDropdown = () => {
+    setIsBlendedLearningDropdownOpen((open) => {
+      if (!open) {
+        setIsGradeDropdownOpen(false);
+        setIsLiveCoursesDropdownOpen(false);
+        setIsFreeCoursesDropdownOpen(false);
+      }
+      return !open;
+    });
+  };
+  const handleOpenFreeCoursesDropdown = () => {
+    setIsFreeCoursesDropdownOpen((open) => {
+      if (!open) {
+        setIsGradeDropdownOpen(false);
+        setIsLiveCoursesDropdownOpen(false);
+        setIsBlendedLearningDropdownOpen(false);
+      }
+      return !open;
+    });
+  };
+
   // Automatically close nested dropdowns whenever the mobile categories panel is closed
   useEffect(() => {
     if (!isMobileCategoriesOpen) {
@@ -2783,7 +2825,12 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
           {!hideGradeFilter && (
             <div className="mb-4">
               <div className="filter-glassmorphic rounded-xl border border-indigo-100 dark:border-indigo-900/30 overflow-hidden">
-                <div className="flex items-center p-3">
+                {/* Grade Filter Header - clickable to toggle open/close */}
+                <div
+                  className="flex items-center p-3 cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all duration-300"
+                  onClick={handleOpenGradeDropdown}
+                  data-testid="grade-filter-dropdown"
+                >
                   <div className="flex items-center space-x-2">
                     <div className="w-6 h-6 filter-glassmorphic rounded-lg flex items-center justify-center">
                       <GraduationCap className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
@@ -2798,49 +2845,52 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                       {selectedGrade.length}
                     </span>
                   )}
+                  <ChevronDown className={`w-4 h-4 text-indigo-600 dark:text-indigo-400 transition-all duration-300 ml-2 ${isGradeDropdownOpen ? 'rotate-180 scale-110' : 'rotate-0 scale-100'}`} />
                 </div>
-                {/* Grade Level Options - always visible */}
-                <div className="px-4 pb-4 space-y-2 border-t border-indigo-100 dark:border-indigo-900/30 bg-white dark:bg-gray-800">
-                  {gradeOptions.map((grade, index) => (
-                    <label
-                      key={grade}
-                      className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 transform hover:scale-[1.02]"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <input
-                          type="checkbox"
-                          checked={selectedGrade.includes(grade)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedGrade(prev => [...prev, grade]);
-                            } else {
-                              setSelectedGrade(prev => prev.filter(g => g !== grade));
-                            }
-                          }}
-                          className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 transition-all duration-200"
-                        />
-                        <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
-                          {grade}
-                        </span>
-                      </div>
-                      {selectedGrade.includes(grade) && (
-                        <span className="text-xs text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/40 px-2 py-1 rounded-full animate-pulse">
-                          ✓
-                        </span>
-                      )}
-                    </label>
-                  ))}
-                  {/* Clear Grade Filters */}
-                  {selectedGrade.length > 0 && (
-                    <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
-                      <button
-                        onClick={() => setSelectedGrade([])}
-                        className="w-full text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 bg-indigo-100 dark:bg-indigo-900/40 hover:bg-indigo-200 dark:hover:bg-indigo-900/60 px-3 py-2 rounded-lg transition-all duration-200 transform hover:scale-105"
+                {/* Grade Level Options - only visible when open */}
+                <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isGradeDropdownOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <div className="px-4 pb-4 space-y-2 border-t border-indigo-100 dark:border-indigo-900/30 bg-white dark:bg-gray-800">
+                    {gradeOptions.map((grade, index) => (
+                      <label
+                        key={grade}
+                        className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 transform hover:scale-[1.02]"
                       >
-                        Clear Grade Filters ({selectedGrade.length})
-                      </button>
-                    </div>
-                  )}
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedGrade.includes(grade)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedGrade(prev => [...prev, grade]);
+                              } else {
+                                setSelectedGrade(prev => prev.filter(g => g !== grade));
+                              }
+                            }}
+                            className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 transition-all duration-200"
+                          />
+                          <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                            {grade}
+                          </span>
+                        </div>
+                        {selectedGrade.includes(grade) && (
+                          <span className="text-xs text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/40 px-2 py-1 rounded-full animate-pulse">
+                            ✓
+                          </span>
+                        )}
+                      </label>
+                    ))}
+                    {/* Clear Grade Filters */}
+                    {selectedGrade.length > 0 && (
+                      <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <button
+                          onClick={() => setSelectedGrade([])}
+                          className="w-full text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 bg-indigo-100 dark:bg-indigo-900/40 hover:bg-indigo-200 dark:hover:bg-indigo-900/60 px-3 py-2 rounded-lg transition-all duration-200 transform hover:scale-105"
+                        >
+                          Clear Grade Filters ({selectedGrade.length})
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -2854,7 +2904,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
               <div className="filter-glassmorphic rounded-xl border border-red-100 dark:border-red-900/30 overflow-hidden" data-live-courses-dropdown>
                 <div 
                   className="flex items-center justify-between cursor-pointer p-4 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-300 ease-in-out" 
-                  onClick={() => setIsLiveCoursesDropdownOpen(!isLiveCoursesDropdownOpen)}
+                  onClick={handleOpenLiveCoursesDropdown}
                 >
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 filter-glassmorphic rounded-lg flex items-center justify-center transition-all duration-300">
@@ -2921,7 +2971,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
               <div className="filter-glassmorphic rounded-xl border border-blue-100 dark:border-blue-900/30 overflow-hidden" data-blended-learning-dropdown>
                 <div 
                   className="flex items-center justify-between cursor-pointer p-4 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all duration-300 ease-in-out" 
-                  onClick={() => setIsBlendedLearningDropdownOpen(!isBlendedLearningDropdownOpen)}
+                  onClick={handleOpenBlendedLearningDropdown}
                 >
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 filter-glassmorphic rounded-lg flex items-center justify-center transition-all duration-300">
@@ -2988,7 +3038,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
               <div className="filter-glassmorphic rounded-xl border border-green-100 dark:border-green-900/30 overflow-hidden" data-free-courses-dropdown>
                 <div 
                   className="flex items-center justify-between cursor-pointer p-4 hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-300 ease-in-out" 
-                  onClick={() => setIsFreeCoursesDropdownOpen(!isFreeCoursesDropdownOpen)}
+                  onClick={handleOpenFreeCoursesDropdown}
                 >
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 filter-glassmorphic rounded-lg flex items-center justify-center transition-all duration-300">
