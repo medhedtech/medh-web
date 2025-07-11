@@ -97,6 +97,7 @@ interface ICourseDetails {
   weekly_hours?: string;
   downloadBrochure?: string;
   features?: Array<{ title: string; description: string }>;
+  grade?: string;
 }
 
 interface ICourseVideoPlayerProps {
@@ -1166,53 +1167,85 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
           >
             {/* Course Key Info Row - Mobile: Improved layout, Desktop: Contained */}
             <div className="mb-6 px-4 sm:px-0">
-              <div className="grid grid-cols-1 sm:flex sm:flex-row gap-2 sm:gap-6 items-start sm:items-center">
+              <div
+                className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-6 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-800 dark:to-slate-800 rounded-xl border border-slate-200 dark:border-gray-700 shadow-sm p-4 sm:p-5"
+                role="group"
+                aria-label="Course key information"
+              >
                 {/* No. of Sessions (Live only) */}
                 {(() => {
                   const isLive = getClassType().toLowerCase().includes('live') && !isBlendedCourse(courseDetails);
                   const sessions = courseDetails?.no_of_Sessions;
                   if (isLive && sessions) {
                     return (
-                      <div className={`flex items-center justify-between sm:justify-start bg-blue-50 dark:bg-blue-900/20 rounded-lg px-3 py-2.5 sm:py-2 text-sm font-medium text-blue-700 dark:text-blue-300 w-full sm:w-auto`}>
-                        <div className="flex items-center">
-                          <Users className="w-4 h-4 mr-2 text-blue-500 dark:text-blue-300" aria-label="No. of Sessions" />
-                          <span>No. of Sessions:</span>
+                      <div className="flex items-center gap-3 flex-1 min-w-0" aria-label="No. of Sessions">
+                        <div className="flex-shrink-0 p-2 rounded-full bg-blue-100 dark:bg-blue-900/40">
+                          <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                         </div>
-                        <span className="font-semibold">{sessions}</span>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">No. of Sessions</span>
+                          <span className="text-lg font-bold text-blue-800 dark:text-blue-200 truncate">{sessions}</span>
+                        </div>
                       </div>
                     );
                   }
                   return null;
                 })()}
+                {/* Divider for sm+ */}
+                <div className="hidden sm:block w-px bg-slate-200 dark:bg-gray-700 mx-2" aria-hidden="true"></div>
                 {/* Course Duration */}
                 {(() => {
                   const duration = formatDuration(courseDetails);
                   if (duration) {
                     return (
-                      <div className={`flex items-center justify-between sm:justify-start bg-purple-50 dark:bg-purple-900/20 rounded-lg px-3 py-2.5 sm:py-2 text-sm font-medium text-purple-700 dark:text-purple-300 w-full sm:w-auto`}>
-                        <div className="flex items-center">
-                          <Calendar className="w-4 h-4 mr-2 text-purple-500 dark:text-purple-300" aria-label="Course Duration" />
-                          <span>Duration:</span>
+                      <div className="flex items-center gap-3 flex-1 min-w-0" aria-label="Course Duration">
+                        <div className="flex-shrink-0 p-2 rounded-full bg-purple-100 dark:bg-purple-900/40">
+                          <Calendar className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                         </div>
-                        <span className="font-semibold text-right sm:text-left">{duration}</span>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Duration</span>
+                          <span className="text-lg font-bold text-purple-800 dark:text-purple-200 truncate">{duration}</span>
+                        </div>
                       </div>
                     );
                   }
                   return null;
                 })()}
-                {/* Effort Required */}
+                {/* Divider for sm+ */}
+                <div className="hidden sm:block w-px bg-slate-200 dark:bg-gray-700 mx-2" aria-hidden="true"></div>
+                {/* Effort or Grades (Blended logic) */}
                 {(() => {
-                  const effort = formatTimeCommitment(courseDetails);
-                  if (effort) {
+                  const isBlended = isBlendedCourse(courseDetails);
+                  if (isBlended) {
+                    // Show Grades card
+                    const grades = courseDetails?.grade || 'All Grades';
                     return (
-                      <div className={`flex items-center justify-between sm:justify-start bg-green-50 dark:bg-green-900/20 rounded-lg px-3 py-2.5 sm:py-2 text-sm font-medium text-green-700 dark:text-green-300 w-full sm:w-auto`}>
-                        <div className="flex items-center">
-                          <Clock className="w-4 h-4 mr-2 text-green-500 dark:text-green-300" aria-label="Effort Required" />
-                          <span>Effort:</span>
+                      <div className="flex items-center gap-3 flex-1 min-w-0" aria-label="Grades">
+                        <div className="flex-shrink-0 p-2 rounded-full bg-amber-100 dark:bg-amber-900/40">
+                          <Award className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                         </div>
-                        <span className="font-semibold">{effort}</span>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Grades</span>
+                          <span className="text-lg font-bold text-amber-800 dark:text-amber-200 truncate">{grades}</span>
+                        </div>
                       </div>
                     );
+                  } else {
+                    // Show Effort card
+                    const effort = formatTimeCommitment(courseDetails);
+                    if (effort) {
+                      return (
+                        <div className="flex items-center gap-3 flex-1 min-w-0" aria-label="Effort Required">
+                          <div className="flex-shrink-0 p-2 rounded-full bg-green-100 dark:bg-green-900/40">
+                            <Clock className="w-5 h-5 text-green-600 dark:text-green-400" />
+                          </div>
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Effort</span>
+                            <span className="text-lg font-bold text-green-800 dark:text-green-200 truncate">{effort}</span>
+                          </div>
+                        </div>
+                      );
+                    }
                   }
                   return null;
                 })()}
