@@ -245,6 +245,12 @@ const InstructorDashboardV2 = () => {
           <CardContent className="grid grid-cols-2 gap-2">
             <Button className={buildComponent.button('primary', 'sm')}>New Announcement</Button>
             <Button className={buildComponent.button('secondary', 'sm')}>Schedule Class</Button>
+            <Button 
+              className={buildComponent.button('secondary', 'sm')}
+              onClick={() => window.open('/dashboards/demo-student-register', '_blank')}
+            >
+              Demo Student
+            </Button>
             <Button className={buildComponent.button('secondary', 'sm')}>Upload Content</Button>
             <Button className={buildComponent.button('minimal', 'sm')}>View All Actions</Button>
           </CardContent>

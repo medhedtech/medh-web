@@ -1277,8 +1277,10 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
 
   // Enhanced Razorpay payment handler
   const handleRazorpayPayment = async (): Promise<void> => {
+    console.log("Initiating handleRazorpayPayment...");
     if (!courseDetails?._id || !activePricing) {
-      showToast.error("Course information is missing");
+      showToast.error("Course information or pricing is missing for payment.");
+      console.error("Payment initiation failed: Missing courseDetails or activePricing.");
       return;
     }
 
@@ -1293,6 +1295,18 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       const userName = userProfile?.full_name || userProfile?.name || 'User';
       const userPhone = userProfile?.phone_number || userProfile?.mobile || '9999999999';
 
+      console.log("Payment details:", {
+        finalPrice,
+        originalCurrency,
+        userEmail,
+        userName,
+        userPhone,
+        isTestUser,
+        enrollmentType,
+        selectedInstallmentPlan,
+        appliedCoupon,
+      });
+
       let paymentAmount = Math.round(finalPrice * 100);
       let paymentDescription = `Payment for ${courseDetails?.course_title || "Course"} (${enrollmentType} enrollment)`;
       
@@ -1301,16 +1315,21 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         paymentDescription = `Down payment for ${courseDetails?.course_title || "Course"} (EMI plan: ${selectedInstallmentPlan.installments} months)`;
       }
       
+      const razorpayKey = isTestUser 
+        ? process.env.NEXT_PUBLIC_RAZORPAY_TEST_KEY_ID || 'rzp_test_1DP5mmOlF5G5ag'
+        : process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_live_key';
+      
+      console.log("Using Razorpay Key:", razorpayKey);
+
       const options: RazorpayOptions = {
-        key: isTestUser 
-          ? process.env.NEXT_PUBLIC_RAZORPAY_TEST_KEY_ID || 'rzp_test_1DP5mmOlF5G5ag'
-          : process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_live_key',
+        key: razorpayKey,
         amount: paymentAmount,
         currency: originalCurrency,
         name: isTestUser ? "MEDH Education Platform (TEST MODE)" : "MEDH Education Platform",
         description: isTestUser ? `[TEST] ${paymentDescription}` : paymentDescription,
         image: "/images/medhlogo.svg",
         handler: async function (response: any) {
+          console.log("Razorpay payment handler triggered. Response:", response);
           const successMessage = isTestUser 
             ? "Test Payment Successful! 🧪✅" 
             : "Payment Successful! 🎉";
@@ -1328,10 +1347,15 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             response.down_payment = selectedInstallmentPlan.downPayment.toString();
             response.installment_amount = selectedInstallmentPlan.installmentAmount.toString();
             response.is_emi = 'true';
+            console.log("Installment plan details added to payment response:", response);
           }
           
           if (userId) {
+            console.log("Calling enrollCourse after successful payment.");
             await enrollCourse(userId, courseDetails._id, response);
+          } else {
+            console.error("Enrollment failed: userId is missing after successful payment.");
+            showToast.error("Enrollment failed: User ID missing. Please log in again.");
           }
         },
         prefill: {
@@ -1356,6 +1380,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           ondismiss: function() {
             setLoading(false);
             showToast.error("Payment cancelled", { duration: 3000 });
+            console.log("Razorpay modal dismissed by user.");
           }
         }
       };
@@ -1365,27 +1390,31 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         : "Initializing secure payment...";
         
       showToast.loading(loadingMessage, { duration: 2000 });
+      console.log("Attempting to open Razorpay checkout with options:", options);
       await openRazorpayCheckout(options);
     } catch (err: any) {
-      console.error("Enrollment error:", err);
-      setError(err.message || "Failed to process enrollment");
+      console.error("Razorpay payment initiation error:", err);
+      setError(err.message || "Failed to process payment. Please try again.");
       showToast.error("Payment failed. Please try again.", {
         duration: 4000,
         style: { background: '#EF4444', color: '#fff' },
       });
     } finally {
       setLoading(false);
+      console.log("Razorpay payment process finished. Loading set to false.");
     }
   };
 
   // Enroll course function
   const enrollCourse = async (studentId: string, courseId: string, paymentResponse: any = {}): Promise<any> => {
+    console.log("Initiating enrollCourse function.");
+    console.log("EnrollCourse parameters:", { studentId, courseId, paymentResponse });
     if (!studentId || !courseId) {
       console.error("enrollCourse called with missing IDs", { studentId, courseId });
       showToast.error("Student ID and Course ID are required for enrollment. Please log in again or refresh the page.");
       return false;
     }
-    console.log("Enrolling with:", { studentId, courseId });
+    console.log("Enrolling with student ID:", studentId, "and course ID:", courseId);
     try {
       const enrollmentData: any = {
         student_id: studentId,
@@ -1409,6 +1438,10 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         };
       }
       
+      console.log("Enrollment data prepared for API call:", enrollmentData);
+      console.log("API Base URL:", apiBaseUrl);
+      console.log("Authorization Token:", localStorage.getItem('token') ? "Token present" : "Token missing");
+
       try {
         const response = await axios.post(
           `${apiBaseUrl}/enrolled/create`,
@@ -1421,15 +1454,19 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           }
         );
         
+        console.log("Enrollment API response:", response.status, response.data);
+
         if (response.status === 201 || response.status === 200) {
           showToast.success("Successfully enrolled in the course!");
           setIsSuccessModalOpen(true);
           return true;
         } else {
-          throw new Error("Failed to enroll in the course.");
+          console.error("Enrollment API returned non-success status:", response.status, response.data);
+          throw new Error(response.data?.message || "Failed to enroll in the course.");
         }
       } catch (apiError: any) {
-        console.log("Primary enrollment API not available, trying alternative approach...");
+        console.error("Error during primary enrollment API call:", apiError);
+        console.log("Primary enrollment API not available or failed, trying alternative approach...");
         
         if (courseDetails?.isFree || isFreePrice(getFinalPrice())) {
           showToast.success("Free course enrollment successful! You can start learning immediately.");
@@ -1440,11 +1477,12 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           setIsSuccessModalOpen(true);
           return true;
         } else {
+          // Re-throw if it's a critical error not handled by fallbacks
           throw apiError;
         }
       }
     } catch (error: any) {
-      console.error("Enrollment error:", error);
+      console.error("Overall enrollCourse error:", error);
       showToast.error(error.response?.data?.message || "Failed to enroll in the course. Please contact support.");
       return false;
     }
@@ -1482,43 +1520,50 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
 
   // Handle enrollment click
   const handleEnrollClick = useCallback(async () => {
+    console.log("Enrollment button clicked.");
+    console.log("Course details:", courseDetails);
+    console.log("Current userId:", userId);
+    console.log("Current isLoggedIn:", isLoggedIn);
+
     if (!courseDetails?._id) {
-      showToast.error("Course information is missing");
-      return;
-    }
-    if (!userId) {
-      showToast.error("User identification is missing. Please log in again.");
-      router.push('/login');
+      showToast.error("Course information is missing. Please refresh the page.");
+      console.error("Enrollment failed: Course ID missing.");
       return;
     }
 
-    if (!activePricing && !courseDetails.isFree) {
-      showToast.error("Pricing information is missing");
-      return;
-    }
-    
     try {
       setLoading(true);
       setError(null);
-      
+
       if (!isLoggedIn) {
+        console.log("User not logged in. Redirecting to login page.");
+        showToast.error("Please login to enroll in the course.");
         router.push(`/login?redirect=/course-details/${courseDetails?._id}`);
         return;
       }
 
-      if (userId) {
-        const isEnrolled = await checkEnrollmentStatus(userId, courseDetails._id);
-        if (isEnrolled) {
-          showToast.error("You are already enrolled in this course!");
-          router.push('/dashboards/my-courses');
-          return;
-        }
-      } else {
+      if (!userId) {
         showToast.error("User identification is missing. Please log in again.");
-        router.push('/login');
+        console.error("Enrollment failed: userId is null after login check.");
+        router.push('/login'); // Fallback if isLoggedIn is true but userId is null
         return;
       }
-      
+
+      if (!activePricing && !courseDetails.isFree) {
+        showToast.error("Pricing information is missing for paid courses.");
+        console.error("Enrollment failed: Pricing information missing.");
+        return;
+      }
+
+      // Check if already enrolled
+      const isEnrolled = await checkEnrollmentStatus(userId, courseDetails._id);
+      if (isEnrolled) {
+        showToast.error("You are already enrolled in this course!");
+        console.log("User already enrolled. Redirecting to my courses.");
+        router.push('/dashboards/my-courses');
+        return;
+      }
+
       const enrollmentData = {
         ...courseDetails,
         enrollmentType,
@@ -1526,37 +1571,39 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         finalPrice: getFinalPrice(),
         currencyCode: 'USD'
       };
-      
+
       if (onEnrollClick) {
+        console.log("Using custom onEnrollClick handler.");
         await onEnrollClick(enrollmentData);
       } else {
         if (courseDetails.isFree || isFreePrice(getFinalPrice())) {
-          if (userId) {
-            await enrollCourse(userId, courseDetails._id);
-          }
+          console.log("Free course detected. Proceeding with free enrollment.");
+          await enrollCourse(userId, courseDetails._id);
         } else {
+          console.log("Paid course detected. Initiating Razorpay payment.");
           await handleRazorpayPayment();
         }
       }
     } catch (err: any) {
-      console.error("Enrollment error:", err);
-      setError(err.message || "Failed to process enrollment");
-      showToast.error("Enrollment failed. Please try again.");
+      console.error("Enrollment process error:", err);
+      setError(err.message || "An unexpected error occurred during enrollment.");
+      showToast.error(err.message || "Enrollment failed. Please try again or contact support.");
     } finally {
       setLoading(false);
+      console.log("Enrollment process finished. Loading set to false.");
     }
   }, [
-    courseDetails, 
-    isLoggedIn, 
-    userId, 
-    router, 
-    onEnrollClick, 
-    enrollmentType, 
-    activePricing, 
-    getFinalPrice, 
-    checkEnrollmentStatus, 
-    enrollCourse, 
-    isFreePrice, 
+    courseDetails,
+    isLoggedIn,
+    userId,
+    router,
+    onEnrollClick,
+    enrollmentType,
+    activePricing,
+    getFinalPrice,
+    checkEnrollmentStatus,
+    enrollCourse,
+    isFreePrice,
     handleRazorpayPayment
   ]);
 
