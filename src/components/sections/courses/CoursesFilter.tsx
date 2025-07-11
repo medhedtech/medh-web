@@ -1243,32 +1243,24 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     }
   }, [loading, filteredCourses.length]);
 
-  // Update grid columns based on screen size and course count
+  // Update grid columns based on screen size only - keep consistent card sizing
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
     const updateGridColumns = (): void => {
-      const courseCount = filteredCourses.length;
-      
+      // Set consistent grid columns based on screen size only, not course count
       if (isMobile) {
         setResponsiveGridColumns(1);
       } else if (isTablet) {
-        // For tablets, adjust based on course count
-        setResponsiveGridColumns(courseCount < 4 ? Math.min(courseCount, 2) : 2);
+        setResponsiveGridColumns(2);
       } else {
-        // For desktop, dynamically adjust based on course count
-        if (courseCount <= 2) {
-          setResponsiveGridColumns(Math.max(courseCount, 1));
-        } else if (courseCount <= 3) {
-          setResponsiveGridColumns(3);
-        } else {
-          setResponsiveGridColumns(4);
-        }
+        // Always use 4 columns on desktop for consistent card sizing
+        setResponsiveGridColumns(4);
       }
     };
     
     updateGridColumns();
-  }, [isMobile, isTablet, gridColumns, filteredCourses.length]);
+  }, [isMobile, isTablet, gridColumns]);
 
   // Reset page number when filters change
   useEffect(() => {
@@ -2256,47 +2248,32 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   // Use getTabStyles to generate dynamic styling based on activeTab
   const tabStyles = getTabStyles();
 
-  // Determine grid column classes - optimized for fewer courses
+  // Determine grid column classes - consistent sizing regardless of course count
   const getGridColumnClasses = (): string => {
     if (customGridClassName) {
       return customGridClassName;
     }
     
-    const courseCount = filteredCourses.length;
-    
-    // Optimize grid layout based on course count
+    // Use consistent grid layout regardless of course count
     let gridClass = "grid pb-0";
     
-    // Adjust gap based on course count
-    if (courseCount <= 3) {
-      gridClass += " gap-4 lg:gap-6"; // Larger gaps for fewer courses
-    } else {
-      gridClass += " gap-1.5 lg:gap-2"; // Standard gaps for more courses
-    }
+    // Use consistent gaps for all course counts with improved spacing
+    gridClass += " gap-3 md:gap-4 lg:gap-5 xl:gap-6";
     
-    // Dynamic grid columns based on actual course count and screen size
-    if (courseCount === 1) {
-      gridClass += " grid-cols-1 justify-items-center";
-    } else if (courseCount === 2) {
-      gridClass += " grid-cols-1 md:grid-cols-2 justify-items-center";
-    } else if (courseCount === 3) {
-      gridClass += " grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 justify-items-center";
-    } else {
-      // Standard responsive grid for 4+ courses
-      switch (responsiveGridColumns) {
-        case 1:
-          gridClass += " grid-cols-1";
-          break;
-        case 2:
-          gridClass += " grid-cols-1 md:grid-cols-2";
-          break;
-        case 3:
-          gridClass += " grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
-          break;
-        case 4:
-        default:
-          gridClass += " grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
-      }
+    // Consistent responsive grid based on screen size only
+    switch (responsiveGridColumns) {
+      case 1:
+        gridClass += " grid-cols-1";
+        break;
+      case 2:
+        gridClass += " grid-cols-1 md:grid-cols-2";
+        break;
+      case 3:
+        gridClass += " grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
+        break;
+      case 4:
+      default:
+        gridClass += " grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
     }
     
     return gridClass;
@@ -2318,8 +2295,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   const renderCourseList = useCallback(() => {
     if (loading) {
       return (
-        <div className="px-4 md:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-1.5 lg:gap-2">
+        <div className="px-6 md:px-8 lg:px-10 xl:px-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-4 lg:gap-5 xl:gap-6">
           {Array.from({ length: itemsPerPage }).map((_, idx) => (
             <div 
               key={idx} 
@@ -2353,7 +2330,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
     }
 
     return (
-              <div className="course-grid-container relative px-4 md:px-6 lg:px-8 pb-0">
+              <div className="course-grid-container relative px-6 md:px-8 lg:px-10 xl:px-12 pt-4 pb-0">
         {/* Enhanced search feedback and results information */}
         {debouncedSearchTerm.trim() && (
           <div className="mb-4 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl">
@@ -2400,7 +2377,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
         )}
         
         {/* Enhanced Course Cards Grid - Responsive for all screen sizes */}
-        <div className={`${getGridColumnClasses()} auto-rows-fr ${filteredCourses.length <= 3 ? 'max-w-4xl mx-auto' : ''}`}>
+        <div className={`${getGridColumnClasses()} auto-rows-fr`}>
             {filteredCourses.map((course, index) => {
               if (!course || !course._id) {
                 console.warn('Invalid course data:', course);
@@ -2597,43 +2574,34 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             background: rgb(107 114 128);
           }
 
-          /* Responsive grid improvements - Optimized for all screen sizes */
+          /* Responsive grid improvements - Consistent sizing for all course counts */
           @media (max-width: 640px) {
             .grid {
               grid-template-columns: 1fr;
             }
           }
           
-          @media (min-width: 1280px) {
-            .grid {
-              gap: 1.5rem;
-            }
-          }
-          
-          @media (min-width: 1536px) {
-            .grid {
-              gap: 1.25rem;
-              grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-              max-width: none;
-            }
-          }
-          
-          @media (min-width: 1920px) {
-            .grid {
-              grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-              gap: 1.5rem;
-            }
-          }
-
-          @media (min-width: 641px) and (max-width: 1024px) {
+          @media (min-width: 641px) and (max-width: 767px) {
             .grid {
               grid-template-columns: repeat(2, 1fr);
             }
           }
+          
+          @media (min-width: 768px) and (max-width: 1023px) {
+            .grid {
+              grid-template-columns: repeat(3, 1fr);
+            }
+          }
 
-          @media (min-width: 1025px) {
+          @media (min-width: 1024px) {
             .grid {
               grid-template-columns: repeat(4, 1fr);
+            }
+          }
+          
+          @media (min-width: 1280px) {
+            .grid {
+              gap: 1.5rem;
             }
           }
 
@@ -3126,7 +3094,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             
             {/* Pagination */}
             {!loading && filteredCourses.length > 0 && totalPages > 1 && (
-              <div className="px-4 md:px-6 lg:px-8 py-2 border-t border-gray-100 dark:border-gray-800">
+              <div className="px-6 md:px-8 lg:px-10 xl:px-12 py-2 border-t border-gray-100 dark:border-gray-800">
                 <SimplePaginationWrapper
                   currentPage={currentPage}
                   totalPages={totalPages}
@@ -3856,7 +3824,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             {/* Background Pattern */}
             <div className="absolute inset-0 bg-grid-slate-100 dark:bg-grid-slate-700/25 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]"></div>
             
-            <div className="relative px-4 md:px-6 lg:px-8 py-12 md:py-16 text-center">
+            <div className="relative px-6 md:px-8 lg:px-10 xl:px-12 py-12 md:py-16 text-center">
               <div className="max-w-4xl mx-auto">
                 {/* Badge */}
                 <div className="inline-flex items-center px-4 py-2 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-sm font-medium mb-6 backdrop-blur-sm border border-indigo-200 dark:border-indigo-800">
@@ -3883,7 +3851,7 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
           {/* Compact search and filters bar */}
           {!hideFilterBar && (
             <div className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm flex-shrink-0">
-              <div className="px-4 md:px-6 lg:px-8 py-2 md:py-3">
+              <div className="px-6 md:px-8 lg:px-10 xl:px-12 py-2 md:py-3">
                 {/* Compact Filter Header */}
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-2">
