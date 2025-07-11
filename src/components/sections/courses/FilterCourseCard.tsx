@@ -687,8 +687,10 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
   const formatCourseGrade = (grade: any) => {
     if (!grade) return "All Grades";
     if (typeof grade === 'string') {
-      // Handle specific grade mappings
-      if (grade === "UG - Graduate - Professionals") return "UG/Graduate/Pro";
+      // Handle specific grade mappings - check more specific patterns first
+      if (grade === "UG - Graduate - Professionals") return "UG - Graduate - Professionals";
+      if (grade.includes("Professional Edge Diploma")) return "Professional Edge Diploma";
+      if (grade.includes("Professional certificates")) return "Professional certificates";
       if (grade.includes("Grade 1-2")) return "Grade 1-2";
       if (grade.includes("Grade 3-4")) return "Grade 3-4";
       if (grade.includes("Grade 5-6")) return "Grade 5-6";
@@ -1052,7 +1054,7 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
                   </div>
                   <div className="inline-flex items-center 
                     px-2.5 py-1 
-                    rounded-md text-xs font-medium
+                    rounded-md text-xs font-medium whitespace-nowrap
                     bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 
                     border border-gray-200 dark:border-gray-700">
                     <GraduationCap size={12} className="mr-1" />
@@ -1087,7 +1089,7 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
                   {/* Grade Chip */}
                   <div className={`inline-flex items-center justify-center
                     px-2 py-1 
-                    rounded-md text-xs font-medium
+                    rounded-md text-xs font-medium whitespace-nowrap
                     bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 
                     border border-gray-200 dark:border-gray-700 ${!isBlendedCourse ? 'col-start-2' : ''}`}>
                     <GraduationCap size={12} className="mr-1" />
@@ -1392,7 +1394,7 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
               {/* Grade Badge */}
               <div className="inline-flex items-center 
                 px-2 md:px-2.5 py-1 
-                rounded-md text-xs font-medium
+                rounded-md text-xs font-medium whitespace-nowrap
                 bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 
                 border border-gray-200 dark:border-gray-700">
                 <GraduationCap size={11} className="mr-1" />
