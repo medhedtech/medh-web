@@ -1,4 +1,4 @@
-5import { Metadata } from 'next';
+import { Metadata } from 'next';
 import dynamic from 'next/dynamic';
 import { notFound } from 'next/navigation';
 import PageWrapper from '@/components/shared/wrappers/PageWrapper';
@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ],
     url: `/verify-certificate/${id}`,
     type: 'website',
-    structuredDataType: 'educationalCredential',
+    structuredDataType: 'organization',
     eeatSignals: {
       expertise: [
         'ISO 27001 certified verification system',

@@ -41,7 +41,7 @@ const CertificateVerify: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [verificationResult, setVerificationResult] = useState<IVerifiedCertificate | null>(null);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
-  const [verificationStatus, setVerificationStatus] = useState<'success' | 'failed' | null>(null);
+  const [verificationStatus, setVerificationStatus] = useState<'idle' | 'success' | 'failed'>('idle');
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [isQRMode, setIsQRMode] = useState(false);
@@ -57,6 +57,7 @@ const CertificateVerify: React.FC = () => {
   const [cameraError, setCameraError] = useState<string>('');
   const [isScanning, setIsScanning] = useState(false);
   const [scanInterval, setScanInterval] = useState<NodeJS.Timeout | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>(''); // Declare errorMessage state
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -215,16 +216,23 @@ const CertificateVerify: React.FC = () => {
 
   // Handle certificate verification
   const handleVerifyClick = async (certId?: string) => {
+    console.log("Verify button clicked! Initiating verification process...");
+    const loadingToastId = toast.loading("Initiating verification..."); // Show loading toast
+
     const trimmedQuery = certId || searchQuery.trim();
     
     if (!trimmedQuery) {
-      toast.error('Please enter a certificate ID');
+      toast.dismiss(loadingToastId); // Dismiss loading toast
+      toast.error('Please enter a certificate ID to verify. The input field cannot be empty.'); // More specific error
+      console.log("Verification aborted: Certificate ID is empty.");
       return;
     }
 
     // Validate certificate ID format
     if (!validateCertificateId(trimmedQuery)) {
-      toast.error('Invalid certificate ID format. Please check and try again.');
+      toast.dismiss(loadingToastId); // Dismiss loading toast
+      toast.error('Invalid certificate ID format. Please check the format (e.g., MEDH-2024-001234) and try again.');
+      console.log("Verification aborted: Invalid certificate ID format.");
       return;
     }
 
@@ -232,6 +240,7 @@ const CertificateVerify: React.FC = () => {
     setVerificationResult(null);
     setShowNotFound(false);
     setLastSearchQuery(trimmedQuery);
+    console.log(`Attempting to verify certificate with ID: ${trimmedQuery}`);
 
     try {
       // Use the correct certificate verification API with GET method
@@ -251,6 +260,7 @@ const CertificateVerify: React.FC = () => {
           addToHistory(trimmedQuery, 'success');
           setVerificationStatus('success');
           setShowVerificationModal(true);
+          toast.success('Certificate verified successfully!'); // Success toast
           return;
         }
       }
@@ -261,12 +271,14 @@ const CertificateVerify: React.FC = () => {
         addToHistory(trimmedQuery, 'success');
         setVerificationStatus('success');
         setShowVerificationModal(true);
+        toast.success('Certificate verified successfully!'); // Success toast
       } else {
         console.log('Certificate verification failed:', response.message);
         addToHistory(trimmedQuery, 'error');
         setVerificationStatus('failed');
         setShowVerificationModal(true);
         setShowNotFound(true);
+        toast.error(response.message || 'Certificate verification failed for an unknown reason.'); // Error toast
       }
     } catch (error: any) {
       console.error('Verification error:', error);
@@ -282,7 +294,7 @@ const CertificateVerify: React.FC = () => {
         
         // Handle the specific API response format: {"success":false,"message":"Certificate not found","isValid":false}
         if (errorData.success === false || errorData.isValid === false) {
-          errorMessage = errorData.message || 'Certificate not found';
+          errorMessage = errorData.message || 'Certificate not found.';
         } else if (errorData.message) {
           errorMessage = errorData.message;
         }
@@ -301,10 +313,12 @@ const CertificateVerify: React.FC = () => {
         errorMessage = error.message;
       }
       
-      toast.error(errorMessage);
+      toast.error(errorMessage); // Ensure toast is shown for errors
       setShowNotFound(true);
     } finally {
       setIsLoading(false);
+      toast.dismiss(loadingToastId); // Ensure loading toast is dismissed in all cases
+      console.log("Verification process finished. isLoading set to false.");
     }
   };
 
@@ -1173,27 +1187,86 @@ const CertificateVerify: React.FC = () => {
                   }`}>
                     {verificationStatus === 'success' ? 'Certificate Verified' : 'Certificate Not Verified'}
                   </h2>
-                  
                   <p className="text-slate-600 dark:text-slate-400 mb-8">
-                    {verificationStatus === 'success' 
-                      ? 'This certificate is valid and authentic.' 
-                      : 'This certificate could not be verified or is invalid.'}
+                    {verificationStatus === 'success' && verificationResult ? (
+                      <>
+                        Congratulations <span className="font-bold text-blue-700 dark:text-blue-300">{verificationResult.student?.full_name || 'Student'}</span>, your certificate is verified successfully!<br />
+                        {`Issued on ${new Date(verificationResult.issueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}.`}
+                      </>
+                    ) : (
+                      errorMessage || 'Certificate verification failed for an unknown reason.'
+                    )}
                   </p>
                   
-                  <button
-                    onClick={() => setShowVerificationModal(false)}
-                    className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200"
-                  >
-                    Close
-                  </button>
+                  {/*
+                  {verificationStatus === 'success' && verificationResult && (
+                    <div className="space-y-2 text-sm text-left mb-6">
+                      <div><strong>Certificate Number:</strong> {verificationResult.certificateId}</div>
+                      <div><strong>Issue Date:</strong> {new Date(verificationResult.issueDate).toLocaleDateString()}</div>
+                      <div><strong>Grade:</strong> {verificationResult.grade}</div>
+                      <div><strong>Final Score:</strong> {verificationResult.score}%</div>
+                      <div><strong>Status:</strong> <span className="capitalize">{verificationResult.isActive ? 'Active' : 'Inactive'}</span></div>
+                    </div>
+                  )}
+                  */}
+
+                  {bulkMode && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.5 }}
+                      className="mt-8"
+                    >
+                      <div className={buildAdvancedComponent.glassCard({ variant: 'primary', padding: 'tablet' })}>
+                        <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4">Bulk Certificate Verification Results</h3>
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg shadow-sm">
+                            <thead>
+                              <tr className="bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100 text-left text-sm font-semibold">
+                                <th className="px-4 py-2 border-b border-slate-200 dark:border-slate-600">Certificate ID</th>
+                                <th className="px-4 py-2 border-b border-slate-200 dark:border-slate-600">Status</th>
+                                <th className="px-4 py-2 border-b border-slate-200 dark:border-slate-600">Message</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {bulkResults.map((result, index) => (
+                                <tr key={index} className="text-slate-900 dark:text-slate-100 text-sm">
+                                  <td className="px-4 py-2 border-b border-slate-200 dark:border-slate-600">{result.certificateId}</td>
+                                  <td className="px-4 py-2 border-b border-slate-200 dark:border-slate-600">
+                                    {result.status === 'success' ? (
+                                      <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-xs font-semibold">
+                                        Success
+                                      </span>
+                                    ) : (
+                                      <span className="px-2 py-1 bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-full text-xs font-semibold">
+                                        Failed
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-2 border-b border-slate-200 dark:border-slate-600">{result.message}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  <div className="flex justify-center mt-6">
+                    <button
+                      onClick={() => setShowVerificationModal(false)}
+                      className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200"
+                    >
+                      Close
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
-
-
-
       </div>
     </motion.div>
   );
