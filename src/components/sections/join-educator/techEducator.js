@@ -3,6 +3,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Sparkles, BookOpen, Globe, ArrowRight, Star } from "lucide-react";
 import { mobilePatterns, getAnimations } from "@/utils/designSystem";
+import Image from "next/image";
 
 const TechEducator = () => {
   const criteriaData = [
@@ -57,30 +58,30 @@ const TechEducator = () => {
   };
 
   return (
-    <section className={mobilePatterns.mobileSection('light')}>
-      <div className={mobilePatterns.mobileContainer('lg')}>
+    <section className="bg-slate-50 dark:bg-slate-900 pt-0 pb-8 sm:pb-10 md:pb-12">
+      <div className={mobilePatterns.mobileContainer('lg') + " pt-6"}>
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
           variants={containerVariants}
         >
+          <div className="bg-white dark:bg-slate-800 rounded-xl p-6 sm:p-8 shadow-md border border-slate-200 dark:border-slate-700 mb-8">
           {/* Header Section */}
           <motion.div
             variants={itemVariants}
-            className="text-center mb-12 md:mb-16"
+            className="text-center mb-6"
           >
             <div className="inline-flex items-center px-4 py-2 bg-blue-50 dark:bg-blue-900/30 rounded-full mb-6">
               <Star className="w-4 h-4 text-blue-600 dark:text-blue-400 mr-2" />
               <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Join Our Faculty</span>
             </div>
             
-            <h2 className={mobilePatterns.mobileTypography.heading + " mb-6"}>
-              Empower minds with{" "}
-              <span className="text-blue-600 dark:text-blue-400">MEDH</span>
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-6 leading-tight whitespace-nowrap">
+              Empower minds
             </h2>
             
-            <p className={mobilePatterns.mobileTypography.body + " max-w-3xl mx-auto mb-8"}>
+            <p className="text-[clamp(0.875rem,2vw+0.5rem,1rem)] text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl mx-auto mb-6">
               Share your expertise on a platform that values innovation and rewards exceptional teaching.
             </p>
             
@@ -92,7 +93,7 @@ const TechEducator = () => {
           </motion.div>
 
           {/* Criteria Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 md:mb-16">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-0">
             {criteriaData.map((item, index) => {
               const colors = getColorClasses(item.color);
               return (
@@ -120,7 +121,7 @@ const TechEducator = () => {
               );
             })}
           </div>
-
+          </div>
         </motion.div>
       </div>
     </section>
