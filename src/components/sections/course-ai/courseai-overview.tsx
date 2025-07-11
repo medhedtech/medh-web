@@ -17,8 +17,70 @@ import {
   ChevronDown
 } from "lucide-react";
 
+// TypeScript interfaces
+interface RoleData {
+  label: string;
+  content: string;
+}
+
+interface Section {
+  title: string;
+  data: RoleData[];
+}
+
+interface TabContent {
+  id: number;
+  name: string;
+  content: React.ReactNode;
+}
+
+interface IndustryStats {
+  label: string;
+  value: string;
+  description: string;
+}
+
+interface TopIndustry {
+  name: string;
+  growth: string;
+  description: string;
+}
+
+interface CourseFeature {
+  title: string;
+  description: string;
+}
+
+interface AccordionProps {
+  title: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+  titleClassName?: string;
+  contentClassName?: string;
+}
+
+interface SectionProps {
+  title: string;
+  data: RoleData[];
+}
+
+interface ListItemProps {
+  feature: CourseFeature;
+  index: number;
+}
+
+interface StatCardProps {
+  stat: IndustryStats;
+  index: number;
+}
+
+interface IndustryCardProps {
+  industry: TopIndustry;
+  index: number;
+}
+
 // Role-specific icon mapping
-const roleIcons = {
+const roleIcons: Record<string, React.ReactNode> = {
   "Data Management": <Database className="w-8 h-8 text-blue-500 dark:text-blue-400" />,
   "Data Analysis": <LineChart className="w-8 h-8 text-green-500 dark:text-green-400" />,
   "Tool Development": <Code className="w-8 h-8 text-purple-500 dark:text-purple-400" />,
@@ -27,8 +89,8 @@ const roleIcons = {
   "Decision-Making": <Brain className="w-8 h-8 text-teal-500 dark:text-teal-400" />
 };
 
-// Enhanced Section component with better dark mode styling and visual elements
-const Section = memo(({ title, data }) => {
+// Enhanced Section component with consistent card sizing matching FilterCourseCard
+const Section = memo<SectionProps>(({ title, data }) => {
   const roleIcon = roleIcons[title] || <Briefcase className="w-8 h-8 text-primaryColor dark:text-primaryColor" />;
   
   return (
@@ -39,19 +101,28 @@ const Section = memo(({ title, data }) => {
       transition={{ duration: 0.4, ease: "easeOut" }}
       className="mt-6 md:mt-8"
     >
-      <div className="px-0 flex flex-col md:flex-row border border-gray300 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 dark:border-gray-700 overflow-hidden bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 group">
-        {/* Left Section - Improved with gradient background and icon */}
-        <div className="w-full md:w-[30%] flex flex-col justify-center items-center py-4 md:py-6 px-3 md:px-4 bg-gradient-to-br from-primaryColor/10 to-transparent dark:from-primaryColor/20 dark:to-transparent/0 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700">
+      <div className="group relative flex flex-col 
+        h-[320px] md:h-[340px] lg:h-[360px] xl:h-[380px] 
+        w-full max-w-full 
+        mx-auto rounded-lg md:rounded-xl overflow-hidden 
+        border border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300/60 dark:hover:border-gray-600/60
+        bg-white dark:bg-gray-900 
+        shadow-sm hover:shadow-xl hover:shadow-gray-200/25 dark:hover:shadow-gray-800/25
+        transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.01] cursor-pointer
+        transform-gpu will-change-transform">
+        
+        {/* Header Section - Consistent with FilterCourseCard image section height */}
+        <div className="relative h-[140px] md:h-[150px] lg:h-[160px] flex flex-col justify-center items-center bg-gradient-to-br from-primaryColor/10 to-transparent dark:from-primaryColor/20 dark:to-transparent/0 border-b border-gray-200 dark:border-gray-700">
           <div className="mb-2 md:mb-3 bg-white dark:bg-gray-900 p-2 md:p-3 rounded-full shadow-md group-hover:shadow-lg transition-all duration-300">
             {roleIcon}
           </div>
-          <h2 className="text-[1.1rem] md:text-[1.2rem] font-bold tracking-wide text-primaryColor dark:text-gray-50 text-center">
+          <h2 className="text-base md:text-lg lg:text-xl font-bold tracking-wide text-primaryColor dark:text-gray-50 text-center px-2">
             {title}
           </h2>
         </div>
         
-        {/* Right Section - Better spacing and animations */}
-        <div className="w-full md:w-[70%] flex flex-col justify-center py-3 md:py-5 px-4 md:px-6">
+        {/* Content Section - Matching FilterCourseCard content area */}
+        <div className="flex flex-col flex-grow p-3 md:p-4 lg:p-4 space-y-2 md:space-y-2.5 overflow-y-auto">
           <div className="flex flex-col space-y-1">
             {data.map((item, index) => (
               <motion.div 
@@ -60,26 +131,26 @@ const Section = memo(({ title, data }) => {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1, duration: 0.3 }}
-                className="py-2 md:py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors rounded-md border-l-2 border-transparent hover:border-primaryColor dark:hover:border-primaryColor"
+                className="py-1.5 md:py-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors rounded-md border-l-2 border-transparent hover:border-primaryColor dark:hover:border-primaryColor"
               >
-                <div className="flex flex-col md:flex-row md:items-center">
-                  <strong className="text-[0.95rem] md:text-[1rem] font-bold tracking-wide text-primaryColor dark:text-blue-400 block md:inline md:w-[30%] md:min-w-[120px]">
+                <div className="flex flex-col">
+                  <strong className="text-xs md:text-sm font-bold tracking-wide text-primaryColor dark:text-blue-400 mb-1">
                     {item.label}:
                   </strong>
-                  <span className="text-sm md:text-base text-gray-700 dark:text-gray-300 md:w-[70%]">{item.content}</span>
+                  <span className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{item.content}</span>
                 </div>
               </motion.div>
             ))}
           </div>
           
           {/* Role Card Footer - Visual indicator */}
-          <div className="mt-3 md:mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+          <div className="mt-auto pt-3 border-t border-gray-200 dark:border-gray-700">
             <motion.button
               whileHover={{ x: 5 }}
-              className="text-sm font-medium text-primaryColor dark:text-blue-400 flex items-center"
+              className="text-xs md:text-sm font-medium text-primaryColor dark:text-blue-400 flex items-center"
             >
               View career details
-              <ChevronRight className="w-4 h-4 ml-1" />
+              <ChevronRight className="w-3 h-3 md:w-4 md:h-4 ml-1" />
             </motion.button>
           </div>
         </div>
@@ -90,7 +161,7 @@ const Section = memo(({ title, data }) => {
 
 Section.displayName = "Section";
 
-const sections = [
+const sections: Section[] = [
   {
     title: "Data Management",
     data: [
@@ -229,7 +300,7 @@ const sections = [
 ];
 
 // Industry statistics for career prospects visualization
-const industryStats = [
+const industryStats: IndustryStats[] = [
   { label: "Market Growth Rate", value: "21%", description: "Annual growth in AI/ML sector" },
   { label: "Job Openings", value: "300K+", description: "Data science & AI jobs available globally" },
   { label: "Industry Value", value: "$500B", description: "Expected AI market value by 2025" },
@@ -237,7 +308,7 @@ const industryStats = [
 ];
 
 // Top industries hiring for data science and AI professionals
-const topIndustries = [
+const topIndustries: TopIndustry[] = [
   { name: "Healthcare", growth: "32%", description: "Medical imaging, predictive diagnostics, patient care optimization" },
   { name: "Finance", growth: "28%", description: "Algorithmic trading, fraud detection, risk assessment" },
   { name: "Retail", growth: "26%", description: "Recommendation systems, inventory management, consumer behavior analysis" },
@@ -245,7 +316,7 @@ const topIndustries = [
   { name: "Technology", growth: "35%", description: "Natural language processing, computer vision, autonomous systems" }
 ];
 
-const data = {
+const data: { tabs: TabContent[] } = {
   tabs: [
     {
       id: 1,
@@ -390,8 +461,7 @@ const data = {
       content: (
         <>
           <h1 className="text-[23px] font-bold text-primaryColor dark:text-gray50">
-            Unlock Limitless Opportunities with AI and Data
-            Science Course
+            Unlock Limitless Opportunities with AI and Data Science Course
           </h1>
           <p className="text-lightGrey14 mb-6 md:text-[15px] text-[14px] dark:text-gray300 ">
             In today's rapidly evolving technological landscape, the demand
@@ -409,9 +479,12 @@ const data = {
             <h1 className="text-[23px] font-bold text-primaryColor dark:text-gray50">
               Career Opportunities in AI and Data Science
             </h1>
-            {sections.map((section, index) => (
-              <Section key={index} title={section.title} data={section.data} />
-            ))}
+            {/* Updated to use a responsive grid layout for equal-sized cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mt-6">
+              {sections.map((section, index) => (
+                <Section key={index} title={section.title} data={section.data} />
+              ))}
+            </div>
           </div>
 
           <h1 className="text-[23px] pt-8 font-bold text-primaryColor dark:text-gray50">
@@ -455,7 +528,7 @@ const data = {
 };
 
 // Enhanced ListItem component for better UI in lists
-const ListItem = memo(({ feature, index }) => (
+const ListItem = memo<ListItemProps>(({ feature, index }) => (
   <motion.li 
     key={index}
     initial={{ opacity: 0, y: 10 }}
@@ -476,7 +549,7 @@ const ListItem = memo(({ feature, index }) => (
 ListItem.displayName = "ListItem";
 
 // Create a new StatCard component for visual statistics
-const StatCard = memo(({ stat, index }) => (
+const StatCard = memo<StatCardProps>(({ stat, index }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     whileInView={{ opacity: 1, y: 0 }}
@@ -501,7 +574,7 @@ const StatCard = memo(({ stat, index }) => (
 StatCard.displayName = "StatCard";
 
 // Create an IndustryCard component for top industries
-const IndustryCard = memo(({ industry, index }) => (
+const IndustryCard = memo<IndustryCardProps>(({ industry, index }) => (
   <motion.div
     initial={{ opacity: 0, x: -20 }}
     whileInView={{ opacity: 1, x: 0 }}
@@ -524,7 +597,7 @@ const IndustryCard = memo(({ industry, index }) => (
 IndustryCard.displayName = "IndustryCard";
 
 // Create a reusable accordion component
-const Accordion = memo(({ title, children, defaultOpen = false, titleClassName, contentClassName }) => {
+const Accordion = memo<AccordionProps>(({ title, children, defaultOpen = false, titleClassName, contentClassName }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
@@ -581,13 +654,13 @@ const Accordion = memo(({ title, children, defaultOpen = false, titleClassName, 
 
 Accordion.displayName = "Accordion";
 
-const CourseAiOverview = () => {
-  const [activeTab, setActiveTab] = useState(1);
-  const [showScrollTop, setShowScrollTop] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const contentRef = React.useRef(null);
+const CourseAiOverview: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<number>(1);
+  const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const contentRef = React.useRef<HTMLDivElement>(null);
 
-  const handleTabChange = useCallback((tabId) => {
+  const handleTabChange = useCallback((tabId: number) => {
     setActiveTab(tabId);
   }, []);
 
@@ -598,7 +671,7 @@ const CourseAiOverview = () => {
     };
     
     // Debounced scroll handler for better performance
-    let timeoutId;
+    let timeoutId: NodeJS.Timeout;
     const debouncedHandleScroll = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(handleScroll, 100);
@@ -621,7 +694,7 @@ const CourseAiOverview = () => {
 
   const activeContent = data.tabs.find((tab) => tab.id === activeTab);
 
-  const tabIcons = {
+  const tabIcons: Record<number, React.ReactNode> = {
     1: <BookOpen className="w-5 h-5" />,
     2: <Brain className="w-5 h-5" />,
     3: <Briefcase className="w-5 h-5" />
@@ -635,7 +708,7 @@ const CourseAiOverview = () => {
   // Modify the content for better UX
   const renderTabContent = () => {
     // Get the active tab content and parse it to use our new ListItem component
-    const content = activeContent.content;
+    const content = activeContent?.content;
     
     // Replace <li> elements with ListItem component
     if (activeTab === 1) {
@@ -844,7 +917,7 @@ const CourseAiOverview = () => {
               title="Explore AI & Data Science Career Paths" 
               contentClassName="p-0"
             >
-              <div className="space-y-4 mt-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mt-2">
                 {sections.map((section, index) => (
                   <Section key={index} title={section.title} data={section.data} />
                 ))}

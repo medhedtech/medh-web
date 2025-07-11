@@ -105,7 +105,7 @@ const HomeCard: React.FC<HomeCardProps> = ({
   const navigateToCourse = useCallback(() => {
     // Home page special redirect for 4 courses
     const homePage = pathname === "/";
-    const courseUrlMap = {
+    const courseUrlMap: Record<string, string> = {
       "AI & Data Science": "/ai-and-data-science-course",
       "Personality Development": "/personality-development-course",
       "Vedic Mathematics": "/vedic-mathematics-course",
@@ -351,152 +351,12 @@ const HomeCard: React.FC<HomeCardProps> = ({
 
   return (
     <>
-      {/* Mobile Layout (sm and below) - Horizontal layout with image on left */}
+      {/* Unified Layout - Desktop design for all screen sizes */}
       <div 
         ref={cardRef}
-        className={`group relative flex md:hidden
-          min-h-[160px] w-full 
-          rounded-lg overflow-hidden 
-          border ${styles.cardBorder || 'border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300/60 dark:hover:border-gray-600/60'}
-          bg-white dark:bg-gray-900 
-          shadow-sm hover:shadow-lg ${styles.cardShadow || 'hover:shadow-gray-200/25 dark:hover:shadow-gray-800/25'}
-          transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.01] cursor-pointer
-          transform-gpu will-change-transform mb-3`}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onMouseMove={handleMouseMove}
-        onClick={navigateToCourse}
-      >
-        {/* Left side - Image */}
-        <div className="relative w-[120px] xs:w-[140px] sm:w-[160px] flex-shrink-0">
-          <div className="relative w-full h-full min-h-[160px] overflow-hidden rounded-l-lg">
-            <OptimizedImage
-              src={safeCourse?.course_image || ''}
-              alt={safeCourse?.course_title || "Course Image"}
-              fill={true}
-              className="object-cover transition-all duration-300 ease-out group-hover:scale-105"
-              quality={isLCP ? 95 : 85}
-              priority={isLCP}
-              loading={isLCP ? 'eager' : 'lazy'}
-              decoding={isLCP ? 'sync' : 'async'}
-              sizes="(max-width: 640px) 140px, 160px"
-            />
-            
-            {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/5 via-transparent to-black/10 dark:from-black/10 dark:to-black/20" />
-          </div>
-        </div>
-
-        {/* Right side - Content */}
-        <div className="flex flex-col flex-grow p-3 xs:p-3.5 sm:p-4 space-y-2 xs:space-y-2.5 min-w-0 justify-between">
-          {/* Top content section */}
-          <div className="flex flex-col space-y-2 xs:space-y-2.5">
-            {/* Course Title */}
-            <div className="flex-shrink-0">
-              <h3 className="text-sm xs:text-base sm:text-lg font-bold text-gray-900 dark:text-white leading-tight line-clamp-2 break-words">
-                {safeCourse?.course_title || "Course Title"}
-              </h3>
-            </div>
-            
-            {/* Compact Badge Row - Sessions, Duration, Grade */}
-            <div className="flex-shrink-0">
-              <div className="flex items-center gap-1 xs:gap-1.5 flex-wrap">
-                {/* Sessions Badge */}
-                <div className={`inline-flex items-center 
-                  px-1.5 xs:px-2 py-0.5 
-                  rounded text-[10px] xs:text-xs font-medium
-                  ${styles.chipBg} ${styles.chipText} border ${styles.chipBorder}`}>
-                  {React.cloneElement(content.sessionIcon, { 
-                    className: "w-2.5 h-2.5 xs:w-3 xs:h-3" 
-                  })}
-                  <span className="ml-0.5">
-                    {safeCourse?.no_of_Sessions || safeCourse?.video_count || 0}
-                  </span>
-                </div>
-                
-                {/* Duration Badge - Only for Live Courses */}
-                {isLiveCourse && (safeCourse?.course_duration || safeCourse?.duration_range) && (
-                  <div className={`inline-flex items-center 
-                    px-1.5 xs:px-2 py-0.5 
-                    rounded text-[10px] xs:text-xs font-medium whitespace-nowrap
-                    ${styles.chipBg} ${styles.chipText} border ${styles.chipBorder}`}>
-                    <Clock size={10} className="mr-0.5" />
-                    <span className="truncate max-w-[60px] xs:max-w-none">{formatCourseDuration}</span>
-                  </div>
-                )}
-                
-                {/* Grade Badge */}
-                <div className="inline-flex items-center 
-                  px-1.5 xs:px-2 py-0.5 
-                  rounded text-[10px] xs:text-xs font-medium
-                  bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 
-                  border border-gray-200 dark:border-gray-700">
-                  <GraduationCap size={10} className="mr-0.5" />
-                  <span className="truncate max-w-[50px] xs:max-w-none">{formatCourseGrade}</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Q&A Live Chip - Only for blended courses */}
-            {isBlendedCourse && (
-              <div className="flex-shrink-0">
-                <div className="inline-flex items-center 
-                  px-1.5 xs:px-2 py-0.5 
-                  rounded text-[10px] xs:text-xs font-medium whitespace-nowrap
-                  bg-[#379392]/10 text-[#379392] border border-[#379392]/20">
-                  <Users size={10} className="mr-0.5" />
-                  <span>Q&A Live</span>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {/* Bottom content section - Price and Type Badge */}
-          <div className="flex flex-col space-y-2">
-            {/* Price */}
-            <div className="flex-shrink-0">
-              <div className="flex items-baseline gap-1 flex-wrap">
-                <span className={`text-sm xs:text-base sm:text-lg font-bold ${styles.priceColor} ${isLiveCourse ? 'text-shadow-sm' : ''}`}>
-                  {formatPrice}
-                </span>
-                {isLiveCourse && (
-                  <span className={`text-[10px] xs:text-xs sm:text-sm ${styles.accentColor} font-semibold`}>onwards</span>
-                )}
-              </div>
-              {safeCourse?.fee_note && (
-                <span className="text-[10px] xs:text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium block">
-                  {safeCourse.fee_note}
-                </span>
-              )}
-            </div>
-            
-            {/* Mobile Class Type Badge */}
-            <div className="flex-shrink-0">
-              <div className={`inline-flex items-center
-                px-2 xs:px-2.5 py-1 
-                rounded-md text-[10px] xs:text-xs font-bold 
-                ${styles.stickyNoteBg} ${styles.stickyNoteText}
-                shadow-md shadow-black/10
-                transition-all duration-300 ease-out hover:scale-105
-                ${content.isJobGuarantee ? 'animate-pulse' : ''}`}
-              >
-                <div className="flex items-center gap-1">
-                  {React.cloneElement(content.tagIcon, { 
-                    className: "w-2.5 h-2.5 xs:w-3 xs:h-3" 
-                  })}
-                  <span className="whitespace-nowrap font-extrabold tracking-wide">{content.mobileTag || content.tag}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Desktop Layout (md and above) - Original vertical layout */}
-      <div 
-        className={`group relative hidden md:flex flex-col 
-        h-[360px] md:h-[420px] lg:h-[420px]
-        w-full max-w-[400px] md:max-w-[400px] 
+        className={`group relative flex flex-col 
+        h-[300px] xs:h-[340px] sm:h-[380px] md:h-[428px] lg:h-[428px]
+        w-full max-w-[280px] xs:max-w-[320px] sm:max-w-[360px] md:max-w-[400px] 
         mx-auto rounded-xl overflow-hidden 
         border ${styles.cardBorder || 'border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300/60 dark:hover:border-gray-600/60'}
         bg-white dark:bg-gray-900 
@@ -527,68 +387,115 @@ const HomeCard: React.FC<HomeCardProps> = ({
           
           {/* Sticky Note Badge */}
           <div className={`absolute 
-            top-3 left-3 z-10 
-            px-3 py-1.5 
-            rounded-lg 
-            text-sm font-bold 
+            top-2 left-2 xs:top-3 xs:left-3 z-20 
+            px-2 xs:px-3 py-1 xs:py-1.5 
+            rounded-md xs:rounded-lg 
+            text-xs xs:text-sm font-bold 
             ${styles.stickyNoteBg} ${styles.stickyNoteText}
-            shadow-lg shadow-black/20
+            shadow-md xs:shadow-lg shadow-black/20
             transition-all duration-300 ease-out transform hover:scale-105
             ${isJobGuaranteeCourse ? 'animate-pulse' : ''}`}
           >
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 xs:gap-1.5">
               {React.cloneElement(content.tagIcon, { 
-                className: "w-3.5 h-3.5" 
+                className: "w-3 h-3 xs:w-3.5 xs:h-3.5" 
               })}
-              <span className="font-extrabold tracking-wide">{content.tag}</span>
+              <span className="font-extrabold tracking-wide whitespace-nowrap">{content.tag}</span>
             </div>
           </div>
         </div>
 
         {/* Course content */}
-        <div className="flex flex-col flex-grow p-3 md:p-4 lg:p-5 space-y-2 md:space-y-2.5 lg:space-y-3">
+        <div className="flex flex-col flex-grow p-2 xs:p-3 sm:p-3 md:p-4 lg:p-5 space-y-1.5 xs:space-y-2 sm:space-y-2 md:space-y-2.5 lg:space-y-3 relative">
           
           {/* Course Title */}
-          <div className="text-left space-y-1 min-h-[40px] md:min-h-[50px] lg:min-h-[55px] flex flex-col justify-center">
-            <h3 className="text-base md:text-lg lg:text-xl font-bold text-gray-900 dark:text-white leading-tight line-clamp-2">
+          <div className="text-left space-y-1 min-h-[32px] xs:min-h-[36px] sm:min-h-[40px] md:min-h-[50px] lg:min-h-[55px] flex flex-col justify-center">
+            <h3 className="text-sm xs:text-base sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 dark:text-white leading-tight line-clamp-2">
               {safeCourse?.course_title || "Course Title"}
             </h3>
           </div>
           
-          {/* Course Info - Simplified */}
-          <div className="text-left space-y-2 md:space-y-3">
+          {/* Course Info - Chip Style */}
+          <div className="text-left space-y-1.5 xs:space-y-2 sm:space-y-2 md:space-y-3 pb-8 xs:pb-10 sm:pb-12 md:pb-0">
             {isLiveCourse ? (
               <>
-                <div className="text-sm md:text-base text-gray-600 dark:text-gray-400">
-                  <span className="font-medium">{formatCourseDuration}</span>
-                  <span className="mx-2">•</span>
-                  <span className="font-medium">{formatEffort}</span>
+                {/* Live Course Chips */}
+                <div className="flex items-center gap-1.5 xs:gap-2 flex-wrap">
+                  {/* Duration Chip */}
+                  <div className={`inline-flex items-center 
+                    px-1.5 py-0.5 
+                    rounded text-[10px] xs:text-xs font-medium
+                    ${styles.chipBg} ${styles.chipText} border ${styles.chipBorder}`}>
+                    <Clock size={10} className="mr-0.5" />
+                    <span>{formatCourseDuration}</span>
+                  </div>
+                  
+                  {/* Effort Chip */}
+                  <div className={`inline-flex items-center 
+                    px-1.5 py-0.5 
+                    rounded text-[10px] xs:text-xs font-medium
+                    ${styles.chipBg} ${styles.chipText} border ${styles.chipBorder}`}>
+                    <Clock size={10} className="mr-0.5" />
+                    <span>{formatEffort}</span>
+                  </div>
                 </div>
-                <div className="text-xs md:text-sm text-gray-500 dark:text-gray-500">
-                  {formatSessions}
+                
+                {/* Sessions Chip */}
+                <div className="flex items-center">
+                  <div className={`inline-flex items-center 
+                    px-1.5 py-0.5 
+                    rounded text-[10px] xs:text-xs font-medium
+                    ${styles.chipBg} ${styles.chipText} border ${styles.chipBorder}`}>
+                    {React.cloneElement(content.sessionIcon, { 
+                      className: "w-2.5 h-2.5 mr-0.5" 
+                    })}
+                    <span>{formatSessions}</span>
+                  </div>
                 </div>
-
               </>
             ) : (
               <>
-                <div className="text-sm md:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
-                  <span className="font-medium">Self-paced</span>
-                  <span className="mx-2">•</span>
-                  <span className="font-medium">Q&A Session </span>
-                </div>
-                {isBlendedCourse && (
-                  <div className="text-xs md:text-sm text-gray-500 dark:text-gray-500 leading-relaxed">
-                    {formatSessions}
+                {/* Self-paced Course Chips */}
+                <div className="flex items-center gap-1.5 xs:gap-2 flex-wrap">
+                  {/* Self-paced Chip */}
+                  <div className={`inline-flex items-center 
+                    px-1.5 py-0.5 
+                    rounded text-[10px] xs:text-xs font-medium
+                    ${styles.chipBg} ${styles.chipText} border ${styles.chipBorder}`}>
+                    <Play size={10} className="mr-0.5" />
+                    <span>Self-paced</span>
                   </div>
-                )}
+                  
+                  {/* Q&A Session Chip */}
+                  <div className={`inline-flex items-center 
+                    px-1.5 py-0.5 
+                    rounded text-[10px] xs:text-xs font-medium
+                    ${styles.chipBg} ${styles.chipText} border ${styles.chipBorder}`}>
+                    <Users size={10} className="mr-0.5" />
+                    <span>Q&A Session</span>
+                  </div>
+                </div>
+                
+                {/* Video Sessions Chip */}
+                <div className="flex items-center">
+                  <div className={`inline-flex items-center 
+                    px-1.5 py-0.5 
+                    rounded text-[10px] xs:text-xs font-medium
+                    ${styles.chipBg} ${styles.chipText} border ${styles.chipBorder}`}>
+                    {React.cloneElement(content.sessionIcon, { 
+                      className: "w-2.5 h-2.5 mr-0.5" 
+                    })}
+                    <span>{formatSessions}</span>
+                  </div>
+                </div>
               </>
-            )}
+                        )}
           </div>
           
-          {/* Price - Prominent display */}
-          <div className="text-left py-1">
-            <div className="flex items-baseline justify-start gap-1.5 flex-wrap">
-              <span className={`text-lg md:text-xl lg:text-2xl font-bold ${styles.priceColor} whitespace-nowrap ${isLiveCourse ? 'text-shadow-sm' : ''}`}>
+          {/* Desktop Price - Simple Left-aligned Text (no chip) */}
+          <div className="hidden md:block text-left py-0.5 md:py-1">
+            <div className="flex items-baseline justify-start gap-1 md:gap-1.5 flex-wrap">
+              <span className={`text-base md:text-xl lg:text-2xl font-bold ${styles.priceColor} whitespace-nowrap ${isLiveCourse ? 'text-shadow-sm' : ''}`}>
                 {formatPrice}
               </span>
               {isLiveCourse && (
@@ -610,6 +517,47 @@ const HomeCard: React.FC<HomeCardProps> = ({
           </div>
 
         </div>
+
+        {/* Price Section - Mobile only */}
+        
+        {/* Mobile Price - Colored Chip (bottom right) */}
+        <div className="md:hidden absolute bottom-1.5 right-1.5 xs:bottom-2 xs:right-2 sm:bottom-2.5 sm:right-2.5 z-10">
+          <div className={`
+            px-1.5 xs:px-2 sm:px-2.5 py-1 xs:py-1.5 sm:py-1.5
+            rounded-md xs:rounded-md sm:rounded-lg
+            ${styles.stickyNoteBg} ${styles.stickyNoteText}
+            shadow-md shadow-black/15
+            border border-white/20
+            backdrop-blur-sm
+            transition-all duration-300 ease-out hover:scale-105
+            min-w-[80px] xs:min-w-[90px] sm:min-w-[100px]
+          `}>
+            <div className="flex flex-col items-center text-center">
+              <div className="flex items-baseline gap-1 whitespace-nowrap justify-center">
+                <span className={`text-[10px] xs:text-xs sm:text-sm font-bold leading-tight`}>
+                  {formatPrice}
+                </span>
+                {isLiveCourse && (
+                  <span className={`text-[7px] xs:text-[8px] sm:text-[9px] font-semibold opacity-90 leading-tight`}>onwards</span>
+                )}
+              </div>
+              {safeCourse?.original_fee && (
+                <div className="mt-0.5">
+                  <span className="text-[7px] xs:text-[8px] sm:text-[9px] opacity-75 line-through leading-tight">
+                    INR {safeCourse.original_fee.toLocaleString()}
+                  </span>
+                </div>
+              )}
+              {safeCourse?.fee_note && (
+                <span className="text-[6px] xs:text-[7px] sm:text-[8px] opacity-80 font-medium block mt-0.5 leading-tight text-center">
+                  {safeCourse.fee_note}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+
 
         {/* Hover Overlay - Radial blur effect */}
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out pointer-events-none">
