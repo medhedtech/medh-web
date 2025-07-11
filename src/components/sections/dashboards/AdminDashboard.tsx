@@ -1279,6 +1279,12 @@ const Admin2Dashboard: React.FC = () => {
             color="hover:bg-blue-50 dark:hover:bg-blue-900/10"
           />
           <QuickActionButton 
+            icon={<Users className="h-6 w-6 text-cyan-600 dark:text-cyan-400" />}
+            title="Demo Student Register"
+            href="/dashboards/demo-student-register"
+            color="hover:bg-cyan-50 dark:hover:bg-cyan-900/10"
+          />
+          <QuickActionButton 
             icon={<Edit className="h-6 w-6 text-purple-600 dark:text-purple-400" />}
             title="Manage Instructors"
             href="/dashboards/admin/Instuctoremange/"

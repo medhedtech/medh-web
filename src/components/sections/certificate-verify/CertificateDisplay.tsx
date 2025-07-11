@@ -180,6 +180,13 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
   const isValidCertificate = certificate.isValid && certificate.isActive && 
     (!certificate.validUntil || new Date(certificate.validUntil) >= new Date());
 
+  // Get student name (student.name > student.full_name)
+  const getStudentName = () => {
+    if (certificate.student && (certificate.student as any).name) return (certificate.student as any).name;
+    if (certificate.student && certificate.student.full_name) return certificate.student.full_name;
+    return 'Student';
+  };
+
   // If certificate is valid, show simple verification message
   if (isValidCertificate) {
     return (
@@ -199,18 +206,15 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
           <h2 className={`${typography.h1} text-green-600 dark:text-green-400 mb-4`}>
             Certificate Verified
           </h2>
-          
-          <p className="text-slate-600 dark:text-slate-400 text-lg">
-            This certificate is valid and authentic.
+          <p className="text-slate-600 dark:text-slate-400 text-lg mb-2">
+            Congratulations <span className="font-bold text-blue-700 dark:text-blue-300">{getStudentName()}</span>, your certificate is verified successfully!
           </p>
-          
-          {/* Certificate ID for reference */}
-          <div className="mt-8 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg inline-block">
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Certificate ID</p>
-            <p className="font-mono text-slate-900 dark:text-slate-100 font-medium">
-              {certificate.certificateId || certificate._id || 'N/A'}
+          {/* Issue Date */}
+          {certificate.issueDate && (
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
+              {`Issued on ${formatDate(certificate.issueDate)}`}
             </p>
-          </div>
+          )}
         </div>
       </motion.div>
     );
@@ -326,14 +330,14 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
                   {certificate.student?._id || 'N/A'}
                 </p>
               </div>
-              {certificate.grade && (
+              {/* {certificate.grade && (
                 <div>
                   <p className="text-slate-500 dark:text-slate-400">Grade</p>
                   <p className="font-medium text-slate-900 dark:text-slate-100">
                     {certificate.grade}
                   </p>
                 </div>
-              )}
+              )} */}
             </div>
           </div>
         </div>
@@ -472,7 +476,7 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
             </div>
           </div>
           
-          {certificate.score && (
+          {/* {certificate.score && (
             <div className="flex items-center">
               <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg flex items-center justify-center mr-3">
                 <Star className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
@@ -484,7 +488,7 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
                 </p>
               </div>
             </div>
-          )}
+          )} */}
         </div>
       </div>
 
