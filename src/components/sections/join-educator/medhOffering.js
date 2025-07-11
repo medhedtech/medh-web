@@ -64,7 +64,7 @@ const Offerings = () => {
   };
 
   return (
-    <section className={mobilePatterns.mobileSection('light')}>
+    <section className="bg-slate-50 dark:bg-slate-900 py-0">
       <div className={mobilePatterns.mobileContainer('lg')}>
         <motion.div
           initial="hidden"
@@ -72,74 +72,59 @@ const Offerings = () => {
           viewport={{ once: true, margin: "-50px" }}
           variants={containerVariants}
         >
-          {/* Header Section */}
-          <motion.div variants={itemVariants} className="text-center mb-12 md:mb-16">
-            <div className="inline-flex items-center px-4 py-2 bg-violet-50 dark:bg-violet-900/30 rounded-full mb-6">
-              <Zap className="w-4 h-4 text-violet-600 dark:text-violet-400 mr-2" />
-              <span className="text-sm font-medium text-violet-700 dark:text-violet-300">What We Offer</span>
-            </div>
-            
-            <h2 className={mobilePatterns.mobileTypography.heading + " mb-6"}>
-              Why exceptional educators{" "}
-              <span className="text-violet-600 dark:text-violet-400">choose Medh</span>
-            </h2>
-            
-            <p className={mobilePatterns.mobileTypography.body + " max-w-3xl mx-auto"}>
-              Join our community and unlock exclusive advantages designed to support your teaching journey and career growth.
-            </p>
-          </motion.div>
+          <div className="bg-white dark:bg-slate-800 rounded-xl p-6 sm:p-8 shadow-md border border-slate-200 dark:border-slate-700 mb-0">
+            {/* Header Section */}
+            <motion.div variants={itemVariants} className="text-center mb-6">
+              <div className="inline-flex items-center px-4 py-2 bg-violet-50 dark:bg-violet-900/30 rounded-full mb-6">
+                <Zap className="w-4 h-4 text-violet-600 dark:text-violet-400 mr-2" />
+                <span className="text-sm font-medium text-violet-700 dark:text-violet-300">What We Offer</span>
+              </div>
+              
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-6 leading-tight whitespace-nowrap">
+                Why exceptional educators{" "}
+                <span className="text-[#3bac63]">choose Medh</span>
+              </h2>
+              
+              <p className="text-[clamp(0.875rem,2vw+0.5rem,1rem)] text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl mx-auto">
+                Join our community and unlock exclusive advantages designed to support your teaching journey and career growth.
+              </p>
+            </motion.div>
 
-          {/* Offerings Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12 md:mb-16">
-            {offerings.map((offering, index) => {
-              const colors = getColorClasses(offering.color);
-              return (
-                <motion.div
-                  key={index}
-                  variants={itemVariants}
-                  whileHover={{ y: -4, scale: 1.02 }}
-                  className="group"
-                >
-                  <div className={`${mobilePatterns.mobileCard('elevated')} h-full ${getAnimations.transition('smooth')}`}>
-                    <div className="flex items-start gap-4">
-                      <div className={`flex-shrink-0 w-12 h-12 ${colors.bg} ${colors.border} border rounded-xl flex items-center justify-center ${getAnimations.transition('smooth')} group-hover:scale-110`}>
-                        <div className={colors.icon}>
-                          {offering.icon}
+            {/* Offerings Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-0">
+              {offerings.map((offering, index) => {
+                const colors = getColorClasses(offering.color);
+                return (
+                  <motion.div
+                    key={index}
+                    variants={itemVariants}
+                    whileHover={{ y: -4, scale: 1.02 }}
+                    className="group"
+                  >
+                    <div className={`${mobilePatterns.mobileCard('elevated')} h-full ${getAnimations.transition('smooth')}`}>
+                      <div className="flex items-start gap-4">
+                        <div className={`flex-shrink-0 w-12 h-12 ${colors.bg} ${colors.border} border rounded-xl flex items-center justify-center ${getAnimations.transition('smooth')} group-hover:scale-110`}>
+                          <div className={colors.icon}>
+                            {offering.icon}
+                          </div>
+                        </div>
+                        <div className="flex-grow">
+                          <h3 className={`text-lg md:text-xl font-bold text-slate-900 dark:text-white mb-2 ${getAnimations.transition('smooth')} group-hover:${colors.icon}`}>
+                            {offering.title}
+                          </h3>
+                          <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-sm md:text-base">
+                            {offering.description}
+                          </p>
                         </div>
                       </div>
-                      <div className="flex-grow">
-                        <h3 className={`text-lg md:text-xl font-bold text-slate-900 dark:text-white mb-2 ${getAnimations.transition('smooth')} group-hover:${colors.icon}`}>
-                          {offering.title}
-                        </h3>
-                        <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-sm md:text-base">
-                          {offering.description}
-                        </p>
-                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              );
-            })}
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
           
           {/* Social Proof Section */}
-          <motion.div variants={itemVariants} className="text-center">
-            <div className={buildComponent.card('premium', 'tablet') + " max-w-2xl mx-auto"}>
-              <div className="flex items-center justify-center gap-4">
-                <div className="flex -space-x-2">
-                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-800">
-                    <Star className="w-4 h-4 text-blue-600" fill="currentColor" />
-                  </div>
-                  <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-800">
-                    <CheckCircle className="w-4 h-4 text-emerald-600" />
-                  </div>
-                </div>
-                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                  Join 500+ educators worldwide making an impact
-                </span>
-              </div>
-            </div>
-          </motion.div>
         </motion.div>
       </div>
     </section>

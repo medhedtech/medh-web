@@ -85,7 +85,7 @@ const Benefits = () => {
   };
 
   return (
-    <section className={mobilePatterns.mobileSection('light')}>
+    <section className="bg-slate-50 dark:bg-slate-900 pb-0 pt-8 sm:pt-10 md:pt-12">
       <div className={mobilePatterns.mobileContainer('lg')}>
         <motion.div
           initial="hidden"
@@ -93,24 +93,25 @@ const Benefits = () => {
           viewport={{ once: true, margin: "-50px" }}
           variants={containerVariants}
         >
+          <div className="bg-white dark:bg-slate-800 rounded-xl p-6 sm:p-8 shadow-md border border-slate-200 dark:border-slate-700 mb-0">
           {/* Header Section */}
-          <motion.div variants={itemVariants} className="text-center mb-12 md:mb-16">
+          <motion.div variants={itemVariants} className="text-center mb-6">
             <div className="inline-flex items-center px-4 py-2 bg-blue-50 dark:bg-blue-900/30 rounded-full mb-6">
               <Zap className="w-4 h-4 text-blue-600 dark:text-blue-400 mr-2" />
               <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Why Choose Medh</span>
             </div>
             
-            <h2 className={mobilePatterns.mobileTypography.heading + " mb-6"}>
-              Join a platform that <span className="text-blue-600 dark:text-blue-400">values educators</span>
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-6 leading-tight whitespace-nowrap">
+              Join a platform that <span className="text-[#3bac63]">values educators</span>
             </h2>
             
-            <p className={mobilePatterns.mobileTypography.body + " max-w-3xl mx-auto"}>
+            <p className="text-[clamp(0.875rem,2vw+0.5rem,1rem)] text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl mx-auto">
               Experience the benefits of teaching with cutting-edge tools, flexible schedules, and a supportive community.
             </p>
           </motion.div>
 
           {/* Benefits Grid */}
-          <div className={mobilePatterns.mobileLayouts.adaptiveGrid + " mb-12 md:mb-16"}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-0">
             {benefitsData.map((benefit, index) => {
               const colors = getColorClasses(benefit.color);
               return (
@@ -139,29 +140,7 @@ const Benefits = () => {
               );
             })}
           </div>
-          
-          {/* Compensation Highlights */}
-          <motion.div variants={itemVariants} className="text-center">
-            <div className={buildComponent.card('premium', 'tablet') + " max-w-4xl mx-auto"}>
-              <div className="inline-flex items-center px-4 py-2 bg-amber-50 dark:bg-amber-900/30 rounded-full mb-6">
-                <Star className="w-4 h-4 text-amber-600 dark:text-amber-400 mr-2" fill="currentColor" />
-                <span className="text-sm font-medium text-amber-700 dark:text-amber-300">Compensation & Growth</span>
-              </div>
-              
-              <h3 className={mobilePatterns.mobileTypography.subheading + " mb-6"}>
-                Competitive <span className="text-amber-600 dark:text-amber-400">rewards</span> for exceptional educators
-              </h3>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {compensationHighlights.map((highlight, index) => (
-                  <div key={index} className="flex items-center gap-3 text-left">
-                    <div className="flex-shrink-0 w-2 h-2 bg-amber-500 rounded-full"></div>
-                    <span className="text-slate-700 dark:text-slate-300 text-sm md:text-base">{highlight}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
+          </div>
         </motion.div>
       </div>
     </section>
