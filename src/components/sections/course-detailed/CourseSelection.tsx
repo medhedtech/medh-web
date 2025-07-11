@@ -161,31 +161,15 @@ const CourseSelection: React.FC<CourseSelectionProps> = ({
                 <BookOpen className={`h-4 w-4 sm:h-5 sm:w-5 ${categoryInfo.colorClass}`} />
               </div>
               <div className="min-w-0 flex-1">
-                {selectedCourse ? (
-                  <>
-                    <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate">
-                      {selectedCourse.title}
-                    </h3>
-                    <div className="flex items-center space-x-2 sm:space-x-4 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
-                      <span className="text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 px-2 py-0.5 rounded-full">
-                        Selected
-                      </span>
-                      <span className="font-medium">
-                        {formatDuration(selectedCourse.course_duration)}
-                      </span>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-                      Select a Course
-                    </h3>
-                    <div className="flex items-center space-x-2 sm:space-x-4 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
-                      <span className="font-medium">
-                        {filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'}
-                      </span>
-                    </div>
-                  </>
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                  Select Course Duration
+                </h3>
+                {selectedCourse && (
+                  <div className="flex items-center space-x-2 sm:space-x-4 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                    <span className="font-medium truncate">
+                      {formatDuration(selectedCourse.course_duration)}
+                    </span>
+                  </div>
                 )}
               </div>
             </div>
@@ -251,10 +235,6 @@ const CourseSelection: React.FC<CourseSelectionProps> = ({
                         )}
 
                         <div className="flex flex-col space-y-2 sm:space-y-3">
-                          {/* Course Title */}
-                          <h4 className="font-medium text-sm sm:text-base text-gray-900 dark:text-white truncate pr-6 sm:pr-8">
-                            {course.title}
-                          </h4>
                           
                           {/* Course Duration and Grade */}
                           <div className="flex flex-wrap gap-1.5 sm:gap-2">
@@ -276,35 +256,9 @@ const CourseSelection: React.FC<CourseSelectionProps> = ({
                                 {course.grade}
                               </span>
                             )}
-                            {course.is_Certification && (
-                              <span className={`inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-medium border ${
-                                selectedCourse?._id === course._id
-                                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 border-amber-200 dark:border-amber-700'
-                                  : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800'
-                              }`}>
-                                <Award className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
-                                Certificate
-                              </span>
-                            )}
                           </div>
                           
-                          {/* Additional Course Info - Mobile optimized */}
-                          {(course.no_of_Sessions || course.enrolled_students) && (
-                            <div className="flex items-center space-x-3 sm:space-x-4 text-xs text-gray-500 dark:text-gray-400">
-                              {course.no_of_Sessions && (
-                                <div className="flex items-center">
-                                  <Users className="w-3 h-3 mr-1" />
-                                  <span>{course.no_of_Sessions} Sessions</span>
-                                </div>
-                              )}
-                              {course.enrolled_students && (
-                                <div className="flex items-center">
-                                  <Star className="w-3 h-3 mr-1" />
-                                  <span>{course.enrolled_students} Students</span>
-                                </div>
-                              )}
-                            </div>
-                          )}
+                          
                         </div>
                       </motion.div>
                     ))}

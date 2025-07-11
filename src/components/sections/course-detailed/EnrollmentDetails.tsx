@@ -359,20 +359,14 @@ const EnrollmentTypeSelector: React.FC<{
               <User className={`w-6 h-6 ${colorClass}`} />
             </div>
           </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            Course Price
+          </h3>
           {activePricing && (
-            <div className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {formatPriceDisplay(activePricing.individual)}
             </div>
           )}
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Individual Enrollment
-          </h3>
-        </div>
-        <div className="p-4 bg-white dark:bg-gray-800 border-t border-blue-200 dark:border-blue-800/30">
-          <p className="text-sm text-gray-600 dark:text-gray-300 flex items-center">
-            <Info className="w-4 h-4 mr-2 text-blue-500 flex-shrink-0" />
-            Personalized learning experience designed for individual learners
-          </p>
         </div>
       </div>
     );
@@ -725,76 +719,20 @@ const EnrollmentButton: React.FC<{
 };
 
 const PaymentSecurityInfo: React.FC<{ isTestUser: boolean }> = ({ isTestUser }) => (
-  <div className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-gray-800 dark:to-slate-800 border border-slate-200 dark:border-gray-700 rounded-xl p-6">
-    <div className="space-y-5">
-      {/* Header - Left Aligned */}
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-          <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-        </div>
-        <span className="text-lg font-semibold text-gray-900 dark:text-white">
-          {isTestUser ? "Test Payment by Razorpay" : "Secure Payment by Razorpay"}
-        </span>
-      </div>
-
-      {/* Payment Methods - Left Aligned with 2 Columns */}
-      <div className="space-y-3">
-        <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
-          Accepted Payment Methods
-        </p>
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            { icon: CreditCard, label: 'All Cards' },
-            { icon: Building2, label: 'Net Banking' },
-            { icon: Smartphone, label: 'UPI' },
-            { icon: Wallet, label: 'Wallets' }
-          ].map(({ icon: Icon, label }) => (
-            <div
-              key={label}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium border border-blue-200 dark:border-blue-800/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
-            >
-              <Icon className="w-4 h-4 flex-shrink-0" />
-              <span className="whitespace-nowrap">{label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Security Message - Left Aligned */}
-      <div className="pt-2 border-t border-slate-200 dark:border-gray-600">
-        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-          <Lock className="w-4 h-4 text-green-600 dark:text-green-400" />
-          <span className="font-medium">Your payment information is encrypted & secure</span>
-        </div>
-        <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-          256-bit SSL encryption • PCI DSS compliant
-        </p>
-      </div>
+  <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/30 rounded-lg px-4 py-3">
+    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40">
+      <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
     </div>
-  </div>
-);
-
-const CourseFeatures: React.FC<{ features: string[] }> = ({ features }) => (
-  <div className="space-y-4">
-    <h4 className="flex items-center gap-3 text-lg font-semibold text-gray-900 dark:text-white">
-      <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
-        <Award className="w-5 h-5 text-emerald-500" />
-      </div>
-      What you'll get
-    </h4>
-
-    <div className="grid gap-3">
-      {features.map((feature: string, index: number) => (
-        <div
-          key={index}
-          className="flex items-center gap-3 p-3 bg-emerald-50/50 dark:bg-emerald-900/10 rounded-lg border border-emerald-100 dark:border-emerald-800/30 hover:bg-emerald-100/50 dark:hover:bg-emerald-900/20 transition-colors"
-        >
-          <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          </div>
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{feature}</span>
-        </div>
-      ))}
+    <div className="flex flex-col">
+      <span className="text-sm font-semibold text-gray-900 dark:text-white">
+        {isTestUser ? "Test Payment by Razorpay" : "Secure Payment by Razorpay"}
+      </span>
+      <span className="text-xs text-gray-700 dark:text-gray-300 mt-0.5">
+        Your payment is encrypted & secure
+      </span>
+      <span className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+        256-bit SSL • PCI DSS compliant
+      </span>
     </div>
   </div>
 );
@@ -1277,8 +1215,10 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
 
   // Enhanced Razorpay payment handler
   const handleRazorpayPayment = async (): Promise<void> => {
+    console.log("Initiating handleRazorpayPayment...");
     if (!courseDetails?._id || !activePricing) {
-      showToast.error("Course information is missing");
+      showToast.error("Course information or pricing is missing for payment.");
+      console.error("Payment initiation failed: Missing courseDetails or activePricing.");
       return;
     }
 
@@ -1293,6 +1233,18 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       const userName = userProfile?.full_name || userProfile?.name || 'User';
       const userPhone = userProfile?.phone_number || userProfile?.mobile || '9999999999';
 
+      console.log("Payment details:", {
+        finalPrice,
+        originalCurrency,
+        userEmail,
+        userName,
+        userPhone,
+        isTestUser,
+        enrollmentType,
+        selectedInstallmentPlan,
+        appliedCoupon,
+      });
+
       let paymentAmount = Math.round(finalPrice * 100);
       let paymentDescription = `Payment for ${courseDetails?.course_title || "Course"} (${enrollmentType} enrollment)`;
       
@@ -1301,16 +1253,21 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         paymentDescription = `Down payment for ${courseDetails?.course_title || "Course"} (EMI plan: ${selectedInstallmentPlan.installments} months)`;
       }
       
+      const razorpayKey = isTestUser 
+        ? process.env.NEXT_PUBLIC_RAZORPAY_TEST_KEY_ID || 'rzp_test_1DP5mmOlF5G5ag'
+        : process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_live_key';
+      
+      console.log("Using Razorpay Key:", razorpayKey);
+
       const options: RazorpayOptions = {
-        key: isTestUser 
-          ? process.env.NEXT_PUBLIC_RAZORPAY_TEST_KEY_ID || 'rzp_test_1DP5mmOlF5G5ag'
-          : process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_live_key',
+        key: razorpayKey,
         amount: paymentAmount,
         currency: originalCurrency,
         name: isTestUser ? "MEDH Education Platform (TEST MODE)" : "MEDH Education Platform",
         description: isTestUser ? `[TEST] ${paymentDescription}` : paymentDescription,
         image: "/images/medhlogo.svg",
         handler: async function (response: any) {
+          console.log("Razorpay payment handler triggered. Response:", response);
           const successMessage = isTestUser 
             ? "Test Payment Successful! 🧪✅" 
             : "Payment Successful! 🎉";
@@ -1328,10 +1285,15 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             response.down_payment = selectedInstallmentPlan.downPayment.toString();
             response.installment_amount = selectedInstallmentPlan.installmentAmount.toString();
             response.is_emi = 'true';
+            console.log("Installment plan details added to payment response:", response);
           }
           
           if (userId) {
+            console.log("Calling enrollCourse after successful payment.");
             await enrollCourse(userId, courseDetails._id, response);
+          } else {
+            console.error("Enrollment failed: userId is missing after successful payment.");
+            showToast.error("Enrollment failed: User ID missing. Please log in again.");
           }
         },
         prefill: {
@@ -1356,6 +1318,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           ondismiss: function() {
             setLoading(false);
             showToast.error("Payment cancelled", { duration: 3000 });
+            console.log("Razorpay modal dismissed by user.");
           }
         }
       };
@@ -1365,27 +1328,31 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         : "Initializing secure payment...";
         
       showToast.loading(loadingMessage, { duration: 2000 });
+      console.log("Attempting to open Razorpay checkout with options:", options);
       await openRazorpayCheckout(options);
     } catch (err: any) {
-      console.error("Enrollment error:", err);
-      setError(err.message || "Failed to process enrollment");
+      console.error("Razorpay payment initiation error:", err);
+      setError(err.message || "Failed to process payment. Please try again.");
       showToast.error("Payment failed. Please try again.", {
         duration: 4000,
         style: { background: '#EF4444', color: '#fff' },
       });
     } finally {
       setLoading(false);
+      console.log("Razorpay payment process finished. Loading set to false.");
     }
   };
 
   // Enroll course function
   const enrollCourse = async (studentId: string, courseId: string, paymentResponse: any = {}): Promise<any> => {
+    console.log("Initiating enrollCourse function.");
+    console.log("EnrollCourse parameters:", { studentId, courseId, paymentResponse });
     if (!studentId || !courseId) {
       console.error("enrollCourse called with missing IDs", { studentId, courseId });
       showToast.error("Student ID and Course ID are required for enrollment. Please log in again or refresh the page.");
       return false;
     }
-    console.log("Enrolling with:", { studentId, courseId });
+    console.log("Enrolling with student ID:", studentId, "and course ID:", courseId);
     try {
       const enrollmentData: any = {
         student_id: studentId,
@@ -1409,6 +1376,10 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         };
       }
       
+      console.log("Enrollment data prepared for API call:", enrollmentData);
+      console.log("API Base URL:", apiBaseUrl);
+      console.log("Authorization Token:", localStorage.getItem('token') ? "Token present" : "Token missing");
+
       try {
         const response = await axios.post(
           `${apiBaseUrl}/enrolled/create`,
@@ -1421,15 +1392,19 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           }
         );
         
+        console.log("Enrollment API response:", response.status, response.data);
+
         if (response.status === 201 || response.status === 200) {
           showToast.success("Successfully enrolled in the course!");
           setIsSuccessModalOpen(true);
           return true;
         } else {
-          throw new Error("Failed to enroll in the course.");
+          console.error("Enrollment API returned non-success status:", response.status, response.data);
+          throw new Error(response.data?.message || "Failed to enroll in the course.");
         }
       } catch (apiError: any) {
-        console.log("Primary enrollment API not available, trying alternative approach...");
+        console.error("Error during primary enrollment API call:", apiError);
+        console.log("Primary enrollment API not available or failed, trying alternative approach...");
         
         if (courseDetails?.isFree || isFreePrice(getFinalPrice())) {
           showToast.success("Free course enrollment successful! You can start learning immediately.");
@@ -1440,11 +1415,12 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           setIsSuccessModalOpen(true);
           return true;
         } else {
+          // Re-throw if it's a critical error not handled by fallbacks
           throw apiError;
         }
       }
     } catch (error: any) {
-      console.error("Enrollment error:", error);
+      console.error("Overall enrollCourse error:", error);
       showToast.error(error.response?.data?.message || "Failed to enroll in the course. Please contact support.");
       return false;
     }
@@ -1482,43 +1458,50 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
 
   // Handle enrollment click
   const handleEnrollClick = useCallback(async () => {
+    console.log("Enrollment button clicked.");
+    console.log("Course details:", courseDetails);
+    console.log("Current userId:", userId);
+    console.log("Current isLoggedIn:", isLoggedIn);
+
     if (!courseDetails?._id) {
-      showToast.error("Course information is missing");
-      return;
-    }
-    if (!userId) {
-      showToast.error("User identification is missing. Please log in again.");
-      router.push('/login');
+      showToast.error("Course information is missing. Please refresh the page.");
+      console.error("Enrollment failed: Course ID missing.");
       return;
     }
 
-    if (!activePricing && !courseDetails.isFree) {
-      showToast.error("Pricing information is missing");
-      return;
-    }
-    
     try {
       setLoading(true);
       setError(null);
-      
+
       if (!isLoggedIn) {
+        console.log("User not logged in. Redirecting to login page.");
+        showToast.error("Please login to enroll in the course.");
         router.push(`/login?redirect=/course-details/${courseDetails?._id}`);
         return;
       }
 
-      if (userId) {
-        const isEnrolled = await checkEnrollmentStatus(userId, courseDetails._id);
-        if (isEnrolled) {
-          showToast.error("You are already enrolled in this course!");
-          router.push('/dashboards/my-courses');
-          return;
-        }
-      } else {
+      if (!userId) {
         showToast.error("User identification is missing. Please log in again.");
-        router.push('/login');
+        console.error("Enrollment failed: userId is null after login check.");
+        router.push('/login'); // Fallback if isLoggedIn is true but userId is null
         return;
       }
-      
+
+      if (!activePricing && !courseDetails.isFree) {
+        showToast.error("Pricing information is missing for paid courses.");
+        console.error("Enrollment failed: Pricing information missing.");
+        return;
+      }
+
+      // Check if already enrolled
+      const isEnrolled = await checkEnrollmentStatus(userId, courseDetails._id);
+      if (isEnrolled) {
+        showToast.error("You are already enrolled in this course!");
+        console.log("User already enrolled. Redirecting to my courses.");
+        router.push('/dashboards/my-courses');
+        return;
+      }
+
       const enrollmentData = {
         ...courseDetails,
         enrollmentType,
@@ -1526,37 +1509,39 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         finalPrice: getFinalPrice(),
         currencyCode: 'USD'
       };
-      
+
       if (onEnrollClick) {
+        console.log("Using custom onEnrollClick handler.");
         await onEnrollClick(enrollmentData);
       } else {
         if (courseDetails.isFree || isFreePrice(getFinalPrice())) {
-          if (userId) {
-            await enrollCourse(userId, courseDetails._id);
-          }
+          console.log("Free course detected. Proceeding with free enrollment.");
+          await enrollCourse(userId, courseDetails._id);
         } else {
+          console.log("Paid course detected. Initiating Razorpay payment.");
           await handleRazorpayPayment();
         }
       }
     } catch (err: any) {
-      console.error("Enrollment error:", err);
-      setError(err.message || "Failed to process enrollment");
-      showToast.error("Enrollment failed. Please try again.");
+      console.error("Enrollment process error:", err);
+      setError(err.message || "An unexpected error occurred during enrollment.");
+      showToast.error(err.message || "Enrollment failed. Please try again or contact support.");
     } finally {
       setLoading(false);
+      console.log("Enrollment process finished. Loading set to false.");
     }
   }, [
-    courseDetails, 
-    isLoggedIn, 
-    userId, 
-    router, 
-    onEnrollClick, 
-    enrollmentType, 
-    activePricing, 
-    getFinalPrice, 
-    checkEnrollmentStatus, 
-    enrollCourse, 
-    isFreePrice, 
+    courseDetails,
+    isLoggedIn,
+    userId,
+    router,
+    onEnrollClick,
+    enrollmentType,
+    activePricing,
+    getFinalPrice,
+    checkEnrollmentStatus,
+    enrollCourse,
+    isFreePrice,
     handleRazorpayPayment
   ]);
 
@@ -1596,13 +1581,12 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
 
   // Check if course is live class
   const isLiveClass = useMemo(() => {
-    return (
-      courseDetails?.classType === 'Live Classes' || 
-      courseDetails?.class_type === 'Live Classes' ||
-      courseDetails?.course_type === 'live' || 
-      courseDetails?.course_type === 'Live' ||
-      courseDetails?.delivery_format === 'Live' ||
-      courseDetails?.delivery_type === 'Live'
+    return !!(
+      (courseDetails?.classType && courseDetails.classType.toLowerCase().includes('Live Courses')) ||
+      (courseDetails?.class_type && courseDetails.class_type.includes('Live Courses')) ||
+      (courseDetails?.course_type && courseDetails.course_type.toLowerCase().includes('Live Courses')) ||
+      (courseDetails?.delivery_format && courseDetails.delivery_format.toLowerCase().includes('Live Courses')) ||
+      (courseDetails?.delivery_type && courseDetails.delivery_type.toLowerCase().includes('Live Courses'))
     );
   }, [
     courseDetails?.classType, 
@@ -1774,7 +1758,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           )}
 
           {/* Payment Summary */}
-          {!courseDetails?.isFree && (
+          {!courseDetails?.isFree && !isBlendedCourse ? (
             <PricingSummary
               originalPrice={originalPrice || getFinalPrice()}
               finalPrice={appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice()}
@@ -1785,7 +1769,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               appliedCoupon={appliedCoupon}
               couponDiscount={appliedCoupon ? calculateCouponDiscount() : 0}
             />
-          )}
+          ) : null}
 
           {/* Session Information */}
           <SessionInfoCard 
@@ -1822,7 +1806,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               getFinalPrice={getFinalPrice}
               formatPriceDisplay={formatPriceDisplay}
               handleEnrollClick={handleEnrollClick}
-              disabled={!userId || !courseDetails?._id || loading}
+              disabled={!courseDetails?._id || loading}
             />
 
             {/* Test Card Information */}
@@ -1862,17 +1846,12 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             )}
           </div>
           
-          {/* Course Features */}
-          {courseFeatures.length > 0 && (
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-              <CourseFeatures features={courseFeatures} />
+          {/* Fast Track Option: Only for live courses */}
+          {isLiveClass && (
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <FastTrackInfo />
             </div>
           )}
-          
-          {/* Fast Track Option */}
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-            <FastTrackInfo />
-          </div>
         </div>
       </div>
 
