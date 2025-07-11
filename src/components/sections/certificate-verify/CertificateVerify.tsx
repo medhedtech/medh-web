@@ -13,6 +13,7 @@ import {
   TrendingUp, 
   Activity,
   AlertCircle,
+  AlertTriangle,
   History,
   Zap,
   Award,
@@ -52,6 +53,10 @@ const CertificateVerify: React.FC = () => {
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [lastSearchQuery, setLastSearchQuery] = useState('');
   const [showNotFound, setShowNotFound] = useState(false);
+  const [cameraPermission, setCameraPermission] = useState<'granted' | 'denied' | 'prompt' | 'unknown'>('unknown');
+  const [cameraError, setCameraError] = useState<string>('');
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanInterval, setScanInterval] = useState<NodeJS.Timeout | null>(null);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -109,14 +114,68 @@ const CertificateVerify: React.FC = () => {
     }
   }, []);
 
+  // Check camera permissions on mount
+  useEffect(() => {
+    const checkCameraPermission = async () => {
+      if (!navigator.permissions || !navigator.mediaDevices) {
+        setCameraPermission('unknown');
+        return;
+      }
+
+      try {
+        const permission = await navigator.permissions.query({ name: 'camera' as PermissionName });
+        setCameraPermission(permission.state as 'granted' | 'denied' | 'prompt');
+        
+        // Listen for permission changes
+        permission.onchange = () => {
+          setCameraPermission(permission.state as 'granted' | 'denied' | 'prompt');
+        };
+      } catch (error) {
+        console.log('Camera permission check not supported:', error);
+        setCameraPermission('unknown');
+      }
+    };
+
+    checkCameraPermission();
+  }, []);
+
+  // Start automatic QR scanning when camera is active
+  useEffect(() => {
+    if (cameraStream && !cameraError && !isLoading) {
+      setIsScanning(true);
+      const interval = setInterval(() => {
+        if (videoRef.current && videoRef.current.readyState === 4) {
+          captureQRCode(true);
+        }
+      }, 1000); // Scan every second
+      
+      setScanInterval(interval);
+      
+      return () => {
+        clearInterval(interval);
+        setScanInterval(null);
+        setIsScanning(false);
+      };
+    } else {
+      if (scanInterval) {
+        clearInterval(scanInterval);
+        setScanInterval(null);
+      }
+      setIsScanning(false);
+    }
+  }, [cameraStream, cameraError, isLoading]);
+
   // Cleanup camera stream on component unmount
   useEffect(() => {
     return () => {
       if (cameraStream) {
         cameraStream.getTracks().forEach(track => track.stop());
       }
+      if (scanInterval) {
+        clearInterval(scanInterval);
+      }
     };
-  }, [cameraStream]);
+  }, [cameraStream, scanInterval]);
 
   // Save search history to localStorage
   const saveSearchHistory = (history: SearchHistoryItem[]) => {
@@ -276,50 +335,179 @@ const CertificateVerify: React.FC = () => {
   // Start camera for QR scanning
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } // Use back camera on mobile
-      });
+      setCameraError('');
+      
+      // Check if mediaDevices is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera not supported on this device');
+      }
+
+      console.log('Requesting camera access...');
+      
+      // Try different constraint configurations for better compatibility
+      const constraintOptions = [
+        // Ideal constraints with back camera preference
+        {
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 640, max: 1280 },
+            height: { ideal: 480, max: 720 },
+            frameRate: { ideal: 30, max: 60 }
+          }
+        },
+        // Fallback with any camera
+        {
+          video: {
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+          }
+        },
+        // Basic constraints
+        {
+          video: true
+        }
+      ];
+
+      let stream: MediaStream | null = null;
+      let lastError: Error | null = null;
+
+      // Try each constraint configuration
+      for (const constraints of constraintOptions) {
+        try {
+          console.log('Trying constraints:', constraints);
+          stream = await navigator.mediaDevices.getUserMedia(constraints);
+          console.log('Camera access granted with constraints:', constraints);
+          break;
+        } catch (error) {
+          console.log('Failed with constraints:', constraints, error);
+          lastError = error as Error;
+          continue;
+        }
+      }
+
+      if (!stream) {
+        throw lastError || new Error('Failed to access camera with any configuration');
+      }
+      
       setCameraStream(stream);
       setShowCamera(true);
+      setCameraPermission('granted');
       
+      // Wait for video element to be ready and set stream
       if (videoRef.current) {
-        videoRef.current.srcObject = stream;
+        const video = videoRef.current;
+        
+        // Set up event handlers before setting srcObject
+        video.onloadedmetadata = () => {
+          console.log('Video metadata loaded, attempting to play...');
+          video.play().then(() => {
+            console.log('Video playing successfully');
+            setCameraError('');
+          }).catch(error => {
+            console.error('Error playing video:', error);
+            setCameraError('Error playing video stream');
+          });
+        };
+        
+        video.oncanplay = () => {
+          console.log('Video can play');
+          if (video.paused) {
+            video.play().catch(console.error);
+          }
+        };
+        
+        video.onplaying = () => {
+          console.log('Video is playing');
+          setCameraError('');
+        };
+        
+        video.onerror = (error) => {
+          console.error('Video element error:', error);
+          setCameraError('Error displaying camera feed');
+          toast.error('Error displaying camera feed');
+        };
+        
+        // Set the stream source
+        video.srcObject = stream;
+        
+        // Force load the video
+        video.load();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Camera access error:', error);
-      toast.error('Unable to access camera. Please check permissions.');
+      
+      let errorMessage = 'Unable to access camera. ';
+      
+      if (error.name === 'NotAllowedError') {
+        errorMessage += 'Please allow camera permissions and try again.';
+        setCameraPermission('denied');
+      } else if (error.name === 'NotFoundError') {
+        errorMessage += 'No camera found on this device.';
+      } else if (error.name === 'NotReadableError') {
+        errorMessage += 'Camera is already in use by another application.';
+      } else if (error.name === 'OverconstrainedError') {
+        errorMessage += 'Camera does not support the required settings.';
+      } else if (error.name === 'SecurityError') {
+        errorMessage += 'Camera access blocked by security settings.';
+      } else {
+        errorMessage += 'Please check your device settings and try again.';
+      }
+      
+      setCameraError(errorMessage);
+      toast.error(errorMessage);
+      setShowCamera(false);
     }
   };
 
   // Stop camera
   const stopCamera = () => {
+    console.log('Stopping camera...');
     if (cameraStream) {
-      cameraStream.getTracks().forEach(track => track.stop());
+      cameraStream.getTracks().forEach(track => {
+        console.log('Stopping track:', track.kind);
+        track.stop();
+      });
       setCameraStream(null);
     }
+    
+    // Clear video element
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+      videoRef.current.onloadedmetadata = null;
+      videoRef.current.onerror = null;
+    }
+    
     setShowCamera(false);
   };
 
   // Capture QR code from camera
-  const captureQRCode = async () => {
+  const captureQRCode = async (isAutomatic = false) => {
     if (!videoRef.current || !canvasRef.current) return;
+    if (!cameraStream || cameraError) return;
 
     const canvas = canvasRef.current;
     const video = videoRef.current;
     const context = canvas.getContext('2d');
     
     if (!context) return;
+    
+    // Make sure video is ready
+    if (video.readyState < 2) return;
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    context.drawImage(video, 0, 0);
+    canvas.width = video.videoWidth || video.clientWidth;
+    canvas.height = video.videoHeight || video.clientHeight;
+    
+    // Only proceed if we have valid dimensions
+    if (canvas.width === 0 || canvas.height === 0) return;
+    
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     // Convert canvas to blob and process
     canvas.toBlob(async (blob) => {
       if (blob) {
-        await processQRImage(blob);
+        await processQRImage(blob, isAutomatic);
       }
-    });
+    }, 'image/jpeg', 0.8);
   };
 
   // Handle QR image upload
@@ -336,8 +524,10 @@ const CertificateVerify: React.FC = () => {
   };
 
   // Process QR code image
-  const processQRImage = async (imageFile: File | Blob) => {
-    setIsLoading(true);
+  const processQRImage = async (imageFile: File | Blob, isAutomatic = false) => {
+    if (!isAutomatic) {
+      setIsLoading(true);
+    }
     
     try {
       console.log('Processing QR image:', imageFile);
@@ -394,17 +584,32 @@ const CertificateVerify: React.FC = () => {
         img.src = dataUrl;
       });
       
-      toast.success('QR code detected!');
+      if (!isAutomatic) {
+        toast.success('QR code detected!');
+      }
       console.log('Real QR data extracted:', qrData);
+      
+      // Stop automatic scanning when QR code is found
+      if (isAutomatic && scanInterval) {
+        clearInterval(scanInterval);
+        setScanInterval(null);
+        setIsScanning(false);
+      }
       
       // Use QR verification with real extracted data
       await handleQRVerification(qrData);
       
     } catch (error) {
       console.error('QR processing error:', error);
-      toast.error('Failed to process QR code. Please try again or ensure the image contains a valid QR code.');
+      
+      // Only show error toast for manual captures, not automatic scanning
+      if (!isAutomatic) {
+        toast.error('Failed to process QR code. Please try again or ensure the image contains a valid QR code.');
+      }
     } finally {
-      setIsLoading(false);
+      if (!isAutomatic) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -441,6 +646,16 @@ const CertificateVerify: React.FC = () => {
         if (parts.length > 1) {
           const extractedId = parts[1].trim();
           console.log('Extracted ID from certificate-verify path:', extractedId);
+          return extractedId;
+        }
+      }
+      
+      // 2c. If it's a URL like: https://medh.edu.in/verify-certificate/CERT-20240115-ABC12345
+      if (qrData.includes('/verify-certificate/')) {
+        const parts = qrData.split('/verify-certificate/');
+        if (parts.length > 1) {
+          const extractedId = parts[1].trim();
+          console.log('Extracted ID from verify-certificate path:', extractedId);
           return extractedId;
         }
       }
@@ -693,65 +908,9 @@ const CertificateVerify: React.FC = () => {
           variants={itemVariants}
           className={`${buildAdvancedComponent.glassCard({ variant: 'primary', padding: 'tablet' })} mt-8`}
         >
-          <div className="flex flex-wrap gap-4 mb-6">
-            <button
-              onClick={() => {
-                setIsQRMode(false);
-                setBulkMode(false);
-                stopCamera();
-              }}
-              className={`flex items-center justify-center px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
-                !isQRMode && !bulkMode
-                  ? 'bg-blue-600 text-white shadow-lg'
-                  : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:bg-white/70 dark:hover:bg-slate-800/70'
-              }`}
-            >
-              <Search className="w-5 h-5 mr-2" />
-              Single ID
-            </button>
-            
-            <button
-              onClick={() => {
-                setIsQRMode(false);
-                setBulkMode(true);
-                stopCamera();
-              }}
-              className={`flex items-center justify-center px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
-                bulkMode
-                  ? 'bg-blue-600 text-white shadow-lg'
-                  : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:bg-white/70 dark:hover:bg-slate-800/70'
-              }`}
-            >
-              <Users className="w-5 h-5 mr-2" />
-              Bulk Verify
-            </button>
-            
-            <button
-              onClick={() => {
-                setIsQRMode(true);
-                setBulkMode(false);
-                stopCamera();
-              }}
-              className={`flex items-center justify-center px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
-                isQRMode
-                  ? 'bg-blue-600 text-white shadow-lg'
-                  : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:bg-white/70 dark:hover:bg-slate-800/70'
-              }`}
-            >
-              <QrCode className="w-5 h-5 mr-2" />
-              QR Code
-            </button>
-          </div>
 
-          <AnimatePresence mode="wait">
-            {!isQRMode && !bulkMode ? (
-              <motion.div
-                key="search"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.3 }}
-              >
+
+          <div>
                 <div className="space-y-4">
                   {/* Certificate ID Search */}
                   <div className="relative">
@@ -859,186 +1018,9 @@ const CertificateVerify: React.FC = () => {
                         Verify Link
                       </button>
                     </div>
-                  </div>
+                                    </div>
                 </div>
-              </motion.div>
-            ) : bulkMode ? (
-              <motion.div
-                key="bulk"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="space-y-4">
-                  <div className="flex items-center mb-4">
-                    <Users className="w-5 h-5 text-blue-600 mr-2" />
-                    <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                      Bulk Certificate Verification
-                    </h3>
-                  </div>
-                  
-                  <textarea
-                    value={bulkInput}
-                    onChange={(e) => setBulkInput(e.target.value)}
-                    placeholder="Enter certificate IDs (one per line, max 50):&#10;MEDH-2024-001234&#10;MEDH-2024-001235&#10;MEDH-2024-001236"
-                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 min-h-[120px] resize-vertical"
-                  />
-                  
-                  <div className="flex flex-col sm:flex-row gap-4 items-center">
-                    <button
-                      onClick={handleBulkVerification}
-                      disabled={isLoading || !bulkInput.trim()}
-                      className="px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center min-w-[140px]"
-                    >
-                      {isLoading ? (
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      ) : (
-                        <>
-                          <Zap className="w-5 h-5 mr-2" />
-                          Verify All
-                        </>
-                      )}
-                    </button>
-                    
-                    <div className="text-sm text-slate-600 dark:text-slate-400">
-                      {bulkInput.split('\n').filter(line => line.trim()).length} certificates ready
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="qr"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="space-y-6">
-                  <div className="flex items-center mb-4">
-                    <QrCode className="w-5 h-5 text-blue-600 mr-2" />
-                    <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                      QR Code Verification
-                    </h3>
-                  </div>
-
-                  {/* QR Options */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Upload QR Image */}
-                    <div className="bg-white/50 dark:bg-slate-800/50 rounded-xl p-6 backdrop-blur-sm">
-                      <div className="text-center">
-                        <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                          <Upload className="w-8 h-8 text-white" />
-                        </div>
-                        <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">
-                          Upload QR Image
-                        </h4>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                          Select a QR code image from your device
-                        </p>
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          onChange={handleQRUpload}
-                          className="hidden"
-                        />
-                        <button
-                          onClick={() => fileInputRef.current?.click()}
-                          disabled={isLoading}
-                          className="px-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-slate-400 text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center mx-auto"
-                        >
-                          <FileImage className="w-5 h-5 mr-2" />
-                          Choose Image
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Camera Scan */}
-                    <div className="bg-white/50 dark:bg-slate-800/50 rounded-xl p-6 backdrop-blur-sm">
-                      <div className="text-center">
-                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                          <Camera className="w-8 h-8 text-white" />
-                        </div>
-                        <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">
-                          Scan with Camera
-                        </h4>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                          Use your device camera to scan QR codes
-                        </p>
-                        <button
-                          onClick={showCamera ? stopCamera : startCamera}
-                          disabled={isLoading}
-                          className={`px-6 py-3 font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center mx-auto ${
-                            showCamera
-                              ? 'bg-red-600 hover:bg-red-700 text-white'
-                              : 'bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white'
-                          }`}
-                        >
-                          {showCamera ? (
-                            <>
-                              <X className="w-5 h-5 mr-2" />
-                              Stop Camera
-                            </>
-                          ) : (
-                            <>
-                              <Camera className="w-5 h-5 mr-2" />
-                              Start Camera
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Camera View */}
-                  <AnimatePresence>
-                    {showCamera && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="bg-white/50 dark:bg-slate-800/50 rounded-xl p-6 backdrop-blur-sm"
-                      >
-                        <div className="text-center">
-                          <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-4">
-                            Position QR Code in Camera View
-                          </h4>
-                          <div className="relative inline-block">
-                            <video
-                              ref={videoRef}
-                              autoPlay
-                              playsInline
-                              muted
-                              className="w-full max-w-md h-64 bg-black rounded-lg object-cover"
-                            />
-                            <div className="absolute inset-0 border-2 border-blue-500 rounded-lg pointer-events-none">
-                              <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-blue-500"></div>
-                              <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-blue-500"></div>
-                              <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-blue-500"></div>
-                              <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-blue-500"></div>
-                            </div>
-                          </div>
-                          <div className="mt-4">
-                            <button
-                              onClick={captureQRCode}
-                              disabled={isLoading}
-                              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
-                            >
-                              <QrCode className="w-5 h-5 mr-2 inline" />
-                              Capture QR Code
-                            </button>
-                          </div>
-                        </div>
-                        <canvas ref={canvasRef} className="hidden" />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          </div>
         </motion.div>
 
         {/* Information Section */}
@@ -1143,16 +1125,7 @@ const CertificateVerify: React.FC = () => {
                       Try Another Certificate
                     </button>
                     
-                    <button
-                      onClick={() => {
-                        setIsQRMode(true);
-                        setShowNotFound(false);
-                      }}
-                      className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
-                    >
-                      <QrCode className="w-5 h-5 mr-2 inline" />
-                      Try QR Code
-                    </button>
+
                   </div>
                 </div>
               </div>
@@ -1219,90 +1192,8 @@ const CertificateVerify: React.FC = () => {
           )}
         </AnimatePresence>
 
-        {/* Bulk Results Display */}
-        <AnimatePresence>
-          {bulkResults.length > 0 && bulkMode && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
-              className="mt-8"
-            >
-              <div className={buildAdvancedComponent.glassCard({ variant: 'primary', padding: 'tablet' })}>
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
-                    Bulk Verification Results
-                  </h3>
-                  <div className="flex items-center space-x-4 text-sm">
-                    <div className="flex items-center">
-                      <CheckCircle className="w-4 h-4 text-green-500 mr-1" />
-                      <span className="text-green-600 dark:text-green-400">
-                        {bulkResults.filter(r => r.status === 'success').length} Verified
-                      </span>
-                    </div>
-                    <div className="flex items-center">
-                      <XCircle className="w-4 h-4 text-red-500 mr-1" />
-                      <span className="text-red-600 dark:text-red-400">
-                        {bulkResults.filter(r => r.status === 'error').length} Failed
-                      </span>
-                    </div>
-                  </div>
-                </div>
 
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {bulkResults.map((result, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className={`p-4 rounded-lg border ${
-                        result.status === 'success'
-                          ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                          : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          {result.status === 'success' ? (
-                            <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-                          ) : (
-                            <XCircle className="w-5 h-5 text-red-500 mr-3" />
-                          )}
-                          <div>
-                            <p className="font-mono text-sm font-medium text-slate-900 dark:text-slate-100">
-                              {result.certificateId}
-                            </p>
-                            {result.data && (
-                              <p className="text-sm text-slate-600 dark:text-slate-400">
-                                {result.data.student?.full_name} - {result.data.course?.course_title}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className={`text-sm font-medium ${
-                            result.status === 'success' 
-                              ? 'text-green-600 dark:text-green-400' 
-                              : 'text-red-600 dark:text-red-400'
-                          }`}>
-                            {result.status === 'success' ? 'Verified' : 'Failed'}
-                          </p>
-                          {result.message && (
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                              {result.message}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+
       </div>
     </motion.div>
   );
