@@ -359,20 +359,14 @@ const EnrollmentTypeSelector: React.FC<{
               <User className={`w-6 h-6 ${colorClass}`} />
             </div>
           </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            Course Price
+          </h3>
           {activePricing && (
-            <div className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {formatPriceDisplay(activePricing.individual)}
             </div>
           )}
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Individual Enrollment
-          </h3>
-        </div>
-        <div className="p-4 bg-white dark:bg-gray-800 border-t border-blue-200 dark:border-blue-800/30">
-          <p className="text-sm text-gray-600 dark:text-gray-300 flex items-center">
-            <Info className="w-4 h-4 mr-2 text-blue-500 flex-shrink-0" />
-            Personalized learning experience designed for individual learners
-          </p>
         </div>
       </div>
     );
@@ -725,76 +719,20 @@ const EnrollmentButton: React.FC<{
 };
 
 const PaymentSecurityInfo: React.FC<{ isTestUser: boolean }> = ({ isTestUser }) => (
-  <div className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-gray-800 dark:to-slate-800 border border-slate-200 dark:border-gray-700 rounded-xl p-6">
-    <div className="space-y-5">
-      {/* Header - Left Aligned */}
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-          <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-        </div>
-        <span className="text-lg font-semibold text-gray-900 dark:text-white">
-          {isTestUser ? "Test Payment by Razorpay" : "Secure Payment by Razorpay"}
-        </span>
-      </div>
-
-      {/* Payment Methods - Left Aligned with 2 Columns */}
-      <div className="space-y-3">
-        <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
-          Accepted Payment Methods
-        </p>
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            { icon: CreditCard, label: 'All Cards' },
-            { icon: Building2, label: 'Net Banking' },
-            { icon: Smartphone, label: 'UPI' },
-            { icon: Wallet, label: 'Wallets' }
-          ].map(({ icon: Icon, label }) => (
-            <div
-              key={label}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium border border-blue-200 dark:border-blue-800/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
-            >
-              <Icon className="w-4 h-4 flex-shrink-0" />
-              <span className="whitespace-nowrap">{label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Security Message - Left Aligned */}
-      <div className="pt-2 border-t border-slate-200 dark:border-gray-600">
-        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-          <Lock className="w-4 h-4 text-green-600 dark:text-green-400" />
-          <span className="font-medium">Your payment information is encrypted & secure</span>
-        </div>
-        <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-          256-bit SSL encryption • PCI DSS compliant
-        </p>
-      </div>
+  <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/30 rounded-lg px-4 py-3">
+    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40">
+      <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
     </div>
-  </div>
-);
-
-const CourseFeatures: React.FC<{ features: string[] }> = ({ features }) => (
-  <div className="space-y-4">
-    <h4 className="flex items-center gap-3 text-lg font-semibold text-gray-900 dark:text-white">
-      <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
-        <Award className="w-5 h-5 text-emerald-500" />
-      </div>
-      What you'll get
-    </h4>
-
-    <div className="grid gap-3">
-      {features.map((feature: string, index: number) => (
-        <div
-          key={index}
-          className="flex items-center gap-3 p-3 bg-emerald-50/50 dark:bg-emerald-900/10 rounded-lg border border-emerald-100 dark:border-emerald-800/30 hover:bg-emerald-100/50 dark:hover:bg-emerald-900/20 transition-colors"
-        >
-          <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          </div>
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{feature}</span>
-        </div>
-      ))}
+    <div className="flex flex-col">
+      <span className="text-sm font-semibold text-gray-900 dark:text-white">
+        {isTestUser ? "Test Payment by Razorpay" : "Secure Payment by Razorpay"}
+      </span>
+      <span className="text-xs text-gray-700 dark:text-gray-300 mt-0.5">
+        Your payment is encrypted & secure
+      </span>
+      <span className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+        256-bit SSL • PCI DSS compliant
+      </span>
     </div>
   </div>
 );
@@ -1643,13 +1581,12 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
 
   // Check if course is live class
   const isLiveClass = useMemo(() => {
-    return (
-      courseDetails?.classType === 'Live Classes' || 
-      courseDetails?.class_type === 'Live Classes' ||
-      courseDetails?.course_type === 'live' || 
-      courseDetails?.course_type === 'Live' ||
-      courseDetails?.delivery_format === 'Live' ||
-      courseDetails?.delivery_type === 'Live'
+    return !!(
+      (courseDetails?.classType && courseDetails.classType.toLowerCase().includes('Live Courses')) ||
+      (courseDetails?.class_type && courseDetails.class_type.includes('Live Courses')) ||
+      (courseDetails?.course_type && courseDetails.course_type.toLowerCase().includes('Live Courses')) ||
+      (courseDetails?.delivery_format && courseDetails.delivery_format.toLowerCase().includes('Live Courses')) ||
+      (courseDetails?.delivery_type && courseDetails.delivery_type.toLowerCase().includes('Live Courses'))
     );
   }, [
     courseDetails?.classType, 
@@ -1821,7 +1758,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           )}
 
           {/* Payment Summary */}
-          {!courseDetails?.isFree && (
+          {!courseDetails?.isFree && !isBlendedCourse ? (
             <PricingSummary
               originalPrice={originalPrice || getFinalPrice()}
               finalPrice={appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice()}
@@ -1832,7 +1769,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               appliedCoupon={appliedCoupon}
               couponDiscount={appliedCoupon ? calculateCouponDiscount() : 0}
             />
-          )}
+          ) : null}
 
           {/* Session Information */}
           <SessionInfoCard 
@@ -1869,7 +1806,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               getFinalPrice={getFinalPrice}
               formatPriceDisplay={formatPriceDisplay}
               handleEnrollClick={handleEnrollClick}
-              disabled={!userId || !courseDetails?._id || loading}
+              disabled={!courseDetails?._id || loading}
             />
 
             {/* Test Card Information */}
@@ -1909,17 +1846,12 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             )}
           </div>
           
-          {/* Course Features */}
-          {courseFeatures.length > 0 && (
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-              <CourseFeatures features={courseFeatures} />
+          {/* Fast Track Option: Only for live courses */}
+          {isLiveClass && (
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <FastTrackInfo />
             </div>
           )}
-          
-          {/* Fast Track Option */}
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-            <FastTrackInfo />
-          </div>
         </div>
       </div>
 
