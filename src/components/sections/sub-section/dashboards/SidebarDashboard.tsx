@@ -930,6 +930,11 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           icon: <User className="w-4 h-4" />
         },
         {
+          name: "Demo Students",
+          path: "/dashboards/demo-student-register",
+          icon: <UserPlus className="w-4 h-4" />
+        },
+        {
           name: "Instructor Management",
           path: formatRoute("admin", "Instuctoremange"),
           icon: <GraduationCap className="w-4 h-4" />
@@ -1171,6 +1176,11 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           name: "Demo Requests",
           path: "/dashboards/instructor/demo-requests",
           icon: <Bell className="w-4 h-4" />
+        },
+        {
+          name: "Create Demo Student",
+          path: "/dashboards/demo-student-register",
+          icon: <UserPlus className="w-4 h-4" />
         },
         {
           name: "Live Demo Classes",

@@ -80,13 +80,15 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
 
   // Handle certificate download
   const handleDownload = async () => {
+    if (typeof window === 'undefined') return;
+    
     setIsDownloading(true);
     try {
-      const blob = await certificateAPI.downloadCertificate(certificate.certificateId);
+      const blob = await certificateAPI.downloadCertificate(certificate.certificateId || '');
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${certificate.certificateId}.pdf`;
+      a.download = `${certificate.certificateId || 'certificate'}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -102,10 +104,12 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
 
   // Handle share certificate
   const handleShare = async () => {
+    if (typeof window === 'undefined') return;
+    
     const shareData = {
-      title: `Certificate Verification - ${certificate.student.full_name}`,
-      text: `Verified certificate for ${certificate.course.course_title}`,
-      url: `${window.location.origin}/certificate-verify?id=${certificate.certificateId}`
+      title: `Certificate Verification - ${certificate.student?.full_name || 'Student'}`,
+      text: `Verified certificate for ${certificate.course?.course_title || 'Course'}`,
+      url: `${window.location.origin}/certificate-verify?id=${certificate.certificateId || ''}`
     };
 
     if (navigator.share) {
@@ -124,8 +128,15 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
 
   // Handle copy certificate ID
   const handleCopyId = async () => {
-    await navigator.clipboard.writeText(certificate.certificateId);
-    toast.success('Certificate ID copied to clipboard!');
+    if (typeof window === 'undefined') return;
+    
+    try {
+      await navigator.clipboard.writeText(certificate.certificateId || '');
+      toast.success('Certificate ID copied to clipboard!');
+    } catch (error) {
+      console.error('Copy error:', error);
+      toast.error('Failed to copy certificate ID');
+    }
   };
 
   // Handle report fraud
@@ -165,6 +176,51 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
     });
   };
 
+  // Check if certificate is valid and active
+  const isValidCertificate = certificate.isValid && certificate.isActive && 
+    (!certificate.validUntil || new Date(certificate.validUntil) >= new Date());
+
+  // Get student name (student.name > student.full_name)
+  const getStudentName = () => {
+    if (certificate.student && (certificate.student as any).name) return (certificate.student as any).name;
+    if (certificate.student && certificate.student.full_name) return certificate.student.full_name;
+    return 'Student';
+  };
+
+  // If certificate is valid, show simple verification message
+  if (isValidCertificate) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className={buildAdvancedComponent.glassCard({ variant: 'primary', padding: 'desktop' })}
+      >
+        <div className="text-center py-12">
+          <div className="flex justify-center mb-6">
+            <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+              <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+          
+          <h2 className={`${typography.h1} text-green-600 dark:text-green-400 mb-4`}>
+            Certificate Verified
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400 text-lg mb-2">
+            Congratulations <span className="font-bold text-blue-700 dark:text-blue-300">{getStudentName()}</span>, your certificate is verified successfully!
+          </p>
+          {/* Issue Date */}
+          {certificate.issueDate && (
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
+              {`Issued on ${formatDate(certificate.issueDate)}`}
+            </p>
+          )}
+        </div>
+      </motion.div>
+    );
+  }
+
+  // If certificate is invalid, show detailed error information
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -184,7 +240,7 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
                 Certificate {statusDisplay.text}
               </h2>
               <p className="text-slate-600 dark:text-slate-400">
-                Verified on {formatDate(certificate.verificationDetails.verifiedAt)}
+                Verified on {certificate.verificationDetails?.verifiedAt ? formatDate(certificate.verificationDetails.verifiedAt) : 'N/A'}
               </p>
             </div>
           </div>
@@ -244,10 +300,10 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
           
           <div className="space-y-4">
             <div className="flex items-center">
-              {certificate.student.profile_picture ? (
+              {certificate.student?.profile_picture ? (
                 <Image
                   src={certificate.student.profile_picture}
-                  alt={certificate.student.full_name}
+                  alt={certificate.student?.full_name || 'Student'}
                   width={48}
                   height={48}
                   className="rounded-full mr-4"
@@ -259,10 +315,10 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
               )}
               <div>
                 <h4 className="font-semibold text-slate-900 dark:text-slate-100">
-                  {certificate.student.full_name}
+                  {certificate.student?.full_name || 'N/A'}
                 </h4>
                 <p className="text-slate-600 dark:text-slate-400">
-                  {certificate.student.email}
+                  {certificate.student?.email || 'N/A'}
                 </p>
               </div>
             </div>
@@ -271,17 +327,17 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
               <div>
                 <p className="text-slate-500 dark:text-slate-400">Student ID</p>
                 <p className="font-medium text-slate-900 dark:text-slate-100">
-                  {certificate.student._id}
+                  {certificate.student?._id || 'N/A'}
                 </p>
               </div>
-              {certificate.grade && (
+              {/* {certificate.grade && (
                 <div>
                   <p className="text-slate-500 dark:text-slate-400">Grade</p>
                   <p className="font-medium text-slate-900 dark:text-slate-100">
                     {certificate.grade}
                   </p>
                 </div>
-              )}
+              )} */}
             </div>
           </div>
         </div>
@@ -297,10 +353,10 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
           
           <div className="space-y-4">
             <div className="flex items-start">
-              {certificate.course.course_image ? (
+              {certificate.course?.course_image ? (
                 <Image
                   src={certificate.course.course_image}
-                  alt={certificate.course.course_title}
+                  alt={certificate.course?.course_title || 'Course'}
                   width={48}
                   height={48}
                   className="rounded-lg mr-4 object-cover"
@@ -312,10 +368,10 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
               )}
               <div>
                 <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">
-                  {certificate.course.course_title}
+                  {certificate.course?.course_title || 'N/A'}
                 </h4>
                 <p className="text-slate-600 dark:text-slate-400 text-sm">
-                  {certificate.course.category}
+                  {certificate.course?.category || 'N/A'}
                 </p>
               </div>
             </div>
@@ -324,14 +380,14 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
               <div>
                 <p className="text-slate-500 dark:text-slate-400">Duration</p>
                 <p className="font-medium text-slate-900 dark:text-slate-100">
-                  {certificate.course.duration}
+                  {certificate.course?.duration || 'N/A'}
                 </p>
               </div>
-              {certificate.course.instructor && (
+              {certificate.course?.instructor && (
                 <div>
                   <p className="text-slate-500 dark:text-slate-400">Instructor</p>
                   <p className="font-medium text-slate-900 dark:text-slate-100">
-                    {certificate.course.instructor.full_name}
+                    {certificate.course.instructor?.full_name || 'N/A'}
                   </p>
                 </div>
               )}
@@ -358,7 +414,7 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
               <p className="text-slate-500 dark:text-slate-400 text-sm">Certificate ID</p>
               <div className="flex items-center">
                 <p className="font-medium text-slate-900 dark:text-slate-100 mr-2">
-                  {certificate.certificateId}
+                  {certificate.certificateId || 'N/A'}
                 </p>
                 <button
                   onClick={handleCopyId}
@@ -377,7 +433,7 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
             <div>
               <p className="text-slate-500 dark:text-slate-400 text-sm">Issue Date</p>
               <p className="font-medium text-slate-900 dark:text-slate-100">
-                {formatDate(certificate.issueDate)}
+                {certificate.issueDate ? formatDate(certificate.issueDate) : 'N/A'}
               </p>
             </div>
           </div>
@@ -389,7 +445,7 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
             <div>
               <p className="text-slate-500 dark:text-slate-400 text-sm">Completion Date</p>
               <p className="font-medium text-slate-900 dark:text-slate-100">
-                {formatDate(certificate.completionDate)}
+                {certificate.completionDate ? formatDate(certificate.completionDate) : 'N/A'}
               </p>
             </div>
           </div>
@@ -415,12 +471,12 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
             <div>
               <p className="text-slate-500 dark:text-slate-400 text-sm">Verification Method</p>
               <p className="font-medium text-slate-900 dark:text-slate-100 capitalize">
-                {certificate.verificationDetails.verificationMethod.replace('_', ' ')}
+                {certificate.verificationDetails?.verificationMethod?.replace('_', ' ') || 'Standard'}
               </p>
             </div>
           </div>
           
-          {certificate.score && (
+          {/* {certificate.score && (
             <div className="flex items-center">
               <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg flex items-center justify-center mr-3">
                 <Star className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
@@ -432,7 +488,7 @@ const CertificateDisplay: React.FC<CertificateDisplayProps> = ({ certificate }) 
                 </p>
               </div>
             </div>
-          )}
+          )} */}
         </div>
       </div>
 

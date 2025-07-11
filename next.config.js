@@ -66,9 +66,17 @@ const nextConfig = {
         hostname: 'esampark.us',
       },
       {
+        protocol: 'https',
+        hostname: 'medh.co',
+      },
+      {
         protocol: 'http',
         hostname: 'localhost',
         port: '3000',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.medh.co',
       }
     ],
     // Optimized device sizes for course cards and LCP
