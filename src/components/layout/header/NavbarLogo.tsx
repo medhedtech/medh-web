@@ -4,20 +4,25 @@ import logo1 from "@/assets/images/logo/medh_logo-1.png";
 import Link from "next/link";
 import logo0 from "@/assets/images/logo/medh_logo-2.png";
 import { useTheme } from "next-themes";
+
+/**
+ * Props for the NavbarLogo component
+ */
+interface NavbarLogoProps {
+  isScrolled: boolean;
+}
+
 /**
  * NavbarLogo Component
  * Renders the logo in the navbar with responsive sizing based on scroll state
  * In dark mode, displays logo1; in light mode, displays logo0
  * Maintains aspect ratio across all screen sizes
- * 
- * @param {Object} props - Component props
- * @param {boolean} props.isScrolled - Whether the navbar is scrolled
  */
-const NavbarLogo = ({ isScrolled }) => {
-  const [logoLoaded, setLogoLoaded] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+const NavbarLogo: React.FC<NavbarLogoProps> = ({ isScrolled }) => {
+  const [logoLoaded, setLogoLoaded] = useState<boolean>(false);
+  const [isHovered, setIsHovered] = useState<boolean>(false);
+  const [mounted, setMounted] = useState<boolean>(false);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const { setTheme } = useTheme();
 
   // Get original logo dimensions to calculate proper ratio
@@ -51,7 +56,7 @@ const NavbarLogo = ({ isScrolled }) => {
     if (!mounted) return;
 
     // Function to check if dark mode is active
-    const checkDarkMode = () => {
+    const checkDarkMode = (): void => {
       // Check both localStorage and DOM class
       const storedTheme = localStorage.getItem('medh-theme');
       const hasDarkClass = document.documentElement.classList.contains('dark');
@@ -70,7 +75,7 @@ const NavbarLogo = ({ isScrolled }) => {
     // Set up listeners for theme changes
     
     // 1. Listen for localStorage changes
-    const handleStorageChange = (e) => {
+    const handleStorageChange = (e: StorageEvent): void => {
       if (e.key === 'medh-theme') {
         checkDarkMode();
       }
@@ -86,12 +91,12 @@ const NavbarLogo = ({ isScrolled }) => {
     
     // 3. Listen for theme toggle button clicks
     const themeButtons = document.querySelectorAll('.theme-toggle, [data-theme-toggle]');
-    const handleThemeButtonClick = () => {
+    const handleThemeButtonClick = (): void => {
       // Give time for changes to apply
       setTimeout(checkDarkMode, 50);
     };
     
-    themeButtons.forEach(button => {
+    themeButtons.forEach((button) => {
       button.addEventListener('click', handleThemeButtonClick);
     });
     
@@ -99,14 +104,14 @@ const NavbarLogo = ({ isScrolled }) => {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       observer.disconnect();
-      themeButtons.forEach(button => {
+      themeButtons.forEach((button) => {
         button.removeEventListener('click', handleThemeButtonClick);
       });
     };
   }, [mounted, isDarkMode]);
 
   // Public function to manually toggle dark mode
-  const toggleDarkMode = () => {
+  const toggleDarkMode = (): void => {
     const newMode = !isDarkMode;
     setIsDarkMode(newMode);
     setTheme(newMode ? 'dark' : 'light');
@@ -144,11 +149,11 @@ const NavbarLogo = ({ isScrolled }) => {
   }, [isScrolled, logoRatio]);
 
   // Handle logo hover state for interactive feedback
-  const handleLogoHover = () => setIsHovered(true);
-  const handleLogoLeave = () => setIsHovered(false);
+  const handleLogoHover = (): void => setIsHovered(true);
+  const handleLogoLeave = (): void => setIsHovered(false);
   
   // Handle logo load events
-  const handleLogoLoad = () => setLogoLoaded(true);
+  const handleLogoLoad = (): void => setLogoLoaded(true);
 
   // Don't render anything until mounted to prevent hydration mismatch
   if (!mounted) {
@@ -212,7 +217,7 @@ const NavbarLogo = ({ isScrolled }) => {
               `}
               style={{ 
                 objectFit: 'contain',
-                imageRendering: '-webkit-optimize-contrast',
+                imageRendering: '-webkit-optimize-contrast' as any,
                 backfaceVisibility: 'hidden',
                 WebkitFontSmoothing: 'antialiased',
                 transform: 'translate3d(0,0,0)'
@@ -227,4 +232,4 @@ const NavbarLogo = ({ isScrolled }) => {
   );
 };
 
-export default NavbarLogo;
+export default NavbarLogo; 
