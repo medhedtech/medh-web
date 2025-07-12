@@ -24,7 +24,7 @@ export interface IRegisterData {
 
 export interface ILoginData {
   email: string;
-  password: string;
+  password?: string;
 }
 
 export interface IVerifyEmailData {
@@ -596,6 +596,7 @@ export const authAPI = {
     resendVerification: `${apiBaseUrl}/auth/resend-verification`,
     login: `${apiBaseUrl}/auth/login`,
     refreshToken: `${apiBaseUrl}/auth/refresh-token`,
+    quickLogin: `${apiBaseUrl}/auth/quick-login`, // Add this new endpoint
     logout: `${apiBaseUrl}/auth/logout`,
     forgotPassword: `${apiBaseUrl}/auth/forgot-password`,
     resetPassword: `${apiBaseUrl}/auth/reset-password`,

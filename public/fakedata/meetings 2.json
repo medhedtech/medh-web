@@ -1,0 +1,227 @@
+[
+  {
+    "id": 952428993687,
+    "title": "Advanced JavaScript Techniques",
+    "host": "Dr. Emily Chen",
+    "hostImage": "/assets/images/instructors/instructor-1.jpg",
+    "date": "2024-05-15",
+    "startTime": "14:00",
+    "endTime": "15:30",
+    "duration": 90,
+    "meetingLink": "https://zoom.us/j/952428993687",
+    "password": "js2024",
+    "description": "In this session, we'll dive deep into advanced JavaScript concepts including closures, prototypal inheritance, and asynchronous programming patterns. Come prepared with questions about your current projects.",
+    "course": "Modern Web Development",
+    "courseId": "web-dev-2024",
+    "status": "upcoming",
+    "participants": 42,
+    "materials": [
+      {
+        "title": "Session Slides",
+        "type": "PDF",
+        "url": "/materials/js-advanced-slides.pdf"
+      },
+      {
+        "title": "Code Examples",
+        "type": "GitHub Repository",
+        "url": "https://github.com/example/js-patterns"
+      }
+    ],
+    "department": "Development"
+  },
+  {
+    "id": 952429936777,
+    "title": "Responsive Design Workshop",
+    "host": "Marcus Williams",
+    "hostImage": "/assets/images/instructors/instructor-2.jpg",
+    "date": "2024-05-18",
+    "startTime": "10:00",
+    "endTime": "12:30",
+    "duration": 150,
+    "meetingLink": "https://us06web.zoom.us/j/84632595111?pwd=rd43IheeEui0WjX0UuUoSvE9TqFikj.1",
+    "password": "design2024",
+    "description": "Learn how to create beautiful, responsive layouts that work across all devices. We'll cover CSS Grid, Flexbox, and modern responsive design techniques.",
+    "course": "UI/UX Design Fundamentals",
+    "courseId": "uiux-2024",
+    "status": "upcoming",
+    "participants": 38,
+    "materials": [
+      {
+        "title": "Design Resources",
+        "type": "ZIP Archive",
+        "url": "/materials/responsive-resources.zip"
+      }
+    ],
+    "department": "Design"
+  },
+  {
+    "id": 952428993999,
+    "title": "Digital Marketing Strategies",
+    "host": "Sarah Johnson",
+    "hostImage": "/assets/images/instructors/instructor-3.jpg",
+    "date": "2024-05-10",
+    "startTime": "16:00",
+    "endTime": "18:00",
+    "duration": 120,
+    "meetingLink": "https://zoom.us/j/952428993999",
+    "password": "marketing2024",
+    "description": "Discover the latest digital marketing techniques and how to apply them to your business. Topics include SEO, content marketing, and social media strategy.",
+    "course": "Digital Marketing Mastery",
+    "courseId": "marketing-2024",
+    "status": "live",
+    "participants": 56,
+    "materials": [
+      {
+        "title": "Marketing Plan Template",
+        "type": "DOCX",
+        "url": "/materials/marketing-template.docx"
+      },
+      {
+        "title": "Analytics Dashboard Guide",
+        "type": "PDF",
+        "url": "/materials/analytics-guide.pdf"
+      }
+    ],
+    "department": "Marketing"
+  },
+  {
+    "id": 9524289935557,
+    "title": "Leadership in Education",
+    "host": "Dr. Robert Martinez",
+    "hostImage": "/assets/images/instructors/instructor-4.jpg",
+    "date": "2024-05-05",
+    "startTime": "09:00",
+    "endTime": "12:30",
+    "duration": 210,
+    "meetingLink": "https://zoom.us/j/9524289935557",
+    "password": "edu2024",
+    "description": "Explore effective leadership strategies for educational settings. This session will cover team building, conflict resolution, and creating positive learning environments.",
+    "course": "Educational Leadership",
+    "courseId": "edu-leadership-2024",
+    "status": "completed",
+    "participants": 29,
+    "materials": [
+      {
+        "title": "Leadership Assessment Tools",
+        "type": "PDF",
+        "url": "/materials/leadership-assessment.pdf"
+      }
+    ],
+    "department": "Education"
+  },
+  {
+    "id": 952428993555,
+    "title": "Team Collaboration Workshop",
+    "host": "Priya Sharma",
+    "hostImage": "/assets/images/instructors/instructor-5.jpg",
+    "date": "2024-05-22",
+    "startTime": "11:00",
+    "endTime": "13:00",
+    "duration": 120,
+    "meetingLink": "https://zoom.us/j/952428993555",
+    "password": "team2024",
+    "description": "Learn how to foster effective team collaboration in remote and hybrid work environments. We'll discuss communication tools, project management strategies, and team-building activities.",
+    "course": "Professional Development",
+    "courseId": "prof-dev-2024",
+    "status": "upcoming",
+    "participants": 35,
+    "materials": [
+      {
+        "title": "Collaboration Tools Guide",
+        "type": "PDF",
+        "url": "/materials/collab-tools.pdf"
+      },
+      {
+        "title": "Team Building Exercises",
+        "type": "DOCX",
+        "url": "/materials/team-exercises.docx"
+      }
+    ],
+    "department": "Professional Development"
+  },
+  {
+    "id": 9524289936887,
+    "title": "Strategic Business Planning",
+    "host": "James Wilson",
+    "hostImage": "/assets/images/instructors/instructor-6.jpg",
+    "date": "2024-05-08",
+    "startTime": "14:00",
+    "endTime": "16:30",
+    "duration": 150,
+    "meetingLink": "https://zoom.us/j/9524289936887",
+    "password": "bizplan2024",
+    "description": "Develop comprehensive business strategies that align with your organization's goals. This session covers market analysis, competitive positioning, and implementation planning.",
+    "course": "Business Strategy",
+    "courseId": "biz-strategy-2024",
+    "status": "completed",
+    "participants": 47,
+    "materials": [
+      {
+        "title": "Business Plan Template",
+        "type": "XLSX",
+        "url": "/materials/business-plan.xlsx"
+      },
+      {
+        "title": "SWOT Analysis Guide",
+        "type": "PDF",
+        "url": "/materials/swot-guide.pdf"
+      }
+    ],
+    "department": "Business"
+  },
+  {
+    "id": 9524289938765,
+    "title": "Student Leadership Forum",
+    "host": "Michelle Taylor",
+    "hostImage": "/assets/images/instructors/instructor-7.jpg",
+    "date": "2024-05-25",
+    "startTime": "15:00",
+    "endTime": "17:00",
+    "duration": 120,
+    "meetingLink": "https://zoom.us/j/9524289938765",
+    "password": "student2024",
+    "description": "Join this interactive forum to discuss student leadership opportunities, community engagement, and personal development strategies for academic success.",
+    "course": "Student Leadership",
+    "courseId": "student-lead-2024",
+    "status": "upcoming",
+    "participants": 63,
+    "materials": [
+      {
+        "title": "Leadership Opportunities Guide",
+        "type": "PDF",
+        "url": "/materials/student-opportunities.pdf"
+      }
+    ],
+    "department": "Student Affairs"
+  },
+  {
+    "id": 952428993698,
+    "title": "Entrepreneurship Masterclass",
+    "host": "Alex Rivera",
+    "hostImage": "/assets/images/instructors/instructor-8.jpg",
+    "date": "2024-05-12",
+    "startTime": "13:00",
+    "endTime": "16:30",
+    "duration": 210,
+    "meetingLink": "https://zoom.us/j/952428993698",
+    "password": "startup2024",
+    "description": "Learn from successful entrepreneurs about launching and scaling startups. Topics include fundraising, product development, and growth strategies.",
+    "course": "Entrepreneurship Essentials",
+    "courseId": "entrepreneur-2024",
+    "status": "upcoming",
+    "participants": 52,
+    "materials": [
+      {
+        "title": "Startup Pitch Deck Template",
+        "type": "PPTX",
+        "url": "/materials/pitch-deck.pptx"
+      },
+      {
+        "title": "Funding Resources Guide",
+        "type": "PDF",
+        "url": "/materials/funding-guide.pdf"
+      }
+    ],
+    "department": "Business"
+  }
+]

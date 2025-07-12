@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { apiBaseUrl, apiUrls } from '@/apis/index';
 import axios from 'axios';
+import { getRazorpayKey } from '@/config/razorpay';
 
 // Comprehensive type definitions for Razorpay
 export interface RazorpayOptions {
@@ -84,6 +85,7 @@ export interface CreateOrderPayload {
   duration_months?: number;
   original_currency?: string;
   price_id?: string;
+  receipt?: string;
 }
 
 export interface OrderResponse {
@@ -129,6 +131,7 @@ interface UseRazorpayReturn {
   resetError: () => void;
   isAuthenticated: boolean;
   setIsAuthenticated: (value: boolean) => void;
+  testMode: boolean; // for UI feedback
 }
 
 /**
@@ -214,6 +217,9 @@ export const useRazorpay = (): UseRazorpayReturn => {
     }
     return false;
   });
+  
+  // Add testMode flag for UI feedback
+  const testMode = shouldUseTestKey();
   
   // Use refs to avoid stale closures and memory leaks
   const scriptLoadAttempts = useRef<number>(0);
@@ -340,49 +346,6 @@ export const useRazorpay = (): UseRazorpayReturn => {
   }, [isLoading]);
 
   /**
-   * Fetches the Razorpay key from the backend
-   * @returns The Razorpay key
-   */
-  const fetchRazorpayKey = useCallback(async (): Promise<string> => {
-    // 1. Instant return if test key is forced
-    if (shouldUseTestKey()) {
-      if (!RAZORPAY_TEST_KEY || RAZORPAY_TEST_KEY.includes('REPLACE_ME')) {
-        console.warn('[Razorpay] Test mode requested but NEXT_PUBLIC_RAZORPAY_TEST_KEY is missing. Falling back to live key from backend.');
-      } else {
-        setRazorpayKey(RAZORPAY_TEST_KEY);
-        return RAZORPAY_TEST_KEY;
-      }
-    }
-
-    // 2. Return cached key if we already have it
-    if (razorpayKey) {
-      return razorpayKey;
-    }
-
-    // 3. Otherwise fetch from backend (live key in most cases)
-    try {
-      const response = await axios.get(`${apiBaseUrl}/payments/key`, {
-        headers: {
-          ...(localStorage.getItem('token') && {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          })
-        }
-      });
-
-      if (response.data?.data?.key) {
-        const key = response.data.data.key;
-        setRazorpayKey(key);
-        return key;
-      }
-      throw new Error('Invalid response format from server');
-    } catch (err) {
-      console.error('Error fetching Razorpay key:', err);
-      setError('Failed to fetch payment gateway configuration');
-      throw err;
-    }
-  }, [razorpayKey]);
-
-  /**
    * Gets the current logged-in user ID from local storage or session storage
    * @returns The user ID or null if not logged in
    */
@@ -416,6 +379,18 @@ export const useRazorpay = (): UseRazorpayReturn => {
       return null;
     }
   }, []);
+
+  /**
+   * Fetches the Razorpay key from the backend
+   * @returns The Razorpay key
+   */
+  const fetchRazorpayKey = useCallback(async (): Promise<string> => {
+    // Use getRazorpayKey for all key selection
+    const userId = getCurrentUserId();
+    const key = getRazorpayKey(userId || undefined);
+    setRazorpayKey(key);
+    return key;
+  }, [razorpayKey, getCurrentUserId]);
 
   /**
    * Fetches user details from the Medh API
@@ -480,6 +455,20 @@ export const useRazorpay = (): UseRazorpayReturn => {
         version: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0'
       };
       
+      console.log('useRazorpay - Enhanced payload being sent to backend:', JSON.stringify(enhancedPayload, null, 2));
+      
+      // Validate required fields before sending
+      if (!enhancedPayload.amount || enhancedPayload.amount <= 0) {
+        throw new Error('Invalid amount: Amount must be greater than 0');
+      }
+      if (!enhancedPayload.currency) {
+        throw new Error('Currency is required');
+      }
+      // Validate receipt only if provided
+      if (enhancedPayload.receipt && enhancedPayload.receipt.length > 40) {
+        throw new Error(`Invalid receipt: "${enhancedPayload.receipt}" (length: ${enhancedPayload.receipt.length})`);
+      }
+      
       const response = await axios.post(`${apiBaseUrl}/payments/create-order`, enhancedPayload, {
         headers: {
           'Content-Type': 'application/json',
@@ -487,14 +476,36 @@ export const useRazorpay = (): UseRazorpayReturn => {
         }
       });
 
-      if (response.data?.status === 'success' && response.data?.data) {
+      console.log('Backend response:', response.data);
+      
+      // Check for both success formats: {status: 'success'} or {success: true}
+      if ((response.data?.status === 'success' || response.data?.success === true) && response.data?.data) {
         return response.data.data;
       }
       
-      throw new Error('Failed to create payment order');
-    } catch (err) {
+      // Log detailed error information
+      console.error('Payment order creation failed - Response:', response.data);
+      console.error('Response status:', response.status);
+      console.error('Response headers:', response.headers);
+      
+      const backendMessage = response.data?.message || response.data?.error || 'Unknown error from backend';
+      throw new Error(`Backend error: ${backendMessage}`);
+    } catch (err: any) {
       console.error('Error creating order:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create payment order';
+      console.error('Error response:', err.response?.data);
+      console.error('Error status:', err.response?.status);
+      
+      let errorMessage = 'Failed to create payment order';
+      if (err.response?.data?.message) {
+        errorMessage = `Backend error: ${err.response.data.message}`;
+      } else if (err.response?.data?.error) {
+        errorMessage = `Backend error: ${err.response.data.error}`;
+      } else if (err.message && !err.message.includes('Backend error:')) {
+        errorMessage = `Network error: ${err.message}`;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
       setError(errorMessage);
       throw new Error(errorMessage);
     }
@@ -798,7 +809,8 @@ export const useRazorpay = (): UseRazorpayReturn => {
         modal: {
           ondismiss: () => {
             setIsLoading(false);
-            errorCallback && errorCallback('Payment cancelled');
+            // Don't call errorCallback for user dismissal - this is normal behavior
+            console.log('Payment modal dismissed by user');
           }
         },
         notes: {
@@ -836,7 +848,8 @@ export const useRazorpay = (): UseRazorpayReturn => {
     error,
     resetError,
     isAuthenticated,
-    setIsAuthenticated
+    setIsAuthenticated,
+    testMode // for UI feedback
   };
 };
 
@@ -847,4 +860,4 @@ declare global {
   }
 }
 
-export default useRazorpay; 
+export default useRazorpay;

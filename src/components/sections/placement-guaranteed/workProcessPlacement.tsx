@@ -86,22 +86,14 @@ const WorkProcessPlacement: React.FC = () => {
       <div className="absolute bottom-10 sm:bottom-20 right-0 w-24 h-24 sm:w-40 sm:h-40 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-2xl sm:blur-3xl animate-blob animation-delay-2000"></div>
       <div className="relative z-10 w-full px-4 sm:px-6 md:px-8 lg:px-12 py-8 md:py-12">
         {/* Enhanced Header Section */}
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={fadeInUp}
-          transition={{ duration: 0.8 }}
-          className="glass-card bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-slate-700 p-6 md:p-8 shadow-lg rounded-2xl mb-12"
-        >
-          <div className="text-center">
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4 leading-tight whitespace-nowrap">
-              Our Placement <span className="text-emerald-600 dark:text-emerald-400">Process</span>
-            </h2>
-            <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-              A step-by-step approach to landing your dream job through Medh's guaranteed placement pathway.
-            </p>
-          </div>
-        </motion.div>
+        <div className="text-center mb-12">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4 leading-tight whitespace-nowrap">
+            Our Placement <span className="text-emerald-600 dark:text-emerald-400">Process</span>
+          </h2>
+          <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
+            A step-by-step approach to landing your dream job through Medh's guaranteed placement pathway.
+          </p>
+        </div>
         {/* Process Steps */}
         <motion.div
           initial="hidden"
