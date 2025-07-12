@@ -13,6 +13,7 @@ export interface RememberedAccount {
   lastLogin: number; // timestamp
   createdAt: number; // timestamp
   role?: string;
+  quickLoginKey?: string; // Change from refreshToken to quickLoginKey
   // Note: We don't store passwords directly for security
   // Instead, we'll use a secure token-based approach
 }
@@ -28,7 +29,7 @@ export class RememberedAccountsManager {
   private static readonly MAX_ACCOUNTS = 5;
   private static readonly ENCRYPTION_KEY = 'medh_remember_key_2024';
   private static readonly DATA_VERSION = 1;
-  private static readonly AUTO_PASSWORD_THRESHOLD = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+  private static readonly AUTO_PASSWORD_THRESHOLD = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
 
   /**
    * Get all remembered accounts
@@ -163,6 +164,12 @@ export class RememberedAccountsManager {
       
       if (!account) return true;
       
+      // If an account has a refresh token, it means we can attempt a passwordless login.
+      // The password will only be explicitly needed if the refresh token flow fails.
+      if (account.quickLoginKey) {
+        return false; // No password needed if a refresh token is present
+      }
+
       const now = Date.now();
       const daysSinceLastLogin = now - account.lastLogin;
       
@@ -331,6 +338,8 @@ export class RememberedAccountsManager {
       
       const parsed = JSON.parse(decrypted);
       
+      console.log('RememberedAccountsManager: Getting raw data - parsed accounts:', parsed.accounts); // Add this log
+
       // Handle version migration if needed
       if (parsed.version !== this.DATA_VERSION) {
         console.log('Migrating remembered accounts data version');
@@ -344,6 +353,7 @@ export class RememberedAccountsManager {
       };
     } catch (error) {
       console.error('Error getting raw data:', error);
+      // Ensure a default, empty structure is returned on error or malformed data
       return this.getDefaultData();
     }
   }
@@ -360,6 +370,8 @@ export class RememberedAccountsManager {
         version: this.DATA_VERSION
       };
       
+      console.log('RememberedAccountsManager: Saving data - accounts to store:', toStore.accounts); // Add this log
+
       const encrypted = encrypt(JSON.stringify(toStore), this.ENCRYPTION_KEY);
       if (!encrypted) {
         console.error('Failed to encrypt remembered accounts data');

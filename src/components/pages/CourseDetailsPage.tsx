@@ -48,7 +48,7 @@ import CourseHeader from '@/components/sections/course-detailed/CourseHeader';
 import CourseFaq from '@/components/sections/course-detailed/courseFaq';
 import CourseCertificate from '@/components/sections/course-detailed/courseCertificate';
 import CourseRelated from '@/components/sections/course-detailed/courseRelated';
-import DownloadBrochureModal from '@/components/shared/download-broucher.js';
+import DownloadBrochureModal from '@/components/shared/download-brochure';
 import CourseStats from '@/components/sections/course-detailed/CourseStats';
 
 // API and utilities
@@ -98,6 +98,7 @@ interface ICourseDetails {
   downloadBrochure?: string;
   features?: Array<{ title: string; description: string }>;
   grade?: string;
+  course_modules?: Array<{ title: string; description?: string }>;
 }
 
 interface ICourseVideoPlayerProps {
@@ -366,6 +367,11 @@ const CourseVideoPlayer: React.FC<ICourseVideoPlayerProps> = ({ courseId, course
 };
 
 const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
+  // All hooks must be at the top, before any return or conditional
+  // Removed: const brochureFormRef = useRef<HTMLDivElement>(null); // This was for scroll-to-form, now replaced by modal
+  // Removed: const [showBrochureModal, setShowBrochureModal] = useState(false); // This was for old modal, replaced by isBrochureOpen
+  // Removed: const [courseId, setCourseId] = useState(props.courseId); // This was a duplicate of props.courseId/courseDetails?._id
+
   // State for active section and navigation
   const [activeSection, setActiveSection] = useState<string>(props.initialActiveSection || 'about');
   const [courseDetails, setCourseDetails] = useState<ICourseDetails | null>(props.courseDetails || null);
@@ -378,8 +384,7 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showClassTypeInfo, setShowClassTypeInfo] = useState(false);
   const [theme, setTheme] = useState('light');
-  const [showBrochureModal, setShowBrochureModal] = useState(false);
-  const [courseId, setCourseId] = useState(props.courseId);
+  const [isBrochureOpen, setIsBrochureOpen] = useState(false);
 
   
   // Refs for component structure - we don't use these for scrolling anymore
@@ -730,7 +735,7 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
 
   // Helper functions to format course details
   const formatDuration = (details: ICourseDetails | null | undefined): string => {
-    if (!details) return "9 months / 36 weeks";
+    if (!details) return "9 months / 72 weeks";
     
     // For blended courses, show "Self Paced + Live Q&A sessions"
     if (isBlendedCourse(details)) {
@@ -779,7 +784,7 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
       console.error("Error formatting duration:", error);
     }
     
-    return "9 months / 36 weeks"; // Default fallback
+    return "9 months / 72 weeks"; // Default fallback
   };
   
   const formatLiveSessions = (details: ICourseDetails | null | undefined): string => {
@@ -1110,7 +1115,7 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
     let overview = '';
     let relevance = '';
     // Try to split at 'Relevance' (case-insensitive, with or without leading/trailing newlines)
-    const match = desc.match(/Overview\s*\n([\s\S]*?)(?:\nRelevance\n([\s\S]*))?$/i);
+    const match = desc.match(/Overview\\s*\\n([\\s\\S]*?)(?:\\nRelevance\\n([\\s\\S]*))?$/i);
     if (match) {
       overview = (match[1] || '').trim();
       relevance = (match[2] || '').trim();
@@ -1155,6 +1160,27 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
     switch(activeSection) {
       case 'about':
       case 'benefits':
+        // Parse About and Benefits
+        let description = '';
+        if (typeof courseDetails?.course_description === 'string') {
+          description = courseDetails.course_description;
+        } else if (typeof courseDetails?.course_description === 'object' && courseDetails?.course_description?.program_overview) {
+          description = courseDetails.course_description.program_overview;
+        } else {
+          description = courseDetails?.course_title || '';
+        }
+        const { about, benefits } = parseAboutAndBenefits(description);
+        // Brochure extraction logic
+        let brochureUrl = '';
+        const brochureRegex = /(https?:\/\/[^\s]+\.pdf)/i;
+        const match = description.match(brochureRegex);
+        if (match && match[1]) {
+          brochureUrl = match[1];
+        }
+        // Remove 'Benefits' heading and benefits text from the about section if present
+        let cleanedAbout = about;
+        cleanedAbout = cleanedAbout.replace(/\n*Benefits\n*[\s\S]*$/i, '').trim();
+        
         return (
           <motion.section 
             ref={aboutRef} 
@@ -1165,45 +1191,21 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
             animate="visible"
             key="about-section"
           >
-            {/* Course Key Info Row - Mobile: Improved layout, Desktop: Contained */}
-            <div className="mb-6 px-4 sm:px-0">
-              <div
-                className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-6 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-800 dark:to-slate-800 rounded-xl border border-slate-200 dark:border-gray-700 shadow-sm p-4 sm:p-5"
-                role="group"
-                aria-label="Course key information"
-              >
-                {/* No. of Sessions (Live only) */}
-                {(() => {
-                  const isLive = getClassType().toLowerCase().includes('live') && !isBlendedCourse(courseDetails);
-                  const sessions = courseDetails?.no_of_Sessions;
-                  if (isLive && sessions) {
-                    return (
-                      <div className="flex items-center gap-3 flex-1 min-w-0" aria-label="No. of Sessions">
-                        <div className="flex-shrink-0 p-2 rounded-full bg-blue-100 dark:bg-blue-900/40">
-                          <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">No. of Sessions</span>
-                          <span className="text-lg font-bold text-blue-800 dark:text-blue-200 truncate">{sessions}</span>
-                        </div>
-                      </div>
-                    );
-                  }
-                  return null;
-                })()}
-                {/* Divider for sm+ */}
-                <div className="hidden sm:block w-px bg-slate-200 dark:bg-gray-700 mx-2" aria-hidden="true"></div>
-                {/* Course Duration */}
+            {/* Key Info Row - True edge-to-edge section */}
+            <div className="mb-8 -mx-4 sm:mx-0">
+              {/* Info Card: Duration, Sessions, Effort/Grades */}
+              <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200 dark:border-slate-700 rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-200 p-5 sm:p-8 flex flex-col sm:flex-row items-center justify-center gap-y-4 sm:gap-y-0 sm:gap-x-8 w-full">
+                {/* Duration */}
                 {(() => {
                   const duration = formatDuration(courseDetails);
                   if (duration) {
                     return (
-                      <div className="flex items-center gap-3 flex-1 min-w-0" aria-label="Course Duration">
-                        <div className="flex-shrink-0 p-2 rounded-full bg-purple-100 dark:bg-purple-900/40">
-                          <Calendar className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Duration</span>
+                      <div className="flex flex-col items-center min-w-[160px] text-center">
+                        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Duration</span>
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="flex-shrink-0 p-2.5 rounded-full bg-purple-100 dark:bg-purple-900/40">
+                            <Calendar className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                          </div>
                           <span className="text-lg font-bold text-purple-800 dark:text-purple-200 truncate">{duration}</span>
                         </div>
                       </div>
@@ -1211,108 +1213,111 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
                   }
                   return null;
                 })()}
-                {/* Divider for sm+ */}
-                <div className="hidden sm:block w-px bg-slate-200 dark:bg-gray-700 mx-2" aria-hidden="true"></div>
-                {/* Effort or Grades (Blended logic) */}
+                {/* Sessions */}
+                {(() => {
+                  const sessions = courseDetails?.no_of_Sessions;
+                  if (typeof sessions === 'number' && sessions > 0) {
+                    return (
+                      <div className="flex flex-col items-center min-w-[160px] text-center">
+                        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Sessions</span>
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="flex-shrink-0 p-2.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40">
+                            <GraduationCap className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                          </div>
+                          <span className="text-lg font-bold text-indigo-800 dark:text-indigo-200 truncate">{sessions} Sessions</span>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+                {/* Effort/Grades */}
                 {(() => {
                   const isBlended = isBlendedCourse(courseDetails);
                   if (isBlended) {
-                    // Show Grades card
                     const grades = courseDetails?.grade || 'All Grades';
                     return (
-                      <div className="flex items-center gap-3 flex-1 min-w-0" aria-label="Grades">
-                        <div className="flex-shrink-0 p-2 rounded-full bg-amber-100 dark:bg-amber-900/40">
-                          <Award className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Grades</span>
+                      <div className="flex flex-col items-center min-w-[160px] text-center">
+                        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Grades</span>
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="flex-shrink-0 p-2.5 rounded-full bg-amber-100 dark:bg-amber-900/40">
+                            <Award className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                          </div>
                           <span className="text-lg font-bold text-amber-800 dark:text-amber-200 truncate">{grades}</span>
                         </div>
                       </div>
                     );
-                  } else {
-                    // Show Effort card
-                    const effort = formatTimeCommitment(courseDetails);
-                    if (effort) {
-                      return (
-                        <div className="flex items-center gap-3 flex-1 min-w-0" aria-label="Effort Required">
-                          <div className="flex-shrink-0 p-2 rounded-full bg-green-100 dark:bg-green-900/40">
-                            <Clock className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  }
+                  const effort = courseDetails?.session_duration || '3 - 4 hours / week';
+                  if (effort) {
+                    return (
+                      <div className="flex flex-col items-center min-w-[160px] text-center">
+                        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Effort</span>
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="flex-shrink-0 p-2.5 rounded-full bg-green-100 dark:bg-green-900/40">
+                            <Clock className="w-6 h-6 text-green-600 dark:text-green-400" />
                           </div>
-                          <div className="flex flex-col min-w-0">
-                            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Effort</span>
-                            <span className="text-lg font-bold text-green-800 dark:text-green-200 truncate">{effort}</span>
-                          </div>
+                          <span className="text-lg font-bold text-green-800 dark:text-green-200 truncate">{effort}</span>
                         </div>
-                      );
-                    }
+                      </div>
+                    );
                   }
                   return null;
                 })()}
               </div>
+              {/* Job Guarantee Line (below card) */}
+              {(() => {
+                const duration = formatDuration(courseDetails);
+                const isJobGuarantee = duration && duration.trim() === '18 months / 72 weeks';
+                if (!isJobGuarantee) return null;
+                return (
+                  <div className="w-full flex flex-col items-center justify-center mt-4">
+                    <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200 text-sm font-bold gap-2 mb-1 shadow-sm">
+                      <BriefcaseBusiness className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
+                      Job Guarantee
+                    </span>
+                    <span className="text-sm sm:text-base text-emerald-800 dark:text-emerald-200 font-medium leading-tight text-center">
+                      Includes 15 months of learning + 3 months paid internship
+                    </span>
+                  </div>
+                );
+              })()}
             </div>
 
-            {/* Course description - Mobile: Edge-to-edge, Desktop: Contained */}
-            <div className="prose prose-emerald dark:prose-invert max-w-none mb-6 sm:mb-8 px-4 sm:px-0">
-              {(() => {
-                // Get description from various possible fields
-                // Handle both string and object formats for course_description
-                let description = '';
-                if (typeof courseDetails?.course_description === 'string') {
-                  description = courseDetails.course_description;
-                } else if (typeof courseDetails?.course_description === 'object' && courseDetails?.course_description?.program_overview) {
-                  description = courseDetails.course_description.program_overview;
-                } else {
-                  description = courseDetails?.course_title || '';
-                }
-                // Parse About and Benefits
-                const { about, benefits } = parseAboutAndBenefits(description);
-
-                // --- Brochure extraction logic ---
-                let brochureUrl = '';
-                // Look for a line like 'Download Brochure: <url>' or any .pdf link
-                const brochureRegex = /(https?:\/\/[^\s]+\.pdf)/i;
-                const match = description.match(brochureRegex);
-                if (match && match[1]) {
-                  brochureUrl = match[1];
-                }
-                
-                // Remove 'Benefits' heading and benefits text from the about section if present
-                let cleanedAbout = about;
-                // Remove trailing 'Benefits' heading and everything after, if present
-                cleanedAbout = cleanedAbout.replace(/\n*Benefits\n*[\s\S]*$/i, '').trim();
-
-                return (
-                  <div className="mt-4">
-                    {/* About section with improved styling (About tab only) */}
+            {/* About Card - Edge-to-edge section */}
                     {activeSection === 'about' && cleanedAbout && (
-                      <div className="mb-8">
-                        <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50/70 to-${getCategoryColorClasses().primaryColor}-50/20 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 p-3 sm:p-4 rounded-xl border border-${getCategoryColorClasses().primaryColor}-100 dark:border-${getCategoryColorClasses().primaryColor}-800/30 shadow-sm`}>
-                          <div className="flex items-start sm:items-center mb-2 sm:mb-3">
-                            <div className={`flex-shrink-0 p-1.5 rounded-full bg-${getCategoryColorClasses().primaryColor}-100 dark:bg-${getCategoryColorClasses().primaryColor}-900/50 mr-2 sm:mr-3 shadow-sm`}>
-                              <BookOpen className={`h-4 w-4 sm:h-5 sm:w-5 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
+              <div className="mb-8 -mx-4 sm:mx-0">
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, ease: 'easeOut' }}
+                  className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-800 dark:to-slate-800 border border-slate-200 dark:border-gray-700 shadow-lg rounded-none sm:rounded-2xl p-5 sm:p-8 w-full"
+                >
+                  <h4 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">About This Course</h4>
+                  <div className="w-12 h-1 mx-auto mb-6 rounded-full bg-gradient-to-r from-blue-400 via-blue-300 to-blue-400 dark:from-blue-500 dark:via-blue-400 dark:to-blue-500 opacity-60" />
+                  <div className="prose prose-blue dark:prose-invert max-w-none text-gray-700 dark:text-gray-200 break-words hyphens-auto text-lg leading-relaxed">
+                    {cleanedAbout}
                             </div>
-                            <h4 className="text-sm sm:text-base font-semibold text-gray-800 dark:text-gray-100">
-                              About This Course
-                            </h4>
-                          </div>
-                          <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed">{cleanedAbout}</p>
-                        </div>
+                </motion.div>
                       </div>
                     )}
+
                     {/* Benefits section only in Benefits tab */}
                     {activeSection === 'benefits' && benefits.length > 0 && (
-                      <div className="mt-8">
-                        <div className={`bg-gradient-to-r from-emerald-50/70 to-emerald-50/20 dark:from-emerald-900/20 dark:to-emerald-900/10 p-3 sm:p-4 rounded-xl border border-emerald-100 dark:border-emerald-800/30 shadow-sm mb-4`}>
-                          <div className="flex items-center mb-2">
-                            <Award className="h-5 w-5 text-emerald-500 dark:text-emerald-400 mr-2" />
-                            <h4 className="text-base sm:text-lg font-bold text-emerald-700 dark:text-emerald-300">Benefits</h4>
+              <div className="mt-8 -mx-4 sm:mx-0">
+                <div className="bg-gradient-to-r from-emerald-50/70 to-emerald-50/20 dark:from-emerald-900/20 dark:to-emerald-900/10 p-6 sm:p-10 rounded-none sm:rounded-2xl border border-emerald-100 dark:border-emerald-800/30 shadow-lg mb-4">
+                  <div className="flex items-center mb-4">
+                    <Award className="h-6 w-6 text-emerald-500 dark:text-emerald-400 mr-3" />
+                    <h4 className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">Benefits</h4>
                           </div>
-                          <ul className="grid gap-3 sm:grid-cols-2 mt-2">
-                            {benefits.map((item, idx) => (
-                              <li key={idx} className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
-                                <Check className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
-                                {item}
+                  <div className="w-14 h-1 mb-6 rounded-full bg-gradient-to-r from-emerald-400 via-emerald-300 to-emerald-400 dark:from-emerald-500 dark:via-emerald-400 dark:to-emerald-500 opacity-60" />
+                  <ul className="space-y-4">
+                    {benefits.map((item: string, idx: number) => (
+                      <li key={idx} className="flex items-start gap-3 text-lg text-gray-800 dark:text-gray-100">
+                        <span className="flex-shrink-0 mt-1 w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
+                          <Check className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                        </span>
+                        <span className="leading-relaxed">{item}</span>
                               </li>
                             ))}
                           </ul>
@@ -1350,10 +1355,6 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
                         </div>
                       </div>
                     )}
-                  </div>
-                );
-              })()}
-            </div>
           </motion.section>
         );
         
@@ -1368,12 +1369,46 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
             animate="visible"
             key="curriculum-section"
           >
-            {/* Section Header - Mobile: Edge-to-edge, Desktop: Contained */}
-            <div className="flex items-center mb-4 sm:mb-6 px-4 sm:px-0">
-              <div className={`w-1.5 h-6 bg-gradient-to-b from-${getCategoryColorClasses().primaryColor}-400 to-${getCategoryColorClasses().primaryColor}-500 rounded-sm mr-2 sm:mr-3`}></div>
-              <h2 className={`text-xl sm:text-2xl font-bold bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-600 to-${getCategoryColorClasses().primaryColor}-500 bg-clip-text text-transparent`}>
-                Curriculum
-              </h2>
+            {/* Curriculum Info Row - Consistent with About Section */}
+            <div className="mb-8 -mx-4 sm:mx-0">
+              <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200 dark:border-slate-700 rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-200 p-5 sm:p-8 flex flex-col sm:flex-row items-center justify-center gap-y-4 sm:gap-y-0 sm:gap-x-8 w-full">
+                {/* Modules */}
+                <div className="flex flex-col items-center min-w-[160px] text-center">
+                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Modules</span>
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="flex-shrink-0 p-2.5 rounded-full bg-blue-100 dark:bg-blue-900/40">
+                      <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <span className="text-lg font-bold text-blue-800 dark:text-blue-200 truncate">
+                      {modulesCount} Modules
+                    </span>
+                  </div>
+                </div>
+                {/* Sessions */}
+                <div className="flex flex-col items-center min-w-[160px] text-center">
+                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Sessions</span>
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="flex-shrink-0 p-2.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40">
+                      <GraduationCap className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                    <span className="text-lg font-bold text-indigo-800 dark:text-indigo-200 truncate">
+                      {courseDetails?.no_of_Sessions || 0} Sessions
+                    </span>
+                  </div>
+                </div>
+                {/* Effort */}
+                <div className="flex flex-col items-center min-w-[160px] text-center">
+                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Effort</span>
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="flex-shrink-0 p-2.5 rounded-full bg-green-100 dark:bg-green-900/40">
+                      <Clock className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    </div>
+                    <span className="text-lg font-bold text-green-800 dark:text-green-200 truncate">
+                      {courseDetails?.session_duration || '3 - 4 hours / week'}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Main Content - Mobile: Edge-to-edge, Desktop: Contained */}
@@ -1389,6 +1424,7 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
               <div className="divide-y divide-gray-200 dark:divide-gray-700">
                 {curriculum && curriculum.length > 0 ? (
                   curriculum.map((item, index) => {
+                    const categoryColors = getCategoryColorClasses();
                     const { overview, relevance } = parseOverviewAndRelevance(item.weekDescription || '');
                     return (
                       <div key={index} className="transition-all duration-200">
@@ -1401,7 +1437,7 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
                             <motion.div 
                               className={`flex-shrink-0 p-1.5 sm:p-2 rounded-full mr-2 sm:mr-4 ${
                                 openAccordions === index 
-                                  ? `bg-${getCategoryColorClasses().primaryColor}-100 dark:bg-${getCategoryColorClasses().primaryColor}-900/50 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400` 
+                                  ? `bg-${categoryColors.primaryColor}-100 dark:bg-${categoryColors.primaryColor}-900/50 text-${categoryColors.primaryColor}-600 dark:text-${categoryColors.primaryColor}-400` 
                                   : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
                               }`}
                               whileHover={{ 
@@ -1417,7 +1453,7 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
                             </motion.div>
                             <span className={`text-xs sm:text-sm md:text-base font-medium truncate ${
                               openAccordions === index 
-                                ? `text-${getCategoryColorClasses().primaryColor}-700 dark:text-${getCategoryColorClasses().primaryColor}-400` 
+                                ? `text-${categoryColors.primaryColor}-700 dark:text-${categoryColors.primaryColor}-400` 
                                 : "text-gray-800 dark:text-gray-200"
                             }`}>
                               {item.weekTitle}
@@ -1426,7 +1462,7 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
                           <motion.div 
                             className={`flex-shrink-0 ml-2 sm:ml-3 p-1 sm:p-1.5 rounded-full ${
                               openAccordions === index 
-                                ? `bg-${getCategoryColorClasses().primaryColor}-100 dark:bg-${getCategoryColorClasses().primaryColor}-900/50 text-${getCategoryColorClasses().primaryColor}-600 dark:text-${getCategoryColorClasses().primaryColor}-400` 
+                                ? `bg-${categoryColors.primaryColor}-100 dark:bg-${categoryColors.primaryColor}-900/50 text-${categoryColors.primaryColor}-600 dark:text-${categoryColors.primaryColor}-400` 
                                 : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
                             }`}
                             animate={openAccordions === index ? { rotate: 180 } : { rotate: 0 }}
@@ -1444,28 +1480,12 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
                               transition={{ duration: 0.3 }}
                               className="overflow-hidden"
                             >
-                              <div className={`px-3 sm:px-6 py-3 sm:py-5 bg-${getCategoryColorClasses().primaryColor}-50/50 dark:bg-${getCategoryColorClasses().primaryColor}-900/10 border-t border-gray-200 dark:border-gray-700`}>
-                                <div className="pl-6 sm:pl-10 space-y-4">
-                                  {overview && (
-                                    <div>
-                                      <div className="flex items-center mb-1">
-                                        <BookOpen className="w-4 h-4 mr-2 text-blue-500 dark:text-blue-300" />
-                                        <span className="font-semibold text-gray-800 dark:text-gray-100 text-sm">Overview</span>
-                                      </div>
-                                      <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-line">{overview}</p>
-                                    </div>
-                                  )}
-                                  {relevance && (
-                                    <div>
-                                      <div className="flex items-center mb-1 mt-3">
-                                        <Star className="w-4 h-4 mr-2 text-emerald-500 dark:text-emerald-400" />
-                                        <span className="font-semibold text-emerald-700 dark:text-emerald-300 text-sm">Relevance</span>
-                                      </div>
-                                      <p className="text-xs sm:text-sm md:text-base text-gray-700 dark:text-gray-200 leading-relaxed whitespace-pre-line">{relevance}</p>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
+                              <CurriculumModuleCard 
+                                weekTitle={item.weekTitle} 
+                                weekDescription={item.weekDescription} 
+                                relevance={relevance} 
+                                categoryColors={categoryColors}
+                              />
                             </motion.div>
                           )}
                         </AnimatePresence>
@@ -1473,17 +1493,23 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
                     );
                   })
                 ) : (
-                  <div className="p-4 sm:p-6 text-center">
-                    <div className="inline-flex items-center justify-center p-2 sm:p-3 bg-gray-50 dark:bg-gray-700 rounded-full mb-3 sm:mb-4">
-                      <AlertTriangle className={`h-5 w-5 sm:h-6 sm:w-6 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
-                    </div>
-                    <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-2">
-                      Curriculum Coming Soon
-                    </h3>
-                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-                      Our team is finalizing the curriculum details. Check back soon for a complete breakdown of course modules.
-                    </p>
-                  </div>
+                  // Fix: define categoryColors for fallback
+                  (() => {
+                    const categoryColors = getCategoryColorClasses();
+                    return (
+                      <div className="p-4 sm:p-6 text-center">
+                        <div className="inline-flex items-center justify-center p-2 sm:p-3 bg-gray-50 dark:bg-gray-700 rounded-full mb-3 sm:mb-4">
+                          <AlertTriangle className={`h-5 w-5 sm:h-6 sm:w-6 text-${categoryColors.primaryColor}-500 dark:text-${categoryColors.primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
+                        </div>
+                        <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-2">
+                          Curriculum Coming Soon
+                        </h3>
+                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+                          Our team is finalizing the curriculum details. Check back soon for a complete breakdown of course modules.
+                        </p>
+                      </div>
+                    );
+                  })()
                 )}
               </div>
               </div>
@@ -1496,12 +1522,14 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
                   className="bg-white dark:bg-gray-800 rounded-none sm:rounded-lg border-0 sm:border border-gray-200 dark:border-gray-700 overflow-hidden mb-6 sm:mb-8 shadow-sm"
                   variants={fadeIn}
                 >
-                <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-50/70 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200 dark:border-gray-600`}>
+                {(() => { const categoryColors = getCategoryColorClasses(); return (
+                <div className={`bg-gradient-to-r from-${categoryColors.primaryColor}-50 to-${categoryColors.primaryColor}-50/70 dark:from-${categoryColors.primaryColor}-900/20 dark:to-${categoryColors.primaryColor}-900/10 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200 dark:border-gray-600`}>
                   <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
-                    <Sparkles className={`w-4 h-4 sm:w-5 sm:h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
+                    <Sparkles className={`w-4 h-4 sm:w-5 sm:h-5 mr-2 text-${categoryColors.primaryColor}-500 dark:text-${categoryColors.primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
                     Tools & Technologies
                   </h3>
                 </div>
+                ); })()}
                 <div className="p-3 sm:p-4">
                   <motion.div 
                     className="flex flex-wrap gap-1.5 sm:gap-2"
@@ -1509,19 +1537,21 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
                     initial="hidden"
                     animate="visible"
                   >
-                    {toolsTechnologies.map((tool, index) => (
+                    {(() => { const categoryColors = getCategoryColorClasses(); return (
+                    toolsTechnologies.map((tool, index) => (
                       <motion.span 
                         key={index} 
-                        className={`inline-flex items-center px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-50/70 text-${getCategoryColorClasses().primaryColor}-700 dark:from-${getCategoryColorClasses().primaryColor}-900/30 dark:to-${getCategoryColorClasses().primaryColor}-900/20 dark:text-${getCategoryColorClasses().primaryColor}-300 border border-${getCategoryColorClasses().primaryColor}-100 dark:border-${getCategoryColorClasses().primaryColor}-800/30 hover:shadow-md transition-all duration-300 cursor-default`}
-                        variants={fadeIn}
-                        whileHover={{ 
-                          y: -2, 
-                          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                        }}
-                      >
-                        {tool.name}
-                      </motion.span>
-                    ))}
+                        className={`inline-flex items-center px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium bg-gradient-to-r from-${categoryColors.primaryColor}-50 to-${categoryColors.primaryColor}-50/70 text-${categoryColors.primaryColor}-700 dark:from-${categoryColors.primaryColor}-900/30 dark:to-${categoryColors.primaryColor}-900/20 dark:text-${categoryColors.primaryColor}-300 border border-${categoryColors.primaryColor}-100 dark:border-${categoryColors.primaryColor}-800/30 hover:shadow-md transition-all duration-300 cursor-default`}
+                          variants={fadeIn}
+                          whileHover={{ 
+                            y: -2, 
+                            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                          }}
+                        >
+                          {tool.name}
+                        </motion.span>
+                      ))
+                    ); })()}
                   </motion.div>
                 </div>
                 </motion.div>
@@ -1535,25 +1565,28 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
                   className="bg-white dark:bg-gray-800 rounded-none sm:rounded-lg border-0 sm:border border-gray-200 dark:border-gray-700 overflow-hidden mb-6 sm:mb-8 shadow-sm"
                   variants={fadeIn}
                 >
-                <div className={`bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-50 to-${getCategoryColorClasses().primaryColor}-100/30 dark:from-${getCategoryColorClasses().primaryColor}-900/20 dark:to-${getCategoryColorClasses().primaryColor}-900/10 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200 dark:border-gray-600`}>
+                {(() => { const categoryColors = getCategoryColorClasses(); return (
+                <div className={`bg-gradient-to-r from-${categoryColors.primaryColor}-50 to-${categoryColors.primaryColor}-100/30 dark:from-${categoryColors.primaryColor}-900/20 dark:to-${categoryColors.primaryColor}-900/10 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200 dark:border-gray-600`}>
                   <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
-                    <Star className={`w-4 h-4 sm:w-5 sm:h-5 mr-2 text-${getCategoryColorClasses().primaryColor}-500 dark:text-${getCategoryColorClasses().primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
+                    <Star className={`w-4 h-4 sm:w-5 sm:h-5 mr-2 text-${categoryColors.primaryColor}-500 dark:text-${categoryColors.primaryColor}-400`} fill="currentColor" fillOpacity={0.2} />
                     Bonus Modules
                   </h3>
                 </div>
+                ); })()}
                 <div className="p-3 sm:p-4">
+                  {(() => { const categoryColors = getCategoryColorClasses(); return (
                   <ul className="space-y-2 sm:space-y-3">
                     {bonusModules.map((module, index) => (
                       <motion.li 
                         key={index} 
-                        className={`flex items-start p-2 sm:p-3 rounded-lg hover:bg-${getCategoryColorClasses().primaryColor}-50/50 dark:hover:bg-${getCategoryColorClasses().primaryColor}-900/10 transition-colors`}
+                        className={`flex items-start p-2 sm:p-3 rounded-lg hover:bg-${categoryColors.primaryColor}-50/50 dark:hover:bg-${categoryColors.primaryColor}-900/10 transition-colors`}
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.1 }}
                         whileHover={{ x: 5 }}
                       >
                         <motion.div 
-                          className={`p-1.5 sm:p-2 rounded-full bg-gradient-to-r from-${getCategoryColorClasses().primaryColor}-400 to-${getCategoryColorClasses().primaryColor}-500 text-white mr-2 sm:mr-3 mt-0.5 shadow-sm`}
+                          className={`p-1.5 sm:p-2 rounded-full bg-gradient-to-r from-${categoryColors.primaryColor}-400 to-${categoryColors.primaryColor}-500 text-white mr-2 sm:mr-3 mt-0.5 shadow-sm`}
                           whileHover={{ rotate: 15 }}
                         >
                           <BookOpen size={14} className="sm:w-4 sm:h-4" fill="currentColor" fillOpacity={0.2} />
@@ -1569,6 +1602,7 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
                       </motion.li>
                     ))}
                   </ul>
+                  ); })()}
                 </div>
                 </motion.div>
               </div>
@@ -1669,6 +1703,61 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
         );
     }
   };
+
+  // Place this before the return statement in the component function:
+  const modulesCount = courseDetails?.course_modules?.length ?? courseDetails?.curriculum?.length ?? 0;
+
+  // Helper to parse Overview and Relevance from curriculum weekDescription
+  function parseOverviewAndRelevance(desc: string): { overview: string; relevance: string } {
+    let overview = '';
+    let relevance = '';
+    // Try to split at 'Relevance' (case-insensitive, with or without leading/trailing newlines)
+    const match = desc.match(/Overview\\s*\\n([\\s\\S]*?)(?:\\nRelevance\\n([\\s\\S]*))?$/i);
+    if (match) {
+      overview = (match[1] || '').trim();
+      relevance = (match[2] || '').trim();
+    } else {
+      overview = desc.trim();
+    }
+    return { overview, relevance };
+  }
+
+  // CurriculumModuleCard component definition (moved inside CourseDetailsPage)
+  const CurriculumModuleCard = ({ weekTitle, weekDescription, relevance, categoryColors }: { weekTitle: string; weekDescription?: string; relevance?: string; categoryColors: ReturnType<typeof getCategoryColorClasses> }) => (
+    <div className={`px-3 sm:px-6 py-3 sm:py-5 bg-${categoryColors.primaryColor}-50/50 dark:bg-${categoryColors.primaryColor}-900/10 border-t border-gray-200 dark:border-gray-700 rounded-xl mt-2 mb-2 shadow-sm`}>
+      <div className="pl-0 sm:pl-4 space-y-4">
+        {/* Week Title - Large and Bold */}
+        <h4 className="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white mb-2">{weekTitle}</h4>
+        {/* Topics Covered - Bulleted List */}
+        {weekDescription && (
+          <div>
+            <div className="flex items-center mb-1">
+              <BookOpen className="w-4 h-4 mr-2 text-blue-500 dark:text-blue-300" />
+              <span className="font-semibold text-gray-800 dark:text-gray-100 text-sm">Topics Covered</span>
+            </div>
+            <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-200 text-sm sm:text-base leading-relaxed">
+              {weekDescription.split(/\\n|\\r|•|–|-/)
+                .map((line) => line.trim())
+                .filter((line) => line.length > 0)
+                .map((topic, idx) => (
+                  <li key={idx}>{topic}</li>
+                ))}
+            </ul>
+          </div>
+        )}
+        {/* Relevance Section (if present) */}
+        {relevance && (
+          <div>
+            <div className="flex items-center mb-1 mt-3">
+              <Star className="w-4 h-4 mr-2 text-emerald-500 dark:text-emerald-400" />
+              <span className="font-semibold text-emerald-700 dark:text-emerald-300 text-sm">Relevance</span>
+            </div>
+            <p className="text-xs sm:text-sm md:text-base text-gray-700 dark:text-gray-200 leading-relaxed whitespace-pre-line">{relevance}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -1780,7 +1869,7 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
                 {/* Video Player - Mobile: Edge-to-edge, Desktop: Contained */}
                 <div className="sm:bg-gray-50/50 sm:dark:bg-gray-700/50 sm:rounded-xl sm:p-2 md:p-3 sm:border sm:border-gray-200/50 sm:dark:border-gray-600/50">
                   <CourseVideoPlayer 
-                    courseId={courseId}
+                    courseId={courseDetails?._id} // Fixed: Use courseDetails._id or props.courseId
                     courseTitle={courseDetails?.course_title}
                     courseVideos={courseDetails?.course_videos}
                     previewVideo={courseDetails?.preview_video}
@@ -1796,7 +1885,9 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
                     scrollToSection={scrollToSection} 
                     showCertificate={hasCertificate()}
                     showDownloadBrochure={hasBrochure()}
-                    onDownloadBrochure={() => setShowBrochureModal(true)}
+                    onDownloadBrochure={() => {
+                      setIsBrochureOpen(true); // Always open the modal
+                    }}
                     compact={true}
                   />
                 </div>
@@ -1858,15 +1949,21 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
       )}
 
       {/* Download Brochure Modal */}
-      {showBrochureModal && (
+      {isBrochureOpen && (
         <DownloadBrochureModal
-          isOpen={showBrochureModal}
-          onClose={() => setShowBrochureModal(false)}
-          courseId={courseDetails?._id}
+          isOpen={isBrochureOpen}
+          onClose={() => setIsBrochureOpen(false)}
           courseTitle={courseDetails?.course_title}
-          course={courseDetails}
+          courseId={courseDetails?._id}
         />
       )}
+
+      {/* Fullscreen Brochure Modal Overlay */}
+      <DownloadBrochureModal
+        isOpen={isBrochureOpen}
+        onClose={() => setIsBrochureOpen(false)}
+        course={courseDetails}
+      />
     </>
   );
 };

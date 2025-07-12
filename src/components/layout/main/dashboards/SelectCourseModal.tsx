@@ -13,6 +13,7 @@ import useRazorpay from "@/hooks/useRazorpay";
 import RAZORPAY_CONFIG, { USD_TO_INR_RATE } from "@/config/razorpay";
 import { showToast } from "@/utils/toastManager";
 import Image from "next/image";
+import { createPortal } from "react-dom";
 
 interface SelectCourseModalProps {
   isOpen: boolean;
@@ -102,7 +103,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, isSelected, onCli
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-yellow-400 to-amber-500 text-white shadow-lg"
+          className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-yellow-400 to-amber-500 text-black dark:text-white shadow-lg"
         >
           <Star className="w-3 h-3 mr-1" />
           Blended
@@ -292,7 +293,9 @@ export default function SelectCourseModal({
   const router = useRouter();
   const { openRazorpayCheckout } = useRazorpay();
 
-  const maxSelections = planType === "silver" ? 1 : 3;
+  // Normalize planType to lowercase for robust logic
+  const normalizedPlanType = (planType || "").toLowerCase();
+  const maxSelections = normalizedPlanType === "silver" ? 1 : normalizedPlanType === "gold" ? 3 : 1;
 
   const modalVariants = {
     hidden: { opacity: 0, scale: 0.95 },
@@ -419,13 +422,17 @@ export default function SelectCourseModal({
           return prev.filter((c) => c._id !== category._id);
         }
       
-      if (planType === "silver") {
+      // Silver: only 1, Gold: up to 3
+      if (normalizedPlanType === "silver") {
         return [category]; // Silver plan allows only 1 category
-      } else {
+      } else if (normalizedPlanType === "gold") {
         if (prev.length < maxSelections) {
           return [...prev, category];
         }
         return prev; // Don't add if max reached
+      } else {
+        // Default fallback: only 1
+        return [category];
       }
     });
   };
@@ -666,333 +673,179 @@ export default function SelectCourseModal({
   // ---------------------------------------------------------------------------
   const isTestUser = studentId === '67cfe3a9a50dbb995b4d94da';
 
-  if (!isOpen) return null;
+  // Responsive modal classes
+  const modalContainerClass =
+    'fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm';
+  const modalContentClass =
+    'relative w-full max-w-3xl mx-auto bg-white/80 dark:bg-gray-900/90 rounded-2xl shadow-2xl overflow-hidden flex flex-col min-h-[80vh] max-h-[95vh]';
 
+  // Sticky search bar
+  const searchBarClass =
+    'sticky top-0 z-20 bg-white/80 dark:bg-gray-900/90 backdrop-blur-lg px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800';
+
+  // Category grid
+  const gridClass =
+    'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 px-6 pb-6 overflow-y-auto flex-1';
+
+  // Sticky footer
+  const footerClass =
+    'sticky bottom-0 z-30 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-t border-gray-100 dark:border-gray-800 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4';
+
+  if (!isOpen) return null;
   if (postLoading) return <Preloader />;
 
-  return (
-    <AnimatePresence>
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        variants={overlayVariants}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999]"
-        onClick={onClose}
-      >
-        {/* CSS Variables for modal height calculations */}
-        <style jsx>{`
-          .modal-container {
-            height: 100vh;
-            height: 100dvh; /* Dynamic viewport height for mobile browsers */
-          }
-          
-          .modal-content {
-            height: 100vh;
-            height: 100dvh; /* Full viewport height */
-          }
-        `}</style>
-        
-        <motion.div
-          variants={modalVariants}
-          className="modal-container w-full bg-white dark:bg-gray-900 overflow-hidden relative"
-          onClick={(e) => e.stopPropagation()}
-        >
-                    <div className="modal-content flex flex-col">
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-800">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-8 sm:pt-20 sm:pb-10">
-                {/* Close Button - Positioned at top right */}
-                <div className="absolute top-16 right-6 z-10 sm:top-20">
-                  <button
-                    onClick={onClose}
-                    className="p-3 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-800 rounded-full transition-colors backdrop-blur-sm shadow-lg"
-                  >
-                    <X className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                  </button>
-                </div>
+  const modalContent = (
+    <div className={modalContainerClass} onClick={onClose}>
+      <div className={modalContentClass} onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className="px-6 pt-8 pb-4 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-primary-50/80 to-amber-50/80 dark:from-primary-900/40 dark:to-amber-900/40">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Step 1 of 2: Choose Categories</h2>
+            <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500">
+              <X className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+            </button>
+          </div>
+          <p className="text-base text-gray-600 dark:text-gray-300 mb-2">Select your learning categories for your <span className="font-semibold text-primary-600 dark:text-primary-400">{planType.charAt(0).toUpperCase() + planType.slice(1)}</span> membership.</p>
+        </div>
 
-                {/* Header Content */}
-                <div className="mb-8">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-                    <div>
-                      <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
-                Select {planType === "silver" ? "a Category" : `up to ${maxSelections} Categories`}
-              </h2>
-                      <p className="text-base text-gray-600 dark:text-gray-400">
-                        Choose from our blended course categories for your {capitalize(planType)} membership
-                      </p>
-            </div>
-
-                    {/* Pricing Display */}
-                    <div className="mt-4 sm:mt-0 sm:ml-6">
-                      <div className="bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-2xl p-4 border border-primary-200 dark:border-primary-800">
-                        <div className="text-center">
-                          <p className="text-sm font-medium text-primary-600 dark:text-primary-400 mb-1">
-                            {capitalize(planType)} Plan
-                          </p>
-                          <p className="text-2xl font-bold text-primary-700 dark:text-primary-300">
-                            {amount}
-                          </p>
-                          <p className="text-xs text-primary-600 dark:text-primary-400 opacity-75">
-                            {selectedPlan.toLowerCase()}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Info Banner - Enhanced */}
-                  <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="relative overflow-hidden p-6 bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-900/20 dark:via-yellow-900/20 dark:to-orange-900/20 rounded-3xl border-2 border-amber-200/50 dark:border-amber-700/50 mb-8"
-                  >
-                    {/* Background Pattern */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-amber-100/50 to-transparent dark:from-amber-900/30" />
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-yellow-200/30 to-transparent rounded-full -translate-y-16 translate-x-16" />
-                    
-                    <div className="relative flex items-center gap-5">
-                      <div className="flex-shrink-0">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center shadow-lg">
-                          <BookOpen className="w-6 h-6 text-white" />
-                        </div>
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="text-lg font-bold text-amber-900 dark:text-amber-100 mb-1">
-                          🌟 Blended Learning Experience
-                        </h4>
-                        <p className="text-amber-800 dark:text-amber-200 leading-relaxed">
-                          All categories include <span className="font-semibold">pre-recorded videos</span> with <span className="font-semibold">live interactive doubt clearing sessions</span> for the perfect learning blend
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  {/* Search Bar - Enhanced */}
-                  <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="relative"
-                  >
-                    <div className="absolute left-5 top-1/2 transform -translate-y-1/2 z-10">
-                      <div className="w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
-                        <Search className="w-5 h-5 text-primary-600 dark:text-primary-400" />
-                      </div>
-                    </div>
-              <input
-                type="text"
-                      placeholder="Search for your perfect learning category..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-16 pr-6 py-5 text-base bg-white dark:bg-gray-700/50 border-2 border-gray-200 dark:border-gray-600 rounded-3xl focus:ring-4 focus:ring-primary-500/20 dark:focus:ring-primary-400/20 focus:border-primary-500 dark:focus:border-primary-400 transition-all duration-300 shadow-xl hover:shadow-2xl backdrop-blur-sm font-medium placeholder:text-gray-400 dark:placeholder:text-gray-500"
-                    />
-                    
-                    {/* Search Enhancement */}
-                    {searchQuery && (
-                      <motion.button
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        onClick={() => setSearchQuery("")}
-                        className="absolute right-5 top-1/2 transform -translate-y-1/2 w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 flex items-center justify-center transition-colors"
-                      >
-                        <X className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                      </motion.button>
-                    )}
-                  </motion.div>
-
-                  {isTestUser && (
-                    <div className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white p-3 rounded-lg mb-6 shadow-lg">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                        <span className="text-sm font-semibold">🧪 TEST MODE ACTIVE</span>
-                      </div>
-                      <p className="text-xs mt-1 opacity-90">
-                        You are using test Razorpay credentials. Use test cards for payment (e.g. 4111 1111 1111 1111, CVV 123, any future expiry).
-                      </p>
-                    </div>
-                  )}
-                </div>
-              {loading ? (
-                <div className="flex justify-center items-center h-64">
-                  <div className="flex items-center gap-4">
-                    <Loader2 className="w-10 h-10 animate-spin text-primary-500" />
-                    <span className="text-xl font-medium text-gray-600 dark:text-gray-400">
-                      Loading categories...
-                    </span>
-            </div>
-              </div>
-            ) : error ? (
-                <div className="flex items-center justify-center gap-4 text-red-500 py-16">
-                  <AlertCircle className="w-8 h-8" />
-                  <p className="text-lg">{error}</p>
-              </div>
-            ) : (
-                <div className="space-y-8">
-                  {/* Results Summary - Enhanced */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="relative overflow-hidden bg-gradient-to-r from-white via-gray-50 to-white dark:from-gray-800 dark:via-gray-700 dark:to-gray-800 rounded-3xl p-8 shadow-xl border-2 border-gray-100 dark:border-gray-600"
-                  >
-                    {/* Background Decoration */}
-                    <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-primary-100/30 to-transparent rounded-full -translate-y-20 translate-x-20" />
-                    
-                    <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
-                          <Grid className="w-8 h-8 text-white" />
-                        </div>
-                        <div>
-                          <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                            {filteredCategories.length} categor{filteredCategories.length !== 1 ? 'ies' : 'y'}
-                          </p>
-                          <p className="text-base text-gray-600 dark:text-gray-400 font-medium">
-                            Ready for your learning journey
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="text-center sm:text-right">
-                        <div className="flex items-center justify-center sm:justify-end gap-3 mb-2">
-                          <div className="flex -space-x-2">
-                            {Array.from({ length: maxSelections }).map((_, i) => (
-                              <div
-                                key={i}
-                                className={`w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 flex items-center justify-center text-xs font-bold ${
-                                  i < selectedCategories.length
-                                    ? "bg-primary-500 text-white"
-                                    : "bg-gray-200 dark:bg-gray-600 text-gray-400"
-                                }`}
-                              >
-                                {i < selectedCategories.length ? "✓" : i + 1}
-                              </div>
-                            ))}
-                          </div>
-                          <span className="text-lg font-bold text-primary-600 dark:text-primary-400">
-                            {selectedCategories.length}/{maxSelections}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                          {planType === "silver" ? "Select 1 category" : "Select up to 3 categories"}
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  {/* Categories Grid */}
-                  {filteredCategories.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                      {filteredCategories.map((category) => (
-                        <CategoryCard
-                          key={category._id}
-                      category={category}
-                      isSelected={selectedCategories.some((c) => c._id === category._id)}
-                      onClick={() => toggleCategorySelection(category)}
-                          disabled={
-                            !selectedCategories.some((c) => c._id === category._id) && 
-                            selectedCategories.length >= maxSelections
-                          }
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-24">
-                      <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gray-100 dark:bg-gray-700 mb-8">
-                        <BookOpen className="w-12 h-12 text-gray-400" />
-                      </div>
-                      <h3 className="text-2xl font-medium text-gray-900 dark:text-white mb-4">
-                        No categories found
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-400 max-w-lg mx-auto text-lg">
-                        {searchQuery ? "Try adjusting your search terms to find the categories you're looking for." : "No blended course categories are currently available. Please check back later."}
-                      </p>
-                    </div>
-                  )}
-              </div>
+        {/* Sticky Search Bar */}
+        <div className={searchBarClass}>
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary-500" />
+            <input
+              type="text"
+              placeholder="Search categories..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary-500 focus:outline-none text-base text-gray-800 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 shadow-sm"
+              aria-label="Search categories"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                <X className="w-4 h-4 text-gray-400" />
+              </button>
             )}
-            </div>
           </div>
+        </div>
 
-          {/* Footer */}
-          <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-6 sm:pt-8 sm:pb-8">
-            <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0">
-                  {selectedCategories.length > 0 && (
-                    <div className="space-y-3">
-                      <p className="text-lg font-medium text-gray-900 dark:text-white">Selected Categories:</p>
-                      <div className="flex flex-wrap gap-3">
-                        {selectedCategories.map((category) => (
-                          <motion.span
-                            key={category._id}
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.8 }}
-                            className="inline-flex items-center gap-3 px-4 py-2.5 bg-primary-100 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 rounded-xl text-base font-medium border border-primary-200 dark:border-primary-800"
-                          >
-                            {category.category_name}
-                            <span className="text-sm opacity-75 bg-primary-200 dark:bg-primary-800 px-2 py-1 rounded-lg">
-                              {category.courseCount} courses
-                            </span>
-                            <button
-                              onClick={() => toggleCategorySelection(category)}
-                              className="hover:bg-primary-200 dark:hover:bg-primary-800 rounded-full p-1 transition-colors"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </motion.span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-              </div>
-                <div className="flex gap-4 ml-6">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={onClose}
-                    className="px-8 py-4 text-base text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-2xl transition-colors font-medium border border-gray-200 dark:border-gray-600"
-                >
-                  Cancel
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleProceedToPay}
-                  disabled={selectedCategories.length === 0 || isProcessing}
-                    className={`px-10 py-4 rounded-2xl transition-all flex items-center gap-3 text-base font-semibold ${
-                    selectedCategories.length === 0 || isProcessing
-                        ? "bg-gray-300 dark:bg-gray-600 cursor-not-allowed text-gray-500"
-                        : "bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white shadow-lg hover:shadow-xl"
-                  }`}
-                >
-                  {isProcessing ? (
-                    <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                        <span>Pay {amount}</span>
-                        <div className="flex items-center gap-1">
-                          <span className="text-sm opacity-90">•</span>
-                          <span className="text-sm opacity-90">{capitalize(planType)}</span>
-                        </div>
-                        <CheckCircle className="w-5 h-5" />
-                    </>
-                  )}
-                </motion.button>
-                </div>
-              </div>
-              </div>
+        {/* Category Grid */}
+        <div className={gridClass}>
+          {loading ? (
+            <div className="col-span-full flex flex-col items-center justify-center py-20">
+              <Loader2 className="w-10 h-10 animate-spin text-primary-500 mb-4" />
+              <span className="text-lg text-gray-600 dark:text-gray-300">Loading categories...</span>
             </div>
+          ) : error ? (
+            <div className="col-span-full flex flex-col items-center justify-center py-20">
+              <AlertCircle className="w-10 h-10 text-red-500 mb-4" />
+              <span className="text-lg text-red-600 dark:text-red-400">{error}</span>
+            </div>
+          ) : filteredCategories.length === 0 ? (
+            <div className="col-span-full flex flex-col items-center justify-center py-20">
+              <BookOpen className="w-10 h-10 text-gray-400 mb-4" />
+              <span className="text-lg text-gray-600 dark:text-gray-300">No categories found.</span>
+            </div>
+          ) : (
+            filteredCategories.map(category => {
+              const isSelected = selectedCategories.some(c => c._id === category._id);
+              const disabled = !isSelected && selectedCategories.length >= maxSelections;
+              return (
+                <button
+                  key={category._id}
+                  onClick={() => toggleCategorySelection(category)}
+                  disabled={disabled}
+                  className={`relative flex flex-col items-center p-5 rounded-2xl shadow-lg transition-all duration-300 border-2 bg-white/70 dark:bg-gray-800/80 backdrop-blur-xl hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-primary-500 group ${
+                    isSelected
+                      ? 'border-primary-500 ring-2 ring-primary-400'
+                      : disabled
+                      ? 'border-gray-200 dark:border-gray-700 opacity-40 grayscale cursor-not-allowed'
+                      : 'border-gray-100 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600'
+                  }`}
+                  aria-pressed={isSelected}
+                  aria-label={`Select category ${category.category_name}`}
+                >
+                  {/* Blended Badge */}
+                  <span className="absolute top-4 left-4 bg-gradient-to-r from-yellow-400 to-amber-500 text-black dark:text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg flex items-center gap-1">
+                    <Star className="w-3 h-3 mr-1" /> Blended
+                  </span>
+                  {/* Checkmark overlay */}
+                  {isSelected && (
+                    <span className="absolute top-4 right-4 bg-primary-500 text-white rounded-full p-2 shadow-lg">
+                      <CheckCircle className="w-5 h-5" />
+                    </span>
+                  )}
+                  {/* Category Image */}
+                  <div className="w-24 h-24 rounded-xl overflow-hidden mb-4 bg-gradient-to-br from-primary-100 via-primary-50 to-amber-50 dark:from-primary-900/40 dark:via-primary-800/30 dark:to-amber-900/20 flex items-center justify-center">
+                    <Image
+                      src={category.category_image || '/fallback-category-image.jpg'}
+                      alt={category.category_name}
+                      width={96}
+                      height={96}
+                      className="object-cover w-full h-full"
+                      loading="lazy"
+                    />
+                  </div>
+                  {/* Category Name */}
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center mb-1 line-clamp-2">{category.category_name}</h3>
+                  {/* Course Count */}
+                  <span className="text-xs font-medium text-primary-600 dark:text-primary-400 mb-2">{category.courseCount} Courses</span>
+                  {/* Features as chips */}
+                  <div className="flex flex-wrap gap-2 justify-center mb-2">
+                    <span className="px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium">Pre-recorded</span>
+                    <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">Live Doubts</span>
+                    <span className="px-2 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-medium">Self-paced</span>
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
+
+        {/* Sticky Footer */}
+        <div className={footerClass}>
+          <div className="flex flex-wrap gap-2 items-center">
+            {selectedCategories.length > 0 ? (
+              selectedCategories.map(category => (
+                <span key={category._id} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-sm font-medium border border-primary-200 dark:border-primary-800">
+                  {category.category_name}
+                  <button onClick={() => toggleCategorySelection(category)} className="ml-1 p-1 rounded-full hover:bg-primary-200 dark:hover:bg-primary-800">
+                    <X className="w-4 h-4" />
+                  </button>
+                </span>
+              ))
+            ) : (
+              <span className="text-gray-500 dark:text-gray-400 text-sm">No categories selected</span>
+            )}
           </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+          <button
+            onClick={handleProceedToPay}
+            disabled={selectedCategories.length === 0 || isProcessing}
+            className={`ml-4 px-6 py-3 rounded-xl font-semibold text-base transition-all duration-300 flex items-center gap-2 shadow-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+              selectedCategories.length === 0 || isProcessing
+                ? 'bg-gray-300 dark:bg-gray-600 cursor-not-allowed text-gray-500'
+                : 'bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white'
+            }`}
+            aria-disabled={selectedCategories.length === 0 || isProcessing}
+          >
+            {isProcessing ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                <span>Pay {amount}</span>
+                <CheckCircle className="w-5 h-5" />
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
   );
+
+  if (typeof window !== "undefined") {
+    const modalRoot = document.getElementById("modal-root");
+    if (modalRoot) {
+      return createPortal(modalContent, modalRoot);
+    }
+  }
+  return null;
 } 

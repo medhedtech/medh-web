@@ -102,7 +102,7 @@ const MembershipFeatures: React.FC = () => {
     <section className="bg-gray-50 dark:bg-gray-900 pt-[20px] pb-12">
       <div className="w-full">
         {/* Main Container */}
-        <div className="bg-white dark:bg-gray-800 shadow-xl border-t border-b border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 border-t border-b border-gray-200 dark:border-gray-700">
           {/* Compact Header with Impact */}
           <div className="text-center mb-8 px-6 md:px-8 lg:px-10 pt-6 md:pt-8 lg:pt-10">
             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100 to-emerald-100 dark:from-blue-900/30 dark:to-emerald-900/30 text-blue-700 dark:text-blue-400 px-3 py-1 rounded-full text-sm font-medium mb-3">

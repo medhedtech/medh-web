@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Crown, Star, ArrowRight, CheckCircle, AlertCircle, X, Loader2, Zap, Users, TrendingUp } from "lucide-react";
 import dynamic from "next/dynamic";
+import ReactDOM from "react-dom";
 
 // Lazy load heavy components
 const SelectCourseModal = dynamic(() => import("@/components/layout/main/dashboards/SelectCourseModal"), {
@@ -73,7 +74,7 @@ const getStaticMembershipData = (): IMembershipData[] => [
     color: "primary",
     isPopular: false,
     discount: "Save up to 58%",
-    socialProof: "Trusted by professionals worldwide",
+    socialProof: "2,847 students enrolled",
     plans: [
       { duration: "MONTHLY", price: "INR 999.00", period: "per month", duration_months: 1, billing_cycle: "monthly" },
       { duration: "QUARTERLY", price: "INR 2,499.00", period: "per 3 months", duration_months: 3, billing_cycle: "quarterly" },
@@ -82,7 +83,8 @@ const getStaticMembershipData = (): IMembershipData[] => [
     ],
     description: "Perfect for focused learning in one specialized area",
     features: [
-      "All courses in 1 category",
+      // HIGHLIGHTED FEATURE
+      "<span class='font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded block sm:hidden text-center'>Choose 'One Category' and<br/>get full access to all its courses.</span><span class='font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded hidden sm:inline'>Choose 'One Category' and get full access to all its courses.</span>",
       "Live Q&A sessions",
       "Community access",
       "Career support"
@@ -94,7 +96,7 @@ const getStaticMembershipData = (): IMembershipData[] => [
     color: "amber",
     isPopular: true,
     discount: "Save up to 65%",
-    socialProof: "Trusted by professionals worldwide",
+    socialProof: "4,521 students enrolled",
     plans: [
       { duration: "MONTHLY", price: "INR 1,999.00", period: "per month", duration_months: 1, billing_cycle: "monthly" },
       { duration: "QUARTERLY", price: "INR 3,999.00", period: "per 3 months", duration_months: 3, billing_cycle: "quarterly" },
@@ -103,7 +105,8 @@ const getStaticMembershipData = (): IMembershipData[] => [
     ],
     description: "Most comprehensive package for serious learners",
     features: [
-      "All courses in 3 categories",
+      // HIGHLIGHTED FEATURE
+      "<span class='font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded block sm:hidden text-center'>Choose 'Three Categories' and get<br/>full access to all courses within them.</span><span class='font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded hidden sm:inline'>Choose 'Three Categories' and get full access to all courses within them.</span>",
       "Priority support",
       "Career counseling",
       "Job placement assistance"
@@ -385,12 +388,6 @@ const PrimeMembership: React.FC = () => {
                   }`}>
                     {membership.discount}
                   </div>
-                  {/* Social Proof */}
-                  <div className="flex items-center justify-center gap-1 text-xs text-gray-600 dark:text-gray-400 mt-2">
-                    <Users className="w-3 h-3" />
-                    <span>{membership.socialProof}</span>
-                    <TrendingUp className="w-3 h-3 ml-1 text-green-500" />
-                  </div>
                 </div>
 
                 {/* Content */}
@@ -416,9 +413,6 @@ const PrimeMembership: React.FC = () => {
                               ${isSelected ? (membership.color === 'amber' ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/10' : 'border-blue-500 bg-blue-50 dark:bg-blue-900/10') : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'}
                               hover:scale-105 relative`}
                           >
-                            {isBestValue && (
-                              <span className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full z-10">Best Value</span>
-                            )}
                             <div className="font-bold text-base sm:text-lg mb-1 capitalize">{plan.duration.replace('-', ' ')}</div>
                             <div className="flex items-end gap-1 mb-1">
                               <span className="text-xs text-gray-500">₹</span>
@@ -428,6 +422,9 @@ const PrimeMembership: React.FC = () => {
                             {planSavings > 0 && (
                               <div className="text-xs text-green-600 dark:text-green-400 font-medium">Save ₹{Math.round(planSavings).toLocaleString()}</div>
                             )}
+                            {isBestValue && (
+                              <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg z-10 whitespace-nowrap">Best Value</div>
+                            )}
                           </button>
                         );
                       })}
@@ -435,30 +432,40 @@ const PrimeMembership: React.FC = () => {
                   </div>
 
                   {/* Compact Features */}
+                  {membership.features.length > 0 && (
                   <div className="mb-4">
-                    <div className="grid grid-cols-2 gap-1 text-xs">
-                      {membership.features.map((feature: string, idx: number) => (
+                      {/* Highlighted feature as full-width block */}
+                      <div className="flex items-center gap-2 mb-2 justify-center">
+                        <CheckCircle className={`w-4 h-4 flex-shrink-0 ${
+                          membership.color === 'amber'
+                            ? 'text-amber-500 dark:text-amber-400'
+                            : 'text-blue-500 dark:text-blue-400'
+                        }`} />
+                        <span className="text-xs text-gray-600 dark:text-gray-300" dangerouslySetInnerHTML={{ __html: membership.features[0] }} />
+                      </div>
+                      {/* Other three features in a single row */}
+                      <div className="flex flex-row flex-wrap items-center justify-center gap-4">
+                        {membership.features.slice(1).map((feature: string, idx: number) => (
                         <div key={idx} className="flex items-center gap-1">
                           <CheckCircle className={`w-3 h-3 flex-shrink-0 ${
                             membership.color === 'amber'
                               ? 'text-amber-500 dark:text-amber-400'
                               : 'text-blue-500 dark:text-blue-400'
                           }`} />
-                          <span className="text-gray-600 dark:text-gray-300 truncate">
-                            {feature}
-                          </span>
+                            <span className="text-xs text-gray-600 dark:text-gray-300" dangerouslySetInnerHTML={{ __html: feature }} />
                         </div>
                       ))}
                     </div>
                   </div>
+                  )}
 
                   {/* Action Button */}
                   <button
                     onClick={() => handleSelectCourseModal(membership.type)}
                     disabled={modalState.enrollmentLoading || loading}
                     className={`w-full py-3 px-4 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed ${
-                      membership.type === 'gold'
-                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-amber-500/25'
+                      membership.color === 'amber'
+                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg shadow-orange-500/25'
                         : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/25'
                     }`}
                   >
@@ -481,7 +488,7 @@ const PrimeMembership: React.FC = () => {
         </div>
 
           {/* Compact Trust Signals */}
-          <div className="text-center px-6 md:px-8 lg:px-10 pb-6 md:pb-8 lg:pb-10">
+          <div className="text-center px-6 md:px-8 lg:px-10">
             <div className="inline-flex items-center gap-4 bg-gray-50 dark:bg-gray-700 rounded-lg px-6 py-3 shadow-sm border border-gray-100 dark:border-gray-600">
               <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
                 <CheckCircle className="w-4 h-4 text-green-500" />
@@ -498,6 +505,12 @@ const PrimeMembership: React.FC = () => {
                 <span>Job Assistance</span>
               </div>
             </div>
+          </div>
+        {/* Highlighted Note */}
+        <div className="text-center my-4">
+          <span className="inline-block bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 font-semibold px-4 py-2 rounded-lg text-sm">
+            *Note: Only <span className="underline font-bold">Blended Courses</span> available with Medh Membership
+          </span>
           </div>
         </div>
       </div>
@@ -522,25 +535,27 @@ const PrimeMembership: React.FC = () => {
         />
       )}
 
-      {modalState.isLoginModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div 
-            className="fixed inset-0 bg-black/50"
-            onClick={() => setModalState(prev => ({ ...prev, isLoginModalOpen: false }))}
-          ></div>
-          
-          <div className="relative bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-md mx-4 z-50">
-            <button 
-              className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors z-10"
+      {modalState.isLoginModalOpen &&
+        ReactDOM.createPortal(
+          <div className="fixed inset-0 z-[101] flex items-center justify-center">
+            <div 
+              className="fixed inset-0 bg-black/50"
               onClick={() => setModalState(prev => ({ ...prev, isLoginModalOpen: false }))}
-            >
-              <X className="w-4 h-4" />
-            </button>
-            
-            <LoginForm />
-          </div>
-        </div>
-      )}
+            ></div>
+            <div className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-md mx-4 z-[102] p-2 sm:p-4">
+              <button 
+                className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors z-10"
+                onClick={() => setModalState(prev => ({ ...prev, isLoginModalOpen: false }))}
+                aria-label="Close login modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <LoginForm popupMode={true} redirectPath="/medh-membership" />
+            </div>
+          </div>,
+          typeof window !== 'undefined' ? document.getElementById('modal-root')! : document.body
+        )
+      }
 
       {modalState.modalError && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">

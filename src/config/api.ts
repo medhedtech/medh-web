@@ -114,6 +114,16 @@ interface SearchEndpoints {
   instructors: string;
 }
 
+interface GoalsEndpoints {
+  getAllGoals: (userId: IdParam) => string;
+  getGoalStats: (userId: IdParam) => string;
+  createGoal: string;
+  updateGoal: (goalId: IdParam) => string;
+  deleteGoal: (goalId: IdParam) => string;
+  toggleGoalCompletion: (goalId: IdParam) => string;
+  updateGoalProgress: (goalId: IdParam) => string;
+}
+
 interface Endpoints {
   auth: AuthEndpoints;
   courses: CourseEndpoints;
@@ -122,6 +132,7 @@ interface Endpoints {
   instructors: InstructorEndpoints;
   categories: CategoryEndpoints;
   search: SearchEndpoints;
+  goals: GoalsEndpoints; // Add this line
 }
 
 // API Endpoints
@@ -176,6 +187,15 @@ export const endpoints: Endpoints = {
     courses: '/search/courses',
     blogs: '/search/blogs',
     instructors: '/search/instructors'
+  },
+  goals: {
+    getAllGoals: (userId) => `/goals/student/${userId}`,
+    getGoalStats: (userId) => `/goals/student/${userId}/stats`,
+    createGoal: '/goals',
+    updateGoal: (goalId) => `/goals/${goalId}`,
+    deleteGoal: (goalId) => `/goals/${goalId}`,
+    toggleGoalCompletion: (goalId) => `/goals/${goalId}/toggle-completion`,
+    updateGoalProgress: (goalId) => `/goals/${goalId}/update-progress`,
   }
 };
 

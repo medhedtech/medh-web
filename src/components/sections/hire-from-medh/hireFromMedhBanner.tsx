@@ -292,8 +292,9 @@ const HireFromMedhBanner: React.FC<HireFromMedhBannerProps> = ({ onLearnMoreClic
                 <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}> <Award size={10} className="mr-1 sm:w-3 sm:h-3" /> STEM Certified </div>
               </div>
               <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-center tracking-tight mb-2 sm:mb-3 md:mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Hire Talent From
+                Find your Perfect Hire
                 <span className="block mt-1 w-full text-center">
+                  <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9) translateY(2px)' }}>with</em>
                   <Image 
                     src={medhLogo} 
                     alt="Medh Logo" 
@@ -303,8 +304,8 @@ const HireFromMedhBanner: React.FC<HireFromMedhBannerProps> = ({ onLearnMoreClic
                     className="inline-block h-6 sm:h-8 md:h-9 lg:h-12 w-auto align-baseline"
                     style={{ 
                       filter: 'brightness(1.1) contrast(1.2)',
-                      transform: 'translateY(0px)',
-                      verticalAlign: 'middle',
+                      transform: 'translateY(2px)',
+                      verticalAlign: 'baseline',
                       objectFit: 'contain',
                       imageRendering: '-webkit-optimize-contrast',
                       backfaceVisibility: 'hidden',

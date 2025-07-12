@@ -270,10 +270,8 @@ const AtMedh: React.FC = () => {
               transition={{ delay: 0.8 }}
               className="flex justify-center mt-6 md:mt-8"
             >
-              <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
-                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
-                <span className="text-sm sm:text-base italic">Transforming Education, Empowering Lives</span>
-                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
+              <div className="text-slate-500 dark:text-slate-400 text-sm sm:text-base italic text-center">
+                Transforming Education, Empowering Lives
               </div>
             </motion.div>
           </div>
