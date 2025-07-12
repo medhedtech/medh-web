@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useRazorpay } from '@/hooks/useRazorpay';
 import { isCurrencySupported } from '@/config/razorpay';
+import { CreditCard, Loader2, CheckCircle } from 'lucide-react';
 
 /**
  * Props for the RazorpayCheckout component
  */
 interface RazorpayCheckoutProps {
-  /** Payment amount in the smallest currency unit (paise for INR) */
+  /** Payment amount in rupees (backend will convert to paise) */
   amount: number;
   /** Course ID when payment type is 'course' */
   courseId?: string;
@@ -59,7 +60,7 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
   originalPrice,
   priceId
 }) => {
-  const { processPayment, isLoading, error, resetError } = useRazorpay();
+  const { processPayment, isLoading, error, resetError, testMode } = useRazorpay();
   const [hasError, setHasError] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
@@ -102,10 +103,20 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
       // Ensure currency is supported or default to INR
       const finalCurrency = isCurrencySupported(currency) ? currency : 'INR';
 
+      // Generate a receipt ID that's <= 40 characters
+      const timestamp = Date.now().toString().slice(-6); // Last 6 digits
+      const courseIdShort = (courseId || '').substring(0, 4);
+      const planIdShort = (planId || '').substring(0, 4);
+      const identifier = courseId ? courseIdShort : planIdShort;
+      const receipt = `${paymentType[0]}_${identifier}_${timestamp}`;
+      console.log('Generated receipt:', receipt, 'Length:', receipt.length);
+      console.log('RazorpayCheckout - Amount being sent (in rupees):', amount);
+
       // Create the payload
       const payload = {
         amount,
         currency: finalCurrency,
+        receipt: receipt,
         payment_type: paymentType,
         productInfo,
         ...(paymentType === 'course' && {
@@ -145,18 +156,39 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
   };
 
   return (
-    <div className="razorpay-checkout-container">
+    <div className="razorpay-checkout-container w-full">
+      {testMode && (
+        <div className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white p-3 rounded-lg mb-4 shadow-lg">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+            <span className="text-sm font-semibold">🧪 TEST MODE ACTIVE</span>
+          </div>
+          <p className="text-xs mt-1 opacity-90">
+            You are using test Razorpay credentials. Use test cards for payment (e.g. 4111 1111 1111 1111, CVV 123, any future expiry).
+          </p>
+        </div>
+      )}
       <button
         onClick={handlePayment}
         disabled={isLoading}
-        className={`${className} ${isLoading ? 'loading' : ''} ${hasError ? 'error' : ''}`}
+        className={`w-full py-4 px-6 rounded-2xl font-semibold text-lg flex items-center justify-center gap-3 shadow-lg transition-all duration-300 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-800 text-white shadow-blue-500/25 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
         aria-busy={isLoading}
       >
-        {isLoading ? 'Processing...' : buttonText}
+        {isLoading ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Processing...
+          </>
+        ) : (
+          <>
+            <CreditCard className="w-6 h-6" />
+            {buttonText}
+          </>
+        )}
       </button>
-      
       {hasError && errorMessage && (
-        <div className="payment-error-message">
+        <div className="payment-error-message mt-3 text-red-600 bg-red-50 rounded-lg p-3 flex items-center gap-2">
+          <CheckCircle className="w-4 h-4 text-red-500" />
           {errorMessage}
         </div>
       )}

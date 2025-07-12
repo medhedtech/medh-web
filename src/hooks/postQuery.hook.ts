@@ -27,6 +27,8 @@ export interface PostQueryParams<T = any> {
   config?: AxiosRequestConfig;
   /** Whether to show toast messages */
   enableToast?: boolean;
+  /** Whether to disable toast messages for this specific request */
+  disableToast?: boolean;
   /** Custom headers (merged with defaults) */
   headers?: Record<string, string>;
   /** Custom success message for toast */
@@ -89,6 +91,7 @@ export const usePostQuery = <T = any>(): UsePostQueryResult<T> => {
     requireAuth = true,
     config = {},
     enableToast = false,
+    disableToast = false, // Add this line
     headers = {},
     successMessage,
     errorMessage = "Operation failed",
@@ -159,8 +162,8 @@ export const usePostQuery = <T = any>(): UsePostQueryResult<T> => {
       const apiData = response.data as T;
       setData(apiData);
 
-      // Show success toast if configured
-      if (enableToast && successMessage) {
+      // Show success toast if configured and not disabled
+      if (enableToast && successMessage && !disableToast) {
         showToast.success(successMessage);
       }
 
@@ -209,9 +212,9 @@ export const usePostQuery = <T = any>(): UsePostQueryResult<T> => {
         message = responseData?.message || error.message || errorMessage;
       }
 
-      // Show error toast if configured
-      if (enableToast) {
-        showToast.error(message);
+      // Show error toast if configured and not disabled
+      if (enableToast && !disableToast) {
+        showToast.error(message, { duration: 5000 });
       }
 
       // Call onFail callback

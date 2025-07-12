@@ -7,7 +7,7 @@ import {
   Lock, Zap, CheckCircle, Users, User, Info, CheckCircle2, Clock, GraduationCap,
   CalendarClock, Calculator, ChevronDown, ExternalLink, Briefcase, Shield, 
   Wallet, Smartphone, QrCode, Building2, Banknote, Timer, Star, Award, Heart,
-  Share2
+  Share2, Sparkles, TrendingUp, Award as AwardIcon, BookOpen, PlayCircle
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
@@ -19,7 +19,10 @@ import axios from 'axios';
 import useGetQuery from "@/hooks/getQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook";
 import useRazorpay from "@/hooks/useRazorpay";
-import RAZORPAY_CONFIG, { getCurrencySymbol } from "@/config/razorpay";
+import RAZORPAY_CONFIG, { getCurrencySymbol, getRazorpayConfigWithUserDetails } from "@/config/razorpay";
+import { apiClient } from '@/apis/apiClient';
+import RazorpayCheckout from '@/components/payments/RazorpayCheckout';
+import paymentsAPI from '@/apis/payments.api';
 
 // Local implementation of the price utility functions
 const getCoursePriceValue = (
@@ -231,6 +234,21 @@ interface InstallmentPlan {
   downPayment: number;
   currentInstallmentNumber?: number;
   gracePeriodDays: number;
+  interestRate?: number;
+  processingFee?: number;
+  startDate?: string;
+}
+
+interface EMIDetails {
+  isEMI: boolean;
+  numberOfInstallments: number;
+  downPayment: number;
+  installmentAmount: number;
+  interestRate: number;
+  processingFee: number;
+  totalAmount: number;
+  maxInstallments: number;
+  courseDurationMonths: number;
 }
 
 interface Coupon {
@@ -352,83 +370,57 @@ const EnrollmentTypeSelector: React.FC<{
 }> = ({ enrollmentType, onTypeChange, activePricing, formatPriceDisplay, colorClass, bgClass, isBlendedCourse }) => {
   if (isBlendedCourse) {
     return (
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800/30 overflow-hidden">
-        <div className={`p-6 text-center ${bgClass}`}>
-          <div className="flex items-center justify-center mb-3">
-            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-              <User className={`w-6 h-6 ${colorClass}`} />
-            </div>
+      <div className="rounded-2xl bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 p-6 text-center flex flex-col items-center justify-center">
+        {activePricing && (
+          <div className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+            {formatPriceDisplay(activePricing.individual)}
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-            Course Price
-          </h3>
-          {activePricing && (
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">
-              {formatPriceDisplay(activePricing.individual)}
-            </div>
-          )}
-        </div>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 mb-6">
+    <div className="grid grid-cols-2 gap-4 mb-8">
+      {/* Batch/Group */}
       <button
         onClick={() => onTypeChange('batch')}
-        className={`group relative p-4 rounded-xl border-2 transition-all duration-300 ${
-          enrollmentType === 'batch' 
-            ? `${bgClass} border-blue-500 shadow-lg transform scale-105` 
-            : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-300 hover:shadow-md'
+        className={`flex flex-col items-center justify-center rounded-xl border-2 px-4 py-6 transition-all duration-200 focus:outline-none min-h-[120px] ${
+          enrollmentType === 'batch'
+            ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10'
+            : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-emerald-300'
         }`}
         aria-pressed={enrollmentType === 'batch'}
+        type="button"
       >
-        <div className="text-center">
-          <div className="flex justify-center mb-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-              enrollmentType === 'batch' 
-                ? 'bg-blue-500 text-white' 
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-            }`}>
-              <Users className="w-5 h-5" />
-            </div>
-          </div>
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Batch/Group</h3>
-          {activePricing && (
-            <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-              {formatPriceDisplay(activePricing.batch)}
-              <span className="text-sm text-gray-500 dark:text-gray-400 block">per person</span>
-            </p>
-          )}
+        <div className="flex justify-center mb-2">
+          <Users className="w-7 h-7 text-emerald-500 dark:text-emerald-400" />
         </div>
+        <span className="text-base font-semibold text-gray-900 dark:text-white mb-2">Batch/Group</span>
+        {activePricing && (
+          <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mb-1">{formatPriceDisplay(activePricing.batch)}</span>
+        )}
+        <span className="text-xs text-gray-500">per person</span>
       </button>
 
+      {/* Individual */}
       <button
         onClick={() => onTypeChange('individual')}
-        className={`group relative p-4 rounded-xl border-2 transition-all duration-300 ${
-          enrollmentType === 'individual' 
-            ? `${bgClass} border-blue-500 shadow-lg transform scale-105` 
-            : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-300 hover:shadow-md'
+        className={`flex flex-col items-center justify-center rounded-xl border-2 px-4 py-6 transition-all duration-200 focus:outline-none min-h-[120px] ${
+          enrollmentType === 'individual'
+            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/10'
+            : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-300'
         }`}
         aria-pressed={enrollmentType === 'individual'}
+        type="button"
       >
-        <div className="text-center">
-          <div className="flex justify-center mb-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-              enrollmentType === 'individual' 
-                ? 'bg-blue-500 text-white' 
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-            }`}>
-              <User className="w-5 h-5" />
-            </div>
-          </div>
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Individual</h3>
-          {activePricing && (
-            <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
-              {formatPriceDisplay(activePricing.individual)}
-            </p>
-          )}
+        <div className="flex justify-center mb-2">
+          <User className="w-7 h-7 text-blue-500 dark:text-blue-400" />
         </div>
+        <span className="text-base font-semibold text-gray-900 dark:text-white mb-2">Individual</span>
+        {activePricing && (
+          <span className="text-xl font-bold text-blue-600 dark:text-blue-400 mb-1">{formatPriceDisplay(activePricing.individual)}</span>
+        )}
       </button>
     </div>
   );
@@ -443,6 +435,8 @@ const PricingSummary: React.FC<{
   selectedInstallmentPlan?: InstallmentPlan | null;
   appliedCoupon?: Coupon | null;
   couponDiscount?: number;
+  isBlendedCourse?: boolean;
+  realPrice?: number;
 }> = ({ 
   originalPrice, 
   finalPrice, 
@@ -451,105 +445,35 @@ const PricingSummary: React.FC<{
   enrollmentType,
   selectedInstallmentPlan,
   appliedCoupon,
-  couponDiscount = 0
+  couponDiscount = 0,
+  isBlendedCourse = false,
+  realPrice
 }) => {
   const formatPrice = (price: number) => `${currency} ${price.toLocaleString()}`;
-  const hasDiscount = discountAmount > 0 || couponDiscount > 0;
+
+  // Unified card for all paid courses (live, blended, others)
+  // Show slashed price, main price, and 'Save X%' badge
+  const slashedPrice = originalPrice > finalPrice ? originalPrice : null;
+  const percentSaved = slashedPrice ? Math.round(((slashedPrice - finalPrice) / slashedPrice) * 100) : null;
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-800 dark:to-slate-800 rounded-xl p-6 border border-slate-200 dark:border-gray-700">
-      <div className="flex items-center justify-between">
-        <h3 className="text-base font-semibold text-gray-900 dark:text-white">
-          {enrollmentType === 'batch' ? 'Batch' : 'Individual'} Enrollment
-        </h3>
-        <div className="text-right">
-          {hasDiscount && (
-            <div className="text-sm text-gray-500 dark:text-gray-400 line-through">
-              {formatPrice(originalPrice)}
-            </div>
-          )}
-          <div className="text-lg font-bold text-gray-900 dark:text-white">
-            {formatPrice(finalPrice)}
-          </div>
-        </div>
-      </div>
-
-      {/* Discount breakdown */}
-      {hasDiscount && (
-        <div className="space-y-2 pt-4 border-t border-slate-200 dark:border-gray-600">
-          {discountAmount > 0 && (
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600 dark:text-gray-400">Batch discount</span>
-              <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                -{formatPrice(discountAmount)}
-              </span>
-            </div>
-          )}
-          {appliedCoupon && couponDiscount > 0 && (
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600 dark:text-gray-400">Coupon ({appliedCoupon.code})</span>
-              <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                -{formatPrice(couponDiscount)}
-              </span>
-            </div>
-          )}
-          <div className="flex justify-between text-sm font-semibold pt-2 border-t border-slate-200 dark:border-gray-600">
-            <span className="text-emerald-600 dark:text-emerald-400">Total Savings</span>
-            <span className="text-emerald-600 dark:text-emerald-400">
-              -{formatPrice(discountAmount + couponDiscount)}
-            </span>
-          </div>
-        </div>
+    <div className="relative overflow-hidden rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-600 shadow-md shadow-slate-200/30 dark:shadow-slate-900/30 p-6 flex flex-col items-center justify-center">
+      {/* Slashed price (psychological price) */}
+      {slashedPrice && (
+        <span className="text-base text-slate-400 dark:text-slate-500 line-through mb-1">{formatPrice(slashedPrice)}</span>
       )}
-
-      {/* EMI information */}
-      {selectedInstallmentPlan && (
-        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800/30">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
-              EMI Option Selected
-            </span>
-            <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-              {formatPrice(selectedInstallmentPlan.installmentAmount)}/month
-            </span>
-          </div>
-          <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
-            {selectedInstallmentPlan.installments} payments • Down: {formatPrice(selectedInstallmentPlan.downPayment)}
-          </p>
-        </div>
+      {/* Main price */}
+      <span className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 mb-1">{formatPrice(finalPrice)}</span>
+      {/* Percentage savings */}
+      {percentSaved && (
+        <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400 mb-1">Save {percentSaved}%</span>
       )}
+      {/* Plan label removed for all paid courses */}
     </div>
   );
 };
 
-const SessionInfoCard: React.FC<{
-  sessionCount: number;
-  isLiveClass: boolean;
-}> = ({ sessionCount, isLiveClass }) => {
-  if (!isLiveClass || !sessionCount) return null;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-800/30 rounded-xl p-4"
-    >
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
-          <CalendarClock className="w-6 h-6 text-white" />
-        </div>
-        <div className="flex-1">
-          <h4 className="font-semibold text-indigo-800 dark:text-indigo-200 mb-1">
-            Live Interactive Sessions
-          </h4>
-          <p className="text-indigo-700 dark:text-indigo-300">
-            <span className="font-medium text-lg">{sessionCount}</span> live sessions with expert instructors
-          </p>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
+// SessionInfoCard component removed as per user request
 
 const CouponSection: React.FC<{
   couponCode: string;
@@ -646,78 +570,6 @@ const CouponSection: React.FC<{
   );
 };
 
-const EnrollmentButton: React.FC<{
-  isLoggedIn: boolean;
-  loading: boolean;
-  courseDetails: CourseDetails | null;
-  isTestUser: boolean;
-  selectedInstallmentPlan: InstallmentPlan | null;
-  appliedCoupon: Coupon | null;
-  getFinalPriceWithCoupon: () => number;
-  getFinalPrice: () => number;
-  formatPriceDisplay: (price: number) => string;
-  handleEnrollClick: () => void;
-  disabled?: boolean;
-}> = ({ 
-  isLoggedIn, 
-  loading, 
-  courseDetails, 
-  isTestUser, 
-  selectedInstallmentPlan, 
-  appliedCoupon, 
-  getFinalPriceWithCoupon, 
-  getFinalPrice, 
-  formatPriceDisplay, 
-  handleEnrollClick,
-  disabled = false
-}) => {
-  const getButtonText = () => {
-    if (!isLoggedIn) return 'Login to Enroll';
-    if (courseDetails?.isFree) return 'Enroll for Free';
-    
-    const price = selectedInstallmentPlan 
-      ? selectedInstallmentPlan.downPayment 
-      : (appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice());
-    
-    return isTestUser ? `Test Pay ${formatPriceDisplay(price)}` : `Pay ${formatPriceDisplay(price)}`;
-  };
-
-  const getButtonIcon = () => {
-    if (!isLoggedIn) return <Lock className="w-6 h-6" />;
-    if (courseDetails?.isFree) return <GraduationCap className="w-6 h-6" />;
-    return <CreditCard className="w-6 h-6" />;
-  };
-
-  return (
-    <motion.button
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      onClick={handleEnrollClick}
-      disabled={loading || disabled}
-      className={`relative w-full py-4 px-6 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-800 text-white font-semibold text-lg rounded-xl flex items-center justify-center gap-3 shadow-lg transition-all duration-300 overflow-hidden group ${
-        loading || disabled ? 'opacity-70 cursor-not-allowed' : ''
-      }`}
-      aria-label={getButtonText()}
-    >
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-indigo-400/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-out"></div>
-      
-      {loading ? (
-        <div className="flex items-center gap-2">
-          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-          <span>Processing...</span>
-        </div>
-      ) : (
-        <div className="relative flex items-center gap-3">
-          {getButtonIcon()}
-          <span>{getButtonText()}</span>
-          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-        </div>
-      )}
-    </motion.button>
-  );
-};
-
 const PaymentSecurityInfo: React.FC<{ isTestUser: boolean }> = ({ isTestUser }) => (
   <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/30 rounded-lg px-4 py-3">
     <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40">
@@ -736,6 +588,183 @@ const PaymentSecurityInfo: React.FC<{ isTestUser: boolean }> = ({ isTestUser }) 
     </div>
   </div>
 );
+
+// Helper to generate 4 smart EMI options for any course duration
+function getSmartEMIMonths(courseDurationMonths: number): number[] {
+  const minMonths = 2;
+  const maxMonths = Math.max(courseDurationMonths, minMonths);
+  if (maxMonths <= minMonths) return [minMonths];
+  if (maxMonths - minMonths < 4) {
+    // For short durations, just list all
+    return Array.from({ length: maxMonths - minMonths + 1 }, (_, i) => minMonths + i);
+  }
+  // For longer durations, space 4 options: 2, 1/3, 2/3, max
+  const mid1 = Math.round(minMonths + (maxMonths - minMonths) / 3);
+  const mid2 = Math.round(minMonths + 2 * (maxMonths - minMonths) / 3);
+  return Array.from(new Set([minMonths, mid1, mid2, maxMonths])).sort((a, b) => a - b);
+}
+
+const EMISelector: React.FC<{
+  totalAmount: number;
+  courseDurationMonths: number;
+  selectedMonths: number | null;
+  onSelectMonths: (months: number | null) => void;
+  getDisplayCurrencySymbol: () => string; // Pass this down
+}> = ({ totalAmount, courseDurationMonths, selectedMonths, onSelectMonths, getDisplayCurrencySymbol }) => {
+  const allowedMonths = getSmartEMIMonths(courseDurationMonths);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsExpanded(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  if (allowedMonths.length === 0) return null;
+  
+  const currencySymbol = getDisplayCurrencySymbol();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="relative w-full max-w-md mx-auto mb-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 emi-selector-dropdown"
+      ref={dropdownRef}
+    >
+      <button
+        onClick={() => setIsExpanded(prev => !prev)}
+        className="w-full bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-gray-700 px-3 sm:px-4 py-3 sm:py-4 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 touch-manipulation"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate">
+                Choose EMI Duration
+              </h3>
+              {selectedMonths !== null && (
+                <div className="flex items-center space-x-2 sm:space-x-4 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                  <span className="font-medium">
+                    {selectedMonths === 0 ? 'Pay Full Amount' : `${selectedMonths} months`}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <motion.div
+            animate={{ rotate: isExpanded ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+            className="p-1 sm:p-1.5"
+          >
+            <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 dark:text-gray-400" />
+          </motion.div>
+        </div>
+      </button>
+
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="absolute top-full left-0 right-0 z-50 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-b-xl shadow-lg max-h-64 overflow-y-auto" 
+          >
+            <div className="p-3 sm:p-4 space-y-2">
+              {/* Option to pay full amount (no EMI) */}
+              <motion.div
+                key="no-emi"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                onClick={() => { onSelectMonths(null); setIsExpanded(false); }}
+                className={`p-2.5 sm:p-3 rounded-lg cursor-pointer transition-all duration-300 touch-manipulation ${
+                  selectedMonths === null
+                    ? 'bg-blue-50 dark:bg-blue-900/20 shadow-lg ring-2 ring-blue-500/20 dark:ring-blue-400/20'
+                    : 'border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md active:scale-95'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">
+                    Pay Full Amount (No EMI)
+                  </span>
+                  {selectedMonths === null && (
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="p-1 rounded-full bg-blue-500"
+                    >
+                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                    </motion.div>
+                  )}
+                </div>
+              </motion.div>
+
+              {allowedMonths.map((months, index) => (
+                <motion.div
+                  key={months}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: (index + 1) * 0.05 }}
+                  onClick={() => { onSelectMonths(months); setIsExpanded(false); }}
+                  className={`p-2.5 sm:p-3 rounded-lg cursor-pointer transition-all duration-300 touch-manipulation ${
+                    selectedMonths === months
+                      ? 'bg-blue-50 dark:bg-blue-900/20 shadow-lg ring-2 ring-blue-500/20 dark:ring-blue-400/20'
+                      : 'border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md active:scale-95'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">
+                      {months} months EMI
+                    </span>
+                    {selectedMonths === months && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="p-1 rounded-full bg-blue-500"
+                      >
+                        <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                      </motion.div>
+                    )}
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-300 mt-1">
+                    Approx. {currencySymbol}{Math.ceil(totalAmount / months).toLocaleString()} / month
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {selectedMonths !== null && selectedMonths !== 0 && (
+        <motion.div 
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mt-5 p-4 rounded-lg bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700 flex flex-col items-center shadow-inner"
+        >
+          <div className="text-base text-blue-700 dark:text-blue-200 mb-1">Monthly Payment</div>
+          <div className="text-3xl font-extrabold text-blue-800 dark:text-blue-100 mb-2">
+            {currencySymbol}{Math.ceil(totalAmount / selectedMonths!).toLocaleString()}
+          </div>
+          <div className="text-sm text-blue-600 dark:text-blue-400 mb-1">for {selectedMonths} months</div>
+          <div className="text-xs text-blue-500 dark:text-blue-300 mt-1">
+            Total: {currencySymbol}{totalAmount.toLocaleString()} (No interest, no fees)
+          </div>
+        </motion.div>
+      )}
+    </motion.div>
+  );
+};
 
 const FastTrackInfo: React.FC = () => (
   <motion.div
@@ -879,6 +908,17 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   // Wishlist state
   const [isInWishlist, setIsInWishlist] = useState<boolean>(false);
   const [wishlistLoading, setWishlistLoading] = useState<boolean>(false);
+  
+  // EMI state
+  const [selectedEMIMonths, setSelectedEMIMonths] = useState<number | null>(null);
+
+  // Add a state for initial loading from localStorage to prevent flicker
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  // Reset EMI selection when course changes
+  useEffect(() => {
+    setSelectedEMIMonths(null);
+  }, [courseDetails?._id]);
 
   // Enhanced blended course detection
   const isBlendedCourse = useMemo(() => {
@@ -911,6 +951,11 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       
       const isUserLoggedIn = !!token && (!!userId || !!user);
       
+      console.log('Login check: token present?', !!token);
+      console.log('Login check: userId present?', !!userId);
+      console.log('Login check: user/userData present?', !!user);
+      console.log('Login check: isUserLoggedIn computed as:', isUserLoggedIn);
+
       setIsLoggedIn(isUserLoggedIn);
       setUserId(userId);
 
@@ -922,8 +967,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           console.error("Failed to parse user data:", e);
         }
       }
-      
-      setIsLoading(false);
+      setInitialLoading(false); // Mark initial loading complete
     }
   }, []);
 
@@ -968,27 +1012,28 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   // Get active price information
   const getActivePrice = useCallback((): Price | null => {
     const prices = courseDetails?.prices;
-    
     if (!prices || prices.length === 0) {
       return null;
     }
-
-    const preferredPrice = prices.find(price => 
-      price.is_active && price.currency === 'USD'
-    );
-
+    // Prefer INR if available and active
+    const inrActive = prices.find(price => price.is_active && price.currency.toUpperCase() === 'INR');
+    if (inrActive) return inrActive;
+    // Otherwise, prefer any active price
     const activePrice = prices.find(price => price.is_active);
-    const finalPrice = preferredPrice || activePrice || prices[0] || null;
-    return finalPrice;
+    if (activePrice) return activePrice;
+    // Otherwise, fallback to first price
+    return prices[0] || null;
   }, [courseDetails]);
 
   // State for active pricing
   const [activePricing, setActivePricing] = useState<Price | null>(initialActivePricing || null);
+  const [isPricingLoading, setIsPricingLoading] = useState(true); // New state
 
   // Update activePricing when course details changes
   useEffect(() => {
     const price = getActivePrice();
     setActivePricing(price);
+    setIsPricingLoading(false); // Set to false after price is determined
   }, [courseDetails?.prices, courseDetails?._id]);
 
   // Call callback when active pricing changes
@@ -1213,216 +1258,43 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     });
   };
 
-  // Enhanced Razorpay payment handler
-  const handleRazorpayPayment = async (): Promise<void> => {
-    console.log("Initiating handleRazorpayPayment...");
-    if (!courseDetails?._id || !activePricing) {
-      showToast.error("Course information or pricing is missing for payment.");
-      console.error("Payment initiation failed: Missing courseDetails or activePricing.");
-      return;
-    }
+  // Placeholder payment handler function
+  const handleRazorpayPayment = useCallback(async (): Promise<void> => {
+    // This function is handled by the RazorpayCheckout component
+    // which manages the entire payment flow including order creation,
+    // payment processing, and verification
+    console.log("Payment handled by RazorpayCheckout component");
+  }, []);
 
+  // Enroll course function (following BillDetails pattern)
+  const enrollCourse = async (studentId: string, courseId: string, paymentResponse: any = {}): Promise<void> => {
     try {
-      setLoading(true);
-      
-      const isTestUser = userId === '67cfe3a9a50dbb995b4d94da';
-      const finalPrice = appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice();
-      const originalCurrency = activePricing.currency;
-      
-      const userEmail = userProfile?.email || 'user@example.com';
-      const userName = userProfile?.full_name || userProfile?.name || 'User';
-      const userPhone = userProfile?.phone_number || userProfile?.mobile || '9999999999';
-
-      console.log("Payment details:", {
-        finalPrice,
-        originalCurrency,
-        userEmail,
-        userName,
-        userPhone,
-        isTestUser,
-        enrollmentType,
-        selectedInstallmentPlan,
-        appliedCoupon,
-      });
-
-      let paymentAmount = Math.round(finalPrice * 100);
-      let paymentDescription = `Payment for ${courseDetails?.course_title || "Course"} (${enrollmentType} enrollment)`;
-      
-      if (selectedInstallmentPlan) {
-        paymentAmount = Math.round(selectedInstallmentPlan.downPayment * 100);
-        paymentDescription = `Down payment for ${courseDetails?.course_title || "Course"} (EMI plan: ${selectedInstallmentPlan.installments} months)`;
-      }
-      
-      const razorpayKey = isTestUser 
-        ? process.env.NEXT_PUBLIC_RAZORPAY_TEST_KEY_ID || 'rzp_test_1DP5mmOlF5G5ag'
-        : process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_live_key';
-      
-      console.log("Using Razorpay Key:", razorpayKey);
-
-      const options: RazorpayOptions = {
-        key: razorpayKey,
-        amount: paymentAmount,
-        currency: originalCurrency,
-        name: isTestUser ? "MEDH Education Platform (TEST MODE)" : "MEDH Education Platform",
-        description: isTestUser ? `[TEST] ${paymentDescription}` : paymentDescription,
-        image: "/images/medhlogo.svg",
-        handler: async function (response: any) {
-          console.log("Razorpay payment handler triggered. Response:", response);
-          const successMessage = isTestUser 
-            ? "Test Payment Successful! 🧪✅" 
-            : "Payment Successful! 🎉";
-          
-          showToast.success(successMessage, {
-            duration: 4000,
-            style: {
-              background: isTestUser ? '#8B5CF6' : '#10B981',
-              color: '#fff',
-            },
-          });
-          
-          if (selectedInstallmentPlan) {
-            response.emi_plan = selectedInstallmentPlan.installments.toString();
-            response.down_payment = selectedInstallmentPlan.downPayment.toString();
-            response.installment_amount = selectedInstallmentPlan.installmentAmount.toString();
-            response.is_emi = 'true';
-            console.log("Installment plan details added to payment response:", response);
-          }
-          
-          if (userId) {
-            console.log("Calling enrollCourse after successful payment.");
-            await enrollCourse(userId, courseDetails._id, response);
-          } else {
-            console.error("Enrollment failed: userId is missing after successful payment.");
-            showToast.error("Enrollment failed: User ID missing. Please log in again.");
-          }
-        },
-        prefill: {
-          name: userName,
-          email: userEmail,
-          contact: userPhone,
-        },
-        notes: {
+      await postQuery({
+        url: apiUrls?.enrolledCourses?.createEnrollment,
+        postData: {
+          student_id: studentId,
+          course_id: courseId,
           enrollment_type: enrollmentType,
-          course_id: courseDetails._id,
-          user_id: userId || '',
-          currency: originalCurrency,
-          price: finalPrice.toString(),
-          coupon_code: appliedCoupon?.code || '',
-          coupon_discount: appliedCoupon ? calculateCouponDiscount().toString() : '0',
-          test_mode: isTestUser ? 'true' : 'false'
-        },
-        theme: {
-          color: '#3B82F6',
-        },
-        modal: {
-          ondismiss: function() {
-            setLoading(false);
-            showToast.error("Payment cancelled", { duration: 3000 });
-            console.log("Razorpay modal dismissed by user.");
+          payment_information: {
+            ...paymentResponse,
+            payment_method: paymentResponse?.razorpay_payment_id ? 'razorpay' : 'free',
+            amount: getFinalPrice(),
+            currency: activePricing?.currency || 'INR',
           }
-        }
-      };
-
-      const loadingMessage = isTestUser 
-        ? "Initializing test payment gateway..." 
-        : "Initializing secure payment...";
-        
-      showToast.loading(loadingMessage, { duration: 2000 });
-      console.log("Attempting to open Razorpay checkout with options:", options);
-      await openRazorpayCheckout(options);
-    } catch (err: any) {
-      console.error("Razorpay payment initiation error:", err);
-      setError(err.message || "Failed to process payment. Please try again.");
-      showToast.error("Payment failed. Please try again.", {
-        duration: 4000,
-        style: { background: '#EF4444', color: '#fff' },
-      });
-    } finally {
-      setLoading(false);
-      console.log("Razorpay payment process finished. Loading set to false.");
-    }
-  };
-
-  // Enroll course function
-  const enrollCourse = async (studentId: string, courseId: string, paymentResponse: any = {}): Promise<any> => {
-    console.log("Initiating enrollCourse function.");
-    console.log("EnrollCourse parameters:", { studentId, courseId, paymentResponse });
-    if (!studentId || !courseId) {
-      console.error("enrollCourse called with missing IDs", { studentId, courseId });
-      showToast.error("Student ID and Course ID are required for enrollment. Please log in again or refresh the page.");
-      return false;
-    }
-    console.log("Enrolling with student ID:", studentId, "and course ID:", courseId);
-    try {
-      const enrollmentData: any = {
-        student_id: studentId,
-        course_id: courseId,
-        enrollment_type: enrollmentType,
-        payment_information: {
-          ...paymentResponse,
-          payment_method: paymentResponse?.razorpay_payment_id ? 'razorpay' : 'free',
-          amount: selectedInstallmentPlan ? selectedInstallmentPlan.downPayment : getFinalPrice(),
-          currency: activePricing?.currency || 'INR',
-        }
-      };
-      
-      if (selectedInstallmentPlan && paymentResponse.emi_id) {
-        enrollmentData.is_emi = true;
-        enrollmentData.emi_config = {
-          totalAmount: getFinalPrice(),
-          downPayment: selectedInstallmentPlan.downPayment,
-          numberOfInstallments: selectedInstallmentPlan.installments,
-          installmentAmount: selectedInstallmentPlan.installmentAmount,
-        };
-      }
-      
-      console.log("Enrollment data prepared for API call:", enrollmentData);
-      console.log("API Base URL:", apiBaseUrl);
-      console.log("Authorization Token:", localStorage.getItem('token') ? "Token present" : "Token missing");
-
-      try {
-        const response = await axios.post(
-          `${apiBaseUrl}/enrolled/create`,
-          enrollmentData,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-          }
-        );
-        
-        console.log("Enrollment API response:", response.status, response.data);
-
-        if (response.status === 201 || response.status === 200) {
+        },
+        onSuccess: () => {
+          setIsSuccessModalOpen(true);
+          console.log("Student enrolled successfully!");
           showToast.success("Successfully enrolled in the course!");
-          setIsSuccessModalOpen(true);
-          return true;
-        } else {
-          console.error("Enrollment API returned non-success status:", response.status, response.data);
-          throw new Error(response.data?.message || "Failed to enroll in the course.");
-        }
-      } catch (apiError: any) {
-        console.error("Error during primary enrollment API call:", apiError);
-        console.log("Primary enrollment API not available or failed, trying alternative approach...");
-        
-        if (courseDetails?.isFree || isFreePrice(getFinalPrice())) {
-          showToast.success("Free course enrollment successful! You can start learning immediately.");
-          setIsSuccessModalOpen(true);
-          return true;
-        } else if (paymentResponse?.razorpay_payment_id) {
-          showToast.success("Payment successful! Enrollment confirmed.");
-          setIsSuccessModalOpen(true);
-          return true;
-        } else {
-          // Re-throw if it's a critical error not handled by fallbacks
-          throw apiError;
-        }
-      }
-    } catch (error: any) {
-      console.error("Overall enrollCourse error:", error);
-      showToast.error(error.response?.data?.message || "Failed to enroll in the course. Please contact support.");
-      return false;
+        },
+        onFail: (err) => {
+          console.error("Enrollment failed:", err);
+          showToast.error("Error enrolling in the course. Please try again!");
+        },
+      });
+    } catch (error) {
+      console.error("Error enrolling course:", error);
+      showToast.error("Something went wrong! Please try again later.");
     }
   };
 
@@ -1524,7 +1396,12 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       }
     } catch (err: any) {
       console.error("Enrollment process error:", err);
-      setError(err.message || "An unexpected error occurred during enrollment.");
+      // Check for 401 Unauthorized error specifically
+      if (err.response && err.response.status === 401) {
+        setError("Authentication required. Please login to enroll.");
+      } else {
+        setError(err.message || "An unexpected error occurred during enrollment.");
+      }
       showToast.error(err.message || "Enrollment failed. Please try again or contact support.");
     } finally {
       setLoading(false);
@@ -1551,10 +1428,10 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     router.push('/dashboards/my-courses');
   };
 
-  // Handle course features
-  // Only use features if provided by courseDetails
+  // Handle course features - only compute if needed
   const courseFeatures = useMemo(() => {
-    return courseDetails?.features || [];
+    if (!courseDetails?.features) return [];
+    return courseDetails.features;
   }, [courseDetails?.features]);
 
   // Handle enrollment type change
@@ -1581,29 +1458,126 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
 
   // Check if course is live class
   const isLiveClass = useMemo(() => {
-    return !!(
-      (courseDetails?.classType && courseDetails.classType.toLowerCase().includes('Live Courses')) ||
-      (courseDetails?.class_type && courseDetails.class_type.includes('Live Courses')) ||
-      (courseDetails?.course_type && courseDetails.course_type.toLowerCase().includes('Live Courses')) ||
-      (courseDetails?.delivery_format && courseDetails.delivery_format.toLowerCase().includes('Live Courses')) ||
-      (courseDetails?.delivery_type && courseDetails.delivery_type.toLowerCase().includes('Live Courses'))
+    const cd = courseDetails as any;
+    const fields = [
+      cd?.classType,
+      cd?.class_type,
+      cd?.courseType,
+      cd?.course_type,
+      cd?.deliveryFormat,
+      cd?.delivery_format,
+      cd?.deliveryType,
+      cd?.delivery_type,
+      cd?.categoryType,
+      cd?.category_type,
+      cd?.course_title,
+      cd?.title,
+      cd?.course_category,
+      cd?.category,
+      cd?.course_subcategory,
+      cd?.subcategory,
+    ];
+    if (cd) {
+      console.log('LIVE DETECT FIELDS:', fields, 'ALL KEYS:', Object.keys(cd));
+    } else {
+      console.log('LIVE DETECT FIELDS:', fields, 'cd is null/undefined');
+    }
+    return fields.some(
+      (field) => typeof field === 'string' && field.toLowerCase().includes('live')
     );
   }, [
-    courseDetails?.classType, 
-    courseDetails?.class_type, 
-    courseDetails?.course_type,
-    courseDetails?.delivery_format,
-    courseDetails?.delivery_type
+    (courseDetails as any)?.classType,
+    (courseDetails as any)?.class_type,
+    (courseDetails as any)?.courseType,
+    (courseDetails as any)?.course_type,
+    (courseDetails as any)?.deliveryFormat,
+    (courseDetails as any)?.delivery_format,
+    (courseDetails as any)?.deliveryType,
+    (courseDetails as any)?.delivery_type,
+    (courseDetails as any)?.categoryType,
+    (courseDetails as any)?.category_type,
+    (courseDetails as any)?.course_title,
+    (courseDetails as any)?.title,
+    (courseDetails as any)?.course_category,
+    (courseDetails as any)?.category,
+    (courseDetails as any)?.course_subcategory,
+    (courseDetails as any)?.subcategory,
   ]);
 
-  if (error) {
-    return (
-      <ErrorFallback 
-        error={error} 
-        resetErrorBoundary={() => setError(null)} 
-      />
-    );
-  }
+  // Calculate course duration in months for EMI planning
+  const courseDurationInMonths = useMemo((): number => {
+    if (!courseDetails?.course_duration) return 6; // Default 6 months
+    const durationStr = courseDetails.course_duration.toLowerCase();
+    // Find all numbers before 'month' or 'months'
+    const matches = Array.from(durationStr.matchAll(/(\d+)\s*month/gi));
+    if (matches.length > 0) {
+      // Use the first match (lowest duration)
+      return parseInt(matches[0][1]);
+    }
+    return 6;
+  }, [courseDetails?.course_duration]);
+
+  // Generate smart EMI plans
+  const generateEMIPlans = useCallback((totalAmount: number): EMIDetails[] => {
+    if (!isLiveClass || totalAmount <= 0) return [];
+
+    const plans: EMIDetails[] = [];
+    const maxInstallments = Math.min(courseDurationInMonths, 12); // Max 12 months or course duration
+    const minInstallments = 3; // Minimum 3 installments
+    
+    // Generate plans for 3, 6, 9, 12 months (within course duration)
+    const planDurations = [3, 6, 9, 12].filter(months => months <= maxInstallments && months >= minInstallments);
+    
+    planDurations.forEach(months => {
+      const processingFee = Math.min(totalAmount * 0.02, 500); // 2% or max ₹500
+      const interestRate = months <= 3 ? 8 : months <= 6 ? 12 : 15; // Progressive interest
+      const downPaymentPercent = months <= 3 ? 20 : months <= 6 ? 25 : 30; // Higher down payment for longer terms
+      
+      const downPayment = Math.round(totalAmount * (downPaymentPercent / 100));
+      const remainingAmount = totalAmount - downPayment + processingFee;
+      const monthlyInterest = interestRate / 12 / 100;
+      
+      // Calculate EMI using standard formula
+      const emiAmount = Math.round(
+        (remainingAmount * monthlyInterest * Math.pow(1 + monthlyInterest, months)) /
+        (Math.pow(1 + monthlyInterest, months) - 1)
+      );
+      
+      const totalWithInterest = downPayment + (emiAmount * months);
+      
+      plans.push({
+        isEMI: true,
+        numberOfInstallments: months,
+        downPayment,
+        installmentAmount: emiAmount,
+        interestRate,
+        processingFee,
+        totalAmount: totalWithInterest,
+        maxInstallments,
+        courseDurationMonths: courseDurationInMonths
+      });
+    });
+    
+    return plans;
+  }, [isLiveClass, courseDurationInMonths]);
+
+  // Update EMI plans when price changes
+  useEffect(() => {
+    const basePrice = getFinalPriceWithCoupon();
+    console.log('EMI basePrice:', basePrice, 'activePricing:', activePricing, 'courseDetails:', courseDetails, 'isLiveClass:', isLiveClass);
+    if (isLiveClass && !courseDetails?.isFree) {
+      if (basePrice > 3000) { // Only offer EMI for amounts > ₹3000
+        const plans = generateEMIPlans(basePrice);
+        // setAvailableEMIPlans(plans); // This state is no longer needed
+        // setSelectedEMIPlan(null); // This state is no longer needed
+        // setShowEMIOptions(false); // This state is no longer needed
+      } else {
+        // setAvailableEMIPlans([]); // This state is no longer needed
+        // setSelectedEMIPlan(null); // This state is no longer needed
+        // setShowEMIOptions(false); // This state is no longer needed
+      }
+    }
+  }, [isLiveClass, courseDetails?.isFree, getFinalPriceWithCoupon, generateEMIPlans]);
 
   // Calculate any discount percentage to display
   const discountPercentage = activePricing ? (
@@ -1614,9 +1588,6 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
         : activePricing.early_bird_discount || 0)
   ) : 0;
 
-  // Get the final price for display
-  const finalPrice = getFinalPrice();
-  
   // Determine original price (before discount) if applicable
   const originalPrice = useMemo(() => {
     if (!activePricing) return null;
@@ -1633,6 +1604,51 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   // Check if current user is test user
   const isTestUser = userId === '67cfe3a9a50dbb995b4d94da';
 
+  // Handle when no course is selected
+  if (!courseDetails) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden max-w-md mx-auto lg:max-w-none">
+        <div className="p-6 text-center">
+          <div className="text-gray-500 dark:text-gray-400">
+            <GraduationCap className="w-12 h-12 mx-auto mb-4" />
+            <p className="text-lg font-medium">Select a course to view enrollment details</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    // Special handling for 'Authentication required' error to show 'Login to Enroll' button
+    if (error === "Authentication required. Please login to enroll.") {
+      return (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden max-w-md mx-auto lg:max-w-none">
+          <div className="p-6 text-center">
+            <div className="flex justify-center mb-4">
+              <Lock className="w-12 h-12 text-blue-500 dark:text-blue-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">Login Required</h3>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-6">
+              Please log in to your account to enroll in this course and access all features.
+            </p>
+            <button
+              onClick={() => router.push(`/login?redirect=/course-details/${courseDetails?._id}`)}
+              className="w-full py-3 px-6 rounded-lg font-semibold text-base bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200 shadow-md"
+            >
+              Login to Enroll
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <ErrorFallback 
+        error={error} 
+        resetErrorBoundary={() => setError(null)} 
+      />
+    );
+  }
+
   return (
     <>
       {/* Test Mode Banner */}
@@ -1647,7 +1663,6 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           </p>
         </div>
       )}
-      
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden max-w-md mx-auto lg:max-w-none">
         {/* Header section */}
         <div className={`px-6 py-4 ${bgClass} border-b ${borderClass} flex items-center justify-between`}>
@@ -1657,7 +1672,6 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               {isBlendedCourse ? 'Enrollment' : 'Enrollment Options'}
             </h3>
           </div>
-          
           <div className="flex items-center gap-2">
             {/* Enhanced Wishlist Button */}
             <button
@@ -1675,7 +1689,6 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               {isInWishlist && (
                 <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-pink-400 to-rose-400 blur-md opacity-60 animate-pulse" />
               )}
-              
               <div className="relative flex items-center gap-2">
                 {wishlistLoading ? (
                   <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -1696,7 +1709,6 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                   </>
                 )}
               </div>
-              
               {/* Floating Heart Animation */}
               {isInWishlist && (
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full flex items-center justify-center shadow-sm">
@@ -1704,7 +1716,6 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                 </div>
               )}
             </button>
-
             {/* Share Button */}
             <button
               onClick={async () => {
@@ -1723,19 +1734,20 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             </button>
           </div>
         </div>
-        
         <div className="p-6 space-y-6">
           {/* Enrollment Type Selection */}
-          <EnrollmentTypeSelector 
-            enrollmentType={enrollmentType}
-            onTypeChange={handleEnrollmentTypeChange}
-            activePricing={activePricing}
-            formatPriceDisplay={formatPriceDisplay}
-            colorClass={colorClass}
-            bgClass={bgClass}
-            isBlendedCourse={isBlendedCourse}
-          />
-          
+          {/* Only show EnrollmentTypeSelector for non-blended courses */}
+          {!isBlendedCourse && (
+            <EnrollmentTypeSelector 
+              enrollmentType={enrollmentType}
+              onTypeChange={handleEnrollmentTypeChange}
+              activePricing={activePricing}
+              formatPriceDisplay={formatPriceDisplay}
+              colorClass={colorClass}
+              bgClass={bgClass}
+              isBlendedCourse={isBlendedCourse}
+            />
+          )}
           {/* Free Course Price Display */}
           {courseDetails?.isFree && (
             <motion.div
@@ -1752,15 +1764,22 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
                 </h4>
               </div>
               <div className={`p-3 rounded-full ${bgClass} shadow-md`}>
-                <CreditCard className={`w-6 h-6 ${colorClass}`} />
+                <CreditCard className={colorClass} />
               </div>
             </motion.div>
           )}
-
-          {/* Payment Summary */}
-          {!courseDetails?.isFree && !isBlendedCourse ? (
+          {/* Payment Summary - unified for all paid courses */}
+          {!courseDetails?.isFree && activePricing && (
             <PricingSummary
-              originalPrice={originalPrice || getFinalPrice()}
+              originalPrice={(() => {
+                // For discount display: show slashed price if discount exists
+                const base = isBlendedCourse
+                  ? Math.round(activePricing.individual * 1.3)
+                  : (enrollmentType === 'individual' ? Math.round(activePricing.individual * 1.3) : Math.round(activePricing.batch * 1.3));
+                // Only show slashed price if discount exists
+                const final = appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice();
+                return (base > final) ? base : final;
+              })()}
               finalPrice={appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice()}
               currency={getDisplayCurrencySymbol()}
               discountAmount={originalPrice ? (originalPrice - getFinalPrice()) : 0}
@@ -1768,15 +1787,12 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               selectedInstallmentPlan={selectedInstallmentPlan}
               appliedCoupon={appliedCoupon}
               couponDiscount={appliedCoupon ? calculateCouponDiscount() : 0}
+              isBlendedCourse={isBlendedCourse}
+              realPrice={activePricing.individual}
             />
-          ) : null}
-
+          )}
           {/* Session Information */}
-          <SessionInfoCard 
-            sessionCount={courseDetails?.no_of_Sessions || 0}
-            isLiveClass={isLiveClass}
-          />
-
+          {/* SessionInfoCard component removed */}
           {/* Coupon Section */}
           {!courseDetails?.isFree && (
             <CouponSection 
@@ -1792,69 +1808,122 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               getDisplayCurrencySymbol={getDisplayCurrencySymbol}
             />
           )}
-          
-          {/* Enrollment Button */}
-          <div className="space-y-4">
-            <EnrollmentButton 
-              isLoggedIn={isLoggedIn}
-              loading={loading}
-              courseDetails={courseDetails}
-              isTestUser={isTestUser}
-              selectedInstallmentPlan={selectedInstallmentPlan}
-              appliedCoupon={appliedCoupon}
-              getFinalPriceWithCoupon={getFinalPriceWithCoupon}
-              getFinalPrice={getFinalPrice}
-              formatPriceDisplay={formatPriceDisplay}
-              handleEnrollClick={handleEnrollClick}
-              disabled={!courseDetails?._id || loading}
-            />
-
-            {/* Test Card Information */}
-            {!courseDetails?.isFree && isTestUser && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/10 dark:to-indigo-900/10 border border-purple-200 dark:border-purple-700 rounded-xl p-4"
-              >
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-semibold text-purple-800 dark:text-purple-200">
-                    🧪 Test Payment Cards
-                  </span>
+          {/* EMI Selector - always show if used in [categoryname]/page.tsx and price > 0 */}
+          {(() => {
+            // Detect if running inside [categoryname]/page.tsx by checking for a global marker or prop (if available)
+            // Since we can't check parent directly, always show EMISelector if price > 0
+            const emiEligible = !courseDetails?.isFree && (appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice()) > 0;
+            return emiEligible ? (
+              <EMISelector
+                totalAmount={appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice()}
+                courseDurationMonths={courseDurationInMonths}
+                selectedMonths={selectedEMIMonths}
+                onSelectMonths={setSelectedEMIMonths}
+                getDisplayCurrencySymbol={getDisplayCurrencySymbol}
+              />
+            ) : null;
+          })()}
+          {/* Razorpay Payment Button (Reusable) */}
+          {!courseDetails?.isFree && (
+            initialLoading || isPricingLoading ? (
+              <ModernLoadingState message="Loading enrollment options..." />
+            ) : (
+              !isLoggedIn && activePricing ? (
+                <button
+                  onClick={() => router.push(`/login?redirect=/course-details/${courseDetails?._id}`)}
+                  className="w-full py-4 px-6 rounded-2xl font-semibold text-lg flex items-center justify-center gap-3 shadow-lg transition-all duration-300 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-800 text-white shadow-blue-500/25"
+                >
+                  <Lock className="w-6 h-6" /> Login to Enroll
+                </button>
+              ) : activePricing ? (
+                <RazorpayCheckout
+                  amount={(() => {
+                    if (selectedEMIMonths && selectedEMIMonths > 0) {
+                      // For EMI, pay the first month's installment now
+                      return Math.ceil((appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice()) / selectedEMIMonths);
+                    }
+                    return Math.round(appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice());
+                  })()}
+                  courseId={courseDetails._id}
+                  enrollmentType={enrollmentType}
+                  paymentType="course"
+                  isSelfPaced={false}
+                  onSuccess={() => {
+                    // Use setTimeout to avoid setting state during render
+                    setTimeout(() => {
+                      setIsSuccessModalOpen(true);
+                      showToast.success('Successfully enrolled in the course!');
+                    }, 0);
+                  }}
+                  onError={(message) => {
+                    // Use setTimeout to avoid setting error during render
+                    setTimeout(() => {
+                      setError(message);
+                      showToast.error(message);
+                    }, 0);
+                  }}
+                  buttonText={isTestUser
+                    ? (selectedEMIMonths && selectedEMIMonths > 0
+                        ? `Test Pay 1st EMI ₹${Math.ceil((appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice()) / selectedEMIMonths).toLocaleString()}`
+                        : `Test Pay ₹${(appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice()).toLocaleString()}`)
+                    : (selectedEMIMonths && selectedEMIMonths > 0
+                        ? `Pay 1st EMI ₹${Math.ceil((appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice()) / selectedEMIMonths).toLocaleString()}`
+                        : `Pay ₹${(appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice()).toLocaleString()}`)
+                  }
+                  className="w-full py-4 px-6 rounded-2xl font-semibold text-lg flex items-center justify-center gap-3 shadow-lg transition-all duration-300 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-800 text-white shadow-blue-500/25"
+                  currency={activePricing.currency}
+                  originalPrice={activePricing.individual}
+                  priceId={activePricing._id}
+                />
+              ) : (
+                <div className="text-center text-red-500 dark:text-red-400 py-4">
+                  <AlertTriangle className="w-8 h-8 mx-auto mb-2" />
+                  <p>Pricing information unavailable. Please try again later.</p>
                 </div>
-                
-                <div className="text-sm text-purple-700 dark:text-purple-300 space-y-1">
-                  <div><strong>Success:</strong> 4111 1111 1111 1111</div>
-                  <div><strong>CVV:</strong> Any 3 digits | <strong>Expiry:</strong> Any future date</div>
-                  <div className="text-purple-600 dark:text-purple-400 mt-2">
-                    💡 Use these test cards for successful payment testing
-                  </div>
+              )
+            )
+          )}
+          {/* Test Card Information */}
+          {!courseDetails?.isFree && isTestUser && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/10 dark:to-indigo-900/10 border border-purple-200 dark:border-purple-700 rounded-xl p-4"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-semibold text-purple-800 dark:text-purple-200">
+                  🧪 Test Payment Cards
+                </span>
+              </div>
+              <div className="text-sm text-purple-700 dark:text-purple-300 space-y-1">
+                <div><strong>Success:</strong> 4111 1111 1111 1111</div>
+                <div><strong>CVV:</strong> Any 3 digits | <strong>Expiry:</strong> Any future date</div>
+                <div className="text-purple-600 dark:text-purple-400 mt-2">
+                  💡 Use these test cards for successful payment testing
                 </div>
-              </motion.div>
-            )}
-
-            {/* Payment Security Info */}
-            {!courseDetails?.isFree && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-              >
-                <PaymentSecurityInfo isTestUser={isTestUser} />
-              </motion.div>
-            )}
-          </div>
-          
-          {/* Fast Track Option: Only for live courses */}
-          {isLiveClass && (
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-              <FastTrackInfo />
-            </div>
+              </div>
+            </motion.div>
+          )}
+          {/* Payment Security Info */}
+          {!courseDetails?.isFree && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              <PaymentSecurityInfo isTestUser={isTestUser} />
+            </motion.div>
           )}
         </div>
+        {/* Fast Track Option: Only for live courses */}
+        {isLiveClass && (
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <FastTrackInfo />
+          </div>
+        )}
       </div>
-
       {/* Success Modal */}
       <SuccessModal 
         isOpen={isSuccessModalOpen}
@@ -1865,6 +1934,6 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       />
     </>
   );
-};
+}
 
 export default EnrollmentDetails;
