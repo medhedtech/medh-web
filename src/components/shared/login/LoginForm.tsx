@@ -145,6 +145,7 @@ interface MFAStepProps {
 
 interface LoginFormProps {
   redirectPath?: string;
+  popupMode?: boolean;
 }
 
 const schema = yup
@@ -160,7 +161,7 @@ const schema = yup
   })
   .required();
 
-const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, popupMode = false }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get('redirect') || searchParams.get('from') || '';

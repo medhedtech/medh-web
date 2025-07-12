@@ -8,7 +8,7 @@ import NavbarLogo from "./NavbarLogo";
 import DashboardProfileComponent from "./DashboardProfileComponent";
 import NavItems2 from "./NavItems2";
 import useIsTrue from "@/hooks/useIsTrue";
-import NavbarTop from "./NavbarTop";
+import { NavbarTop } from './NavbarTop';
 import NavbarSearch from "@/components/shared/search/NavbarSearch";
 
 interface NavbarProps {
