@@ -275,8 +275,9 @@ const QuickLoginAccounts: React.FC<QuickLoginAccountsProps> = ({
                 <>🔐 Password required for all accounts</>
               )}
             </span>
+            {/* Removed: Security: 3-day limit text as per user request */}
             <span className="text-blue-600 dark:text-blue-400 text-xs">
-              Security: 3-day limit
+              Security: No time limit
             </span>
           </div>
         </div>
