@@ -231,4 +231,30 @@ export const getRazorpayConfigForCurrency = async (
 // USD to INR conversion rate (can be updated or fetched dynamically in production)
 export const USD_TO_INR_RATE = 84.47;
 
+// Add helper to select the correct Razorpay key (test/live/user)
+export const getRazorpayKey = (userId?: string): string => {
+  const testKey = process.env.NEXT_PUBLIC_RAZORPAY_TEST_KEY || "rzp_test_REPLACE_ME";
+  const env = process.env.NEXT_PUBLIC_RAZORPAY_ENV || "live";
+  if (env.toLowerCase() === "test") {
+    if (!testKey || testKey.includes("REPLACE_ME")) return RAZORPAY_CONFIG.key;
+    return testKey;
+  }
+  if (userId === "67cfe3a9a50dbb995b4d94da") {
+    if (!testKey || testKey.includes("REPLACE_ME")) return RAZORPAY_CONFIG.key;
+    return testKey;
+  }
+  return RAZORPAY_CONFIG.key;
+};
+
+// Unified config getter for all payment flows
+export const getRazorpayConfig = (userId?: string, overrides: Partial<RazorpayConfig> = {}) => {
+  const key = getRazorpayKey(userId);
+  return {
+    ...RAZORPAY_CONFIG,
+    ...overrides,
+    key,
+    testMode: key !== RAZORPAY_CONFIG.key,
+  };
+};
+
 export default RAZORPAY_CONFIG;

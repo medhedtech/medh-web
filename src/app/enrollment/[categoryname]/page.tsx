@@ -412,7 +412,8 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
     openRazorpayCheckout, 
     isScriptLoaded, 
     isLoading: razorpayLoading, 
-    error: razorpayError 
+    error: razorpayError,
+    processPayment
   } = useRazorpay();
   
   // Local currency handling - improved to avoid USD flash
@@ -1902,27 +1903,84 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
   // Display formatted price in the UI (now uses the local formatPrice function)
   // The formatPrice function is defined above with currency handling
 
+  // Add enrollCourse helper
+  const enrollCourse = async (studentId, courseId, paymentResponse = {}) => {
+    try {
+      const enrollmentData = {
+        student_id: studentId,
+        course_id: courseId,
+        payment_information: {
+          ...paymentResponse,
+          payment_method: paymentResponse?.razorpay_payment_id ? 'razorpay' : 'free',
+        },
+      };
+      const response = await axios.post(`${apiBaseUrl}/enrolled/create`, enrollmentData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.status === 201 || response.status === 200) {
+        toast.success("Successfully enrolled in the course!");
+        router.push('/dashboards/my-courses');
+        return true;
+      } else {
+        throw new Error(response.data?.message || "Failed to enroll in the course.");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to enroll in the course. Please contact support.");
+      return false;
+    }
+  };
+
   // Handle enrollment click action
-  const handleEnrollClick = async (data: any) => {
+  const handleEnrollClick = async (data) => {
     try {
       if (!selectedCourse) {
         toast.error('Please select a course first');
         return;
       }
-
-      // If user is not logged in, redirect to login
-      const isLoggedIn = localStorage.getItem('token');
-      if (!isLoggedIn) {
-        router.push(`/login?redirect=${encodeURIComponent(pathname)}&course=${selectedCourse._id}`);
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        toast.error('Please login to enroll in this course');
+        router.push('/login');
         return;
       }
-
-      // Handle enrollment logic here
-      toast.success('Proceeding to enrollment...');
-      
+      if (selectedCourse.isFree || selectedCourse.course_fee === 0) {
+        await enrollCourse(userId, selectedCourse._id);
+        return;
+      }
+      // Paid course: trigger Razorpay
+      const price = selectedCourse.prices && selectedCourse.prices.length > 0
+        ? (selectedCourse.prices.find((p) => p.is_active) || selectedCourse.prices[0]).individual
+        : selectedCourse.course_fee;
+      const currency = selectedCourse.prices && selectedCourse.prices.length > 0
+        ? (selectedCourse.prices.find((p) => p.is_active) || selectedCourse.prices[0]).currency || 'INR'
+        : 'INR';
+      const paymentPayload = {
+        amount: Math.round(price * 100),
+        currency,
+        payment_type: 'course',
+        productInfo: {
+          item_name: selectedCourse.title,
+          description: `Payment for ${selectedCourse.title}`,
+        },
+        course_id: selectedCourse._id,
+        enrollment_type: data?.enrollmentType || 'individual',
+        price_id: data?.priceId,
+        original_currency: currency,
+      };
+      await processPayment(
+        paymentPayload,
+        async (paymentData) => {
+          await enrollCourse(userId, selectedCourse._id, paymentData);
+        },
+        (errorMessage) => {
+          toast.error(errorMessage || 'Payment failed. Please try again.');
+        }
+      );
     } catch (error) {
-      console.error('Enrollment error:', error);
-      toast.error('Failed to process enrollment. Please try again.');
+      toast.error(error.message || 'Failed to process enrollment. Please try again.');
     }
   };
 
@@ -2105,30 +2163,32 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
                         )}
 
                         {/* Mobile & Desktop Enrollment Details */}
-                        {(selectedCourse || (filteredCourses.length === 0 && lastValidCourse)) && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.2 }}
-                            className="flex-grow"
-                          >
-                            {/* Mobile: Edge-to-edge styling, Desktop: Card styling */}
-                            <div className="bg-white dark:bg-gray-800 border-0 lg:border border-gray-200 dark:border-gray-700 rounded-none lg:rounded-lg shadow-none lg:shadow-sm">
-                              <EnrollmentDetails 
-                                courseDetails={transformCourseToDetails(selectedCourse || lastValidCourse)}
-                                categoryInfo={isCourseView ? {
-                                  displayName: (selectedCourse || lastValidCourse)?.category,
-                                  colorClass: 'blue',
-                                  bgClass: 'bg-blue-50',
-                                  borderClass: 'border-blue-200'
-                                } : categoryInfo}
-                                onEnrollClick={handleEnrollClick}
-                                currencyCode={userCurrency}
-                                formatPriceFunc={formatPrice}
-                              />
-                            </div>
-                          </motion.div>
-                        )}
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ 
+                            opacity: (selectedCourse || (filteredCourses.length === 0 && lastValidCourse)) ? 1 : 0, 
+                            y: (selectedCourse || (filteredCourses.length === 0 && lastValidCourse)) ? 0 : 20 
+                          }}
+                          transition={{ duration: 0.5, delay: 0.2 }}
+                          className="flex-grow"
+                        >
+                          {/* Mobile: Edge-to-edge styling, Desktop: Card styling */}
+                          <div className="bg-white dark:bg-gray-800 border-0 lg:border border-gray-200 dark:border-gray-700 rounded-none lg:rounded-lg shadow-none lg:shadow-sm">
+                            <EnrollmentDetails 
+                              key="enrollment-details"
+                              courseDetails={(selectedCourse || lastValidCourse) ? transformCourseToDetails(selectedCourse || lastValidCourse) : null}
+                              categoryInfo={isCourseView ? {
+                                displayName: (selectedCourse || lastValidCourse)?.category,
+                                colorClass: 'blue',
+                                bgClass: 'bg-blue-50',
+                                borderClass: 'border-blue-200'
+                              } : categoryInfo}
+                              onEnrollClick={handleEnrollClick}
+                              currencyCode={userCurrency}
+                              formatPriceFunc={formatPrice}
+                            />
+                          </div>
+                        </motion.div>
                       </div>
                     </div>
                   </div>
