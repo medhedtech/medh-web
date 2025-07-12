@@ -43,36 +43,39 @@ const skillsList: ISkill[] = [
   }
 ];
 
-const futureReadyCards = [
+const benefits = [
   {
-    title: "Make students think on their feet",
-    description: "Equip students to handle emergencies and adapt quickly in a fast-paced world.",
     icon: CheckCircle2,
+    title: "Promotes independence",
+    description: "Students learn to think and act for themselves."
   },
   {
-    title: "Inspire students to take calculated risks",
-    description: "Encourage thoughtful risk-taking to build confidence and adaptability.",
     icon: CheckCircle2,
+    title: "Enhances creativity & teamwork",
+    description: "Fosters creative problem-solving and collaboration."
   },
   {
-    title: "Encourage students to be more creative",
-    description: "Foster creativity by pushing beyond comfort zones and sharing new ideas.",
     icon: CheckCircle2,
+    title: "Develops social skills",
+    description: "Builds empathy, leadership, and cooperation."
+  },
+];
+
+const strategies = [
+  {
+    icon: CheckCircle2,
+    title: "Think on their feet",
+    description: "Adapt quickly and handle emergencies."
   },
   {
-    title: "Identify specific future-ready skills in children",
-    description: "Help teachers tailor learning to develop essential, in-demand skills.",
     icon: CheckCircle2,
+    title: "Be more creative",
+    description: "Push beyond comfort zones and share ideas."
   },
   {
-    title: "Introduce a student-led learning approach",
-    description: "Empower students to take part in decisions and shape their learning journey.",
     icon: CheckCircle2,
-  },
-  {
-    title: "Make communication an essential part of their journey",
-    description: "Teach clear, confident communication for success in modern education.",
-    icon: CheckCircle2,
+    title: "Make communication essential",
+    description: "Teach clear, confident expression."
   },
 ];
 
@@ -95,101 +98,73 @@ const itemVariants = {
 
 const AdvanceEducational: React.FC = () => {
   return (
-    <>
-      <section className="w-full bg-slate-50 dark:bg-slate-900 py-12 md:py-16 lg:py-20">
-        {/* Simplified background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-transparent to-violet-50/30 dark:from-blue-950/10 dark:via-transparent dark:to-violet-950/10 pointer-events-none" />
-        
-        <div className="relative z-10 w-full px-4 sm:px-6 md:px-8 lg:px-12">
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={containerVariants}
-          >
-            {/* Header Section */}
-            <motion.div 
-              variants={itemVariants}
-              className="text-center mb-12 md:mb-16"
-            >
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-blue-100 to-violet-100 dark:from-blue-900/30 dark:to-violet-900/30 text-blue-700 dark:text-blue-300 text-xs sm:text-sm font-semibold rounded-full mb-6 backdrop-blur-sm border border-blue-200/50 dark:border-blue-700/50">
+    <section className="w-full bg-white dark:bg-slate-800 pt-0 pb-8 px-8">
+      {/* Divider from previous section */}
+      <div className="w-full border-t border-slate-200 dark:border-slate-700 mt-12 mb-12" />
+      <div className="w-full">
+        <div className="w-full px-0">
+          <div className="w-full p-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl">
+            {/* Header */}
+            <div className="text-center mb-10 md:mb-14">
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-blue-100 to-violet-100 dark:from-blue-900/30 dark:to-violet-900/30 text-blue-700 dark:text-blue-300 text-xs sm:text-sm font-semibold rounded-full mb-5 backdrop-blur-sm border border-blue-200/50 dark:border-blue-700/50">
                 <Award className="w-3 h-3 sm:w-4 sm:h-4" />
                 Future-Ready Education
               </span>
-              
-              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-slate-100 leading-tight">
-                Creating future-ready students through{" "}
-                <span className="text-[#3bac63]">advanced educational approaches</span>
+              <h2 className="text-base sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 leading-tight mb-3">
+                Creating future-ready students through <span className="text-[#3bac63]">advanced educational approaches</span>
               </h2>
-            </motion.div>
-
-            {/* Content Section */}
-            <motion.div 
-              variants={itemVariants}
-              className="mb-10 md:mb-12"
-            >
-              <div className="max-w-4xl mx-auto text-center mb-8 md:mb-10">
-                <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 leading-relaxed">
-                Education is no longer confined to textbooks and exam preparation. Today, educators focus on developing lifelong skills that go beyond jobs and technology. Here's why skill-based learning is now essential in schools and institutes:
-                </p>
-              </div>
-
-              {/* Skills Grid */}
-              <motion.div 
-                variants={containerVariants}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-10 md:mb-12"
-              >
-                {skillsList.map((skill, index) => (
-                  <motion.div
-                    key={skill.id}
-                    variants={itemVariants}
-                    whileHover={{ scale: 1.02 }}
-                    className="flex items-start space-x-3 sm:space-x-4 p-4 sm:p-5 rounded-xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 group hover:bg-blue-50/80 dark:hover:bg-blue-900/20 hover:border-blue-200/70 dark:hover:border-blue-700/50 transition-all duration-300 shadow-sm hover:shadow-lg"
+              <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+                Why skill-based learning matters—and how to make it real in your school.
+              </p>
+            </div>
+            {/* Benefits Grid */}
+            <div>
+              <h3 className="text-lg sm:text-xl font-semibold text-slate-800 dark:text-slate-100 mb-4 text-center">Why Skill-Based Learning?</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-10">
+                {benefits.map((item, idx) => (
+                  <div
+                    key={item.title}
+                    className="flex items-start gap-4 p-5 rounded-xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 shadow-sm hover:shadow-lg transition-all duration-300 group"
                   >
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-emerald-100 dark:from-blue-900/30 dark:to-emerald-900/30 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                      <CheckCircle2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <span className="text-sm sm:text-base text-slate-700 dark:text-slate-200 font-medium leading-relaxed">
-                      {skill.text}
-                    </span>
-                  </motion.div>
-                ))}
-              </motion.div>
-
-              {/* Future-Ready Cards Grid */}
-              <motion.div
-                variants={containerVariants}
-                className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6"
-              >
-                {futureReadyCards.map((card, idx) => (
-                  <motion.div
-                    key={card.title}
-                    variants={itemVariants}
-                    whileHover={{ scale: 1.02 }}
-                    className="flex items-start space-x-4 p-5 rounded-xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 shadow-sm hover:shadow-lg transition-all duration-300 group"
-                  >
-                    <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-gradient-to-br from-blue-100 to-emerald-100 dark:from-blue-900/30 dark:to-emerald-900/30 group-hover:scale-110 transition-transform duration-300 mt-1">
-                      <card.icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-br from-blue-100 to-emerald-100 dark:from-blue-900/30 dark:to-emerald-900/30 group-hover:scale-110 transition-transform duration-300 mt-1">
+                      <item.icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <h4 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
-                        {card.title}
-                      </h4>
-                      <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300">
-                        {card.description}
-                      </p>
+                      <h4 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-1">{item.title}</h4>
+                      <p className="text-sm text-slate-600 dark:text-slate-300">{item.description}</p>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
-              </motion.div>
-            </motion.div>
-          </motion.div>
+              </div>
+            </div>
+            {/* Divider */}
+            <div className="w-full flex items-center justify-center my-8">
+              <div className="h-0.5 w-24 bg-gradient-to-r from-[#3bac63] to-emerald-400 rounded-full opacity-70" />
+            </div>
+            {/* Strategies Grid */}
+            <div>
+              <h3 className="text-lg sm:text-xl font-semibold text-slate-800 dark:text-slate-100 mb-4 text-center">How to Prepare Students for the Future</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                {strategies.map((item, idx) => (
+                  <div
+                    key={item.title}
+                    className="flex items-start gap-4 p-5 rounded-xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 shadow-sm hover:shadow-lg transition-all duration-300 group"
+                  >
+                    <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-br from-blue-100 to-emerald-100 dark:from-blue-900/30 dark:to-emerald-900/30 group-hover:scale-110 transition-transform duration-300 mt-1">
+                      <item.icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-1">{item.title}</h4>
+                      <p className="text-sm text-slate-600 dark:text-slate-300">{item.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
-      </section>
-
-      {/* Feature Cards Section */}
-      <EducationalFeatureCard />
-    </>
+      </div>
+    </section>
   );
 };
 

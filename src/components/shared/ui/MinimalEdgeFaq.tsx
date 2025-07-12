@@ -18,15 +18,15 @@ const MinimalEdgeFaq: React.FC<MinimalEdgeFaqProps> = ({
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className="bg-slate-50 dark:bg-slate-900 px-4 sm:px-8 md:px-[50px] pb-0 mb-0">
-      <div className="p-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-lg rounded-none sm:rounded-2xl px-2 sm:px-6 md:px-[45px] py-4 sm:py-6 md:py-[28px] mb-[60px]">
-        <h2 className="text-center font-semibold text-base sm:text-lg md:text-2xl mb-3 sm:mb-6 mt-2 sm:mt-4 text-slate-800 dark:text-slate-100">{title}</h2>
+    <section className="bg-slate-50 dark:bg-slate-900 px-0 sm:px-8 md:px-[50px] pb-0 mb-0">
+      <div className="p-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-none sm:shadow-lg rounded-none sm:rounded-2xl px-4 sm:px-6 md:px-[45px] py-6 sm:py-6 md:py-[28px] mb-0 sm:mb-[60px]">
+        <h2 className="text-center font-semibold text-xl sm:text-lg md:text-2xl mb-6 sm:mb-6 mt-0 sm:mt-4 text-slate-800 dark:text-slate-100">{title}</h2>
         <ul className="divide-y divide-slate-200 dark:divide-slate-800">
           {faqs.map((faq, idx) => (
             <li key={idx} className="">
               <button
                 className={
-                  "w-full flex items-start gap-3 py-3 sm:py-4 focus:outline-none transition-colors min-h-[44px] " +
+                  "w-full flex items-start gap-3 py-4 sm:py-4 focus:outline-none transition-colors min-h-[44px] px-2 sm:px-0 " +
                   (openIndex === idx
                     ? "bg-slate-100 dark:bg-slate-800"
                     : "hover:bg-slate-50 dark:hover:bg-slate-800/60")
@@ -41,10 +41,10 @@ const MinimalEdgeFaq: React.FC<MinimalEdgeFaqProps> = ({
                         className: ((faq.icon as React.ReactElement).props.className || "") + " text-[#3bac63]",
                         color: "#3bac63",
                       })
-                    : <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-[#3bac63]" />}
+                    : <BookOpen className="w-6 h-6 sm:w-6 sm:h-6 md:w-7 md:h-7 text-[#3bac63]" />}
                 </span>
                 <span className="flex-1 text-left">
-                  <span className="block font-medium text-sm sm:text-base md:text-lg text-slate-900 dark:text-slate-100">
+                  <span className="block font-medium text-base sm:text-base md:text-lg text-slate-900 dark:text-slate-100">
                     {faq.question}
                   </span>
                 </span>
@@ -69,15 +69,15 @@ const MinimalEdgeFaq: React.FC<MinimalEdgeFaqProps> = ({
                 }
                 aria-hidden={openIndex !== idx}
               >
-                <p className="text-slate-700 dark:text-slate-200 text-xs sm:text-sm md:text-base leading-relaxed">
+                <p className="text-slate-700 dark:text-slate-200 text-sm sm:text-sm md:text-base leading-relaxed px-2 sm:px-0">
                   {faq.answer}
                 </p>
               </div>
             </li>
           ))}
         </ul>
-        <div className="mt-4 sm:mt-8 border-t border-slate-200 dark:border-slate-800 pt-3 sm:pt-6 pb-3 sm:pb-4 text-center">
-          <span className="block text-slate-700 dark:text-slate-200 text-xs sm:text-base font-medium">
+        <div className="mt-6 sm:mt-8 border-t border-slate-200 dark:border-slate-800 pt-4 sm:pt-6 pb-4 sm:pb-4 text-center px-2 sm:px-0">
+          <span className="block text-slate-700 dark:text-slate-200 text-sm sm:text-base font-medium">
             {contactText} <a href={`mailto:${contactEmail}`} className="text-[#3bac63] underline font-semibold">{contactEmail}</a>
           </span>
         </div>

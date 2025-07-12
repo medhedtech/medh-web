@@ -393,7 +393,7 @@ const MobileMenu: React.FC<IMobileMenuProps> = ({
         <div className={`${STYLES.iconWrapper} ${bg || ''}`}>
           <Icon className={`h-5 w-5 ${color || 'text-gray-700 dark:text-gray-300'}`} />
         </div>
-        <span className="text-xs font-medium mt-1
+        <span className="text-xs font-medium mt-1 text-center
           text-gray-600 dark:text-gray-400
           group-hover:text-gray-900 dark:group-hover:text-white">
           {label}

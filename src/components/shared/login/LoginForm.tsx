@@ -143,6 +143,10 @@ interface MFAStepProps {
   onResendSMS?: () => void;
 }
 
+interface LoginFormProps {
+  redirectPath?: string;
+}
+
 const schema = yup
   .object({
     email: yup.string().trim().email("Please enter a valid email").required("Email is required"),
@@ -156,11 +160,11 @@ const schema = yup
   })
   .required();
 
-const LoginForm = () => {
+const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get('redirect') || searchParams.get('from') || '';
-  const redirectPath = redirectParam ? decodeURIComponent(redirectParam) : '';
+  const redirectPath = propRedirectPath || (redirectParam ? decodeURIComponent(redirectParam) : '');
   const actionParam = searchParams.get('action') || '';
   const isDemoScheduling = actionParam === 'schedule-demo';
   const { postQuery, loading } = usePostQuery();
@@ -474,7 +478,11 @@ const LoginForm = () => {
         // Check if this is a demo scheduling request
         const shouldRedirectToDemo = isDemoScheduling && !redirectPath;
         const dashboardPath = getRoleBasedRedirectPath(userRole || 'student', shouldRedirectToDemo);
-        const finalRedirectPath = (redirectPath && redirectPath.startsWith('/')) ? redirectPath : dashboardPath;
+        const finalRedirectPath = (propRedirectPath && propRedirectPath.startsWith('/'))
+          ? propRedirectPath
+          : (redirectPath && redirectPath.startsWith('/'))
+            ? redirectPath
+            : dashboardPath;
         
         console.log('User already authenticated, redirecting to:', finalRedirectPath);
         setIsRedirecting(true);
@@ -485,7 +493,7 @@ const LoginForm = () => {
       // User is not authenticated, show the login form
       setIsCheckingAuth(false);
     }
-  }, [router, redirectPath, getRoleBasedRedirectPath]);
+  }, [router, redirectPath, getRoleBasedRedirectPath, propRedirectPath]);
 
   // Enhanced keyboard support for form navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -819,6 +827,13 @@ const LoginForm = () => {
     setIsRedirecting(true);
     try {
       router.push(finalRedirectPath);
+      // If redirecting to membership page, reload and scroll after navigation
+      if (typeof window !== 'undefined' && finalRedirectPath.startsWith('/medh-membership')) {
+        sessionStorage.setItem('scrollToMembershipCard', '1');
+        setTimeout(() => {
+          window.location.reload();
+        }, 100); // Give router.push a moment
+      }
     } catch (redirectError) {
       console.error('Redirect failed:', redirectError);
       // Immediate fallback without setTimeout delay

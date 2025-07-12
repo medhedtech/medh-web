@@ -1,4 +1,5 @@
-import React, { Suspense } from "react";
+"use client";
+import React, { Suspense, useEffect } from "react";
 import { NextPage } from "next";
 import dynamic from "next/dynamic";
 
@@ -55,6 +56,25 @@ const SectionLoader: React.FC<ISectionLoaderProps> = ({ text }) => (
 );
 
 const MembershipPage: NextPage = () => {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const shouldScroll = sessionStorage.getItem('scrollToMembershipCard');
+      if (shouldScroll) {
+        let attempts = 0;
+        const maxAttempts = 20; // 2 seconds (20 x 100ms)
+        const interval = setInterval(() => {
+          const el = document.getElementById('membership-cards');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            sessionStorage.removeItem('scrollToMembershipCard');
+            clearInterval(interval);
+          } else if (++attempts > maxAttempts) {
+            clearInterval(interval);
+          }
+        }, 100);
+      }
+    }
+  }, []);
   return (
     <PageWrapper>
       <MembershipBanner />
