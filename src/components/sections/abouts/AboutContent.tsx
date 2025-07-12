@@ -262,17 +262,8 @@ const AboutContent: React.FC = () => {
           <motion.div variants={fadeInUp} className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4 flex items-center justify-center gap-2">
               Why Choose
-              <span className="inline-flex items-center" style={{lineHeight: 1}}>
-                <Image 
-                  src={require("@/assets/images/logo/medh_logo-Dark+png - Edited 2.png")}
-                  alt="Medh Logo"
-                  width={100}
-                  height={100}
-                  className="h-8 w-auto ml-1"
-                  priority
-                />
-                <span className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white ml-1">?</span>
-              </span>
+              <span className="ml-2 font-extrabold" style={{ color: '#3bac63', letterSpacing: '0.04em' }}>MEDH</span>
+              <span className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white ml-1">?</span>
             </h2>
             <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
               We're not just another learning platform. We're your partners in transformation.

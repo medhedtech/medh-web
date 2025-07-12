@@ -1071,7 +1071,7 @@ const CourseAiOverview: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.5 }}
-            className="text-center md:text-[16px] text-[14px] leading-6 md:leading-7 md:w-[80%] text-gray-600 dark:text-gray-300"
+            className="text-center text-sm md:text-base lg:text-lg leading-relaxed mb-4 md:mb-6 max-w-4xl mx-auto font-medium text-gray-700 dark:text-gray-300"
           >
             Medh's Artificial Intelligence and Data Science course combines advanced AI techniques and technologies with the principles of Data Science. This fusion leverages AI algorithms, models, and tools to efficiently analyze data, extract valuable insights, automate processes, and support data-driven decision-making.
           </motion.p>
