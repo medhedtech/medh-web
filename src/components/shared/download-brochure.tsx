@@ -346,63 +346,63 @@ const DownloadBrochureModal = ({
             <CheckCircle className="w-12 h-12 text-green-500 mb-2" />
             <div className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Brochure Sent!</div>
             <div className="text-sm text-gray-600 dark:text-gray-400 text-center">We've sent the brochure to <span className="font-semibold">{sentEmail || formData.email}</span></div>
-          </div>
+            </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
+              <div>
               <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Full Name</label>
-              <input
-                type="text"
-                id="fullName"
-                name="fullName"
+                  <input
+                    type="text"
+                    id="fullName"
+                    name="fullName"
                 placeholder="Full Name"
-                value={formData.fullName}
-                onChange={handleInputChange}
+                    value={formData.fullName}
+                    onChange={handleInputChange}
                 className={`w-full px-4 py-2 text-sm border ${errors.fullName ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200`}
-              />
+                  />
               {errors.fullName && <span className="text-xs text-red-500">{errors.fullName}</span>}
-            </div>
-            <div>
+              </div>
+              <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email Address</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
                 placeholder="Email Address"
-                value={formData.email}
-                onChange={handleInputChange}
+                    value={formData.email}
+                    onChange={handleInputChange}
                 className={`w-full px-4 py-2 text-sm border ${errors.email ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200`}
-              />
+                  />
               {errors.email && <span className="text-xs text-red-500">{errors.email}</span>}
-            </div>
-            <div>
+              </div>
+              <div>
               <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone Number</label>
               <div className="flex items-center gap-2">
                 <span className="px-3 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-l-lg text-sm text-gray-700 dark:text-gray-300 select-none">+91</span>
-                <input
-                  type="tel"
-                  id="phoneNumber"
-                  name="phoneNumber"
+                    <input
+                      type="tel"
+                      id="phoneNumber"
+                      name="phoneNumber"
                   placeholder="Phone Number"
-                  value={formData.phoneNumber}
-                  onChange={handleInputChange}
+                      value={formData.phoneNumber}
+                      onChange={handleInputChange}
                   className={`w-full px-4 py-2 text-sm border-l-0 border ${errors.phoneNumber ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'} rounded-r-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200`}
                 />
               </div>
               {errors.phoneNumber && <span className="text-xs text-red-500">{errors.phoneNumber}</span>}
             </div>
             <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="agreedToTerms"
-                name="agreedToTerms"
-                checked={formData.agreedToTerms}
-                onChange={handleInputChange}
+                <input
+                  type="checkbox"
+                  id="agreedToTerms"
+                  name="agreedToTerms"
+                  checked={formData.agreedToTerms}
+                  onChange={handleInputChange}
                 className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-              />
+                />
               <label htmlFor="agreedToTerms" className="text-xs text-gray-700 dark:text-gray-300">I agree to receive the brochure and communications from Medh</label>
               {errors.agreedToTerms && <span className="text-xs text-red-500 ml-2">{errors.agreedToTerms}</span>}
-            </div>
+              </div>
             <button
               type="submit"
               disabled={isSubmitting}
