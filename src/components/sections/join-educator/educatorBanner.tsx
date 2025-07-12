@@ -255,7 +255,7 @@ const EducatorBanner: React.FC = () => {
               </div>
                
               <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-center tracking-tight mb-2 sm:mb-3 md:mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Shape Learning Futures Innovatively
+              Educate and Inspire Learners Worldwide
                 <span className="block mt-1 w-full text-center">
                   <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9) translateY(2px)' }}>with</em>
                   <Image 
