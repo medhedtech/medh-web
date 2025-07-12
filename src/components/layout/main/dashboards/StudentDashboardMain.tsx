@@ -34,6 +34,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useIsClient } from "@/utils/hydration";
 import { useSearchParams } from "next/navigation";
+import { apiConfig, endpoints } from "@/config/api";
 
 // Learning Resources component
 const LearningResources: React.FC = () => {
@@ -136,7 +137,8 @@ const StudyGoals: React.FC = () => {
         setError(null);
         
         // Use the goals API endpoint
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/goals/student/${studentId}`);
+        // Import the `endpoints` object from src/config/api.ts
+        const response = await fetch(`${apiConfig.apiUrl}${endpoints.goals.getAllGoals(studentId)}`);
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);

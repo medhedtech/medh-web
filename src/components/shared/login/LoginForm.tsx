@@ -32,7 +32,7 @@ import {
 } from "@/utils/auth";
 import { 
   RememberedAccountsManager, 
-  RememberedAccount,
+  RememberedAccount, 
   hasRememberedAccounts 
 } from "@/utils/rememberedAccounts";
 import QuickLoginAccounts from './QuickLoginAccounts';
@@ -662,7 +662,7 @@ const LoginForm = () => {
   };
 
   // Complete login process after verification
-  const completeLoginProcess = (loginData: LoginResponseData): void => {
+  const completeLoginProcess = (loginData: LoginResponseData, quickLoginKey?: string): void => {
     // Add safety checks for loginData
     if (!loginData || !loginData.id || !loginData.email) {
       console.error('Invalid login data:', loginData);
@@ -786,11 +786,13 @@ const LoginForm = () => {
 
     // Save to new remembered accounts system if remember me is enabled
     if (rememberMe) {
+      console.log('Attempting to save quickLoginKey:', quickLoginKey); // Add this log
       try {
         RememberedAccountsManager.addRememberedAccount({
           email: loginData.email,
           fullName: fullName || loginData.email.split('@')[0],
-          role: userRole
+          role: userRole,
+          quickLoginKey: quickLoginKey // Ensure quickLoginKey is passed here
         });
       } catch (error) {
         console.warn('Failed to save to remembered accounts:', error);
@@ -1234,8 +1236,13 @@ const LoginForm = () => {
     try {
       const loginData: ILoginData = {
         email: data.email,
-        password: data.password
+        password: data.password,
       };
+
+      // Add generate_quick_login_key if rememberMe is enabled
+      if (rememberMe) {
+        (loginData as any).generate_quick_login_key = true;
+      }
 
       await postQuery({
         url: authAPI.local.login,
@@ -1360,7 +1367,10 @@ const LoginForm = () => {
             emailVerified: userData.email_verified
           };
 
-          completeLoginProcess(loginResponseData);
+          // Extract quick_login_key if present in the response
+          const quickLoginKey = res.data?.quick_login_key || null;
+
+          completeLoginProcess(loginResponseData, quickLoginKey);
           setRecaptchaError(false);
           setRecaptchaValue(null);
         },
@@ -1534,9 +1544,88 @@ const LoginForm = () => {
     );
     
     try {
+      let res: any;
+      
+      // Attempt quick login with quickLoginKey first if available and no password explicitly provided
+      if (account.quickLoginKey && !password) {
+        console.log('Attempting quick login with quickLoginKey for email:', account.email);
+        console.log('QuickLoginKey being sent:', account.quickLoginKey); // Log the key being sent
+        try {
+          res = await postQuery({
+            url: authAPI.local.quickLogin,
+            postData: { email: account.email, quick_login_key: account.quickLoginKey },
+            requireAuth: false, // Quick login endpoint is public
+            isLoginRequest: true,
+            disableToast: true, // Handle toasts manually for this specific flow
+          });
+
+          console.log('Quick login API response (res object):', res); // Add this log to inspect the full response
+          console.log('--- Debugging Quick Login Condition ---');
+          console.log('res.data:', res.data);
+          console.log('res.data.access_token:', res.data?.access_token);
+          console.log('res.data.token:', res.data?.token);
+          console.log('--- End Debugging ---');
+
+          // If quick login is successful, the response data will be similar to login
+          // and should contain new access token and possibly new refresh token
+          if (res && res.data && res.data.data && (res.data.data.access_token || res.data.data.token)) {
+            showToast.dismiss(loadingToastId);
+            showToast.success("✅ Welcome back! Logged in with quick login key.", { duration: 2000 });
+            
+            const newQuickLoginKey = res.data.data.quick_login_key; // Corrected path
+
+            // Update the remembered account's quickLoginKey if a new one is issued,
+            // otherwise retain the old one since quick login was successful with it.
+            RememberedAccountsManager.addRememberedAccount({
+              email: account.email,
+              fullName: account.fullName,
+              role: account.role,
+              quickLoginKey: newQuickLoginKey !== null ? newQuickLoginKey : account.quickLoginKey // Preserve if null
+            });
+            
+            completeLoginProcess({
+              id: res.data.data.user.id || '',
+              email: res.data.data.user.email || '',
+              full_name: res.data.data.user.full_name || '',
+              role: res.data.data.user.role || [],
+              permissions: res.data.data.user.permissions || [],
+              access_token: res.data.data.access_token || res.data.data.token, // Corrected path
+              refresh_token: res.data.data.refresh_token || res.data.data.session_id, // Corrected path
+              emailVerified: res.data.data.user.email_verified
+            }, newQuickLoginKey !== null ? newQuickLoginKey : account.quickLoginKey); // Pass the new or existing quickLoginKey
+            return; // Exit after successful quick login
+          } else {
+            console.warn('Quick login key returned invalid data, falling back to password login.', res);
+            setQuickLoginError("Quick login session expired or invalid. Please enter your password.");
+            setShowQuickPassword(true); // Force password entry
+            showToast.dismiss(loadingToastId);
+            return; // Exit as we're now showing password input
+          }
+        } catch (quickLoginError: any) {
+          console.error('Quick login failed, falling back to password login:', quickLoginError);
+          console.log('Full quickLoginError object:', quickLoginError); // Log the full error object
+          const errorMessage = getEnhancedErrorMessage(quickLoginError); // Reuse existing helper
+          showToast.error(`❌ Quick login failed: ${errorMessage}`, { duration: 6000 }); // Show the error to the user
+          setQuickLoginError("Quick login session expired or invalid. Please enter your password.");
+          setShowQuickPassword(true); // Force password entry
+          showToast.dismiss(loadingToastId);
+          return; // Exit as we're now showing password input
+        }
+      }
+
+      // If quick login key not available or failed, proceed with password-based login
+      if (!password) {
+        // If we reach here, it means no quick login key or quick login failed, so we MUST ask for password
+        setQuickLoginError("Please enter your password to continue.");
+        setShowQuickPassword(true); // Force password entry
+        showToast.dismiss(loadingToastId);
+        return; // Exit as we're now showing password input
+      }
+
+      // Conditionally include password in loginData (only if provided)
       const loginData: ILoginData = {
         email: account.email,
-        password: password || '' // For quick login without password, we'll use stored credentials
+        password: password // Password is guaranteed to be here at this point
       };
 
       await postQuery({
@@ -1574,6 +1663,7 @@ const LoginForm = () => {
           const userData = isNestedStructure ? res.data.user : res.data;
           const token = isNestedStructure ? res.data.token : res.data.access_token;
           const refreshToken = isNestedStructure ? res.data.session_id : res.data.refresh_token;
+          const quickLoginKey = res.data?.quick_login_key || null; // Capture quick_login_key from regular login as well
           
           if (!userData || !userData.id || !userData.email) {
             showToast.error("❌ Incomplete user data received. Please try again.", { duration: 5000 });
@@ -1591,10 +1681,26 @@ const LoginForm = () => {
             emailVerified: userData.email_verified
           };
 
-          // Update last used account
+          // Update last used account (and its quickLoginKey if a new one was issued)
           RememberedAccountsManager.setLastUsedAccount(account.email);
+          if (quickLoginKey) {
+            RememberedAccountsManager.addRememberedAccount({
+              email: account.email,
+              fullName: account.fullName,
+              role: account.role,
+              quickLoginKey: quickLoginKey // Update with the new quickLoginKey from login
+            });
+          } else {
+            // If quickLoginKey is not present, remove any old one to ensure password prompt for next login
+            RememberedAccountsManager.addRememberedAccount({
+              email: account.email,
+              fullName: account.fullName,
+              role: account.role,
+              quickLoginKey: undefined
+            });
+          }
           
-          completeLoginProcess(loginResponseData);
+          completeLoginProcess(loginResponseData, quickLoginKey); // Pass quickLoginKey to completeLoginProcess
         },
         onFail: async (error) => {
           showToast.dismiss(loadingToastId);
@@ -1623,7 +1729,8 @@ const LoginForm = () => {
           if (password) {
             // Stay on password form with error
           } else {
-            // Switch to password form for this account
+            // This case should ideally not be hit if quick login key path is taken first
+            // but as a fallback, ensure password form is shown
             setShowQuickPassword(true);
           }
         }
@@ -2048,7 +2155,7 @@ const LoginForm = () => {
               
               {/* Demo scheduling indicator */}
               {isDemoScheduling && (
-                <div className="mt-2 inline-flex items-center px-2.5 py-1 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-full text-xs font-medium text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800">
+                <div className="mt-2 inline-flex items-center px-2.5 py-1 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/20 rounded-full text-xs font-medium text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800">
                   <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5 animate-pulse"></div>
                   Free Demo Class Access
                 </div>
