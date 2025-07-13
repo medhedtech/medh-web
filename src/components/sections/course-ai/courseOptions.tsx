@@ -168,7 +168,7 @@ const CourseOptions: React.FC = () => {
         </div>
 
         {/* Description */}
-        <p className="text-sm md:text-base lg:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-center max-w-4xl mx-auto">
           Comprehensive Learning Path to Master Cutting-Edge Technology and Analytics
         </p>
       </div>

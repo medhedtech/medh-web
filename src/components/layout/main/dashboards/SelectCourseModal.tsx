@@ -817,25 +817,25 @@ export default function SelectCourseModal({
               <span className="text-gray-500 dark:text-gray-400 text-sm">No categories selected</span>
             )}
           </div>
-          <button
-            onClick={handleProceedToPay}
-            disabled={selectedCategories.length === 0 || isProcessing}
-            className={`ml-4 px-6 py-3 rounded-xl font-semibold text-base transition-all duration-300 flex items-center gap-2 shadow-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${
-              selectedCategories.length === 0 || isProcessing
-                ? 'bg-gray-300 dark:bg-gray-600 cursor-not-allowed text-gray-500'
-                : 'bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white'
-            }`}
-            aria-disabled={selectedCategories.length === 0 || isProcessing}
-          >
-            {isProcessing ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <>
-                <span>Pay {amount}</span>
-                <CheckCircle className="w-5 h-5" />
-              </>
-            )}
-          </button>
+            <button
+              onClick={handleProceedToPay}
+              disabled={selectedCategories.length === 0 || isProcessing}
+              className={`ml-4 px-6 py-3 rounded-xl font-semibold text-base transition-all duration-300 flex items-center gap-2 shadow-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                selectedCategories.length === 0 || isProcessing
+                  ? 'bg-gray-300 dark:bg-gray-600 cursor-not-allowed text-gray-500'
+                  : 'bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white'
+              }`}
+              aria-disabled={selectedCategories.length === 0 || isProcessing}
+            >
+              {isProcessing ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  <span>Pay {amount}</span>
+                  <CheckCircle className="w-5 h-5" />
+                </>
+              )}
+            </button>
         </div>
       </div>
     </div>
