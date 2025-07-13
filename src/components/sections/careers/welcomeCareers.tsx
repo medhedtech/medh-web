@@ -327,17 +327,10 @@ const WelcomeCareers: React.FC = () => {
             <span>Join Our Mission</span>
           </span>
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-4 md:mb-6 tracking-tight text-slate-900 dark:text-white flex flex-col items-center gap-2 md:gap-3">
-            <span className="block text-lg sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl text-slate-900 dark:text-white">Welcome to</span>
-            <div className="flex items-center justify-center">
-              <Image
-                src={medhLogo}
-                alt="MEDH Logo"
-                width={58}
-                height={22}
-                className="h-5 sm:h-7 md:h-9 lg:h-11 xl:h-12 w-auto object-contain"
-                priority
-              />
-            </div>
+            <span className="flex flex-row items-center justify-center flex-wrap gap-2 text-lg sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl">
+              <span className="text-slate-900 dark:text-white">Welcome to</span>
+              <span className="font-extrabold" style={{ color: '#3bac63', letterSpacing: '0.04em' }}>MEDH</span>
+            </span>
           </h1>
           <p className="text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed text-slate-600 dark:text-slate-300 max-w-4xl mx-auto">
             Where we are redefining the future of education through innovation and technology. 

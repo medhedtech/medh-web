@@ -225,11 +225,12 @@ const DownloadBrochureModal = ({
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [sentEmail, setSentEmail] = useState<string | null>(null);
 
   useEffect(() => {
     // Optionally pre-fill if user data is available (e.g., from local storage or context)
     const storedName = localStorage.getItem('fullName') || '';
-    const storedEmail = localStorage.getItem('userEmail') || ''; // Changed from 'email' to 'userEmail'
+    const storedEmail = localStorage.getItem('userEmail') || '';
     const storedPhone = localStorage.getItem('phoneNumber') || '';
     setFormData(prev => ({
       ...prev,
@@ -239,10 +240,10 @@ const DownloadBrochureModal = ({
     }));
 
     if (isOpen) {
-      document.body.style.overflow = 'hidden'; // Prevent scrolling on body
+      document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
-      setIsSubmitted(false); // Reset form submission status when closed
+      setIsSubmitted(false);
     }
 
     const handleEscape = (event: KeyboardEvent) => {
@@ -253,7 +254,7 @@ const DownloadBrochureModal = ({
     document.addEventListener('keydown', handleEscape);
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = ''; // Ensure scroll is re-enabled on unmount/close
+      document.body.style.overflow = '';
     };
   }, [isOpen, onClose]);
 
@@ -264,11 +265,11 @@ const DownloadBrochureModal = ({
     } else {
       setFormData({ ...formData, [name]: value });
     }
-    setErrors(prev => ({ ...prev, [name]: undefined })); // Clear error on input change
+    setErrors(prev => ({ ...prev, [name]: undefined }));
   };
 
   const validate = () => {
-    const newErrors: Partial<Record<keyof FormData, string>> = {}; // Corrected: removed extra ">".
+    const newErrors: Partial<Record<keyof FormData, string>> = {};
     if (!formData.fullName.trim()) {
       newErrors.fullName = 'Full name is required';
     }
@@ -277,10 +278,9 @@ const DownloadBrochureModal = ({
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
     }
-    // Updated phone number regex to be more flexible for international numbers
     if (!formData.phoneNumber.trim()) {
       newErrors.phoneNumber = 'Phone number is required';
-    } else if (!/^[0-9\s-()+.]{7,15}$/.test(formData.phoneNumber)) { // Flexible regex for 7-15 digits, spaces, hyphens, parentheses, plus, dot
+    } else if (!/^[0-9\s-()+.]{7,15}$/.test(formData.phoneNumber)) {
       newErrors.phoneNumber = 'Phone number is invalid';
     }
     if (!formData.agreedToTerms) {
@@ -296,25 +296,34 @@ const DownloadBrochureModal = ({
       toast.error("Please correct the errors in the form.");
       return;
     }
-
     setIsSubmitting(true);
     try {
-      // Simulate API call
-      // In a real application, you would send formData to your backend
-      // For example: await axios.post('/api/download-brochure', { ...formData, courseId, brochureId });
-
-      console.log('Form Data Submitted:', { ...formData, courseId, brochureId });
-
-      // Save to local storage for future pre-filling
-      localStorage.setItem('fullName', formData.fullName);
-      localStorage.setItem('email', formData.email);
-      localStorage.setItem('phoneNumber', formData.phoneNumber);
-
+      // POST to the required endpoint
+      const payload = {
+        full_name: formData.fullName,
+        email: formData.email,
+        phone_number: formData.countryCode + formData.phoneNumber,
+        course_title: courseTitle || '',
+      };
+      const response = await fetch('http://localhost:8080/api/v1/broucher/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) throw new Error('Failed to submit brochure request');
+      let emailToShow = formData.email;
+      try {
+        const data = await response.json();
+        if (data && data.email) {
+          emailToShow = data.email;
+        }
+      } catch (err) {
+        // ignore JSON parse error, fallback to form value
+      }
+      setSentEmail(emailToShow);
       setIsSubmitted(true);
       toast.success('Brochure request submitted successfully!');
-      // Optionally, trigger an actual download or send via email from backend
     } catch (error) {
-      console.error('Brochure download error:', error);
       toast.error('Failed to submit brochure request. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -324,206 +333,87 @@ const DownloadBrochureModal = ({
   if (!isOpen) return null;
 
   return ReactDOM.createPortal(
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-      className="fixed inset-0 bg-black/80 z-[1000] flex justify-center overflow-y-auto pt-[10px] pb-4" // pt-[10px] for 10px from top, overflow-y-auto for scrollability
-    >
-      <motion.div
-        initial={{ y: -50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: -50, opacity: 0 }}
-        transition={{ duration: 0.3 }}
-        className={clsx(
-          buildAdvancedComponent.glassCard({ variant: 'default' }), // Apply glassmorphism
-          "relative rounded-xl shadow-2xl p-6 sm:p-8 w-full max-w-lg mx-4 my-auto border border-gray-200 dark:border-gray-700"
-        )}
-      >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200"
-          aria-label="Close"
-        >
-          <X className="h-6 w-6" />
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 relative">
+        <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500">
+          <X className="w-6 h-6 text-gray-500 dark:text-gray-400" />
         </button>
-
-        {!isSubmitted ? (
-          <>
-            <div className="flex items-center justify-center mb-4">
-              <BookOpen className="h-10 w-10 text-blue-600 dark:text-blue-400 mr-3" />
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white text-center">
-                Download Brochure
-              </h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Download Brochure</h2>
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Please fill in your details below to receive the brochure for this course via email.</p>
+        {courseTitle && <div className="mb-4 text-base font-semibold text-primary-700 dark:text-primary-300">{courseTitle}</div>}
+        {isSubmitted ? (
+          <div className="flex flex-col items-center py-8">
+            <CheckCircle className="w-12 h-12 text-green-500 mb-2" />
+            <div className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Brochure Sent!</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400 text-center">We've sent the brochure to <span className="font-semibold">{sentEmail || formData.email}</span></div>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-6">
-              Please fill in your details below to receive the brochure for{' '}
-              <span className="font-semibold text-blue-600 dark:text-blue-400">
-                {courseTitle || course?.title || 'this course'}
-              </span>{' '}
-              via email.
-            </p>
-
-            <form onSubmit={handleSubmit} className="space-y-5">
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="fullName" className="sr-only">
-                  Full Name
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Full Name</label>
                   <input
                     type="text"
                     id="fullName"
                     name="fullName"
+                placeholder="Full Name"
                     value={formData.fullName}
                     onChange={handleInputChange}
-                    placeholder="Full Name"
-                    className={clsx(
-                      "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm",
-                      "dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400",
-                      "py-2 px-3 pl-10", // Consistent padding for all inputs
-                      errors.fullName ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""
-                    )}
-                    disabled={isSubmitting}
+                className={`w-full px-4 py-2 text-sm border ${errors.fullName ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200`}
                   />
-                </div>
-                {errors.fullName && (
-                  <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>
-                )}
+              {errors.fullName && <span className="text-xs text-red-500">{errors.fullName}</span>}
               </div>
-
               <div>
-                <label htmlFor="email" className="sr-only">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email Address</label>
                   <input
                     type="email"
                     id="email"
                     name="email"
+                placeholder="Email Address"
                     value={formData.email}
                     onChange={handleInputChange}
-                    placeholder="Email Address"
-                    className={clsx(
-                      "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm",
-                      "dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400",
-                      "py-2 px-3 pl-10", // Consistent padding for all inputs
-                      errors.email ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""
-                    )}
-                    disabled={isSubmitting}
+                className={`w-full px-4 py-2 text-sm border ${errors.email ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200`}
                   />
-                </div>
-                {errors.email && (
-                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-                )}
+              {errors.email && <span className="text-xs text-red-500">{errors.email}</span>}
               </div>
-
               <div>
-                <label htmlFor="phoneNumber" className="sr-only">
-                  Phone Number
-                </label>
-                <div className="relative flex">
-                  <select
-                    id="countryCode"
-                    name="countryCode"
-                    value={formData.countryCode}
-                    onChange={handleInputChange}
-                    className={clsx(
-                      "py-2 px-3", // Base padding
-                      "border border-gray-300 dark:border-gray-600 rounded-l-md", // Left border and rounded left
-                      "bg-white dark:bg-gray-700 text-gray-900 dark:text-white",
-                      "focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base",
-                      isSubmitting ? "opacity-50 cursor-not-allowed" : ""
-                    )}
-                    disabled={isSubmitting}
-                  >
-                    {countryCodes.map((country, index) => (
-                      <option key={`${country.name}-${country.dial_code}-${index}`} value={country.dial_code}>
-                        {country.dial_code}
-                      </option>
-                    ))}
-                  </select>
-                  {/* Phone icon inside the input field */}
-                  <div className="relative flex-grow"> {/* flex-grow to take remaining width */}
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+              <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone Number</label>
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-l-lg text-sm text-gray-700 dark:text-gray-300 select-none">+91</span>
                     <input
                       type="tel"
                       id="phoneNumber"
                       name="phoneNumber"
+                  placeholder="Phone Number"
                       value={formData.phoneNumber}
                       onChange={handleInputChange}
-                      placeholder="Phone Number"
-                      className={clsx(
-                        "block w-full rounded-r-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm", // Right border and rounded right
-                        "dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400",
-                        "py-2 pr-3 pl-10", // Consistent padding, more padding-left for icon
-                        errors.phoneNumber ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""
-                      )}
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                </div>
-                {errors.phoneNumber && (
-                  <p className="text-red-500 text-xs mt-1">{errors.phoneNumber}</p>
-                )}
+                  className={`w-full px-4 py-2 text-sm border-l-0 border ${errors.phoneNumber ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'} rounded-r-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200`}
+                />
               </div>
-
-              <div className="flex items-center">
+              {errors.phoneNumber && <span className="text-xs text-red-500">{errors.phoneNumber}</span>}
+            </div>
+            <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   id="agreedToTerms"
                   name="agreedToTerms"
                   checked={formData.agreedToTerms}
                   onChange={handleInputChange}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:checked:bg-blue-600"
-                  disabled={isSubmitting}
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                 />
-                <label
-                  htmlFor="agreedToTerms"
-                  className="ml-2 block text-sm text-gray-900 dark:text-gray-300"
-                >
-                  I agree to receive the brochure and communications from Medh
-                </label>
+              <label htmlFor="agreedToTerms" className="text-xs text-gray-700 dark:text-gray-300">I agree to receive the brochure and communications from Medh</label>
+              {errors.agreedToTerms && <span className="text-xs text-red-500 ml-2">{errors.agreedToTerms}</span>}
               </div>
-              {errors.agreedToTerms && (
-                <p className="text-red-500 text-xs -mt-3">{errors.agreedToTerms}</p>
-              )}
-
-              <button
-                type="submit"
-                className={buildComponent.button('primary', 'lg')}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Submitting...' : 'Get Brochure'}
-              </button>
-            </form>
-          </>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            className="text-center py-10"
-          >
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Success!
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Your brochure request has been submitted. Please check your email for the brochure.
-            </p>
             <button
-              onClick={onClose}
-              className={buildComponent.button('secondary', 'md')}
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-2.5 rounded-lg font-semibold text-base transition-all duration-300 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
-              Close
+              {isSubmitting ? 'Sending...' : 'Get Brochure'}
             </button>
-          </motion.div>
+          </form>
         )}
-      </motion.div>
-    </motion.div>,
+      </div>
+    </div>,
     document.body
   );
 };

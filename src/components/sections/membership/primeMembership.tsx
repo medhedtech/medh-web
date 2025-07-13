@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Crown, Star, ArrowRight, CheckCircle, AlertCircle, X, Loader2, Zap, Users, TrendingUp } from "lucide-react";
 import dynamic from "next/dynamic";
+import ReactDOM from "react-dom";
 
 // Lazy load heavy components
 const SelectCourseModal = dynamic(() => import("@/components/layout/main/dashboards/SelectCourseModal"), {
@@ -68,7 +69,7 @@ interface IModalState {
 // Fallback static data with psychological triggers
 const getStaticMembershipData = (): IMembershipData[] => [
   {
-    type: "medh - silver medhmembership" as TMembershipType,
+    type: "silver" as TMembershipType,
     icon: <Star className="w-4 h-4" />,
     color: "primary",
     isPopular: false,
@@ -90,7 +91,7 @@ const getStaticMembershipData = (): IMembershipData[] => [
     ]
   },
   {
-    type: "medh - gold membership" as TMembershipType,
+    type: "gold" as TMembershipType,
     icon: <Crown className="w-4 h-4" />,
     color: "amber",
     isPopular: true,
@@ -534,25 +535,27 @@ const PrimeMembership: React.FC = () => {
         />
       )}
 
-      {modalState.isLoginModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div 
-            className="fixed inset-0 bg-black/50"
-            onClick={() => setModalState(prev => ({ ...prev, isLoginModalOpen: false }))}
-          ></div>
-          
-          <div className="relative bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-md mx-4 z-50">
-            <button 
-              className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors z-10"
+      {modalState.isLoginModalOpen &&
+        ReactDOM.createPortal(
+          <div className="fixed inset-0 z-[101] flex items-center justify-center">
+            <div 
+              className="fixed inset-0 bg-black/50"
               onClick={() => setModalState(prev => ({ ...prev, isLoginModalOpen: false }))}
-            >
-              <X className="w-4 h-4" />
-            </button>
-            
-            <LoginForm redirectPath="/medh-membership" />
-          </div>
-        </div>
-      )}
+            ></div>
+            <div className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-md mx-4 z-[102] p-2 sm:p-4">
+              <button 
+                className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors z-10"
+                onClick={() => setModalState(prev => ({ ...prev, isLoginModalOpen: false }))}
+                aria-label="Close login modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <LoginForm popupMode={true} redirectPath="/medh-membership" />
+            </div>
+          </div>,
+          typeof window !== 'undefined' ? document.getElementById('modal-root')! : document.body
+        )
+      }
 
       {modalState.modalError && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">

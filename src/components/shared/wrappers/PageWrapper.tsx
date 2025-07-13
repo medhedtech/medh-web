@@ -202,6 +202,9 @@ const PageWrapper: React.FC<PageWrapperProps> = ({
       
       {/* Footer with theme prop */}
       {showFooter && <Footer />}
+
+      {/* Modal Portal Root: ensures modals render above header and all content */}
+      <div id="modal-root" className="z-[120]"></div>
     </div>
   );
 };
