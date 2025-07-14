@@ -3904,4 +3904,5 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   );
 };
 
+export { useWindowSize };
 export default CoursesFilter;

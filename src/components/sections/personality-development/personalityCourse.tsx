@@ -6,6 +6,7 @@ import CoursesFilter from "../courses/CoursesFilter";
 import Link from "next/link";
 import { BookOpen, Sparkles, Users } from "lucide-react";
 import MedhLogo from "@/assets/images/logo/medh.png";
+import { useWindowSize } from '@/components/sections/courses/CoursesFilter';
 
 // TypeScript Interfaces
 interface IViewSettings {
@@ -103,18 +104,6 @@ const PersonalityCourse: React.FC<IPersonalityCourseProps> = ({
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
             Elevate Your Inner Potential
           </h1>
-          
-          <div className="flex items-center justify-center gap-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold">
-            <span className="text-gray-900 dark:text-white">with</span>
-            <div className="flex items-center">
-              <Image
-                src={MedhLogo}
-                alt="MEDH Logo"
-                className="h-6 md:h-[2.25rem] w-auto object-contain inline-block align-middle"
-                priority
-              />
-            </div>
-          </div>
         </div>
 
         {/* Description */}
@@ -125,6 +114,9 @@ const PersonalityCourse: React.FC<IPersonalityCourseProps> = ({
     </div>
   );
 
+  const { width } = useWindowSize();
+  const isMobile = width < 768;
+
   return (
     <div id="course-options-section" className="min-h-[80vh] bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/30 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {customHeader}
@@ -134,18 +126,18 @@ const PersonalityCourse: React.FC<IPersonalityCourseProps> = ({
           CustomText="Personality Development Courses"
           CustomButton={CustomButtonComponent}
           fixedCategory="Personality Development"
-          hideCategoryFilter={false}
+          hideCategoryFilter={true}
           hideCategories={true}
-          hideSearch={false}
-          hideSortOptions={false}
+          hideSearch={true}
+          hideSortOptions={true}
           hideHeader={true}
+          hideFilterBar={!isMobile}
           hideGradeFilter={false}
-          hideFilterBar={false}
           gridColumns={3}
           itemsPerPage={8}
           simplePagination={true}
           scrollToTop={true}
-          description="Enhance your personal growth with our comprehensive personality development programs tailored for all age groups."
+          description="Enhance your personal growth with our comprehensive personality development programs tailored for all ages."
           customGridClassName="grid gap-4 sm:gap-6 lg:gap-8 w-full"
           customGridStyle={{
             gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
@@ -161,10 +153,15 @@ const PersonalityCourse: React.FC<IPersonalityCourseProps> = ({
                 Coming Soon
               </h3>
               <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 max-w-md">
-                We're currently crafting exceptional personality development courses. Check back soon for transformative learning experiences!
+                We're currently crafting exceptional personality development courses. Check back soon for transformative learning experiences!"
               </p>
             </div>
           }
+          {...(isMobile && {
+            liveCoursesOptions: undefined,
+            blendedLearningOptions: undefined,
+            freeCoursesOptions: undefined,
+          })}
         />
       </div>
     </div>
