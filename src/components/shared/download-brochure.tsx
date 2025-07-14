@@ -6,6 +6,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { buildAdvancedComponent, buildComponent, getResponsive } from '@/utils/designSystem';
 import { clsx } from 'clsx';
+import { brochureAPI } from '@/apis/broucher';
 
 interface FormData {
   fullName: string;
@@ -226,8 +227,27 @@ const DownloadBrochureModal = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [sentEmail, setSentEmail] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
+    // Check authentication status
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+      const user = localStorage.getItem('user') || localStorage.getItem('userData');
+      
+      const isUserLoggedIn = !!token && (!!userId || !!user);
+      setIsLoggedIn(isUserLoggedIn);
+      setUserId(userId);
+
+      // If user is logged in and modal opens, try to download directly
+      if (isUserLoggedIn && isOpen && courseId) {
+        handleDirectDownload();
+        return;
+      }
+    }
+
     // Optionally pre-fill if user data is available (e.g., from local storage or context)
     const storedName = localStorage.getItem('fullName') || '';
     const storedEmail = localStorage.getItem('userEmail') || '';
@@ -256,7 +276,7 @@ const DownloadBrochureModal = ({
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = '';
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, courseId]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -266,6 +286,40 @@ const DownloadBrochureModal = ({
       setFormData({ ...formData, [name]: value });
     }
     setErrors(prev => ({ ...prev, [name]: undefined }));
+  };
+
+  const handleDirectDownload = async () => {
+    if (!courseId) {
+      toast.error('Course information not available');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const response = await brochureAPI.downloadBrochure(courseId);
+      
+      if (response.data?.data?.brochureUrl) {
+        // Create a temporary link to trigger download
+        const link = document.createElement('a');
+        link.href = response.data.data.brochureUrl;
+        link.download = `${courseTitle || 'Course'}_Brochure.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast.success('Brochure downloaded successfully!');
+        onClose();
+      } else {
+        throw new Error('Download URL not received');
+      }
+    } catch (error: any) {
+      console.error('Direct download failed:', error);
+      toast.error('Failed to download brochure. Please try again.');
+      // If direct download fails, show the form instead
+      setIsLoggedIn(false);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const validate = () => {
@@ -298,33 +352,31 @@ const DownloadBrochureModal = ({
     }
     setIsSubmitting(true);
     try {
-      // POST to the required endpoint
-      const payload = {
+      // Use the downloadBrochureWithData API which calls /api/v1/broucher/download/:courseId
+      const userData = {
         full_name: formData.fullName,
         email: formData.email,
         phone_number: formData.countryCode + formData.phoneNumber,
-        course_title: courseTitle || '',
       };
-      const response = await fetch('http://localhost:8080/api/v1/broucher/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (!response.ok) throw new Error('Failed to submit brochure request');
+      
+      console.log('Submitting brochure download request with data:', userData);
+      console.log('Course ID:', courseId || course?._id);
+      
+      const response = await brochureAPI.downloadBrochureWithData(
+        courseId || course?._id || '', 
+        userData
+      );
+      
       let emailToShow = formData.email;
-      try {
-        const data = await response.json();
-        if (data && data.email) {
-          emailToShow = data.email;
-        }
-      } catch (err) {
-        // ignore JSON parse error, fallback to form value
-      }
+      // Note: downloadBrochureWithData response doesn't include email field
+      // Use the form email as the confirmation email
+      
       setSentEmail(emailToShow);
       setIsSubmitted(true);
       toast.success('Brochure request submitted successfully!');
-    } catch (error) {
-      toast.error('Failed to submit brochure request. Please try again.');
+    } catch (error: any) {
+      console.error('Brochure request failed:', error);
+      toast.error(error.message || 'Failed to submit brochure request. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -339,9 +391,22 @@ const DownloadBrochureModal = ({
           <X className="w-6 h-6 text-gray-500 dark:text-gray-400" />
         </button>
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Download Brochure</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Please fill in your details below to receive the brochure for this course via email.</p>
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+          {isLoggedIn && isSubmitting 
+            ? "Preparing your brochure download..." 
+            : "Please fill in your details below to receive the brochure for this course via email."
+          }
+        </p>
         {courseTitle && <div className="mb-4 text-base font-semibold text-primary-700 dark:text-primary-300">{courseTitle}</div>}
-        {isSubmitted ? (
+        
+        {/* Show loading state for logged in users during direct download */}
+        {isLoggedIn && isSubmitting ? (
+          <div className="flex flex-col items-center py-8">
+            <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mb-4"></div>
+            <div className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Downloading Brochure...</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400 text-center">Your download will start shortly</div>
+          </div>
+        ) : isSubmitted ? (
           <div className="flex flex-col items-center py-8">
             <CheckCircle className="w-12 h-12 text-green-500 mb-2" />
             <div className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Brochure Sent!</div>
