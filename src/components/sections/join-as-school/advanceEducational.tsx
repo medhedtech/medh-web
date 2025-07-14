@@ -110,11 +110,13 @@ const AdvanceEducational: React.FC = () => {
                 <Award className="w-3 h-3 sm:w-4 sm:h-4" />
                 Future-Ready Education
               </span>
-              <h2 className="text-base sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 leading-tight mb-3">
-                Creating future-ready students through <span className="text-[#3bac63]">advanced educational approaches</span>
+              <h2 className="text-xl md:text-2xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 leading-tight mb-3">
+                Creating future-ready students through<br />
+                <span className="text-[#3bac63]">advanced educational approaches</span>
               </h2>
-              <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-                Why skill-based learning matters—and how to make it real in your school.
+              <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto mb-6">
+                <span className="block md:inline">Why skill-based learning matters—<span className="block md:hidden"></span></span>
+                <span className="block md:inline">how to make it real in your school/institution.</span>
               </p>
             </div>
             {/* Benefits Grid */}

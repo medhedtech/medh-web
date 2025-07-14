@@ -1065,7 +1065,7 @@ const CourseAiOverview: React.FC = () => {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="text-[20px] md:text-[24px] text-center leading-7 md:text-4xl font-bold md:mb-4 mb-3 bg-clip-text text-transparent bg-gradient-to-r from-primaryColor via-purple-600 to-blue-600"
           >
-            Empower Your Journey to Success in the Modern Era of AI and Data Science with MEDH.
+            Empower Your Journey to Success in the Modern Era of AI and Data Science.
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0 }}
@@ -1073,7 +1073,7 @@ const CourseAiOverview: React.FC = () => {
             transition={{ delay: 0.4, duration: 0.5 }}
             className="text-center text-sm md:text-base lg:text-lg leading-relaxed mb-4 md:mb-6 max-w-4xl mx-auto font-medium text-gray-700 dark:text-gray-300"
           >
-            Medh's Artificial Intelligence and Data Science course combines advanced AI techniques and technologies with the principles of Data Science. This fusion leverages AI algorithms, models, and tools to efficiently analyze data, extract valuable insights, automate processes, and support data-driven decision-making.
+            Medh's AI and Data Science course blends advanced AI techniques with Data Science principles to analyze data, extract insights, automate tasks, and enable data-driven decisions.
           </motion.p>
         </motion.div>
 
@@ -1122,7 +1122,7 @@ const CourseAiOverview: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.4 }}
-            className="bg-white/90 backdrop-blur-md mx-2 md:mx-auto mt-6 md:mt-8 dark:bg-gray-800/90 px-4 py-6 md:px-8 md:py-10 border border-gray-200 dark:border-gray-700 text-gray-700 rounded-2xl shadow-xl"
+            className="bg-white/90 backdrop-blur-md mx-0 md:mx-auto mt-6 md:mt-8 dark:bg-gray-800/90 px-4 py-6 md:px-8 md:py-10 border border-gray-200 dark:border-gray-700 text-gray-700 rounded-2xl shadow-xl"
             role="tabpanel"
             id={`panel-${activeTab}`}
             aria-labelledby={`tab-${activeTab}`}

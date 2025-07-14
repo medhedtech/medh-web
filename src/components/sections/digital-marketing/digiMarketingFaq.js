@@ -111,8 +111,8 @@ const faqs = [
 const DigiMarketingFaq = () => {
   const [openIndex, setOpenIndex] = useState(null);
   return (
-    <section className="bg-slate-50 dark:bg-slate-900 min-h-screen px-[50px]">
-      <div className="p-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-lg rounded-none sm:rounded-2xl px-[45px] py-[28px]">
+    <section className="bg-slate-50 dark:bg-slate-900 min-h-screen px-4 sm:px-[50px]">
+      <div className="p-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-lg rounded-none sm:rounded-2xl px-4 sm:px-[45px] py-[28px]">
         <h2 className="text-center font-semibold text-lg sm:text-xl md:text-2xl mb-4 sm:mb-6 mt-2 sm:mt-4 text-slate-800 dark:text-slate-100">Frequently Asked Questions</h2>
         <ul className="divide-y divide-slate-200 dark:divide-slate-800">
           {faqs.map((faq, idx) => (

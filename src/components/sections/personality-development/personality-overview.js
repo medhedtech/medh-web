@@ -143,43 +143,30 @@ const data = {
       icon: <BookOpen className="w-5 h-5" />,
       content: (
         <>
-          <h1 className="text-[20px] md:text-[23px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600 mb-4 md:mb-6 text-center">
+          <h1 className="text-[20px] md:text-[23px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600 mb-4 md:mb-6 text-center w-full">
             Why Choose Medh's Personality Development Course?
           </h1>
-          
           <motion.p 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-gray-700 dark:text-gray-300 mb-6 md:text-[16px] text-[15px] leading-relaxed text-center mx-auto max-w-3xl"
+            className="text-gray-700 dark:text-gray-300 mb-6 md:text-[16px] text-[15px] leading-relaxed text-center w-full"
           >
-            Introducing{" "}
-            <span className="text-gray-800 dark:text-gray-50 md:text-[1.1rem] text-[16px] font-bold tracking-wide">
-              Medh&#39;s Personality Development Courses{" "}
-            </span>{" "}
-            that offers practical insights and techniques to enhance confidence,
-            communication, and leadership capabilities for personal and
-            professional success.
+            Introducing <span className="text-gray-800 dark:text-gray-50 md:text-[1.1rem] text-[16px] font-bold tracking-wide">Medh&#39;s Personality Development Courses</span> that offers practical insights and techniques to enhance confidence, communication, and leadership capabilities for personal and professional success.
           </motion.p>
-
           <motion.p 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
-            className="text-gray-700 dark:text-gray-300 mb-6 md:text-[16px] text-[15px] leading-relaxed text-center mx-auto max-w-3xl"
+            className="text-gray-700 dark:text-gray-300 mb-6 md:text-[16px] text-[15px] leading-relaxed text-center w-full"
           >
-            <span className="text-gray-800 dark:text-gray-50 md:text-[1.1rem] text-[16px] font-bold tracking-wide">
-              Tailored for diverse range of Age Groups:
-            </span>{" "}
-            From preschoolers, school students, college students, professionals,
-            and homemakers, providing unique and engaging content designed to
-            enhance their confidence, communication, and leadership skills.
+            <span className="text-gray-800 dark:text-gray-50 md:text-[1.1rem] text-[16px] font-bold tracking-wide">Tailored for diverse range of Age Groups:</span> From preschoolers, school students, college students, professionals, and homemakers, providing unique and engaging content designed to enhance their confidence, communication, and leadership skills.
           </motion.p>
           
           <h1 className="text-[20px] md:text-[23px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600 mb-4 md:mb-6 text-center">
             Key Features:
           </h1>
           
-          <div className="space-y-2 md:space-y-4 max-w-3xl mx-auto">
+          <div className="space-y-2 md:space-y-4 w-full">
             <Accordion title="Age-Appropriate Content">
               <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
                 Our course content is tailored for different age groups from preschool to entry-level professionals, ensuring everyone gets the most relevant and effective training for their life stage.
@@ -221,11 +208,9 @@ const data = {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="text-gray-700 dark:text-gray-300 mt-8 mb-6 md:text-[16px] text-[15px] leading-relaxed bg-primaryColor/5 dark:bg-primaryColor/10 p-4 rounded-lg border-l-4 border-primaryColor text-center max-w-3xl mx-auto"
+            className="text-gray-700 dark:text-gray-300 mt-8 mb-6 md:text-[16px] text-[15px] leading-relaxed bg-primaryColor/5 dark:bg-primaryColor/10 p-4 rounded-lg border-l-4 border-primaryColor text-center w-full"
           >
-            Join us to experience a holistic approach to personal development,
-            empowering individuals across age groups with essential life skills
-            for success and fulfillment.
+            Join us to experience a holistic approach to personal development, empowering individuals across age groups with essential life skills for success and fulfillment.
           </motion.p>
         </>
       ),
@@ -520,13 +505,13 @@ const PersonalityOverview = () => {
           viewport={{ once: true }}
           variants={fadeInUp}
           transition={{ duration: 0.6 }}
-          className="flex items-center flex-col w-full md:w-[80%] mx-auto mb-10 md:mb-16 text-center"
+          className="w-full mb-10 md:mb-16 px-0 md:px-0 text-left"
         >
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-[20px] md:text-[24px] text-center leading-7 md:text-4xl font-bold md:mb-4 mb-3 bg-clip-text text-transparent bg-gradient-to-r from-primaryColor via-purple-600 to-blue-600"
+            className="text-[20px] md:text-[24px] leading-7 md:text-4xl font-bold md:mb-4 mb-3 bg-clip-text text-transparent bg-gradient-to-r from-primaryColor via-purple-600 to-blue-600 text-center w-full"
           >
             Welcome to Medh&#39;s Transformative Personality Development Course
           </motion.h1>
@@ -535,13 +520,9 @@ const PersonalityOverview = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.5 }}
-            className="text-center md:text-[16px] text-[14px] leading-6 md:leading-7 md:w-[80%] text-gray-600 dark:text-gray-300 mx-auto"
+            className="text-center max-w-4xl mx-auto text-sm md:text-base lg:text-lg leading-relaxed mb-4 md:mb-6 font-medium text-gray-700 dark:text-gray-300 px-0 md:px-0"
           >
-            Our course is designed to foster crucial life skills and character
-            traits, offering inclusivity for individuals at every stage of life.
-            Whether you&#39;re a student, professional, or homemaker, this
-            program empowers you with essential life skills, confidence, and
-            interpersonal abilities.
+            Our course builds essential life skills and character traits for all—students, professionals, and homemakers—boosting confidence, inclusivity, and interpersonal abilities.
           </motion.p>
         </motion.div>
 
