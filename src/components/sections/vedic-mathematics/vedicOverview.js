@@ -125,7 +125,7 @@ const data = {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="text-lightGrey14 mb-6 md:text-[15px] text-[14px] dark:text-gray300 leading-relaxed"
+            className="text-center max-w-4xl mx-auto font-medium text-sm md:text-base lg:text-lg leading-relaxed mb-4 md:mb-6 text-gray-600 dark:text-gray-300"
           >
             Vedic Mathematics Course offers a wide array of benefits, from
             simplifying complex calculations to enhancing mental agility and
@@ -138,7 +138,7 @@ const data = {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-lightGrey14 mb-6 md:text-[15px] text-[14px] dark:text-gray300 leading-relaxed"
+            className="text-center max-w-4xl mx-auto font-medium text-sm md:text-base lg:text-lg leading-relaxed mb-4 md:mb-6 text-gray-600 dark:text-gray-300"
           >
             With its emphasis on simplicity, speed, and universality, Vedic
             Mathematics has the potential to transform the way individuals
@@ -600,11 +600,9 @@ const VedicOverview = () => {
           </h1>
           <div className="h-1 w-24 bg-gradient-to-r from-primaryColor to-blue-600 rounded-full mb-4"></div>
           <p className="text-center md:text-[18px] text-[14px] leading-6 md:leading-8 md:w-[90%] text-[#727695] dark:text-gray-300">
-            An ancient system deeply rooted in the sacred texts of India known as the Vedas. The term "Veda," meaning knowledge, reflects the endless pursuit of learning and discovery.
+          Rooted in the ancient Vedas, meaning "knowledge," Vedic Mathematics at MEDH transforms math learning. This course helps overcome math anxiety and unlock your inner mathematician through a simple, holistic approach.
           </p>
-          <p className="text-center py-4 md:text-[18px] text-[14px] leading-6 md:leading-8 md:w-[80%] text-[#727695] dark:text-gray-300">
-            At MEDH, the Vedic Mathematics course is tailored to revolutionize math problem-solving, aiming to unleash your inner mathematician. It offers a holistic approach to conquer math anxiety and embrace the beauty of mathematics.
-          </p>
+          
         </motion.div>
 
         {/* Tabs with enhanced styling */}
@@ -647,7 +645,7 @@ const VedicOverview = () => {
             viewport={{ once: true }}
             variants={fadeInUp}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="bg-white/90 backdrop-blur-sm mx-4 md:mx-auto mt-6 dark:bg-gray-800/90 px-6 py-8 border border-gray-200 dark:border-gray-700 text-lightGrey14 rounded-2xl shadow-xl"
+            className="bg-white/90 backdrop-blur-sm mx-0 md:mx-auto mt-6 dark:bg-gray-800/90 px-6 py-8 border border-gray-200 dark:border-gray-700 text-lightGrey14 rounded-2xl shadow-xl"
             role="tabpanel"
             id={`panel-${activeTab}`}
             aria-labelledby={`tab-${activeTab}`}
@@ -658,27 +656,6 @@ const VedicOverview = () => {
             <div className="mt-4">{activeContent.content}</div>
           </motion.section>
         </AnimatePresence>
-
-        {/* Call to action */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="mt-12 p-8 bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-900/30 dark:to-purple-900/30 rounded-2xl shadow-lg border border-blue-100 dark:border-gray-700 max-w-4xl mx-auto text-center"
-        >
-          <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Ready to Master Vedic Mathematics?</h3>
-          <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
-            Join thousands of students who have transformed their mathematical skills and conquered their fear of numbers through our comprehensive Vedic Mathematics course.
-          </p>
-          <Link
-            href="/enrollment/vedic-mathematics"
-            className="px-8 py-3 bg-gradient-to-r from-primaryColor to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all font-medium inline-block"
-            tabIndex={0}
-          >
-            Enroll Now
-          </Link>
-        </motion.div>
       </div>
     </div>
   );

@@ -46,18 +46,6 @@ const VedicCourse: FC<IVedicCourseProps> = ({
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
             Conquer Math Challenges Creatively
           </h1>
-          
-          <div className="flex items-center justify-center gap-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold">
-            <span className="text-gray-900 dark:text-white">with</span>
-            <div className="flex items-center ml-1">
-              <Image
-                src={MedhLogo}
-                alt="MEDH Logo"
-                className="h-6 md:h-[2.25rem] w-auto object-contain inline-block align-middle"
-                priority
-              />
-            </div>
-          </div>
         </div>
 
         {/* Description */}

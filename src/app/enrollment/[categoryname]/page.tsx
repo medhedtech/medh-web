@@ -57,7 +57,7 @@ import {
 // Import custom styles
 import './styles.css';
 import { getAllCoursesWithLimits } from '@/apis/course/course';
-
+import { CourseStats } from '@/components/sections/course-detailed/CourseStats';
 // TypeScript interfaces
 interface Course {
   _id: string;
@@ -2087,32 +2087,20 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
                                 transition={{ duration: 0.5 }}
                                 className="mb-4 lg:mb-6 block lg:hidden px-4 lg:px-6"
                               >
-                                {/* Grade filter with consistent spacing */}
-                                {(normalizedCategory === 'vedic-mathematics' || normalizedCategory === 'personality-development') && (
-                                  <div className="mb-4">
-                                    <GradeFilter 
-                                      selectedGrade={selectedGrade}
-                                      availableGrades={availableGrades}
-                                      filteredCourses={filteredCourses}
-                                      selectedCourse={selectedCourse}
-                                      handleGradeChange={handleGradeChange}
-                                      handleCourseSelection={handleManualCourseSelection}
-                                      categoryInfo={categoryInfo}
-                                      setSelectedGrade={setSelectedGrade}
-                                      showOnlyGradeFilter={true}
-                                    />
-                                  </div>
-                                )}
-                                {/* Course selection with consistent styling */}
-                                <CourseSelection 
-                                  filteredCourses={filteredCourses}
-                                  selectedCourse={selectedCourse}
-                                  onCourseSelect={handleManualCourseSelection}
-                                  categoryInfo={categoryInfo}
-                                  formatPriceFunc={formatPrice}
-                                  loading={loading}
-                                  selectedGrade={selectedGrade}
-                                />
+                                {/* CourseSelection (dropdown) - ensure it is above stats on mobile */}
+                                <div className="relative z-30 lg:z-auto">
+                                  <CourseSelection 
+                                    filteredCourses={filteredCourses}
+                                    selectedCourse={selectedCourse}
+                                    onCourseSelect={handleManualCourseSelection}
+                                    categoryInfo={categoryInfo}
+                                    formatPriceFunc={formatPrice}
+                                    loading={loading}
+                                    selectedGrade={selectedGrade}
+                                  />
+                                </div>
+                                {/* CourseStats (Duration, Sessions, Effort) - ensure it is below dropdown on mobile */}
+                                
                               </motion.div>
                             )
                           }

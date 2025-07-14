@@ -268,12 +268,6 @@ const DigiMarketingCourse: React.FC = () => {
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
                   Transform Marketing with Data-Driven Power
                 </h1>
-                <div className="flex items-center justify-center gap-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold">
-                  <span className="text-gray-900 dark:text-white">with</span>
-                  <span className="inline-flex items-center align-middle" style={{marginLeft: '0.25rem', position: 'relative', top: '3px'}}>
-                    <Image src={MedhLogo} alt="Medh Logo" className="h-6 md:h-[2.25rem] w-auto object-contain inline-block align-middle" />
-                  </span>
-                </div>
               </div>
               {/* Description */}
               <p className="text-sm md:text-base lg:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">

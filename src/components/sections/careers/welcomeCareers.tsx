@@ -188,7 +188,7 @@ const advantagesData: IBenefit[] = [
     icon: <Shield className="w-8 h-8" />,
     title: "Competitive Compensation",
     description: "Industry-leading salary packages with performance bonuses, equity options, and comprehensive benefits designed to reward excellence.",
-    stats: "₹8-25 LPA",
+    
     category: 'core'
   },
   {
@@ -196,7 +196,6 @@ const advantagesData: IBenefit[] = [
     icon: <Brain className="w-8 h-8" />,
     title: "Professional Development",
     description: "Comprehensive learning programs, skill development workshops, and career advancement opportunities to accelerate your professional journey.",
-    stats: "100+ Courses",
     category: 'growth'
   },
   {
@@ -204,7 +203,7 @@ const advantagesData: IBenefit[] = [
     icon: <Users className="w-8 h-8" />,
     title: "Collaborative Excellence",
     description: "Join a diverse, inclusive team where innovation thrives, ideas are valued, and collaborative success is celebrated.",
-    stats: "95% Team Satisfaction",
+    
     category: 'core'
   },
 ];
