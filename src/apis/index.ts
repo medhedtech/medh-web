@@ -22,7 +22,9 @@ export const PUBLIC_ENDPOINTS = [
   '/blogs/public',
   '/health',
   '/faq/public',
-  '/announcements/public'
+  '/announcements/public',
+  '/broucher/create',
+  '/broucher/download'
 ];
 
 // Import demo booking interfaces and functions
