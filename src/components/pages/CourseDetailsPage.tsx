@@ -1707,27 +1707,10 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
   // Place this before the return statement in the component function:
   const modulesCount = courseDetails?.course_modules?.length ?? courseDetails?.curriculum?.length ?? 0;
 
-  // Helper to parse Overview and Relevance from curriculum weekDescription
-  function parseOverviewAndRelevance(desc: string): { overview: string; relevance: string } {
-    let overview = '';
-    let relevance = '';
-    // Try to split at 'Relevance' (case-insensitive, with or without leading/trailing newlines)
-    const match = desc.match(/Overview\\s*\\n([\\s\\S]*?)(?:\\nRelevance\\n([\\s\\S]*))?$/i);
-    if (match) {
-      overview = (match[1] || '').trim();
-      relevance = (match[2] || '').trim();
-    } else {
-      overview = desc.trim();
-    }
-    return { overview, relevance };
-  }
-
   // CurriculumModuleCard component definition (moved inside CourseDetailsPage)
   const CurriculumModuleCard = ({ weekTitle, weekDescription, relevance, categoryColors }: { weekTitle: string; weekDescription?: string; relevance?: string; categoryColors: ReturnType<typeof getCategoryColorClasses> }) => (
     <div className={`px-3 sm:px-6 py-3 sm:py-5 bg-${categoryColors.primaryColor}-50/50 dark:bg-${categoryColors.primaryColor}-900/10 border-t border-gray-200 dark:border-gray-700 rounded-xl mt-2 mb-2 shadow-sm`}>
       <div className="pl-0 sm:pl-4 space-y-4">
-        {/* Week Title - Large and Bold */}
-        <h4 className="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white mb-2">{weekTitle}</h4>
         {/* Topics Covered - Bulleted List */}
         {weekDescription && (
           <div>

@@ -117,37 +117,63 @@ export const brochureAPI = {
   },
 
   /**
-   * Download a brochure for a specific course
+   * Download a brochure for a specific course (for logged-in users)
    * @param courseId - Course ID to download brochure for
-   * @param userData - Optional user data for tracking
-   * @returns Promise with download response
+   * @returns Promise with download response containing brochureUrl
    */
-  downloadBrochure: async (courseId: string, userData?: any) => {
+  downloadBrochure: async (courseId: string) => {
     if (!courseId) throw new Error('Course ID cannot be empty');
-    const url = `${apiBaseUrl}/broucher/download/${courseId}`;
-    if (userData) {
-      return apiClient.post<{ message: string; downloadUrl: string }>(url, userData);
-    }
-    return apiClient.get<{ message: string; downloadUrl: string }>(url);
+    return apiClient.get<{ 
+      success: boolean; 
+      message: string; 
+      data: { 
+        brochureUrl: string; 
+        course_title: string;
+        course_type: string;
+      } 
+    }>(`${apiBaseUrl}/broucher/download/${courseId}`);
   },
 
   /**
-   * Request a brochure (for public users, potentially collecting lead info)
-   * @param data - Request data including user info and brochure/course ID
-   * @returns Promise with request response
+   * Download a brochure with user data collection (for non-logged-in users)
+   * @param courseId - Course ID to download brochure for
+   * @param userData - User data for lead generation
+   * @returns Promise with download response
    */
-  requestBrochure: async (data: {
-    brochure_id?: string;
-    course_id?: string;
+  downloadBrochureWithData: async (courseId: string, userData: {
     full_name: string;
     email: string;
     phone_number: string;
-    country_code?: string;
   }) => {
-    return apiClient.post<{ message: string }>(
-      `${apiBaseUrl}/broucher/request-download`, // Assuming a new endpoint for lead generation
-      data
-    );
+    if (!courseId) throw new Error('Course ID cannot be empty');
+    return apiClient.post<{ 
+      success: boolean; 
+      message: string; 
+      data: { 
+        brochureUrl: string; 
+        course_title: string;
+        recordId: string;
+      } 
+    }>(`${apiBaseUrl}/broucher/download/${courseId}`, userData);
+  },
+
+  /**
+   * Request a brochure (using the create endpoint for email sending)
+   * @param data - Request data including user info and course title
+   * @returns Promise with request response
+   */
+  requestBrochure: async (data: {
+    full_name: string;
+    email: string;
+    phone_number: string;
+    course_title: string;
+    course_id?: string;
+  }) => {
+    return apiClient.post<{ 
+      success: boolean; 
+      message: string; 
+      data: any;
+    }>(`${apiBaseUrl}/broucher/create`, data);
   },
 
   /**
