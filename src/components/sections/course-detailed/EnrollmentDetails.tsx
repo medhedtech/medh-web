@@ -285,6 +285,11 @@ interface EnrollmentDetailsProps {
   onActivePricingChange?: (pricing: any) => void;
   initialEnrollmentType?: 'individual' | 'batch';
   initialActivePricing?: any;
+  /**
+   * If true, always show EMI selector and Fast Track info, regardless of other logic.
+   * Used for category enrollment pages ([categoryname]/page.tsx)
+   */
+  forceShowEMIAndFastTrack?: boolean;
 }
 
 interface RazorpayOptions {
@@ -876,7 +881,8 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   onEnrollmentTypeChange,
   onActivePricingChange,
   initialEnrollmentType = 'batch',
-  initialActivePricing = null
+  initialActivePricing = null,
+  forceShowEMIAndFastTrack = false // default false
 }) => {
   const router = useRouter();
   const { getQuery } = useGetQuery();
@@ -1810,12 +1816,14 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           )}
           {/* EMI Selector - always show if used in [categoryname]/page.tsx and price > 0 */}
           {(() => {
-            // Detect if running inside [categoryname]/page.tsx by checking for a global marker or prop (if available)
-            // Since we can't check parent directly, always show EMISelector if price > 0
-            const emiEligible = !isBlendedCourse && !courseDetails?.isFree && (appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice()) > 0;
+            // If forceShowEMIAndFastTrack is true, always show EMI selector if price > 0
+            const price = appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice();
+            const emiEligible = forceShowEMIAndFastTrack
+              ? price > 0
+              : (!isBlendedCourse && !courseDetails?.isFree && price > 0);
             return emiEligible ? (
               <EMISelector
-                totalAmount={appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice()}
+                totalAmount={price}
                 courseDurationMonths={courseDurationInMonths}
                 selectedMonths={selectedEMIMonths}
                 onSelectMonths={setSelectedEMIMonths}
@@ -1918,7 +1926,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           )}
         </div>
         {/* Fast Track Option: Only for live courses and not blended */}
-        {isLiveClass && !isBlendedCourse && (
+        {((isLiveClass && !isBlendedCourse) || forceShowEMIAndFastTrack) && (
           <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
             <FastTrackInfo />
           </div>
