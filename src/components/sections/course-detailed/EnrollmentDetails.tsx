@@ -1812,7 +1812,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           {(() => {
             // Detect if running inside [categoryname]/page.tsx by checking for a global marker or prop (if available)
             // Since we can't check parent directly, always show EMISelector if price > 0
-            const emiEligible = !courseDetails?.isFree && (appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice()) > 0;
+            const emiEligible = !isBlendedCourse && !courseDetails?.isFree && (appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice()) > 0;
             return emiEligible ? (
               <EMISelector
                 totalAmount={appliedCoupon ? getFinalPriceWithCoupon() : getFinalPrice()}
@@ -1917,8 +1917,8 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
             </motion.div>
           )}
         </div>
-        {/* Fast Track Option: Only for live courses */}
-        {isLiveClass && (
+        {/* Fast Track Option: Only for live courses and not blended */}
+        {isLiveClass && !isBlendedCourse && (
           <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
             <FastTrackInfo />
           </div>
