@@ -14,8 +14,37 @@ import {
   Bot, 
   BarChart2, 
   BrainCircuit,
-  ChevronDown
+  ChevronDown,
+  Award,
+  Users,
+  UserCheck,
+  CheckCircle,
+  MessageSquare,
+  Target,
+  Activity,
+  TrendingUp,
+  GraduationCap,
+  Shield,
+  HeartHandshake,
+  UserPlus,
+  Star,
+  Globe,
+  Layers,
+  ClipboardList,
+  Rocket,
+  Handshake,
+  UserCog,
+  UserSquare,
+  User,
+  FileText,
+  Zap,
+  Lightbulb,
+  ThumbsUp,
+  Medal,
+  Clock
 } from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { getEnhancedSemanticColor } from '@/utils/designSystem';
 
 // TypeScript interfaces
 interface RoleData {
@@ -654,485 +683,409 @@ const Accordion = memo<AccordionProps>(({ title, children, defaultOpen = false, 
 
 Accordion.displayName = "Accordion";
 
-const CourseAiOverview: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<number>(1);
-  const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const contentRef = React.useRef<HTMLDivElement>(null);
+// Optimized, UX-focused content for Why Choose & Features
+const whyChoose = [
+  {
+    title: 'AI + Data Science The Power Combo',
+    description: 'Master the tools and thinking that drive today’s smartest companies. Learn how AI and data science work together to solve real problems.'
+  },
+  {
+    title: 'Real-World Impact',
+    description: 'See how these skills are used in healthcare, finance, tech, and more. Every lesson is built for practical, job-ready results.'
+  },
+  {
+    title: 'All-in-One Skillset',
+    description: 'From data wrangling to building AI models, you’ll cover the full spectrum—no need for separate courses.'
+  },
+  {
+    title: 'Save Time, Learn Smarter',
+    description: 'A streamlined curriculum means you get the essentials, fast. No filler, just the skills employers want.'
+  },
+  {
+    title: 'Interdisciplinary Edge',
+    description: 'Blend computer science, statistics, and domain know-how. Become the “unicorn” every team wants.'
+  }
+];
 
-  const handleTabChange = useCallback((tabId: number) => {
-    setActiveTab(tabId);
-  }, []);
+const features = [
+  {
+    title: 'Expert Instructors',
+    description: 'Learn from industry leaders who’ve built real AI and data products.'
+  },
+  {
+    title: 'Hands-On Projects',
+    description: 'Apply your skills to real datasets and challenges. Build a portfolio that gets noticed.'
+  },
+  {
+    title: 'Interactive Community',
+    description: 'Collaborate, discuss, and grow with peers and mentors in a supportive environment.'
+  },
+  {
+    title: 'Career Support',
+    description: 'Get resume help, interview prep, and job connections to launch your new career.'
+  },
+  {
+    title: 'Cutting-Edge Tools',
+    description: 'Work with Python, TensorFlow, and the latest industry software.'
+  }
+];
 
-  // Handle scroll to top visibility with debouncing for performance
-  React.useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 300);
-    };
-    
-    // Debounced scroll handler for better performance
-    let timeoutId: NodeJS.Timeout;
-    const debouncedHandleScroll = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(handleScroll, 100);
-    };
-    
-    window.addEventListener('scroll', debouncedHandleScroll);
-    return () => {
-      window.removeEventListener('scroll', debouncedHandleScroll);
-      clearTimeout(timeoutId);
-    };
-  }, []);
+// Top industries hiring for doughnut chart (updated with new percentages)
+const industryDoughnutData = [
+  { name: 'Healthcare', value: 22.45, color: getEnhancedSemanticColor('healthcare', 'light') },
+  { name: 'Finance', value: 19.94, color: getEnhancedSemanticColor('pricing', 'light') },
+  { name: 'Retail', value: 18.60, color: getEnhancedSemanticColor('certification', 'light') },
+  { name: 'Manufacturing', value: 18.14, color: getEnhancedSemanticColor('support', 'light') },
+  { name: 'Technology', value: 20.87, color: getEnhancedSemanticColor('enrollment', 'light') },
+];
 
-  // Simulate loading state
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
+const benefits = [
+  {
+    title: 'Comprehensive Curriculum',
+    description: 'Master machine learning, deep learning, data visualization, NLP, and more—all in one place.'
+  },
+  {
+    title: 'Flexible Learning',
+    description: 'Study anytime, anywhere. Learn at your own pace with on-demand content and no rigid schedules.'
+  },
+  {
+    title: 'Real-World Experience',
+    description: 'Work on practical projects and real datasets to build job-ready skills and confidence.'
+  },
+  {
+    title: 'Mentorship & Guidance',
+    description: 'Get personalized support from experienced instructors and industry mentors.'
+  },
+  {
+    title: 'Career Growth',
+    description: 'Boost your employability and open doors to high-growth roles in top industries.'
+  },
+  {
+    title: 'Networking Opportunities',
+    description: 'Connect with peers, experts, and potential employers in a vibrant learning community.'
+  }
+];
 
-  const activeContent = data.tabs.find((tab) => tab.id === activeTab);
+// Accent color palette for cards
+const accentColors = [
+  { border: 'border-blue-500', bg: 'from-blue-50/80 to-white/90 dark:from-blue-900/40 dark:to-gray-900/80', icon: 'text-blue-500' },
+  { border: 'border-emerald-500', bg: 'from-emerald-50/80 to-white/90 dark:from-emerald-900/40 dark:to-gray-900/80', icon: 'text-emerald-500' },
+  { border: 'border-amber-500', bg: 'from-amber-50/80 to-white/90 dark:from-amber-900/40 dark:to-gray-900/80', icon: 'text-amber-500' },
+  { border: 'border-violet-500', bg: 'from-violet-50/80 to-white/90 dark:from-violet-900/40 dark:to-gray-900/80', icon: 'text-violet-500' },
+  { border: 'border-pink-500', bg: 'from-pink-50/80 to-white/90 dark:from-pink-900/40 dark:to-gray-900/80', icon: 'text-pink-500' },
+  { border: 'border-indigo-500', bg: 'from-indigo-50/80 to-white/90 dark:from-indigo-900/40 dark:to-gray-900/80', icon: 'text-indigo-500' }
+];
+// Icon mapping for each card (by index)
+const whyChooseIcons = [Brain, Globe, Layers, Zap, Lightbulb];
+const featuresIcons = [Award, ClipboardList, MessageSquare, UserCheck, Code];
+const benefitsIcons = [BookOpen, Clock, Activity, UserPlus, TrendingUp, Users];
+const careerIcons = [CheckCircle, Target, UserCog, Handshake];
 
-  const tabIcons: Record<number, React.ReactNode> = {
-    1: <BookOpen className="w-5 h-5" />,
-    2: <Brain className="w-5 h-5" />,
-    3: <Briefcase className="w-5 h-5" />
-  };
+const TABS = [
+  { id: 0, label: "Overview" },
+  { id: 1, label: "Course Features" },
+  { id: 2, label: "Benefits" },
+];
 
-  const fadeInUp = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
-
-  // Modify the content for better UX
-  const renderTabContent = () => {
-    // Get the active tab content and parse it to use our new ListItem component
-    const content = activeContent?.content;
-    
-    // Replace <li> elements with ListItem component
-    if (activeTab === 1) {
-      return (
-        <>
-          <h1 className="text-[20px] md:text-[23px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600 mb-4 md:mb-6">
-            Why Choose the Combined AI and Data Science Course?
-          </h1>
-          
-          <div className="space-y-2 md:space-y-4">
-            <Accordion 
-              title="Synergy between AI and Data Science" 
-            >
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                AI and Data Science are closely related fields. AI techniques, such as machine learning and deep learning, are essential components of data science. By studying them together, you can better understand how AI algorithms are applied to real-world data problems, making the learning experience more cohesive and practical.
-              </p>
-            </Accordion>
-            
-            <Accordion 
-              title="Real-world Relevance"
-            >
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                In the real world, AI and Data Science are often used in conjunction to solve complex problems and make data-driven decisions. Combining the two in a course allows us to see the practical applications and how they complement each other.
-              </p>
-            </Accordion>
-            
-            <Accordion 
-              title="Comprehensive Skill Set"
-            >
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                Students who take a combined AI and Data Science course can develop a more comprehensive skill set. They learn not only how to analyze and interpret data but also how to build and deploy AI models to gain valuable insights from that data.
-              </p>
-            </Accordion>
-            
-            <Accordion 
-              title="Efficiency and Time-saving"
-            >
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                Offering both subjects in a single course can save time for students who are interested in both AI and Data Science. They don't have to take separate courses for each, reducing the overall duration of their learning.
-              </p>
-            </Accordion>
-            
-            <Accordion 
-              title="Interdisciplinary Perspective"
-            >
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                AI and Data Science draw concepts and techniques from various disciplines, such as computer science, statistics, and domain-specific knowledge. Integrating them in a single course can help students understand the interdisciplinary nature of these fields and how they interact in the real world.
-              </p>
-            </Accordion>
-          </div>
-
-          <h1 className="text-[20px] md:text-[23px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600 mt-6 md:mt-8 mb-4 md:mb-6">
-            Course Features:
-          </h1>
-          
-          <div className="space-y-2 md:space-y-4">
-            <Accordion 
-              title="Expert-Led Instruction" 
-            >
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                Our course is facilitated by industry experts with extensive experience in AI and Data Science. They will guide you through complex concepts, offer real-world insights, and share practical tips to enhance your learning experience.
-              </p>
-            </Accordion>
-            
-            <Accordion 
-              title="Hands-on Projects"
-            >
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                Theory alone won't suffice in this ever-evolving domain. That's why we emphasize hands-on projects that allow you to apply your knowledge to real-world scenarios. Through these projects, you'll gain the confidence to tackle AI and Data Science challenges head-on.
-              </p>
-            </Accordion>
-            
-            <Accordion 
-              title="Interactive Learning Environment"
-            >
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                Our platform fosters an engaging and collaborative learning environment. Connect with fellow learners, participate in discussions, and exchange ideas, enhancing your overall learning experience.
-              </p>
-            </Accordion>
-            
-            <Accordion 
-              title="Practical Tools and Software"
-            >
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                Gain proficiency in popular tools and software used in AI and Data Science, such as Python, R, TensorFlow, and more. Acquiring these skills will make you stand out in the job market and empower you to tackle real-world challenges.
-              </p>
-            </Accordion>
-            
-            <Accordion 
-              title="Career Support"
-            >
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                We care about your success beyond the course completion. Benefit from career support, resume building assistance, and interview preparation to boost your chances of landing rewarding positions in the AI and Data Science industry.
-              </p>
-            </Accordion>
-          </div>
-        </>
-      );
-    } else if (activeTab === 2) {
-      return (
-        <div className="space-y-2 md:space-y-4">
-          <Accordion 
-            title="Comprehensive Curriculum" 
-          >
-            <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-              The AI and Data Science course offers a well-rounded education in machine learning, deep learning, statistical analysis, data visualization, natural language processing, and more. This diverse skill set equips you to address complex real-world data science challenges effectively.
-            </p>
-          </Accordion>
-          
-          <Accordion 
-            title="Flexibility and Convenience"
-          >
-            <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-              The flexibility to access course material anywhere, anytime is advantageous for busy working professionals and students, enabling learning at their own pace without sacrificing other commitments. The absence of a rigid class schedule allows learners to review challenging concepts and focus more on intriguing areas.
-            </p>
-          </Accordion>
-          
-          <Accordion 
-            title="Hands-on Projects and Practical Experience"
-          >
-            <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-              Emphasizing hands-on learning, we focus on projects and real-world applications. Working with practical assignments and real datasets, you'll gain invaluable experience in AI algorithm implementation, data pattern exploration, and insightful analysis. This experiential approach equips you to excel in data science roles that demand both theoretical knowledge and practical expertise.
-            </p>
-          </Accordion>
-          
-          <Accordion 
-            title="Expert Instruction and Mentorship"
-          >
-            <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-              Our virtual classroom is led by industry experts and experienced data scientists, enriching your learning journey with practical insights. Access to these seasoned professionals guarantees high-quality instruction and mentorship. They provide personalized guidance, answer questions, and share industry best practices, empowering you to excel as a proficient AI and Data Science professional.
-            </p>
-          </Accordion>
-          
-          <Accordion 
-            title="Networking Opportunities"
-          >
-            <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-              Our diverse learner cohort fosters valuable networking chances. Engaging with peers, participating in discussions, and collaborating on projects can lead to meaningful industry connections. Networking enhances knowledge and opens doors to potential job offers or collaborations in the future.
-            </p>
-          </Accordion>
-          
-          <Accordion 
-            title="Career Advancement"
-          >
-            <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-              The rising demand for AI and Data Science experts in healthcare, finance, marketing, e-commerce, and other industries is evident. Completing an online course that equips you with these skills enhances employability and career prospects. Whether switching careers or seeking advancement, a strong foundation in AI and Data Science sets you apart in the job market.
-            </p>
-          </Accordion>
-        </div>
-      );
-    } else {
-      return (
-        <>
-          <h1 className="text-[20px] md:text-[23px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600 mb-4 md:mb-6">
-            Unlock Limitless Opportunities with AI and Data Science
-          </h1>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-gray-700 dark:text-gray-300 mb-5 md:mb-6 text-[14px] md:text-[16px] leading-relaxed"
-          >
-            In today's rapidly evolving technological landscape, the demand for professionals with expertise in Data Science and AI 
-            is skyrocketing. As computational power and data volumes continue to expand, the need for skilled individuals in these 
-            fields will only grow. Our AI and Data Science course equips you with the knowledge and skills to capitalize on a wide 
-            range of career opportunities across various industries.
-          </motion.p>
-
-          {/* Industry Statistics Cards */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-8 md:mb-10"
-          >
-            <h2 className="text-lg md:text-xl font-bold text-gray-800 dark:text-gray-200 mb-3 md:mb-4">
-              Industry Growth Metrics
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
-              {industryStats.map((stat, index) => (
-                <StatCard key={index} stat={stat} index={index} />
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Career Path Section */}
-          <div>
-            <motion.h2 
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              className="text-[20px] md:text-[23px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600 mb-4 md:mb-6"
-            >
-              Career Paths in AI and Data Science
-            </motion.h2>
-            <motion.p 
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              className="text-gray-700 dark:text-gray-300 mb-4 md:mb-6 text-[14px] md:text-[16px]"
-            >
-              Our comprehensive course prepares you for various roles in the AI and Data Science ecosystem. 
-              Below are some of the prominent career paths you can pursue after completing this course:
-            </motion.p>
-            
-            <Accordion 
-              title="Explore AI & Data Science Career Paths" 
-              contentClassName="p-0"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mt-2">
-                {sections.map((section, index) => (
-                  <Section key={index} title={section.title} data={section.data} />
-                ))}
-              </div>
-            </Accordion>
-          </div>
-
-          {/* Top Industries Section */}
-          <motion.div 
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="mt-8 md:mt-10 mb-6 md:mb-8"
-          >
-            <h2 className="text-[20px] md:text-[23px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600 mb-4 md:mb-6">
-              Top Industries Hiring AI & Data Science Professionals
-            </h2>
-            
-            <Accordion 
-              title="View Top Hiring Industries" 
-              contentClassName="p-0"
-            >
-              <div className="space-y-2 md:space-y-3 mt-2">
-                {topIndustries.map((industry, index) => (
-                  <IndustryCard key={index} industry={industry} index={index} />
-                ))}
-              </div>
-            </Accordion>
-          </motion.div>
-
-          {/* Who Should Enroll Section - Enhanced */}
+const TAB_CONTENT = [
+  // Overview
+  (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full px-6 md:px-16">
+      {whyChoose.map((item, idx) => {
+        const Icon = whyChooseIcons[idx % whyChooseIcons.length];
+        const accent = accentColors[idx % accentColors.length];
+        return (
           <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
+            key={item.title}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="mt-8 md:mt-10 p-4 md:p-6 bg-gray-50 dark:bg-gray-800/30 rounded-xl border border-gray-200 dark:border-gray-700"
+            transition={{ delay: idx * 0.08, duration: 0.5, type: 'spring' }}
+            className={`relative bg-gradient-to-br ${accent.bg} ${accent.border} border-l-4 shadow-lg rounded-xl p-6 flex flex-col items-start text-left transition-transform duration-200 hover:scale-[1.03] hover:shadow-2xl`}
           >
-            <h2 className="text-[20px] md:text-[23px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600 mb-4 md:mb-6">
-              Who Should Enroll in This Course?
-            </h2>
-            
-            <div className="space-y-2 md:space-y-4">
-              <Accordion 
-                title="Aspiring Data Scientists" 
+            <div className="flex items-center mb-2">
+              <motion.div
+                whileHover={{ scale: 1.15, rotate: -8 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                className="mr-2"
               >
-                <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                  If you are fascinated by data and aspire to become a Data Scientist, this course provides the ideal launching pad for your career. You'll gain the foundational and advanced skills needed to analyze data, build models, and generate insights that drive business decisions.
-                </p>
-              </Accordion>
-              
-              <Accordion 
-                title="AI Enthusiasts"
-              >
-                <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                  Whether you're an AI hobbyist or an enthusiast seeking to delve deeper into AI and its applications, this course will nurture your passion and enhance your expertise. You'll explore cutting-edge AI technologies and learn how to apply them to solve real-world problems.
-                </p>
-              </Accordion>
-              
-              <Accordion 
-                title="Professionals Seeking to Upskill"
-              >
-                <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                  If you are already working in the tech industry and wish to upskill in AI and Data Science, our course offers a convenient and efficient way to do so. Enhance your current skill set with the latest AI and data science techniques to stay competitive in the job market.
-                </p>
-              </Accordion>
-              
-              <Accordion 
-                title="Career Changers"
-              >
-                <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                  Looking to transition to a high-growth, in-demand field? This comprehensive course provides the perfect foundation for professionals looking to pivot their careers toward the exciting world of AI and Data Science.
-                </p>
-              </Accordion>
+                <Icon className={`w-6 h-6 ${accent.icon}`} />
+              </motion.div>
+              <span className="font-bold text-lg text-primaryColor">{item.title}</span>
             </div>
+            <p className="text-gray-700 dark:text-gray-200 text-base">
+              {item.description}
+            </p>
           </motion.div>
+        );
+      })}
+    </div>
+  ),
+  // Course Features
+  (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full px-6 md:px-16">
+      {features.map((item, idx) => {
+        const Icon = featuresIcons[idx % featuresIcons.length];
+        const accent = accentColors[(idx + 2) % accentColors.length];
+        return (
+          <motion.div
+            key={item.title}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: idx * 0.08, duration: 0.5, type: 'spring' }}
+            className={`relative bg-gradient-to-br ${accent.bg} ${accent.border} border-l-4 shadow-lg rounded-xl p-6 flex flex-col items-start text-left transition-transform duration-200 hover:scale-[1.03] hover:shadow-2xl`}
+          >
+            <div className="flex items-center mb-2">
+              <motion.div
+                whileHover={{ scale: 1.15, rotate: -8 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                className="mr-2"
+              >
+                <Icon className={`w-6 h-6 ${accent.icon}`} />
+              </motion.div>
+              <span className="font-bold text-lg text-primaryColor">{item.title}</span>
+            </div>
+            <p className="text-gray-700 dark:text-gray-200 text-base">
+              {item.description}
+            </p>
+          </motion.div>
+        );
+      })}
+    </div>
+  ),
+  // Benefits
+  (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full px-6 md:px-16">
+      {benefits.map((item, idx) => {
+        const Icon = benefitsIcons[idx % benefitsIcons.length];
+        const accent = accentColors[(idx + 3) % accentColors.length];
+        return (
+          <motion.div
+            key={item.title}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: idx * 0.08, duration: 0.5, type: 'spring' }}
+            className={`relative bg-gradient-to-br ${accent.bg} ${accent.border} border-l-4 shadow-lg rounded-xl p-6 flex flex-col items-start text-left transition-transform duration-200 hover:scale-[1.03] hover:shadow-2xl`}
+          >
+            <div className="flex items-center mb-2">
+              <motion.div
+                whileHover={{ scale: 1.15, rotate: -8 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                className="mr-2"
+              >
+                <Icon className={`w-6 h-6 ${accent.icon}`} />
+              </motion.div>
+              <span className="font-bold text-lg text-primaryColor">{item.title}</span>
+            </div>
+            <p className="text-gray-700 dark:text-gray-200 text-base">
+              {item.description}
+            </p>
+          </motion.div>
+        );
+      })}
+    </div>
+  ),
+];
 
-          {/* Call to Action */}
+const CourseAiOverview: React.FC = () => {
+  const [activeTab, setActiveTab] = useState(0);
+
+  return (
+    <div className="relative bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 min-h-[50vh] w-full">
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-indigo-500/10 to-violet-500/15 dark:from-blue-500/10 dark:via-indigo-500/15 dark:to-violet-500/20 pointer-events-none" />
+      <div className="relative w-full px-0 py-8 md:py-16">
+        {/* Hero Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="flex flex-col items-center text-center mb-10 md:mb-14 w-full"
+        >
+          <h1 className="text-[clamp(1.5rem,4vw+1rem,2.5rem)] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor via-purple-600 to-blue-600 mb-3 text-center">
+            Why Choose Medh’s AI & Data Science Course?
+          </h1>
+          <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 max-w-2xl mx-auto font-medium">
+            <span>
+              Build the skills top employers want.
+            </span>
+            <span className="inline md:block">
+              {" "}Master AI and data science for a future-ready career.
+            </span>
+          </p>
+        </motion.div>
+
+        {/* Tab Bar */}
+        <div className="flex justify-center mb-8">
+          <nav className="inline-flex rounded-xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-6 py-3 font-semibold text-base transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primaryColor/50
+                  ${activeTab === tab.id
+                    ? 'bg-primaryColor text-white dark:bg-primaryColor dark:text-white shadow'
+                    : 'bg-transparent text-primaryColor dark:text-primaryColor hover:bg-primaryColor/10 dark:hover:bg-primaryColor/20'}
+                `}
+                aria-selected={activeTab === tab.id}
+                aria-controls={`tab-panel-${tab.id}`}
+                role="tab"
+                tabIndex={activeTab === tab.id ? 0 : -1}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        {/* Tab Content */}
+        <div id={`tab-panel-${activeTab}`} role="tabpanel" aria-labelledby={`tab-${activeTab}`}
+          className="transition-all duration-300">
+          {TAB_CONTENT[activeTab]}
+        </div>
+
+        {/* Top Industries Doughnut Chart */}
+        <div className="mb-12 w-full pt-16">
+          <h2 className="text-2xl md:text-3xl font-bold text-primaryColor mb-4 text-center">Top Industries Hiring AI & Data Science Professionals</h2>
+          {/* Top Industries List - All left, chart right */}
+          <div className="flex flex-col md:flex-row items-center gap-6 w-full justify-center mb-6">
+            {/* Left side: all industries */}
+            <div className="flex-1 w-full md:w-[480px] lg:w-[560px] xl:w-[640px] md:pl-16 md:pr-6">
+              <table className="min-w-full text-left border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden text-xs md:text-sm">
+                <thead className="bg-gray-100 dark:bg-gray-800">
+                  <tr>
+                    <th className="py-2 px-3 font-semibold text-gray-700 dark:text-gray-200">Industry</th>
+                    <th className="py-2 px-3 font-semibold text-gray-700 dark:text-gray-200">Share of Total (%)</th>
+                    <th className="py-2 px-3 font-semibold text-gray-700 dark:text-gray-200">Key Applications</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800">
+                    <td className="py-2 px-3 font-medium text-blue-600 dark:text-blue-400">Healthcare</td>
+                    <td className="py-2 px-3 font-bold">22.45%</td>
+                    <td className="py-2 px-3 text-gray-600 dark:text-gray-300 text-sm">Medical imaging, predictive diagnostics, patient care optimization</td>
+                  </tr>
+                  <tr className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800">
+                    <td className="py-2 px-3 font-medium text-emerald-600 dark:text-emerald-400">Finance</td>
+                    <td className="py-2 px-3 font-bold">19.94%</td>
+                    <td className="py-2 px-3 text-gray-600 dark:text-gray-300 text-sm">Algorithmic trading, fraud detection, risk assessment</td>
+                  </tr>
+                  <tr className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800">
+                    <td className="py-2 px-3 font-medium text-amber-600 dark:text-amber-400">Retail</td>
+                    <td className="py-2 px-3 font-bold">18.60%</td>
+                    <td className="py-2 px-3 text-gray-600 dark:text-gray-300 text-sm">Recommendation systems, inventory management, consumer behavior analysis</td>
+                  </tr>
+                  <tr className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800">
+                    <td className="py-2 px-3 font-medium text-violet-600 dark:text-violet-400">Manufacturing</td>
+                    <td className="py-2 px-3 font-bold">18.14%</td>
+                    <td className="py-2 px-3 text-gray-600 dark:text-gray-300 text-sm">Predictive maintenance, quality control, supply chain optimization</td>
+                  </tr>
+                  <tr className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800">
+                    <td className="py-2 px-3 font-medium text-pink-600 dark:text-pink-400">Technology</td>
+                    <td className="py-2 px-3 font-bold">20.87%</td>
+                    <td className="py-2 px-3 text-gray-600 dark:text-gray-300 text-sm">Natural language processing, computer vision, autonomous systems</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            {/* Right side: Doughnut Chart */}
+            <div className="w-full md:w-1/2 h-64 flex justify-center my-6 md:my-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={industryDoughnutData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={90}
+                    paddingAngle={2}
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {industryDoughnutData.map((entry, idx) => (
+                      <Cell key={`cell-${idx}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          {/* Short note below the chart */}
+          <div className="flex items-center justify-center mt-4">
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-md px-3 py-1 text-blue-800 dark:text-blue-200 text-xs flex items-center gap-2 md:whitespace-nowrap">
+              <svg xmlns='http://www.w3.org/2000/svg' className='w-3 h-3 text-blue-500 dark:text-blue-300' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z' /></svg>
+              <span>Each segment shows the share of AI & Data Science job opportunities by industry.</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Career Prospects Section Intro (UX-optimized) */}
+        <div className="w-full text-center mb-10 md:mb-14 pt-0 px-16">
+          <h1 className="text-2xl md:text-3xl font-bold text-primaryColor mb-4">Unlock Limitless Opportunities in AI & Data Science</h1>
+          <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 mb-5 font-medium">
+            AI and Data Science are changing every industry. Turn data into opportunity—at any career stage.
+          </p>
+          {/* Industry Growth Metrics as Cards */}
+          <div className="grid grid-cols-2 gap-4 mb-6 w-full">
+            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-3 flex flex-col items-center justify-center">
+              <div className="text-xl md:text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">21%</div>
+              <div className="text-xs md:text-sm text-gray-600 dark:text-gray-300 text-center">Annual growth in AI/ML sector</div>
+            </div>
+            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-3 flex flex-col items-center justify-center">
+              <div className="text-xl md:text-2xl font-bold text-emerald-600 dark:text-emerald-400 mb-1">300K+</div>
+              <div className="text-xs md:text-sm text-gray-600 dark:text-gray-300 text-center">Global job openings in data science & AI</div>
+            </div>
+            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-3 flex flex-col items-center justify-center">
+              <div className="text-xl md:text-2xl font-bold text-amber-600 dark:text-amber-400 mb-1">$500B</div>
+              <div className="text-xs md:text-sm text-gray-600 dark:text-gray-300 text-center">Projected AI market value by 2025</div>
+            </div>
+            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-3 flex flex-col items-center justify-center">
+              <div className="text-xl md:text-2xl font-bold text-violet-600 dark:text-violet-400 mb-1">70%</div>
+              <div className="text-xs md:text-sm text-gray-600 dark:text-gray-300 text-center">Companies reporting AI/ML talent shortage</div>
+            </div>
+          </div>
+          <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 mb-6 font-medium">
+            Your skills are needed in every field—from healthcare to finance. Discover high-impact roles with strong growth and great salaries.
+          </p>
+        </div>
+
+        {/* CTA Section */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-            className="mt-8 md:mt-10 text-center bg-gradient-to-r from-primaryColor/10 to-blue-600/10 dark:from-primaryColor/20 dark:to-blue-600/20 p-5 md:p-8 rounded-xl"
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="text-center bg-gradient-to-r from-primaryColor/10 to-blue-600/10 dark:from-primaryColor/20 dark:to-blue-600/20 p-5 md:p-8 rounded-xl w-full"
           >
-            <h2 className="text-xl md:text-2xl font-bold text-primaryColor dark:text-gray-200 mb-3">
+          <h2 className="text-xl md:text-2xl font-bold text-primaryColor dark:text-gray-200 mb-3 text-center">
               Ready to Launch Your Career in AI & Data Science?
             </h2>
             <p className="text-gray-700 dark:text-gray-300 mb-5 md:mb-6 max-w-2xl mx-auto text-sm md:text-base">
-              Join thousands of students who have transformed their careers with our industry-leading course. 
-              The future of AI and Data Science is waiting for you!
+            Join thousands of students who have transformed their careers with our industry-leading course. The future of AI and Data Science is waiting for you!
             </p>
             <motion.button 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                window.open('/enrollment/ai-and-data-science', '_blank');
-              }}
+            onClick={() => window.open('/enrollment/ai-and-data-science', '_blank')}
               className="bg-gradient-to-r from-primaryColor to-blue-600 text-white px-6 md:px-8 py-2 md:py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 text-sm md:text-base cursor-pointer"
             >
               Enroll Now
             </motion.button>
           </motion.div>
-        </>
-      );
-    }
-  };
-
-  return (
-    <div className="relative bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 min-h-[50vh]">
-      {/* Enhanced background gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-indigo-500/10 to-violet-500/15 dark:from-blue-500/10 dark:via-indigo-500/15 dark:to-violet-500/20" />
-      
-      {/* Loading overlay with animation */}
-      <AnimatePresence>
-        {isLoading && (
-          <motion.div 
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-white dark:bg-gray-900 z-50 flex items-center justify-center"
-          >
-            <motion.div 
-              animate={{ rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-              className="w-10 h-10 md:w-12 md:h-12 border-4 border-primaryColor border-t-transparent rounded-full"
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-      
-      <div className="relative container mx-auto px-3 md:px-4 py-8 md:py-16">
-        {/* Hero section with enhanced animations */}
-        <motion.div 
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeInUp}
-          transition={{ duration: 0.6 }}
-          className="flex items-center flex-col w-full md:w-[80%] mx-auto mb-10 md:mb-16"
-        >
-          <motion.h1 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-[20px] md:text-[24px] text-center leading-7 md:text-4xl font-bold md:mb-4 mb-3 bg-clip-text text-transparent bg-gradient-to-r from-primaryColor via-purple-600 to-blue-600"
-          >
-            Empower Your Journey to Success in the Modern Era of AI and Data Science.
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-            className="text-center text-sm md:text-base lg:text-lg leading-relaxed mb-4 md:mb-6 max-w-4xl mx-auto font-medium text-gray-700 dark:text-gray-300"
-          >
-            Medh's AI and Data Science course blends advanced AI techniques with Data Science principles to analyze data, extract insights, automate tasks, and enable data-driven decisions.
-          </motion.p>
-        </motion.div>
-
-        {/* Enhanced Tabs with better interactions */}
-        <motion.div 
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeInUp}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="flex flex-wrap justify-center gap-2 md:gap-3 px-2 md:px-4" 
-          role="tablist"
-          aria-label="Course content tabs"
-        >
-          {data.tabs.map((tab) => (
-            <motion.button
-              key={tab.id}
-              whileHover={{ scale: 1.05, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
-              whileTap={{ scale: 0.97 }}
-              className={`px-3 md:px-8 py-2 md:py-3 transition-all duration-300 rounded-xl flex items-center gap-2 text-sm md:text-base ${
-                activeTab === tab.id
-                  ? "bg-gradient-to-r from-primaryColor to-blue-600 text-white font-semibold shadow-lg"
-                  : "bg-white text-primaryColor border border-primaryColor/50 hover:bg-primaryColor/10 dark:bg-gray-800 dark:text-white dark:border-primaryColor/30"
-              }`}
-              onClick={() => handleTabChange(tab.id)}
-              role="tab"
-              aria-selected={activeTab === tab.id}
-              aria-controls={`panel-${tab.id}`}
-              id={`tab-${tab.id}`}
-            >
-              {tabIcons[tab.id]}
-              {tab.name}
-              {activeTab === tab.id && (
-                <ChevronRight className="w-3 h-3 md:w-4 md:h-4 animate-pulse" />
-              )}
-            </motion.button>
-          ))}
-        </motion.div>
-
-        {/* Enhanced Content Rendering with glass morphism effect */}
-        <AnimatePresence mode="wait">
-          <motion.section
-            ref={contentRef}
-            key={activeTab}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4 }}
-            className="bg-white/90 backdrop-blur-md mx-0 md:mx-auto mt-6 md:mt-8 dark:bg-gray-800/90 px-4 py-6 md:px-8 md:py-10 border border-gray-200 dark:border-gray-700 text-gray-700 rounded-2xl shadow-xl"
-            role="tabpanel"
-            id={`panel-${activeTab}`}
-            aria-labelledby={`tab-${activeTab}`}
-          >
-            {renderTabContent()}
-          </motion.section>
-        </AnimatePresence>
       </div>
     </div>
   );
 };
 
-export default memo(CourseAiOverview);
+export default CourseAiOverview;
