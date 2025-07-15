@@ -60,7 +60,7 @@ const HiringProcess = () => {
   };
 
   return (
-    <section className="bg-slate-50 dark:bg-slate-900 pt-0 pb-8 sm:pb-10 md:pb-12 px-4 sm:px-8">
+    <section className="bg-slate-50 dark:bg-slate-900 pt-0 pb-0 px-4 sm:px-8">
       <div className="pt-0">
         <motion.div
           initial="hidden"
