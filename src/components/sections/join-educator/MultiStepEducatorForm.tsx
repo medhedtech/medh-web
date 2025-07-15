@@ -361,7 +361,7 @@ const MultiStepEducatorForm: React.FC = () => {
             reset(formData);
             setCurrentStep(savedStep || 0);
             setCompletedSteps(new Set(savedCompleted || []));
-            toast.info('Previous form data restored');
+            
           }
         }
       } catch (error) {

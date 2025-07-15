@@ -74,8 +74,10 @@ const HiringProcess = () => {
                 <Briefcase className="w-4 h-4 text-indigo-600 dark:text-indigo-400 mr-2" />
                 <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">Simple Process</span>
               </div>
-              <h2 className="text-base sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4 sm:mb-6 leading-tight">
-                Your journey to becoming a <span className="text-[#3bac63]">Medh Educator</span>
+              <h2 className="text-xl md:text-2xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4 sm:mb-6 leading-tight">
+                <span className="block md:inline">Your journey to becoming a </span>
+                <span className="block md:hidden"></span>
+                <span className="block md:inline text-[#3bac63]">Medh Educator</span>
               </h2>
               <p className="text-base sm:text-[clamp(0.875rem,2vw+0.5rem,1rem)] text-slate-600 dark:text-slate-300 leading-relaxed max-w-full sm:max-w-3xl mx-auto">
                 Our streamlined process identifies exceptional educators who will thrive in our innovative teaching environment.

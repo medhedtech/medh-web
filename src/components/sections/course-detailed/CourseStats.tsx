@@ -1,8 +1,18 @@
-'use client';
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Clock, Users, Calendar, Award } from 'lucide-react';
+
+interface CourseStatsProps {
+  duration?: string;
+  students?: string;
+  sessions?: string;
+  hasCertificate?: boolean;
+  primaryColor?: 'emerald' | 'blue' | 'purple' | 'amber' | string;
+  fillOpacity?: number;
+  compact?: boolean;
+  isBlended?: boolean;
+  courseDetails?: any;
+}
 
 const staggerContainer = {
   animate: {
@@ -22,7 +32,7 @@ const scaleIn = {
   }
 };
 
-const CourseStats = ({ 
+export const CourseStats: React.FC<CourseStatsProps> = ({ 
   duration = '3 weeks', 
   students = '75+',
   sessions = '20',
@@ -77,9 +87,8 @@ const CourseStats = ({
   const colorClasses = getColorClasses();
 
   // Helper function to detect if course is blended
-  const isBlendedCourse = (details) => {
+  const isBlendedCourse = (details: any) => {
     if (!details) return false;
-    
     return (
       details.classType === 'Blended Courses' || 
       details.class_type === 'Blended Courses' ||
@@ -117,7 +126,6 @@ const CourseStats = ({
           {duration}
         </span>
       </motion.div>
-      
       {/* Students Enrolled */}
       <motion.div 
         className={`flex flex-col items-center ${compact ? 'p-1.5 sm:p-2' : 'p-2 sm:p-3'} rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800`}
@@ -133,7 +141,6 @@ const CourseStats = ({
           {students}
         </span>
       </motion.div>
-      
       {/* Sessions/Videos */}
       <motion.div 
         className={`flex flex-col items-center ${compact ? 'p-1.5 sm:p-2' : 'p-2 sm:p-3'} rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800`}
@@ -149,7 +156,6 @@ const CourseStats = ({
           {sessions}
         </span>
       </motion.div>
-      
       {/* Certification */}
       <motion.div 
         className={`flex flex-col items-center ${compact ? 'p-1.5 sm:p-2' : 'p-2 sm:p-3'} rounded-lg ${hasCertificate ? 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800' : 'bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700'}`}
@@ -167,6 +173,4 @@ const CourseStats = ({
       </motion.div>
     </motion.div>
   );
-};
-
-export default CourseStats; 
+}; 

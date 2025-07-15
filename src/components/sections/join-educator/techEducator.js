@@ -77,7 +77,7 @@ const TechEducator = () => {
               <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Join Our Faculty</span>
             </div>
             
-            <h2 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4 sm:mb-6 leading-tight">
+            <h2 className="text-xl md:text-2xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4 sm:mb-6 leading-tight">
               Empower minds
             </h2>
             

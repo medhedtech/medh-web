@@ -123,7 +123,7 @@ const KeyAdvantages: React.FC = () => {
           >
             {/* Header Section */}
             <motion.div variants={itemVariants} className="text-center mb-12 md:mb-16">
-              <h2 className="text-base sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4">
+              <h2 className="text-xl md:text-2xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4">
                 Key advantages to{" "}
                 <span className="bg-gradient-to-r from-[#3bac63] to-emerald-400 bg-clip-text text-transparent">
                   Schools/Institutes
@@ -143,7 +143,7 @@ const KeyAdvantages: React.FC = () => {
                   key={advantage.id}
                   variants={itemVariants}
                   whileHover={{ y: -2, scale: 1.01 }}
-                  className="group relative bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-xl border border-slate-200/50 dark:border-slate-700/50 p-6 hover:shadow-xl transition-all duration-300 hover:border-[#3bac63]/20 focus:outline-none focus:ring-2 focus:ring-[#3bac63]/50 focus:ring-offset-2"
+                  className="group relative bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-xl border border-slate-200/50 dark:border-slate-700/50 p-6 hover:shadow-xl transition-all duration-300 hover:border-[#3bac63]/20 focus:outline-none focus:ring-2 focus:ring-[#3bac63]/50 focus:ring-offset-2 flex flex-col items-center text-center"
                   tabIndex={0}
                 >
                   {/* Icon */}
@@ -151,11 +151,11 @@ const KeyAdvantages: React.FC = () => {
                     <advantage.icon className="w-6 h-6 text-white" />
                   </div>
                   {/* Title */}
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-3 group-hover:text-[#3bac63] transition-colors duration-300">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-3 group-hover:text-[#3bac63] transition-colors duration-300 text-center">
                     {advantage.title}
                   </h3>
                   {/* Description */}
-                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed text-center">
                     {advantage.description}
                   </p>
                   {/* Hover accent */}

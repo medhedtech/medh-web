@@ -30,6 +30,8 @@ const VedicCourse: FC<IVedicCourseProps> = ({
     }
   }, []);
 
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+
   const customHeader = (
     <div className="w-full text-center">
       <div className="relative space-y-4 md:space-y-6 pb-4 md:pb-6 lg:pb-8 pt-0">
@@ -46,18 +48,6 @@ const VedicCourse: FC<IVedicCourseProps> = ({
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
             Conquer Math Challenges Creatively
           </h1>
-          
-          <div className="flex items-center justify-center gap-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold">
-            <span className="text-gray-900 dark:text-white">with</span>
-            <div className="flex items-center ml-1">
-              <Image
-                src={MedhLogo}
-                alt="MEDH Logo"
-                className="h-6 md:h-[2.25rem] w-auto object-contain inline-block align-middle"
-                priority
-              />
-            </div>
-          </div>
         </div>
 
         {/* Description */}
@@ -79,13 +69,13 @@ const VedicCourse: FC<IVedicCourseProps> = ({
             CustomText="Vedic Mathematics Courses"
             CustomButton={ExploreButton}
             fixedCategory="Vedic Mathematics"
-            hideCategoryFilter={false}
+            hideCategoryFilter={true}
             hideCategories={true}
-            hideSearch={false}
-            hideSortOptions={false}
+            hideSearch={true}
+            hideSortOptions={true}
             hideHeader={true}
+            hideFilterBar={!isMobile}
             hideGradeFilter={false}
-            hideFilterBar={false}
             gridColumns={3}
             itemsPerPage={8}
             simplePagination={true}
@@ -106,7 +96,7 @@ const VedicCourse: FC<IVedicCourseProps> = ({
                   Coming Soon
                 </h3>
                 <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 max-w-md">
-                  We're currently developing innovative Vedic Mathematics courses. Check back soon for a transformative learning experience!
+                  We're currently developing innovative Vedic Mathematics courses. Check back soon for a transformative learning experience!"
                 </p>
               </div>
             }
