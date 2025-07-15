@@ -951,7 +951,7 @@ const CourseAiOverview: React.FC = () => {
         </div>
 
         {/* Career Prospects Doughnut Chart */}
-        <div className="mb-12 w-full">
+        <div className="mb-12 w-full pt-16">
           <h2 className="text-lg md:text-xl font-bold text-primaryColor mb-4 text-center">Career Prospects</h2>
           <p className="text-base md:text-lg text-gray-600 dark:text-gray-300 mb-6 max-w-4xl mx-auto text-center">
             The chart below shows the most common job roles and their relative demand for graduates of this course. These percentages reflect current industry hiring trends and the wide range of opportunities available in AI and Data Science. Each segment represents a career path you can pursue after completing the program.
