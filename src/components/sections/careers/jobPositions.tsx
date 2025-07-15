@@ -18,6 +18,7 @@ import Preloader from "@/components/shared/others/Preloader";
 import { FaBriefcase, FaMapMarkerAlt, FaClock, FaDollarSign, FaChevronRight as FaChevronRightIcon, FaSearch, FaFilter, FaTimes } from 'react-icons/fa';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { Dialog } from '@headlessui/react';
 
 // TypeScript interfaces - Updated to match new API
 interface IJobPosition extends IJobPost {
@@ -699,6 +700,9 @@ const JobPositions: React.FC<IJobPositionsProps> = ({ positions }) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const { jobs, isLoading, error, updateFilters } = useJobData();
 
+  // Mobile filter modal state
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
   const handleApply = async (jobId: string) => {
     try {
       const userId = localStorage.getItem('userId') || '';
@@ -794,20 +798,30 @@ const JobPositions: React.FC<IJobPositionsProps> = ({ positions }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl p-6 mb-8 shadow-lg border border-gray-200/20 dark:border-gray-700/20"
+            className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl p-6 mb-8 border border-gray-200/20 dark:border-gray-700/20"
           >
-            <div className="flex flex-col lg:flex-row gap-4">
-              <div className="relative flex-1">
-                <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
+            <div className="flex w-full gap-2 sm:gap-4">
+              <div className="relative flex-1 min-w-0">
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
                 <input
                   type="text"
                   placeholder="Search positions..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                  className="w-full pl-10 pr-2 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm text-sm sm:text-base"
                 />
               </div>
-              <div className="flex flex-col sm:flex-row gap-4 lg:w-auto">
+              {/* Mobile filter button */}
+              <button
+                type="button"
+                className="flex items-center justify-center px-3 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 min-w-[44px] sm:hidden"
+                aria-label="Filter"
+                onClick={() => setIsFilterOpen(true)}
+              >
+                <FaFilter className="w-5 h-5" />
+              </button>
+              {/* Desktop department dropdown */}
+              <div className="hidden sm:flex flex-col sm:flex-row gap-4 lg:w-auto">
                 <select
                   value={selectedDepartment}
                   onChange={(e) => setSelectedDepartment(e.target.value)}
@@ -817,17 +831,41 @@ const JobPositions: React.FC<IJobPositionsProps> = ({ positions }) => {
                     <option key={dept} value={dept}>{dept}</option>
                   ))}
                 </select>
-                <select
-                  value={selectedLocation}
-                  onChange={(e) => setSelectedLocation(e.target.value)}
-                  className="px-4 py-4 rounded-xl border border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm min-w-[140px]"
-                >
-                  {locations.map(loc => (
-                    <option key={loc} value={loc}>{loc}</option>
-                  ))}
-                </select>
               </div>
             </div>
+            {/* Mobile filter modal (updated for Headless UI v2.2.4+) */}
+            <Dialog open={isFilterOpen} onClose={() => setIsFilterOpen(false)} className="fixed z-50 inset-0 overflow-y-auto sm:hidden">
+              <div className="fixed inset-0 bg-black bg-opacity-30" aria-hidden="true" onClick={() => setIsFilterOpen(false)} />
+              <div className="flex items-center justify-center min-h-screen px-4">
+                <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-xs mx-auto p-6 z-50">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Filter</h2>
+                    <button onClick={() => setIsFilterOpen(false)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                      <FaTimes className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Department</label>
+                    <select
+                      value={selectedDepartment}
+                      onChange={(e) => setSelectedDepartment(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                    >
+                      {departments.map(dept => (
+                        <option key={dept} value={dept}>{dept}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    className="w-full px-4 py-3 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600 transition-colors duration-200"
+                    onClick={() => setIsFilterOpen(false)}
+                  >
+                    Apply Filter
+                  </button>
+                </div>
+              </div>
+            </Dialog>
           </motion.div>
 
           {/* Job Listings */}

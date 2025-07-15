@@ -155,14 +155,10 @@ const CourseOptions: React.FC = () => {
 
         {/* Main Heading */}
         <div className="space-y-2 md:space-y-4">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
-            Transform Tech Insights Powerfully
-          </h1>
-          
-          <div className="flex items-center justify-center gap-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold">
-            <span className="text-gray-900 dark:text-white">with</span>
-            <span className="inline-flex items-center">
-              <Image src={require('@/assets/images/logo/medh.png')} alt="Medh Logo" className="h-6 md:h-[2.25rem] w-auto object-contain inline-block align-middle" />
+          {/* Mobile: heading and 'with MEDH' on one line; Desktop: stacked */}
+          <div className="flex flex-col items-center justify-center">
+            <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
+              Transform Tech Insights Powerfully
             </span>
           </div>
         </div>

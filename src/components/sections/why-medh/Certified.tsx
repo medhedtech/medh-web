@@ -49,6 +49,49 @@ interface ISliderSettings {
   afterChange?: (current: number) => void;
 }
 
+// --- New MobileCertificates component ---
+const MobileCertificates: React.FC<{
+  certifications: ICertification[];
+  touchedIndex: number | null;
+  handleTouchStart: (index: number) => void;
+  handleTouchEnd: () => void;
+}> = ({ certifications, touchedIndex, handleTouchStart, handleTouchEnd }) => (
+  <div className="grid grid-cols-2 gap-3 mb-12 px-4">
+    {certifications.map((cert, index) => (
+      <motion.div
+        key={index}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: index * 0.1 }}
+        className="group cursor-pointer"
+        onTouchStart={() => handleTouchStart(index)}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div className="bg-white dark:bg-slate-800 rounded-lg p-3 border border-slate-200 dark:border-slate-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group-hover:border-indigo-300 dark:group-hover:border-indigo-600 group-hover:scale-105 min-h-[140px]">
+          <div className="relative h-16 w-14 mx-auto mb-2">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-blue-500/10 rounded-lg"></div>
+            <Image
+              src={cert.image}
+              alt={cert.alt}
+              width={80}
+              height={96}
+              className="relative z-10 w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
+              priority={index < 8}
+            />
+          </div>
+          <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 text-center leading-tight mb-1">
+            {cert.title}
+          </p>
+          <div className="flex items-center justify-center">
+            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1"></div>
+            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Certified</span>
+          </div>
+        </div>
+      </motion.div>
+    ))}
+  </div>
+);
+
 const Certified: React.FC = () => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [touchedIndex, setTouchedIndex] = useState<number | null>(null);
@@ -285,48 +328,55 @@ const Certified: React.FC = () => {
             </div>
           </div>
 
-          {/* Enhanced Certifications Grid - 4 columns, 2 rows layout */}
-          <div className="grid grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-12 px-6 md:px-8 lg:px-10">
-            {certifications.map((cert, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="group cursor-pointer"
-                onMouseEnter={() => !isMobile && setHoveredIndex(index)}
-                onMouseLeave={() => !isMobile && setHoveredIndex(null)}
-                onTouchStart={() => handleTouchStart(index)}
-                onTouchEnd={handleTouchEnd}
-              >
-                <div className="bg-white dark:bg-slate-800 rounded-lg sm:rounded-2xl p-3 sm:p-4 md:p-6 border border-slate-200 dark:border-slate-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group-hover:border-indigo-300 dark:group-hover:border-indigo-600 group-hover:scale-105 min-h-[140px] sm:min-h-[160px] md:min-h-[180px]">
-                  {/* Certification Badge */}
-                  <div className="relative h-16 w-14 sm:h-20 sm:w-16 md:h-24 md:w-20 mx-auto mb-2 sm:mb-3 md:mb-4">
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-blue-500/10 rounded-lg sm:rounded-xl"></div>
-                    <Image
-                      src={cert.image}
-                      alt={cert.alt}
-                      width={80}
-                      height={96}
-                      className="relative z-10 w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
-                      priority={index < 8}
-                    />
+          {/* Certifications Grid: Desktop vs Mobile */}
+          {isMobile ? (
+            <MobileCertificates
+              certifications={certifications}
+              touchedIndex={touchedIndex}
+              handleTouchStart={handleTouchStart}
+              handleTouchEnd={handleTouchEnd}
+            />
+          ) : (
+            <div className="grid grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-12 px-6 md:px-8 lg:px-10">
+              {certifications.map((cert, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="group cursor-pointer"
+                  onMouseEnter={() => !isMobile && setHoveredIndex(index)}
+                  onMouseLeave={() => !isMobile && setHoveredIndex(null)}
+                  onTouchStart={() => handleTouchStart(index)}
+                  onTouchEnd={handleTouchEnd}
+                >
+                  <div className="bg-white dark:bg-slate-800 rounded-lg sm:rounded-2xl p-3 sm:p-4 md:p-6 border border-slate-200 dark:border-slate-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group-hover:border-indigo-300 dark:group-hover:border-indigo-600 group-hover:scale-105 min-h-[140px] sm:min-h-[160px] md:min-h-[180px]">
+                    {/* Certification Badge */}
+                    <div className="relative h-16 w-14 sm:h-20 sm:w-16 md:h-24 md:w-20 mx-auto mb-2 sm:mb-3 md:mb-4">
+                      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-blue-500/10 rounded-lg sm:rounded-xl"></div>
+                      <Image
+                        src={cert.image}
+                        alt={cert.alt}
+                        width={80}
+                        height={96}
+                        className="relative z-10 w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
+                        priority={index < 8}
+                      />
+                    </div>
+                    {/* Certification Title */}
+                    <p className="text-xs sm:text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-300 text-center leading-tight mb-1 sm:mb-2">
+                      {cert.title}
+                    </p>
+                    {/* Status Indicator */}
+                    <div className="flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full mr-1 sm:mr-2"></div>
+                      <span className="text-xs sm:text-xs md:text-sm text-emerald-600 dark:text-emerald-400 font-medium">Certified</span>
+                    </div>
                   </div>
-                  
-                  {/* Certification Title */}
-                  <p className="text-xs sm:text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-300 text-center leading-tight mb-1 sm:mb-2">
-                    {cert.title}
-                  </p>
-                  
-                  {/* Status Indicator */}
-                  <div className="flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full mr-1 sm:mr-2"></div>
-                    <span className="text-xs sm:text-xs md:text-sm text-emerald-600 dark:text-emerald-400 font-medium">Certified</span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
 
           {/* Enhanced Trust Indicators */}
           {/* Removed as per request */}

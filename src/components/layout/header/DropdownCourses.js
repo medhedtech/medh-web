@@ -132,28 +132,34 @@ const DropdownCourses = ({ isMenuOpen, onMenuToggle }) => {
     //   ],
     // },
     {
-      items: [
-        {
-          name: "AI and Data science",
-          path: "/ai-and-data-science-course",
-        },
-        {
-          name: "Personality development",
-          path: "/personality-development-course",
-        },
-        {
-          name: "Vedic Mathematics",
-          path: "/vedic-mathematics-course",
-        },
-        {
-          name: "Digital Marketing with Data Analytics",
-          path: "/digital-marketing-with-data-analytics-course",
-        },
-        {
+      items: (() => {
+        const courseItems = [
+          {
+            name: "AI and Data science",
+            path: "/ai-and-data-science-course",
+          },
+          {
+            name: "Personality development",
+            path: "/personality-development-course",
+          },
+          {
+            name: "Vedic Mathematics",
+            path: "/vedic-mathematics-course",
+          },
+          {
+            name: "Digital Marketing with Data Analytics",
+            path: "/digital-marketing-with-data-analytics-course",
+          },
+        ];
+        // Sort alphabetically by name
+        courseItems.sort((a, b) => a.name.localeCompare(b.name));
+        // Add the View All Courses item at the end
+        courseItems.push({
           name: "~View All Courses~",
           path: "/courses",
-        },
-      ],
+        });
+        return courseItems;
+      })(),
     },
   ];
   

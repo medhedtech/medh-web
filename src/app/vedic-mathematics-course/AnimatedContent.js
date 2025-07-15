@@ -14,7 +14,7 @@ function AnimatedContent({ components, bannerProps }) {
   return (
     <>
       {/* Main sections with spacing */}
-      <div className="space-y-16 md:space-y-24">
+      <div className="space-y-0">
         {/* Banner Section */}
         <motion.section
           initial="hidden"

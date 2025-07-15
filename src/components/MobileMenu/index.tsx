@@ -521,12 +521,14 @@ const MobileMenu: React.FC<IMobileMenuProps> = ({
                   <div className="px-4 py-2">
                     <h2 className={STYLES.sectionHeading}>Explore</h2>
                     <nav className={STYLES.navContainer}>
-                      {MENU_CONFIG.navSections.map((item, index) => (
-                        <MenuItem
-                          key={index}
-                          {...item}
-                        />
-                      ))}
+                      {[...MENU_CONFIG.navSections]
+                        .sort((a, b) => a.label.localeCompare(b.label))
+                        .map((item, index) => (
+                          <MenuItem
+                            key={index}
+                            {...item}
+                          />
+                        ))}
                     </nav>
                   </div>
                   

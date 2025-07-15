@@ -341,19 +341,13 @@ const DigiMarketingOverview = () => {
           transition={{ duration: 0.5 }}
           className="flex items-center flex-col w-full md:w-[80%] mx-auto mb-12 md:mb-16"
         >
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-blue-500/10 dark:bg-slate-700/30 rounded-full p-1 pl-2 pr-4 mb-6">
-            <span className="bg-blue-500 dark:bg-slate-600 text-white text-xs font-semibold px-2 py-1 rounded-full">
-              Featured Course
-            </span>
-          </div>
           
           <h1 className="text-[24px] text-center leading-7 md:text-4xl font-bold md:mb-3 mb-2 text-gray-900 dark:text-slate-100">
             Your Path to Achieving Success in the <span className="text-blue-500 dark:text-slate-300">Digital Age</span>
           </h1>
           <div className="h-1 w-24 bg-blue-500 dark:bg-slate-500 rounded-full mb-4"></div>
           <p className="text-center md:text-[18px] text-[14px] leading-6 md:leading-7 md:w-[90%] text-gray-600 dark:text-slate-300">
-            Gain expertise in using data analytics to improve digital marketing strategies. The Digital Marketing with Data Science course brings together two essential components of modern marketing—digital marketing and data analytics—allowing businesses to make informed, data-driven decisions and implement highly effective, targeted marketing campaigns.
+          Gain expertise in data-driven digital marketing with our Digital Marketing with Data Science course. It combines digital strategies and analytics to help businesses make informed decisions and run targeted campaigns.
           </p>
         </motion.div>
 
