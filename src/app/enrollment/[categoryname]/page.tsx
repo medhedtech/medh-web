@@ -2174,6 +2174,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
                               onEnrollClick={handleEnrollClick}
                               currencyCode={userCurrency}
                               formatPriceFunc={formatPrice}
+                              forceShowEMIAndFastTrack={true} // Always show EMI & Fast Track in category enrollment pages
                             />
                           </div>
                         </motion.div>
