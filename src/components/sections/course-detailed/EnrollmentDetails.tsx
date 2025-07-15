@@ -239,17 +239,6 @@ interface InstallmentPlan {
   startDate?: string;
 }
 
-interface EMIDetails {
-  isEMI: boolean;
-  numberOfInstallments: number;
-  downPayment: number;
-  installmentAmount: number;
-  interestRate: number;
-  processingFee: number;
-  totalAmount: number;
-  maxInstallments: number;
-  courseDurationMonths: number;
-}
 
 interface Coupon {
   _id: string;
@@ -887,6 +876,9 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   const router = useRouter();
   const { getQuery } = useGetQuery();
   const { postQuery } = usePostQuery();
+  
+  // AbortController for cleanup
+  const abortControllerRef = useRef<AbortController | null>(null);
   const { 
     loadRazorpayScript, 
     openRazorpayCheckout, 
@@ -914,6 +906,9 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   // Wishlist state
   const [isInWishlist, setIsInWishlist] = useState<boolean>(false);
   const [wishlistLoading, setWishlistLoading] = useState<boolean>(false);
+  // New: Track initial wishlist check and state
+  const [initialWishlistChecked, setInitialWishlistChecked] = useState(false);
+  const [wasInitiallyInWishlist, setWasInitiallyInWishlist] = useState(false);
   
   // EMI state
   const [selectedEMIMonths, setSelectedEMIMonths] = useState<number | null>(null);
@@ -921,140 +916,352 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
   // Add a state for initial loading from localStorage to prevent flicker
   const [initialLoading, setInitialLoading] = useState(true);
 
-  // Reset EMI selection when course changes
+  // Manual wishlist status check with better error handling
+  const checkWishlistStatusManually = useCallback(async (showLoadingState?: boolean) => {
+    const shouldShowLoading = showLoadingState !== false;
+    if (!userId || !courseDetails?._id) {
+      setIsInWishlist(false);
+      // New: Mark initial check as done
+      setInitialWishlistChecked(true);
+      setWasInitiallyInWishlist(false);
+      return;
+    }
+    try {
+      if (shouldShowLoading) {
+        setWishlistLoading(true);
+      }
+      
+      // First, try the regular check endpoint
+      const response = await axios.get(
+        checkWishlistStatus(userId, courseDetails._id),
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          timeout: 8000
+        }
+      );
+      
+      const apiResponse = response.data;
+      let isInWishlist = false;
+      
+      console.log('Raw API response for wishlist check:', {
+        status: response.status,
+        data: apiResponse,
+        courseId: courseDetails._id
+      });
+      
+      // Handle different response formats
+      if (apiResponse?.data?.is_in_wishlist === true) {
+        isInWishlist = true;
+        console.log('✅ Wishlist status: TRUE (format 1)');
+      } else if (apiResponse?.data?.isInWishlist === true) {
+        isInWishlist = true;
+        console.log('✅ Wishlist status: TRUE (format camelCase)');
+      } else if (apiResponse?.is_in_wishlist === true) {
+        isInWishlist = true;
+        console.log('✅ Wishlist status: TRUE (format 2)');
+      } else if (apiResponse?.success === true && apiResponse?.data?.course) {
+        // Course found in wishlist
+        isInWishlist = true;
+        console.log('✅ Wishlist status: TRUE (format 3 - course found)');
+      } else if (apiResponse?.success === true && Array.isArray(apiResponse?.data) && apiResponse.data.length > 0) {
+        // Check if course is in the wishlist array
+        const courseInWishlist = apiResponse.data.some((item: any) => 
+          item?.course?.id === courseDetails._id || item?.course?._id === courseDetails._id
+        );
+        if (courseInWishlist) {
+          isInWishlist = true;
+          console.log('✅ Wishlist status: TRUE (format 4 - found in array)');
+        } else {
+          console.log('❌ Wishlist status: FALSE (course not in array)');
+        }
+      } else {
+        console.log('❌ Wishlist status: FALSE (no matching format)');
+      }
+      
+      setIsInWishlist(isInWishlist);
+      console.log('Final wishlist state set to:', isInWishlist);
+      console.log('Icon should now be:', isInWishlist ? 'ACTIVE/FILLED (saved)' : 'INACTIVE/EMPTY (not saved)');
+      
+      // New: On first check, set initial state
+      if (!initialWishlistChecked) {
+        setWasInitiallyInWishlist(isInWishlist);
+        setInitialWishlistChecked(true);
+      }
+    } catch (error: any) {
+      console.error('Failed to check wishlist status:', error);
+      
+      // Handle 409 Conflict - means course is already in wishlist
+      if (error.response?.status === 409) {
+        const errorData = error.response.data;
+        console.log('409 Conflict - Course already in wishlist:', errorData);
+        
+        // If we get 409, it means the course is already in wishlist
+        // Check if the error message confirms this
+        if (errorData?.message?.includes('already in your wishlist') || 
+            errorData?.message?.includes('already in wishlist')) {
+          console.log('✅ Wishlist status: TRUE (409 - course already in wishlist)');
+          setIsInWishlist(true);
+          console.log('Icon should now be: ACTIVE/FILLED (saved) - 409 message match');
+        } else {
+          // Check if this is the correct course by comparing both id formats
+          const courseIdFromError = errorData?.data?.course?.id || errorData?.data?.course?._id;
+          if (courseIdFromError === courseDetails._id) {
+            console.log('✅ Wishlist status: TRUE (409 - course already in wishlist by ID match)');
+            setIsInWishlist(true);
+            console.log('Icon should now be: ACTIVE/FILLED (saved) - 409 ID match');
+          } else {
+            console.log('❌ Wishlist status: FALSE (409 but different course)');
+            console.log('Expected course ID:', courseDetails._id, 'Got:', courseIdFromError);
+            setIsInWishlist(false);
+            console.log('Icon should now be: INACTIVE/EMPTY (not saved) - 409 ID mismatch');
+          }
+        }
+      } else if (error.response?.status === 404) {
+        // 404 might mean the check endpoint doesn't exist, let's try alternative method
+        console.log('Check endpoint returned 404, trying alternative method...');
+        try {
+          await tryAddToWishlistForCheck();
+        } catch (altError: any) {
+          console.log('Alternative method also failed:', altError);
+          setIsInWishlist(false);
+        }
+      } else {
+        // On other errors, assume not in wishlist to allow user to try adding
+        console.log('❌ Wishlist status: FALSE (other error)');
+        setIsInWishlist(false);
+      }
+    } finally {
+      if (shouldShowLoading) {
+        setWishlistLoading(false);
+      }
+    }
+  }, [userId, courseDetails?._id, initialWishlistChecked]);
+
+  // Alternative method: Try to add to wishlist and handle 409 response
+  const tryAddToWishlistForCheck = useCallback(async () => {
+    if (!userId || !courseDetails?._id) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      
+      const addConfig = await addToWishlist({
+        studentId: userId,
+        courseId: courseDetails._id,
+        priority: 'medium',
+        notifications: {
+          price_drop: true,
+          course_updates: true,
+          enrollment_opening: true
+        }
+      } as any) as any;
+
+      await axios.post(addConfig.url, addConfig.data, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        timeout: 8000
+      });
+      
+      // If successful, course was not in wishlist but now is
+      console.log('✅ Course added to wishlist successfully');
+      setIsInWishlist(true);
+      
+    } catch (error: any) {
+      if (error.response?.status === 409) {
+        // 409 means already in wishlist - this is what we want to detect
+        console.log('✅ Wishlist status: TRUE (409 from alternative method)');
+        setIsInWishlist(true);
+      } else {
+        console.log('❌ Alternative method failed:', error);
+        setIsInWishlist(false);
+      }
+    }
+  }, [userId, courseDetails?._id]);
+
+  // Create a stable reference to checkWishlistStatusManually
+  const checkWishlistStatusRef = useRef(checkWishlistStatusManually);
   useEffect(() => {
-    setSelectedEMIMonths(null);
+    checkWishlistStatusRef.current = checkWishlistStatusManually;
+  }, [checkWishlistStatusManually]);
+
+  // Check wishlist status on mount and when user/course changes
+  useEffect(() => {
+    if (userId && courseDetails?._id) {
+      console.log('Checking wishlist status for:', { userId, courseId: courseDetails._id });
+      
+      // Add a small delay to ensure component is fully mounted
+      const timeoutId = setTimeout(() => {
+        checkWishlistStatusRef.current(true);
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
+    } else {
+      console.log('No user or course, setting wishlist to false');
+      setIsInWishlist(false);
+    }
+  }, [userId, courseDetails?._id]);
+
+  // Force check wishlist status on initial load after auth is confirmed
+  useEffect(() => {
+    if (!initialLoading && isLoggedIn && userId && courseDetails?._id) {
+      console.log('Force checking wishlist status after initial load');
+      checkWishlistStatusRef.current(false);
+    }
+  }, [initialLoading, isLoggedIn, userId, courseDetails?._id]);
+
+  // Reset EMI selection when course changes - use ref to track previous value
+  const prevCourseIdRef = useRef(courseDetails?._id);
+  useEffect(() => {
+    if (prevCourseIdRef.current !== courseDetails?._id) {
+      setSelectedEMIMonths(null);
+      prevCourseIdRef.current = courseDetails?._id;
+    }
   }, [courseDetails?._id]);
 
-  // Enhanced blended course detection
+  // Enhanced blended course detection with stable memoization
   const isBlendedCourse = useMemo(() => {
-    return (
-      courseDetails?.classType === 'Blended Courses' || 
-      courseDetails?.class_type === 'Blended Courses' ||
-      courseDetails?.course_type === 'blended' || 
-      courseDetails?.course_type === 'Blended' ||
-      courseDetails?.delivery_format === 'Blended' ||
-      courseDetails?.delivery_type === 'Blended'
+    if (!courseDetails) return false;
+    const blendedIndicators = [
+      courseDetails.classType,
+      courseDetails.class_type,
+      courseDetails.course_type,
+      courseDetails.delivery_format,
+      courseDetails.delivery_type
+    ];
+    return blendedIndicators.some(indicator => 
+      typeof indicator === 'string' && 
+      (indicator === 'Blended Courses' || indicator.toLowerCase() === 'blended')
     );
-  }, [
-    courseDetails?.classType, 
-    courseDetails?.class_type, 
-    courseDetails?.course_type,
-    courseDetails?.delivery_format,
-    courseDetails?.delivery_type
-  ]);
+  }, [courseDetails]);
   
   const [enrollmentType, setEnrollmentType] = useState<EnrollmentType>(
     isBlendedCourse ? 'individual' : (initialEnrollmentType || 'batch')
   );
 
-  // Check login status on component mount
+  // Check login status on component mount - single effect with proper cleanup
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
-      const userId = localStorage.getItem('userId');
-      const user = localStorage.getItem('user') || localStorage.getItem('userData');
+    let isMounted = true;
+    
+    const checkAuthStatus = () => {
+      if (typeof window === 'undefined') return;
       
-      const isUserLoggedIn = !!token && (!!userId || !!user);
-      
-      console.log('Login check: token present?', !!token);
-      console.log('Login check: userId present?', !!userId);
-      console.log('Login check: user/userData present?', !!user);
-      console.log('Login check: isUserLoggedIn computed as:', isUserLoggedIn);
+      try {
+        const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId');
+        const user = localStorage.getItem('user') || localStorage.getItem('userData');
+        
+        const isUserLoggedIn = !!token && (!!userId || !!user);
+        
+        if (isMounted) {
+          setIsLoggedIn(isUserLoggedIn);
+          setUserId(userId);
 
-      setIsLoggedIn(isUserLoggedIn);
-      setUserId(userId);
-
-      if (user) {
-        try {
-          const userData = JSON.parse(user);
-          setUserProfile(userData);
-        } catch (e) {
-          console.error("Failed to parse user data:", e);
-        }
-      }
-      setInitialLoading(false); // Mark initial loading complete
-    }
-  }, []);
-
-  // Always force individual enrollment for blended courses
-  useEffect(() => {
-    if (isBlendedCourse) {
-      setEnrollmentType('individual');
-    }
-  }, [isBlendedCourse]);
-
-  // Check wishlist status on component mount
-  useEffect(() => {
-    const checkWishlistStatusOnMount = async () => {
-      if (isLoggedIn && userId && courseDetails?._id) {
-        try {
-          const response = await axios.get(
-            checkWishlistStatus(userId, courseDetails._id),
-            {
-              headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-              }
+          if (user) {
+            try {
+              const userData = JSON.parse(user);
+              setUserProfile(userData);
+            } catch (e) {
+              console.error("Failed to parse user data:", e);
+              setUserProfile(null);
             }
-          );
-          setIsInWishlist(response.data.data.is_in_wishlist);
-        } catch (error) {
-          console.error('Failed to check wishlist status:', error);
-          setIsInWishlist(false);
+          }
+          setInitialLoading(false);
+        }
+      } catch (error) {
+        console.error('Error checking auth status:', error);
+        if (isMounted) {
+          setInitialLoading(false);
         }
       }
     };
 
-    checkWishlistStatusOnMount();
-  }, [isLoggedIn, userId, courseDetails?._id]);
+    checkAuthStatus();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
-  // Call callback when enrollment type changes
+  // Force individual enrollment for blended courses - prevent unnecessary updates
   useEffect(() => {
-    if (onEnrollmentTypeChange) {
-      onEnrollmentTypeChange(enrollmentType);
+    if (isBlendedCourse && enrollmentType !== 'individual') {
+      setEnrollmentType('individual');
     }
-  }, [enrollmentType, onEnrollmentTypeChange]);
+  }, [isBlendedCourse, enrollmentType]);
 
-  // Get active price information
+  // Call callback when enrollment type changes - stable reference
+  const onEnrollmentTypeChangeRef = useRef(onEnrollmentTypeChange);
+  useEffect(() => {
+    onEnrollmentTypeChangeRef.current = onEnrollmentTypeChange;
+  }, [onEnrollmentTypeChange]);
+  
+  useEffect(() => {
+    if (onEnrollmentTypeChangeRef.current) {
+      onEnrollmentTypeChangeRef.current(enrollmentType);
+    }
+  }, [enrollmentType]);
+
+  // Get active price information with stable memoization
   const getActivePrice = useCallback((): Price | null => {
     const prices = courseDetails?.prices;
-    if (!prices || prices.length === 0) {
+    if (!Array.isArray(prices) || prices.length === 0) {
       return null;
     }
+    
     // Prefer INR if available and active
-    const inrActive = prices.find(price => price.is_active && price.currency.toUpperCase() === 'INR');
+    const inrActive = prices.find(price => 
+      price?.is_active && 
+      typeof price.currency === 'string' && 
+      price.currency.toUpperCase() === 'INR'
+    );
     if (inrActive) return inrActive;
+    
     // Otherwise, prefer any active price
-    const activePrice = prices.find(price => price.is_active);
+    const activePrice = prices.find(price => price?.is_active);
     if (activePrice) return activePrice;
-    // Otherwise, fallback to first price
-    return prices[0] || null;
-  }, [courseDetails]);
+    
+    // Otherwise, fallback to first valid price
+    return prices.find(price => price && typeof price === 'object') || null;
+  }, [courseDetails?.prices]);
 
   // State for active pricing
   const [activePricing, setActivePricing] = useState<Price | null>(initialActivePricing || null);
   const [isPricingLoading, setIsPricingLoading] = useState(true); // New state
 
-  // Update activePricing when course details changes
+  // Update activePricing when course details changes - prevent unnecessary calls
   useEffect(() => {
     const price = getActivePrice();
-    setActivePricing(price);
-    setIsPricingLoading(false); // Set to false after price is determined
-  }, [courseDetails?.prices, courseDetails?._id]);
+    setActivePricing(prevPrice => {
+      // Only update if price actually changed
+      if (JSON.stringify(prevPrice) !== JSON.stringify(price)) {
+        return price;
+      }
+      return prevPrice;
+    });
+    setIsPricingLoading(false);
+  }, [getActivePrice]);
 
-  // Call callback when active pricing changes
+  // Call callback when active pricing changes - stable reference
+  const onActivePricingChangeRef = useRef(onActivePricingChange);
   useEffect(() => {
-    if (onActivePricingChange) {
-      onActivePricingChange(activePricing);
+    onActivePricingChangeRef.current = onActivePricingChange;
+  }, [onActivePricingChange]);
+  
+  useEffect(() => {
+    if (onActivePricingChangeRef.current) {
+      onActivePricingChangeRef.current(activePricing);
     }
-  }, [activePricing, onActivePricingChange]);
+  }, [activePricing]);
 
-  // Calculate final price including any applicable discounts
+  // Calculate final price including any applicable discounts - pure function, no dependencies needed
   const calculateFinalPrice = useCallback((price: number | undefined, discount: number | undefined): number => {
-    if (!price) return 0;
-    const safeDiscount = discount || 0;
-    const finalPrice = price - (price * safeDiscount / 100);
-    return finalPrice;
+    if (typeof price !== 'number' || price <= 0) return 0;
+    const safeDiscount = typeof discount === 'number' ? Math.max(0, Math.min(100, discount)) : 0;
+    return Math.max(0, price - (price * safeDiscount / 100));
   }, []);
   
   // Get the final price in the user's currency
@@ -1110,8 +1317,8 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     return !price || price <= 0 || price < 0.01;
   };
 
-  // Wishlist functions
-  const toggleWishlist = async () => {
+  // Wishlist functions with improved error handling and optimistic updates
+  const toggleWishlist = useCallback(async () => {
     if (!isLoggedIn) {
       showToast.error('Please login to add to wishlist');
       return;
@@ -1122,77 +1329,147 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       return;
     }
 
+    // Prevent multiple simultaneous requests
+    if (wishlistLoading) {
+      return;
+    }
+
+    const previousState = isInWishlist;
     setWishlistLoading(true);
 
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showToast.error('Authentication required');
+        return;
+      }
+
+      // Create new AbortController for this request
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       if (isInWishlist) {
-        // Remove from wishlist
-        const removeConfig = await removeFromWishlist({
-          studentId: userId,
-          courseId: courseDetails._id
-        } as any) as any;
-
-        await axios.delete(removeConfig.url, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          data: removeConfig.data
-        });
-
+        // Optimistic update - remove from wishlist immediately
         setIsInWishlist(false);
-        showToast.success('Removed from wishlist', {
-          duration: 2000,
-          style: {
-            background: '#EF4444',
-            color: '#fff',
-          },
-        });
+        
+        try {
+          const removeConfig = await removeFromWishlist({
+            studentId: userId,
+            courseId: courseDetails._id
+          } as any) as any;
+
+          await axios.delete(removeConfig.url, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            data: removeConfig.data,
+            timeout: 10000,
+            signal: controller.signal
+          });
+
+          if (!controller.signal.aborted) {
+            showToast.success('Removed from wishlist', {
+              duration: 2000,
+              style: {
+                background: '#EF4444',
+                color: '#fff',
+              },
+            });
+            // Verify the removal
+            setTimeout(() => checkWishlistStatusRef.current(false), 500);
+          }
+        } catch (error: any) {
+          // Revert optimistic update on error
+          setIsInWishlist(previousState);
+          throw error;
+        }
       } else {
-        // Add to wishlist
-        const addConfig = await addToWishlist({
-          studentId: userId,
-          courseId: courseDetails._id,
-          priority: 'medium',
-          notifications: {
-            price_drop: true,
-            course_updates: true,
-            enrollment_opening: true
-          }
-        } as any) as any;
-
-        await axios.post(addConfig.url, addConfig.data, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-
+        // Optimistic update - add to wishlist immediately
         setIsInWishlist(true);
-        showToast.success('Added to wishlist! 💖', {
-          duration: 3000,
-          style: {
-            background: '#10B981',
-            color: '#fff',
-          },
-        });
+        
+        try {
+          const addConfig = await addToWishlist({
+            studentId: userId,
+            courseId: courseDetails._id,
+            priority: 'medium',
+            notifications: {
+              price_drop: true,
+              course_updates: true,
+              enrollment_opening: true
+            }
+          } as any) as any;
+
+          await axios.post(addConfig.url, addConfig.data, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            timeout: 10000,
+            signal: controller.signal
+          });
+
+          if (!controller.signal.aborted) {
+            showToast.success('Added to wishlist! 💖', {
+              duration: 3000,
+              style: {
+                background: '#10B981',
+                color: '#fff',
+              },
+            });
+            // Verify the addition
+            setTimeout(() => checkWishlistStatusRef.current(false), 500);
+          }
+        } catch (error: any) {
+          // Handle 409 Conflict - course already in wishlist
+          if (error.response?.status === 409) {
+            // Keep the optimistic update since it's actually correct
+            showToast.success('Already in wishlist! 💖', {
+              duration: 2000,
+              style: {
+                background: '#10B981',
+                color: '#fff',
+              },
+            });
+            // Verify the current state
+            setTimeout(() => checkWishlistStatusRef.current(false), 500);
+          } else {
+            // Revert optimistic update on other errors
+            setIsInWishlist(previousState);
+            throw error;
+          }
+        }
       }
     } catch (error: any) {
+      if (error.name === 'AbortError') {
+        return; // Request was cancelled, don't show error
+      }
+      
       console.error('Wishlist operation failed:', error);
-      showToast.error(
-        error.response?.data?.message || 'Failed to update wishlist. Please try again.',
-        {
-          duration: 4000,
-          style: {
-            background: '#EF4444',
-            color: '#fff',
-          },
-        }
-      );
+      
+      // Show appropriate error message
+      let errorMessage = 'Failed to update wishlist. Please try again.';
+      
+      if (error.response?.status === 409) {
+        errorMessage = 'Course is already in your wishlist';
+      } else if (error.response?.status === 401) {
+        errorMessage = 'Please login to manage your wishlist';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      showToast.error(errorMessage, {
+        duration: 4000,
+        style: {
+          background: '#EF4444',
+          color: '#fff',
+        },
+      });
     } finally {
       setWishlistLoading(false);
+      abortControllerRef.current = null;
     }
-  };
+  }, [isLoggedIn, userId, courseDetails?._id, isInWishlist, wishlistLoading]);
 
   // Coupon validation and application
   const validateCoupon = async (code: string): Promise<Coupon | null> => {
@@ -1304,35 +1581,42 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     }
   };
 
-  // Check if already enrolled
-  const checkEnrollmentStatus = async (studentId: string, courseId: string): Promise<boolean> => {
+  // Check if already enrolled - memoized to prevent duplicate calls
+  const checkEnrollmentStatus = useCallback(async (studentId: string, courseId: string): Promise<boolean> => {
+    if (!studentId || !courseId) {
+      return false;
+    }
+    
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        return false;
+      }
+      
       const response = await axios.get(
         `${apiBaseUrl}/enrollments/students/${studentId}/enrollments/`,
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
+            'Authorization': `Bearer ${token}`
+          },
+          timeout: 10000 // 10 second timeout
         }
       );
       
-      if (response.data && Array.isArray(response.data)) {
+      if (Array.isArray(response?.data)) {
         return response.data.some((enrollment: any) => 
-          enrollment.course === courseId && 
-          (enrollment.status === 'active' || enrollment.status === 'in_progress')
+          enrollment?.course === courseId && 
+          (enrollment?.status === 'active' || enrollment?.status === 'in_progress')
         );
       }
       
       return false;
     } catch (error: any) {
       console.error("Failed to check enrollment status:", error);
-      if (error.response?.status === 404 || error.response?.status === 401) {
-        return false;
-      }
       return false;
     }
-  };
+  }, []);
 
   // Handle enrollment click
   const handleEnrollClick = useCallback(async () => {
@@ -1434,11 +1718,6 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     router.push('/dashboards/my-courses');
   };
 
-  // Handle course features - only compute if needed
-  const courseFeatures = useMemo(() => {
-    if (!courseDetails?.features) return [];
-    return courseDetails.features;
-  }, [courseDetails?.features]);
 
   // Handle enrollment type change
   const handleEnrollmentTypeChange = useCallback((newType: EnrollmentType) => {
@@ -1523,92 +1802,63 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     return 6;
   }, [courseDetails?.course_duration]);
 
-  // Generate smart EMI plans
-  const generateEMIPlans = useCallback((totalAmount: number): EMIDetails[] => {
-    if (!isLiveClass || totalAmount <= 0) return [];
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
-    const plans: EMIDetails[] = [];
-    const maxInstallments = Math.min(courseDurationInMonths, 12); // Max 12 months or course duration
-    const minInstallments = 3; // Minimum 3 installments
-    
-    // Generate plans for 3, 6, 9, 12 months (within course duration)
-    const planDurations = [3, 6, 9, 12].filter(months => months <= maxInstallments && months >= minInstallments);
-    
-    planDurations.forEach(months => {
-      const processingFee = Math.min(totalAmount * 0.02, 500); // 2% or max ₹500
-      const interestRate = months <= 3 ? 8 : months <= 6 ? 12 : 15; // Progressive interest
-      const downPaymentPercent = months <= 3 ? 20 : months <= 6 ? 25 : 30; // Higher down payment for longer terms
-      
-      const downPayment = Math.round(totalAmount * (downPaymentPercent / 100));
-      const remainingAmount = totalAmount - downPayment + processingFee;
-      const monthlyInterest = interestRate / 12 / 100;
-      
-      // Calculate EMI using standard formula
-      const emiAmount = Math.round(
-        (remainingAmount * monthlyInterest * Math.pow(1 + monthlyInterest, months)) /
-        (Math.pow(1 + monthlyInterest, months) - 1)
-      );
-      
-      const totalWithInterest = downPayment + (emiAmount * months);
-      
-      plans.push({
-        isEMI: true,
-        numberOfInstallments: months,
-        downPayment,
-        installmentAmount: emiAmount,
-        interestRate,
-        processingFee,
-        totalAmount: totalWithInterest,
-        maxInstallments,
-        courseDurationMonths: courseDurationInMonths
-      });
-    });
-    
-    return plans;
-  }, [isLiveClass, courseDurationInMonths]);
-
-  // Update EMI plans when price changes
+  // Track previous price to avoid unnecessary EMI plan updates
+  const prevPriceRef = useRef<number>();
+  const prevIsLiveClassRef = useRef<boolean>();
+  
   useEffect(() => {
     const basePrice = getFinalPriceWithCoupon();
-    console.log('EMI basePrice:', basePrice, 'activePricing:', activePricing, 'courseDetails:', courseDetails, 'isLiveClass:', isLiveClass);
-    if (isLiveClass && !courseDetails?.isFree) {
-      if (basePrice > 3000) { // Only offer EMI for amounts > ₹3000
-        const plans = generateEMIPlans(basePrice);
-        // setAvailableEMIPlans(plans); // This state is no longer needed
-        // setSelectedEMIPlan(null); // This state is no longer needed
-        // setShowEMIOptions(false); // This state is no longer needed
-      } else {
-        // setAvailableEMIPlans([]); // This state is no longer needed
-        // setSelectedEMIPlan(null); // This state is no longer needed
-        // setShowEMIOptions(false); // This state is no longer needed
+    const currentIsLiveClass = isLiveClass;
+    
+    // Only update if price or live class status actually changed
+    if (prevPriceRef.current !== basePrice || prevIsLiveClassRef.current !== currentIsLiveClass) {
+      prevPriceRef.current = basePrice;
+      prevIsLiveClassRef.current = currentIsLiveClass;
+      
+      if (currentIsLiveClass && !courseDetails?.isFree && basePrice > 3000) {
+        // EMI plans are now generated on-demand in EMISelector component
+        // No state updates needed here to prevent infinite loops
       }
     }
-  }, [isLiveClass, courseDetails?.isFree, getFinalPriceWithCoupon, generateEMIPlans]);
+  }, [isLiveClass, courseDetails?.isFree, getFinalPriceWithCoupon]);
 
-  // Calculate any discount percentage to display
-  const discountPercentage = activePricing ? (
-    isBlendedCourse 
+  // Calculate discount percentage and original price in single memo
+  const priceCalculations = useMemo(() => {
+    if (!activePricing) {
+      return { discountPercentage: 0, originalPrice: null };
+    }
+    
+    const discountPercentage = isBlendedCourse 
       ? activePricing.early_bird_discount || 0 
       : (enrollmentType === 'batch' 
         ? activePricing.group_discount || 0
-        : activePricing.early_bird_discount || 0)
-  ) : 0;
-
-  // Determine original price (before discount) if applicable
-  const originalPrice = useMemo(() => {
-    if (!activePricing) return null;
+        : activePricing.early_bird_discount || 0);
     
-    if (isBlendedCourse) {
-      return discountPercentage > 0 ? activePricing.individual : null;
-    } else {
-      return discountPercentage > 0 
-        ? (enrollmentType === 'individual' ? activePricing.individual : activePricing.batch) 
-        : null;
-    }
-  }, [activePricing, discountPercentage, enrollmentType, isBlendedCourse]);
+    const originalPrice = discountPercentage > 0 
+      ? (isBlendedCourse 
+        ? activePricing.individual 
+        : (enrollmentType === 'individual' ? activePricing.individual : activePricing.batch))
+      : null;
+      
+    return { discountPercentage, originalPrice };
+  }, [activePricing, isBlendedCourse, enrollmentType]);
+  
+  const { discountPercentage, originalPrice } = priceCalculations;
 
-  // Check if current user is test user
-  const isTestUser = userId === '67cfe3a9a50dbb995b4d94da';
+  // Check if current user is test user - memoized
+  const isTestUser = useMemo(() => 
+    userId === '67cfe3a9a50dbb995b4d94da', 
+    [userId]
+  );
 
   // Handle when no course is selected
   if (!courseDetails) {
@@ -1680,48 +1930,79 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           </div>
           <div className="flex items-center gap-2">
             {/* Enhanced Wishlist Button */}
-            <button
-              onClick={toggleWishlist}
-              disabled={wishlistLoading}
-              className={`relative p-3 rounded-xl transition-all duration-300 transform ${
-                isInWishlist 
-                  ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg hover:shadow-xl hover:from-pink-600 hover:to-rose-600 scale-105' 
-                  : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 shadow-md hover:shadow-lg border border-gray-200 dark:border-gray-600'
-              } ${wishlistLoading ? 'opacity-70 cursor-not-allowed' : 'hover:scale-110 active:scale-95'}`}
-              title={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-              aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-            >
-              {/* Wishlist Glow Effect */}
-              {isInWishlist && (
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-pink-400 to-rose-400 blur-md opacity-60 animate-pulse" />
-              )}
-              <div className="relative flex items-center gap-2">
-                {wishlistLoading ? (
-                  <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Heart 
-                      className={`w-5 h-5 transition-all duration-200 ${
-                        isInWishlist 
-                          ? 'fill-current drop-shadow-sm' 
-                          : 'hover:scale-110'
-                      }`} 
-                    />
-                    {isInWishlist && (
-                      <span className="text-sm font-medium hidden sm:inline">
-                        Saved
-                      </span>
-                    )}
-                  </>
-                )}
-              </div>
-              {/* Floating Heart Animation */}
-              {isInWishlist && (
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full flex items-center justify-center shadow-sm">
-                  <div className="w-1.5 h-1.5 bg-pink-500 rounded-full animate-ping" />
+            {/* Wishlist button logic updated for initial load behavior */}
+            {(!initialWishlistChecked) ? (
+              // Loading state for wishlist button
+              <button className="relative p-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-wait" disabled>
+                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              </button>
+            ) : (isInWishlist ? (
+              // If in wishlist, show only 'Saved' button (unsave)
+              <button
+                onClick={toggleWishlist}
+                disabled={wishlistLoading}
+                className={`relative p-3 rounded-xl transition-all duration-300 transform 
+                  bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg hover:shadow-xl hover:from-pink-600 hover:to-rose-600 scale-105 ring-2 ring-pink-200 dark:ring-pink-400/20
+                  ${wishlistLoading ? 'opacity-70 cursor-not-allowed' : 'hover:scale-110 active:scale-95'}
+                  focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900
+                `}
+                title={'Remove from wishlist'}
+                aria-label={'Remove from wishlist'}
+              >
+                {/* Wishlist Glow Effect */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.6, scale: [1, 1.2, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut' }}
+                  className="absolute inset-0 rounded-xl bg-gradient-to-r from-pink-400 to-rose-400 blur-md "
+                />
+                <div className="relative flex items-center justify-center gap-2">
+                  {wishlistLoading ? (
+                    <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Heart className={`w-5 h-5 transition-all duration-200 fill-current drop-shadow-sm`} />
+                  )}
+                  {!wishlistLoading && (
+                    <span className="text-sm font-medium hidden sm:inline">Saved</span>
+                  )}
                 </div>
-              )}
-            </button>
+                {/* Floating Heart Animation */}
+                {!wishlistLoading && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0, y: 0 }}
+                    animate={{ scale: [0, 1.2, 1], opacity: [0, 1, 0], y: [-5, -15, -30] }}
+                    transition={{ duration: 0.8, ease: 'easeOut', repeat: 0, delay: 0.1 }}
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full flex items-center justify-center shadow-sm pointer-events-none"
+                  >
+                    <Heart className="w-2.5 h-2.5 text-pink-500 fill-current" />
+                  </motion.div>
+                )}
+              </button>
+            ) : (
+              // If not in wishlist, show only 'Save' button
+              <button
+                onClick={toggleWishlist}
+                disabled={wishlistLoading}
+                className={`relative p-3 rounded-xl transition-all duration-300 transform 
+                  bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 shadow-md hover:shadow-lg border border-gray-200 dark:border-gray-600 hover:border-pink-300 dark:hover:border-pink-500
+                  ${wishlistLoading ? 'opacity-70 cursor-not-allowed' : 'hover:scale-110 active:scale-95'}
+                  focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900
+                `}
+                title={'Add to wishlist'}
+                aria-label={'Add to wishlist'}
+              >
+                <div className="relative flex items-center justify-center gap-2">
+                  {wishlistLoading ? (
+                    <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Heart className={`w-5 h-5 transition-all duration-200`} />
+                  )}
+                  {!wishlistLoading && (
+                    <span className="text-xs font-medium hidden sm:inline opacity-75">Save</span>
+                  )}
+                </div>
+              </button>
+            ))}
             {/* Share Button */}
             <button
               onClick={async () => {
