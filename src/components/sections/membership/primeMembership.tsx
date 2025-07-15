@@ -69,7 +69,7 @@ interface IModalState {
 // Fallback static data with psychological triggers
 const getStaticMembershipData = (): IMembershipData[] => [
   {
-    type: "medh-silver membership" as TMembershipType,
+    type: "silver" as TMembershipType,
     icon: <Star className="w-4 h-4" />,
     color: "primary",
     isPopular: false,
@@ -84,14 +84,14 @@ const getStaticMembershipData = (): IMembershipData[] => [
     description: "Perfect for focused learning in one specialized area",
     features: [
       // HIGHLIGHTED FEATURE
-      "<span class='font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded block sm:hidden text-center'>Choose 'One Category' and<br/>get full access to all its courses.</span><span class='font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded hidden sm:inline'>Choose 'One Category' and get full access to all its courses.</span>",
+      "<span class='font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded block sm:hidden text-center'>Choose <b>1 Category</b> and get full access to all its courses.</span><span class='font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded hidden sm:inline'>Choose <b>1 Category</b> and get full access to all its courses.</span>",
       "Live Q&A sessions",
       "Community access",
       "Career support"
     ]
   },
   {
-    type: "medh-gold membership" as TMembershipType,
+    type: "gold" as TMembershipType,
     icon: <Crown className="w-4 h-4" />,
     color: "amber",
     isPopular: true,
@@ -106,7 +106,7 @@ const getStaticMembershipData = (): IMembershipData[] => [
     description: "Most comprehensive package for serious learners",
     features: [
       // HIGHLIGHTED FEATURE
-      "<span class='font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded block sm:hidden text-center'>Choose 'Three Categories' and get<br/>full access to all courses within them.</span><span class='font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded hidden sm:inline'>Choose 'Three Categories' and get full access to all courses within them.</span>",
+      "<span class='font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded block sm:hidden text-center'>Choose <b>up to 3 Categories</b> and get full access to all courses within them.</span><span class='font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded hidden sm:inline'>Choose <b>up to 3 Categories</b> and get full access to all courses within them.</span>",
       "Priority support",
       "Career counseling",
       "Job placement assistance"

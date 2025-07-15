@@ -762,7 +762,7 @@ export default function SelectCourseModal({
                       : 'border-gray-100 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600'
                   }`}
                   aria-pressed={isSelected}
-                  aria-label={`Select category ${category.category_name}`}
+                  aria-label={disabled ? `Maximum of ${maxSelections} categories can be selected` : undefined}
                 >
                   {/* Blended Badge */}
                   <span className="absolute top-4 left-4 bg-gradient-to-r from-yellow-400 to-amber-500 text-black dark:text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg flex items-center gap-1">
@@ -800,6 +800,11 @@ export default function SelectCourseModal({
             })
           )}
         </div>
+        {selectedCategories.length >= maxSelections && (
+  <div className="mt-2 text-sm text-amber-600 dark:text-amber-400 text-center font-medium">
+    {`You can select up to ${maxSelections} categor${maxSelections > 1 ? 'ies' : 'y'} for this membership.`}
+  </div>
+)}
 
         {/* Sticky Footer */}
         <div className={footerClass}>
