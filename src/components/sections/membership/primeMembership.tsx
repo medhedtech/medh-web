@@ -69,7 +69,7 @@ interface IModalState {
 // Fallback static data with psychological triggers
 const getStaticMembershipData = (): IMembershipData[] => [
   {
-    type: "silver" as TMembershipType,
+    type: "medh-silver membership" as TMembershipType,
     icon: <Star className="w-4 h-4" />,
     color: "primary",
     isPopular: false,
@@ -91,7 +91,7 @@ const getStaticMembershipData = (): IMembershipData[] => [
     ]
   },
   {
-    type: "gold" as TMembershipType,
+    type: "medh-gold membership" as TMembershipType,
     icon: <Crown className="w-4 h-4" />,
     color: "amber",
     isPopular: true,
