@@ -230,6 +230,14 @@ const AssignmentsMain = dynamic(
   }
 );
 
+const WishlistPage = dynamic(
+  () => import("@/app/dashboards/student/wishlist/page"),
+  {
+    ssr: false,
+    loading: () => <SkeletonLoader type="dashboard" />
+  }
+);
+
 // Animation variants
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -444,6 +452,8 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
       setCurrentView("feedback");
     } else if (pathname.includes('/dashboards/student/apply')) {
       setCurrentView("apply");
+    } else if (pathname.includes('/dashboards/student/wishlist')) {
+      setCurrentView("wishlist");
     } else if (pathname === '/dashboards/student') {
       setCurrentView("overview");
     }
@@ -686,6 +696,8 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
       return <EnrolledCoursesMain />;
     } else if (viewMatches(['profile'])) {
       return <StudentProfilePage />;
+    } else if (viewMatches(['wishlist'])) {
+      return <WishlistPage />;
     } else {
       // Default to coming soon for truly unimplemented views
       return (
