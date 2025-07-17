@@ -876,8 +876,8 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
       const isJobGuarantee = isJobGuaranteeCourse();
       
       return {
-        tag: isJobGuarantee ? '🎯 Job Guarantee Course' : 'Live',
-        mobileTag: isJobGuarantee ? '🎯 Job Guarantee' : 'Live',
+        tag: isJobGuarantee ? '🎯 Job Guaranteed Course' : 'Live',
+        mobileTag: isJobGuarantee ? '🎯 Job Guaranteed' : 'Live',
         tagIcon: isJobGuarantee ? <GraduationCap className="w-3 h-3" /> : <Play className="w-3 h-3" />,
         sessionLabel: 'Sessions',
         sessionIcon: <Users size={12} />,
