@@ -730,14 +730,14 @@ const features = [
   }
 ];
 
-// Career prospects data for doughnut chart
-const careerProspects = [
-  { name: 'Data Scientist', value: 28, color: getEnhancedSemanticColor('courses', 'light') },
-  { name: 'AI Engineer', value: 22, color: getEnhancedSemanticColor('pricing', 'light') },
-  { name: 'Data Analyst', value: 18, color: getEnhancedSemanticColor('certification', 'light') },
-  { name: 'ML Engineer', value: 14, color: getEnhancedSemanticColor('support', 'light') },
-  { name: 'Business Analyst', value: 10, color: getEnhancedSemanticColor('enrollment', 'light') },
-  { name: 'Other', value: 8, color: getEnhancedSemanticColor('corporate', 'light') }
+// Top industries hiring for doughnut chart (updated with new percentages)
+const industryDoughnutData = [
+  { name: 'Healthcare', value: 22.45, color: getEnhancedSemanticColor('healthcare', 'light') },
+  { name: 'Technology', value: 20.87, color: getEnhancedSemanticColor('enrollment', 'light') },
+  { name: 'Finance', value: 19.94, color: getEnhancedSemanticColor('pricing', 'light') },
+  { name: 'Retail', value: 18.60, color: getEnhancedSemanticColor('certification', 'light') },
+  { name: 'Manufacturing', value: 18.14, color: getEnhancedSemanticColor('support', 'light') },
+  
 ];
 
 const benefits = [
@@ -791,7 +791,7 @@ const TABS = [
 const TAB_CONTENT = [
   // Overview
   (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full px-6 md:px-16">
       {whyChoose.map((item, idx) => {
         const Icon = whyChooseIcons[idx % whyChooseIcons.length];
         const accent = accentColors[idx % accentColors.length];
@@ -827,7 +827,7 @@ const TAB_CONTENT = [
   ),
   // Course Features
   (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full px-6 md:px-16">
       {features.map((item, idx) => {
         const Icon = featuresIcons[idx % featuresIcons.length];
         const accent = accentColors[(idx + 2) % accentColors.length];
@@ -863,7 +863,7 @@ const TAB_CONTENT = [
   ),
   // Benefits
   (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full px-6 md:px-16">
       {benefits.map((item, idx) => {
         const Icon = benefitsIcons[idx % benefitsIcons.length];
         const accent = accentColors[(idx + 3) % accentColors.length];
@@ -905,7 +905,7 @@ const CourseAiOverview: React.FC = () => {
   return (
     <div className="relative bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 min-h-[50vh] w-full">
       <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-indigo-500/10 to-violet-500/15 dark:from-blue-500/10 dark:via-indigo-500/15 dark:to-violet-500/20 pointer-events-none" />
-      <div className="relative w-full px-6 py-8 md:py-16">
+      <div className="relative w-full px-0 py-8 md:py-16">
         {/* Hero Section */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
@@ -917,7 +917,12 @@ const CourseAiOverview: React.FC = () => {
             Why Choose Medh’s AI & Data Science Course?
           </h1>
           <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 max-w-2xl mx-auto font-medium">
-            Gain the most in-demand skills for tomorrow’s tech landscape. Our program blends AI and data science for a future-proof, job-ready education.
+            <span>
+              Build the skills top employers want.
+            </span>
+            <span className="inline md:block">
+              {" "}Master AI and data science for a future-ready career.
+            </span>
           </p>
         </motion.div>
 
@@ -950,18 +955,88 @@ const CourseAiOverview: React.FC = () => {
           {TAB_CONTENT[activeTab]}
         </div>
 
-        {/* Career Prospects Doughnut Chart */}
+        {/* Top Industries Doughnut Chart */}
         <div className="mb-12 w-full pt-16">
-          <h2 className="text-lg md:text-xl font-bold text-primaryColor mb-4 text-center">Career Prospects</h2>
-          <p className="text-base md:text-lg text-gray-600 dark:text-gray-300 mb-6 max-w-4xl mx-auto text-center">
-            The chart below shows the most common job roles and their relative demand for graduates of this course. These percentages reflect current industry hiring trends and the wide range of opportunities available in AI and Data Science. Each segment represents a career path you can pursue after completing the program.
-          </p>
-          <div className="flex flex-col md:flex-row items-center gap-6 w-full justify-center">
-            <div className="w-full md:w-1/2 h-64 flex justify-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-primaryColor mb-4 text-center">Top Industries Hiring AI & Data Science Professionals</h2>
+          {/* Top Industries List - All left, chart right */}
+          <div className="flex flex-col md:flex-row items-center gap-6 w-full justify-center mb-6">
+            {/* Left side: all industries */}
+            <div className="flex-1 w-full md:w-[480px] lg:w-[560px] xl:w-[640px] md:pl-16 md:pr-6">
+              <table className="min-w-full text-left border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden text-xs md:text-sm">
+                <thead className="bg-gray-100 dark:bg-gray-800">
+                  <tr>
+                    <th className="py-2 px-3 font-semibold text-gray-700 dark:text-gray-200">Industry</th>
+                    <th className="py-2 px-3 font-semibold text-gray-700 dark:text-gray-200">Share(%)</th>
+                    <th className="py-2 px-3 font-semibold text-gray-700 dark:text-gray-200">Key Applications</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800">
+                    <td className="py-2 px-3 font-medium text-blue-600 dark:text-blue-400">Healthcare</td>
+                    <td className="py-2 px-3 font-bold">22.45%</td>
+                    <td className="py-2 px-3 text-gray-600 dark:text-gray-300 text-sm">Medical imaging, predictive diagnostics, patient care optimization</td>
+                  </tr>
+                  <tr className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800">
+                    <td className="py-2 px-3 font-medium text-pink-600 dark:text-pink-400">Technology</td>
+                    <td className="py-2 px-3 font-bold">20.87%</td>
+                    <td className="py-2 px-3 text-gray-600 dark:text-gray-300 text-sm">Natural language processing, computer vision, autonomous systems</td>
+                  </tr>
+                  <tr className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800">
+                    <td className="py-2 px-3 font-medium text-emerald-600 dark:text-emerald-400">Finance</td>
+                    <td className="py-2 px-3 font-bold">19.94%</td>
+                    <td className="py-2 px-3 text-gray-600 dark:text-gray-300 text-sm">Algorithmic trading, fraud detection, risk assessment</td>
+                  </tr>
+                  <tr className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800">
+                    <td className="py-2 px-3 font-medium text-amber-600 dark:text-amber-400">Retail</td>
+                    <td className="py-2 px-3 font-bold">18.60%</td>
+                    <td className="py-2 px-3 text-gray-600 dark:text-gray-300 text-sm">Recommendation systems, inventory management, consumer behavior analysis</td>
+                  </tr>
+                  <tr className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800">
+                    <td className="py-2 px-3 font-medium text-violet-600 dark:text-violet-400">Manufacturing</td>
+                    <td className="py-2 px-3 font-bold">18.14%</td>
+                    <td className="py-2 px-3 text-gray-600 dark:text-gray-300 text-sm">Predictive maintenance, quality control, supply chain optimization</td>
+                  </tr>
+                  
+                </tbody>
+              </table>
+            </div>
+            {/* Right side: Doughnut Chart */}
+            <div className="block md:hidden w-full" style={{ height: 220 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={careerProspects}
+                    data={industryDoughnutData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={65}
+                    paddingAngle={2}
+                    label={false}
+                  >
+                    {industryDoughnutData.map((entry, idx) => (
+                      <Cell key={`cell-m-${idx}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              {/* Mobile legend */}
+              <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-3">
+                {industryDoughnutData.map((entry, idx) => (
+                  <div key={`legend-m-${idx}`} className="flex items-center text-xs">
+                    <span className="inline-block w-3 h-3 rounded-full mr-2" style={{ backgroundColor: entry.color }}></span>
+                    <span className="font-medium mr-1">{entry.name}</span>
+                    <span className="text-gray-500">{Math.round(entry.value)}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="hidden md:block w-1/2 h-64 flex justify-center my-6 md:my-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={industryDoughnutData}
                     dataKey="value"
                     nameKey="name"
                     cx="50%"
@@ -971,7 +1046,7 @@ const CourseAiOverview: React.FC = () => {
                     paddingAngle={2}
                     label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                   >
-                    {careerProspects.map((entry, idx) => (
+                    {industryDoughnutData.map((entry, idx) => (
                       <Cell key={`cell-${idx}`} fill={entry.color} />
                     ))}
                   </Pie>
@@ -979,6 +1054,43 @@ const CourseAiOverview: React.FC = () => {
               </ResponsiveContainer>
             </div>
           </div>
+          {/* Short note below the chart */}
+          <div className="flex items-center justify-center mt-4 md:mt-4">
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-md px-3 py-1 text-blue-800 dark:text-blue-200 text-xs flex items-center gap-2 md:whitespace-nowrap mt-8 md:mt-0">
+              <svg xmlns='http://www.w3.org/2000/svg' className='w-3 h-3 text-blue-500 dark:text-blue-300' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z' /></svg>
+              <span>Each segment shows the share of AI & Data Science job opportunities by industry.</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Career Prospects Section Intro (UX-optimized) */}
+        <div className="w-full text-center mb-10 md:mb-14 pt-0 px-16">
+          <h1 className="text-2xl md:text-3xl font-bold text-primaryColor mb-4">Unlock Limitless Opportunities in AI & Data Science</h1>
+          <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 mb-5 font-medium">
+            AI and Data Science are changing every industry. Turn data into opportunity—at any career stage.
+          </p>
+          {/* Industry Growth Metrics as Cards */}
+          <div className="grid grid-cols-2 gap-4 mb-6 w-full">
+            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-3 flex flex-col items-center justify-center">
+              <div className="text-xl md:text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">21%</div>
+              <div className="text-xs md:text-sm text-gray-600 dark:text-gray-300 text-center">Annual growth in AI/ML sector</div>
+            </div>
+            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-3 flex flex-col items-center justify-center">
+              <div className="text-xl md:text-2xl font-bold text-emerald-600 dark:text-emerald-400 mb-1">300K+</div>
+              <div className="text-xs md:text-sm text-gray-600 dark:text-gray-300 text-center">Global job openings in data science & AI</div>
+            </div>
+            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-3 flex flex-col items-center justify-center">
+              <div className="text-xl md:text-2xl font-bold text-amber-600 dark:text-amber-400 mb-1">$500B</div>
+              <div className="text-xs md:text-sm text-gray-600 dark:text-gray-300 text-center">Projected AI market value by 2025</div>
+            </div>
+            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-3 flex flex-col items-center justify-center">
+              <div className="text-xl md:text-2xl font-bold text-violet-600 dark:text-violet-400 mb-1">70%</div>
+              <div className="text-xs md:text-sm text-gray-600 dark:text-gray-300 text-center">Companies reporting AI/ML talent shortage</div>
+            </div>
+          </div>
+          <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 mb-6 font-medium">
+            Your skills are needed in every field—from healthcare to finance. Discover high-impact roles with strong growth and great salaries.
+          </p>
         </div>
 
         {/* CTA Section */}
