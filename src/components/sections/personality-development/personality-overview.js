@@ -16,6 +16,8 @@ import {
   ChevronDown
 } from "lucide-react";
 import Link from "next/link";
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { getEnhancedSemanticColor } from '@/utils/designSystem';
 
 // Create a reusable ListItem component for better UI
 const ListItem = memo(({ feature, index }) => (
@@ -135,306 +137,338 @@ const ageGroups = [
   { name: "Homemakers", benefit: "Rediscovering purpose & building self-confidence" }
 ];
 
-const data = {
-  tabs: [
-    {
-      id: 1,
-      name: "Overview",
-      icon: <BookOpen className="w-5 h-5" />,
-      content: (
-        <>
-          <h1 className="text-[20px] md:text-[23px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600 mb-4 md:mb-6 text-center w-full">
-            Why Choose Medh's Personality Development Course?
-          </h1>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-gray-700 dark:text-gray-300 mb-6 md:text-[16px] text-[15px] leading-relaxed text-center w-full"
-          >
-            Introducing <span className="text-gray-800 dark:text-gray-50 md:text-[1.1rem] text-[16px] font-bold tracking-wide">Medh&#39;s Personality Development Courses</span> that offers practical insights and techniques to enhance confidence, communication, and leadership capabilities for personal and professional success.
-          </motion.p>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="text-gray-700 dark:text-gray-300 mb-6 md:text-[16px] text-[15px] leading-relaxed text-center w-full"
-          >
-            <span className="text-gray-800 dark:text-gray-50 md:text-[1.1rem] text-[16px] font-bold tracking-wide">Tailored for diverse range of Age Groups:</span> From preschoolers, school students, college students, professionals, and homemakers, providing unique and engaging content designed to enhance their confidence, communication, and leadership skills.
-          </motion.p>
-          
-          <h1 className="text-[20px] md:text-[23px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600 mb-4 md:mb-6 text-center">
-            Key Features:
-          </h1>
-          
-          <div className="space-y-2 md:space-y-4 w-full">
-            <Accordion title="Age-Appropriate Content">
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                Our course content is tailored for different age groups from preschool to entry-level professionals, ensuring everyone gets the most relevant and effective training for their life stage.
-              </p>
-            </Accordion>
-            
-            <Accordion title="Interactive Learning">
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                Learning happens through engaging online sessions, hands-on activities, role-plays, and practical assessments that make the development process enjoyable and effective.
-              </p>
-            </Accordion>
-            
-            <Accordion title="Expert Instructors">
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                Our experienced educators provide engaging, multimedia-rich content that keeps learners motivated while delivering maximum value in their personality development journey.
-              </p>
-            </Accordion>
-            
-            <Accordion title="Enhanced Confidence">
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                Build a strong sense of self-assurance to tackle life's challenges with poise and certainty. Our proven techniques help eliminate self-doubt and foster authentic confidence.
-              </p>
-            </Accordion>
-            
-            <Accordion title="Improved Communication Skills">
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                Learn to articulate your thoughts clearly and effectively, fostering better relationships both personally and professionally. Develop active listening, public speaking, and interpersonal communication.
-              </p>
-            </Accordion>
-            
-            <Accordion title="Leadership Development">
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                Cultivate essential leadership qualities that will help you excel in diverse roles and situations. Discover your leadership style and learn how to inspire and motivate others.
-              </p>
-            </Accordion>
-          </div>
+const TABS = [
+  { id: 0, label: "Overview" },
+  { id: 1, label: "Career Features" },
+  { id: 2, label: "Benefits" },
+];
 
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="text-gray-700 dark:text-gray-300 mt-8 mb-6 md:text-[16px] text-[15px] leading-relaxed bg-primaryColor/5 dark:bg-primaryColor/10 p-4 rounded-lg border-l-4 border-primaryColor text-center w-full"
-          >
-            Join us to experience a holistic approach to personal development, empowering individuals across age groups with essential life skills for success and fulfillment.
-          </motion.p>
-        </>
-      ),
-    },
-    {
-      id: 2,
-      name: "Benefits",
-      icon: <Heart className="w-5 h-5" />,
-      content: (
-        <>
-          <h1 className="text-[20px] md:text-[23px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600 mb-4 md:mb-6 text-center">
-            Benefits of Personality Development Courses
-          </h1>
-          
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-gray-700 dark:text-gray-300 md:text-[16px] text-[15px] mb-6 leading-relaxed text-center mx-auto max-w-3xl"
-          >
-            Personality Development for Personal and Professional Empowerment offers transformative advantages for individuals at every stage of life.
-          </motion.p>
-
-          {/* Statistics Cards */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-8 md:mb-10 text-center max-w-4xl mx-auto"
-          >
-            <h2 className="text-lg md:text-xl font-bold text-gray-800 dark:text-gray-200 mb-3 md:mb-4 text-center">
-              Impact Metrics
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 justify-center">
-              {personalityStats.map((stat, index) => (
-                <StatCard key={index} stat={stat} index={index} />
-              ))}
-            </div>
-          </motion.div>
-
-          <div className="space-y-2 md:space-y-4 mt-6 max-w-3xl mx-auto">
-            <Accordion title="Personal Growth & Confidence">
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                Our courses foster self-awareness and emotional intelligence, helping you build authentic confidence that radiates in every interaction. Discover your unique strengths and learn to leverage them effectively.
-              </p>
-            </Accordion>
-            
-            <Accordion title="Enhanced Communication Abilities">
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                Master both verbal and non-verbal communication skills that will help you articulate your thoughts clearly and connect meaningfully with others. Improve your listening skills, body language, and presentation abilities.
-              </p>
-            </Accordion>
-            
-            <Accordion title="Professional Advancement">
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                Develop essential workplace skills like leadership, teamwork, problem-solving, and conflict resolution that make you an invaluable asset to any organization. Our graduates report significant career advancement after completing our courses.
-              </p>
-            </Accordion>
-            
-            <Accordion title="Social Intelligence">
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                Learn to navigate complex social situations with ease and build meaningful relationships in both personal and professional settings. Develop empathy, adaptability, and cultural sensitivity.
-              </p>
-            </Accordion>
-            
-            <Accordion title="Stress Management & Resilience">
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                Acquire effective strategies to manage stress, overcome challenges, and bounce back from setbacks with renewed strength and perspective. Build mental toughness and emotional resilience for life's challenges.
-              </p>
-            </Accordion>
-          </div>
-
-          {/* Age Groups Section */}
-          <div className="mt-8 text-center max-w-4xl mx-auto">
-            <h2 className="text-[20px] md:text-[23px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600 mb-4 md:mb-6 text-center">
-              Benefits for Different Age Groups
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 justify-center">
-              {ageGroups.map((group, index) => (
-                <motion.div 
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 md:p-5 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all text-center"
-                >
-                  <div className="flex items-center justify-center mb-3">
-                    <div className="bg-primaryColor/10 dark:bg-primaryColor/20 rounded-full p-2 mr-3">
-                      <User className="w-5 h-5 text-primaryColor dark:text-primaryColor" />
-                    </div>
-                    <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">{group.name}</h3>
-                  </div>
-                  <p className="text-gray-700 dark:text-gray-300 text-sm md:text-base">{group.benefit}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          <motion.p 
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-gray-700 dark:text-gray-300 md:text-[16px] text-[15px] my-6 leading-relaxed p-4 bg-primaryColor/5 dark:bg-primaryColor/10 rounded-lg text-center max-w-3xl mx-auto"
-          >
-            Our experienced instructors and engaging multimedia content ensure
-            an enriching learning experience. Our comprehensive course aims to
-            equip learners with the essential skills needed to navigate life
-            successfully, fostering personal growth, resilience, and a
-            positive self-image.
-          </motion.p>
-        </>
-      ),
-    },
-
-    {
-      id: 3,
-      name: "Career Prospects",
-      icon: <Briefcase className="w-5 h-5" />,
-      content: (
-        <>
-          <h1 className="text-[20px] md:text-[23px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor to-blue-600 mb-4 md:mb-6 text-center">
-            Career Opportunities with Personality Development Skills
-          </h1>
-          
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-gray-700 dark:text-gray-300 mb-6 md:text-[16px] text-[15px] leading-relaxed text-center mx-auto max-w-3xl"
-          >
-            The career prospects of a Personality Development Course are vast
-            and impactful, offering individuals the opportunity to enhance their
-            personal and professional lives. By developing essential life skills
-            and strengthening interpersonal abilities, individuals can unlock
-            various career opportunities and personal growth.
-          </motion.p>
-
-          <div className="space-y-2 md:space-y-4 max-w-3xl mx-auto">
-            <Accordion title="Enhanced Professional Success">
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                The application of personality development skills can significantly contribute to professional success. Individuals equipped with improved communication, leadership, and problem-solving skills are better positioned to thrive in their careers and effectively navigate workplace challenges.
-              </p>
-            </Accordion>
-            
-            <Accordion title="Mental Health and Well-being">
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                Personality development not only impacts professional success but also plays a pivotal role in enhancing mental health, decision-making abilities, self-confidence, and overall well-being. These attributes are invaluable in maintaining a healthy work-life balance and addressing personal development.
-              </p>
-            </Accordion>
-            
-            <Accordion title="Career Opportunities">
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                The comprehensive development offered by personality development courses prepares individuals for diverse career paths. From corporate consultancy to educational roles, professionals in this field can serve as career coaches, executive coaches, organizational development consultants, facilitators, counselors, trainers of soft skills, and spoken English tutors.
-              </p>
-            </Accordion>
-            
-            <Accordion title="Personal and Professional Growth">
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                The holistic approach of such courses ensures that individuals can excel in both personal and professional realms. By honing their skills and acquiring a growth mindset, learners are empowered to progress in their careers and pursue new opportunities.
-              </p>
-            </Accordion>
-            
-            <Accordion title="Adaptability and Lifelong Learning">
-              <p className="text-gray-700 dark:text-gray-300 text-[13px] md:text-[15px]">
-                Personality development courses instill a growth mindset, emphasizing the value of continuous learning and adaptability. Individuals are encouraged to develop new skills, expand their perspectives, and remain open to personal and professional advancement.
-              </p>
-            </Accordion>
-          </div>
-
-          <motion.p 
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.5 }}
-            className="text-gray-700 dark:text-gray-300 mt-8 mb-6 md:text-[16px] text-[15px] leading-relaxed p-4 bg-gradient-to-r from-primaryColor/10 to-blue-500/10 dark:from-primaryColor/20 dark:to-blue-500/20 rounded-lg border border-gray-200 dark:border-gray-700 text-center max-w-3xl mx-auto"
-          >
-            In summary, the career prospects of a Personality Development Course
-            are multifaceted, offering a pathway to professional success,
-            personal fulfillment, and continuous growth. These courses provide
-            individuals with the tools and mindset necessary to thrive in
-            today&#39;s dynamic and interconnected world.
-          </motion.p>
-
-          {/* Call to Action */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.7 }}
-            className="mt-8 md:mt-10 text-center bg-gradient-to-r from-primaryColor/10 to-blue-600/10 dark:from-primaryColor/20 dark:to-blue-600/20 p-5 md:p-8 rounded-xl max-w-3xl mx-auto"
-          >
-            <h2 className="text-xl md:text-2xl font-bold text-primaryColor dark:text-gray-200 mb-3">
-              Ready to Transform Your Life?
-            </h2>
-            <p className="text-gray-700 dark:text-gray-300 mb-5 md:mb-6 max-w-2xl mx-auto text-sm md:text-base">
-              Join our Personality Development Course today and unlock your full potential. Develop essential skills that will benefit you personally and professionally.
-            </p>
-            <Link href="/enrollment/personality-development">
-              <motion.button 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-gradient-to-r from-primaryColor to-blue-600 text-white px-6 md:px-8 py-2 md:py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 text-sm md:text-base"
-              >
-                Enroll Now
-              </motion.button>
-            </Link>
-          </motion.div>
-        </>
-      ),
-    },
-  ],
+const featureIcons = {
+  "Age-Appropriate Content": <Lightbulb className="w-8 h-8 text-primaryColor" />, 
+  "Interactive Learning": <Book className="w-8 h-8 text-primaryColor" />, 
+  "Expert Instructors": <User className="w-8 h-8 text-primaryColor" />, 
+  "Enhanced Confidence": <Heart className="w-8 h-8 text-primaryColor" />, 
+  "Improved Communication Skills": <Brain className="w-8 h-8 text-primaryColor" />, 
+  "Leadership Development": <Briefcase className="w-8 h-8 text-primaryColor" />
 };
 
+// Update personalityFeatureCards to use Icon as a component, not JSX
+const personalityFeatureCards = [
+  {
+    title: "Age-Appropriate Content",
+    description: "Tailored for every life stage, from preschool to professionals. Ensures relevant and effective training for all ages.",
+    Icon: Lightbulb,
+  },
+  {
+    title: "Interactive Learning",
+    description: "Engaging online sessions, hands-on activities, role-plays, and practical assessments. Makes learning enjoyable and effective.",
+    Icon: Book,
+  },
+  {
+    title: "Expert Instructors",
+    description: "Experienced educators deliver multimedia-rich content. Keeps learners motivated and maximizes value.",
+    Icon: User,
+  },
+  {
+    title: "Enhanced Confidence",
+    description: "Build self-assurance to tackle life's challenges. Proven techniques eliminate self-doubt and foster authentic confidence.",
+    Icon: Heart,
+  },
+  {
+    title: "Improved Communication Skills",
+    description: "Articulate thoughts clearly, develop active listening, public speaking, and interpersonal communication.",
+    Icon: Brain,
+  },
+  {
+    title: "Leadership Development",
+    description: "Cultivate leadership qualities, discover your style, and learn to inspire and motivate others.",
+    Icon: Briefcase,
+  },
+];
+
+// Accent color palette (copied from digital marketing)
+const accentColors = [
+  { border: 'border-blue-500', bg: 'from-blue-50/80 to-white/90 dark:from-blue-900/40 dark:to-gray-900/80', icon: 'text-blue-500' },
+  { border: 'border-emerald-500', bg: 'from-emerald-50/80 to-white/90 dark:from-emerald-900/40 dark:to-gray-900/80', icon: 'text-emerald-500' },
+  { border: 'border-amber-500', bg: 'from-amber-50/80 to-white/90 dark:from-amber-900/40 dark:to-gray-900/80', icon: 'text-amber-500' },
+  { border: 'border-violet-500', bg: 'from-violet-50/80 to-white/90 dark:from-violet-900/40 dark:to-gray-900/80', icon: 'text-violet-500' },
+  { border: 'border-pink-500', bg: 'from-pink-50/80 to-white/90 dark:from-pink-900/40 dark:to-gray-900/80', icon: 'text-pink-500' },
+  { border: 'border-indigo-500', bg: 'from-indigo-50/80 to-white/90 dark:from-indigo-900/40 dark:to-gray-900/80', icon: 'text-indigo-500' }
+];
+
+const whyChooseIntro = (
+  <div className="mb-10">
+    <h2 className="text-[clamp(1.5rem,4vw+1rem,2.5rem)] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor via-purple-600 to-blue-600 mb-4 text-center">
+      Why Choose Medh's Personality Development Course?
+    </h2>
+    <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 mb-5 font-medium text-center max-w-2xl mx-auto">
+    Practical techniques to build confidence, communication, and leadership in preschoolers, students, professionals, and homemakers.
+    </p>
+          </div>
+);
+
+const OVERVIEW_CONTENT = (
+  <>
+    {/* Hero Section */}
+    <motion.div 
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className="flex flex-col items-center text-center mb-0 w-full"
+    >
+      
+    </motion.div>
+    {/* Why Choose Section - removed heading/intro here, now above tabs */}
+    <div className="mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full px-6 md:px-16">
+        {personalityFeatureCards.map((feature, idx) => {
+          const accent = accentColors[idx % accentColors.length];
+          const Icon = feature.Icon;
+          return (
+            <motion.div
+              key={feature.title}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: idx * 0.08, duration: 0.5, type: 'spring' }}
+              className={`relative bg-gradient-to-br ${accent.bg} ${accent.border} border-l-4 shadow-lg rounded-xl p-6 flex flex-col items-start text-left transition-transform duration-200 hover:scale-[1.03] hover:shadow-2xl`}
+            >
+              <div className="flex items-center mb-2">
+                <motion.div
+                  whileHover={{ scale: 1.15, rotate: -8 }}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  className="mr-2"
+                >
+                  <Icon className={`w-6 h-6 ${accent.icon}`} />
+                </motion.div>
+                <span className="font-bold text-lg text-primaryColor">{feature.title}</span>
+              </div>
+              <p className="text-gray-700 dark:text-gray-200 text-base">
+                {feature.description}
+              </p>
+            </motion.div>
+          );
+        })}
+      </div>
+      {/* Remove any CTA section from the Overview tab content here if present. The static CTA is already rendered below the tabs. */}
+          </div>
+  </>
+);
+
+const CAREER_FEATURES = [
+  {
+    title: "Corporate Readiness",
+    description: "Master workplace etiquette, time management, and professional communication to excel in interviews and on the job.",
+    Icon: Briefcase,
+  },
+  {
+    title: "Leadership & Teamwork",
+    description: "Develop leadership qualities, learn to collaborate, and manage teams effectively in any professional setting.",
+    Icon: User,
+  },
+  {
+    title: "Effective Communication",
+    description: "Sharpen your public speaking, presentation, and negotiation skills for career advancement.",
+    Icon: Brain,
+  },
+  {
+    title: "Emotional Intelligence",
+    description: "Build resilience, empathy, and self-awareness to thrive in dynamic work environments.",
+    Icon: Heart,
+  },
+  {
+    title: "Personal Branding",
+    description: "Craft a strong personal brand and online presence to stand out in the job market.",
+    Icon: Lightbulb,
+  },
+  {
+    title: "Career Growth Mindset",
+    description: "Adopt a growth mindset, set goals, and pursue continuous learning for long-term success.",
+    Icon: ArrowUp,
+  },
+];
+
+const BENEFITS = [
+  {
+    title: "Boosted Confidence",
+    description: "Overcome self-doubt and approach challenges with a positive, empowered mindset.",
+    Icon: Heart,
+  },
+  {
+    title: "Stronger Relationships",
+    description: "Build meaningful connections in personal and professional life through improved social skills.",
+    Icon: User,
+  },
+  {
+    title: "Better Decision Making",
+    description: "Enhance critical thinking and problem-solving abilities for everyday success.",
+    Icon: Lightbulb,
+  },
+  {
+    title: "Stress Management",
+    description: "Learn techniques to manage stress, maintain balance, and improve overall well-being.",
+    Icon: Brain,
+  },
+  {
+    title: "Career Advancement",
+    description: "Unlock new opportunities and promotions by demonstrating professionalism and leadership.",
+    Icon: Briefcase,
+  },
+  {
+    title: "Lifelong Success",
+    description: "Gain skills that support personal growth and achievement at every stage of life.",
+    Icon: ArrowUp,
+  },
+];
+
+const CAREER_FEATURES_CONTENT = (
+  <div className="mb-10">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full px-6 md:px-16">
+      {CAREER_FEATURES.map((feature, idx) => {
+        const accent = accentColors[idx % accentColors.length];
+        const Icon = feature.Icon;
+        return (
+          <motion.div
+            key={feature.title}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: idx * 0.08, duration: 0.5, type: 'spring' }}
+            className={`relative bg-gradient-to-br ${accent.bg} ${accent.border} border-l-4 shadow-lg rounded-xl p-6 flex flex-col items-start text-left transition-transform duration-200 hover:scale-[1.03] hover:shadow-2xl`}
+          >
+            <div className="flex items-center mb-2">
+              <motion.div
+                whileHover={{ scale: 1.15, rotate: -8 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                className="mr-2"
+              >
+                <Icon className={`w-6 h-6 ${accent.icon}`} />
+              </motion.div>
+              <span className="font-bold text-lg text-primaryColor">{feature.title}</span>
+            </div>
+            <p className="text-gray-700 dark:text-gray-200 text-base">
+              {feature.description}
+            </p>
+          </motion.div>
+        );
+      })}
+    </div>
+  </div>
+);
+
+const BENEFITS_CONTENT = (
+  <div className="mb-10">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full px-6 md:px-16">
+      {BENEFITS.map((feature, idx) => {
+        const accent = accentColors[idx % accentColors.length];
+        const Icon = feature.Icon;
+        return (
+          <motion.div
+            key={feature.title}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: idx * 0.08, duration: 0.5, type: 'spring' }}
+            className={`relative bg-gradient-to-br ${accent.bg} ${accent.border} border-l-4 shadow-lg rounded-xl p-6 flex flex-col items-start text-left transition-transform duration-200 hover:scale-[1.03] hover:shadow-2xl`}
+          >
+            <div className="flex items-center mb-2">
+              <motion.div
+                whileHover={{ scale: 1.15, rotate: -8 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                className="mr-2"
+              >
+                <Icon className={`w-6 h-6 ${accent.icon}`} />
+              </motion.div>
+              <span className="font-bold text-lg text-primaryColor">{feature.title}</span>
+            </div>
+            <p className="text-gray-700 dark:text-gray-200 text-base">
+              {feature.description}
+            </p>
+          </motion.div>
+        );
+      })}
+    </div>
+  </div>
+);
+
+const TAB_CONTENT = [
+  OVERVIEW_CONTENT,
+  CAREER_FEATURES_CONTENT,
+  BENEFITS_CONTENT,
+];
+
+// Industry data for Personality Development
+const personalityIndustryData = [
+  {
+    name: 'Professional Services',
+    value: 24,
+    color: getEnhancedSemanticColor('courses', 'light'),
+    description: '• Interpersonal & client‑relationship skills\n• Leadership coaching & executive presence',
+    keyApps: [
+      'Interpersonal & client‑relationship skills',
+      'Leadership coaching & executive presence',
+    ],
+    class: 'text-blue-600 dark:text-blue-400',
+  },
+  {
+    name: 'Banking Services',
+    value: 22,
+    color: getEnhancedSemanticColor('pricing', 'light'),
+    description: '• Customer‑facing communication\n• Negotiation & change‑leadership training',
+    keyApps: [
+      'Customer‑facing communication',
+      'Negotiation & change‑leadership training',
+    ],
+    class: 'text-emerald-600 dark:text-emerald-400',
+  },
+  {
+    name: 'Healthcare',
+    value: 20,
+    color: getEnhancedSemanticColor('certification', 'light'),
+    description: '• Patient‑empathy & bedside manner\n• Team‑collaboration workshops',
+    keyApps: [
+      'Patient‑empathy & bedside manner',
+      'Team‑collaboration workshops',
+    ],
+    class: 'text-amber-600 dark:text-amber-400',
+  },
+  {
+    name: 'Manufacturing',
+    value: 18,
+    color: getEnhancedSemanticColor('support', 'light'),
+    description: '• Supervisory leadership & safety communication\n• Cross‑functional team coaching',
+    keyApps: [
+      'Supervisory leadership & safety communication',
+      'Cross‑functional team coaching',
+    ],
+    class: 'text-violet-600 dark:text-violet-400',
+  },
+  {
+    name: 'Retail & Wholesale',
+    value: 16,
+    color: getEnhancedSemanticColor('enrollment', 'light'),
+    description: '• Sales‑personality & upselling techniques\n• Conflict‑resolution & service‑excellence training',
+    keyApps: [
+      'Sales‑personality & upselling techniques',
+      'Conflict‑resolution & service‑excellence training',
+    ],
+    class: 'text-pink-600 dark:text-pink-400',
+  },
+];
+
 const PersonalityOverview = () => {
-  const [activeTab, setActiveTab] = useState(1);
+  const [activeTab, setActiveTab] = useState(0);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const contentRef = useRef(null);
-
-  const activeContent = data.tabs.find((tab) => tab.id === activeTab);
-
-  const handleTabChange = useCallback((tabId) => {
-    setActiveTab(tabId);
-  }, []);
 
   // Handle scroll to top visibility with debouncing for performance
   useEffect(() => {
@@ -476,9 +510,8 @@ const PersonalityOverview = () => {
   };
 
   return (
-    <div className="relative bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 min-h-[50vh]">
-      {/* Enhanced background gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-indigo-500/10 to-violet-500/15 dark:from-blue-500/10 dark:via-indigo-500/15 dark:to-violet-500/20" />
+    <div className="relative bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 min-h-[50vh] w-full">
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-indigo-500/10 to-violet-500/15 dark:from-blue-500/10 dark:via-indigo-500/15 dark:to-violet-500/20 pointer-events-none" />
       
       {/* Loading overlay with animation */}
       <AnimatePresence>
@@ -497,88 +530,149 @@ const PersonalityOverview = () => {
         )}
       </AnimatePresence>
       
-      <div className="relative container mx-auto px-3 md:px-4 py-8 md:py-16 text-center">
-        {/* Hero section with enhanced animations */}
-        <motion.div 
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeInUp}
-          transition={{ duration: 0.6 }}
-          className="w-full mb-10 md:mb-16 px-0 md:px-0 text-left"
-        >
-          <motion.h1 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-[20px] md:text-[24px] leading-7 md:text-4xl font-bold md:mb-4 mb-3 bg-clip-text text-transparent bg-gradient-to-r from-primaryColor via-purple-600 to-blue-600 text-center w-full"
-          >
-            Welcome to Medh&#39;s Transformative Personality Development Course
-          </motion.h1>
-          
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-            className="text-center max-w-4xl mx-auto text-sm md:text-base lg:text-lg leading-relaxed mb-4 md:mb-6 font-medium text-gray-700 dark:text-gray-300 px-0 md:px-0"
-          >
-            Our course builds essential life skills and character traits for all—students, professionals, and homemakers—boosting confidence, inclusivity, and interpersonal abilities.
-          </motion.p>
-        </motion.div>
-
-        {/* Enhanced Tabs with better interactions */}
-        <motion.div 
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeInUp}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="flex flex-wrap justify-center gap-2 md:gap-3 px-2 md:px-4" 
-          role="tablist"
-          aria-label="Personality Development course tabs"
-        >
-          {data.tabs.map((tab) => (
-            <motion.button
+      <div className="relative w-full px-0 py-8 md:py-16">
+        {/* Why Choose Section - now above tabs */}
+        {whyChooseIntro}
+        {/* Tab Bar */}
+        <div className="flex justify-center mb-0">
+          <nav className="inline-flex rounded-xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+            {TABS.map((tab) => (
+              <button
               key={tab.id}
-              whileHover={{ scale: 1.05, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
-              whileTap={{ scale: 0.97 }}
-              className={`px-3 md:px-8 py-2 md:py-3 transition-all duration-300 rounded-xl flex items-center gap-2 text-sm md:text-base ${
-                activeTab === tab.id
-                  ? "bg-gradient-to-r from-primaryColor to-blue-600 text-white font-semibold shadow-lg"
-                  : "bg-white text-primaryColor border border-primaryColor/50 hover:bg-primaryColor/10 dark:bg-gray-800 dark:text-white dark:border-primaryColor/30"
-              }`}
-              onClick={() => handleTabChange(tab.id)}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-6 py-3 font-semibold text-base transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primaryColor/50
+                  ${activeTab === tab.id
+                    ? 'bg-primaryColor text-white dark:bg-primaryColor dark:text-white shadow'
+                    : 'bg-transparent text-primaryColor dark:text-primaryColor hover:bg-primaryColor/10 dark:hover:bg-primaryColor/20'}
+                `}
+                aria-selected={activeTab === tab.id}
+                aria-controls={`tab-panel-${tab.id}`}
               role="tab"
-              aria-selected={activeTab === tab.id}
-              aria-controls={`panel-${tab.id}`}
-              id={`tab-${tab.id}`}
+                tabIndex={activeTab === tab.id ? 0 : -1}
             >
-              {tabIcons[tab.id]}
-              {tab.name}
-              {activeTab === tab.id && (
-                <ChevronRight className="w-3 h-3 md:w-4 md:h-4 animate-pulse" />
-              )}
-            </motion.button>
+                {tab.label}
+              </button>
           ))}
-        </motion.div>
-
-        {/* Enhanced Content Rendering with glass morphism effect */}
-        <AnimatePresence mode="wait">
-          <motion.section
-            ref={contentRef}
-            key={activeTab}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4 }}
-            className="bg-white/90 backdrop-blur-md mx-auto mt-6 md:mt-8 dark:bg-gray-800/90 px-4 py-6 md:px-8 md:py-10 border border-gray-200 dark:border-gray-700 text-gray-700 rounded-2xl shadow-xl max-w-4xl"
-            role="tabpanel"
-            id={`panel-${activeTab}`}
-            aria-labelledby={`tab-${activeTab}`}
+          </nav>
+        </div>
+        {/* Tab Content */}
+        <div id={`tab-panel-${activeTab}`} role="tabpanel" aria-labelledby={`tab-${activeTab}`}
+          className="transition-all duration-300 mt-8"
+        >
+          {TAB_CONTENT[activeTab]}
+        </div>
+        {/* Industry Table & Doughnut Chart Section */}
+        <div className="mb-12 w-full pt-16">
+          <h2 className="text-2xl md:text-3xl font-bold text-primaryColor mb-4 text-center">Top Industries Investing in Personality Development</h2>
+          <div className="flex flex-col md:flex-row items-center gap-6 w-full justify-center mb-6">
+            {/* Left side: Industry Table */}
+            <div className="flex-1 w-full md:w-[480px] lg:w-[560px] xl:w-[640px] md:pl-16 md:pr-6">
+              <table className="min-w-full text-left border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden text-xs md:text-sm">
+                <thead className="bg-gray-100 dark:bg-gray-800">
+                  <tr>
+                    <th className="py-2 px-3 font-semibold text-gray-700 dark:text-gray-200">Industry</th>
+                    <th className="py-2 px-3 font-semibold text-gray-700 dark:text-gray-200">% of Spend</th>
+                    <th className="py-2 px-3 font-semibold text-gray-700 dark:text-gray-200">Key Applications</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {personalityIndustryData.map((row, idx) => (
+                    <tr key={row.name} className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800">
+                      <td className={`py-2 px-3 font-medium ${row.class}`}>{row.name}</td>
+                      <td className="py-2 px-3 font-bold">{row.value}%</td>
+                      <td className="py-2 px-3 text-gray-600 dark:text-gray-300 text-sm">
+                        {row.keyApps.join(', ')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {/* Right side: Doughnut Chart */}
+            <div className="block md:hidden w-full" style={{ height: 220 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={personalityIndustryData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={65}
+                    paddingAngle={2}
+                    label={false}
+                  >
+                    {personalityIndustryData.map((entry, idx) => (
+                      <Cell key={`cell-m-${idx}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              {/* Mobile legend */}
+              <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-3 mb-16">
+                {personalityIndustryData.map((entry, idx) => (
+                  <div key={`legend-m-${idx}`} className="flex items-center text-xs">
+                    <span className="inline-block w-3 h-3 rounded-full mr-2" style={{ backgroundColor: entry.color }}></span>
+                    <span className="font-medium mr-1">{entry.name}</span>
+                    <span className="text-gray-500">{entry.value}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="hidden md:block w-1/2 h-64 flex justify-center my-6 md:my-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={personalityIndustryData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={90}
+                    paddingAngle={2}
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {personalityIndustryData.map((entry, idx) => (
+                      <Cell key={`cell-${idx}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          {/* Short note below the chart */}
+          <div className="flex items-center justify-center mt-20 md:mt-4">
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-md px-3 py-1 text-blue-800 dark:text-blue-200 text-xs flex items-center gap-2 md:whitespace-nowrap mt-0">
+              <svg xmlns='http://www.w3.org/2000/svg' className='w-3 h-3 text-blue-500 dark:text-blue-300' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z' /></svg>
+              <span>Each segment shows the share of Personality Development spend by industry.</span>
+            </div>
+          </div>
+        </div>
+        {/* Static CTA Section: Always visible below industry chart */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="text-center bg-gradient-to-r from-primaryColor/10 to-blue-600/10 dark:from-primaryColor/20 dark:to-blue-600/20 p-5 md:p-8 rounded-xl w-full mt-14"
+        >
+          <h2 className="text-xl md:text-2xl font-bold text-primaryColor dark:text-gray-200 mb-3 text-center">
+            Ready to Transform Your Life?
+          </h2>
+          <p className="text-gray-700 dark:text-gray-300 mb-5 md:mb-6 max-w-2xl mx-auto text-sm md:text-base">
+            Join our Personality Development Course today and unlock your full potential. Develop essential skills that will benefit you personally and professionally.
+          </p>
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => window.open('/enrollment/personality-development', '_blank')}
+            className="bg-gradient-to-r from-primaryColor to-blue-600 text-white px-6 md:px-8 py-2 md:py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 text-sm md:text-base cursor-pointer"
           >
-            {activeContent.content}
-          </motion.section>
-        </AnimatePresence>
+            Enroll Now
+          </motion.button>
+        </motion.div>
       </div>
     </div>
   );

@@ -733,10 +733,11 @@ const features = [
 // Top industries hiring for doughnut chart (updated with new percentages)
 const industryDoughnutData = [
   { name: 'Healthcare', value: 22.45, color: getEnhancedSemanticColor('healthcare', 'light') },
+  { name: 'Technology', value: 20.87, color: getEnhancedSemanticColor('enrollment', 'light') },
   { name: 'Finance', value: 19.94, color: getEnhancedSemanticColor('pricing', 'light') },
   { name: 'Retail', value: 18.60, color: getEnhancedSemanticColor('certification', 'light') },
   { name: 'Manufacturing', value: 18.14, color: getEnhancedSemanticColor('support', 'light') },
-  { name: 'Technology', value: 20.87, color: getEnhancedSemanticColor('enrollment', 'light') },
+  
 ];
 
 const benefits = [
@@ -965,7 +966,7 @@ const CourseAiOverview: React.FC = () => {
                 <thead className="bg-gray-100 dark:bg-gray-800">
                   <tr>
                     <th className="py-2 px-3 font-semibold text-gray-700 dark:text-gray-200">Industry</th>
-                    <th className="py-2 px-3 font-semibold text-gray-700 dark:text-gray-200">Share of Total (%)</th>
+                    <th className="py-2 px-3 font-semibold text-gray-700 dark:text-gray-200">Share(%)</th>
                     <th className="py-2 px-3 font-semibold text-gray-700 dark:text-gray-200">Key Applications</th>
                   </tr>
                 </thead>
@@ -974,6 +975,11 @@ const CourseAiOverview: React.FC = () => {
                     <td className="py-2 px-3 font-medium text-blue-600 dark:text-blue-400">Healthcare</td>
                     <td className="py-2 px-3 font-bold">22.45%</td>
                     <td className="py-2 px-3 text-gray-600 dark:text-gray-300 text-sm">Medical imaging, predictive diagnostics, patient care optimization</td>
+                  </tr>
+                  <tr className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800">
+                    <td className="py-2 px-3 font-medium text-pink-600 dark:text-pink-400">Technology</td>
+                    <td className="py-2 px-3 font-bold">20.87%</td>
+                    <td className="py-2 px-3 text-gray-600 dark:text-gray-300 text-sm">Natural language processing, computer vision, autonomous systems</td>
                   </tr>
                   <tr className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800">
                     <td className="py-2 px-3 font-medium text-emerald-600 dark:text-emerald-400">Finance</td>
@@ -990,16 +996,43 @@ const CourseAiOverview: React.FC = () => {
                     <td className="py-2 px-3 font-bold">18.14%</td>
                     <td className="py-2 px-3 text-gray-600 dark:text-gray-300 text-sm">Predictive maintenance, quality control, supply chain optimization</td>
                   </tr>
-                  <tr className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800">
-                    <td className="py-2 px-3 font-medium text-pink-600 dark:text-pink-400">Technology</td>
-                    <td className="py-2 px-3 font-bold">20.87%</td>
-                    <td className="py-2 px-3 text-gray-600 dark:text-gray-300 text-sm">Natural language processing, computer vision, autonomous systems</td>
-                  </tr>
+                  
                 </tbody>
               </table>
             </div>
             {/* Right side: Doughnut Chart */}
-            <div className="w-full md:w-1/2 h-64 flex justify-center my-6 md:my-0">
+            <div className="block md:hidden w-full" style={{ height: 220 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={industryDoughnutData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={65}
+                    paddingAngle={2}
+                    label={false}
+                  >
+                    {industryDoughnutData.map((entry, idx) => (
+                      <Cell key={`cell-m-${idx}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              {/* Mobile legend */}
+              <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-3">
+                {industryDoughnutData.map((entry, idx) => (
+                  <div key={`legend-m-${idx}`} className="flex items-center text-xs">
+                    <span className="inline-block w-3 h-3 rounded-full mr-2" style={{ backgroundColor: entry.color }}></span>
+                    <span className="font-medium mr-1">{entry.name}</span>
+                    <span className="text-gray-500">{Math.round(entry.value)}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="hidden md:block w-1/2 h-64 flex justify-center my-6 md:my-0">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -1022,8 +1055,8 @@ const CourseAiOverview: React.FC = () => {
             </div>
           </div>
           {/* Short note below the chart */}
-          <div className="flex items-center justify-center mt-4">
-            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-md px-3 py-1 text-blue-800 dark:text-blue-200 text-xs flex items-center gap-2 md:whitespace-nowrap">
+          <div className="flex items-center justify-center mt-4 md:mt-4">
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-md px-3 py-1 text-blue-800 dark:text-blue-200 text-xs flex items-center gap-2 md:whitespace-nowrap mt-8 md:mt-0">
               <svg xmlns='http://www.w3.org/2000/svg' className='w-3 h-3 text-blue-500 dark:text-blue-300' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z' /></svg>
               <span>Each segment shows the share of AI & Data Science job opportunities by industry.</span>
             </div>
