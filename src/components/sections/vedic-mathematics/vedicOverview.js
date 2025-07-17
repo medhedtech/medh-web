@@ -416,66 +416,66 @@ const data = {
           <table className="table-auto border-collapse w-full text-center text-[#41454F] dark:text-gray50 my-0">
             <thead className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-900/30 dark:to-purple-900/30">
               <tr>
-                <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 font-bold text-sm md:text-base">
+                <th className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 font-bold text-xs md:text-sm">
                   Main Sutras (aphorisms)
                 </th>
-                <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 font-bold text-sm md:text-base">
+                <th className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 font-bold text-xs md:text-sm">
                   Sub-Sutras (corollaries)
                 </th>
               </tr>
             </thead>
             <tbody>
               <tr className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
-                  <div className="font-bold">Ekādhikena Purvena</div>
+                <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                  <div className="font-bold text-sm md:text-base">Ekādhikena Purvena</div>
                   <div className="text-[#727695] dark:text-gray300">
                     By one more than the previous one.
                   </div>
                 </td>
-                <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
-                  <div className="font-bold">Yāvadūnena Vargānām</div>
+                <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                  <div className="font-bold text-sm md:text-base">Yāvadūnena Vargānām</div>
                   <div className="text-[#727695] dark:text-gray300">
                     Whatever the extent of the square.
                   </div>
                 </td>
               </tr>
               <tr className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
-                  <div className="font-bold">Shunyam Saamyasamuccaye.</div>
+                <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                  <div className="font-bold text-sm md:text-base">Shunyam Saamyasamuccaye.</div>
                   <div className="text-[#727695] dark:text-gray300">
                     When the sum is the same, that sum is zero.
                   </div>
                 </td>
-                <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
-                  <div className="font-bold">Lopanasthāpanabhyām.</div>
+                <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                  <div className="font-bold text-sm md:text-base">Lopanasthāpanabhyām.</div>
                   <div className="text-[#727695] dark:text-gray300">
                     By alternately less and more.
                   </div>
                 </td>
               </tr>
               <tr className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
-                  <div className="font-bold">Nikhilam Navataścaramam Daśataḥ</div>
+                <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                  <div className="font-bold text-sm md:text-base">Nikhilam Navataścaramam Daśataḥ</div>
                   <div className="text-[#727695] dark:text-gray300">
                     All from 9 and the last from 10.
                   </div>
                 </td>
-                <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
-                  <div className="font-bold">Anurupyena</div>
+                <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                  <div className="font-bold text-sm md:text-base">Anurupyena</div>
                   <div className="text-[#727695] dark:text-gray300">
                     Proportionally.
                   </div>
                 </td>
               </tr>
               <tr className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
-                  <div className="font-bold">Urdhva-tiryagbhyam</div>
+                <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                  <div className="font-bold text-sm md:text-base">Urdhva-tiryagbhyam</div>
                   <div className="text-[#727695] dark:text-gray300">
                     Vertically and crosswise.
                   </div>
                 </td>
-                <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
-                  <div className="font-bold">Adyamadyenantyamantyena</div>
+                <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                  <div className="font-bold text-sm md:text-base">Adyamadyenantyamantyena</div>
                   <div className="text-[#727695] dark:text-gray300">
                     The first by the first and the last by the last.
                   </div>
@@ -589,7 +589,7 @@ const VedicOverview = () => {
 
         {/* Tabs with enhanced styling - match AI/Data Science Overview */}
         <div className="flex justify-center mb-8">
-          <nav className="inline-flex rounded-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <nav className="inline-block rounded-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
             {data.tabs.map((tab) => (
               <button
                 key={tab.id}

@@ -37,7 +37,7 @@ interface ICareerStat {
   colorClass: string;
 }
 
-const featureIcons = {
+const featureIcons: { [key: string]: React.ReactNode } = {
   "Age-Appropriate Content": <Lightbulb className="w-8 h-8 text-primaryColor" />, 
   "Interactive Learning": <BookOpen className="w-8 h-8 text-primaryColor" />, 
   "Expert Instructors": <Users className="w-8 h-8 text-primaryColor" />, 
@@ -89,7 +89,13 @@ const personalityFeatures = [
   }
 ];
 
-const Section = memo(({ title, data }) => {
+// Add prop types for Section
+interface SectionProps {
+  title: string;
+  data: { label: string; content: string }[];
+}
+
+const Section = memo(({ title, data }: SectionProps) => {
   const icon = featureIcons[title] || <Lightbulb className="w-8 h-8 text-primaryColor" />;
   return (
     <motion.section 
@@ -112,7 +118,7 @@ const Section = memo(({ title, data }) => {
         {/* Content Section */}
         <div className="flex flex-col flex-grow p-3 md:p-4 lg:p-4 space-y-2 md:space-y-2.5 overflow-y-auto">
           <div className="flex flex-col space-y-1">
-            {data.map((item, index) => (
+            {data.map((item: { label: string; content: string }, index: number) => (
               <motion.div 
                 key={index}
                 initial={{ opacity: 0, x: 10 }}
@@ -533,7 +539,7 @@ export const DigiMarketingOverview: React.FC = memo(() => {
           </div>
           {/* Short note below the chart */}
           <div className="flex items-center justify-center mt-4 md:mt-4">
-            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-md px-3 py-1 text-blue-800 dark:text-blue-200 text-xs flex items-center gap-2 md:whitespace-nowrap mt-8 md:mt-0">
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-md px-3 py-1 text-blue-800 dark:text-blue-200 text-xs flex items-center gap-2 md:whitespace-nowrap mt-24 md:mt-0">
               <svg xmlns='http://www.w3.org/2000/svg' className='w-3 h-3 text-blue-500 dark:text-blue-300' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z' /></svg>
               <span>Each segment shows the share of digital marketing & analytics job opportunities by industry.</span>
             </div>
