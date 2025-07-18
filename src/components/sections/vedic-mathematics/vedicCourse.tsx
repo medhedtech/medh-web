@@ -51,7 +51,7 @@ const VedicCourse: FC<IVedicCourseProps> = ({
         </div>
 
         {/* Description */}
-        <p className="text-sm md:text-base lg:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-sm md:text-base lg:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed text-center">
           Transform Mathematical Understanding through Ancient Wisdom and Modern Techniques.
         </p>
       </div>

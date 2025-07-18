@@ -321,8 +321,8 @@ const HomeCard: React.FC<HomeCardProps> = ({
   const content = useMemo(() => {
     if (isLiveCourse) {
       return {
-        tag: isJobGuaranteeCourse ? 'Job Guarantee Course' : 'Live',
-        mobileTag: isJobGuaranteeCourse ? 'Job Guarantee' : 'Live',
+        tag: isJobGuaranteeCourse ? 'Job Guaranteed Course' : 'Live',
+        mobileTag: isJobGuaranteeCourse ? 'Job Guaranteed        ' : 'Live',
         tagIcon: isJobGuaranteeCourse ? <GraduationCap className="w-3 h-3" /> : <Play className="w-3 h-3" />,
         sessionLabel: 'Sessions',
         sessionIcon: <Users size={12} />,
