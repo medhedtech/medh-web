@@ -47,7 +47,6 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }: Nav
   const [isWishlistLoading, setIsWishlistLoading] = useState<boolean>(true);
   const [wishlistPreview, setWishlistPreview] = useState<IWishlistItem[]>([]);
   const [isWishlistPreviewLoading, setIsWishlistPreviewLoading] = useState<boolean>(false);
-  const [isWishlistHovered, setIsWishlistHovered] = useState<boolean>(false);
   // Add userRole state
   const [userRole, setUserRole] = useState<string>("");
   
@@ -152,35 +151,6 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }: Nav
     }
     
     lastScrollY.current = currentScrollY;
-  }, []);
-
-  // Handle wishlist hover to fetch preview data
-  const handleWishlistHover = useCallback(async () => {
-    setIsWishlistHovered(true);
-    if (wishlistPreview.length === 0 && !isWishlistPreviewLoading) {
-      setIsWishlistPreviewLoading(true);
-      try {
-        const userId = localStorage.getItem('userId');
-        if (userId) {
-          const wishlistUrl = getStudentWishlist(userId, { limit: 3 }); // Fetch top 3 items
-          const response = await apiClient.get(wishlistUrl);
-          if (response.status === 'success' && response.data) {
-            setWishlistPreview(response.data);
-          } else {
-            console.error("Failed to fetch wishlist preview:", response.message);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching wishlist preview:", error);
-      } finally {
-        setIsWishlistPreviewLoading(false);
-      }
-    }
-  }, [wishlistPreview.length, isWishlistPreviewLoading, apiClient]);
-
-  // Handle wishlist leave
-  const handleWishlistLeave = useCallback(() => {
-    setIsWishlistHovered(false);
   }, []);
 
   // Use scrollProgress prop from parent Header component if available
@@ -434,8 +404,6 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }: Nav
                 {(isLoggedIn && userRole === "student") && (
                   <div 
                     className="hidden lg:flex relative" 
-                    onMouseEnter={handleWishlistHover}
-                    onMouseLeave={handleWishlistLeave}
                   >
                     <button
                       onClick={() => router.push('/dashboards/student/wishlist')}
@@ -452,66 +420,6 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }: Nav
                       </span>
                     )}
 
-                    {/* Wishlist Hover Preview for students only */}
-                    {isWishlistHovered && (
-                      <div className="absolute top-full right-0 mt-3 w-72 md:w-80 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50 transform origin-top-right transition-all duration-300 ease-out animate-fade-in-up">
-                        {isWishlistPreviewLoading ? (
-                          <div className="p-4 flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 min-h-[120px]">
-                            <Loader2 className="animate-spin mr-2 text-primary-500" size={24} /> 
-                            <span className="mt-2 text-sm font-medium">Loading preview...</span>
-                          </div>
-                        ) : wishlistPreview.length > 0 ? (
-                          <div className="p-2">
-                            <h4 className="text-sm font-semibold text-gray-800 dark:text-white px-2 py-2 border-b border-gray-100 dark:border-gray-700">Recent Wishlist Items</h4>
-                            <div className="py-2">
-                              {wishlistPreview.map((item) => {
-                                const course = (item as any).course_details || item;
-                                const courseId = course._id || item._id;
-                                const courseImage = course.course_image || course.image || '/fallback-course-image.jpg';
-                                const courseTitle = course.course_title || course.title || 'Untitled Course';
-                                const price = course.pricing?.individual || course.price || '';
-                                return (
-                                  <div key={courseId} className="flex items-center p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer group" onClick={() => router.push(`/course-details/${courseId}`)}>
-                                    <img 
-                                      src={courseImage}
-                                      alt={courseTitle}
-                                      className="w-14 h-14 object-cover rounded-md flex-shrink-0 mr-3 border border-gray-200 dark:border-gray-700"
-                                    />
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 leading-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                                        {courseTitle}
-                                      </p>
-                                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 font-semibold">
-                                        {price ? `₹${Number(price).toLocaleString()}` : ''}
-                                      </p>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            <div className="p-2 border-t border-gray-100 dark:border-gray-700">
-                              <button
-                                onClick={() => router.push('/dashboards/student/wishlist')}
-                                className="w-full text-center text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium py-2 rounded-md hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 dark:focus:ring-offset-gray-800"
-                              >
-                                View All Wishlist Items
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="p-6 text-center text-gray-600 dark:text-gray-400 text-sm flex flex-col items-center justify-center min-h-[120px]">
-                            <HeartCrack className="h-8 w-8 mb-3 text-gray-400 dark:text-gray-600" />
-                            <p>Your wishlist is empty.</p>
-                            <button
-                              onClick={() => router.push('/all-courses')}
-                              className="mt-4 text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 dark:focus:ring-offset-gray-800"
-                            >
-                              Explore Courses
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
                   </div>
                 )}
                 
