@@ -322,7 +322,7 @@ const HomeCard: React.FC<HomeCardProps> = ({
     if (isLiveCourse) {
       return {
         tag: isJobGuaranteeCourse ? 'Job Guaranteed Course' : 'Live',
-        mobileTag: isJobGuaranteeCourse ? 'Job Guaranteed' : 'Live',
+        mobileTag: isJobGuaranteeCourse ? 'Job Guaranteed        ' : 'Live',
         tagIcon: isJobGuaranteeCourse ? <GraduationCap className="w-3 h-3" /> : <Play className="w-3 h-3" />,
         sessionLabel: 'Sessions',
         sessionIcon: <Users size={12} />,

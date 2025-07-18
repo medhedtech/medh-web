@@ -414,7 +414,7 @@ export const DigiMarketingOverview: React.FC = memo(() => {
           className="flex flex-col items-center text-center mb-10 md:mb-14 w-full"
         >
           <h1 className="text-[clamp(1.5rem,4vw+1rem,2.5rem)] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primaryColor via-purple-600 to-blue-600 mb-3 text-center">
-            Why Digital Marketing with Data Analytics?
+            Why Choose Medh's Digital Marketing with Data Analytics?
           </h1>
           <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 max-w-2xl mx-auto font-medium">
             <span>

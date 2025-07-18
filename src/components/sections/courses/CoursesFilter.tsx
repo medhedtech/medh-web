@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   X,
-  Filter,
   Search,
   ChevronDown,
   Zap,
@@ -1038,6 +1037,8 @@ const addFilterGlassmorphicStyles = () => {
   `;
   document.head.appendChild(style);
 };
+
+const Filter = dynamic(() => import('lucide-react').then(mod => mod.Filter), { ssr: false });
 
 const CoursesFilter: React.FC<ICoursesFilterProps> = ({
   CustomButton,
