@@ -6,7 +6,7 @@ import { useTheme } from "next-themes";
 import { CheckCircle, ArrowRight, Briefcase, Award, Users, TrendingUp } from "lucide-react";
 import placementImage from "@/assets/images/logo/medh_logo_100percent_PNG.png";
 import placementImageDark from "@/assets/images/logo/medh_logo_100percent_DARK_png.png";
-import medhLogo from "@/assets/images/logo/medh 2.png";
+import medhLogo from "@/assets/images/logo/medh.png";
 import "@/styles/glassmorphism.css";
 
 interface IJobGuaranteedProps {

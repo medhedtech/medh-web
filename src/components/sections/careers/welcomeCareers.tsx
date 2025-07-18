@@ -142,24 +142,13 @@ const WelcomeCard: React.FC<IWelcomeCardProps> = memo(({ icon: Icon, title, desc
 WelcomeCard.displayName = "WelcomeCard";
 
 const InfoCard: React.FC<IInfoCardProps> = memo(({ image, title, description, className = "", index }) => {
-  const [isHovered, setIsHovered] = useState<boolean>(false);
-
   return (
     <motion.div
       variants={itemVariants}
-      className={`w-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-lg sm:rounded-xl md:rounded-2xl border border-white/50 dark:border-slate-600/50 p-4 sm:p-6 md:p-8 shadow-lg hover:shadow-xl shadow-slate-200/20 dark:shadow-slate-900/30 transition-all duration-300 group ${className}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className={`w-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-lg sm:rounded-xl md:rounded-2xl border border-white/50 dark:border-slate-600/50 p-4 sm:p-6 md:p-8 shadow-lg shadow-slate-200/20 dark:shadow-slate-900/30 transition-all duration-300 ${className}`}
     >
       <div className="flex flex-col items-center text-center">
-        <motion.div 
-          className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 mb-4 sm:mb-6 relative"
-          animate={{
-            scale: isHovered ? 1.05 : 1,
-            rotate: isHovered ? 2 : 0
-          }}
-          transition={{ duration: 0.3 }}
-        >
+        <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 mb-4 sm:mb-6 relative">
           <Image
             src={image}
             alt={title}
@@ -167,8 +156,8 @@ const InfoCard: React.FC<IInfoCardProps> = memo(({ image, title, description, cl
             height={112}
             className="object-contain w-full h-full"
           />
-        </motion.div>
-        <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-3 sm:mb-4 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+        </div>
+        <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-3 sm:mb-4">
           {title}
         </h3>
         <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
@@ -318,7 +307,7 @@ const WelcomeCareers: React.FC = () => {
   return (
     <>
       {/* Hero + Info Cards Container */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-6 mb-12 mx-4 md:mx-16">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-8 mb-12 mx-4 md:mx-16">
         {/* Hero Section */}
         <div className="text-center mb-8 md:mb-12">
           <span className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-gradient-to-r from-blue-100 to-violet-100 dark:from-blue-900/30 dark:to-violet-900/30 text-blue-700 dark:text-blue-300 text-xs sm:text-sm font-semibold rounded-full mb-4 backdrop-blur-sm border border-blue-200/50 dark:border-blue-700/50">
@@ -380,7 +369,7 @@ const WelcomeCareers: React.FC = () => {
       </div>
 
       {/* Our Values Section + Benefits Container */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-0 mb-12 mx-4 md:mx-16">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-8 mb-12 mx-4 md:mx-16">
         <div className="text-center mb-8 md:mb-12 pt-6">
           <span className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 text-emerald-700 dark:text-emerald-300 text-xs sm:text-sm font-semibold rounded-full mb-4 backdrop-blur-sm border border-emerald-200/50 dark:border-emerald-700/50">
             <Award className="w-3 h-3 sm:w-4 sm:h-4" />
