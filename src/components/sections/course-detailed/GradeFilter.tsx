@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import { 
   ChevronDown, GraduationCap, Info, RefreshCw, 
   BookOpen, Clock, CheckCircle2, Award, AlertTriangle, 
@@ -153,6 +154,9 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [lastProcessedCoursesLength, setLastProcessedCoursesLength] = useState<number>(0);
   const [isMobile, setIsMobile] = useState<boolean>(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number; width: number } | null>(null);
 
   // Stable refs to prevent infinite loops
   const handleCourseSelectionRef = useRef(handleCourseSelection);
@@ -218,15 +222,33 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
   // Handle clicks outside dropdowns
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (!(event.target as Element).closest('.grade-filter-dropdown')) {
-        setIsGradeExpanded(false);
-        setIsCourseExpanded(false);
+      const target = event.target as Node;
+      // If portal: check both button and dropdown
+      if (
+        (buttonRef.current && buttonRef.current.contains(target)) ||
+        (dropdownRef.current && dropdownRef.current.contains(target))
+      ) {
+        return;
       }
+      setIsGradeExpanded(false);
+      setIsCourseExpanded(false);
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Update dropdown position when expanded (mobile only)
+  useEffect(() => {
+    if (isGradeExpanded && isMobile && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+      });
+    }
+  }, [isGradeExpanded, isMobile]);
 
   // Stable handlers
   const handleGradeChangeWithReset = useCallback((gradeId: string) => {
@@ -292,6 +314,83 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
 
   // Show only grade filter
   if (showOnlyGradeFilter) {
+    // Dropdown content
+    const dropdownContent = (
+      <motion.div
+        ref={dropdownRef}
+        initial={{ height: 0, opacity: 0 }}
+        animate={{ height: 'auto', opacity: 1 }}
+        exit={{ height: 0, opacity: 0 }}
+        transition={{ duration: 0.3 }}
+        className="absolute z-[9999] w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-b-xl shadow-lg max-h-64 overflow-hidden"
+        style={isMobile && dropdownPosition ? {
+          position: 'absolute',
+          top: dropdownPosition.top,
+          left: dropdownPosition.left,
+          width: dropdownPosition.width,
+        } : {}}
+      >
+        <div className="p-3 sm:p-4 space-y-2 max-h-64 overflow-y-auto">
+          <motion.div
+            key="all"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={() => handleGradeChangeWithReset('all')}
+            className={`p-2.5 sm:p-3 rounded-lg cursor-pointer transition-all duration-300 touch-manipulation ${
+              selectedGrade === 'all'
+                ? `${categoryInfo?.bgClass || 'bg-blue-50 dark:bg-blue-900/20'} shadow-lg ring-2 ring-blue-500/20 dark:ring-blue-400/20`
+                : 'border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md active:scale-95'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">
+                All Grades
+              </span>
+              {selectedGrade === 'all' && (
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="p-1 rounded-full bg-blue-500"
+                >
+                  <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
+          {availableGrades.map((grade, index) => (
+            <motion.div
+              key={grade.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+              onClick={() => handleGradeChangeWithReset(grade.id)}
+              className={`p-2.5 sm:p-3 rounded-lg cursor-pointer transition-all duration-300 touch-manipulation ${
+                selectedGrade === grade.id
+                  ? `${categoryInfo?.bgClass || 'bg-blue-50 dark:bg-blue-900/20'} shadow-lg ring-2 ring-blue-500/20 dark:ring-blue-400/20`
+                  : 'border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md active:scale-95'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">
+                  {grade.label}
+                </span>
+                {selectedGrade === grade.id && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="p-1 rounded-full bg-blue-500"
+                  >
+                    <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                  </motion.div>
+                )}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+    );
+
     return (
       <div className="relative grade-filter-dropdown">
         <motion.div
@@ -301,6 +400,7 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
           className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
         >
           <button
+            ref={buttonRef}
             onClick={toggleGradeDropdown}
             className={`w-full ${categoryInfo?.bgClass || 'bg-blue-50 dark:bg-blue-900/20'} border-b ${categoryInfo?.borderClass || 'border-gray-200 dark:border-gray-700'} px-3 sm:px-4 py-3 sm:py-4 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 touch-manipulation`}
           >
@@ -331,77 +431,14 @@ const GradeFilter: React.FC<GradeFilterProps> = ({
             </div>
           </button>
 
-          <AnimatePresence>
-            {isGradeExpanded && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="absolute z-50 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-b-xl shadow-lg max-h-64 overflow-hidden"
-              >
-                <div className="p-3 sm:p-4 space-y-2 max-h-64 overflow-y-auto">
-                  <motion.div
-                    key="all"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    onClick={() => handleGradeChangeWithReset('all')}
-                    className={`p-2.5 sm:p-3 rounded-lg cursor-pointer transition-all duration-300 touch-manipulation ${
-                      selectedGrade === 'all'
-                        ? `${categoryInfo?.bgClass || 'bg-blue-50 dark:bg-blue-900/20'} shadow-lg ring-2 ring-blue-500/20 dark:ring-blue-400/20`
-                        : 'border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md active:scale-95'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">
-                        All Grades
-                      </span>
-                      {selectedGrade === 'all' && (
-                        <motion.div
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          className="p-1 rounded-full bg-blue-500"
-                        >
-                          <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
-                        </motion.div>
-                      )}
-                    </div>
-                  </motion.div>
-
-                  {availableGrades.map((grade, index) => (
-                    <motion.div
-                      key={grade.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
-                      onClick={() => handleGradeChangeWithReset(grade.id)}
-                      className={`p-2.5 sm:p-3 rounded-lg cursor-pointer transition-all duration-300 touch-manipulation ${
-                        selectedGrade === grade.id
-                          ? `${categoryInfo?.bgClass || 'bg-blue-50 dark:bg-blue-900/20'} shadow-lg ring-2 ring-blue-500/20 dark:ring-blue-400/20`
-                          : 'border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md active:scale-95'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">
-                          {grade.label}
-                        </span>
-                        {selectedGrade === grade.id && (
-                          <motion.div
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            className="p-1 rounded-full bg-blue-500"
-                          >
-                            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
-                          </motion.div>
-                        )}
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
+          {/* Portal for dropdown on mobile */}
+          {isMobile && isGradeExpanded && typeof window !== 'undefined' && typeof document !== 'undefined' && dropdownPosition
+            ? ReactDOM.createPortal(dropdownContent, document.body)
+            : !isMobile && (
+              <AnimatePresence>
+                {isGradeExpanded && dropdownContent}
+              </AnimatePresence>
             )}
-          </AnimatePresence>
         </motion.div>
       </div>
     );

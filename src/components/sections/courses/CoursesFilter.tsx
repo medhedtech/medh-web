@@ -2796,13 +2796,13 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
               <div className="filter-glassmorphic rounded-xl border border-indigo-100 dark:border-indigo-900/30 overflow-hidden">
                 {/* Grade Filter Header - clickable to toggle open/close */}
                 <div
-                  className="flex items-center p-3 cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all duration-300"
+                  className="flex items-center justify-between cursor-pointer p-4 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all duration-300"
                   onClick={handleOpenGradeDropdown}
                   data-testid="grade-filter-dropdown"
                 >
-                  <div className="flex items-center space-x-2">
-                    <div className="w-6 h-6 filter-glassmorphic rounded-lg flex items-center justify-center">
-                      <GraduationCap className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 filter-glassmorphic rounded-lg flex items-center justify-center">
+                      <GraduationCap className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div>
                       <h5 className="text-sm font-medium text-indigo-900 dark:text-indigo-100 filter-glassmorphic">Grade Level</h5>
@@ -2822,7 +2822,8 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
                     {gradeOptions.map((grade, index) => (
                       <label
                         key={grade}
-                        className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 transform hover:scale-[1.02]"
+                        className={`flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 transform hover:scale-[1.02] ${isGradeDropdownOpen ? 'animate-slideIn' : ''}`}
+                        style={{ animationDelay: `${index * 50}ms` }}
                       >
                         <div className="flex items-center space-x-3">
                           <input
@@ -3212,53 +3213,58 @@ const CoursesFilter: React.FC<ICoursesFilterProps> = ({
             
             {/* Grade Level Section - Only show if grade filter is not hidden */}
             {!hideGradeFilter && (
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center">
-                  <GraduationCap className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center">
+                    <GraduationCap className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-gray-900 dark:text-gray-100">Grade Level</h4>
+                    <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">Educational level</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-base font-bold text-gray-900 dark:text-gray-100">Grade Level</h4>
-                  <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">Educational level</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                {gradeOptions.map((grade) => (
-                  <label
-                    key={grade}
-                    className="flex items-center p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 border border-transparent hover:border-purple-200/20 dark:hover:border-purple-800/20 active:bg-gray-100 dark:active:bg-gray-600"
-                    style={{ touchAction: 'manipulation' }}
-                    onTouchStart={(e) => e.stopPropagation()}
-                    onTouchEnd={(e) => e.stopPropagation()}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedGrade.includes(grade)}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        if (e.target.checked) {
-                          setSelectedGrade(prev => [...prev, grade]);
-                        } else {
-                          setSelectedGrade(prev => prev.filter(g => g !== grade));
-                        }
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                      onTouchStart={(e) => e.stopPropagation()}
-                      onTouchEnd={(e) => e.stopPropagation()}
-                      className="w-5 h-5 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 transition-all duration-200"
-                      style={{ touchAction: 'manipulation' }}
-                    />
-                    <span 
-                      className="ml-3 text-sm text-gray-700 dark:text-gray-300 font-medium select-none"
-                      onTouchStart={(e) => e.stopPropagation()}
-                      onTouchEnd={(e) => e.stopPropagation()}
+                <div className="grid grid-cols-2 gap-3">
+                  {gradeOptions.map((grade, index) => (
+                    <label
+                      key={grade}
+                      className={`flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 border border-transparent hover:border-purple-200/20 dark:hover:border-purple-800/20 active:bg-gray-100 dark:active:bg-gray-600 ${isGradeDropdownOpen ? 'animate-slideIn' : ''}`}
+                      style={{ animationDelay: `${index * 50}ms` }}
                     >
-                      {grade}
-                    </span>
-                  </label>
-                ))}
+                      <input
+                        type="checkbox"
+                        checked={selectedGrade.includes(grade)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedGrade(prev => [...prev, grade]);
+                          } else {
+                            setSelectedGrade(prev => prev.filter(g => g !== grade));
+                          }
+                        }}
+                        className="w-5 h-5 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 transition-all duration-200"
+                      />
+                      <span className="ml-3 text-sm text-gray-700 dark:text-gray-300 font-medium select-none">
+                        {grade}
+                      </span>
+                      {selectedGrade.includes(grade) && (
+                        <span className="text-xs text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/40 px-2 py-1 rounded-full animate-pulse">
+                          ✓
+                        </span>
+                      )}
+                    </label>
+                  ))}
+                </div>
+                {/* Clear Grade Filters */}
+                {selectedGrade.length > 0 && (
+                  <div className="pt-3 border-t border-purple-200 dark:border-purple-700">
+                    <button
+                      onClick={() => setSelectedGrade([])}
+                      className="w-full text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 bg-purple-100 dark:bg-purple-900/40 hover:bg-purple-200 dark:hover:bg-purple-900/60 px-3 py-2 rounded-lg transition-all duration-200 transform hover:scale-105"
+                    >
+                      Clear Grade Filters ({selectedGrade.length})
+                    </button>
+                  </div>
+                )}
               </div>
-            </div>
             )}
 
             {/* Live Courses Section */}

@@ -624,130 +624,130 @@ const data = {
               <table className="table-auto border-collapse w-full text-center text-[#41454F] dark:text-gray50 my-0">
                 <thead className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 dark:from-green-900/30 dark:to-emerald-900/30">
                   <tr>
-                    <th className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 font-bold text-xs md:text-sm">
+                    <th className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 font-bold text-xs md:text-sm w-1/2 text-center">
                       Sub-Sutra Name
                     </th>
-                    <th className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 font-bold text-xs md:text-sm">
+                    <th className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 font-bold text-xs md:text-sm w-1/2 text-center">
                       Meaning
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                     <tr className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="font-bold text-sm md:text-base">Yāvadūnena Vargānām</div>
                       </td>
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="text-[#727695] dark:text-gray300">
                           Whatever the extent of the square.
                         </div>
                       </td>
                     </tr>
                     <tr className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="font-bold text-sm md:text-base">Lopanasthāpanabhyām</div>
                       </td>
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="text-[#727695] dark:text-gray300">
                           By alternately less and more.
                         </div>
                       </td>
                     </tr>
                     <tr className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="font-bold text-sm md:text-base">Anurupyena</div>
                       </td>
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="text-[#727695] dark:text-gray300">
                           Proportionally.
                         </div>
                       </td>
                     </tr>
                     <tr className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="font-bold text-sm md:text-base">Adyamadyenantyamantyena</div>
                       </td>
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="text-[#727695] dark:text-gray300">
                           The first by the first and the last by the last.
                         </div>
                       </td>
                     </tr>
                     <tr className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="font-bold text-sm md:text-base">Kevalaih Saptakam Gunyat</div>
                       </td>
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="text-[#727695] dark:text-gray300">
                           By 7 only multiply.
                         </div>
                       </td>
                     </tr>
                     <tr className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="font-bold text-sm md:text-base">Sesānyankena Caramena</div>
                       </td>
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="text-[#727695] dark:text-gray300">
                           The remainders by the last digit.
                         </div>
                       </td>
                     </tr>
                     <tr className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="font-bold text-sm md:text-base">Sopantyadvayamantyam</div>
                       </td>
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="text-[#727695] dark:text-gray300">
                           The ultimate and twice the penultimate.
                         </div>
                       </td>
                     </tr>
                     <tr className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="font-bold text-sm md:text-base">Ekanyūnena Pūrvena</div>
                       </td>
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="text-[#727695] dark:text-gray300">
                           By one less than the previous one.
                         </div>
                       </td>
                     </tr>
                     <tr className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="font-bold text-sm md:text-base">Gunitasamuccayah</div>
                       </td>
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="text-[#727695] dark:text-gray300">
                           The product of the sum is equal to the sum of the products.
                         </div>
                       </td>
                     </tr>
                     <tr className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="font-bold text-sm md:text-base">Gunakasamuccayah</div>
                       </td>
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="text-[#727695] dark:text-gray300">
                           The factors of the sum is equal to the sum of the factors.
                         </div>
                       </td>
                     </tr>
                     <tr className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="font-bold text-sm md:text-base">Vilokanam</div>
                       </td>
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="text-[#727695] dark:text-gray300">
                           By mere observation.
                         </div>
                       </td>
                     </tr>
                     <tr className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="font-bold text-sm md:text-base">Dhvajanka</div>
                       </td>
-                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm">
+                      <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm w-1/2 text-center">
                         <div className="text-[#727695] dark:text-gray300">
                           On the flag.
                         </div>

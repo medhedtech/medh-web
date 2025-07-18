@@ -99,7 +99,7 @@ const itemVariants = {
 const AdvanceEducational: React.FC = () => {
   return (
     <section className="w-full bg-slate-50 dark:bg-slate-900 mt-12 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800">
-      <div className="bg-white p-8 rounded-2xl w-full">
+      <div className="bg-white p-8 rounded-2xl w-full mt-8">
         {/* Header */}
         <div className="text-center mb-10 md:mb-14">
           <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-blue-100 to-violet-100 dark:from-blue-900/30 dark:to-violet-900/30 text-blue-700 dark:text-blue-300 text-xs sm:text-sm font-semibold rounded-full mb-5 backdrop-blur-sm border border-blue-200/50 dark:border-blue-700/50">
