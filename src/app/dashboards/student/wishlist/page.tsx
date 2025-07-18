@@ -23,28 +23,32 @@ const WishlistPage = () => {
   const [hasPrevPage, setHasPrevPage] = useState(false);
   const [totalCourses, setTotalCourses] = useState(0);
   const [isRemoving, setIsRemoving] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [fullName, setFullName] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
   
   const pageSize = 12;
   const apiClient = new ApiClient();
 
+  // Hydrate user info from localStorage on client only
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setUserId(localStorage.getItem('userId'));
+      setFullName(localStorage.getItem('fullName') || '');
+      setEmail(localStorage.getItem('email') || '');
+    }
+  }, []);
+
   // Fetch wishlist data
   useEffect(() => {
+    if (!userId) return;
     const fetchWishlist = async () => {
       setIsLoading(true);
       setError(null);
       
-      let userId = null;
       let wishlistUrl = null;
       
       try {
-        userId = localStorage.getItem('userId');
-        
-        if (!userId) {
-          setError('User not logged in.');
-          setIsLoading(false);
-          return;
-        }
-
         wishlistUrl = getStudentWishlist(userId, { page, limit: pageSize });
         
         const response = await apiClient.get(wishlistUrl);
@@ -109,12 +113,11 @@ const WishlistPage = () => {
     };
 
     fetchWishlist();
-  }, [page]);
+  }, [page, userId]);
 
 
   // Remove course from wishlist
   const removeFromWishlist = async (courseId: string) => {
-    const userId = localStorage.getItem('userId');
     if (!userId) {
       setError('User not logged in.');
       return;
@@ -169,8 +172,8 @@ const WishlistPage = () => {
   return (
     <StudentDashboardLayout
       userRole="student"
-      fullName={localStorage.getItem('fullName') || ''}
-      userEmail={localStorage.getItem('email') || ''}
+      fullName={fullName}
+      userEmail={email}
       userImage={''}
       userNotifications={0}
       userSettings={{ theme: 'light', language: 'en', notifications: true }}

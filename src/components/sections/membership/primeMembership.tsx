@@ -69,7 +69,7 @@ interface IModalState {
 // Fallback static data with psychological triggers
 const getStaticMembershipData = (): IMembershipData[] => [
   {
-    type: "medh-silver membership" as TMembershipType,
+    type: "silver" as TMembershipType,
     icon: <Star className="w-4 h-4" />,
     color: "primary",
     isPopular: false,
@@ -84,14 +84,14 @@ const getStaticMembershipData = (): IMembershipData[] => [
     description: "Perfect for focused learning in one specialized area",
     features: [
       // HIGHLIGHTED FEATURE
-      "<span class='font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded block sm:hidden text-center'>Choose <b>1 Category</b> and get full access to all its courses.</span><span class='font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded hidden sm:inline'>Choose <b>1 Category</b> and get full access to all its courses.</span>",
+      "<span class='font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded block sm:hidden text-center'>Select <b>1 Category</b> only. Full access to all its courses.</span><span class='font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded hidden sm:inline'>Select <b>1 Category</b> only. Full access to all its courses.</span>",
       "Live Q&A sessions",
       "Community access",
       "Career support"
     ]
   },
   {
-    type: "medh-gold membership" as TMembershipType,
+    type: "gold" as TMembershipType,
     icon: <Crown className="w-4 h-4" />,
     color: "amber",
     isPopular: true,
@@ -106,7 +106,7 @@ const getStaticMembershipData = (): IMembershipData[] => [
     description: "Most comprehensive package for serious learners",
     features: [
       // HIGHLIGHTED FEATURE
-      "<span class='font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded block sm:hidden text-center'>Choose <b>up to 3 Categories</b> and get full access to all courses within them.</span><span class='font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded hidden sm:inline'>Choose <b>up to 3 Categories</b> and get full access to all courses within them.</span>",
+      "<span class='font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded block sm:hidden text-center'>Select <b>up to 3 Categories</b>. Full access to all courses within them.</span><span class='font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded hidden sm:inline'>Select <b>up to 3 Categories</b>. Full access to all courses within them.</span>",
       "Priority support",
       "Career counseling",
       "Job placement assistance"
@@ -270,6 +270,7 @@ const PrimeMembership: React.FC = () => {
   }, []);
 
   const handleSelectCourseModal = useCallback((membershipType: string): void => {
+    const normalizedType = membershipType === 'medh-silver membership' ? 'silver' : membershipType === 'medh-gold membership' ? 'gold' : membershipType;
     if (!checkUserLogin()) {
       setModalState(prev => ({ ...prev, isLoginModalOpen: true }));
       return;
@@ -277,18 +278,19 @@ const PrimeMembership: React.FC = () => {
     
     setModalState(prev => ({ 
       ...prev, 
-      selectedMembershipType: membershipType as TMembershipType,
+      selectedMembershipType: normalizedType as TMembershipType,
       isSelectCourseModalOpen: true,
       modalError: null
     }));
   }, [checkUserLogin]);
 
   const handlePlanSelection = useCallback((membershipType: string, planDuration: string): void => {
-    setModalState(prev => ({ ...prev, selectedMembershipType: membershipType as TMembershipType }));
+    const normalizedType = membershipType === 'medh-silver membership' ? 'silver' : membershipType === 'medh-gold membership' ? 'gold' : membershipType;
+    setModalState(prev => ({ ...prev, selectedMembershipType: normalizedType as TMembershipType }));
     
-    if (membershipType === "silver") {
+    if (normalizedType === "silver") {
       setModalState(prev => ({ ...prev, selectedSilverPlan: planDuration }));
-    } else if (membershipType === "gold") {
+    } else if (normalizedType === "gold") {
       setModalState(prev => ({ ...prev, selectedGoldPlan: planDuration }));
     }
   }, []);
