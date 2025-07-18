@@ -14,6 +14,8 @@ import logo1 from "@/assets/images/logo/medh_logo-1.png";
 import Email from "@/assets/images/log-sign/Email.svg";
 import lock from "@/assets/images/log-sign/lock.svg";
 import CustomReCaptcha from '../../shared/ReCaptcha';
+import { useSearchParams } from 'next/navigation'; // Import useSearchParams
+import { showToast } from '@/utils/toast';
 
 // Define form data interface
 interface IForgotPasswordFormData {
@@ -21,6 +23,7 @@ interface IForgotPasswordFormData {
   tempPassword?: string;
   newPassword?: string;
   confirmPassword?: string;
+  token?: string; // Add token field
 }
 
 // Define validation schema with TypeScript
@@ -50,11 +53,17 @@ const schema = yup
         .required("Confirm password is required"),
       otherwise: (schema) => schema.optional(),
     }),
+    token: yup.string().when('tempPasswordVerified', { // Add token validation
+      is: (val: boolean) => val === true,
+      then: (schema) => schema.required("Token is missing or invalid."),
+      otherwise: (schema) => schema.optional(),
+    }),
   })
   .required();
 
 const ForgotPassword: React.FC = () => {
   const router = useRouter();
+  const searchParams = useSearchParams(); // Initialize useSearchParams
   const [emailSent, setEmailSent] = useState<boolean>(false);
   const [tempPasswordVerified, setTempPasswordVerified] = useState<boolean>(false);
   const { postQuery, loading } = usePostQuery();
@@ -76,6 +85,18 @@ const ForgotPassword: React.FC = () => {
 
   // Watch form values for conditional validation
   const emailValue = watch("email");
+
+  // Effect to read token from URL and pre-fill if available
+  React.useEffect(() => {
+    const urlToken = searchParams.get('token');
+    if (urlToken) {
+      console.log('Token found in URL:', urlToken);
+      setValue('token', urlToken);
+      // Potentially set tempPasswordVerified to true if token is for direct reset
+      // This depends on backend flow. For now, assume it's for the final step.
+      setTempPasswordVerified(true); 
+    }
+  }, [searchParams, setValue]);
 
   const handleRecaptchaChange = (value: string | null): void => {
     setRecaptchaError(!value);
@@ -102,7 +123,7 @@ const ForgotPassword: React.FC = () => {
             router.push("/login");
           },
           onFail: (error) => {
-            showToast.error(error?.message || "Failed to send temporary password.");
+            showToast.error((error as any)?.message || "Failed to send temporary password.");
           },
         });
       } else if (!tempPasswordVerified) {
@@ -118,17 +139,22 @@ const ForgotPassword: React.FC = () => {
             setTempPasswordVerified(true);
           },
           onFail: (error) => {
-            showToast.error(error?.message || "Invalid password.");
+            showToast.error((error as any)?.message || "Invalid password.");
           },
         });
       } else {
         // Step 3: Update to new password
+        console.log("Sending password reset request with payload:", { // Added console.log
+          email: data.email,
+          new_password: data.newPassword,
+          token: data.token,
+        });
         await postQuery({
           url: apiUrls?.user?.resetPassword,
           postData: {
             email: data.email,
-            newPassword: data.newPassword,
-            confirmPassword: data.confirmPassword,
+            new_password: data.newPassword, // Use new_password as per API
+            token: data.token, // Include the token
           },
           onSuccess: () => {
             showToast.success("Password reset successful!");
@@ -136,14 +162,14 @@ const ForgotPassword: React.FC = () => {
           },
           onFail: (error) => {
             showToast.error(
-              error?.message || "New password and confirm password do not match. Please try again."
+              (error as any)?.message || "Failed to reset password. Please try again."
             );
           },
         });
       }
     } catch (error) {
       showToast.error(
-        "An error occurred. Please try again later."
+        (error as any)?.message || "An error occurred. Please try again later."
       );
     } finally {
       setIsSubmitting(false);
@@ -158,6 +184,7 @@ const ForgotPassword: React.FC = () => {
       setValue("tempPassword", "");
       setValue("newPassword", "");
       setValue("confirmPassword", "");
+      // Don't clear token as it might be from URL
     }
   }, [emailValue, emailSent, setValue]);
 
