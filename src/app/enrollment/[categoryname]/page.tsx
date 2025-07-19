@@ -12,6 +12,7 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { toast, Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import type { LucideIcon } from 'lucide-react';
+import { CreateOrderPayload } from '@/hooks/useRazorpay'; // Import CreateOrderPayload
 
 // Core components
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
@@ -1601,14 +1602,14 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
     // Observe all section refs
     Object.keys(sectionRefs).forEach((section) => {
       if (sectionRefs[section].current) {
-        observer.observe(sectionRefs[section].current);
+        observer.observe(sectionRefs[section].current as Element); // Add type assertion
       }
     });
 
     return () => {
       Object.keys(sectionRefs).forEach((section) => {
         if (sectionRefs[section].current) {
-          observer.unobserve(sectionRefs[section].current);
+          observer.unobserve(sectionRefs[section].current as Element); // Add type assertion
         }
       });
     };
@@ -1904,7 +1905,11 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
   // The formatPrice function is defined above with currency handling
 
   // Add enrollCourse helper
-  const enrollCourse = async (studentId, courseId, paymentResponse = {}) => {
+  const enrollCourse = async (
+    studentId: string,
+    courseId: string,
+    paymentResponse: { razorpay_payment_id?: string; [key: string]: any } = {}
+  ) => {
     try {
       const enrollmentData = {
         student_id: studentId,
@@ -1927,14 +1932,14 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
       } else {
         throw new Error(response.data?.message || "Failed to enroll in the course.");
       }
-    } catch (error) {
+    } catch (error: any) { // Type 'error' as 'any'
       toast.error(error.response?.data?.message || "Failed to enroll in the course. Please contact support.");
       return false;
     }
   };
 
   // Handle enrollment click action
-  const handleEnrollClick = async (data) => {
+  const handleEnrollClick = async (data: { enrollmentType?: string; priceId?: string }) => {
     try {
       if (!selectedCourse) {
         toast.error('Please select a course first');
@@ -1957,10 +1962,10 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
       const currency = selectedCourse.prices && selectedCourse.prices.length > 0
         ? (selectedCourse.prices.find((p) => p.is_active) || selectedCourse.prices[0]).currency || 'INR'
         : 'INR';
-      const paymentPayload = {
+      const paymentPayload: CreateOrderPayload = {
         amount: Math.round(price * 100),
         currency,
-        payment_type: 'course',
+        payment_type: 'course', // Ensure this matches the enum in CreateOrderPayload
         productInfo: {
           item_name: selectedCourse.title,
           description: `Payment for ${selectedCourse.title}`,
@@ -1979,7 +1984,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
           toast.error(errorMessage || 'Payment failed. Please try again.');
         }
       );
-    } catch (error) {
+    } catch (error: any) { // Type 'error' as 'any'
       toast.error(error.message || 'Failed to process enrollment. Please try again.');
     }
   };
@@ -2078,8 +2083,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
                         <CourseDetailsPage 
                           courseId={(selectedCourse || lastValidCourse)?._id} 
                           initialActiveSection={activeSection !== 'overview' ? activeSection : 'about'}
-                          faqComponent={<CourseFaq courseId={(selectedCourse || lastValidCourse)?._id || ''} />}
-                          courseSelectionComponent={
+                          courseSelectionComponent={ // Corrected prop name
                             !isCourseView && (
                               <motion.div
                                 initial={{ opacity: 0, y: 20 }}
@@ -2087,6 +2091,22 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
                                 transition={{ duration: 0.5 }}
                                 className="mb-4 lg:mb-6 block lg:hidden px-4 lg:px-6"
                               >
+                                {/* Mobile-only GradeFilter above CourseSelection */}
+                                {(normalizedCategory === 'vedic-mathematics' || normalizedCategory === 'personality-development') && (
+                                  <div className="mb-3">
+                                    <GradeFilter
+                                      selectedGrade={selectedGrade}
+                                      availableGrades={availableGrades}
+                                      filteredCourses={filteredCourses}
+                                      selectedCourse={selectedCourse}
+                                      handleGradeChange={handleGradeChange}
+                                      handleCourseSelection={handleManualCourseSelection}
+                                      categoryInfo={categoryInfo}
+                                      setSelectedGrade={setSelectedGrade}
+                                      showOnlyGradeFilter={true}
+                                    />
+                                  </div>
+                                )}
                                 {/* CourseSelection (dropdown) - ensure it is above stats on mobile */}
                                 <div className="relative z-30 lg:z-auto">
                                   <CourseSelection 
