@@ -22,6 +22,7 @@ interface SelectCourseModalProps {
   amount: string;
   selectedPlan: string;
   closeParent: () => void;
+  preloadData?: boolean; // Optional prop to control preloading
 }
 
 interface Course {
@@ -160,25 +161,6 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, isSelected, onCli
             </motion.div>
           </div>
 
-          {/* Features - Enhanced Design */}
-          <div className="space-y-3 pt-4 border-t border-gray-100 dark:border-gray-700/50">
-            {[
-              { icon: CheckCircle, text: "Pre-recorded videos", color: "text-emerald-500" },
-              { icon: Users, text: "Live doubt sessions", color: "text-blue-500" },
-              { icon: Clock, text: "Self-paced learning", color: "text-purple-500" }
-            ].map((feature, index) => (
-              <motion.div 
-                key={index}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 * index + 0.3 }}
-                className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300"
-              >
-                <feature.icon className={`w-4 h-4 ${feature.color}`} />
-                <span className="font-medium">{feature.text}</span>
-              </motion.div>
-            ))}
-          </div>
 
           {/* Call to Action */}
           <motion.div 
@@ -274,6 +256,7 @@ export default function SelectCourseModal({
   amount,
   selectedPlan,
   closeParent,
+  preloadData = true, // Default to true for backward compatibility
 }: SelectCourseModalProps) {
   const studentId = localStorage.getItem("userId");
   const [courses, setCourses] = useState<Course[]>([]);
@@ -281,8 +264,11 @@ export default function SelectCourseModal({
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [coursesLoading, setCoursesLoading] = useState<boolean>(true);
+  const [categoriesLoading, setCategoriesLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [dataInitialized, setDataInitialized] = useState<boolean>(false);
   const { getQuery } = useGetQuery();
   const { postQuery, loading: postLoading } = usePostQuery();
   const [planAmount, setPlanAmount] = useState<number>(() => {
@@ -309,85 +295,266 @@ export default function SelectCourseModal({
     exit: { opacity: 0 }
   };
 
-  // Fetch data on modal open
+  // Initialize data loading state
+  useEffect(() => {
+    setLoading(coursesLoading || categoriesLoading);
+  }, [coursesLoading, categoriesLoading]);
+
+  // Preload data with caching
   useEffect(() => {
     const fetchData = async () => {
-      if (!isOpen) return;
+      // Skip if preloading is disabled
+      if (!preloadData) {
+        console.log("Data preloading disabled");
+        return;
+      }
+
+      // Check if data is already cached and valid
+      const cachedCategories = sessionStorage.getItem('medh_course_categories');
+      const cachedCourses = sessionStorage.getItem('medh_blended_courses');
+      const cacheTimestamp = sessionStorage.getItem('medh_data_cache_timestamp');
       
-      setLoading(true);
+      // Cache duration: 5 minutes
+      const CACHE_DURATION = 5 * 60 * 1000;
+      const isCacheValid = cacheTimestamp && (Date.now() - parseInt(cacheTimestamp)) < CACHE_DURATION;
+      
+      if (cachedCategories && cachedCourses && isCacheValid) {
+        console.log("Loading data from cache");
+        try {
+          const categoriesData = JSON.parse(cachedCategories);
+          const coursesData = JSON.parse(cachedCourses);
+          
+          setCategories(categoriesData);
+          setCourses(coursesData);
+          setCategoriesLoading(false);
+          setCoursesLoading(false);
+          setDataInitialized(true);
+          console.log("Data loaded from cache successfully");
+          return;
+        } catch (err) {
+          console.warn("Failed to parse cached data, fetching fresh data");
+          // Clear invalid cache
+          sessionStorage.removeItem('medh_course_categories');
+          sessionStorage.removeItem('medh_blended_courses');
+          sessionStorage.removeItem('medh_data_cache_timestamp');
+        }
+      }
+
+      // Only fetch if we haven't loaded data yet or cache is invalid
+      if ((categories.length > 0 && courses.length > 0 && dataInitialized) && isCacheValid) {
+        console.log("Data already loaded and cache is valid, skipping fetch");
+        return;
+      }
+      
+      // Reset states
       setError(null);
+      setDataInitialized(false);
+      setCategoriesLoading(true);
+      setCoursesLoading(true);
 
       try {
-        // Fetch categories and courses in parallel
-        await Promise.all([
-          getQuery({
-            url: apiUrls?.categories?.getAllCategories,
-            onSuccess: (res) => setCategories(res?.data || []),
-            onFail: (err) => {
-              console.error("Error fetching categories:", err);
-              throw new Error("Failed to load categories");
-            },
+        console.log("Starting fresh data fetch...");
+        
+        // Fetch categories
+        const categoriesPromise = getQuery({
+          url: apiUrls?.categories?.getAllCategories,
+          onSuccess: (res) => {
+            const categoriesData = res?.data || [];
+            console.log("Categories fetched:", categoriesData.length);
+            setCategories(categoriesData);
+            setCategoriesLoading(false);
+            
+            // Cache the data
+            sessionStorage.setItem('medh_course_categories', JSON.stringify(categoriesData));
+          },
+          onFail: (err) => {
+            console.error("Error fetching categories:", err);
+            setCategoriesLoading(false);
+            throw new Error("Failed to load categories");
+          },
+        });
+
+        // Fetch courses
+        const coursesPromise = getQuery({
+          url: getAllCoursesWithLimits({
+            page: 1,
+            limit: 200, // Get more courses to count by category
+            status: "Published",
+            class_type: "Blended Courses", // Filter for blended courses only
+            sort_by: "course_title",
+            sort_order: "asc"
           }),
-          getQuery({
-            url: getAllCoursesWithLimits({
-              page: 1,
-              limit: 200, // Get more courses to count by category
-              status: "Published",
-              class_type: "Blended Courses", // Filter for blended courses only
-              sort_by: "course_title",
-              sort_order: "asc"
-            }),
-            onSuccess: (res) => {
-              const coursesData = res?.data?.courses || res?.courses || res || [];
-              console.log("Raw courses data:", coursesData);
-              
-              // Ensure we sanitize the course data to only include primitive values
-              const sanitizedCourses = Array.isArray(coursesData) 
-                ? coursesData.map((course: any) => ({
-                    _id: course._id || '',
-                    course_title: course.course_title || '',
-                    course_category: course.course_category || course.category || '',
-                    category: course.category || course.course_category || '',
-                    course_description: typeof course.course_description === 'string' 
-                      ? course.course_description 
-                      : course.program_overview || '',
-                    course_image: course.course_image || '',
-                    course_fee: typeof course.course_fee === 'number' ? course.course_fee : 0,
-                    no_of_Sessions: typeof course.no_of_Sessions === 'number' ? course.no_of_Sessions : 0,
-                    course_duration: course.course_duration || '',
-                    session_duration: course.session_duration || '',
-                    class_type: course.class_type || '',
-                    course_level: course.course_level || '',
-                    status: course.status || '',
-                    enrolledStudents: typeof course.enrolledStudents === 'number' ? course.enrolledStudents : 0,
-                    meta: {
-                      views: typeof course.meta?.views === 'number' ? course.meta.views : 0
-                    }
-                  }))
-                : [];
-              
-              console.log("Sanitized courses:", sanitizedCourses);
-              setCourses(sanitizedCourses);
-            },
-            onFail: (err) => {
-              console.error("Error fetching courses:", err);
-              throw new Error("Failed to load courses");
-            },
-          })
-        ]);
+          onSuccess: (res) => {
+            const coursesData = res?.data?.courses || res?.courses || res || [];
+            console.log("Raw courses data fetched:", coursesData.length);
+            
+            // Ensure we sanitize the course data to only include primitive values
+            const sanitizedCourses = Array.isArray(coursesData) 
+              ? coursesData.map((course: any) => ({
+                  _id: course._id || '',
+                  course_title: course.course_title || '',
+                  course_category: course.course_category || course.category || '',
+                  category: course.category || course.course_category || '',
+                  course_description: typeof course.course_description === 'string' 
+                    ? course.course_description 
+                    : course.program_overview || '',
+                  course_image: course.course_image || '',
+                  course_fee: typeof course.course_fee === 'number' ? course.course_fee : 0,
+                  no_of_Sessions: typeof course.no_of_Sessions === 'number' ? course.no_of_Sessions : 0,
+                  course_duration: course.course_duration || '',
+                  session_duration: course.session_duration || '',
+                  class_type: course.class_type || '',
+                  course_level: course.course_level || '',
+                  status: course.status || '',
+                  enrolledStudents: typeof course.enrolledStudents === 'number' ? course.enrolledStudents : 0,
+                  meta: {
+                    views: typeof course.meta?.views === 'number' ? course.meta.views : 0
+                  }
+                }))
+              : [];
+            
+            console.log("Sanitized courses fetched:", sanitizedCourses.length);
+            setCourses(sanitizedCourses);
+            setCoursesLoading(false);
+            
+            // Cache the data
+            sessionStorage.setItem('medh_blended_courses', JSON.stringify(sanitizedCourses));
+          },
+          onFail: (err) => {
+            console.error("Error fetching courses:", err);
+            setCoursesLoading(false);
+            throw new Error("Failed to load courses");
+          },
+        });
+
+        // Wait for both to complete
+        await Promise.all([categoriesPromise, coursesPromise]);
+        
+        // Mark as initialized once both are done and update cache timestamp
+        setDataInitialized(true);
+        sessionStorage.setItem('medh_data_cache_timestamp', Date.now().toString());
+        console.log("Fresh data fetch completed successfully");
+        
       } catch (err) {
+        console.error("Data fetch failed:", err);
         setError(err instanceof Error ? err.message : "Failed to load data. Please try again later.");
-      } finally {
-        setLoading(false);
+        setCategoriesLoading(false);
+        setCoursesLoading(false);
       }
     };
 
-      fetchData();
-  }, [isOpen, getQuery]);
+    // Start fetching when component mounts or when preloadData changes
+    fetchData();
+  }, [getQuery, preloadData]);
 
-  // Enhanced categories with course counts
+  // Handle modal opening - either use preloaded data or fetch on demand
+  useEffect(() => {
+    if (isOpen) {
+      if (dataInitialized) {
+        console.log("Modal opened with preloaded data");
+        setLoading(false);
+      } else if (!preloadData) {
+        // If preloading is disabled, fetch data when modal opens
+        console.log("Modal opened without preloaded data, fetching now...");
+        // Trigger the same fetch logic but only when modal opens
+        const fetchDataOnDemand = async () => {
+          setError(null);
+          setDataInitialized(false);
+          setCategoriesLoading(true);
+          setCoursesLoading(true);
+
+          try {
+            const [categoriesResponse, coursesResponse] = await Promise.all([
+              getQuery({
+                url: apiUrls?.categories?.getAllCategories,
+                onSuccess: (res) => {
+                  const categoriesData = res?.data || [];
+                  setCategories(categoriesData);
+                  setCategoriesLoading(false);
+                },
+                onFail: (err) => {
+                  console.error("Error fetching categories:", err);
+                  setCategoriesLoading(false);
+                  throw new Error("Failed to load categories");
+                },
+              }),
+              getQuery({
+                url: getAllCoursesWithLimits({
+                  page: 1,
+                  limit: 200,
+                  status: "Published",
+                  class_type: "Blended Courses",
+                  sort_by: "course_title",
+                  sort_order: "asc"
+                }),
+                onSuccess: (res) => {
+                  const coursesData = res?.data?.courses || res?.courses || res || [];
+                  const sanitizedCourses = Array.isArray(coursesData) 
+                    ? coursesData.map((course: any) => ({
+                        _id: course._id || '',
+                        course_title: course.course_title || '',
+                        course_category: course.course_category || course.category || '',
+                        category: course.category || course.course_category || '',
+                        course_description: typeof course.course_description === 'string' 
+                          ? course.course_description 
+                          : course.program_overview || '',
+                        course_image: course.course_image || '',
+                        course_fee: typeof course.course_fee === 'number' ? course.course_fee : 0,
+                        no_of_Sessions: typeof course.no_of_Sessions === 'number' ? course.no_of_Sessions : 0,
+                        course_duration: course.course_duration || '',
+                        session_duration: course.session_duration || '',
+                        class_type: course.class_type || '',
+                        course_level: course.course_level || '',
+                        status: course.status || '',
+                        enrolledStudents: typeof course.enrolledStudents === 'number' ? course.enrolledStudents : 0,
+                        meta: {
+                          views: typeof course.meta?.views === 'number' ? course.meta.views : 0
+                        }
+                      }))
+                    : [];
+                  setCourses(sanitizedCourses);
+                  setCoursesLoading(false);
+                },
+                onFail: (err) => {
+                  console.error("Error fetching courses:", err);
+                  setCoursesLoading(false);
+                  throw new Error("Failed to load courses");
+                },
+              })
+            ]);
+            
+            setDataInitialized(true);
+            console.log("On-demand data fetch completed");
+          } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to load data. Please try again later.");
+            setCategoriesLoading(false);
+            setCoursesLoading(false);
+          }
+        };
+        
+        fetchDataOnDemand();
+      }
+    }
+  }, [isOpen, dataInitialized, preloadData, getQuery]);
+
+  // Reset selected categories when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedCategories([]);
+      setSearchQuery('');
+    }
+  }, [isOpen]);
+
+  // Enhanced categories with course counts - only compute when data is ready
   const enhancedCategories = useMemo(() => {
-    return categories.map(category => {
+    // Don't compute if data isn't ready
+    if (!dataInitialized || categories.length === 0 || courses.length === 0) {
+      return [];
+    }
+
+    console.log("Computing enhanced categories with", categories.length, "categories and", courses.length, "courses");
+    
+    const enhanced = categories.map(category => {
       const categoryName = category.category_name;
       const categoryBlendedCourses = courses.filter(course => {
         const courseCategory = course.course_category || course.category || '';
@@ -396,13 +563,18 @@ export default function SelectCourseModal({
                classType.toLowerCase().includes('blended');
       });
       
+      console.log(`Category "${categoryName}" has ${categoryBlendedCourses.length} blended courses`);
+      
       return {
         ...category,
         courseCount: categoryBlendedCourses.length,
         courses: categoryBlendedCourses
       };
     }).filter(category => category.courseCount > 0); // Only show categories with blended courses
-  }, [categories, courses]);
+    
+    console.log("Enhanced categories result:", enhanced.length);
+    return enhanced;
+  }, [categories, courses, dataInitialized]);
 
   // Filter categories based on search
   const filteredCategories = useMemo(() => {
@@ -731,19 +903,60 @@ export default function SelectCourseModal({
         {/* Category Grid */}
         <div className={gridClass}>
           {loading ? (
-            <div className="col-span-full flex flex-col items-center justify-center py-20">
+            <div className="col-span-full flex flex-col items-center justify-center py-20 space-y-4">
               <Loader2 className="w-10 h-10 animate-spin text-primary-500 mb-4" />
-              <span className="text-lg text-gray-600 dark:text-gray-300">Loading categories...</span>
+              <div className="text-center space-y-2">
+                <span className="text-lg text-gray-600 dark:text-gray-300">Loading course data...</span>
+                <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center gap-2">
+                    {categoriesLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                    )}
+                    <span>Categories {categoriesLoading ? 'Loading...' : 'Ready'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {coursesLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                    )}
+                    <span>Courses {coursesLoading ? 'Loading...' : 'Ready'}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : error ? (
             <div className="col-span-full flex flex-col items-center justify-center py-20">
               <AlertCircle className="w-10 h-10 text-red-500 mb-4" />
               <span className="text-lg text-red-600 dark:text-red-400">{error}</span>
+              <button 
+                onClick={() => window.location.reload()}
+                className="mt-4 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          ) : !dataInitialized ? (
+            <div className="col-span-full flex flex-col items-center justify-center py-20">
+              <Loader2 className="w-10 h-10 animate-spin text-primary-500 mb-4" />
+              <span className="text-lg text-gray-600 dark:text-gray-300">Preparing categories...</span>
             </div>
           ) : filteredCategories.length === 0 ? (
             <div className="col-span-full flex flex-col items-center justify-center py-20">
               <BookOpen className="w-10 h-10 text-gray-400 mb-4" />
-              <span className="text-lg text-gray-600 dark:text-gray-300">No categories found.</span>
+              <span className="text-lg text-gray-600 dark:text-gray-300">
+                {searchQuery ? 'No categories match your search.' : 'No categories with courses available.'}
+              </span>
+              {searchQuery && (
+                <button 
+                  onClick={() => setSearchQuery('')}
+                  className="mt-2 text-primary-500 hover:text-primary-600"
+                >
+                  Clear search
+                </button>
+              )}
             </div>
           ) : (
             filteredCategories.map(category => {
@@ -789,12 +1002,6 @@ export default function SelectCourseModal({
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center mb-1 line-clamp-2">{category.category_name}</h3>
                   {/* Course Count */}
                   <span className="text-xs font-medium text-primary-600 dark:text-primary-400 mb-2">{category.courseCount} Courses</span>
-                  {/* Features as chips */}
-                  <div className="flex flex-wrap gap-2 justify-center mb-2">
-                    <span className="px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium">Pre-recorded</span>
-                    <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">Live Doubts</span>
-                    <span className="px-2 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-medium">Self-paced</span>
-                  </div>
                 </button>
               );
             })

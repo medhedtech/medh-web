@@ -4,7 +4,9 @@ export enum UserRole {
   INSTRUCTOR = 'instructor',
   PARENT = 'parent',
   ADMIN = 'admin',
-  SUPER_ADMIN = 'super_admin'
+  SUPER_ADMIN = 'super_admin',
+  SALES_TEAM = 'sales_team',
+  SUPPORT_TEAM = 'support_team'
 }
 
 // Helper function to check if a role string matches any UserRole
@@ -22,6 +24,12 @@ export const stringToUserRole = (role: string): UserRole | null => {
   const normalizedRole = role.toLowerCase();
   if (normalizedRole === 'superadmin' || normalizedRole === 'super-admin') {
     return UserRole.SUPER_ADMIN;
+  }
+  if (normalizedRole === 'sales' || normalizedRole === 'sales-team' || normalizedRole === 'sales_team') {
+    return UserRole.SALES_TEAM;
+  }
+  if (normalizedRole === 'support' || normalizedRole === 'support-team' || normalizedRole === 'support_team') {
+    return UserRole.SUPPORT_TEAM;
   }
   
   return null;
