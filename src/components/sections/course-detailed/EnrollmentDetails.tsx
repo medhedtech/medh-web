@@ -915,11 +915,16 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
 
   // Add a state for initial loading from localStorage to prevent flicker
   const [initialLoading, setInitialLoading] = useState(true);
+  
+  // Prevent wishlist check during initial auth loading
+  const [authCheckComplete, setAuthCheckComplete] = useState(false);
 
   // Manual wishlist status check with better error handling
   const checkWishlistStatusManually = useCallback(async (showLoadingState?: boolean) => {
     const shouldShowLoading = showLoadingState !== false;
-    if (!userId || !courseDetails?._id) {
+    
+    // Prevent checking if auth is not complete or already checking
+    if (!authCheckComplete || !userId || !courseDetails?._id) {
       setIsInWishlist(false);
       // New: Mark initial check as done
       setInitialWishlistChecked(true);
@@ -1088,30 +1093,52 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
     checkWishlistStatusRef.current = checkWishlistStatusManually;
   }, [checkWishlistStatusManually]);
 
+  // Debounce wishlist checks to prevent rapid API calls
+  const [wishlistCheckTimeout, setWishlistCheckTimeout] = useState<NodeJS.Timeout | null>(null);
+  
+  const debouncedWishlistCheck = useCallback((showLoadingState?: boolean) => {
+    // Clear any existing timeout
+    if (wishlistCheckTimeout) {
+      clearTimeout(wishlistCheckTimeout);
+    }
+    
+    // Set new timeout for wishlist check
+    const timeoutId = setTimeout(() => {
+      checkWishlistStatusRef.current(showLoadingState);
+    }, 300); // 300ms debounce
+    
+    setWishlistCheckTimeout(timeoutId);
+  }, [wishlistCheckTimeout, checkWishlistStatusManually]);
+
   // Check wishlist status on mount and when user/course changes
   useEffect(() => {
-    if (userId && courseDetails?._id) {
+    // Only check wishlist if auth check is complete and we have valid user/course
+    if (authCheckComplete && userId && courseDetails?._id) {
       console.log('Checking wishlist status for:', { userId, courseId: courseDetails._id });
       
-      // Add a small delay to ensure component is fully mounted
-      const timeoutId = setTimeout(() => {
-        checkWishlistStatusRef.current(true);
-      }, 100);
+      // Use debounced check to prevent rapid API calls
+      debouncedWishlistCheck(true);
       
-      return () => clearTimeout(timeoutId);
-    } else {
+      return () => {
+        if (wishlistCheckTimeout) {
+          clearTimeout(wishlistCheckTimeout);
+        }
+      };
+    } else if (!userId || !courseDetails?._id) {
       console.log('No user or course, setting wishlist to false');
       setIsInWishlist(false);
+      setInitialWishlistChecked(true);
+      setWasInitiallyInWishlist(false);
     }
-  }, [userId, courseDetails?._id]);
+  }, [authCheckComplete, userId, courseDetails?._id]);
 
   // Force check wishlist status on initial load after auth is confirmed
   useEffect(() => {
-    if (!initialLoading && isLoggedIn && userId && courseDetails?._id) {
-      console.log('Force checking wishlist status after initial load');
-      checkWishlistStatusRef.current(false);
+    if (authCheckComplete && isLoggedIn && userId && courseDetails?._id && !initialWishlistChecked) {
+      console.log('Force checking wishlist status after auth is complete');
+      debouncedWishlistCheck(false);
     }
-  }, [initialLoading, isLoggedIn, userId, courseDetails?._id]);
+  }, [authCheckComplete, isLoggedIn, userId, courseDetails?._id, initialWishlistChecked]);
 
   // Reset EMI selection when course changes - use ref to track previous value
   const prevCourseIdRef = useRef(courseDetails?._id);
@@ -1185,6 +1212,13 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       isMounted = false;
     };
   }, []);
+
+  // Mark auth check as complete when initial loading finishes
+  useEffect(() => {
+    if (!initialLoading && !authCheckComplete) {
+      setAuthCheckComplete(true);
+    }
+  }, [initialLoading, authCheckComplete]);
 
   // Force individual enrollment for blended courses - prevent unnecessary updates
   useEffect(() => {
@@ -1377,7 +1411,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               },
             });
             // Verify the removal
-            setTimeout(() => checkWishlistStatusRef.current(false), 500);
+            setTimeout(() => debouncedWishlistCheck(false), 500);
           }
         } catch (error: any) {
           // Revert optimistic update on error
@@ -1418,7 +1452,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               },
             });
             // Verify the addition
-            setTimeout(() => checkWishlistStatusRef.current(false), 500);
+            setTimeout(() => debouncedWishlistCheck(false), 500);
           }
         } catch (error: any) {
           // Handle 409 Conflict - course already in wishlist
@@ -1432,7 +1466,7 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
               },
             });
             // Verify the current state
-            setTimeout(() => checkWishlistStatusRef.current(false), 500);
+            setTimeout(() => debouncedWishlistCheck(false), 500);
           } else {
             // Revert optimistic update on other errors
             setIsInWishlist(previousState);
@@ -1808,8 +1842,11 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
+      if (wishlistCheckTimeout) {
+        clearTimeout(wishlistCheckTimeout);
+      }
     };
-  }, []);
+  }, [wishlistCheckTimeout]);
 
   // Track previous price to avoid unnecessary EMI plan updates
   const prevPriceRef = useRef<number>();
@@ -1931,8 +1968,8 @@ const EnrollmentDetails: React.FC<EnrollmentDetailsProps> = ({
           <div className="flex items-center gap-2">
             {/* Enhanced Wishlist Button */}
             {/* Wishlist button logic updated for initial load behavior */}
-            {(!initialWishlistChecked) ? (
-              // Loading state for wishlist button
+            {(!authCheckComplete || !initialWishlistChecked) ? (
+              // Loading state for wishlist button during auth check or initial wishlist check
               <button className="relative p-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-wait" disabled>
                 <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
               </button>
