@@ -1,0 +1,75 @@
+/* Phone Input Styling for react-phone-number-input */
+.PhoneInput {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.PhoneInput--error {
+  border-color: #f87171 !important;
+  background-color: #fef2f2 !important;
+}
+
+.PhoneInput--error .PhoneInputCountry {
+  border-color: #f87171 !important;
+}
+
+/* Country selector styling (hidden) */
+.PhoneInputCountry {
+  display: none !important;
+}
+
+/* Phone number input field */
+.PhoneInputInput {
+  flex: 1;
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  color: inherit !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+.PhoneInputInput::placeholder {
+  color: #9ca3af !important;
+  opacity: 1;
+}
+
+/* Dark mode support */
+.dark .PhoneInputInput {
+  color: #ffffff !important;
+}
+
+.dark .PhoneInputInput::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Focus states */
+.PhoneInputInput:focus {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Error state */
+.PhoneInput--error .PhoneInputInput {
+  color: #dc2626 !important;
+}
+
+.PhoneInput--error .PhoneInputInput::placeholder {
+  color: #fca5a5 !important;
+}
+
+/* Remove any default browser styling */
+.PhoneInputInput::-webkit-outer-spin-button,
+.PhoneInputInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.PhoneInputInput[type=number] {
+  -moz-appearance: textfield;
+} 
