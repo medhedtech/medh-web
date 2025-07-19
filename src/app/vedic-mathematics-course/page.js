@@ -16,7 +16,7 @@ import AnimatedContent from './AnimatedContent';
 // Assets
 import Banner from '@/assets/Header-Images/Vedic-Maths/vedic-maths.png';
 import StudentImage from '@/assets/Header-Images/Vedic-Maths/vedic-banner.jpeg';
-import VedicBanner from '@/components/sections/vedic-mathematics/vedicBanner';
+import { VedicMathematicsHero } from '@/components/sections/hero-banners';
 
 function VedicMathematics() {
   const bannerProps = {
@@ -84,7 +84,7 @@ function VedicMathematics() {
         <main className="flex-grow">
           <AnimatedContent 
             components={{
-              VedicBanner,
+              VedicBanner: VedicMathematicsHero,
               VedicCourse,
               VedicOverview,
               VedicFaq,

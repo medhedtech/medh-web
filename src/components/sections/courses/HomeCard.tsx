@@ -262,31 +262,15 @@ const HomeCard: React.FC<HomeCardProps> = ({
   const styles = useMemo(() => {
     if (isLiveCourse) {
       return {
-        stickyNoteBg: isJobGuaranteeCourse 
-          ? 'bg-gradient-to-br from-amber-400 via-yellow-500 to-orange-600' 
-          : 'bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500',
-        stickyNoteText: isJobGuaranteeCourse 
-          ? 'text-black font-black' 
-          : 'text-white',
-        accentColor: isJobGuaranteeCourse ? 'text-amber-600' : 'text-emerald-600',
-        priceColor: isJobGuaranteeCourse 
-          ? 'text-amber-700 dark:text-amber-400' 
-          : 'text-emerald-700 dark:text-emerald-400',
-        chipBg: isJobGuaranteeCourse 
-          ? 'bg-amber-50 dark:bg-amber-900/20' 
-          : 'bg-emerald-50 dark:bg-emerald-900/20',
-        chipText: isJobGuaranteeCourse 
-          ? 'text-amber-700 dark:text-amber-300' 
-          : 'text-emerald-700 dark:text-emerald-300',
-        chipBorder: isJobGuaranteeCourse 
-          ? 'border-amber-200 dark:border-amber-700/50' 
-          : 'border-emerald-200 dark:border-emerald-700/50',
-        cardBorder: isJobGuaranteeCourse 
-          ? 'border-amber-200/50 dark:border-amber-700/50 hover:border-amber-300/60 dark:hover:border-amber-600/60'
-          : 'border-emerald-200/50 dark:border-emerald-700/50 hover:border-emerald-300/60 dark:hover:border-emerald-600/60',
-        cardShadow: isJobGuaranteeCourse 
-          ? 'shadow-amber-100/50 hover:shadow-amber-200/25 dark:hover:shadow-amber-800/25'
-          : 'shadow-emerald-100/50 hover:shadow-emerald-200/25 dark:hover:shadow-emerald-800/25'
+        stickyNoteBg: 'bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500',
+        stickyNoteText: 'text-white',
+        accentColor: 'text-emerald-600',
+        priceColor: 'text-emerald-700 dark:text-emerald-400',
+        chipBg: 'bg-emerald-50 dark:bg-emerald-900/20',
+        chipText: 'text-emerald-700 dark:text-emerald-300',
+        chipBorder: 'border-emerald-200 dark:border-emerald-700/50',
+        cardBorder: 'border-emerald-200/50 dark:border-emerald-700/50 hover:border-emerald-300/60 dark:hover:border-emerald-600/60',
+        cardShadow: 'shadow-emerald-100/50 hover:shadow-emerald-200/25 dark:hover:shadow-emerald-800/25'
       };
     }
     
@@ -321,9 +305,9 @@ const HomeCard: React.FC<HomeCardProps> = ({
   const content = useMemo(() => {
     if (isLiveCourse) {
       return {
-        tag: isJobGuaranteeCourse ? 'Job Guaranteed Course *' : 'Live',
-        mobileTag: isJobGuaranteeCourse ? 'Job Guaranteed        ' : 'Live',
-        tagIcon: isJobGuaranteeCourse ? <GraduationCap className="w-3 h-3" /> : <Play className="w-3 h-3" />,
+        tag: isJobGuaranteeCourse ? 'Live' : 'Live',
+        mobileTag: isJobGuaranteeCourse ? 'Live' : 'Live',
+        tagIcon: isJobGuaranteeCourse ? <Play className="w-3 h-3" /> : <Play className="w-3 h-3" />,
         sessionLabel: 'Sessions',
         sessionIcon: <Users size={12} />,
         isJobGuarantee: isJobGuaranteeCourse
@@ -393,8 +377,7 @@ const HomeCard: React.FC<HomeCardProps> = ({
             text-xs xs:text-sm font-bold 
             ${styles.stickyNoteBg} ${styles.stickyNoteText}
             shadow-md xs:shadow-lg shadow-black/20
-            transition-all duration-300 ease-out transform hover:scale-105
-            ${isJobGuaranteeCourse ? 'animate-pulse' : ''}`}
+            transition-all duration-300 ease-out transform hover:scale-105`}
           >
             <div className="flex items-center gap-1 xs:gap-1.5">
               {React.cloneElement(content.tagIcon, { 

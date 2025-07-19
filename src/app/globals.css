@@ -832,6 +832,24 @@ option {
     @apply inline-flex items-center justify-center rounded-lg border border-transparent font-medium transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-offset-2;
     min-height: 44px; /* Touch target compliance */
   }
+
+  /* Hero CTA Button - Override global button styles */
+  .hero-cta-button {
+    min-height: unset !important;
+    height: auto !important;
+    padding: 0.625rem 1.25rem !important; /* py-2.5 px-5 */
+    letter-spacing: 0.05em !important;
+  }
+  
+  .hero-cta-button span {
+    letter-spacing: 0.05em !important;
+  }
+  
+  @media (min-width: 768px) {
+    .hero-cta-button {
+      padding: 0.75rem 1.5rem !important; /* py-3 px-6 */
+    }
+  }
   
   .btn-sm {
     @apply px-3 py-2 text-sm;
