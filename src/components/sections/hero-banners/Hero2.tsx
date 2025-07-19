@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { VideoBackgroundContext } from "@/components/layout/main/Home2";
 import medhLogo from "@/assets/images/logo/medh.png";
+import DemoSessionForm from "@/components/forms/DemoSessionForm";
 
 // Mobile-specific tagline styling - 10% bigger with GPU acceleration
 const mobileTaglineStyles = `
@@ -31,7 +32,7 @@ import {
   Database, Calculator, Rocket, Briefcase, Target, MessageCircle, BarChart3, 
   DollarSign, Code, PenTool, Zap, Shield, Award, Laptop, Heart, Settings, 
   Globe, Scale, Smile, ShoppingCart, Leaf, CheckCircle, Camera, Music, 
-  Activity, Lightbulb
+  Activity, Lightbulb, Video
 } from "lucide-react";
 
 // Complete course categories - all available courses - MOVED OUTSIDE AND FROZEN FOR PERFORMANCE
@@ -345,11 +346,24 @@ const HeroMobile = memo<{
               </div>
 
               {/* CTA Button */}
-              <div className="mt-3 sm:mt-4 gpu-accelerated">
+              <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 gpu-accelerated">
                 <Link href="/courses" className={ctaClasses}>
                   <span className="relative z-10 font-bold gpu-accelerated">Explore Courses</span>
                   <ArrowRight size={14} className="relative z-10 ml-2 group-hover:translate-x-1 transition-gpu gpu-accelerated" />
                 </Link>
+
+                {/* Secondary CTA - Book a Free Demo - positioned next to main CTA */}
+                <button
+                  type="button"
+                  onClick={() => setShowDemoForm(true)}
+                  className={ctaClasses.replace(
+                    "bg-gradient-to-r from-primary-500 to-purple-500 text-white hover:shadow-lg hover:shadow-primary-500/25 glass-stats",
+                    "bg-white/70 backdrop-blur-md text-gray-900 border border-gray-300 hover:border-gray-400 hover:bg-white/80 shadow-md hover:shadow-lg"
+                  )}
+                >
+                  <span className="relative z-10 font-bold gpu-accelerated">Book a Free Demo</span>
+                  <Video size={14} className="relative z-10 ml-2 group-hover:translate-x-1 transition-gpu gpu-accelerated" />
+                </button>
               </div>
 
               {/* Tagline */}
@@ -474,6 +488,7 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
   
   // Improved state management with fallbacks
   const [contextReady, setContextReady] = useState(false);
+  const [showDemoForm, setShowDemoForm] = useState(false);
   
   // Check if context is ready
   useEffect(() => {
@@ -634,12 +649,26 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
                 </div>
               </div>
 
-              {/* CTA Button */}
-              <div className="mt-4 sm:mt-6 md:mt-8 gpu-accelerated">
+              {/* CTA Buttons Container */}
+              <div className="mt-4 sm:mt-6 md:mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 md:gap-6 gpu-accelerated">
+                {/* CTA Button */}
                 <Link href="/courses" className={desktopCtaClasses}>
                   <span className="relative z-10 font-extrabold tracking-wide gpu-accelerated">Explore Courses</span>
                   <ArrowRight size={16} className="relative z-10 ml-3 group-hover:translate-x-1 transition-gpu sm:w-4 sm:h-4 md:w-5 md:h-5 gpu-accelerated" />
                 </Link>
+
+                {/* Secondary CTA - Book a Free Demo - positioned next to main CTA */} 
+                <button
+                  type="button"
+                  onClick={() => setShowDemoForm(true)}
+                  className={desktopCtaClasses.replace(
+                    "bg-gradient-to-r from-primary-500 to-purple-500 text-white hover:shadow-2xl hover:shadow-primary-500/30 glass-stats",
+                    "bg-white/70 backdrop-blur-md text-gray-900 border border-gray-300 hover:border-gray-400 hover:bg-white/80 shadow-md hover:shadow-lg"
+                  )}
+                >
+                  <span className="relative z-10 font-extrabold tracking-wide gpu-accelerated">Book a Free Demo</span>
+                  <Video size={16} className="relative z-10 ml-3 group-hover:translate-x-1 transition-gpu sm:w-4 sm:h-4 md:w-5 md:h-5 gpu-accelerated" />
+                </button>
               </div>
 
               {/* Tagline */}
@@ -701,6 +730,7 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
           </div>
         </div>
       </div>
+      {showDemoForm && <DemoSessionForm onClose={() => setShowDemoForm(false)} />}
     </section>
   );
 }, (prevProps, nextProps) => {

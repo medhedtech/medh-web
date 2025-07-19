@@ -46,7 +46,7 @@
 ***************************************************************/
 
 /* Import vendor styles including slick carousel */
-@import "../styles/vendor.css";
+/* @import "@/styles/vendor.scss"; */
 
 /* Prevent horizontal scroll */
 html, body {
