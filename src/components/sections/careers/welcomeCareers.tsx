@@ -307,7 +307,7 @@ const WelcomeCareers: React.FC = () => {
   return (
     <>
       {/* Hero + Info Cards Container */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-8 mb-12 mx-4 md:mx-16">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-8 mb-8 mx-8">
         {/* Hero Section */}
         <div className="text-center mb-8 md:mb-12">
           <span className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-gradient-to-r from-blue-100 to-violet-100 dark:from-blue-900/30 dark:to-violet-900/30 text-blue-700 dark:text-blue-300 text-xs sm:text-sm font-semibold rounded-full mb-4 backdrop-blur-sm border border-blue-200/50 dark:border-blue-700/50">
@@ -356,20 +356,41 @@ const WelcomeCareers: React.FC = () => {
           </div>
         </div>
 
-        {/* Info Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
-          {infoCards.map((card, index) => (
-            <InfoCard
-              key={index}
-              {...card}
-              index={index}
-            />
-          ))}
-        </div>
+        {/* Redesigned Info Cards Section */}
+        <section className="relative py-8 md:py-12 bg-transparent overflow-visible">
+          {/* Decorative background blob */}
+          <div className="absolute -top-24 -left-24 w-96 h-96 bg-gradient-to-br from-blue-200/30 via-emerald-200/20 to-purple-200/10 rounded-full blur-3xl pointer-events-none z-0"></div>
+          <div className="relative z-10 max-w-5xl mx-auto px-0 md:px-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Card 1 */}
+              <div className="group relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-2 border-blue-200/40 dark:border-blue-800/40 rounded-2xl shadow-lg p-8 flex flex-col items-center text-center transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl">
+                <Image src={Logo1} alt="Rewarding Work Environment" width={64} height={64} className="w-16 h-16 mb-4" />
+                <h3 className="text-xl font-bold text-blue-700 dark:text-blue-300 mb-2">Rewarding Work Environment</h3>
+                <p className="text-slate-600 dark:text-slate-300 mb-4">
+                  We foster a fulfilling work environment that nurtures growth and job satisfaction. Our team is our greatest asset, and we are dedicated to a culture of collaboration, inclusivity, and excellence.
+                </p>
+                <span className="inline-block mt-auto px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-semibold">
+                  Growth & Wellbeing
+                </span>
+              </div>
+              {/* Card 2 */}
+              <div className="group relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-2 border-emerald-200/40 dark:border-emerald-800/40 rounded-2xl shadow-lg p-8 flex flex-col items-center text-center transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl">
+                <Image src={Logo2} alt="Diverse Opportunities" width={64} height={64} className="w-16 h-16 mb-4" />
+                <h3 className="text-xl font-bold text-emerald-700 dark:text-emerald-300 mb-2">Diverse Opportunities</h3>
+                <p className="text-slate-600 dark:text-slate-300 mb-4">
+                  We offer a diverse range of career opportunities for all backgrounds. Whether you are a seasoned professional or just starting out, join a dynamic team and shape the future with us.
+                </p>
+                <span className="inline-block mt-auto px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
+                  Diversity & Impact
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
 
       {/* Our Values Section + Benefits Container */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-8 mb-12 mx-4 md:mx-16">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-8 mb-8 mx-8">
         <div className="text-center mb-8 md:mb-12 pt-6">
           <span className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 text-emerald-700 dark:text-emerald-300 text-xs sm:text-sm font-semibold rounded-full mb-4 backdrop-blur-sm border border-emerald-200/50 dark:border-emerald-700/50">
             <Award className="w-3 h-3 sm:w-4 sm:h-4" />

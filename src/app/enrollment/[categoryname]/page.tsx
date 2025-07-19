@@ -2091,6 +2091,22 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
                                 transition={{ duration: 0.5 }}
                                 className="mb-4 lg:mb-6 block lg:hidden px-4 lg:px-6"
                               >
+                                {/* Mobile-only GradeFilter above CourseSelection */}
+                                {(normalizedCategory === 'vedic-mathematics' || normalizedCategory === 'personality-development') && (
+                                  <div className="mb-3">
+                                    <GradeFilter
+                                      selectedGrade={selectedGrade}
+                                      availableGrades={availableGrades}
+                                      filteredCourses={filteredCourses}
+                                      selectedCourse={selectedCourse}
+                                      handleGradeChange={handleGradeChange}
+                                      handleCourseSelection={handleManualCourseSelection}
+                                      categoryInfo={categoryInfo}
+                                      setSelectedGrade={setSelectedGrade}
+                                      showOnlyGradeFilter={true}
+                                    />
+                                  </div>
+                                )}
                                 {/* CourseSelection (dropdown) - ensure it is above stats on mobile */}
                                 <div className="relative z-30 lg:z-auto">
                                   <CourseSelection 

@@ -58,7 +58,7 @@ const TechEducator = () => {
   };
 
   return (
-    <section className="bg-slate-50 dark:bg-slate-900 pt-0 pb-8 sm:pb-10 md:pb-12 px-4 sm:px-8">
+    <section className="bg-slate-50 dark:bg-slate-900 pt-0 pb-8 px-4 sm:px-8">
       <div className="pt-4 sm:pt-6">
         <motion.div
           initial="hidden"
