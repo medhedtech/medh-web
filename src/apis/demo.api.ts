@@ -143,7 +143,7 @@ export const submitBookFreeDemoSessionForm = async (
 export const getLiveCourses = async (): Promise<IApiResponse<ILiveCourse[]>> => {
   try {
     const response = await axios.get<IApiResponse<ILiveCourse[]>>(
-      `${apiBaseUrl}/forms/courses/live`
+      `${apiBaseUrl}/category/live`
     );
     return response.data;
   } catch (error) {
