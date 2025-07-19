@@ -397,6 +397,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
         case "guardian":
           demoPath = "/dashboards/parent/demo-classes/";
           break;
+        case "sales_team":
+        case "sales-team":
+        case "sales":
+          demoPath = "/dashboards/sales/demo-classes/";
+          break;
+        case "support_team":
+        case "support-team":
+        case "support":
+          demoPath = "/dashboards/support/demo-classes/";
+          break;
         default:
           demoPath = "/dashboards/student/demo-classes/";
       }
@@ -454,6 +464,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
       case "parent":
       case "guardian":
         dashboardPath = "/dashboards/parent";
+        break;
+      case "sales_team":
+      case "sales-team":
+      case "sales":
+        dashboardPath = "/dashboards/sales";
+        break;
+      case "support_team":
+      case "support-team":
+      case "support":
+        dashboardPath = "/dashboards/support";
         break;
       default:
         dashboardPath = "/dashboards/student";
