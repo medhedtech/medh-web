@@ -17,7 +17,7 @@
  * @version 3.0.0 (Multi-Step Form)
  * @since 2024-01-15
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from "next-themes";
 import { useForm, Controller } from "react-hook-form";
@@ -326,8 +326,8 @@ const MultiStepEducatorForm: React.FC = () => {
     defaultValues: {
       full_name: '',
       email: '',
-      country: 'in',
-      phone_number: '',
+      country: 'IN',
+      phone_number: '+91',
       current_role: '',
       experience_years: '',
       expertise_areas: [],
@@ -346,22 +346,31 @@ const MultiStepEducatorForm: React.FC = () => {
     }
   });
 
-  const watchedFields = watch();
+  // Watch for country changes to sync with phone input
+  const watchedCountry = watch('country');
+  const watchedPhoneNumber = watch('phone_number');
 
-  // Auto-save form data
+  // Debug current form values
   useEffect(() => {
-    if (mounted) {
-      const formData = getValues();
-      localStorage.setItem('educatorFormDraft', JSON.stringify({
-        ...formData,
-        currentStep,
-        completedSteps: Array.from(completedSteps),
-        timestamp: Date.now()
-      }));
-    }
-  }, [watchedFields, currentStep, completedSteps, mounted, getValues]);
+    console.log('Current form values:', {
+      country: watchedCountry,
+      phone: watchedPhoneNumber,
+      allValues: getValues()
+    });
+  }, [watchedCountry, watchedPhoneNumber, getValues]);
 
-  // Load saved form data
+  // Sync phone input when country changes
+  useEffect(() => {
+    if (watchedCountry && watchedPhoneNumber) {
+      // Trigger a re-render of the phone input with the new country
+      setValue('phone_number', watchedPhoneNumber);
+    }
+  }, [watchedCountry, setValue]);
+
+  // Remove auto-save functionality to prevent re-renders
+  // Auto-save will only happen when user navigates between steps or submits
+
+  // Load saved form data (simplified)
   useEffect(() => {
     if (mounted) {
       try {
@@ -388,6 +397,53 @@ const MultiStepEducatorForm: React.FC = () => {
       } catch (error) {
         console.log('Could not restore form data:', error);
       }
+    }
+  }, [mounted, reset]);
+
+  // Initialize India as default country and phone number
+  const initializeIndiaDefault = () => {
+    const indiaData = countriesData.find((country: any) => country.code === 'IN');
+    if (indiaData && indiaData.dial_code) {
+      setValue('country', 'IN');
+      setValue('phone_number', indiaData.dial_code);
+    }
+  };
+
+  // Force India as default on mount
+  useEffect(() => {
+    if (mounted) {
+      console.log('Setting India as default...');
+      // Clear any existing localStorage to ensure fresh start
+      localStorage.removeItem('educatorFormDraft');
+      
+      // Force reset with India defaults
+      setTimeout(() => {
+        console.log('Resetting form with India defaults...');
+        reset({
+          full_name: '',
+          email: '',
+          country: 'IN',
+          phone_number: '+91',
+          current_role: '',
+          experience_years: '',
+          expertise_areas: [],
+          education_background: '',
+          current_company: null,
+          preferred_subjects: [],
+          teaching_mode: [],
+          availability: '',
+          portfolio_links: null,
+          demo_video_url: null,
+          has_resume: false,
+          terms_accepted: false,
+          background_check_consent: false,
+          additional_notes: null,
+          message: null,
+        });
+        setCurrentStep(0);
+        setCompletedSteps(new Set());
+        console.log('Form reset complete with India defaults');
+      }, 100);
     }
   }, [mounted, reset]);
 
@@ -497,188 +553,220 @@ const MultiStepEducatorForm: React.FC = () => {
     }
   };
 
-  // Form Input Components (Reusing existing components, adjusted for new types/props if needed)
-  interface IFormInputProps {
-    label: string;
-    icon: React.ComponentType<{ className?: string }>;
-    error?: string;
-    [key: string]: any;
-  }
-  
-  const FormInput: React.FC<IFormInputProps> = ({ 
-    label, 
-    icon: Icon, 
-    error, 
-    type, 
-    ...props 
-  }) => {
-    const [isFocused, setIsFocused] = useState(false);
+  // Reusable Form Input Components - Standardized like MultiStepSchoolPartnershipForm.tsx
+interface FormInputProps {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  error?: string;
+  placeholder?: string;
+  type?: string;
+  required?: boolean;
+  [key: string]: any;
+}
 
-    return (
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative space-y-3"
-      >
-        <label className="block text-sm sm:text-base font-semibold text-slate-700 dark:text-slate-200">
-          {label}
-        </label>
-        <div className="relative group">
-          <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
-            <Icon className={`h-5 w-5 sm:h-6 sm:w-6 transition-colors duration-200 ${
-              error 
-                ? 'text-red-500 dark:text-red-400' 
-                : isFocused 
-                  ? 'text-blue-500 dark:text-blue-400' 
-                  : 'text-slate-400 dark:text-slate-500'
-            }`} />
-          </div>
-              <input
-            type={type}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            className={`
-              w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 rounded-lg sm:rounded-xl border-2 transition-all duration-200
-              bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm
-              text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400
-              font-medium text-sm sm:text-base
-              min-h-[44px] sm:min-h-[48px]
-              ${error 
-                ? 'border-red-500 dark:border-red-400 bg-red-50/50 dark:bg-red-900/10 focus:border-red-500 dark:focus:border-red-400 focus:ring-4 focus:ring-red-500/10 dark:focus:ring-red-400/10' 
-                : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-blue-400/10'
-              }
-              focus:outline-none
-              touch-manipulation
-            `}
-            {...props}
-          />
+const FormInput: React.FC<FormInputProps> = ({
+  label,
+  icon: Icon,
+  error,
+  placeholder,
+  type = "text",
+  required = false,
+  ...props
+}) => {
+  return (
+    <div className="space-y-3">
+      <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      <div className="relative">
+        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <Icon className={`h-5 w-5 ${error ? 'text-red-400' : 'text-gray-400'}`} />
         </div>
-        
-        <AnimatePresence mode="wait">
-        {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs sm:text-sm font-medium"
-            >
-              <AlertCircle className="h-4 w-4 flex-shrink-0" />
-              <span className="leading-tight">{error}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-    );
-  };
-
-  const FormTextArea: React.FC<IFormInputProps> = ({ 
-    label, 
-    icon: Icon, 
-    error, 
-    rows = 4, 
-    ...props 
-  }) => {
-    const [isFocused, setIsFocused] = useState(false);
-  
-    return (
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative space-y-3"
-      >
-        <label className="block text-sm sm:text-base font-semibold text-slate-700 dark:text-slate-200">
-          {label}
-        </label>
-        <div className="relative group">
-          <div className="absolute top-3 sm:top-4 left-3 sm:left-4 pointer-events-none">
-            <Icon className={`h-5 w-5 sm:h-6 sm:w-6 transition-colors duration-200 ${
-              error 
-                ? 'text-red-500 dark:text-red-400' 
-                : isFocused 
-                  ? 'text-blue-500 dark:text-blue-400' 
-                  : 'text-slate-400 dark:text-slate-500'
-            }`} />
-        </div>
-          <textarea
-            rows={rows}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            className={`
-              w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 rounded-lg sm:rounded-xl border-2 transition-all duration-200
-              bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm
-              text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400
-              font-medium resize-none text-sm sm:text-base
-              min-h-[120px] sm:min-h-[140px]
-              ${error 
-                ? 'border-red-500 dark:border-red-400 bg-red-50/50 dark:bg-red-900/10 focus:border-red-500 dark:focus:border-red-400 focus:ring-4 focus:ring-red-500/10 dark:focus:ring-red-400/10' 
-                : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-blue-400/10'
-              }
-              focus:outline-none
-              touch-manipulation
-            `}
-            {...props}
-          />
-        </div>
-        
-        <AnimatePresence mode="wait">
-          {error && (
-        <motion.div 
-              initial={{ opacity: 0, y: -10 }}
+        <input
+          type={type}
+          placeholder={placeholder}
+          className={`
+            block w-full pl-12 pr-4 py-4 border-2 rounded-xl shadow-sm placeholder-gray-400
+            focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200
+            text-base font-medium
+            ${error
+              ? 'border-red-300 focus:ring-red-500 bg-red-50 dark:bg-red-900/10'
+              : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 dark:border-gray-600'
+            }
+            dark:text-white dark:placeholder-gray-400
+          `}
+          {...props}
+        />
+      </div>
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs sm:text-sm font-medium"
-            >
-              <AlertCircle className="h-4 w-4 flex-shrink-0" />
-              <span className="leading-tight">{error}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-    );
-  };
-  
-  const FormCheckbox: React.FC<{
-    label: React.ReactNode;
-    error?: string;
-    [key: string]: any;
-  }> = ({ label, error, ...props }) => {
-    return (
-      <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-        className="relative space-y-3"
-      >
-        <div className="flex items-start space-x-3 sm:space-x-4">
-          <div className="flex items-center h-6 mt-0.5">
-            <input
-              type="checkbox"
-              className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600 dark:text-purple-400 bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 rounded-md sm:rounded-lg focus:ring-purple-500 dark:focus:ring-purple-400 focus:ring-2 transition-all duration-200 touch-manipulation"
-              {...props}
-            />
-          </div>
-          <div className="text-sm sm:text-base flex-1">
-            <label className="font-medium text-slate-700 dark:text-slate-200 leading-relaxed cursor-pointer">
-              {label}
-            </label>
-            </div>
-          </div>
+          className="flex items-center gap-2 text-red-600 text-sm font-medium mt-2"
+        >
+          <AlertCircle className="h-4 w-4" />
+          <span>{error}</span>
+        </motion.div>
+      )}
+    </div>
+  );
+};
 
-        <AnimatePresence mode="wait">
-          {error && (
-              <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs sm:text-sm font-medium ml-8 sm:ml-10"
-            >
-              <AlertCircle className="h-4 w-4 flex-shrink-0" />
-              <span className="leading-tight">{error}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-    );
-  };
+const FormTextArea: React.FC<FormInputProps> = ({
+  label,
+  icon: Icon,
+  error,
+  placeholder,
+  required = false,
+  rows = 4,
+  ...props
+}) => {
+  return (
+    <div className="space-y-3">
+      <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      <div className="relative">
+        <div className="absolute top-4 left-4 pointer-events-none">
+          <Icon className={`h-5 w-5 ${error ? 'text-red-400' : 'text-gray-400'}`} />
+        </div>
+        <textarea
+          rows={rows}
+          placeholder={placeholder}
+          className={`
+            block w-full pl-12 pr-4 py-4 border-2 rounded-xl shadow-sm placeholder-gray-400 resize-none
+            focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200
+            text-base font-medium
+            ${error
+              ? 'border-red-300 focus:ring-red-500 bg-red-50 dark:bg-red-900/10'
+              : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 dark:border-gray-600'
+            }
+            dark:text-white dark:placeholder-gray-400
+          `}
+          {...props}
+        />
+      </div>
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-2 text-red-600 text-sm font-medium mt-2"
+        >
+          <AlertCircle className="h-4 w-4" />
+          <span>{error}</span>
+        </motion.div>
+      )}
+    </div>
+  );
+};
+
+const FormCheckbox: React.FC<{
+  label: React.ReactNode;
+  error?: string;
+  [key: string]: any;
+}> = ({ label, error, ...props }) => {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-start space-x-4">
+        <div className="flex items-center h-6 mt-1">
+          <input
+            type="checkbox"
+            className="w-5 h-5 text-blue-600 bg-gray-100 border-2 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 transition-all duration-200"
+            {...props}
+          />
+        </div>
+        <div className="text-base">
+          <label className="font-medium text-gray-700 dark:text-gray-300 cursor-pointer leading-relaxed">
+            {label}
+          </label>
+        </div>
+      </div>
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-2 text-red-600 text-sm font-medium mt-2 ml-9"
+        >
+          <AlertCircle className="h-4 w-4" />
+          <span>{error}</span>
+        </motion.div>
+      )}
+    </div>
+  );
+};
+
+// Progress Indicator Component - Standardized like MultiStepSchoolPartnershipForm.tsx
+interface ProgressIndicatorProps {
+  currentStep: number;
+  totalSteps: number;
+  completedSteps: Set<number>;
+}
+
+const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
+  currentStep,
+  totalSteps,
+  completedSteps,
+}) => {
+  return (
+    <div className="w-full mb-12">
+      <div className="flex items-center justify-between mb-6">
+        {EDUCATOR_FORM_STEPS.map((step, index) => (
+          <React.Fragment key={step.stepId}>
+            <div className="flex flex-col items-center space-y-3">
+              <div
+                className={`
+                  w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 shadow-lg
+                  ${index + 1 === currentStep
+                    ? 'bg-blue-600 text-white ring-4 ring-blue-200 dark:ring-blue-800'
+                    : completedSteps.has(index)
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                  }
+                `}
+              >
+                {completedSteps.has(index) ? (
+                  <CheckCircle className="h-6 w-6" />
+                ) : (
+                  index + 1
+                )}
+              </div>
+              <span className={`
+                text-sm font-semibold text-center max-w-24 leading-tight
+                ${index + 1 === currentStep
+                  ? 'text-blue-600 dark:text-blue-400'
+                  : completedSteps.has(index)
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-gray-500 dark:text-gray-400'
+                }
+              `}>
+                {step.title}
+              </span>
+            </div>
+            {index < EDUCATOR_FORM_STEPS.length - 1 && (
+              <div className="flex-1 mx-6">
+                <div className={`
+                  h-1 rounded-full transition-all duration-300
+                  ${completedSteps.has(index)
+                    ? 'bg-green-600'
+                    : 'bg-gray-200 dark:bg-gray-700'
+                  }
+                `} />
+              </div>
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+      
+      {/* Progress bar */}
+      <div className="w-full bg-gray-200 rounded-full h-3 dark:bg-gray-700 shadow-inner">
+        <div
+          className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500 ease-out shadow-sm"
+          style={{ width: `${(completedSteps.size / totalSteps) * 100}%` }}
+        />
+      </div>
+    </div>
+  );
+};
 
   // Helper function to render step content
   function renderStepContent() {
@@ -687,60 +775,76 @@ const MultiStepEducatorForm: React.FC = () => {
     switch (step.stepId) {
       case 'contact_info':
         return (
-                  <div className="space-y-6">
+          <div className="space-y-8">
             <FormInput
               label="Full Name"
               icon={User}
-                          type="text"
+              type="text"
               placeholder="e.g., Dr. Jane Doe"
+              required
               error={errors.full_name?.message}
-                          {...register("full_name")}
-                        />
+              {...register("full_name")}
+            />
             
             <FormInput
               label="Official Email"
               icon={Mail}
-                          type="email"
+              type="email"
               placeholder="e.g., jane.doe@example.com"
+              required
               error={errors.email?.message}
-                          {...register("email")}
-                        />
+              {...register("email")}
+            />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Controller
-                        name="phone_number"
-                        control={control}
-                        render={({ field, fieldState }) => (
-                          <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
-                              Phone Number
-                            </label>
-                            <PhoneNumberInput
-                              value={{ 
-                                country: watchedFields.country || 'in', 
-                                number: field.value || '' 
-                              }}
-                              onChange={val => field.onChange(val.number)}
-                      placeholder="Enter your phone number"
-                              error={fieldState.error?.message}
-                            />
-                          </div>
-                        )}
-                      />
-              
-              <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
-                  Country
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  Country <span className="text-red-500">*</span>
                 </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <MapPin className="h-5 w-5 text-gray-400 group-focus-within:text-primary-500 transition-colors" />
-                    </div>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <MapPin className={`h-5 w-5 ${errors.country ? 'text-red-400' : 'text-gray-400'}`} />
+                  </div>
                   <select
-                    className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-                      errors.country ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200`}
+                    className={`
+                      block w-full pl-12 pr-4 border-2 rounded-xl shadow-sm text-base font-medium
+                      focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200
+                      ${errors.country
+                        ? 'border-red-300 focus:ring-red-500 bg-red-50 dark:bg-red-900/10'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 dark:border-gray-600'
+                      }
+                      dark:text-white
+                    `}
                     {...register("country")}
+                    onChange={(e) => {
+                      const selectedCountry = e.target.value;
+                      // Update the country field
+                      setValue('country', selectedCountry);
+                      
+                      // Get the current phone number
+                      const currentPhone = getValues('phone_number');
+                      
+                      // Find the country data to get the dial code
+                      const countryData = countriesData.find((country: any) => country.code === selectedCountry);
+                      
+                      if (countryData && countryData.dial_code) {
+                        // If there's already a phone number, preserve the number part
+                        if (currentPhone && currentPhone.startsWith('+')) {
+                          // Extract the number part (remove existing country code)
+                          const numberPart = currentPhone.replace(/^\+\d+\s*/, '');
+                          // Add new country code (dial_code already includes the +)
+                          const newPhoneNumber = `${countryData.dial_code} ${numberPart}`;
+                          setValue('phone_number', newPhoneNumber);
+                        } else if (currentPhone) {
+                          // If phone number doesn't start with +, add country code
+                          const newPhoneNumber = `${countryData.dial_code} ${currentPhone}`;
+                          setValue('phone_number', newPhoneNumber);
+                        } else {
+                          // If no phone number, just add the country code
+                          setValue('phone_number', `${countryData.dial_code}`);
+                        }
+                      }
+                    }}
                   >
                     {countriesData.map((country: any) => (
                       <option key={country.code} value={country.code}>
@@ -748,55 +852,111 @@ const MultiStepEducatorForm: React.FC = () => {
                       </option>
                     ))}
                   </select>
-                  </div>
+                </div>
                 {errors.country && (
-                  <p className="text-red-500 text-xs mt-1">{errors.country.message}</p>
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-2 text-red-600 text-sm font-medium mt-2"
+                  >
+                    <AlertCircle className="h-4 w-4" />
+                    <span>{errors.country.message}</span>
+                  </motion.div>
                 )}
               </div>
+
+              <Controller
+                name="phone_number"
+                control={control}
+                render={({ field, fieldState }) => {
+                  const selectedCountry = getValues('country') || 'IN';
+                  const currentPhoneNumber = field.value || '';
+                  
+                  // Watch for country changes and update phone number accordingly
+                  const watchedCountry = watch('country');
+                  
+                  return (
+                    <div className="space-y-3">
+                      <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100">
+                        Phone Number <span className="text-red-500">*</span>
+                      </label>
+                      <PhoneNumberInput
+                        value={{ 
+                          country: watchedCountry || selectedCountry, 
+                          number: currentPhoneNumber 
+                        }}
+                        onChange={val => {
+                          field.onChange(val.number);
+                          // Also update the country field if it changed in the phone input
+                          if (val.country !== watchedCountry) {
+                            setValue('country', val.country);
+                          }
+                        }}
+                        placeholder="Enter your phone number"
+                        error={fieldState.error?.message}
+                      />
+                    </div>
+                  );
+                }}
+              />
             </div>
           </div>
         );
 
       case 'professional_details':
         return (
-                  <div className="space-y-6">
+          <div className="space-y-8">
             <FormInput
               label="Current Role/Position"
               icon={Briefcase}
-                          type="text"
+              type="text"
               placeholder="e.g., Senior Software Engineer, Data Scientist"
+              required
               error={errors.current_role?.message}
-                          {...register("current_role")}
-                        />
+              {...register("current_role")}
+            />
 
-                    <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
-                        Years of Experience
-                      </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Award className="h-5 w-5 text-gray-400 group-focus-within:text-primary-500 transition-colors" />
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100">
+                Years of Experience <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Award className={`h-5 w-5 ${errors.experience_years ? 'text-red-400' : 'text-gray-400'}`} />
                 </div>
-                        <select
-                  className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-                    errors.experience_years ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                  } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200`}
-                          {...register("experience_years")}
-                        >
+                <select
+                  className={`
+                    block w-full pl-12 pr-4 py-4 border-2 rounded-xl shadow-sm text-base font-medium
+                    focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200
+                    ${errors.experience_years
+                      ? 'border-red-300 focus:ring-red-500 bg-red-50 dark:bg-red-900/10'
+                      : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 dark:border-gray-600'
+                    }
+                    dark:text-white
+                  `}
+                  {...register("experience_years")}
+                >
                   <option value="">Select experience range</option>
                   {EXPERIENCE_YEARS_OPTIONS.map(range => (
                     <option key={range} value={range}>{range}</option>
                   ))}
-                        </select>
-                      </div>
+                </select>
+              </div>
               {errors.experience_years && (
-                <p className="text-red-500 text-xs mt-1">{errors.experience_years.message}</p>
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-2 text-red-600 text-sm font-medium mt-2"
+                >
+                  <AlertCircle className="h-4 w-4" />
+                  <span>{errors.experience_years.message}</span>
+                </motion.div>
               )}
-                    </div>
+            </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                Areas of Expertise (Select all that apply)
+              <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                Areas of Expertise (Select all that apply) <span className="text-red-500">*</span>
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2">
                 {EXPERTISE_AREAS_OPTIONS.map(area => (
@@ -804,7 +964,7 @@ const MultiStepEducatorForm: React.FC = () => {
                     <input
                       type="checkbox"
                       value={area}
-                      className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500 mt-0.5"
+                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-0.5"
                       {...register("expertise_areas")}
                     />
                     <span className="text-gray-900 dark:text-white text-sm leading-relaxed">{area}</span>
@@ -812,7 +972,14 @@ const MultiStepEducatorForm: React.FC = () => {
                 ))}
               </div>
               {errors.expertise_areas && (
-                <p className="text-red-500 text-sm mt-1">{errors.expertise_areas.message}</p>
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-2 text-red-600 text-sm font-medium mt-2"
+                >
+                  <AlertCircle className="h-4 w-4" />
+                  <span>{errors.expertise_areas.message}</span>
+                </motion.div>
               )}
             </div>
 
@@ -820,10 +987,11 @@ const MultiStepEducatorForm: React.FC = () => {
               label="Highest Educational Background"
               icon={GraduationCap}
               placeholder="e.g., Master's in Computer Science from XYZ University, PhD in Data Science from ABC Institute"
-                          rows={3}
+              rows={3}
+              required
               error={errors.education_background?.message}
-                          {...register("education_background")}
-                        />
+              {...register("education_background")}
+            />
 
             <FormInput
               label="Current Company (Optional)"
@@ -833,15 +1001,15 @@ const MultiStepEducatorForm: React.FC = () => {
               error={errors.current_company?.message}
               {...register("current_company")}
             />
-                      </div>
+          </div>
         );
 
       case 'teaching_preferences':
         return (
-                  <div className="space-y-6">
+          <div className="space-y-8">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                Preferred Subjects to Teach (Select all that apply)
+              <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                Preferred Subjects to Teach (Select all that apply) <span className="text-red-500">*</span>
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2">
                 {PREFERRED_SUBJECTS_OPTIONS.map(subject => (
@@ -849,7 +1017,7 @@ const MultiStepEducatorForm: React.FC = () => {
                     <input
                       type="checkbox"
                       value={subject}
-                      className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500 mt-0.5"
+                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-0.5"
                       {...register("preferred_subjects")}
                     />
                     <span className="text-gray-900 dark:text-white text-sm leading-relaxed">{subject}</span>
@@ -857,13 +1025,20 @@ const MultiStepEducatorForm: React.FC = () => {
                 ))}
               </div>
               {errors.preferred_subjects && (
-                <p className="text-red-500 text-sm mt-1">{errors.preferred_subjects.message}</p>
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-2 text-red-600 text-sm font-medium mt-2"
+                >
+                  <AlertCircle className="h-4 w-4" />
+                  <span>{errors.preferred_subjects.message}</span>
+                </motion.div>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                Preferred Teaching Modes (Select all that apply)
+              <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                Preferred Teaching Modes (Select all that apply) <span className="text-red-500">*</span>
               </label>
               <div className="space-y-3">
                 {TEACHING_MODES_OPTIONS.map(mode => (
@@ -871,7 +1046,7 @@ const MultiStepEducatorForm: React.FC = () => {
                     <input
                       type="checkbox"
                       value={mode}
-                      className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500 mt-0.5"
+                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-0.5"
                       {...register("teaching_mode")}
                     />
                     <span className="text-gray-900 dark:text-white text-sm leading-relaxed">{mode}</span>
@@ -879,34 +1054,54 @@ const MultiStepEducatorForm: React.FC = () => {
                 ))}
               </div>
               {errors.teaching_mode && (
-                <p className="text-red-500 text-sm mt-1">{errors.teaching_mode.message}</p>
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-2 text-red-600 text-sm font-medium mt-2"
+                >
+                  <AlertCircle className="h-4 w-4" />
+                  <span>{errors.teaching_mode.message}</span>
+                </motion.div>
               )}
             </div>
 
-                    <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
-                Preferred Availability
-                      </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Calendar className="h-5 w-5 text-gray-400 group-focus-within:text-primary-500 transition-colors" />
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100">
+                Preferred Availability <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Calendar className={`h-5 w-5 ${errors.availability ? 'text-red-400' : 'text-gray-400'}`} />
                 </div>
-                        <select
-                  className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-                    errors.availability ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                  } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200`}
-                          {...register("availability")}
-                        >
-                          <option value="">Select availability</option>
+                <select
+                  className={`
+                    block w-full pl-12 pr-4 py-4 border-2 rounded-xl shadow-sm text-base font-medium
+                    focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200
+                    ${errors.availability
+                      ? 'border-red-300 focus:ring-red-500 bg-red-50 dark:bg-red-900/10'
+                      : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 dark:border-gray-600'
+                    }
+                    dark:text-white
+                  `}
+                  {...register("availability")}
+                >
+                  <option value="">Select availability</option>
                   {AVAILABILITY_OPTIONS.map(option => (
                     <option key={option} value={option}>{option}</option>
                   ))}
-                        </select>
-                      </div>
+                </select>
+              </div>
               {errors.availability && (
-                <p className="text-red-500 text-xs mt-1">{errors.availability.message}</p>
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-2 text-red-600 text-sm font-medium mt-2"
+                >
+                  <AlertCircle className="h-4 w-4" />
+                  <span>{errors.availability.message}</span>
+                </motion.div>
               )}
-                    </div>
+            </div>
 
             <FormInput
               label="Portfolio/Personal Website Link (Optional)"
@@ -914,8 +1109,8 @@ const MultiStepEducatorForm: React.FC = () => {
               type="url"
               placeholder="https://www.yourportfolio.com"
               error={errors.portfolio_links?.message}
-                          {...register("portfolio_links")}
-                        />
+              {...register("portfolio_links")}
+            />
 
             <FormInput
               label="Demo Video Link (Optional)"
@@ -928,60 +1123,28 @@ const MultiStepEducatorForm: React.FC = () => {
 
             <FormCheckbox
               label={
-                <span className="text-sm">
+                <span className="text-base">
                   I confirm I have an up-to-date resume/CV.
                 </span>
               }
+              required
               error={errors.has_resume?.message}
               {...register("has_resume")}
             />
           </div>
         );
 
-      case 'consent_review': // Updated stepId
+      case 'consent_review':
         return (
-          <div className="space-y-6">
-            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-6">
-              <FormCheckbox
-                label={
-                  <span className="text-sm">
-                          I agree to the{" "}
-                    <Link href="/terms-and-services">
-                      <span className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
-                            Terms of Use
-                      </span>
-                          </Link>{" "}
-                          and{" "}
-                    <Link href="/privacy-policy">
-                      <span className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
-                            Privacy Policy
-                      </span>
-                          </Link>
-                    .
-                  </span>
-                }
-                error={errors.terms_accepted?.message}
-                {...register("terms_accepted")}
-              />
-              <FormCheckbox
-                label={
-                  <span className="text-sm">
-                    I consent to a background check as part of the application process.
-                  </span>
-                }
-                error={errors.background_check_consent?.message}
-                          {...register("background_check_consent")}
-                        />
-                    </div>
-
+          <div className="space-y-8">
             <FormTextArea
               label="Additional Notes (Optional)"
               icon={MessageSquare}
               placeholder="Any specific questions, teaching philosophy, or needs you'd like to share?"
               rows={4}
               error={errors.additional_notes?.message}
-                          {...register("additional_notes")}
-                        />
+              {...register("additional_notes")}
+            />
 
             <FormTextArea
               label="Message / Cover Letter (Optional)"
@@ -991,7 +1154,38 @@ const MultiStepEducatorForm: React.FC = () => {
               error={errors.message?.message}
               {...register("message")}
             />
-                      </div>
+
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 space-y-4">
+              <FormCheckbox
+                label={
+                  <span className="text-base">
+                    I agree to the{" "}
+                    <Link href="/terms-and-services" className="text-blue-600 hover:underline font-semibold">
+                      Terms of Use
+                    </Link>{" "}
+                    and{" "}
+                    <Link href="/privacy-policy" className="text-blue-600 hover:underline font-semibold">
+                      Privacy Policy
+                    </Link>
+                    .
+                  </span>
+                }
+                required
+                error={errors.terms_accepted?.message}
+                {...register("terms_accepted")}
+              />
+              <FormCheckbox
+                label={
+                  <span className="text-base">
+                    I consent to a background check as part of the application process.
+                  </span>
+                }
+                required
+                error={errors.background_check_consent?.message}
+                {...register("background_check_consent")}
+              />
+            </div>
+          </div>
         );
 
       default:
@@ -999,8 +1193,29 @@ const MultiStepEducatorForm: React.FC = () => {
     }
   }
 
+  if (!mounted) {
+    return (
+      <section className="py-16 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-950">
+        <div className="container mx-auto px-4">
+          <div className="bg-gray-200 dark:bg-gray-800 rounded-2xl h-96 w-full animate-pulse"></div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="relative bg-slate-50 dark:bg-slate-900 min-h-screen overflow-hidden w-full">
+      {/* Enhanced Background Pattern */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20"></div>
+      
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-violet-50/50 dark:from-blue-950/20 dark:via-transparent dark:to-violet-950/20"></div>
+      
+      {/* Floating Elements */}
+      <div className="absolute top-20 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-blue-200/20 dark:bg-blue-800/20 rounded-full blur-3xl animate-blob"></div>
+      <div className="absolute top-40 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-violet-200/20 dark:bg-violet-800/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+      <div className="absolute bottom-20 left-1/2 w-28 h-28 sm:w-36 sm:h-36 bg-amber-200/20 dark:bg-amber-800/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+
       <div className="relative z-10 w-full px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-4 md:py-8">
         <motion.div 
           initial={{ opacity: 0, y: 50 }}
@@ -1008,248 +1223,147 @@ const MultiStepEducatorForm: React.FC = () => {
           exit={{ opacity: 0, y: 50 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="relative w-full max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-lg md:rounded-xl border border-slate-200 dark:border-slate-600 shadow-sm shadow-slate-200/50 dark:shadow-slate-800/50 overflow-hidden"
+          layout
         >
           {isSubmittedSuccessfully ? (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-              className="flex flex-col items-center justify-center p-8 sm:p-12 md:p-16 text-center min-h-[400px]"
+              className="flex flex-col items-center justify-center min-h-[500px] text-center p-6 sm:p-8"
             >
-              <motion.div
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2, type: "spring", stiffness: 100 }}
-                className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-6 shadow-lg"
-              >
-                <CheckCircle className="text-white" size={48} strokeWidth={2.5} />
-              </motion.div>
-              <motion.h2
-                initial={{ y: -10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-50 leading-tight"
-              >
+              <CheckCircle className="h-16 w-16 sm:h-20 sm:w-20 text-green-600 dark:text-green-400 mb-6" />
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mb-4">
                 Application Submitted Successfully!
-              </motion.h2>
-              <motion.p
-                initial={{ y: -10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.4 }}
-                className="text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-lg mb-8 leading-relaxed"
+              </h2>
+              <p className="text-slate-600 dark:text-slate-300 max-w-md mb-6">
+                Thank you for your interest in joining Medh as an educator! Our team will review your application and contact you within 1–2 working days.
+              </p>
+              <button
+                onClick={() => router.push('/')}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Thank you for your interest in joining Medh as an educator! Our team will review your application and get in touch with you shortly.
-              </motion.p>
-              <motion.button
-                onClick={() => router.push('/')} // Navigate to home page
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 min-h-[48px]"
-              >
-                <Home className="w-5 h-5" />
                 Go to Homepage
-              </motion.button>
+              </button>
             </motion.div>
           ) : (
             <>
-              {/* Header */}
+              {/* Enhanced Mobile-First Header */}
               <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-600 px-3 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 text-center">
-                <motion.div
+                <motion.h1 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="flex items-center justify-center gap-3 mb-4"
+                  className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-50 mb-2 sm:mb-3 leading-tight"
                 >
-                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-                    <GraduationCap className="w-6 h-6 text-white" />
-                    </div>
-                  <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-50 leading-tight">
-                    Educator Registration Application
-                  </h1>
-                </motion.div>
+                  Educator Registration Application
+                </motion.h1>
                 <motion.p 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                   className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mx-auto px-2"
                 >
-                  Join our team of expert educators and help shape the future of learning!
+                  Join our team of expert educators and help shape the future of learning! We'll reach out within 1–2 working days.
                 </motion.p>
-                  </div>
+              </div>
 
-              {/* Form Content */}
+              {/* Enhanced Mobile-First Form Content */}
               <div className="bg-white dark:bg-slate-800 p-2 sm:p-4 md:p-6 lg:p-8">
-                {/* Step Progress */}
-                <div className="mb-6 md:mb-8">
-                  <div className="flex items-center justify-between">
-                    {EDUCATOR_FORM_STEPS.map((step, index) => {
-                      const isCompleted = completedSteps.has(index);
-                      const isCurrent = index === currentStep;
-                      
-                      return (
-                        <React.Fragment key={step.stepId}>
-                          <div className="flex flex-col items-center space-y-2">
-                            <motion.div
-                              initial={{ scale: 0.8, opacity: 0 }}
-                              animate={{ 
-                                scale: isCurrent ? 1.05 : 1, 
-                                opacity: 1
-                              }}
-                              transition={{ duration: 0.2 }}
-                              className={`
-                                w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-sm font-semibold
-                                transition-all duration-200
-                                ${isCompleted 
-                                  ? 'bg-green-600 dark:bg-green-500 text-white shadow-sm' 
-                                  : isCurrent 
-                                    ? 'bg-purple-600 dark:bg-purple-500 text-white shadow-sm' 
-                                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-                                }
-                              `}
-                            >
-                              {isCompleted ? (
-                                <CheckCircle className="h-4 w-4 md:h-5 md:w-5" />
-                              ) : (
-                                <span className="text-xs md:text-sm">{index + 1}</span>
-                )}
-              </motion.div>
+                <ProgressIndicator
+                  currentStep={currentStep + 1}
+                  totalSteps={EDUCATOR_FORM_STEPS.length}
+                  completedSteps={completedSteps}
+                />
 
-                            <div className="text-center max-w-24 md:max-w-32">
-                              <p className={`text-xs md:text-sm font-medium transition-colors leading-tight text-center ${
-                                isCurrent 
-                                  ? 'text-purple-600 dark:text-purple-400' 
-                                  : isCompleted 
-                                    ? 'text-green-600 dark:text-green-400'
-                                    : 'text-gray-500 dark:text-gray-500'
-                              }`}>
-                                {step.title}
-                              </p>
-                            </div>
-                          </div>
-                          
-                          {index < EDUCATOR_FORM_STEPS.length - 1 && (
-                            <div className="flex-1 mx-2 md:mx-4">
-                              <div className={`h-0.5 md:h-1 rounded-full transition-all duration-300 ${
-                                completedSteps.has(index) 
-                                  ? 'bg-green-600 dark:bg-green-500' 
-                                  : 'bg-gray-200 dark:bg-gray-700'
-                              }`} />
-                            </div>
-                          )}
-                        </React.Fragment>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <form onSubmit={handleSubmit(onSubmit)} className="mt-6 sm:mt-8 md:mt-10">
-                  {/* Step Content Card */}
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                   <div
                     className="relative bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl md:rounded-2xl border border-slate-200 dark:border-slate-600 p-4 sm:p-6 md:p-8 lg:p-10 shadow-lg sm:shadow-xl shadow-slate-200/20 dark:shadow-slate-900/30 mb-6 sm:mb-8"
                   >
-                    {/* Step Header */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="relative z-10 mb-6 sm:mb-8 pb-4 sm:pb-6 border-b border-slate-200/60 dark:border-slate-600/60"
-                    >
-                      <div className="flex items-center gap-3 sm:gap-4">
-                        <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-base sm:text-lg shadow-lg">
-                          {currentStep + 1}
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white leading-tight">
-                            {EDUCATOR_FORM_STEPS[currentStep]?.title}
-                          </h3>
-                          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
-                            {EDUCATOR_FORM_STEPS[currentStep]?.description}
-                          </p>
-                        </div>
-                      </div>
-                    </motion.div>
-
-                    {/* Step Content */}
+                    {/* Step Header (Moved inside renderStepContent function for better control) */}
                     <AnimatePresence mode="wait">
                       <motion.div
-                        key={currentStep} // Only this inner div changes key, forcing re-render of step content only
+                        key={currentStep}
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
                         transition={{ duration: 0.3 }}
-                        className="relative z-10"
+                        className="relative z-10 space-y-6"
                       >
+                         {/* Inner Step Header for each step */}
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="relative z-10 mb-6 sm:mb-8 pb-4 sm:pb-6 border-b border-slate-200/60 dark:border-slate-600/60 text-center"
+                        >
+                          <div className="flex items-center justify-center gap-3 sm:gap-4 mb-3">
+                            <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold text-base sm:text-lg shadow-lg">
+                              {currentStep + 1}
+                            </div>
+                            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white leading-tight">
+                              {EDUCATOR_FORM_STEPS[currentStep]?.title}
+                            </h2>
+                          </div>
+                          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                            {EDUCATOR_FORM_STEPS[currentStep]?.description}
+                          </p>
+                        </motion.div>
                         {renderStepContent()}
                       </motion.div>
                     </AnimatePresence>
                   </div>
+
+                  {/* Navigation */}
+                  <div className="flex justify-between items-center pt-6">
+                    <button
+                      type="button"
+                      onClick={handlePrevious}
+                      disabled={currentStep === 0}
+                      className={`
+                        flex items-center gap-3 px-8 py-4 rounded-xl font-semibold transition-all duration-200 text-base
+                        ${currentStep === 0
+                          ? 'opacity-50 cursor-not-allowed bg-gray-100 text-gray-400'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 shadow-md hover:shadow-lg'
+                        }
+                      `}
+                    >
+                      <ArrowLeft className="h-5 w-5" />
+                      Previous
+                    </button>
+
+                    {currentStep < EDUCATOR_FORM_STEPS.length - 1 ? (
+                      <button
+                        type="button"
+                        onClick={handleNext}
+                        className="flex items-center gap-3 px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 font-semibold text-base shadow-lg hover:shadow-xl transform hover:scale-105"
+                      >
+                        Next
+                        <ArrowRight className="h-5 w-5" />
+                      </button>
+                    ) : (
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="flex items-center gap-3 px-8 py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 font-semibold text-base shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                      >
+                        {loading ? (
+                          <>
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                            Submitting...
+                          </>
+                        ) : (
+                          <>
+                            Submit Application
+                            <Send className="h-5 w-5" />
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </form>
               </div>
-
-              {/* Navigation Footer */}
-              <div className="relative bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-600 px-3 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8">
-                <div className="flex justify-between items-center gap-3">
-                  <motion.button
-                  type="button"
-                  onClick={handlePrevious}
-                  disabled={currentStep === 0}
-                    whileHover={{ scale: currentStep === 0 ? 1 : 1.02 }}
-                    whileTap={{ scale: currentStep === 0 ? 1 : 0.98 }}
-                    className={`flex items-center gap-2 sm:gap-3 px-4 sm:px-6 md:px-8 py-3 sm:py-3 md:py-4 rounded-lg sm:rounded-xl font-semibold transition-all duration-200 min-h-[44px] touch-manipulation ${
-                    currentStep === 0
-                        ? 'bg-slate-100/60 text-slate-400 cursor-not-allowed dark:bg-slate-700/60 dark:text-slate-500'
-                        : 'bg-slate-100/80 text-slate-700 dark:bg-slate-700/80 dark:text-slate-200 hover:bg-slate-200/80 dark:hover:bg-slate-600/80 shadow-lg hover:shadow-xl'
-                    }`}
-                  >
-                    <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                    <span className="text-sm sm:text-base hidden xs:inline">Previous</span>
-                  </motion.button>
-
-                {currentStep === EDUCATOR_FORM_STEPS.length - 1 ? (
-                    <motion.button
-                    type="submit"
-                      onClick={handleSubmit(onSubmit)}
-                    disabled={loading}
-                      whileHover={{ scale: loading ? 1 : 1.02 }}
-                      whileTap={{ scale: loading ? 1 : 0.98 }}
-                      className={`flex items-center gap-2 sm:gap-3 px-6 sm:px-8 md:px-10 py-3 sm:py-3 md:py-4 rounded-lg sm:rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl min-h-[44px] touch-manipulation text-sm sm:text-base ${
-                        loading 
-                          ? 'bg-slate-200/60 text-slate-500 cursor-not-allowed dark:bg-slate-700/60 dark:text-slate-400' 
-                          : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-purple-500/25 hover:shadow-purple-500/40'
-                    }`}
-                  >
-                    {loading ? (
-                      <>
-                          <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-                          <span className="hidden xs:inline">Processing...</span>
-                          <span className="xs:hidden">...</span>
-                      </>
-                    ) : (
-                      <>
-                          <Send className="w-4 h-4 sm:w-5 sm:h-5" />
-                          <span className="hidden xs:inline">Submit Application</span>
-                          <span className="xs:hidden">Submit</span>
-                      </>
-                    )}
-                    </motion.button>
-                ) : (
-                    <motion.button
-                    type="button"
-                    onClick={handleNext}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="flex items-center gap-2 sm:gap-3 px-6 sm:px-8 md:px-10 py-3 sm:py-3 md:py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-lg sm:rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl shadow-purple-500/25 hover:shadow-purple-500/40 min-h-[44px] touch-manipulation text-sm sm:text-base"
-                    >
-                      <span className="hidden xs:inline">Next Step</span>
-                      <span className="xs:hidden">Next</span>
-                      <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </motion.button>
-                )}
-              </div>
-          </div>
             </>
           )}
         </motion.div>
-
       </div>
     </section>
   );

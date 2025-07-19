@@ -485,8 +485,8 @@ const MultiStepSchoolPartnershipForm: React.FC = () => {
       full_name: '',
       designation: '',
       email: '',
-      country: 'in',
-      phone_number: '',
+      country: 'IN',
+      phone_number: '+91',
       school_name: '',
       school_type: '',
       city_state: '',
@@ -533,6 +533,40 @@ const MultiStepSchoolPartnershipForm: React.FC = () => {
       } catch (error) {
         console.log('Could not restore form data:', error);
       }
+    }
+  }, [mounted, reset]);
+
+  // Force India as default on mount
+  useEffect(() => {
+    if (mounted) {
+      console.log('Setting India as default for school form...');
+      // Clear any existing localStorage to ensure fresh start
+      localStorage.removeItem('schoolPartnershipDraft');
+      
+      // Force reset with India defaults
+      setTimeout(() => {
+        console.log('Resetting school form with India defaults...');
+        reset({
+          full_name: '',
+          designation: '',
+          email: '',
+          country: 'IN',
+          phone_number: '+91',
+          school_name: '',
+          school_type: '',
+          city_state: '',
+          student_count: '',
+          website: '',
+          partnership_services: [],
+          additional_notes: '',
+          terms_accepted: false,
+          privacy_policy_accepted: false,
+          message: '',
+        });
+        setCurrentStep(1);
+        setCompletedSteps(new Set());
+        console.log('School form reset complete with India defaults');
+      }, 100);
     }
   }, [mounted, reset]);
 
@@ -845,7 +879,7 @@ const MultiStepSchoolPartnershipForm: React.FC = () => {
                   </div>
                   <select
                     className={`
-                      block w-full pl-12 pr-4 py-4 border-2 rounded-xl shadow-sm text-base font-medium
+                      block w-full pl-12 pr-4 border-2 rounded-xl shadow-sm text-base font-medium
                       focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200
                       ${errors.country
                         ? 'border-red-300 focus:ring-red-500 bg-red-50 dark:bg-red-900/10'
@@ -854,6 +888,35 @@ const MultiStepSchoolPartnershipForm: React.FC = () => {
                       dark:text-white
                     `}
                     {...register("country")}
+                    onChange={(e) => {
+                      const selectedCountry = e.target.value;
+                      // Update the country field
+                      setValue('country', selectedCountry);
+                      
+                      // Get the current phone number
+                      const currentPhone = getValues('phone_number');
+                      
+                      // Find the country data to get the dial code
+                      const countryData = countriesData.find((country: any) => country.code === selectedCountry);
+                      
+                      if (countryData && countryData.dial_code) {
+                        // If there's already a phone number, preserve the number part
+                        if (currentPhone && currentPhone.startsWith('+')) {
+                          // Extract the number part (remove existing country code)
+                          const numberPart = currentPhone.replace(/^\+\d+\s*/, '');
+                          // Add new country code (dial_code already includes the +)
+                          const newPhoneNumber = `${countryData.dial_code} ${numberPart}`;
+                          setValue('phone_number', newPhoneNumber);
+                        } else if (currentPhone) {
+                          // If phone number doesn't start with +, add country code
+                          const newPhoneNumber = `${countryData.dial_code} ${currentPhone}`;
+                          setValue('phone_number', newPhoneNumber);
+                        } else {
+                          // If no phone number, just add the country code
+                          setValue('phone_number', `${countryData.dial_code}`);
+                        }
+                      }
+                    }}
                   >
                     {countriesData.map((country: any) => (
                       <option key={country.code} value={country.code}>
@@ -877,22 +940,36 @@ const MultiStepSchoolPartnershipForm: React.FC = () => {
               <Controller
                 name="phone_number"
                 control={control}
-                render={({ field, fieldState }) => (
-                  <div className="space-y-3">
-                    <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100">
-                      Phone Number <span className="text-red-500">*</span>
-                    </label>
-                    <PhoneNumberInput
-                      value={{ 
-                        country: watchedFields.country || 'in', 
-                        number: field.value || '' 
-                      }}
-                      onChange={val => field.onChange(val.number)}
-                      placeholder="Enter your phone number"
-                      error={fieldState.error?.message}
-                    />
-                  </div>
-                )}
+                render={({ field, fieldState }) => {
+                  const selectedCountry = getValues('country') || 'IN';
+                  const currentPhoneNumber = field.value || '';
+                  
+                  // Watch for country changes and update phone number accordingly
+                  const watchedCountry = watch('country');
+                  
+                  return (
+                    <div className="space-y-3">
+                      <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100">
+                        Phone Number <span className="text-red-500">*</span>
+                      </label>
+                      <PhoneNumberInput
+                        value={{ 
+                          country: watchedCountry || selectedCountry, 
+                          number: currentPhoneNumber 
+                        }}
+                        onChange={val => {
+                          field.onChange(val.number);
+                          // Also update the country field if it changed in the phone input
+                          if (val.country !== watchedCountry) {
+                            setValue('country', val.country);
+                          }
+                        }}
+                        placeholder="Enter your phone number"
+                        error={fieldState.error?.message}
+                      />
+                    </div>
+                  );
+                }}
               />
             </div>
           </div>
