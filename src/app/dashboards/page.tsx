@@ -15,7 +15,7 @@ interface IDecodedToken {
   iat?: number;
 }
 
-type TUserRole = 'admin' | 'super-admin' | 'instructor' | 'student' | 'coorporate' | 'coorporate-student';
+type TUserRole = 'admin' | 'super-admin' | 'instructor' | 'student' | 'coorporate' | 'coorporate-student' | 'sales_team' | 'support_team';
 
 /**
  * Dashboard routing page
@@ -100,6 +100,10 @@ const DashboardRouter: React.FC = () => {
           router.push("/dashboards/coorporate-dashboard");
         } else if (roleLower === "coorporate-student") {
           router.push("/dashboards/coorporate-employee-dashboard");
+        } else if (roleLower === "sales_team" || roleLower === "sales-team" || roleLower === "sales") {
+          router.push("/dashboards/sales");
+        } else if (roleLower === "support_team" || roleLower === "support-team" || roleLower === "support") {
+          router.push("/dashboards/support");
         } else {
           // Unknown role, redirect to home
           console.warn("Unknown user role:", userRole);
