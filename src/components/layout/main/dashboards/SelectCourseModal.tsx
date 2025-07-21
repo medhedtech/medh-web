@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, AlertCircle, Loader2, CheckCircle, Filter, BookOpen, Clock, Users, Star, Grid, List, ChevronDown, ChevronUp, Play, Award, Calendar } from "lucide-react";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
-import { courseTypesAPI, ICourseQueryParams } from "@/apis/courses";
+import { getAllCoursesWithLimits } from "@/apis/course/course";
 import usePostQuery from "@/hooks/postQuery.hook";
 import Education from "@/assets/images/course-detailed/education.svg";
 import Preloader from "@/components/shared/others/Preloader";
@@ -69,41 +69,12 @@ interface CourseCardProps {
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({ course, categoryName }) => {
-  const fallbackImage = "/fallback-course-image.jpg";
-  
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
-      {/* Course Image */}
-      <div className="relative w-full h-24 mb-3 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700">
-        <Image
-          src={course.course_image || fallbackImage}
-          alt={course.course_title}
-          className="w-full h-full object-cover"
-          width={200}
-          height={96}
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = fallbackImage;
-          }}
-        />
-      </div>
-      
-      {/* Course Content */}
-      <div className="space-y-2">
-        {/* Course Title */}
-        <h4 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">
-          {course.course_title}
-        </h4>
-        
-        {/* Course Meta Info */}
-        <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-          {course.no_of_Sessions && (
-            <span>{course.no_of_Sessions} sessions</span>
-          )}
-          {course.course_duration && (
-            <span>{course.course_duration}</span>
-          )}
-        </div>
-      </div>
+      {/* Course Title Only */}
+      <h4 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">
+        {course.course_title}
+      </h4>
     </div>
   );
 };
@@ -384,60 +355,57 @@ export default function SelectCourseModal({
           },
         });
 
-        // Fetch courses using the courses by category API
-        const coursesPromise = courseTypesAPI.getCoursesByCategory({
-          page: 1,
-          limit: 200,
-          status: "Published",
-          sort_by: "course_title",
-          sort_order: "asc"
-        }).then((response) => {
-          const coursesByCategory = response?.data?.data?.coursesByCategory || {};
-          console.log("Raw courses by category fetched:", Object.keys(coursesByCategory).length, "categories");
-          
-          // Flatten all courses from all categories
-          const allCourses: any[] = [];
-          Object.values(coursesByCategory).forEach((categoryCourses: any) => {
-            if (Array.isArray(categoryCourses)) {
-              allCourses.push(...categoryCourses);
-            }
-          });
-          
-          console.log("Total courses across all categories:", allCourses.length);
+        // Fetch courses
+        const coursesPromise = getQuery({
+          url: getAllCoursesWithLimits({
+            page: 1,
+            limit: 200, // Get more courses to count by category
+            status: "Published",
+            class_type: "Blended Courses", // Filter for blended courses only
+            sort_by: "course_title",
+            sort_order: "asc"
+          }),
+          onSuccess: (res) => {
+            const coursesData = res?.data?.courses || res?.courses || res || [];
+            console.log("Raw courses data fetched:", coursesData.length);
             
-          // Ensure we sanitize the course data to only include primitive values
-          const sanitizedCourses = allCourses.map((course: any) => ({
-            _id: course._id || '',
-            course_title: course.course_title || '',
-            course_category: course.course_category || course.category || '',
-            category: course.category || course.course_category || '',
-            course_description: typeof course.course_description === 'string' 
-              ? course.course_description 
-              : course.course_description?.program_overview || '',
-            course_image: course.course_image || '',
-            course_fee: typeof course.course_fee === 'number' ? course.course_fee : 0,
-            no_of_Sessions: typeof course.no_of_Sessions === 'number' ? course.no_of_Sessions : 0,
-            course_duration: course.course_duration || '',
-            session_duration: course.session_duration || '',
-            class_type: course.class_type || '',
-            course_level: course.course_level || '',
-            status: course.status || '',
-            enrolledStudents: typeof course.enrolledStudents === 'number' ? course.enrolledStudents : 0,
-            meta: {
-              views: typeof course.meta?.views === 'number' ? course.meta.views : 0
-            }
-          }));
-          
-          console.log("Sanitized courses fetched:", sanitizedCourses.length);
-          setCourses(sanitizedCourses);
-          setCoursesLoading(false);
-          
-          // Cache the data
-          sessionStorage.setItem('medh_blended_courses', JSON.stringify(sanitizedCourses));
-        }).catch((err) => {
-          console.error("Error fetching courses:", err);
-          setCoursesLoading(false);
-          throw new Error("Failed to load courses");
+            // Ensure we sanitize the course data to only include primitive values
+            const sanitizedCourses = Array.isArray(coursesData) 
+              ? coursesData.map((course: any) => ({
+                  _id: course._id || '',
+                  course_title: course.course_title || '',
+                  course_category: course.course_category || course.category || '',
+                  category: course.category || course.course_category || '',
+                  course_description: typeof course.course_description === 'string' 
+                    ? course.course_description 
+                    : course.program_overview || '',
+                  course_image: course.course_image || '',
+                  course_fee: typeof course.course_fee === 'number' ? course.course_fee : 0,
+                  no_of_Sessions: typeof course.no_of_Sessions === 'number' ? course.no_of_Sessions : 0,
+                  course_duration: course.course_duration || '',
+                  session_duration: course.session_duration || '',
+                  class_type: course.class_type || '',
+                  course_level: course.course_level || '',
+                  status: course.status || '',
+                  enrolledStudents: typeof course.enrolledStudents === 'number' ? course.enrolledStudents : 0,
+                  meta: {
+                    views: typeof course.meta?.views === 'number' ? course.meta.views : 0
+                  }
+                }))
+              : [];
+            
+            console.log("Sanitized courses fetched:", sanitizedCourses.length);
+            setCourses(sanitizedCourses);
+            setCoursesLoading(false);
+            
+            // Cache the data
+            sessionStorage.setItem('medh_blended_courses', JSON.stringify(sanitizedCourses));
+          },
+          onFail: (err) => {
+            console.error("Error fetching courses:", err);
+            setCoursesLoading(false);
+            throw new Error("Failed to load courses");
+          },
         });
 
         // Wait for both to complete
@@ -477,7 +445,7 @@ export default function SelectCourseModal({
           setCoursesLoading(true);
 
           try {
-            await Promise.all([
+            const [categoriesResponse, coursesResponse] = await Promise.all([
               getQuery({
                 url: apiUrls?.categories?.getAllCategories,
                 onSuccess: (res) => {
@@ -491,50 +459,48 @@ export default function SelectCourseModal({
                   throw new Error("Failed to load categories");
                 },
               }),
-              courseTypesAPI.getCoursesByCategory({
-                page: 1,
-                limit: 200,
-                status: "Published",
-                sort_by: "course_title",
-                sort_order: "asc"
-              }).then((response) => {
-                const coursesByCategory = response?.data?.data?.coursesByCategory || {};
-                
-                // Flatten all courses from all categories
-                const allCourses: any[] = [];
-                Object.values(coursesByCategory).forEach((categoryCourses: any) => {
-                  if (Array.isArray(categoryCourses)) {
-                    allCourses.push(...categoryCourses);
-                  }
-                });
-                
-                const sanitizedCourses = allCourses.map((course: any) => ({
-                  _id: course._id || '',
-                  course_title: course.course_title || '',
-                  course_category: course.course_category || course.category || '',
-                  category: course.category || course.course_category || '',
-                  course_description: typeof course.course_description === 'string' 
-                    ? course.course_description 
-                    : course.course_description?.program_overview || '',
-                  course_image: course.course_image || '',
-                  course_fee: typeof course.course_fee === 'number' ? course.course_fee : 0,
-                  no_of_Sessions: typeof course.no_of_Sessions === 'number' ? course.no_of_Sessions : 0,
-                  course_duration: course.course_duration || '',
-                  session_duration: course.session_duration || '',
-                  class_type: course.class_type || '',
-                  course_level: course.course_level || '',
-                  status: course.status || '',
-                  enrolledStudents: typeof course.enrolledStudents === 'number' ? course.enrolledStudents : 0,
-                  meta: {
-                    views: typeof course.meta?.views === 'number' ? course.meta.views : 0
-                  }
-                }));
-                setCourses(sanitizedCourses);
-                setCoursesLoading(false);
-              }).catch((err) => {
-                console.error("Error fetching courses:", err);
-                setCoursesLoading(false);
-                throw new Error("Failed to load courses");
+              getQuery({
+                url: getAllCoursesWithLimits({
+                  page: 1,
+                  limit: 200,
+                  status: "Published",
+                  class_type: "Blended Courses",
+                  sort_by: "course_title",
+                  sort_order: "asc"
+                }),
+                onSuccess: (res) => {
+                  const coursesData = res?.data?.courses || res?.courses || res || [];
+                  const sanitizedCourses = Array.isArray(coursesData) 
+                    ? coursesData.map((course: any) => ({
+                        _id: course._id || '',
+                        course_title: course.course_title || '',
+                        course_category: course.course_category || course.category || '',
+                        category: course.category || course.course_category || '',
+                        course_description: typeof course.course_description === 'string' 
+                          ? course.course_description 
+                          : course.program_overview || '',
+                        course_image: course.course_image || '',
+                        course_fee: typeof course.course_fee === 'number' ? course.course_fee : 0,
+                        no_of_Sessions: typeof course.no_of_Sessions === 'number' ? course.no_of_Sessions : 0,
+                        course_duration: course.course_duration || '',
+                        session_duration: course.session_duration || '',
+                        class_type: course.class_type || '',
+                        course_level: course.course_level || '',
+                        status: course.status || '',
+                        enrolledStudents: typeof course.enrolledStudents === 'number' ? course.enrolledStudents : 0,
+                        meta: {
+                          views: typeof course.meta?.views === 'number' ? course.meta.views : 0
+                        }
+                      }))
+                    : [];
+                  setCourses(sanitizedCourses);
+                  setCoursesLoading(false);
+                },
+                onFail: (err) => {
+                  console.error("Error fetching courses:", err);
+                  setCoursesLoading(false);
+                  throw new Error("Failed to load courses");
+                },
               })
             ]);
             
@@ -891,39 +857,44 @@ export default function SelectCourseModal({
   // ---------------------------------------------------------------------------
   const isTestUser = studentId === '67cfe3a9a50dbb995b4d94da';
 
-  // Responsive modal classes
+  // Full screen modal classes
   const modalContainerClass =
-    'fixed inset-0 z-[9999] flex items-center justify-center bg-black/50';
+    'fixed inset-0 z-[9999] bg-white dark:bg-gray-900';
   const modalContentClass =
-    'relative w-full max-w-4xl mx-4 bg-white dark:bg-gray-900 rounded-lg shadow-xl overflow-hidden flex flex-col max-h-[90vh]';
+    'relative w-full h-full flex flex-col';
 
   // Search bar
   const searchBarClass =
-    'border-b border-gray-200 dark:border-gray-800 px-6 py-4';
+    'border-b border-gray-200 dark:border-gray-800 px-4 sm:px-6 py-4';
 
   // Category grid
   const gridClass =
-    'grid grid-cols-1 lg:grid-cols-2 gap-4 px-6 py-4 overflow-y-auto flex-1';
+    'grid grid-cols-3 gap-4 px-4 sm:px-6 py-4 overflow-y-auto flex-1';
 
   // Footer
   const footerClass =
-    'border-t border-gray-200 dark:border-gray-800 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4';
+    'border-t border-gray-200 dark:border-gray-800 px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4';
 
   if (!isOpen) return null;
   if (postLoading) return <Preloader />;
 
   const modalContent = (
-    <div className={modalContainerClass} onClick={onClose}>
-      <div className={modalContentClass} onClick={e => e.stopPropagation()}>
+    <div className={modalContainerClass}>
+      <div className={modalContentClass}>
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Select Categories</h2>
-            <button onClick={onClose} className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
-              <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-            </button>
+            <div className="flex items-center gap-3">
+              <button onClick={onClose} className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              </button>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Select Categories</h2>
+            </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {selectedCategories.length} / {maxSelections} selected
+            </div>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-300">
+          <p className="text-sm text-gray-600 dark:text-gray-300 ml-11">
             Choose up to {maxSelections} categor{maxSelections > 1 ? 'ies' : 'y'} for your {planType} membership
           </p>
         </div>
@@ -986,16 +957,16 @@ export default function SelectCourseModal({
                     onToggleExpand={() => toggleCategoryExpansion(category._id)}
                   />
                   
-                  {/* Courses Grid */}
+                                                       {/* Courses List */}
                   {category.isExpanded && category.courses && category.courses.length > 0 && (
-                    <div className="ml-4 border-l-2 border-gray-200 dark:border-gray-700 pl-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
+                    <div className="border-l-2 border-gray-200 dark:border-gray-700 pl-4">
+                      <div className="space-y-2 mb-2">
                         {category.courses.map(course => (
-                          <CourseCard
-                            key={course._id}
-                            course={course}
-                            categoryName={category.category_name}
-                          />
+                          <div key={course._id} className="bg-white dark:bg-gray-800 rounded-md p-3 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                              {course.course_title}
+                            </h4>
+                          </div>
                         ))}
                       </div>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -1009,41 +980,46 @@ export default function SelectCourseModal({
           )}
         </div>
 
-        {/* Footer */}
-        <div className={footerClass}>
-          <div className="flex flex-wrap gap-2 items-center">
-            {selectedCategories.length > 0 ? (
-              selectedCategories.map(category => (
-                <span key={category._id} className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm">
-                  {category.category_name}
-                  <button onClick={() => toggleCategorySelection(category)} className="hover:bg-blue-200 dark:hover:bg-blue-800 rounded p-0.5">
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              ))
-            ) : (
-              <span className="text-sm text-gray-500 dark:text-gray-400">No categories selected</span>
-            )}
-          </div>
-          <button
-            onClick={handleProceedToPay}
-            disabled={selectedCategories.length === 0 || isProcessing}
-            className={`px-6 py-2 rounded-md font-medium text-sm transition-colors ${
-              selectedCategories.length === 0 || isProcessing
-                ? 'bg-gray-300 dark:bg-gray-600 cursor-not-allowed text-gray-500'
-                : 'bg-blue-500 hover:bg-blue-600 text-white'
-            }`}
-          >
-            {isProcessing ? (
-              <span className="flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Processing...
-              </span>
-            ) : (
-              `Pay ${amount}`
-            )}
-          </button>
-        </div>
+                 {/* Footer */}
+         <div className={footerClass}>
+           <div className="flex flex-wrap gap-2 items-center flex-1">
+             {selectedCategories.length > 0 ? (
+               selectedCategories.map(category => (
+                 <span key={category._id} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium">
+                   {category.category_name}
+                   <button onClick={() => toggleCategorySelection(category)} className="hover:bg-blue-200 dark:hover:bg-blue-800 rounded p-0.5 ml-1">
+                     <X className="w-3 h-3" />
+                   </button>
+                 </span>
+               ))
+             ) : (
+               <span className="text-sm text-gray-500 dark:text-gray-400">No categories selected</span>
+             )}
+           </div>
+           <div className="flex items-center gap-3">
+             <div className="text-sm text-gray-500 dark:text-gray-400">
+               Total: {selectedCategories.reduce((sum, cat) => sum + (cat.courseCount || 0), 0)} courses
+             </div>
+             <button
+               onClick={handleProceedToPay}
+               disabled={selectedCategories.length === 0 || isProcessing}
+               className={`px-8 py-3 rounded-md font-medium text-sm transition-colors ${
+                 selectedCategories.length === 0 || isProcessing
+                   ? 'bg-gray-300 dark:bg-gray-600 cursor-not-allowed text-gray-500'
+                   : 'bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl'
+               }`}
+             >
+               {isProcessing ? (
+                 <span className="flex items-center gap-2">
+                   <Loader2 className="w-4 h-4 animate-spin" />
+                   Processing...
+                 </span>
+               ) : (
+                 `Pay ${amount}`
+               )}
+             </button>
+           </div>
+         </div>
       </div>
     </div>
   );
