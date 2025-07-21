@@ -7,6 +7,7 @@ interface MinimalEdgeFaqProps {
   title?: string;
   contactText?: string;
   contactEmail?: string;
+  emailLink?: string;
 }
 
 const MinimalEdgeFaq: React.FC<MinimalEdgeFaqProps> = ({
@@ -14,6 +15,7 @@ const MinimalEdgeFaq: React.FC<MinimalEdgeFaqProps> = ({
   title = "Frequently Asked Questions",
   contactText = "Have more questions? Contact our team at",
   contactEmail = "care@medh.co",
+  emailLink,
 }) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
@@ -78,7 +80,14 @@ const MinimalEdgeFaq: React.FC<MinimalEdgeFaqProps> = ({
         </ul>
         <div className="mt-6 sm:mt-8 border-t border-slate-200 dark:border-slate-800 pt-4 sm:pt-6 pb-4 sm:pb-4 text-center px-2 sm:px-0">
           <span className="block text-slate-700 dark:text-slate-200 text-sm sm:text-base font-medium">
-            {contactText} <a href={`mailto:${contactEmail}`} className="text-[#3bac63] underline font-semibold">{contactEmail}</a>
+            {contactText} <a 
+              href={emailLink || `mailto:${contactEmail}`} 
+              className="text-[#3bac63] underline font-semibold"
+              target={emailLink ? "_blank" : undefined}
+              rel={emailLink ? "noopener noreferrer" : undefined}
+            >
+              {contactEmail}
+            </a>
           </span>
         </div>
       </div>

@@ -52,7 +52,7 @@ const CorporateTraining: NextPage = () => {
                 <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-3 md:mb-4 leading-tight">
                   Ready to <span className="text-blue-600 dark:text-blue-400">Transform</span> Your Team?
                 </h2>
-                <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+                <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 max-w-4xl mx-auto whitespace-nowrap">
                   Get started with our corporate training programs designed for enterprise success
                 </p>
               </div>

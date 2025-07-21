@@ -302,58 +302,7 @@ const CorporateOverview: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Minimal Call to Action Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ duration: 0.6, delay: 1.2 }}
-          className="w-full"
-        >
-          <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-12">
-            <div className="bg-blue-600 dark:bg-blue-700 rounded-lg sm:rounded-xl p-6 sm:p-8 text-center">
-              {/* Simple Header */}
-              <div className="mb-6">
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3">
-                  Ready to Transform Your Organization?
-                </h3>
-                <p className="text-sm sm:text-base text-blue-100 max-w-2xl mx-auto">
-                  Join industry leaders who have accelerated their growth through strategic workforce development
-                </p>
-              </div>
-              
-              {/* Simple Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-6">
-                <button
-                  onClick={() => router.push('#enroll-form')}
-                  className="w-full sm:w-auto px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors duration-300"
-                >
-                  Start Your Training Journey
-                </button>
-                
-                <button
-                  onClick={() => router.push('/contact-us')}
-                  className="w-full sm:w-auto px-6 py-3 text-white border-2 border-white/30 font-semibold rounded-lg hover:border-white hover:bg-white/10 transition-all duration-300"
-                >
-                  Speak with Expert
-                </button>
-              </div>
-              
-              {/* Simple Trust Indicators */}
-              <div className="border-t border-white/20 pt-4">
-                <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6 text-xs sm:text-sm text-blue-100">
-                  <div className="flex items-center">
-                    <Shield className="w-4 h-4 mr-2" />
-                    <span>ISO Certified</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Users className="w-4 h-4 mr-2" />
-                    <span>Trained Professionals</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+
       </div>
     </section>
   );
