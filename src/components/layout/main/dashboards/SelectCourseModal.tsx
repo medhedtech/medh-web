@@ -872,7 +872,7 @@ export default function SelectCourseModal({
         {/* Header */}
         <div className="px-6 pt-8 pb-4 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-primary-50/80 to-amber-50/80 dark:from-primary-900/40 dark:to-amber-900/40">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Step 1 of 2: Choose Categories</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Step 1 of 1: Choose Categories</h2>
             <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500">
               <X className="w-6 h-6 text-gray-500 dark:text-gray-400" />
             </button>

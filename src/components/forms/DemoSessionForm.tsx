@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useTheme } from "next-themes";
-import { X, Calendar, Clock, BookOpen, Users, Star, TrendingUp, ChevronDown, CheckCircle, Radio, Loader2 } from "lucide-react";
+import { X, Calendar, Clock, BookOpen, Users, Star, TrendingUp, ChevronDown, CheckCircle, Radio, Loader2, MapPin, AlertCircle } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Select from "react-select";
@@ -24,6 +24,8 @@ import { buildComponent, buildAdvancedComponent, getResponsive, getEnhancedSeman
 import Swal from "sweetalert2";
 import intlTelInput from "intl-tel-input";
 import "intl-tel-input/build/css/intlTelInput.css";
+import countriesData from "@/utils/countrycode.json";
+import PhoneNumberInput from '../shared/login/PhoneNumberInput';
 import Link from "next/link";
 
 // Helper for form field styles
@@ -72,6 +74,13 @@ const timeSlotOptions = [
   { value: "06:00 PM - 07:00 PM", label: "06:00 PM - 07:00 PM" },
 ];
 
+// Preferred timings options
+const preferredTimingsOptions = [
+  { value: "morning(8am - 12pm)", label: "Morning (8am - 12pm)" },
+  { value: "afternoon(12pm - 5pm)", label: "Afternoon (12pm - 5pm)" },
+  { value: "evening(5pm - 10pm)", label: "Evening (5pm - 10pm)" },
+];
+
 interface DemoSessionFormProps {
   onClose: () => void;
 }
@@ -81,7 +90,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
   const isDark = theme === "dark";
 
   // State for form steps and data
-  const [step, setStep] = useState(1); // 1: Age question, 2: Form
+  const [step, setStep] = useState(1); // 1: Age question, 2: Parent details (under 16), 3: Student details (under 16), 4: Demo & consent, 5: Form (16+)
   const [isStudentUnder16, setIsStudentUnder16] = useState<boolean | null>(null);
   const [parentDetails, setParentDetails] = useState<IParentDetails>({ name: "", email: "", mobile_no: "", city: "", preferred_timings_to_connect: "" });
   const [studentDetailsUnder16, setStudentDetailsUnder16] = useState<IStudentDetailsUnder16>({ name: "", grade: "Grade 1-2", city: "", state: "", preferred_course: [], know_medh_from: "social_media", email: "", school_name: "" });
@@ -96,46 +105,67 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
   // Refs for direct intl-tel-input
   const parentPhoneInputRef = useRef<HTMLInputElement>(null);
   const studentPhoneInputRef = useRef<HTMLInputElement>(null);
-  const parentItiRef = useRef<intlTelInput.Plugin | null>(null);
-  const studentItiRef = useRef<intlTelInput.Plugin | null>(null);
+  const parentItiRef = useRef<any>(null);
+  const studentItiRef = useRef<any>(null);
+
+  // State for selected countries
+  const [parentSelectedCountry, setParentSelectedCountry] = useState("in");
+  const [studentSelectedCountry, setStudentSelectedCountry] = useState("in");
+
+  // Remove the old countryOptions array as we'll use countriesData from utils
 
   useEffect(() => {
     // Initialize parent phone input
-    if (parentPhoneInputRef.current) {
+    if (parentPhoneInputRef.current && !parentItiRef.current) {
       parentItiRef.current = intlTelInput(parentPhoneInputRef.current, {
-        initialCountry: "in", // Default to India
-        preferredCountries: ["in", "us", "gb", "ae"],
+        initialCountry: parentSelectedCountry,
         separateDialCode: true,
         utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.1/build/js/utils.js",
+        autoPlaceholder: "polite",
+        formatOnDisplay: true,
+        nationalMode: true,
+        dropdownContainer: document.body
       });
-
-      // Set initial value if available
-      if (parentDetails.mobile_no) {
-        parentItiRef.current.setNumber(parentDetails.mobile_no);
-      }
     }
 
     // Initialize student phone input
-    if (studentPhoneInputRef.current) {
+    if (studentPhoneInputRef.current && !studentItiRef.current) {
       studentItiRef.current = intlTelInput(studentPhoneInputRef.current, {
-        initialCountry: "in", // Default to India
-        preferredCountries: ["in", "us", "gb", "ae"],
+        initialCountry: studentSelectedCountry,
         separateDialCode: true,
         utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.1/build/js/utils.js",
+        autoPlaceholder: "polite",
+        formatOnDisplay: true,
+        nationalMode: true,
+        dropdownContainer: document.body
       });
-
-      // Set initial value if available
-      if (studentDetails16AndAbove.mobile_no) {
-        studentItiRef.current.setNumber(studentDetails16AndAbove.mobile_no);
-      }
     }
 
     // Cleanup on unmount
     return () => {
-      parentItiRef.current?.destroy();
-      studentItiRef.current?.destroy();
+      if (parentItiRef.current) {
+        parentItiRef.current.destroy();
+        parentItiRef.current = null;
+      }
+      if (studentItiRef.current) {
+        studentItiRef.current.destroy();
+        studentItiRef.current = null;
+      }
     };
-  }, [isStudentUnder16]); // Re-initialize if the age group changes
+  }, [step]);
+
+  // Update intl-tel-input country when country selection changes
+  useEffect(() => {
+    if (parentItiRef.current) {
+      parentItiRef.current.setCountry(parentSelectedCountry);
+    }
+  }, [parentSelectedCountry]);
+
+  useEffect(() => {
+    if (studentItiRef.current) {
+      studentItiRef.current.setCountry(studentSelectedCountry);
+    }
+  }, [studentSelectedCountry]);
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -218,7 +248,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
         is_student_under_16: true,
         parent_details: {
           ...parentDetails,
-          mobile_no: parentItiRef.current?.getNumber() || parentDetails.mobile_no, // Use the formatted number from iti
+          mobile_no: parentItiRef.current?.getNumber() || parentDetails.mobile_no, // Use intl-tel-input formatted number
         },
         student_details: studentDetailsUnder16,
         demo_session_details: demoSessionDetails,
@@ -236,7 +266,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
         is_student_under_16: false,
         student_details: {
           ...studentDetails16AndAbove,
-          mobile_no: studentItiRef.current?.getNumber() || studentDetails16AndAbove.mobile_no, // Use the formatted number from iti
+          mobile_no: studentItiRef.current?.getNumber() || studentDetails16AndAbove.mobile_no, // Use intl-tel-input formatted number
         },
         demo_session_details: demoSessionDetails,
         consent: consent,
@@ -419,7 +449,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                 Yes, Under 16
             </button>
             <button
-                onClick={() => { setIsStudentUnder16(false); setStep(2); }}
+                onClick={() => { setIsStudentUnder16(false); setStep(5); }}
                 className={buildComponent.button("secondary", "lg")}
               >
                 No, 16 and Above
@@ -429,10 +459,29 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
         </div>
         )}
 
-        {/* Main Form Step */}
-        {step === 2 && (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {isStudentUnder16 && (
+        {/* Parent Details Step (Under 16) */}
+        {step === 2 && isStudentUnder16 && (
+          <div className="space-y-6">
+            {/* Progress Indicator */}
+            <div className="flex items-center justify-center mb-6">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">1</div>
+                  <span className="ml-2 text-sm font-medium text-primary-500">Parent Details</span>
+                </div>
+                <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600"></div>
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 text-gray-500 rounded-full flex items-center justify-center text-sm font-semibold">2</div>
+                  <span className="ml-2 text-sm font-medium text-gray-500">Student Details</span>
+                </div>
+                <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600"></div>
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 text-gray-500 rounded-full flex items-center justify-center text-sm font-semibold">3</div>
+                  <span className="ml-2 text-sm font-medium text-gray-500">Session & Consent</span>
+                </div>
+              </div>
+            </div>
+
               <div className="glass-card-sm p-5 rounded-xl shadow-md space-y-4">
                 <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Parent/Guardian Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -461,17 +510,74 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                 {formErrors.parentEmail && <p className={errorClasses}>{formErrors.parentEmail}</p>}
               </div>
             </div>
-              <div>
-                  <label htmlFor="parentMobileNo" className={labelClasses}>Parent's Mobile No. <span className="text-red-500">*</span></label>
-                <input
-                  type="tel"
-                    id="parentMobileNo"
-                  ref={parentPhoneInputRef}
-                    className={inputClasses + " iti-phone-input"}
-                    onChange={(e) => setParentDetails({ ...parentDetails, mobile_no: e.target.value })}
-                />
-                {formErrors.parentMobileNo && <p className={errorClasses}>{formErrors.parentMobileNo}</p>}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Country <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <MapPin className={`h-5 w-5 ${formErrors.parentCountry ? 'text-red-400' : 'text-gray-400'}`} />
+                  </div>
+                  <select
+                    className={`
+                      block w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl shadow-sm text-base font-medium
+                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition duration-200
+                      ${formErrors.parentCountry
+                        ? 'border-red-300 focus:ring-red-500 bg-red-50 dark:bg-red-900/10'
+                        : 'border-gray-300 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 dark:border-gray-700'
+                      }
+                    `}
+                    value={parentSelectedCountry}
+                    onChange={(e) => {
+                      const selectedCountry = e.target.value;
+                      setParentSelectedCountry(selectedCountry);
+                      
+                      // Find the country data to get the dial code
+                      const countryData = countriesData.find((country: any) => country.code === selectedCountry);
+                      
+                      if (countryData && countryData.dial_code) {
+                        // Update phone number with new country code
+                        setParentDetails({ ...parentDetails, mobile_no: countryData.dial_code });
+                      }
+                    }}
+                  >
+                    {countriesData.map((country: any) => (
+                      <option key={country.code} value={country.code}>
+                        {country.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {formErrors.parentCountry && (
+                  <div className="flex items-center gap-2 text-red-600 text-sm font-medium mt-2">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>{formErrors.parentCountry}</span>
+                  </div>
+                )}
               </div>
+
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Phone Number <span className="text-red-500">*</span>
+                </label>
+                <PhoneNumberInput
+                  value={{ 
+                    country: parentSelectedCountry, 
+                    number: parentDetails.mobile_no 
+                  }}
+                  onChange={val => {
+                    setParentDetails({ ...parentDetails, mobile_no: val.number });
+                    // Also update the country field if it changed in the phone input
+                    if (val.country !== parentSelectedCountry) {
+                      setParentSelectedCountry(val.country);
+                    }
+                  }}
+                  placeholder="Enter phone number"
+                  error={formErrors.parentMobileNo}
+                />
+              </div>
+            </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                     <label htmlFor="parentCity" className={labelClasses}>Parent's Current City <span className="text-red-500">*</span></label>
@@ -487,23 +593,73 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
             </div>
             <div>
                     <label htmlFor="parentPreferredTimings" className={labelClasses}>Preferred Timings to Connect</label>
-                    <input
-                      type="text"
-                id="parentPreferredTimings"
-                      className={inputClasses}
-                      value={parentDetails.preferred_timings_to_connect || ""}
-                      onChange={(e) => setParentDetails({ ...parentDetails, preferred_timings_to_connect: e.target.value })}
-                      placeholder="e.g., Morning 10-12 AM, Evening 5-7 PM"
-              />
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <Clock className={`h-5 w-5 ${formErrors.parentPreferredTimings ? 'text-red-400' : 'text-gray-400'}`} />
+                      </div>
+                      <select
+                        id="parentPreferredTimings"
+                        className={inputClasses + " pl-12"}
+                        value={parentDetails.preferred_timings_to_connect || ""}
+                        onChange={(e) => setParentDetails({ ...parentDetails, preferred_timings_to_connect: e.target.value })}
+                      >
+                        <option value="">Select preferred timing</option>
+                        {preferredTimingsOptions.map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+              </div>
+              </div>
             </div>
+
+            {/* Navigation Buttons */}
+            <div className="flex justify-between mt-6">
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className={buildComponent.button("secondary", "lg")}
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={() => setStep(3)}
+                className={buildComponent.button("primary", "lg")}
+              >
+                Next: Student Details
+              </button>
           </div>
               </div>
             )}
 
+        {/* Student Details Step (Under 16) */}
+        {step === 3 && isStudentUnder16 && (
+          <div className="space-y-6">
+            {/* Progress Indicator */}
+            <div className="flex items-center justify-center mb-6">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">✓</div>
+                  <span className="ml-2 text-sm font-medium text-primary-500">Parent Details</span>
+                </div>
+                <div className="w-12 h-1 bg-primary-500"></div>
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">2</div>
+                  <span className="ml-2 text-sm font-medium text-primary-500">Student Details</span>
+                </div>
+                <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600"></div>
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 text-gray-500 rounded-full flex items-center justify-center text-sm font-semibold">3</div>
+                  <span className="ml-2 text-sm font-medium text-gray-500">Session & Consent</span>
+                </div>
+              </div>
+            </div>
+
             <div className="glass-card-sm p-5 rounded-xl shadow-md space-y-4">
               <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Student Details</h3>
-              {isStudentUnder16 ? (
-                // Under 16 student details
                 <div className="space-y-4">
               <div>
                     <label htmlFor="studentName" className={labelClasses}>Student's Name <span className="text-red-500">*</span></label>
@@ -589,9 +745,156 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                     />
                     {formErrors.studentPreferredCourse && <p className={errorClasses}>{formErrors.studentPreferredCourse}</p>}
                   </div>
+                <div>
+                  <label htmlFor="knowMedhFrom" className={labelClasses}>How did you hear about Medh? <span className="text-red-500">*</span></label>
+                  <CustomSelect
+                    options={knowMedhFromOptions}
+                    value={studentDetailsUnder16.know_medh_from}
+                    onChange={(value: TKnowMedhFrom) => setStudentDetailsUnder16({ ...studentDetailsUnder16, know_medh_from: value })}
+                    placeholder="Select an option"
+                  />
+                  {formErrors.knowMedhFrom && <p className={errorClasses}>{formErrors.knowMedhFrom}</p>}
                 </div>
-              ) : (
-                // 16 and above student details
+              </div>
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="flex justify-between mt-6">
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                className={buildComponent.button("secondary", "lg")}
+              >
+                Back: Parent Details
+              </button>
+              <button
+                type="button"
+                onClick={() => setStep(4)}
+                className={buildComponent.button("primary", "lg")}
+              >
+                Next: Demo Session & Consent
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Demo Session & Consent Step (Under 16) */}
+        {step === 4 && isStudentUnder16 && (
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Progress Indicator */}
+            <div className="flex items-center justify-center mb-6">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">✓</div>
+                  <span className="ml-2 text-sm font-medium text-primary-500">Parent Details</span>
+                </div>
+                <div className="w-12 h-1 bg-primary-500"></div>
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">✓</div>
+                  <span className="ml-2 text-sm font-medium text-primary-500">Student Details</span>
+                </div>
+                <div className="w-12 h-1 bg-primary-500"></div>
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">3</div>
+                  <span className="ml-2 text-sm font-medium text-primary-500">Session & Consent</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="glass-card-sm p-5 rounded-xl shadow-md space-y-4">
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Demo Session Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="preferredDate" className={labelClasses}>Preferred Date</label>
+                  <DatePicker
+                    selected={demoSessionDetails.preferred_date}
+                    onChange={(date: Date | null) => setDemoSessionDetails({ ...demoSessionDetails, preferred_date: date || undefined })}
+                    dateFormat="dd/MM/yyyy"
+                    customInput={<input type="text" className={datepickerCustomInput} />}
+                    minDate={new Date()}
+                    className="w-full"
+                    popperClassName="react-datepicker-popper-custom"
+                    calendarClassName={isDark ? "react-datepicker-dark" : ""}
+                    dropdownMode="select"
+                    showMonthDropdown
+                    showYearDropdown
+                  />
+                </div>
+                <div>
+                  <label htmlFor="preferredTimeSlot" className={labelClasses}>Preferred Time Slot</label>
+                  <CustomSelect
+                    options={preferredTimingsOptions}
+                    value={demoSessionDetails.preferred_time_slot}
+                    onChange={(value: string) => setDemoSessionDetails({ ...demoSessionDetails, preferred_time_slot: value })}
+                    placeholder="Select a time slot"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="glass-card-sm p-5 rounded-xl shadow-md space-y-4">
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Consent</h3>
+              <div className="space-y-2">
+                <label className={radioLabelClasses}>
+                  <input
+                    type="checkbox"
+                    className={`form-checkbox h-5 w-5 text-primary-600 rounded focus:ring-primary-500 ${isDark ? 'bg-gray-700 border-gray-600' : 'border-gray-300'}`}
+                    checked={consent.terms_accepted && consent.privacy_policy_accepted}
+                    onChange={(e) => setConsent({ 
+                      ...consent, 
+                      terms_accepted: e.target.checked,
+                      privacy_policy_accepted: e.target.checked 
+                    })}
+                  />
+                  <span className="ml-2">
+                    I agree to the <Link href="/terms-and-services" className="text-primary-500 hover:underline">Terms of Use</Link> and <Link href="/privacy-policy" className="text-primary-500 hover:underline">Privacy Policy</Link> <span className="text-red-500">*</span>
+                  </span>
+                </label>
+                {(formErrors.termsAccepted || formErrors.privacyPolicyAccepted) && <p className={errorClasses}>{formErrors.termsAccepted || formErrors.privacyPolicyAccepted}</p>}
+
+                <label className={radioLabelClasses}>
+                  <input
+                    type="checkbox"
+                    className={`form-checkbox h-5 w-5 text-primary-600 rounded focus:ring-primary-500 ${isDark ? 'bg-gray-700 border-gray-600' : 'border-gray-300'}`}
+                    checked={consent.gdpr_consent}
+                    onChange={(e) => setConsent({ ...consent, gdpr_consent: e.target.checked })}
+                  />
+                  <span className="ml-2">I consent to the processing of my data in accordance with GDPR.</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Navigation and Submit */}
+            <div className="flex justify-between mt-6">
+              <button
+                type="button"
+                onClick={() => setStep(3)}
+                className={buildComponent.button("secondary", "lg")}
+              >
+                Back: Student Details
+              </button>
+              <button
+                type="submit"
+                className={buildComponent.button("primary", "lg")}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center">
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Submitting...
+                  </span>
+                ) : (
+                  "Book Your Demo Session Now"
+                )}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Form for 16 and Above */}
+        {step === 5 && !isStudentUnder16 && (
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="glass-card-sm p-5 rounded-xl shadow-md space-y-4">
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Student Details</h3>
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -619,17 +922,74 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                 {formErrors.studentEmail && <p className={errorClasses}>{formErrors.studentEmail}</p>}
               </div>
             </div>
-              <div>
-                    <label htmlFor="studentMobileNo" className={labelClasses}>Student's Mobile No. <span className="text-red-500">*</span></label>
-                <input
-                  type="tel"
-                      id="studentMobileNo"
-                  ref={studentPhoneInputRef}
-                      className={inputClasses + " iti-phone-input"}
-                      onChange={(e) => setStudentDetails16AndAbove({ ...studentDetails16AndAbove, mobile_no: e.target.value })}
-                />
-                {formErrors.studentMobileNo && <p className={errorClasses}>{formErrors.studentMobileNo}</p>}
+                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Country <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <MapPin className={`h-5 w-5 ${formErrors.studentCountry ? 'text-red-400' : 'text-gray-400'}`} />
+                  </div>
+                  <select
+                    className={`
+                      block w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl shadow-sm text-base font-medium
+                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition duration-200
+                      ${formErrors.studentCountry
+                        ? 'border-red-300 focus:ring-red-500 bg-red-50 dark:bg-red-900/10'
+                        : 'border-gray-300 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 dark:border-gray-700'
+                      }
+                    `}
+                    value={studentSelectedCountry}
+                    onChange={(e) => {
+                      const selectedCountry = e.target.value;
+                      setStudentSelectedCountry(selectedCountry);
+                      
+                      // Find the country data to get the dial code
+                      const countryData = countriesData.find((country: any) => country.code === selectedCountry);
+                      
+                      if (countryData && countryData.dial_code) {
+                        // Update phone number with new country code
+                        setStudentDetails16AndAbove({ ...studentDetails16AndAbove, mobile_no: countryData.dial_code });
+                      }
+                    }}
+                  >
+                    {countriesData.map((country: any) => (
+                      <option key={country.code} value={country.code}>
+                        {country.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {formErrors.studentCountry && (
+                  <div className="flex items-center gap-2 text-red-600 text-sm font-medium mt-2">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>{formErrors.studentCountry}</span>
+                  </div>
+                )}
               </div>
+
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Phone Number <span className="text-red-500">*</span>
+                </label>
+                <PhoneNumberInput
+                  value={{ 
+                    country: studentSelectedCountry, 
+                    number: studentDetails16AndAbove.mobile_no 
+                  }}
+                  onChange={val => {
+                    setStudentDetails16AndAbove({ ...studentDetails16AndAbove, mobile_no: val.number });
+                    // Also update the country field if it changed in the phone input
+                    if (val.country !== studentSelectedCountry) {
+                      setStudentSelectedCountry(val.country);
+                    }
+                  }}
+                  placeholder="Enter phone number"
+                  error={formErrors.studentMobileNo}
+                />
+              </div>
+            </div>
               <div>
                     <label htmlFor="highestQualification" className={labelClasses}>Highest Qualification <span className="text-red-500">*</span></label>
                     <CustomSelect
@@ -712,14 +1072,24 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
             </div>
                     <div>
                       <label htmlFor="studentPreferredTimings" className={labelClasses}>Preferred Timings to Connect</label>
-                      <input
-                        type="text"
-                        id="studentPreferredTimings"
-                        className={inputClasses}
-                        value={studentDetails16AndAbove.preferred_timings_to_connect || ""}
-                        onChange={(e) => setStudentDetails16AndAbove({ ...studentDetails16AndAbove, preferred_timings_to_connect: e.target.value })}
-                        placeholder="e.g., Morning 10-12 AM, Evening 5-7 PM"
-                      />
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                          <Clock className={`h-5 w-5 ${formErrors.studentPreferredTimings ? 'text-red-400' : 'text-gray-400'}`} />
+                        </div>
+                        <select
+                          id="studentPreferredTimings"
+                          className={inputClasses + " pl-12"}
+                          value={studentDetails16AndAbove.preferred_timings_to_connect || ""}
+                          onChange={(e) => setStudentDetails16AndAbove({ ...studentDetails16AndAbove, preferred_timings_to_connect: e.target.value })}
+                        >
+                          <option value="">Select preferred timing</option>
+                          {preferredTimingsOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
           </div>
                   </div>
                   <div>
@@ -734,24 +1104,17 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                     />
                     {formErrors.studentPreferredCourse && <p className={errorClasses}>{formErrors.studentPreferredCourse}</p>}
                   </div>
-                </div>
-              )}
 
               <div>
                 <label htmlFor="knowMedhFrom" className={labelClasses}>How did you hear about Medh? <span className="text-red-500">*</span></label>
                 <CustomSelect
                   options={knowMedhFromOptions}
-                  value={isStudentUnder16 ? studentDetailsUnder16.know_medh_from : studentDetails16AndAbove.know_medh_from}
-                  onChange={(value: TKnowMedhFrom) => {
-                    if (isStudentUnder16) {
-                      setStudentDetailsUnder16({ ...studentDetailsUnder16, know_medh_from: value });
-                    } else {
-                      setStudentDetails16AndAbove({ ...studentDetails16AndAbove, know_medh_from: value });
-                    }
-                  }}
+                    value={studentDetails16AndAbove.know_medh_from}
+                    onChange={(value: TKnowMedhFrom) => setStudentDetails16AndAbove({ ...studentDetails16AndAbove, know_medh_from: value })}
                   placeholder="Select an option"
                 />
                 {formErrors.knowMedhFrom && <p className={errorClasses}>{formErrors.knowMedhFrom}</p>}
+                </div>
               </div>
             </div>
 
@@ -777,7 +1140,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                 <div>
                   <label htmlFor="preferredTimeSlot" className={labelClasses}>Preferred Time Slot</label>
                   <CustomSelect
-                    options={timeSlotOptions}
+                    options={preferredTimingsOptions}
                     value={demoSessionDetails.preferred_time_slot}
                     onChange={(value: string) => setDemoSessionDetails({ ...demoSessionDetails, preferred_time_slot: value })}
                     placeholder="Select a time slot"
@@ -793,27 +1156,18 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                   <input
                     type="checkbox"
                     className={`form-checkbox h-5 w-5 text-primary-600 rounded focus:ring-primary-500 ${isDark ? 'bg-gray-700 border-gray-600' : 'border-gray-300'}`}
-                    checked={consent.terms_accepted}
-                    onChange={(e) => setConsent({ ...consent, terms_accepted: e.target.checked })}
+                    checked={consent.terms_accepted && consent.privacy_policy_accepted}
+                    onChange={(e) => setConsent({ 
+                      ...consent, 
+                      terms_accepted: e.target.checked,
+                      privacy_policy_accepted: e.target.checked 
+                    })}
                   />
                   <span className="ml-2">
-                    I agree to the <Link href="/terms-and-services" className="text-primary-500 hover:underline">Terms of Use</Link> <span className="text-red-500">*</span>
+                    I agree to the <Link href="/terms-and-services" className="text-primary-500 hover:underline">Terms of Use</Link> and <Link href="/privacy-policy" className="text-primary-500 hover:underline">Privacy Policy</Link> <span className="text-red-500">*</span>
                   </span>
                   </label>
-                {formErrors.termsAccepted && <p className={errorClasses}>{formErrors.termsAccepted}</p>}
-
-                <label className={radioLabelClasses}>
-                  <input
-                    type="checkbox"
-                    className={`form-checkbox h-5 w-5 text-primary-600 rounded focus:ring-primary-500 ${isDark ? 'bg-gray-700 border-gray-600' : 'border-gray-300'}`}
-                    checked={consent.privacy_policy_accepted}
-                    onChange={(e) => setConsent({ ...consent, privacy_policy_accepted: e.target.checked })}
-                  />
-                  <span className="ml-2">
-                    I agree to the <Link href="/privacy-policy" className="text-primary-500 hover:underline">Privacy Policy</Link> <span className="text-red-500">*</span>
-                  </span>
-                  </label>
-                {formErrors.privacyPolicyAccepted && <p className={errorClasses}>{formErrors.privacyPolicyAccepted}</p>}
+                {(formErrors.termsAccepted || formErrors.privacyPolicyAccepted) && <p className={errorClasses}>{formErrors.termsAccepted || formErrors.privacyPolicyAccepted}</p>}
 
                 <label className={radioLabelClasses}>
                     <input
@@ -827,12 +1181,20 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                   </div>
               </div>
 
-            <div className="flex justify-center mt-6">
-                <button
-                  type="submit"
-                className={buildComponent.button("primary", "xl") + " w-full max-w-sm"}
-                  disabled={isSubmitting}
-                >
+            {/* Navigation and Submit */}
+            <div className="flex justify-between mt-6">
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className={buildComponent.button("secondary", "lg")}
+              >
+                Back
+              </button>
+                                  <button
+                    type="submit"
+                className={buildComponent.button("primary", "lg")}
+                    disabled={isSubmitting}
+                  >
                 {isSubmitting ? (
                   <span className="flex items-center justify-center">
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Submitting...
