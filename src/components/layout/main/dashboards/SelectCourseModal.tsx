@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, X, AlertCircle, Loader2, CheckCircle, Filter, BookOpen, Clock, Users, Star, Grid, List } from "lucide-react";
+import { Search, X, AlertCircle, Loader2, CheckCircle, Filter, BookOpen, Clock, Users, Star, Grid, List, ChevronDown, ChevronUp, Play, Award, Calendar } from "lucide-react";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { apiUrls } from "@/apis";
-import { getAllCoursesWithLimits } from "@/apis/course/course";
+import { courseTypesAPI, ICourseQueryParams } from "@/apis/courses";
 import usePostQuery from "@/hooks/postQuery.hook";
 import Education from "@/assets/images/course-detailed/education.svg";
 import Preloader from "@/components/shared/others/Preloader";
@@ -14,6 +14,7 @@ import RAZORPAY_CONFIG, { USD_TO_INR_RATE } from "@/config/razorpay";
 import { showToast } from "@/utils/toastManager";
 import Image from "next/image";
 import { createPortal } from "react-dom";
+import { createMembershipEnrollment } from "@/apis/membership/membership";
 
 interface SelectCourseModalProps {
   isOpen: boolean;
@@ -51,6 +52,7 @@ interface Category {
   category_image?: string;
   courseCount?: number;
   courses?: Course[];
+  isExpanded?: boolean;
 }
 
 interface CategoryCardProps {
@@ -58,129 +60,133 @@ interface CategoryCardProps {
   isSelected: boolean;
   onClick: () => void;
   disabled: boolean;
+  onToggleExpand: () => void;
 }
 
-const CategoryCard: React.FC<CategoryCardProps> = ({ category, isSelected, onClick, disabled }) => {
+interface CourseCardProps {
+  course: Course;
+  categoryName: string;
+}
+
+const CourseCard: React.FC<CourseCardProps> = ({ course, categoryName }) => {
+  const fallbackImage = "/fallback-course-image.jpg";
+  
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+      {/* Course Image */}
+      <div className="relative w-full h-24 mb-3 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700">
+        <Image
+          src={course.course_image || fallbackImage}
+          alt={course.course_title}
+          className="w-full h-full object-cover"
+          width={200}
+          height={96}
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = fallbackImage;
+          }}
+        />
+      </div>
+      
+      {/* Course Content */}
+      <div className="space-y-2">
+        {/* Course Title */}
+        <h4 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">
+          {course.course_title}
+        </h4>
+        
+        {/* Course Meta Info */}
+        <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+          {course.no_of_Sessions && (
+            <span>{course.no_of_Sessions} sessions</span>
+          )}
+          {course.course_duration && (
+            <span>{course.course_duration}</span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const CategoryCard: React.FC<CategoryCardProps> = ({ category, isSelected, onClick, disabled, onToggleExpand }) => {
   const fallbackImage = "/fallback-category-image.jpg";
   
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 30, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -30, scale: 0.95 }}
-      whileHover={!disabled ? { 
-        scale: 1.03, 
-        y: -8,
-        transition: { duration: 0.2, ease: "easeOut" }
-      } : {}}
-      whileTap={!disabled ? { scale: 0.97 } : {}}
-      onClick={!disabled ? onClick : undefined}
-      className={`group relative bg-white dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl transition-all duration-500 overflow-hidden cursor-pointer shadow-lg ${
-        isSelected
-          ? "ring-4 ring-primary-400/50 shadow-2xl shadow-primary-500/20 bg-gradient-to-br from-primary-50 via-white to-primary-50 dark:from-primary-900/30 dark:via-gray-800/80 dark:to-primary-900/30 border-2 border-primary-300 dark:border-primary-600"
-          : disabled
-          ? "opacity-40 cursor-not-allowed grayscale"
-          : "border-2 border-gray-100 dark:border-gray-700/30 hover:border-primary-300 dark:hover:border-primary-600 hover:shadow-2xl hover:shadow-primary-500/10"
-      }`}
-    >
-      {/* Selection Indicator */}
-      {isSelected && (
-        <motion.div 
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.1, type: "spring", stiffness: 500, damping: 30 }}
-          className="absolute top-5 right-5 z-10"
-        >
-          <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center shadow-lg ring-4 ring-white dark:ring-gray-800">
-            <CheckCircle className="w-6 h-6 text-white" />
-          </div>
-        </motion.div>
-      )}
-
-      {/* Floating Badge */}
-      <div className="absolute top-5 left-5 z-10">
-        <motion.div
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-yellow-400 to-amber-500 text-black dark:text-white shadow-lg"
-        >
-          <Star className="w-3 h-3 mr-1" />
-          Blended
-        </motion.div>
-      </div>
-
-      <div className="p-7">
+    <div className={`bg-white dark:bg-gray-800 rounded-lg border-2 transition-all ${
+      isSelected
+        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+        : disabled
+        ? "border-gray-200 dark:border-gray-700 opacity-50"
+        : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+    }`}>
+      <div className="p-4">
         {/* Category Image */}
-        <div className="relative w-full h-40 mb-6 rounded-2xl overflow-hidden bg-gradient-to-br from-primary-100 via-primary-50 to-amber-50 dark:from-primary-900/40 dark:via-primary-800/30 dark:to-amber-900/20 group-hover:scale-105 transition-transform duration-500">
+        <div className="relative w-full h-32 mb-4 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700">
           <Image
             src={category.category_image || fallbackImage}
             alt={category.category_name}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            className="w-full h-full object-cover"
             width={200}
-            height={160}
+            height={128}
             onError={(e) => {
               (e.target as HTMLImageElement).src = fallbackImage;
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
           
-          {/* Overlay Pattern */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 via-transparent to-amber-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          {/* Selection Indicator */}
+          {isSelected && (
+            <div className="absolute top-2 right-2">
+              <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-4 h-4 text-white" />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Category Content */}
-        <div className="space-y-5">
-          <div className="text-center">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors duration-300 line-clamp-2 mb-2">
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
               {category.category_name}
             </h3>
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Learning Category
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {category.courseCount} courses
             </p>
           </div>
 
-          {/* Course Count - Enhanced Design */}
-          <div className="flex justify-center">
-            <motion.div 
-              whileHover={{ scale: 1.05 }}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-primary-100 to-primary-200 dark:from-primary-900/40 dark:to-primary-800/40 border border-primary-200 dark:border-primary-700"
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            {/* Select Button */}
+            <button
+              onClick={!disabled ? onClick : undefined}
+              disabled={disabled}
+              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                isSelected 
+                  ? "bg-blue-500 text-white" 
+                  : disabled
+                  ? "bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+              }`}
             >
-              <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center">
-                <BookOpen className="w-4 h-4 text-white" />
-              </div>
-              <div className="text-center">
-                <span className="text-lg font-bold text-primary-700 dark:text-primary-300">
-                  {category.courseCount || 0}
-                </span>
-                <p className="text-xs font-medium text-primary-600 dark:text-primary-400">
-                  Courses
-                </p>
-              </div>
-            </motion.div>
+              {isSelected ? "Selected" : "Select"}
+            </button>
+            
+            {/* Expand Button */}
+            <button
+              onClick={onToggleExpand}
+              className="w-10 h-10 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center justify-center"
+              title={category.isExpanded ? "Hide courses" : "Show courses"}
+            >
+              {category.isExpanded ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+            </button>
           </div>
-
-
-          {/* Call to Action */}
-          <motion.div 
-            className="pt-2"
-            whileHover={{ scale: 1.02 }}
-          >
-            <div className={`text-center py-3 px-4 rounded-2xl font-semibold text-sm transition-all duration-300 ${
-              isSelected 
-                ? "bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg" 
-                : "bg-gray-50 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 group-hover:bg-primary-50 dark:group-hover:bg-primary-900/20 group-hover:text-primary-600"
-            }`}>
-              {isSelected ? "✓ Selected" : "Click to Select"}
-            </div>
-          </motion.div>
         </div>
       </div>
-
-      {/* Hover Effect Overlay */}
-      <div className={`absolute inset-0 bg-gradient-to-t from-primary-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${disabled ? 'hidden' : ''}`} />
-    </motion.div>
+    </div>
   );
 };
 
@@ -256,11 +262,12 @@ export default function SelectCourseModal({
   amount,
   selectedPlan,
   closeParent,
-  preloadData = true, // Default to true for backward compatibility
+  preloadData = true,
 }: SelectCourseModalProps) {
   const studentId = localStorage.getItem("userId");
   const [courses, setCourses] = useState<Course[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [enhancedCategories, setEnhancedCategories] = useState<Category[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -377,57 +384,60 @@ export default function SelectCourseModal({
           },
         });
 
-        // Fetch courses
-        const coursesPromise = getQuery({
-          url: getAllCoursesWithLimits({
-            page: 1,
-            limit: 200, // Get more courses to count by category
-            status: "Published",
-            class_type: "Blended Courses", // Filter for blended courses only
-            sort_by: "course_title",
-            sort_order: "asc"
-          }),
-          onSuccess: (res) => {
-            const coursesData = res?.data?.courses || res?.courses || res || [];
-            console.log("Raw courses data fetched:", coursesData.length);
+        // Fetch courses using the courses by category API
+        const coursesPromise = courseTypesAPI.getCoursesByCategory({
+          page: 1,
+          limit: 200,
+          status: "Published",
+          sort_by: "course_title",
+          sort_order: "asc"
+        }).then((response) => {
+          const coursesByCategory = response?.data?.data?.coursesByCategory || {};
+          console.log("Raw courses by category fetched:", Object.keys(coursesByCategory).length, "categories");
+          
+          // Flatten all courses from all categories
+          const allCourses: any[] = [];
+          Object.values(coursesByCategory).forEach((categoryCourses: any) => {
+            if (Array.isArray(categoryCourses)) {
+              allCourses.push(...categoryCourses);
+            }
+          });
+          
+          console.log("Total courses across all categories:", allCourses.length);
             
-            // Ensure we sanitize the course data to only include primitive values
-            const sanitizedCourses = Array.isArray(coursesData) 
-              ? coursesData.map((course: any) => ({
-                  _id: course._id || '',
-                  course_title: course.course_title || '',
-                  course_category: course.course_category || course.category || '',
-                  category: course.category || course.course_category || '',
-                  course_description: typeof course.course_description === 'string' 
-                    ? course.course_description 
-                    : course.program_overview || '',
-                  course_image: course.course_image || '',
-                  course_fee: typeof course.course_fee === 'number' ? course.course_fee : 0,
-                  no_of_Sessions: typeof course.no_of_Sessions === 'number' ? course.no_of_Sessions : 0,
-                  course_duration: course.course_duration || '',
-                  session_duration: course.session_duration || '',
-                  class_type: course.class_type || '',
-                  course_level: course.course_level || '',
-                  status: course.status || '',
-                  enrolledStudents: typeof course.enrolledStudents === 'number' ? course.enrolledStudents : 0,
-                  meta: {
-                    views: typeof course.meta?.views === 'number' ? course.meta.views : 0
-                  }
-                }))
-              : [];
-            
-            console.log("Sanitized courses fetched:", sanitizedCourses.length);
-            setCourses(sanitizedCourses);
-            setCoursesLoading(false);
-            
-            // Cache the data
-            sessionStorage.setItem('medh_blended_courses', JSON.stringify(sanitizedCourses));
-          },
-          onFail: (err) => {
-            console.error("Error fetching courses:", err);
-            setCoursesLoading(false);
-            throw new Error("Failed to load courses");
-          },
+          // Ensure we sanitize the course data to only include primitive values
+          const sanitizedCourses = allCourses.map((course: any) => ({
+            _id: course._id || '',
+            course_title: course.course_title || '',
+            course_category: course.course_category || course.category || '',
+            category: course.category || course.course_category || '',
+            course_description: typeof course.course_description === 'string' 
+              ? course.course_description 
+              : course.course_description?.program_overview || '',
+            course_image: course.course_image || '',
+            course_fee: typeof course.course_fee === 'number' ? course.course_fee : 0,
+            no_of_Sessions: typeof course.no_of_Sessions === 'number' ? course.no_of_Sessions : 0,
+            course_duration: course.course_duration || '',
+            session_duration: course.session_duration || '',
+            class_type: course.class_type || '',
+            course_level: course.course_level || '',
+            status: course.status || '',
+            enrolledStudents: typeof course.enrolledStudents === 'number' ? course.enrolledStudents : 0,
+            meta: {
+              views: typeof course.meta?.views === 'number' ? course.meta.views : 0
+            }
+          }));
+          
+          console.log("Sanitized courses fetched:", sanitizedCourses.length);
+          setCourses(sanitizedCourses);
+          setCoursesLoading(false);
+          
+          // Cache the data
+          sessionStorage.setItem('medh_blended_courses', JSON.stringify(sanitizedCourses));
+        }).catch((err) => {
+          console.error("Error fetching courses:", err);
+          setCoursesLoading(false);
+          throw new Error("Failed to load courses");
         });
 
         // Wait for both to complete
@@ -467,7 +477,7 @@ export default function SelectCourseModal({
           setCoursesLoading(true);
 
           try {
-            const [categoriesResponse, coursesResponse] = await Promise.all([
+            await Promise.all([
               getQuery({
                 url: apiUrls?.categories?.getAllCategories,
                 onSuccess: (res) => {
@@ -481,48 +491,50 @@ export default function SelectCourseModal({
                   throw new Error("Failed to load categories");
                 },
               }),
-              getQuery({
-                url: getAllCoursesWithLimits({
-                  page: 1,
-                  limit: 200,
-                  status: "Published",
-                  class_type: "Blended Courses",
-                  sort_by: "course_title",
-                  sort_order: "asc"
-                }),
-                onSuccess: (res) => {
-                  const coursesData = res?.data?.courses || res?.courses || res || [];
-                  const sanitizedCourses = Array.isArray(coursesData) 
-                    ? coursesData.map((course: any) => ({
-                        _id: course._id || '',
-                        course_title: course.course_title || '',
-                        course_category: course.course_category || course.category || '',
-                        category: course.category || course.course_category || '',
-                        course_description: typeof course.course_description === 'string' 
-                          ? course.course_description 
-                          : course.program_overview || '',
-                        course_image: course.course_image || '',
-                        course_fee: typeof course.course_fee === 'number' ? course.course_fee : 0,
-                        no_of_Sessions: typeof course.no_of_Sessions === 'number' ? course.no_of_Sessions : 0,
-                        course_duration: course.course_duration || '',
-                        session_duration: course.session_duration || '',
-                        class_type: course.class_type || '',
-                        course_level: course.course_level || '',
-                        status: course.status || '',
-                        enrolledStudents: typeof course.enrolledStudents === 'number' ? course.enrolledStudents : 0,
-                        meta: {
-                          views: typeof course.meta?.views === 'number' ? course.meta.views : 0
-                        }
-                      }))
-                    : [];
-                  setCourses(sanitizedCourses);
-                  setCoursesLoading(false);
-                },
-                onFail: (err) => {
-                  console.error("Error fetching courses:", err);
-                  setCoursesLoading(false);
-                  throw new Error("Failed to load courses");
-                },
+              courseTypesAPI.getCoursesByCategory({
+                page: 1,
+                limit: 200,
+                status: "Published",
+                sort_by: "course_title",
+                sort_order: "asc"
+              }).then((response) => {
+                const coursesByCategory = response?.data?.data?.coursesByCategory || {};
+                
+                // Flatten all courses from all categories
+                const allCourses: any[] = [];
+                Object.values(coursesByCategory).forEach((categoryCourses: any) => {
+                  if (Array.isArray(categoryCourses)) {
+                    allCourses.push(...categoryCourses);
+                  }
+                });
+                
+                const sanitizedCourses = allCourses.map((course: any) => ({
+                  _id: course._id || '',
+                  course_title: course.course_title || '',
+                  course_category: course.course_category || course.category || '',
+                  category: course.category || course.course_category || '',
+                  course_description: typeof course.course_description === 'string' 
+                    ? course.course_description 
+                    : course.course_description?.program_overview || '',
+                  course_image: course.course_image || '',
+                  course_fee: typeof course.course_fee === 'number' ? course.course_fee : 0,
+                  no_of_Sessions: typeof course.no_of_Sessions === 'number' ? course.no_of_Sessions : 0,
+                  course_duration: course.course_duration || '',
+                  session_duration: course.session_duration || '',
+                  class_type: course.class_type || '',
+                  course_level: course.course_level || '',
+                  status: course.status || '',
+                  enrolledStudents: typeof course.enrolledStudents === 'number' ? course.enrolledStudents : 0,
+                  meta: {
+                    views: typeof course.meta?.views === 'number' ? course.meta.views : 0
+                  }
+                }));
+                setCourses(sanitizedCourses);
+                setCoursesLoading(false);
+              }).catch((err) => {
+                console.error("Error fetching courses:", err);
+                setCoursesLoading(false);
+                throw new Error("Failed to load courses");
               })
             ]);
             
@@ -548,11 +560,12 @@ export default function SelectCourseModal({
     }
   }, [isOpen]);
 
-  // Enhanced categories with course counts - only compute when data is ready
-  const enhancedCategories = useMemo(() => {
+  // Enhanced categories with course counts - compute when data is ready
+  useEffect(() => {
     // Don't compute if data isn't ready
     if (!dataInitialized || categories.length === 0 || courses.length === 0) {
-      return [];
+      setEnhancedCategories([]);
+      return;
     }
 
     console.log("Computing enhanced categories with", categories.length, "categories and", courses.length, "courses");
@@ -562,21 +575,32 @@ export default function SelectCourseModal({
       const categoryBlendedCourses = courses.filter(course => {
         const courseCategory = course.course_category || course.category || '';
         const classType = course.class_type || '';
-        return courseCategory.toLowerCase() === categoryName.toLowerCase() && 
-               classType.toLowerCase().includes('blended');
+        const categoryMatch = courseCategory.toLowerCase() === categoryName.toLowerCase();
+        const typeMatch = classType.toLowerCase().includes('blended');
+        
+        // Debug logging for first few courses
+        if (courses.indexOf(course) < 3) {
+          console.log(`Course "${course.course_title}": category="${courseCategory}" (match: ${categoryMatch}), type="${classType}" (match: ${typeMatch})`);
+        }
+        
+        // For now, let's be more lenient with class_type matching
+        // return categoryMatch && typeMatch;
+        return categoryMatch; // Show all courses in the category for now
       });
       
       console.log(`Category "${categoryName}" has ${categoryBlendedCourses.length} blended courses`);
+      console.log(`Sample courses for ${categoryName}:`, categoryBlendedCourses.slice(0, 2).map(c => ({ title: c.course_title, category: c.course_category, classType: c.class_type })));
       
       return {
         ...category,
         courseCount: categoryBlendedCourses.length,
-        courses: categoryBlendedCourses
+        courses: categoryBlendedCourses,
+        isExpanded: false
       };
     }).filter(category => category.courseCount > 0); // Only show categories with blended courses
     
     console.log("Enhanced categories result:", enhanced.length);
-    return enhanced;
+    setEnhancedCategories(enhanced);
   }, [categories, courses, dataInitialized]);
 
   // Filter categories based on search
@@ -585,17 +609,20 @@ export default function SelectCourseModal({
     
     const query = searchQuery.toLowerCase();
     return enhancedCategories.filter(category =>
-      category.category_name.toLowerCase().includes(query)
+      category.category_name.toLowerCase().includes(query) ||
+      category.courses?.some(course => 
+        course.course_title.toLowerCase().includes(query)
+      )
     );
   }, [enhancedCategories, searchQuery]);
 
   const toggleCategorySelection = (category: Category) => {
-      setSelectedCategories(prev => {
+    setSelectedCategories(prev => {
       const isAlreadySelected = prev.some((c) => c._id === category._id);
       
       if (isAlreadySelected) {
-          return prev.filter((c) => c._id !== category._id);
-        }
+        return prev.filter((c) => c._id !== category._id);
+      }
       
       // Silver: only 1, Gold: up to 3
       if (normalizedPlanType === "silver") {
@@ -610,6 +637,16 @@ export default function SelectCourseModal({
         return [category];
       }
     });
+  };
+
+  const toggleCategoryExpansion = (categoryId: string) => {
+    setEnhancedCategories(prev => 
+      prev.map(cat => 
+        cat._id === categoryId 
+          ? { ...cat, isExpanded: !cat.isExpanded }
+          : cat
+      )
+    );
   };
 
   const handleProceedToPay = async () => {
@@ -721,14 +758,10 @@ export default function SelectCourseModal({
           categories_count: selectedCategories.length.toString(),
           courses_count: totalCourses.toString(),
           student_id: studentId,
-          membership_type: "blended_courses"
+          membership_type: "blended_courses",
+          ...(isTestUser && { test_mode: 'true' })
         }
       };
-
-      // Flag note for testing if applicable
-      if (isTestUser) {
-        razorpayOptions.notes!.test_mode = 'true';
-      }
 
       // Show loading state with better UX
       showToast.info("Initializing secure payment...");
@@ -756,26 +789,39 @@ export default function SelectCourseModal({
     if (!studentId) return;
     
     try {
-      const membershipResponse = await postQuery({
-        url: apiUrls?.Membership?.addMembership,
-        postData: {
-          student_id: studentId,
-          category_ids: selectedCategories.map((category) => category._id),
+      // Calculate duration months based on plan
+      const getDurationMonths = (plan: string): number => {
+        const planLower = plan.toLowerCase();
+        switch (planLower) {
+          case 'monthly': return 1;
+          case 'quarterly': return 3;
+          case 'half_yearly': return 6;
+          case 'yearly': 
+          case 'annually': return 12;
+          default: return 1;
+        }
+      };
+
+      // Use the new membership API
+      const membershipResponse = await createMembershipEnrollment({
+        membership_type: planType.toLowerCase() as 'silver' | 'gold',
+        duration_months: getDurationMonths(selectedPlan),
+        billing_cycle: selectedPlan.toLowerCase() === 'yearly' ? 'annually' : selectedPlan.toLowerCase() as 'monthly' | 'quarterly' | 'half_yearly',
+        selected_categories: selectedCategories.map((category) => category._id),
+        payment_info: {
           amount: planAmount,
-          plan_type: planType,
-          duration: selectedPlan.toLowerCase(),
-        },
+          currency: 'INR',
+          payment_method: 'credit_card' // Razorpay supports multiple payment methods
+        }
       });
 
-      if (!membershipResponse.success) {
+      if (!membershipResponse.data) {
         throw new Error("Failed to create membership");
       }
 
-      const membershipId = membershipResponse?.data?._id;
-      const expiryDate = membershipResponse?.data?.expiry_date;
-      const categoryNames = membershipResponse?.data?.category_ids?.map(
-        (category: Category) => category.category_name
-      ) || [];
+      const membershipData = membershipResponse?.data;
+      const membershipId = membershipData?.enrollment?._id;
+      const expiryDate = membershipData?.enrollment?.expiry_date;
 
       if (!membershipId || !expiryDate) {
         throw new Error("Invalid membership data received");
@@ -791,30 +837,27 @@ export default function SelectCourseModal({
         }
       });
 
-      // Process all enrollments in parallel
+      // Process all enrollments in parallel using the correct API endpoint
       await Promise.all(
         enrolledCourses.map(async (courseId) => {
-          const subscriptionResponse = await postQuery({
-            url: apiUrls?.Subscription?.AddSubscription,
-            postData: {
-              student_id: studentId,
-              course_id: courseId,
-              amount: removeFirstChr(amount) * 84.71,
-              status: "success",
-            },
-          });
-
-          if (subscriptionResponse.success) {
+          try {
+            // Create enrollment for each course
             await postQuery({
-              url: apiUrls?.EnrollCourse?.enrollCourse,
+              url: apiUrls?.enrolledCourses?.createEnrollment,
               postData: {
                 student_id: studentId,
                 course_id: courseId,
                 membership_id: membershipId,
                 expiry_date: expiryDate,
                 is_self_paced: true,
+                enrollment_type: 'membership',
+                amount: 0, // No additional cost for membership courses
+                status: "active",
               },
             });
+          } catch (enrollmentError) {
+            console.error(`Failed to enroll in course ${courseId}:`, enrollmentError);
+            // Continue with other enrollments even if one fails
           }
         })
       );
@@ -850,21 +893,21 @@ export default function SelectCourseModal({
 
   // Responsive modal classes
   const modalContainerClass =
-    'fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm';
+    'fixed inset-0 z-[9999] flex items-center justify-center bg-black/50';
   const modalContentClass =
-    'relative w-full max-w-3xl mx-auto bg-white/80 dark:bg-gray-900/90 rounded-2xl shadow-2xl overflow-hidden flex flex-col min-h-[80vh] max-h-[95vh]';
+    'relative w-full max-w-4xl mx-4 bg-white dark:bg-gray-900 rounded-lg shadow-xl overflow-hidden flex flex-col max-h-[90vh]';
 
-  // Sticky search bar
+  // Search bar
   const searchBarClass =
-    'sticky top-0 z-20 bg-white/80 dark:bg-gray-900/90 backdrop-blur-lg px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800';
+    'border-b border-gray-200 dark:border-gray-800 px-6 py-4';
 
   // Category grid
   const gridClass =
-    'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 px-6 pb-6 overflow-y-auto flex-1';
+    'grid grid-cols-1 lg:grid-cols-2 gap-4 px-6 py-4 overflow-y-auto flex-1';
 
-  // Sticky footer
+  // Footer
   const footerClass =
-    'sticky bottom-0 z-30 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-t border-gray-100 dark:border-gray-800 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4';
+    'border-t border-gray-200 dark:border-gray-800 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4';
 
   if (!isOpen) return null;
   if (postLoading) return <Preloader />;
@@ -873,30 +916,31 @@ export default function SelectCourseModal({
     <div className={modalContainerClass} onClick={onClose}>
       <div className={modalContentClass} onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className="px-6 pt-8 pb-4 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-primary-50/80 to-amber-50/80 dark:from-primary-900/40 dark:to-amber-900/40">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Step 1 of 1: Choose Categories</h2>
-            <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <X className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Select Categories</h2>
+            <button onClick={onClose} className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
+              <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
             </button>
           </div>
-          <p className="text-base text-gray-600 dark:text-gray-300 mb-2">Select your learning categories for your <span className="font-semibold text-primary-600 dark:text-primary-400">{planType.charAt(0).toUpperCase() + planType.slice(1)}</span> membership.</p>
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            Choose up to {maxSelections} categor{maxSelections > 1 ? 'ies' : 'y'} for your {planType} membership
+          </p>
         </div>
 
-        {/* Sticky Search Bar */}
+        {/* Search Bar */}
         <div className={searchBarClass}>
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
               placeholder="Search categories..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary-500 focus:outline-none text-base text-gray-800 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 shadow-sm"
-              aria-label="Search categories"
+              className="w-full pl-10 pr-4 py-2 rounded-md bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+              <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 p-1">
                 <X className="w-4 h-4 text-gray-400" />
               </button>
             )}
@@ -906,151 +950,99 @@ export default function SelectCourseModal({
         {/* Category Grid */}
         <div className={gridClass}>
           {loading ? (
-            <div className="col-span-full flex flex-col items-center justify-center py-20 space-y-4">
-              <Loader2 className="w-10 h-10 animate-spin text-primary-500 mb-4" />
-              <div className="text-center space-y-2">
-                <span className="text-lg text-gray-600 dark:text-gray-300">Loading course data...</span>
-                <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                  <div className="flex items-center gap-2">
-                    {categoriesLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                    )}
-                    <span>Categories {categoriesLoading ? 'Loading...' : 'Ready'}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {coursesLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                    )}
-                    <span>Courses {coursesLoading ? 'Loading...' : 'Ready'}</span>
-                  </div>
-                </div>
-              </div>
+            <div className="col-span-full flex flex-col items-center justify-center py-16">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-500 mb-4" />
+              <span className="text-sm text-gray-600 dark:text-gray-300">Loading categories...</span>
             </div>
           ) : error ? (
-            <div className="col-span-full flex flex-col items-center justify-center py-20">
-              <AlertCircle className="w-10 h-10 text-red-500 mb-4" />
-              <span className="text-lg text-red-600 dark:text-red-400">{error}</span>
+            <div className="col-span-full flex flex-col items-center justify-center py-16">
+              <AlertCircle className="w-8 h-8 text-red-500 mb-4" />
+              <span className="text-sm text-red-600 dark:text-red-400">{error}</span>
               <button 
                 onClick={() => window.location.reload()}
-                className="mt-4 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+                className="mt-2 px-3 py-1 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600"
               >
                 Retry
               </button>
             </div>
-          ) : !dataInitialized ? (
-            <div className="col-span-full flex flex-col items-center justify-center py-20">
-              <Loader2 className="w-10 h-10 animate-spin text-primary-500 mb-4" />
-              <span className="text-lg text-gray-600 dark:text-gray-300">Preparing categories...</span>
-            </div>
           ) : filteredCategories.length === 0 ? (
-            <div className="col-span-full flex flex-col items-center justify-center py-20">
-              <BookOpen className="w-10 h-10 text-gray-400 mb-4" />
-              <span className="text-lg text-gray-600 dark:text-gray-300">
-                {searchQuery ? 'No categories match your search.' : 'No categories with courses available.'}
+            <div className="col-span-full flex flex-col items-center justify-center py-16">
+              <BookOpen className="w-8 h-8 text-gray-400 mb-4" />
+              <span className="text-sm text-gray-600 dark:text-gray-300">
+                {searchQuery ? 'No categories found' : 'No categories available'}
               </span>
-              {searchQuery && (
-                <button 
-                  onClick={() => setSearchQuery('')}
-                  className="mt-2 text-primary-500 hover:text-primary-600"
-                >
-                  Clear search
-                </button>
-              )}
             </div>
           ) : (
             filteredCategories.map(category => {
               const isSelected = selectedCategories.some(c => c._id === category._id);
               const disabled = !isSelected && selectedCategories.length >= maxSelections;
               return (
-                <button
-                  key={category._id}
-                  onClick={() => toggleCategorySelection(category)}
-                  disabled={disabled}
-                  className={`relative flex flex-col items-center p-5 rounded-2xl shadow-lg transition-all duration-300 border-2 bg-white/70 dark:bg-gray-800/80 backdrop-blur-xl hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-primary-500 group ${
-                    isSelected
-                      ? 'border-primary-500 ring-2 ring-primary-400'
-                      : disabled
-                      ? 'border-gray-200 dark:border-gray-700 opacity-40 grayscale cursor-not-allowed'
-                      : 'border-gray-100 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600'
-                  }`}
-                  aria-pressed={isSelected}
-                  aria-label={disabled ? `Maximum of ${maxSelections} categories can be selected` : undefined}
-                >
-                  {/* Blended Badge */}
-                  <span className="absolute top-4 left-4 bg-gradient-to-r from-yellow-400 to-amber-500 text-black dark:text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg flex items-center gap-1">
-                    <Star className="w-3 h-3 mr-1" /> Blended
-                  </span>
-                  {/* Checkmark overlay */}
-                  {isSelected && (
-                    <span className="absolute top-4 right-4 bg-primary-500 text-white rounded-full p-2 shadow-lg">
-                      <CheckCircle className="w-5 h-5" />
-                    </span>
+                <div key={category._id} className="space-y-3">
+                  <CategoryCard
+                    category={category}
+                    isSelected={isSelected}
+                    onClick={() => toggleCategorySelection(category)}
+                    disabled={disabled}
+                    onToggleExpand={() => toggleCategoryExpansion(category._id)}
+                  />
+                  
+                  {/* Courses Grid */}
+                  {category.isExpanded && category.courses && category.courses.length > 0 && (
+                    <div className="ml-4 border-l-2 border-gray-200 dark:border-gray-700 pl-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
+                        {category.courses.map(course => (
+                          <CourseCard
+                            key={course._id}
+                            course={course}
+                            categoryName={category.category_name}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {category.courses.length} course{category.courses.length !== 1 ? 's' : ''}
+                      </p>
+                    </div>
                   )}
-                  {/* Category Image */}
-                  <div className="w-24 h-24 rounded-xl overflow-hidden mb-4 bg-gradient-to-br from-primary-100 via-primary-50 to-amber-50 dark:from-primary-900/40 dark:via-primary-800/30 dark:to-amber-900/20 flex items-center justify-center">
-                    <Image
-                      src={category.category_image || '/fallback-category-image.jpg'}
-                      alt={category.category_name}
-                      width={96}
-                      height={96}
-                      className="object-cover w-full h-full"
-                      loading="lazy"
-                    />
-                  </div>
-                  {/* Category Name */}
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center mb-1 line-clamp-2">{category.category_name}</h3>
-                  {/* Course Count */}
-                  <span className="text-xs font-medium text-primary-600 dark:text-primary-400 mb-2">{category.courseCount} Courses</span>
-                </button>
+                </div>
               );
             })
           )}
         </div>
-        {selectedCategories.length >= maxSelections && (
-  <div className="mt-2 text-sm text-amber-600 dark:text-amber-400 text-center font-medium">
-    {`You can select up to ${maxSelections} categor${maxSelections > 1 ? 'ies' : 'y'} for this membership.`}
-  </div>
-)}
 
-        {/* Sticky Footer */}
+        {/* Footer */}
         <div className={footerClass}>
           <div className="flex flex-wrap gap-2 items-center">
             {selectedCategories.length > 0 ? (
               selectedCategories.map(category => (
-                <span key={category._id} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-sm font-medium border border-primary-200 dark:border-primary-800">
+                <span key={category._id} className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm">
                   {category.category_name}
-                  <button onClick={() => toggleCategorySelection(category)} className="ml-1 p-1 rounded-full hover:bg-primary-200 dark:hover:bg-primary-800">
-                    <X className="w-4 h-4" />
+                  <button onClick={() => toggleCategorySelection(category)} className="hover:bg-blue-200 dark:hover:bg-blue-800 rounded p-0.5">
+                    <X className="w-3 h-3" />
                   </button>
                 </span>
               ))
             ) : (
-              <span className="text-gray-500 dark:text-gray-400 text-sm">No categories selected</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">No categories selected</span>
             )}
           </div>
-            <button
-              onClick={handleProceedToPay}
-              disabled={selectedCategories.length === 0 || isProcessing}
-              className={`ml-4 px-6 py-3 rounded-xl font-semibold text-base transition-all duration-300 flex items-center gap-2 shadow-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${
-                selectedCategories.length === 0 || isProcessing
-                  ? 'bg-gray-300 dark:bg-gray-600 cursor-not-allowed text-gray-500'
-                  : 'bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white'
-              }`}
-              aria-disabled={selectedCategories.length === 0 || isProcessing}
-            >
-              {isProcessing ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <span>Pay {amount}</span>
-                  <CheckCircle className="w-5 h-5" />
-                </>
-              )}
-            </button>
+          <button
+            onClick={handleProceedToPay}
+            disabled={selectedCategories.length === 0 || isProcessing}
+            className={`px-6 py-2 rounded-md font-medium text-sm transition-colors ${
+              selectedCategories.length === 0 || isProcessing
+                ? 'bg-gray-300 dark:bg-gray-600 cursor-not-allowed text-gray-500'
+                : 'bg-blue-500 hover:bg-blue-600 text-white'
+            }`}
+          >
+            {isProcessing ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Processing...
+              </span>
+            ) : (
+              `Pay ${amount}`
+            )}
+          </button>
         </div>
       </div>
     </div>
