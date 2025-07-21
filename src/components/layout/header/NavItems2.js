@@ -3,7 +3,7 @@ import DropdownHome from "./DropdownHome";
 import DropdownCourses2 from "./DropdownCourses2";
 import DropdownBlog from "./DropdownBlog";
 import DropdownPages2 from "./DropdownPages2";
-import Navitem from "./Navitem";
+import { Navitem } from "./Navitem";
 import DropdownWrapper from "@/components/shared/wrappers/DropdownWrapper";
 
 const NavItems2 = () => {

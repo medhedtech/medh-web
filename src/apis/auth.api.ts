@@ -2,6 +2,7 @@
 
 import { apiBaseUrl } from './config';
 
+
 // Authentication Interfaces
 export interface IRegisterData {
   full_name: string;
@@ -391,6 +392,119 @@ export interface IOAuthProvidersResponse {
   };
 }
 
+// Enhanced OAuth Management Interfaces
+export interface IOAuthAccountLinkRequest {
+  provider: 'google' | 'facebook' | 'github' | 'linkedin' | 'microsoft' | 'apple';
+  redirect_uri?: string;
+}
+
+export interface IOAuthAccountLinkResponse {
+  success: boolean;
+  message: string;
+  data: {
+    auth_url: string;
+    provider: string;
+    linking_mode: boolean;
+  };
+}
+
+export interface IOAuthAccountUnlinkRequest {
+  provider: 'google' | 'facebook' | 'github' | 'linkedin' | 'microsoft' | 'apple';
+}
+
+export interface IOAuthAccountUnlinkResponse {
+  success: boolean;
+  message: string;
+  data: {
+    provider: string;
+    unlinked_at: string;
+    remaining_oauth_providers: string[];
+    has_password: boolean;
+  };
+}
+
+export interface IOAuthConnectedProvider {
+  provider: string;
+  provider_id: string;
+  email?: string;
+  display_name?: string;
+  connected_at: string;
+  last_used?: string;
+  profile_picture?: string;
+}
+
+export interface IOAuthConnectedProvidersResponse {
+  success: boolean;
+  data: {
+    connected_providers: IOAuthConnectedProvider[];
+    unconnected_providers: string[];
+    total_connected: number;
+    has_password: boolean;
+  };
+}
+
+// Enhanced Email Synchronization Interfaces
+export interface IOAuthEmailSyncRequest {
+  provider: 'google' | 'facebook' | 'github' | 'linkedin' | 'microsoft' | 'apple';
+  action: 'use_oauth_email' | 'verify_current_email' | 'add_alternative_email';
+}
+
+export interface IOAuthEmailSyncResponse {
+  success: boolean;
+  message: string;
+  data: {
+    provider: string;
+    action: string;
+    oauth_email: string;
+    current_email: string;
+    email_verified: boolean;
+    changes: string[];
+    updated: boolean;
+  };
+}
+
+// Account Merging Interfaces
+export interface IOAuthMergeSuggestion {
+  type: 'email_verification' | 'profile_enhancement' | 'account_consolidation';
+  suggested_providers: string[];
+  risk_level: 'low' | 'medium' | 'high';
+  description: string;
+  action: string;
+}
+
+export interface IOAuthMergeSuggestionsResponse {
+  success: boolean;
+  data: {
+    suggestions: IOAuthMergeSuggestion[];
+    suggestion_count: number;
+  };
+}
+
+// Enhanced OAuth Login/Signup Response
+export interface IOAuthUserData {
+  id: string;
+  email: string;
+  full_name: string;
+  first_name?: string;
+  last_name?: string;
+  profile_picture?: string;
+  email_verified: boolean;
+  provider: string;
+  provider_id: string;
+  role: string[];
+  permissions?: string[];
+  access_token: string;
+  refresh_token?: string;
+  session_id?: string;
+  account_merged?: boolean;
+  profile_updated?: boolean;
+  email_conflicts?: Array<{
+    oauth_email: string;
+    user_email: string;
+    provider: string;
+  }>;
+}
+
 export interface IConnectedProvider {
   provider: string;
   provider_id: string;
@@ -633,15 +747,26 @@ export const authAPI = {
     failure: `${apiBaseUrl}/auth/oauth/failure`,
     connected: `${apiBaseUrl}/auth/oauth/connected`,
     
+    // Account linking and unlinking
+    link: (provider: string): string => {
+      if (!provider) throw new Error('Provider is required');
+      return `${apiBaseUrl}/auth/oauth/link/${provider}`;
+    },
+    
+    unlink: (provider: string): string => {
+      if (!provider) throw new Error('Provider is required');
+      return `${apiBaseUrl}/auth/oauth/unlink/${provider}`;
+    },
+    
+    // Legacy disconnect endpoint (for backward compatibility)
     disconnect: (provider: string): string => {
       if (!provider) throw new Error('Provider is required');
       return `${apiBaseUrl}/auth/oauth/disconnect/${provider}`;
     },
     
-    link: (provider: string): string => {
-      if (!provider) throw new Error('Provider is required');
-      return `${apiBaseUrl}/auth/oauth/link/${provider}`;
-    },
+    // Enhanced email synchronization
+    syncEmail: `${apiBaseUrl}/auth/oauth/sync-email`,
+    mergeSuggestions: `${apiBaseUrl}/auth/oauth/merge-suggestions`,
     
     // OAuth statistics (Admin only)
     stats: `${apiBaseUrl}/auth/oauth/stats`,
@@ -965,7 +1090,7 @@ export const authUtils = {
   },
 
   /**
-   * Generate OAuth login URL
+   * Generate OAuth login URL with proper redirect URI handling
    */
   getOAuthLoginUrl: (provider: string, redirectUrl?: string): string => {
     const baseUrl = authAPI.oauth[provider as keyof typeof authAPI.oauth];
@@ -973,36 +1098,403 @@ export const authUtils = {
       throw new Error(`Unsupported OAuth provider: ${provider}`);
     }
     
-    if (redirectUrl) {
-      return `${baseUrl}?redirect_url=${encodeURIComponent(redirectUrl)}`;
-    }
-    
+    // Your backend handles OAuth internally and redirects to its own success page
     return baseUrl;
   },
 
   /**
-   * Handle OAuth popup window
+   * Frontend-initiated OAuth handler with Google Identity Services
    */
-  openOAuthPopup: (provider: string, onSuccess?: (data: any) => void, onError?: (error: any) => void): void => {
-    const url = authUtils.getOAuthLoginUrl(provider);
-    const popup = window.open(url, 'oauth', 'width=500,height=600,scrollbars=yes,resizable=yes');
+  openOAuthPopup: (
+    provider: string, 
+    onSuccess?: (data: IOAuthUserData) => void, 
+    onError?: (error: any) => void,
+    options?: {
+      width?: number;
+      height?: number;
+      redirectUri?: string;
+      mode?: 'login' | 'signup' | 'link';
+    }
+  ): void => {
+    if (provider === 'google') {
+      authUtils.handleGoogleOAuth(onSuccess, onError);
+    } else {
+      // Fallback to other providers or show error
+      onError?.({ message: `${provider} OAuth not implemented yet` });
+    }
+  },
+
+  /**
+   * Google OAuth implementation using Google Identity Services
+   */
+  handleGoogleOAuth: (
+    onSuccess?: (data: IOAuthUserData) => void,
+    onError?: (error: any) => void
+  ): void => {
+    // Check if Google Identity Services is already loaded
+    if ((window as any).google?.accounts?.id) {
+      authUtils.initializeGoogleSignIn(onSuccess, onError);
+      return;
+    }
     
-    const checkClosed = setInterval(() => {
-      if (popup?.closed) {
-        clearInterval(checkClosed);
-        // Check for success/failure in localStorage or postMessage
-        const result = localStorage.getItem('oauth_result');
-        if (result) {
-          localStorage.removeItem('oauth_result');
-          const data = JSON.parse(result);
-          if (data.success) {
-            onSuccess?.(data);
+    // Load Google Identity Services script
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    
+    script.onload = () => {
+      authUtils.initializeGoogleSignIn(onSuccess, onError);
+    };
+    
+    script.onerror = () => {
+      onError?.({ message: 'Failed to load Google OAuth. Please check your internet connection.' });
+    };
+
+    document.head.appendChild(script);
+  },
+
+  /**
+   * Initialize Google Sign-In
+   */
+  initializeGoogleSignIn: (
+    onSuccess?: (data: IOAuthUserData) => void,
+    onError?: (error: any) => void
+  ): void => {
+    const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    
+    if (!googleClientId) {
+      onError?.({ message: 'Google Client ID not configured' });
+      return;
+    }
+
+    try {
+      (window as any).google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: (response: any) => authUtils.handleGoogleCredentialResponse(response, onSuccess, onError),
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+
+      // Create a temporary button element for programmatic trigger
+      const tempButton = document.createElement('div');
+      tempButton.id = 'temp-google-signin-button';
+      tempButton.style.display = 'none';
+      document.body.appendChild(tempButton);
+
+      (window as any).google.accounts.id.renderButton(tempButton, {
+        theme: 'outline',
+        size: 'large',
+        text: 'signin_with',
+        shape: 'rectangular',
+      });
+
+      // Trigger the sign-in programmatically
+      (window as any).google.accounts.id.prompt((notification: any) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          // Fallback: trigger the button click
+          const googleButton = tempButton.querySelector('div[role="button"]') as HTMLElement;
+          if (googleButton) {
+            googleButton.click();
           } else {
-            onError?.(data);
+            // Last resort: use one-tap
+            (window as any).google.accounts.id.prompt();
           }
         }
+      });
+
+      // Clean up temp button after a short delay
+      setTimeout(() => {
+        if (tempButton && tempButton.parentNode) {
+          tempButton.parentNode.removeChild(tempButton);
       }
     }, 1000);
+
+    } catch (error) {
+      console.error('Google OAuth initialization error:', error);
+      onError?.({ message: 'Failed to initialize Google OAuth' });
+    }
+  },
+
+  /**
+   * Handle Google credential response
+   */
+  handleGoogleCredentialResponse: async (
+    response: any,
+    onSuccess?: (data: IOAuthUserData) => void,
+    onError?: (error: any) => void
+  ): Promise<void> => {
+    try {
+      if (!response.credential) {
+        throw new Error('No credential received from Google');
+      }
+
+      // Decode the JWT token to get user info
+      const userInfo = authUtils.decodeGoogleJWT(response.credential);
+      console.log('🔍 Google OAuth Debug - Decoded user info:', {
+        id: userInfo.sub,
+        email: userInfo.email,
+        name: userInfo.name,
+        email_verified: userInfo.email_verified
+      });
+      
+      // First, try the new frontend OAuth endpoint
+      let backendResponse;
+      const requestPayload = {
+        provider: 'google',
+        token: response.credential, // This is a JWT ID token
+        userInfo: {
+          id: userInfo.sub,
+          email: userInfo.email,
+          name: userInfo.name,
+          picture: userInfo.picture,
+          email_verified: userInfo.email_verified,
+          given_name: userInfo.given_name,
+          family_name: userInfo.family_name,
+        }
+      };
+      
+      console.log('🔍 Google OAuth Debug - Sending request to backend:', {
+        url: `${apiBaseUrl}/auth/oauth/frontend`,
+        payload: requestPayload
+      });
+      
+      try {
+        backendResponse = await fetch(`${apiBaseUrl}/auth/oauth/frontend`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(requestPayload),
+        });
+      } catch (networkError) {
+        console.error('Network error calling backend OAuth:', networkError);
+        throw new Error('Network error. Please check your internet connection and backend server.');
+      }
+
+      if (!backendResponse.ok) {
+        const errorData = await backendResponse.json();
+        console.error('🚨 Backend OAuth error:', {
+          status: backendResponse.status,
+          statusText: backendResponse.statusText,
+          error: errorData,
+          url: `${apiBaseUrl}/auth/oauth/frontend`
+        });
+        
+        // More specific error messages
+        if (backendResponse.status === 404) {
+          throw new Error('🚧 Backend OAuth endpoint not implemented yet.\n\nPlease implement POST /api/v1/auth/oauth/frontend\n\nSee docs/backend-oauth-endpoint.md for implementation guide.');
+        } else if (backendResponse.status === 500 && errorData.error?.includes('handleOAuthCallback is not a function')) {
+          throw new Error('🔧 Backend OAuth handler missing.\n\nThe endpoint exists but handleOAuthCallback function is not implemented.\n\nCheck docs/backend-oauth-endpoint.md for code examples.');
+        } else if (backendResponse.status === 400 && errorData.error?.includes('Student ID must follow the pattern')) {
+          throw new Error('🚧 Account Creation Issue\n\nThere\'s a temporary issue with automatic account creation via Google.\n\nPlease try:\n1. Creating an account manually first\n2. Then linking your Google account in settings\n\nOr contact support for assistance.');
+        } else if (backendResponse.status === 500 && errorData.error?.includes('Student ID must follow the pattern')) {
+          throw new Error('🚧 Account Creation Issue\n\nThere\'s a temporary issue with automatic account creation via Google.\n\nPlease try:\n1. Creating an account manually first\n2. Then linking your Google account in settings\n\nOr contact support for assistance.');
+        } else if (errorData.error?.includes('validation failed')) {
+          throw new Error(`🔧 Account Creation Issue: ${errorData.error}\n\nPlease try creating an account manually first, then link your Google account in settings.`);
+        } else {
+          throw new Error(errorData.message || `OAuth authentication failed (${backendResponse.status})`);
+        }
+      }
+
+      const result = await backendResponse.json();
+      console.log('✅ Backend OAuth success response:', result);
+      
+      if (result.success && result.data) {
+        // Transform the response to match the expected format
+        const transformedData = {
+          ...result.data,
+          // Map tokens to expected format
+          access_token: result.data.tokens?.access_token || result.data.token,
+          refresh_token: result.data.tokens?.refresh_token || '',
+          // Map user data
+          id: result.data.user.id,
+          email: result.data.user.email,
+          full_name: result.data.user.full_name || result.data.user.name,
+          first_name: result.data.user.given_name || result.data.user.full_name?.split(' ')[0] || '',
+          last_name: result.data.user.family_name || result.data.user.full_name?.split(' ').slice(1).join(' ') || '',
+          profile_picture: result.data.user.user_image?.url || result.data.user.picture,
+          email_verified: result.data.user.email_verified,
+          provider: 'google',
+          provider_id: result.data.user.id,
+          role: ['student'], // Default role
+          permissions: [],
+          account_merged: result.data.user.oauth_providers?.length > 1,
+          profile_updated: result.data.user.profile_completion > 0,
+          email_conflicts: []
+        };
+
+        onSuccess?.(transformedData as any);
+      } else {
+        throw new Error(result.message || 'OAuth authentication failed');
+      }
+
+    } catch (error: any) {
+      console.error('Google OAuth error:', error);
+      onError?.(error);
+    }
+  },
+
+  /**
+   * Decode Google JWT token to extract user info
+   */
+  decodeGoogleJWT: (token: string): any => {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch (error) {
+      console.error('Error decoding Google JWT:', error);
+      return {};
+    }
+  },
+
+  /**
+   * Link OAuth account to existing user account
+   */
+  linkOAuthAccount: async (provider: string): Promise<IOAuthAccountLinkResponse> => {
+    try {
+      const response = await fetch(authAPI.oauth.link(provider), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        }
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error),
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Unlink OAuth account from user account
+   */
+  unlinkOAuthAccount: async (provider: string): Promise<IOAuthAccountUnlinkResponse> => {
+    try {
+      const response = await fetch(authAPI.oauth.unlink(provider), {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        }
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error),
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Get connected OAuth providers
+   */
+  getConnectedProviders: async (): Promise<IOAuthConnectedProvidersResponse> => {
+    try {
+      const response = await fetch(authAPI.oauth.connected, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        }
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Synchronize email from OAuth provider
+   */
+  syncOAuthEmail: async (provider: string, action: 'use_oauth_email' | 'verify_current_email' | 'add_alternative_email'): Promise<IOAuthEmailSyncResponse> => {
+    try {
+      const response = await fetch(authAPI.oauth.syncEmail, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        },
+        body: JSON.stringify({ provider, action })
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error),
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Get OAuth account merge suggestions
+   */
+  getOAuthMergeSuggestions: async (): Promise<IOAuthMergeSuggestionsResponse> => {
+    try {
+      const response = await fetch(authAPI.oauth.mergeSuggestions, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        }
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Check if response indicates MFA is required
+   */
+  isMFARequired: (response: any): boolean => {
+    return response?.requires_mfa === true || response?.mfa_required === true;
+  },
+
+  /**
+   * Extract user information from OAuth response
+   */
+  extractOAuthUserData: (rawData: any, provider: string): IOAuthUserData => {
+    return {
+      id: rawData.id || rawData.user?.id || rawData.sub,
+      email: rawData.email || rawData.user?.email,
+      full_name: rawData.full_name || rawData.name || rawData.user?.full_name || `${rawData.given_name || ''} ${rawData.family_name || ''}`.trim(),
+      first_name: rawData.given_name || rawData.first_name,
+      last_name: rawData.family_name || rawData.last_name,
+      profile_picture: rawData.picture || rawData.avatar_url || rawData.user?.user_image,
+      email_verified: rawData.email_verified ?? rawData.verified_email ?? true,
+      provider,
+      provider_id: rawData.id || rawData.sub,
+      role: rawData.role || rawData.user?.role || ['student'],
+      permissions: rawData.permissions || rawData.user?.permissions || [],
+      access_token: rawData.access_token || rawData.token,
+      refresh_token: rawData.refresh_token,
+      session_id: rawData.session_id,
+      account_merged: rawData.account_merged || rawData.oauth_account_merged,
+      profile_updated: rawData.profile_updated || rawData.oauth_profile_updated,
+      email_conflicts: rawData.email_conflicts || rawData.oauth_email_conflicts
+    };
   },
 
   /**
@@ -1385,12 +1877,7 @@ export const authUtils = {
     return `otpauth://totp/${label}?${params.toString()}`;
   },
 
-  /**
-   * Check if MFA is required for login response
-   */
-  isMFARequired: (response: any): response is IMFALoginRequiredResponse => {
-    return response && response.requires_mfa === true;
-  },
+
 
   /**
    * Get MFA method display name

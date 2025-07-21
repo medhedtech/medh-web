@@ -14,6 +14,7 @@ export interface RememberedAccount {
   createdAt: number; // timestamp
   role?: string;
   quickLoginKey?: string; // Change from refreshToken to quickLoginKey
+  keyId?: string; // Server-side key identifier for revocation
   // Note: We don't store passwords directly for security
   // Instead, we'll use a secure token-based approach
 }
@@ -60,7 +61,8 @@ export class RememberedAccountsManager {
         data.accounts[existingIndex] = {
           ...data.accounts[existingIndex],
           ...account,
-          lastLogin: now
+          lastLogin: now,
+          keyId: account.keyId ? account.keyId : data.accounts[existingIndex].keyId
         };
       } else {
         // Add new account
@@ -68,7 +70,8 @@ export class RememberedAccountsManager {
           id: this.generateAccountId(),
           ...account,
           createdAt: now,
-          lastLogin: now
+          lastLogin: now,
+          keyId: account.keyId
         };
         
         data.accounts.push(newAccount);

@@ -92,13 +92,6 @@ const nextConfig = {
     // Enable responsive images by default
     loader: 'default',
   },
-  // Simplified webpack configuration to avoid loader conflicts
-  webpack: (config, { dev, isServer }) => {
-    // Only add custom rules if absolutely necessary
-    // Remove problematic CSS loader rules that cause conflicts
-    
-    return config;
-  },
   // Enable production source maps for better debugging
   productionBrowserSourceMaps: false, // Disable for faster builds
   // Add headers for better caching, security, and video optimization
