@@ -367,7 +367,9 @@ export const apiUrls = {
     getRelatedCourses: (id: string): string => {
       if (!id) throw new Error('Category ID is required');
       return `/categories/related-courses/${id}`;
-    }
+    },
+    getLiveCategories: `$/category/live`,
+    getBlendedCategories: `$/category/blended`,
   },
   courses: {
     getAllCourses: `${apiBaseUrl}/courses/get`,
