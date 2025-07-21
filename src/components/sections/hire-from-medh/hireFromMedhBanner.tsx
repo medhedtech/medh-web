@@ -201,20 +201,20 @@ const highlights: IHighlightItem[] = [
 const talentPoolValues: IValueItem[] = [
   {
     icon: <Award className="w-6 h-6" />, // Award icon for certification
-    title: "Certified Professionals",
-    description: "Industry-recognized certifications and validated skills",
+    title: "Soft Skills",
+    description: "Communication, teamwork, and problem-solving training",
     color: "from-blue-500 to-cyan-500"
   },
   {
     icon: <Brain className="w-6 h-6" />, // Brain icon for experience
     title: "Real Experience",
-    description: "Hands-on project experience across industries",
+    description: "Hands-on project experience and mentorship",
     color: "from-emerald-500 to-teal-500"
   },
   {
     icon: <TrendingUp className="w-6 h-6" />, // TrendingUp icon for learning
     title: "Continuous Learning",
-    description: "Up-to-date with latest technologies and trends",
+    description: "Regular upskilling with latest technologies and trends",
     color: "from-purple-500 to-indigo-500"
   }
 ];
