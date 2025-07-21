@@ -168,6 +168,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
   const redirectPath = propRedirectPath || (redirectParam ? decodeURIComponent(redirectParam) : '');
   const actionParam = searchParams.get('action') || '';
   const isDemoScheduling = actionParam === 'schedule-demo';
+  
+  // Check for OAuth completion parameters
+  const oauthSuccess = searchParams.get('oauth_success');
+  const oauthError = searchParams.get('oauth_error');
+  const oauthProvider = searchParams.get('oauth_provider');
   const { postQuery, loading } = usePostQuery();
   const storageManager = useStorage();
   const { theme, setTheme } = useTheme();
@@ -232,7 +237,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
     clearErrors
   } = useForm<FormInputs>({
     resolver: yupResolver(schema) as any,
-    defaultValues: prefilledValues,
+    defaultValues: {
+      ...prefilledValues,
+      agree_terms: true
+    },
     mode: "onChange",
     reValidateMode: "onChange",
   });
@@ -322,6 +330,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
       setTheme('light');
     }
   }, [theme, setTheme]);
+
+
 
   const handleRecaptchaChange = (value: string): void => {
     setRecaptchaValue(value);
@@ -483,6 +493,49 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
     rolePathCache.set(roleLower, dashboardPath);
     return dashboardPath;
   }, [rolePathCache, demoPathCache]);
+
+  // Handle OAuth completion when returning from backend
+  useEffect(() => {
+    if (oauthSuccess === 'true') {
+      // OAuth was successful, check if we have stored auth data
+      const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+      const userId = localStorage.getItem('userId');
+      const userRole = localStorage.getItem('role');
+      
+      if (token && userId) {
+        showToast.success(`🎉 ${oauthProvider || 'OAuth'} authentication successful! Redirecting to dashboard...`, { duration: 3000 });
+        
+        // Determine redirect path
+        const shouldRedirectToDemo = isDemoScheduling && !redirectPath;
+        const dashboardPath = getRoleBasedRedirectPath(userRole || 'student', shouldRedirectToDemo);
+        const finalRedirectPath = redirectPath && redirectPath.startsWith('/') ? redirectPath : dashboardPath;
+        
+        // Redirect to dashboard
+        setTimeout(() => {
+          setIsRedirecting(true);
+          router.push(finalRedirectPath);
+        }, 1500);
+      } else {
+        // Auth data not found, something went wrong
+        showToast.error('❌ Authentication data not found. Please try logging in again.', { duration: 4000 });
+      }
+      
+      // Clean up URL parameters
+      const url = new URL(window.location.href);
+      url.searchParams.delete('oauth_success');
+      url.searchParams.delete('oauth_provider');
+      window.history.replaceState({}, '', url.toString());
+    }
+    
+    if (oauthError === 'true') {
+      showToast.error('❌ OAuth authentication failed. Please try again.', { duration: 4000 });
+      
+      // Clean up URL parameters
+      const url = new URL(window.location.href);
+      url.searchParams.delete('oauth_error');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [oauthSuccess, oauthError, oauthProvider, isDemoScheduling, redirectPath, getRoleBasedRedirectPath, router]);
 
   // Sanitize any invalid auth data when component mounts and check if user is already logged in
   useEffect(() => {
@@ -666,7 +719,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
             console.log('Login after verification successful:', res);
             showToast.dismiss(loadingToastId);
             showToast.success("✅ Email verified successfully! Welcome back!", { duration: 3000 });
-            completeLoginProcess(res.data);
+            completeLoginProcess(res.data, undefined, undefined);
           },
           onFail: (error) => {
             console.error('Login failed after verification:', error);
@@ -681,7 +734,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
         // Complete the login process with existing data
         showToast.dismiss(loadingToastId);
         showToast.success("✅ Email verified successfully! Welcome back!", { duration: 3000 });
-        completeLoginProcess(pendingLoginData);
+        completeLoginProcess(pendingLoginData, undefined, undefined);
       }
     } else {
       // Fallback: redirect to login
@@ -691,7 +744,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
   };
 
   // Complete login process after verification
-  const completeLoginProcess = (loginData: LoginResponseData, quickLoginKey?: string): void => {
+  const completeLoginProcess = (loginData: LoginResponseData, quickLoginKey?: string, quickLoginKeyId?: string): void => {
     // Add safety checks for loginData
     if (!loginData || !loginData.id || !loginData.email) {
       console.error('Invalid login data:', loginData);
@@ -821,7 +874,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           email: loginData.email,
           fullName: fullName || loginData.email.split('@')[0],
           role: userRole,
-          quickLoginKey: quickLoginKey // Ensure quickLoginKey is passed here
+          quickLoginKey: quickLoginKey, // Ensure quickLoginKey is passed here
+          keyId: quickLoginKeyId // Add keyId
         });
       } catch (error) {
         console.warn('Failed to save to remembered accounts:', error);
@@ -881,7 +935,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
     setCurrentStep(1);
   };
   
-  // OAuth login handlers
+  // Enhanced OAuth login handlers
   const handleOAuthLogin = async (provider: 'google' | 'github'): Promise<void> => {
     try {
       setIsOAuthLoading(prev => ({ ...prev, [provider]: true }));
@@ -889,21 +943,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
       // Show informational toast
       showToast.info(`🔄 Opening ${provider.charAt(0).toUpperCase() + provider.slice(1)} login...`, { duration: 3000 });
       
-      // Get OAuth login URL
-      const oauthUrl = authUtils.getOAuthLoginUrl(provider, window.location.origin + '/auth/callback');
-      
-      // Open OAuth popup
+      // Open enhanced OAuth popup
       authUtils.openOAuthPopup(
         provider,
         // Success callback
         (data) => {
           console.log(`${provider} OAuth success:`, data);
           
+          // Handle the transformed OAuth data from frontend OAuth
           if (data.access_token && data.id) {
             // Show processing toast
             const processingToastId = showToast.loading("🔄 Setting up your account...", { duration: 8000 });
             
-            // Store auth data
+            // Store enhanced auth data using frontend OAuth structure
             const authData = {
               token: data.access_token,
               refresh_token: data.refresh_token || '',
@@ -915,8 +967,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
             const authSuccess = storeAuthData(authData, rememberMe, data.email);
             
             if (authSuccess) {
-              // Fast role extraction and path determination
-              const userRole = (Array.isArray(data.role) ? data.role[0] : data.role)?.toLowerCase().trim() || 'student';
+              // Extract role from JWT token or use provided role
+              const userRole = getUserRoleFromToken(data.access_token) || (Array.isArray(data.role) ? data.role[0] : data.role) || 'student';
               const shouldRedirectToDemo = isDemoScheduling && !redirectPath;
               const dashboardPath = getRoleBasedRedirectPath(userRole, shouldRedirectToDemo);
               
@@ -932,13 +984,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
                 finalRedirectPath = dashboardPath;
               }
               
-              // Batch localStorage operations
+              // Batch localStorage operations with enhanced data
               const localStorageUpdates: [string, string][] = [];
               if (userRole) localStorageUpdates.push(["role", userRole]);
               if (data.full_name) localStorageUpdates.push(["fullName", data.full_name]);
+              
+              // Store enhanced OAuth metadata
+              if (data.account_merged) localStorageUpdates.push(["oauth_account_merged", "true"]);
+              if (data.profile_updated) localStorageUpdates.push(["oauth_profile_updated", "true"]);
+              if (data.email_verified) localStorageUpdates.push(["oauth_email_verified", "true"]);
+              
               localStorageUpdates.forEach(([key, value]) => localStorage.setItem(key, value));
               
-              // Prepare storage data
+              // Prepare enhanced storage data
               const storageData = {
                 token: data.access_token,
                 refresh_token: data.refresh_token || '',
@@ -956,7 +1014,29 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
                 () => events.login(`${provider}_oauth`),
                 () => {
                   showToast.dismiss(processingToastId);
-                  showToast.success(`🎉 ${provider.charAt(0).toUpperCase() + provider.slice(1)} login successful! Welcome back!`, { duration: 3000 });
+                  
+                                // Enhanced success message based on account status
+              let successMessage = `🎉 ${provider.charAt(0).toUpperCase() + provider.slice(1)} login successful!`;
+              if (data.account_merged) {
+                successMessage += ' Account linked successfully.';
+              } else {
+                successMessage += ' Welcome back!';
+              }
+              
+              showToast.success(successMessage, { duration: 4000 });
+              
+              // Show additional notifications for important events
+              if (data.email_verified) {
+                showToast.success('✅ Email verified through OAuth!', { duration: 3000 });
+              }
+              
+              if (data.profile_updated) {
+                showToast.info('📝 Profile enhanced with OAuth data', { duration: 3000 });
+              }
+              
+              if (data.account_merged) {
+                showToast.info('🔗 Multiple OAuth providers connected', { duration: 3000 });
+              }
                 }
               ];
               
@@ -971,11 +1051,24 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
               // Immediate redirect with loading state
               setIsRedirecting(true);
               router.push(finalRedirectPath);
+              
+              // Complete login process with enhanced data
+              completeLoginProcess({
+                id: data.id,
+                email: data.email,
+                full_name: data.full_name,
+                role: [userRole], // Use extracted role from token
+                permissions: data.permissions || [],
+                access_token: data.access_token,
+                refresh_token: data.refresh_token || '',
+                emailVerified: data.email_verified
+              }, undefined, undefined);
             } else {
               showToast.dismiss(processingToastId);
               showToast.error("❌ Failed to save authentication data. Please try again.", { duration: 5000 });
             }
           } else {
+            console.error('OAuth response missing required data:', { data });
             const errorMsg = `❌ ${provider.charAt(0).toUpperCase() + provider.slice(1)} login failed. Invalid response from server.`;
             showToast.error(errorMsg, { duration: 5000 });
           }
@@ -986,7 +1079,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
         (error) => {
           console.error(`${provider} OAuth error:`, error);
           const enhancedError = getEnhancedErrorMessage(error);
-          showToast.error(`❌ ${provider.charAt(0).toUpperCase() + provider.slice(1)} login failed: ${enhancedError}`, { duration: 6000 });
+          
+          // Check if this is the student ID validation error
+          if (error.message?.includes('Account Creation Issue') || error.message?.includes('Student ID must follow the pattern')) {
+            showToast.error(`❌ ${provider.charAt(0).toUpperCase() + provider.slice(1)} Sign-Up Temporarily Unavailable`, { duration: 8000 });
+            showToast.info(`💡 Workaround: Create an account manually first, then link Google in your profile settings.`, { duration: 10000 });
+          } else {
+            showToast.error(`❌ ${provider.charAt(0).toUpperCase() + provider.slice(1)} login failed: ${enhancedError}`, { duration: 6000 });
+          }
+          
           setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
         }
       );
@@ -1405,8 +1506,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
 
           // Extract quick_login_key if present in the response
           const quickLoginKey = res.data?.quick_login_key || null;
+          const quickLoginKeyId = res.data?.quick_login_key_id || null;
 
-          completeLoginProcess(loginResponseData, quickLoginKey);
+          completeLoginProcess(loginResponseData, quickLoginKey, quickLoginKeyId);
           setRecaptchaError(false);
           setRecaptchaValue(null);
         },
@@ -1500,7 +1602,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
         emailVerified: loginResponse.data.user.email_verified
       };
 
-      completeLoginProcess(loginResponseData);
+      completeLoginProcess(loginResponseData, undefined, undefined);
       setShowMFAVerification(false);
       setMFAVerificationState({
         isRequired: false,
@@ -1561,6 +1663,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
   const handleRemoveQuickAccount = (email: string): void => {
     try {
       RememberedAccountsManager.removeRememberedAccount(email);
+      showToast.info('Account removed locally. To fully revoke the login key on the server, please do so from your dashboard after logging in.', { duration: 6000 });
       
       // If no more accounts, switch to manual login
       if (!hasRememberedAccounts()) {
@@ -1616,7 +1719,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
               email: account.email,
               fullName: account.fullName,
               role: account.role,
-              quickLoginKey: newQuickLoginKey !== null ? newQuickLoginKey : account.quickLoginKey // Preserve if null
+              quickLoginKey: newQuickLoginKey !== null ? newQuickLoginKey : account.quickLoginKey, // Preserve if null
+              keyId: newQuickLoginKey !== null ? res.data.data.key_id : null // Add keyId
             });
             
             completeLoginProcess({
@@ -1628,7 +1732,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
               access_token: res.data.data.access_token || res.data.data.token, // Corrected path
               refresh_token: res.data.data.refresh_token || res.data.data.session_id, // Corrected path
               emailVerified: res.data.data.user.email_verified
-            }, newQuickLoginKey !== null ? newQuickLoginKey : account.quickLoginKey); // Pass the new or existing quickLoginKey
+            }, newQuickLoginKey !== null ? newQuickLoginKey : account.quickLoginKey, newQuickLoginKey !== null ? res.data.data.key_id : null); // Pass the new or existing quickLoginKey and keyId
             return; // Exit after successful quick login
           } else {
             console.warn('Quick login key returned invalid data, falling back to password login.', res);
@@ -1700,6 +1804,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           const token = isNestedStructure ? res.data.token : res.data.access_token;
           const refreshToken = isNestedStructure ? res.data.session_id : res.data.refresh_token;
           const quickLoginKey = res.data?.quick_login_key || null; // Capture quick_login_key from regular login as well
+          const quickLoginKeyId = res.data?.quick_login_key_id || null;
           
           if (!userData || !userData.id || !userData.email) {
             showToast.error("❌ Incomplete user data received. Please try again.", { duration: 5000 });
@@ -1724,7 +1829,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
               email: account.email,
               fullName: account.fullName,
               role: account.role,
-              quickLoginKey: quickLoginKey // Update with the new quickLoginKey from login
+              quickLoginKey: quickLoginKey, // Update with the new quickLoginKey from login
+              keyId: quickLoginKeyId
             });
           } else {
             // If quickLoginKey is not present, remove any old one to ensure password prompt for next login
@@ -1732,11 +1838,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
               email: account.email,
               fullName: account.fullName,
               role: account.role,
-              quickLoginKey: undefined
+              quickLoginKey: undefined,
+              keyId: undefined
             });
           }
           
-          completeLoginProcess(loginResponseData, quickLoginKey); // Pass quickLoginKey to completeLoginProcess
+          completeLoginProcess(loginResponseData, quickLoginKey, quickLoginKeyId); // Pass quickLoginKey to completeLoginProcess
         },
         onFail: async (error) => {
           showToast.dismiss(loadingToastId);
@@ -1921,8 +2028,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           </div>
 
           {/* Footer */}
-          <div className="text-center mt-4 text-xs text-gray-400 dark:text-gray-500">
-            <p>© {currentYear} Medh. All rights reserved.</p>
+          <div className="text-center mt-4 text-xs text-gray-400 dark:text-gray-500 space-y-1">
+            <p>Copyright © {currentYear} MEDH. All Rights Reserved.</p>
+            <p className="text-blue-600 dark:text-blue-400 font-semibold">
+              LEARN. UPSKILL. ELEVATE.
+            </p>
           </div>
         </div>
       </div>
@@ -2067,8 +2177,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           </div>
           
           {/* Copyright notice */}
-          <div className="text-center mt-2 text-xs text-gray-400 dark:text-gray-500">
-            <p>© {currentYear} Medh. All rights reserved.</p>
+          <div className="text-center mt-2 text-xs text-gray-400 dark:text-gray-500 space-y-1">
+            <p>Copyright © {currentYear} MEDH. All Rights Reserved.</p>
+            <p className="text-blue-600 dark:text-blue-400 font-semibold">
+              LEARN. UPSKILL. ELEVATE.
+            </p>
           </div>
         </div>
       </div>
@@ -2335,55 +2448,57 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
                   </div>
                 </div>
                 
-                {/* Terms and conditions */}
-                <div className={`rounded-xl p-4 transition-all duration-200 ${
-                  errors.agree_terms 
-                    ? 'border-2 border-red-300 dark:border-red-500 bg-red-50/50 dark:bg-red-900/10' 
-                    : 'border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50'
-                }`}>
-                  <label className="flex items-start cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      className={`rounded-lg text-primary-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 h-5 w-5 mt-0.5 transition-all shadow-sm ${
+                {/* Terms Checkbox - Styled like ReCaptcha */}
+                <div className="w-full mx-auto md:mx-0 max-w-md">
+                  <div
+                    className={`w-full p-4 rounded-lg sm:rounded-xl border transition-all duration-300 cursor-pointer select-none
+                      ${errors.agree_terms 
+                        ? 'border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-900/20' 
+                        : getValues('agree_terms')
+                          ? 'border-green-300 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
+                          : 'border-gray-200 bg-gray-50/50 dark:border-gray-700 dark:bg-gray-700/30 hover:bg-gray-100/50 dark:hover:bg-gray-600/30'
+                      }`}
+                    onClick={() => setValue('agree_terms', !getValues('agree_terms'), { shouldValidate: true })}
+                  >
+                    <div className="flex items-center space-x-3">
+                      {getValues('agree_terms') ? (
+                        <CheckCircle className="h-5 w-5 text-green-500 dark:text-green-400" />
+                      ) : errors.agree_terms ? (
+                        <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400" />
+                      ) : (
+                        <Shield className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                      )}
+                      <span className={`text-sm ${
                         errors.agree_terms 
-                          ? 'border-red-300 dark:border-red-500' 
-                          : 'border-gray-300 dark:border-gray-600 group-hover:border-primary-400'
-                      } dark:bg-gray-700`}
-                      {...register("agree_terms")}
-                    />
-                    <div className="ml-3 flex-1">
-                      <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                        I agree to the{" "}
-                        <a
-                          href="/terms-and-services"
-                          className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-semibold no-underline hover:underline underline-offset-2 decoration-2"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Terms of Use
-                        </a>{" "}
-                        and{" "}
-                        <a
-                          href="/privacy-policy"
-                          className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-semibold no-underline hover:underline underline-offset-2 decoration-2"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Privacy Policy
-                        </a>
+                          ? 'text-red-600 dark:text-red-400' 
+                          : getValues('agree_terms')
+                            ? 'text-green-600 dark:text-green-400'
+                            : 'text-gray-700 dark:text-gray-300'
+                      }`}>
+                        {errors.agree_terms 
+                          ? 'Terms acceptance required' 
+                          : getValues('agree_terms')
+                            ? 'Agreed to Terms of Use and Privacy Policy'
+                            : 'By submitting this form, I agree to the \'Terms of Use\' and \'Privacy Policy\''}
                       </span>
-                      <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                        Required to create your account and access our services
-                      </div>
                     </div>
-                  </label>
+                  </div>
+                  
+                  <input
+                    type="checkbox"
+                    {...register("agree_terms")}
+                    className="hidden"
+                  />
+                  
                   {errors.agree_terms && (
-                    <div className="mt-3 pt-3 border-t border-red-200 dark:border-red-800 flex items-start gap-2 text-red-600 dark:text-red-400">
-                      <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm font-medium">{errors.agree_terms.message}</span>
-                    </div>
+                    <p className="mt-1 text-xs text-red-500 dark:text-red-400 flex items-start">
+                      <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
+                      <span>Please accept our Terms of Use and Privacy Policy to continue</span>
+                    </p>
                   )}
                 </div>
+
+
                 
                 {/* Custom ReCAPTCHA */}
                 <div className={`scale-90 sm:scale-100 origin-center transition-all duration-200 ${
@@ -2399,6 +2514,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
                     </div>
                   )}
                 </div>
+
+                {/* Terms agreement text below captcha */}
+                <div className="text-center text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  <span>By submitting this form, I agree to the <a href="/terms-and-services" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline transition-colors" target="_blank">'Terms of Use'</a> and <a href="/privacy-policy" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline transition-colors" target="_blank">'Privacy Policy'</a></span>
+                </div>
                 
                 {/* Submit Button */}
                 <div className="pt-1">
@@ -2411,6 +2531,44 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
                       <ArrowRight className="ml-2 h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                     </span>
                     <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-primary-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </button>
+                </div>
+
+                {/* OAuth Divider */}
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="bg-white dark:bg-gray-800 px-3 text-gray-500 dark:text-gray-400">
+                      Or continue with
+                    </span>
+                  </div>
+                </div>
+
+                {/* Google OAuth Button */}
+                <div className="mb-4">
+                  <button
+                    type="button"
+                    onClick={() => handleOAuthLogin('google')}
+                    disabled={isOAuthLoading.google}
+                    className="w-full flex items-center justify-center px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md text-sm sm:text-base"
+                  >
+                    {isOAuthLoading.google ? (
+                      <Loader2 className="w-5 h-5 animate-spin text-gray-600 dark:text-gray-300" />
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
+                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        <span className="text-gray-700 dark:text-gray-300 font-medium">
+                          Continue with Google
+                        </span>
+                      </>
+                    )}
                   </button>
                 </div>
 
@@ -2437,8 +2595,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           </div>
           
           {/* Copyright notice */}
-          <div className="text-center mt-2 text-xs text-gray-400 dark:text-gray-500">
-            <p>© {currentYear} Medh. All rights reserved.</p>
+          <div className="text-center mt-2 text-xs text-gray-400 dark:text-gray-500 space-y-1">
+            <p>Copyright © {currentYear} MEDH. All Rights Reserved.</p>
+            <p className="text-blue-600 dark:text-blue-400 font-semibold">
+              LEARN. UPSKILL. ELEVATE.
+            </p>
           </div>
         </div>
       </div>
