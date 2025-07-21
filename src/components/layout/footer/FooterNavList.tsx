@@ -176,7 +176,7 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
       title: "Learning",
       items: [
         { 
-          name: "Live Courses", 
+          name: "Live Courses (Learn your way: 1:1 coaching or small group learning)", 
           path: "/courses",
           children: [
             { name: "AI & Data Science", path: "/ai-and-data-science-course/" },

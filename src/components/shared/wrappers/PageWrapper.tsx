@@ -4,6 +4,7 @@ import Footer from "@/components/layout/footer/Footer";
 import Header from "@/components/layout/header/Header";
 import { ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import DemoSessionForm from "@/components/forms/DemoSessionForm";
 
 // Import custom hooks from consolidated file
 import {
@@ -42,6 +43,7 @@ const PageWrapper: React.FC<PageWrapperProps> = ({
   showFooter = true
 }) => {
   const [hasPageLoaded, setHasPageLoaded] = useState<boolean>(false);
+  const [showDemoForm, setShowDemoForm] = useState<boolean>(false);
   const contentRef = useRef<HTMLDivElement>(null);
   
   // Use custom hooks for better separation of concerns
@@ -74,6 +76,26 @@ const PageWrapper: React.FC<PageWrapperProps> = ({
       clearTimeout(timer);
     };
   }, [handleSmoothScroll]);
+
+  // Global demo form event listener
+  useEffect(() => {
+    const handleOpenDemoForm = () => {
+      setShowDemoForm(true);
+    };
+
+    const handleCloseDemoForm = () => {
+      setShowDemoForm(false);
+    };
+
+    // Listen for custom events to open/close demo form
+    window.addEventListener('openDemoForm', handleOpenDemoForm);
+    window.addEventListener('closeDemoForm', handleCloseDemoForm);
+
+    return () => {
+      window.removeEventListener('openDemoForm', handleOpenDemoForm);
+      window.removeEventListener('closeDemoForm', handleCloseDemoForm);
+    };
+  }, []);
 
   // Keyboard shortcut for scroll to top (Alt+ArrowUp)
   useEffect(() => {
@@ -205,6 +227,11 @@ const PageWrapper: React.FC<PageWrapperProps> = ({
 
       {/* Modal Portal Root: ensures modals render above header and all content */}
       <div id="modal-root" className="z-[120]"></div>
+
+      {/* Global Demo Session Form */}
+      {showDemoForm && (
+        <DemoSessionForm onClose={() => setShowDemoForm(false)} />
+      )}
     </div>
   );
 };
