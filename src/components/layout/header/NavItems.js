@@ -1,5 +1,5 @@
 import React from "react";
-import Navitem from "./Navitem";
+import { Navitem } from "./Navitem";
 import DropdownDemoes from "./DropdownDemoes";
 import DropdownPages from "./DropdownPages";
 import DropdownCourses from "./DropdownCourses";
