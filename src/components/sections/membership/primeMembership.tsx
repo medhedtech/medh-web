@@ -69,7 +69,7 @@ interface IModalState {
 // Fallback static data with psychological triggers
 const getStaticMembershipData = (): IMembershipData[] => [
   {
-    type: "medh silver membership" as TMembershipType,
+    type: "silver" as TMembershipType,
     icon: <Star className="w-4 h-4" />,
     color: "primary",
     isPopular: false,
@@ -91,7 +91,7 @@ const getStaticMembershipData = (): IMembershipData[] => [
     ]
   },
   {
-    type: "medh gold membership" as TMembershipType,
+    type: "gold" as TMembershipType,
     icon: <Crown className="w-4 h-4" />,
     color: "amber",
     isPopular: true,
@@ -270,7 +270,6 @@ const PrimeMembership: React.FC = () => {
   }, []);
 
   const handleSelectCourseModal = useCallback((membershipType: string): void => {
-    const normalizedType = membershipType === 'medh-silver membership' ? 'silver' : membershipType === 'medh-gold membership' ? 'gold' : membershipType;
     if (!checkUserLogin()) {
       setModalState(prev => ({ ...prev, isLoginModalOpen: true }));
       return;
@@ -278,7 +277,7 @@ const PrimeMembership: React.FC = () => {
     
     setModalState(prev => ({ 
       ...prev, 
-      selectedMembershipType: normalizedType as TMembershipType,
+      selectedMembershipType: membershipType as TMembershipType,
       isSelectCourseModalOpen: true,
       modalError: null
     }));
@@ -287,22 +286,12 @@ const PrimeMembership: React.FC = () => {
   const handlePlanSelection = useCallback((membershipType: string, planDuration: string): void => {
     console.log('Plan selection called with:', { membershipType, planDuration });
     
-    // Normalize the membership type to handle both API and static data formats
-    let normalizedType = membershipType.toLowerCase();
-    if (normalizedType.includes('silver')) {
-      normalizedType = 'silver';
-    } else if (normalizedType.includes('gold')) {
-      normalizedType = 'gold';
-    }
-    
-    console.log('Normalized type:', normalizedType);
-    
     setModalState(prev => {
       const newState = {
         ...prev,
-        selectedMembershipType: normalizedType as TMembershipType,
-        ...(normalizedType === "silver" && { selectedSilverPlan: planDuration }),
-        ...(normalizedType === "gold" && { selectedGoldPlan: planDuration })
+        selectedMembershipType: membershipType as TMembershipType,
+        ...(membershipType === "silver" && { selectedSilverPlan: planDuration }),
+        ...(membershipType === "gold" && { selectedGoldPlan: planDuration })
       };
       console.log('New modal state:', newState);
       return newState;
@@ -343,13 +332,9 @@ const PrimeMembership: React.FC = () => {
         {/* Compact Membership Cards */}
         <div id="membership-cards" className="grid md:grid-cols-2 gap-6 mb-8 px-6 md:px-8 lg:px-10">
           {membershipData.map((membership: IMembershipData, index: number) => {
-            // Normalize membership type for comparison
-            const membershipTypeNormalized = membership.type.toLowerCase().includes('silver') ? 'silver' : 
-                                           membership.type.toLowerCase().includes('gold') ? 'gold' : membership.type;
-            const selectedPlanDuration = membershipTypeNormalized === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
+            const selectedPlanDuration = membership.type === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
             console.log('Rendering membership:', { 
-              originalType: membership.type, 
-              normalizedType: membershipTypeNormalized, 
+              type: membership.type, 
               selectedPlan: selectedPlanDuration,
               modalState: modalState 
             });
@@ -398,7 +383,7 @@ const PrimeMembership: React.FC = () => {
                         {membership.icon}
                       </span>
                       <h2 className="text-lg font-bold text-gray-900 dark:text-white capitalize">
-                        {membership.type}
+                        {membership.type === 'gold' ? 'medh gold membership' : membership.type === 'silver' ? 'medh silver membership' : membership.type}
                       </h2>
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">

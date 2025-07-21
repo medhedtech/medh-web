@@ -283,6 +283,9 @@ export default function SelectCourseModal({
   const normalizedPlanType = (planType || "").toLowerCase();
   const maxSelections = normalizedPlanType === "silver" ? 1 : normalizedPlanType === "gold" ? 3 : 1;
 
+  // Debug logging
+  console.log('SelectCourseModal - planType:', planType, 'normalizedPlanType:', normalizedPlanType, 'maxSelections:', maxSelections);
+
   const modalVariants = {
     hidden: { opacity: 0, scale: 0.95 },
     visible: { opacity: 1, scale: 1, transition: { duration: 0.2 } },
