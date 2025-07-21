@@ -71,7 +71,8 @@ const CorporateFaq: React.FC = () => {
         faqs={faqs}
         title="Frequently Asked Questions"
         contactText="Have more questions about our corporate training? Contact our team at"
-        contactEmail="care@medh.co"
+        contactEmail="corporate@medh.co"
+        emailLink="https://mail.google.com/mail/u/0/?to=corporate@medh.co&fs=1&tf=cm"
       />
     </div>
   );

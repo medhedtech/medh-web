@@ -123,7 +123,8 @@ const HireFromMedhFaq: React.FC = () => {
         faqs={faqs}
         title="Frequently Asked Questions"
         contactText="Have more questions about hiring? Contact our recruitment team at"
-        contactEmail="care@medh.co"
+        contactEmail="corporate@medh.co"
+        emailLink="https://mail.google.com/mail/?view=cm&fs=1&to=corporate@medh.co"
       />
     </section>
   );
