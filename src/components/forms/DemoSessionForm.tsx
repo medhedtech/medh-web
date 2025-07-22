@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useTheme } from "next-themes";
-import { X, Calendar, Clock, BookOpen, Users, Star, TrendingUp, ChevronDown, CheckCircle, Radio, Loader2, MapPin, AlertCircle } from "lucide-react";
+import { 
+  X, Calendar, Clock, MapPin, AlertCircle, CheckCircle, 
+  Radio, Loader2, Phone, Mail, User, GraduationCap, 
+  Building, Globe, Heart
+} from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Select from "react-select";
@@ -14,72 +18,84 @@ import {
   IDemoSessionDetails,
   IConsent,
   ILiveCourse,
-  getLiveCourses,
-  submitBookFreeDemoSessionForm,
+  DemoSessionAPI,
+  FormValidation,
   TStudentGrade,
   THighestQualification,
   TKnowMedhFrom,
+  IValidationError,
 } from "@/apis/demo.api";
-import { buildComponent, buildAdvancedComponent, getResponsive, getEnhancedSemanticColor } from "@/utils/designSystem";
+import { buildComponent, buildAdvancedComponent } from "@/utils/designSystem";
 import Swal from "sweetalert2";
-import intlTelInput from "intl-tel-input";
-import "intl-tel-input/build/css/intlTelInput.css";
 import countriesData from "@/utils/countrycode.json";
 import PhoneNumberInput from '../shared/login/PhoneNumberInput';
 import Link from "next/link";
 
-// Helper for form field styles
-const inputClasses = "w-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition duration-200 shadow-sm";
-const labelClasses = "block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1";
-const errorClasses = "text-red-500 text-xs mt-1";
+// Enhanced Form Step Type
+type FormStep = 'age-selection' | 'parent-details' | 'student-details' | 'demo-consent' | 'complete-form';
+
+// Form Field Styles with improved design
+const getInputClasses = (hasError: boolean, isDark: boolean) => {
+  const baseClasses = "w-full p-4 rounded-xl border transition-all duration-200 shadow-sm focus:ring-2 focus:ring-offset-1 focus:outline-none";
+  const errorClasses = hasError 
+    ? "border-red-400 bg-red-50 dark:bg-red-900/10 focus:ring-red-500 focus:border-red-500 text-red-900 dark:text-red-100"
+    : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 hover:border-gray-400 dark:hover:border-gray-500";
+  
+  return `${baseClasses} ${errorClasses}`;
+};
+
+const labelClasses = "block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2";
+const errorClasses = "flex items-center gap-2 text-red-600 dark:text-red-400 text-sm font-medium mt-2";
 const radioGroupClasses = "flex flex-col sm:flex-row gap-4";
-const radioLabelClasses = "flex items-center text-sm font-medium text-gray-800 dark:text-gray-200 cursor-pointer";
+const radioLabelClasses = "flex items-center text-sm font-medium text-gray-800 dark:text-gray-200 cursor-pointer hover:text-primary-600 transition-colors";
 
-// Grade options
+// Enhanced Options Arrays
 const gradeOptions: { value: TStudentGrade; label: string }[] = [
-  { value: "Grade 1-2", label: "Grade 1-2" },
-  { value: "Grade 3-4", label: "Grade 3-4" },
-  { value: "Grade 5-6", label: "Grade 5-6" },
-  { value: "Grade 7-8", label: "Grade 7-8" },
-  { value: "Grade 9-10", label: "Grade 9-10" },
-  { value: "Grade 11-12", label: "Grade 11-12" },
-  { value: "Home Study", label: "Home Study" },
+  { value: "Grade 1-2", label: "Grade 1-2 (Ages 6-8)" },
+  { value: "Grade 3-4", label: "Grade 3-4 (Ages 8-10)" },
+  { value: "Grade 5-6", label: "Grade 5-6 (Ages 10-12)" },
+  { value: "Grade 7-8", label: "Grade 7-8 (Ages 12-14)" },
+  { value: "Grade 9-10", label: "Grade 9-10 (Ages 14-16)" },
+  { value: "Grade 11-12", label: "Grade 11-12 (Ages 16-18)" },
+  { value: "Home Study", label: "Home Study/Homeschooled" },
 ];
 
-// Highest Qualification options
 const qualificationOptions: { value: THighestQualification; label: string }[] = [
-  { value: "10th passed", label: "10th passed" },
-  { value: "12th passed", label: "12th passed" },
-  { value: "Undergraduate", label: "Undergraduate" },
-  { value: "Graduate", label: "Graduate" },
-  { value: "Post-Graduate", label: "Post-Graduate" },
+  { value: "10th passed", label: "10th Standard Completed" },
+  { value: "12th passed", label: "12th Standard/High School Completed" },
+  { value: "Undergraduate", label: "Currently in College/University" },
+  { value: "Graduate", label: "Bachelor's Degree Completed" },
+  { value: "Post-Graduate", label: "Master's/PhD Completed" },
 ];
 
-// How did you hear about Medh options
 const knowMedhFromOptions: { value: TKnowMedhFrom; label: string }[] = [
-  { value: "social_media", label: "Social Media" },
-  { value: "friend", label: "Friend" },
-  { value: "online_ad", label: "Online Ad" },
-  { value: "school_event", label: "School Event" },
-  { value: "other", label: "Other" },
+  { value: "social_media", label: "Social Media (Facebook, Instagram, LinkedIn)" },
+  { value: "friend", label: "Friend or Family Recommendation" },
+  { value: "online_ad", label: "Online Advertisement" },
+  { value: "school_event", label: "School Event or Workshop" },
+  { value: "other", label: "Other Source" },
 ];
 
-// Hardcoded time slots for now, will be dynamic later
-const timeSlotOptions = [
-  { value: "09:00 AM - 10:00 AM", label: "09:00 AM - 10:00 AM" },
-  { value: "10:00 AM - 11:00 AM", label: "10:00 AM - 11:00 AM" },
-  { value: "11:00 AM - 12:00 PM", label: "11:00 AM - 12:00 PM" },
-  { value: "02:00 PM - 03:00 PM", label: "02:00 PM - 03:00 PM" },
-  { value: "04:00 PM - 05:00 PM", label: "04:00 PM - 05:00 PM" },
-  { value: "06:00 PM - 07:00 PM", label: "06:00 PM - 07:00 PM" },
-];
-
-// Preferred timings options
 const preferredTimingsOptions = [
-  { value: "morning(8am - 12pm)", label: "Morning (8am - 12pm)" },
-  { value: "afternoon(12pm - 5pm)", label: "Afternoon (12pm - 5pm)" },
-  { value: "evening(5pm - 10pm)", label: "Evening (5pm - 10pm)" },
+  { value: "morning(8am - 12pm)", label: "Morning (8:00 AM - 12:00 PM)" },
+  { value: "afternoon(12pm - 5pm)", label: "Afternoon (12:00 PM - 5:00 PM)" },
+  { value: "evening(5pm - 10pm)", label: "Evening (5:00 PM - 10:00 PM)" },
 ];
+
+// Form State Interface
+interface IFormState {
+  step: FormStep;
+  isStudentUnder16: boolean | null;
+  parentDetails: IParentDetails;
+  studentDetailsUnder16: IStudentDetailsUnder16;
+  studentDetails16AndAbove: IStudentDetails16AndAbove;
+  demoSessionDetails: IDemoSessionDetails;
+  consent: IConsent;
+  validationErrors: Record<string, string>;
+  isSubmitting: boolean;
+  liveCourses: ILiveCourse[];
+  isLoadingCourses: boolean;
+}
 
 interface DemoSessionFormProps {
   onClose: () => void;
@@ -89,254 +105,346 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
-  // State for form steps and data
-  const [step, setStep] = useState(1); // 1: Age question, 2: Parent details (under 16), 3: Student details (under 16), 4: Demo & consent, 5: Form (16+)
-  const [isStudentUnder16, setIsStudentUnder16] = useState<boolean | null>(null);
-  const [parentDetails, setParentDetails] = useState<IParentDetails>({ name: "", email: "", mobile_no: "", city: "", preferred_timings_to_connect: "" });
-  const [studentDetailsUnder16, setStudentDetailsUnder16] = useState<IStudentDetailsUnder16>({ name: "", grade: "Grade 1-2", city: "", state: "", preferred_course: [], know_medh_from: "social_media", email: "", school_name: "" });
-  const [studentDetails16AndAbove, setStudentDetails16AndAbove] = useState<IStudentDetails16AndAbove>({ name: "", email: "", mobile_no: "", city: "", preferred_timings_to_connect: "", highest_qualification: "10th passed", currently_studying: false, currently_working: false, preferred_course: [], know_medh_from: "social_media", education_institute_name: "" });
-  const [demoSessionDetails, setDemoSessionDetails] = useState<IDemoSessionDetails>({ preferred_date: undefined, preferred_time_slot: "" });
-  const [consent, setConsent] = useState<IConsent>({ terms_accepted: false, privacy_policy_accepted: false, gdpr_consent: false });
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [liveCourses, setLiveCourses] = useState<ILiveCourse[]>([]);
-  const [isLoadingCourses, setIsLoadingCourses] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Enhanced Form State
+  const [formState, setFormState] = useState<IFormState>({
+    step: 'age-selection',
+    isStudentUnder16: null,
+    parentDetails: { 
+      name: "", 
+      email: "", 
+      mobile_no: "", 
+      city: "", 
+      preferred_timings_to_connect: "",
+      country: "in" 
+    },
+    studentDetailsUnder16: { 
+      name: "", 
+      grade: "Grade 1-2", 
+      city: "", 
+      state: "", 
+      preferred_course: [], 
+      know_medh_from: "social_media", 
+      email: "", 
+      school_name: "",
+      country: "in" 
+    },
+    studentDetails16AndAbove: { 
+      name: "", 
+      email: "", 
+      mobile_no: "", 
+      city: "", 
+      preferred_timings_to_connect: "", 
+      highest_qualification: "10th passed", 
+      currently_studying: false, 
+      currently_working: false, 
+      preferred_course: [], 
+      know_medh_from: "social_media", 
+      education_institute_name: "",
+      country: "in" 
+    },
+    demoSessionDetails: { 
+      preferred_date: undefined, 
+      preferred_time_slot: "",
+      special_requirements: "",
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    },
+    consent: { 
+      terms_accepted: false, 
+      privacy_policy_accepted: false, 
+      gdpr_consent: false,
+      marketing_consent: false
+    },
+    validationErrors: {},
+    isSubmitting: false,
+    liveCourses: [],
+    isLoadingCourses: true
+  });
 
-  // Refs for direct intl-tel-input
-  const parentPhoneInputRef = useRef<HTMLInputElement>(null);
-  const studentPhoneInputRef = useRef<HTMLInputElement>(null);
-  const parentItiRef = useRef<any>(null);
-  const studentItiRef = useRef<any>(null);
-
-  // State for selected countries
-  const [parentSelectedCountry, setParentSelectedCountry] = useState("in");
-  const [studentSelectedCountry, setStudentSelectedCountry] = useState("in");
-
-  // Remove the old countryOptions array as we'll use countriesData from utils
-
-  useEffect(() => {
-    // Initialize parent phone input
-    if (parentPhoneInputRef.current && !parentItiRef.current) {
-      parentItiRef.current = intlTelInput(parentPhoneInputRef.current, {
-        initialCountry: parentSelectedCountry,
-        separateDialCode: true,
-        utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.1/build/js/utils.js",
-        autoPlaceholder: "polite",
-        formatOnDisplay: true,
-        nationalMode: true,
-        dropdownContainer: document.body
-      });
-    }
-
-    // Initialize student phone input
-    if (studentPhoneInputRef.current && !studentItiRef.current) {
-      studentItiRef.current = intlTelInput(studentPhoneInputRef.current, {
-        initialCountry: studentSelectedCountry,
-        separateDialCode: true,
-        utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.1/build/js/utils.js",
-        autoPlaceholder: "polite",
-        formatOnDisplay: true,
-        nationalMode: true,
-        dropdownContainer: document.body
-      });
-    }
-
-    // Cleanup on unmount
-    return () => {
-      if (parentItiRef.current) {
-        parentItiRef.current.destroy();
-        parentItiRef.current = null;
-      }
-      if (studentItiRef.current) {
-        studentItiRef.current.destroy();
-        studentItiRef.current = null;
-      }
-    };
-  }, [step]);
-
-  // Update intl-tel-input country when country selection changes
-  useEffect(() => {
-    if (parentItiRef.current) {
-      parentItiRef.current.setCountry(parentSelectedCountry);
-    }
-  }, [parentSelectedCountry]);
-
-  useEffect(() => {
-    if (studentItiRef.current) {
-      studentItiRef.current.setCountry(studentSelectedCountry);
-    }
-  }, [studentSelectedCountry]);
-
+  // Load courses on component mount
   useEffect(() => {
     const fetchCourses = async () => {
-      setIsLoadingCourses(true);
-      const response = await getLiveCourses();
-      if (response.success && response.data) {
-        setLiveCourses(response.data);
-      } else {
-        Swal.fire("Error", response.message || "Failed to load courses.", "error");
+      setFormState(prev => ({ ...prev, isLoadingCourses: true }));
+      
+      try {
+        const response = await DemoSessionAPI.getLiveCourses();
+        if (response.success && response.data) {
+          setFormState(prev => ({ 
+            ...prev, 
+            liveCourses: response.data || [],
+            isLoadingCourses: false 
+          }));
+        } else {
+          throw new Error(response.message || "Failed to load courses");
+        }
+      } catch (error) {
+        console.error("Error loading courses:", error);
+        setFormState(prev => ({ ...prev, isLoadingCourses: false }));
+        Swal.fire({
+          title: "Warning",
+          text: "Some course data couldn't be loaded, but you can still submit the form.",
+          icon: "warning",
+          confirmButtonText: "Continue",
+          customClass: {
+            popup: isDark ? 'dark-mode-swal' : '',
+            confirmButton: isDark ? 'dark-mode-swal-confirm-button' : '',
+          }
+        });
       }
-      setIsLoadingCourses(false);
     };
+    
     fetchCourses();
-  }, []);
+  }, [isDark]);
 
-  const validateForm = useCallback(() => {
+  // Enhanced form validation with detailed error messages
+  const validateCurrentStep = useCallback((): boolean => {
     const errors: Record<string, string> = {};
 
-    if (isStudentUnder16 === null) {
-      errors.isStudentUnder16 = "Please answer if the student is less than 16 years old.";
+    switch (formState.step) {
+      case 'age-selection':
+        if (formState.isStudentUnder16 === null) {
+          errors.age = "Please select whether the student is under 16 years old.";
+        }
+        break;
+
+      case 'parent-details':
+        if (!formState.parentDetails.name.trim()) {
+          errors.parentName = "Parent's name is required.";
+        } else if (formState.parentDetails.name.trim().length < 2) {
+          errors.parentName = "Parent's name must be at least 2 characters.";
+        }
+        
+        if (!formState.parentDetails.email.trim()) {
+          errors.parentEmail = "Parent's email is required.";
+        } else if (!FormValidation.validateEmail(formState.parentDetails.email)) {
+          errors.parentEmail = "Please enter a valid email address.";
+        }
+        
+        if (!formState.parentDetails.mobile_no.trim()) {
+          errors.parentMobile = "Parent's mobile number is required.";
+        }
+        
+        if (!formState.parentDetails.city.trim()) {
+          errors.parentCity = "Parent's city is required.";
+        }
+        break;
+
+      case 'student-details':
+        if (formState.isStudentUnder16) {
+          const studentDetails = formState.studentDetailsUnder16;
+          if (!studentDetails.name.trim()) {
+            errors.studentName = "Student's name is required.";
+          }
+          if (!studentDetails.city.trim()) {
+            errors.studentCity = "Student's city is required.";
+          }
+          if (!studentDetails.state.trim()) {
+            errors.studentState = "Student's state is required.";
+          }
+          if (studentDetails.preferred_course.length === 0) {
+            errors.preferredCourse = "Please select at least one preferred course.";
+          }
+        }
+        break;
+
+      case 'complete-form':
+        if (!formState.isStudentUnder16) {
+          const studentDetails = formState.studentDetails16AndAbove;
+          if (!studentDetails.name.trim()) {
+            errors.studentName = "Student's name is required.";
+          }
+          if (!FormValidation.validateEmail(studentDetails.email)) {
+            errors.studentEmail = "Please enter a valid email address.";
+          }
+          if (!studentDetails.mobile_no.trim()) {
+            errors.studentMobile = "Student's mobile number is required.";
+          }
+          if (!studentDetails.city.trim()) {
+            errors.studentCity = "Student's city is required.";
+          }
+          if (studentDetails.preferred_course.length === 0) {
+            errors.preferredCourse = "Please select at least one preferred course.";
+          }
+        }
+        
+        if (!formState.consent.terms_accepted) {
+          errors.termsAccepted = "You must accept the Terms of Use.";
+        }
+        if (!formState.consent.privacy_policy_accepted) {
+          errors.privacyAccepted = "You must accept the Privacy Policy.";
+        }
+        break;
     }
 
-    if (isStudentUnder16) {
-      // Under 16 form validation
-      if (!parentDetails.name.trim()) errors.parentName = "Parent's Name is required.";
-      if (!parentDetails.email.trim()) {
-        errors.parentEmail = "Parent's Email ID is required.";
-      } else if (!/\S+@\S+\.\S+/.test(parentDetails.email)) {
-        errors.parentEmail = "Invalid email format.";
-      }
-      if (!parentDetails.mobile_no || !parentItiRef.current?.isValidNumber()) errors.parentMobileNo = "Parent's Mobile No is required and valid.";
-      if (!parentDetails.city?.trim()) errors.parentCity = "Parent's Current City is required.";
-
-      if (!studentDetailsUnder16.name.trim()) errors.studentName = "Student's Name is required.";
-      if (!studentDetailsUnder16.grade) errors.studentGrade = "Student's Grade is required.";
-      if (!studentDetailsUnder16.city?.trim()) errors.studentCity = "Student's Current City is required.";
-      if (!studentDetailsUnder16.state?.trim()) errors.studentState = "Student's State is required.";
-      if (studentDetailsUnder16.preferred_course.length === 0) errors.studentPreferredCourse = "Preferred Course is required.";
-      if (!studentDetailsUnder16.know_medh_from) errors.knowMedhFrom = "Please let us know how you heard about Medh.";
-    } else if (isStudentUnder16 === false) {
-      // 16 and above form validation
-      if (!studentDetails16AndAbove.name.trim()) errors.studentName = "Student's Name is required.";
-      if (!studentDetails16AndAbove.email.trim()) {
-        errors.studentEmail = "Student's Email ID is required.";
-      } else if (!/\S+@\S+\.\S+/.test(studentDetails16AndAbove.email)) {
-        errors.studentEmail = "Invalid email format.";
-      }
-      if (!studentDetails16AndAbove.mobile_no || !studentItiRef.current?.isValidNumber()) errors.studentMobileNo = "Student's Mobile No is required and valid.";
-      if (!studentDetails16AndAbove.city?.trim()) errors.studentCity = "Student's Current City is required.";
-      if (studentDetails16AndAbove.preferred_course.length === 0) errors.studentPreferredCourse = "Preferred Course is required.";
-      if (!studentDetails16AndAbove.highest_qualification) errors.highestQualification = "Highest Qualification is required.";
-      if (studentDetails16AndAbove.currently_studying === null) errors.currentlyStudying = "Please select if you are currently studying.";
-      if (studentDetails16AndAbove.currently_working === null) errors.currentlyWorking = "Please select if you are currently working.";
-      if (!studentDetails16AndAbove.know_medh_from) errors.knowMedhFrom = "Please let us know how you heard about Medh.";
-    }
-
-    if (!consent.terms_accepted) errors.termsAccepted = "You must agree to the Terms of Use.";
-    if (!consent.privacy_policy_accepted) errors.privacyPolicyAccepted = "You must agree to the Privacy Policy.";
-
-    setFormErrors(errors);
+    setFormState(prev => ({ ...prev, validationErrors: errors }));
     return Object.keys(errors).length === 0;
-  }, [isStudentUnder16, parentDetails, studentDetailsUnder16, studentDetails16AndAbove, consent, parentItiRef, studentItiRef]);
+  }, [formState]);
 
+  // Enhanced form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) {
-      Swal.fire("Validation Error", "Please fill in all required fields correctly.", "error");
+    
+    if (!validateCurrentStep()) {
+      // Focus on first error field
+      const firstError = Object.keys(formState.validationErrors)[0];
+      const errorElement = document.querySelector(`[data-field="${firstError}"]`);
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
 
-    setIsSubmitting(true);
-    const submissionTimestamp = new Date().toISOString();
-    const userAgent = navigator.userAgent;
-
-    let payload: IBookFreeDemoSessionPayload;
-
-    if (isStudentUnder16) {
-      payload = {
-        form_type: "book_a_free_demo_session",
-        is_student_under_16: true,
-        parent_details: {
-          ...parentDetails,
-          mobile_no: parentItiRef.current?.getNumber() || parentDetails.mobile_no, // Use intl-tel-input formatted number
-        },
-        student_details: studentDetailsUnder16,
-        demo_session_details: demoSessionDetails,
-        consent: consent,
-        submission_metadata: {
-          user_agent: userAgent,
-          timestamp: submissionTimestamp,
-          form_version: "1.0",
-          validation_passed: true,
-        },
-      };
-    } else {
-      payload = {
-        form_type: "book_a_free_demo_session",
-        is_student_under_16: false,
-        student_details: {
-          ...studentDetails16AndAbove,
-          mobile_no: studentItiRef.current?.getNumber() || studentDetails16AndAbove.mobile_no, // Use intl-tel-input formatted number
-        },
-        demo_session_details: demoSessionDetails,
-        consent: consent,
-        submission_metadata: {
-          user_agent: userAgent,
-          timestamp: submissionTimestamp,
-          form_version: "1.0",
-          validation_passed: true,
-        },
-      };
-    }
+    setFormState(prev => ({ ...prev, isSubmitting: true }));
 
     try {
-      const response = await submitBookFreeDemoSessionForm(payload);
-      if (response.success) {
-        Swal.fire({
-          title: "Success!",
-          text: "Your demo session request has been submitted. We will contact you shortly!",
-          icon: "success",
-          confirmButtonText: "Ok",
-          customClass: {
-            popup: isDark ? 'dark-mode-swal' : '',
-            confirmButton: isDark ? 'dark-mode-swal-confirm-button' : '',
-          }
-        }).then(() => {
-          onClose(); // Close the modal on success
-        });
+      const submissionTimestamp = new Date();
+      const userAgent = navigator.userAgent;
+
+      let payload: IBookFreeDemoSessionPayload;
+
+      if (formState.isStudentUnder16) {
+        payload = {
+          form_type: "book_a_free_demo_session",
+          is_student_under_16: true,
+          parent_details: formState.parentDetails,
+          student_details: formState.studentDetailsUnder16,
+          demo_session_details: formState.demoSessionDetails,
+          consent: formState.consent,
+          submission_metadata: {
+            user_agent: userAgent,
+            timestamp: submissionTimestamp.toISOString(),
+            form_version: "2.0",
+            validation_passed: true,
+            device_info: {
+              type: /Mobile|Android|iPhone|iPad/.test(userAgent) ? 'mobile' : 'desktop',
+              os: navigator.platform,
+              browser: navigator.userAgent.split(' ').pop() || 'Unknown'
+            }
+          },
+        };
       } else {
-        Swal.fire({
-          title: "Error",
-          text: response.message || "Failed to submit demo session request.",
-          icon: "error",
-          confirmButtonText: "Ok",
+        payload = {
+          form_type: "book_a_free_demo_session",
+          is_student_under_16: false,
+          student_details: formState.studentDetails16AndAbove,
+          demo_session_details: formState.demoSessionDetails,
+          consent: formState.consent,
+          submission_metadata: {
+            user_agent: userAgent,
+            timestamp: submissionTimestamp.toISOString(),
+            form_version: "2.0",
+            validation_passed: true,
+            device_info: {
+              type: /Mobile|Android|iPhone|iPad/.test(userAgent) ? 'mobile' : 'desktop',
+              os: navigator.platform,
+              browser: navigator.userAgent.split(' ').pop() || 'Unknown'
+            }
+          },
+        };
+      }
+
+      const response = await DemoSessionAPI.submitBookFreeDemoSessionForm(payload);
+      
+      if (response.success) {
+        await Swal.fire({
+          title: "🎉 Success!",
+          html: `
+            <div class="text-center space-y-4">
+              <div class="text-lg font-semibold text-green-600 dark:text-green-400">
+                Your demo session request has been submitted successfully!
+              </div>
+              ${response.data?.confirmation_number ? 
+                `<div class="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+                  <strong>Confirmation Number:</strong> ${response.data.confirmation_number}
+                </div>` : ''
+              }
+              <div class="text-sm text-gray-600 dark:text-gray-400">
+                We will contact you shortly to schedule your free demo session.
+              </div>
+            </div>
+          `,
+          icon: "success",
+          confirmButtonText: "Got it!",
           customClass: {
             popup: isDark ? 'dark-mode-swal' : '',
             confirmButton: isDark ? 'dark-mode-swal-confirm-button' : '',
           }
         });
+        onClose();
+      } else {
+        throw new Error(response.message || "Submission failed");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Submission error:", error);
-      Swal.fire({
-        title: "Error",
-        text: "An unexpected error occurred. Please try again later.",
+      
+      let errorMessage = "An unexpected error occurred. Please try again.";
+      if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      await Swal.fire({
+        title: "Submission Error",
+        text: errorMessage,
         icon: "error",
-        confirmButtonText: "Ok",
+        confirmButtonText: "Try Again",
         customClass: {
           popup: isDark ? 'dark-mode-swal' : '',
           confirmButton: isDark ? 'dark-mode-swal-confirm-button' : '',
         }
       });
     } finally {
-      setIsSubmitting(false);
+      setFormState(prev => ({ ...prev, isSubmitting: false }));
     }
   };
 
-  // Custom styles for react-select
+  // Navigation helpers
+  const goToNextStep = () => {
+    if (!validateCurrentStep()) return;
+
+    const stepOrder: FormStep[] = ['age-selection', 'parent-details', 'student-details', 'demo-consent', 'complete-form'];
+    const currentIndex = stepOrder.indexOf(formState.step);
+    
+    if (formState.step === 'age-selection') {
+      const nextStep = formState.isStudentUnder16 ? 'parent-details' : 'complete-form';
+      setFormState(prev => ({ ...prev, step: nextStep }));
+    } else if (currentIndex < stepOrder.length - 1) {
+      // Skip steps based on age selection
+      if (formState.step === 'student-details' && formState.isStudentUnder16) {
+        setFormState(prev => ({ ...prev, step: 'demo-consent' }));
+      } else if (currentIndex + 1 < stepOrder.length) {
+        setFormState(prev => ({ ...prev, step: stepOrder[currentIndex + 1] }));
+      }
+    }
+  };
+
+  const goToPreviousStep = () => {
+    const stepOrder: FormStep[] = ['age-selection', 'parent-details', 'student-details', 'demo-consent', 'complete-form'];
+    const currentIndex = stepOrder.indexOf(formState.step);
+    
+    if (formState.step === 'complete-form' && !formState.isStudentUnder16) {
+      setFormState(prev => ({ ...prev, step: 'age-selection' }));
+    } else if (formState.step === 'demo-consent') {
+      setFormState(prev => ({ ...prev, step: 'student-details' }));
+    } else if (currentIndex > 0) {
+      setFormState(prev => ({ ...prev, step: stepOrder[currentIndex - 1] }));
+    }
+  };
+
+  // Enhanced select styles
   const selectStyles = useMemo(() => ({
     control: (provided: any, state: any) => ({
       ...provided,
       backgroundColor: isDark ? '#1f2937' : '#ffffff',
-      borderColor: isDark ? '#374151' : '#d1d5db',
+      borderColor: state.hasValue || state.isFocused ? '#6366f1' : isDark ? '#374151' : '#d1d5db',
       color: isDark ? '#ffffff' : '#1f2937',
-      borderRadius: '0.75rem', // rounded-xl
-      padding: '0.25rem', // py-1
-      boxShadow: state.isFocused ? '0 0 0 2px rgba(99, 102, 241, 0.5)' : 'none', // focus:ring-2 focus:ring-primary-500
+      borderRadius: '0.75rem',
+      padding: '0.5rem',
+      minHeight: '56px',
+      boxShadow: state.isFocused ? '0 0 0 2px rgba(99, 102, 241, 0.2)' : 'none',
       '&:hover': {
-        borderColor: isDark ? '#4b5563' : '#9ca3af',
+        borderColor: '#6366f1',
       },
       transition: 'all 0.2s ease-in-out',
+      cursor: 'pointer',
     }),
     singleValue: (provided: any) => ({
       ...provided,
@@ -344,13 +452,14 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
     }),
     multiValue: (provided: any) => ({
       ...provided,
-      backgroundColor: isDark ? '#4a5568' : '#e0e7ff',
+      backgroundColor: isDark ? '#4f46e5' : '#e0e7ff',
       color: isDark ? '#ffffff' : '#1f2937',
       borderRadius: '0.5rem',
     }),
     multiValueLabel: (provided: any) => ({
       ...provided,
       color: isDark ? '#ffffff' : '#1f2937',
+      fontWeight: '500',
     }),
     multiValueRemove: (provided: any) => ({
       ...provided,
@@ -365,182 +474,252 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
       backgroundColor: isDark ? '#1f2937' : '#ffffff',
       border: `1px solid ${isDark ? '#374151' : '#d1d5db'}`,
       borderRadius: '0.75rem',
-      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-      zIndex: 9999, // Ensure it's above other elements
+      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+      zIndex: 9999,
     }),
     option: (provided: any, state: any) => ({
       ...provided,
       backgroundColor: state.isSelected
-        ? (isDark ? '#4a5568' : '#d1d5db')
+        ? '#6366f1'
         : state.isFocused
-          ? (isDark ? '#374151' : '#e5e7eb')
+          ? (isDark ? '#374151' : '#f3f4f6')
           : (isDark ? '#1f2937' : '#ffffff'),
-      color: isDark ? '#ffffff' : '#1f2937',
+      color: state.isSelected ? '#ffffff' : (isDark ? '#ffffff' : '#1f2937'),
+      cursor: 'pointer',
       '&:active': {
-        backgroundColor: isDark ? '#4a5568' : '#d1d5db',
+        backgroundColor: '#6366f1',
       },
     }),
     placeholder: (provided: any) => ({
       ...provided,
       color: isDark ? '#9ca3af' : '#6b7280',
+      fontStyle: 'normal',
     }),
   }), [isDark]);
 
-  // Datepicker styles
-  const datepickerCustomInput = useMemo(() => buildComponent.button(
-    isDark ? "secondary" : "light",
-    "lg"
-  ) + " w-full flex items-center justify-between text-left", [isDark]);
-
-  // Custom select component for consistency
-  const CustomSelect = ({ options, value, onChange, placeholder, isMulti = false, isDisabled = false }: any) => {
-    const selectedValue = isMulti
-      ? options.filter((option: any) => value.includes(option.value))
-      : options.find((option: any) => option.value === value);
-
+  // Progress indicator component
+  const ProgressIndicator = ({ currentStep, isUnder16 }: { currentStep: FormStep; isUnder16: boolean | null }) => {
+    const steps = isUnder16 
+      ? ['age-selection', 'parent-details', 'student-details', 'demo-consent']
+      : ['age-selection', 'complete-form'];
+    
+    const stepLabels = isUnder16 
+      ? ['Age', 'Parent', 'Student', 'Session']
+      : ['Age', 'Details'];
+    
+    const currentIndex = steps.indexOf(currentStep);
+    
     return (
-        <Select
-        options={options}
-        value={selectedValue}
-        onChange={isMulti ? (selected: any) => onChange(selected ? selected.map((s: any) => s.value) : []) : (selected: any) => onChange(selected ? selected.value : null)}
-        isMulti={isMulti}
-        isDisabled={isDisabled}
-        styles={selectStyles}
-        placeholder={placeholder}
-          classNamePrefix="react-select"
-        components={{
-          IndicatorSeparator: () => null,
-          DropdownIndicator: (props: any) => (
-            <ChevronDown size={20} className={isDark ? "text-gray-400" : "text-gray-600"} />
-          ),
-          ClearIndicator: (props: any) => (
-            <X size={16} className={isDark ? "text-gray-400 hover:text-white" : "text-gray-600 hover:text-gray-900"} onClick={props.innerProps.onClick} />
-          )
-        }}
-      />
+      <div className="flex items-center justify-center mb-8">
+        <div className="flex items-center space-x-4">
+          {steps.map((step, index) => (
+            <React.Fragment key={step}>
+              <div className="flex items-center">
+                <div className={`
+                  w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200
+                  ${index <= currentIndex 
+                    ? 'bg-primary-500 text-white shadow-lg' 
+                    : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
+                  }
+                `}>
+                  {index < currentIndex ? <CheckCircle size={20} /> : index + 1}
+                </div>
+                <span className={`
+                  ml-3 text-sm font-medium transition-colors duration-200
+                  ${index <= currentIndex 
+                    ? 'text-primary-500' 
+                    : 'text-gray-500 dark:text-gray-400'
+                  }
+                `}>
+                  {stepLabels[index]}
+                </span>
+              </div>
+              {index < steps.length - 1 && (
+                <div className={`
+                  w-16 h-1 rounded-full transition-colors duration-200
+                  ${index < currentIndex 
+                    ? 'bg-primary-500' 
+                    : 'bg-gray-300 dark:bg-gray-600'
+                  }
+                `} />
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
     );
   };
 
+  // Error display component
+  const ErrorMessage = ({ error, field }: { error?: string; field?: string }) => {
+    if (!error) return null;
+    
+    return (
+      <div className={errorClasses} data-field={field}>
+        <AlertCircle className="h-4 w-4 flex-shrink-0" />
+        <span>{error}</span>
+      </div>
+    );
+  };
+
+  // Input wrapper component with enhanced styling
+  const InputGroup = ({ 
+    label, 
+    required = false, 
+    error, 
+    field, 
+    icon: Icon, 
+    children 
+  }: { 
+    label: string; 
+    required?: boolean; 
+    error?: string; 
+    field?: string;
+    icon?: React.ElementType;
+    children: React.ReactNode;
+  }) => (
+    <div className="space-y-2">
+      <label className={labelClasses}>
+        <div className="flex items-center gap-2">
+          {Icon && <Icon className="h-4 w-4 text-primary-500" />}
+          {label}
+          {required && <span className="text-red-500">*</span>}
+        </div>
+      </label>
+      {children}
+      <ErrorMessage error={error} field={field} />
+    </div>
+  );
+
   const renderFormContent = () => {
-      return (
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-4xl w-full p-6 sm:p-8 md:p-10 relative z-20 mx-4 my-8 max-h-[90vh] overflow-y-auto transform scale-100 opacity-100 transition-all duration-300 ease-out">
+    return (
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-4xl w-full p-6 sm:p-8 md:p-10 relative z-20 mx-4 my-8 max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700">
+        {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 z-30"
+          disabled={formState.isSubmitting}
+          className="absolute top-4 right-4 p-3 rounded-full text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 z-30 disabled:opacity-50"
           aria-label="Close form"
         >
           <X size={24} />
         </button>
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-6 text-center">
-          Book Your Free Demo Session
+
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            Book Your Free Demo Session
           </h2>
-        
-        {/* Age Question Step */}
-        {step === 1 && (
-          <div className="flex flex-col items-center justify-center min-h-[300px]">
-            <p className="text-lg text-gray-800 dark:text-gray-200 mb-6 text-center font-semibold">
-            Is the student less than 16 years old?
+          <p className="text-gray-600 dark:text-gray-400 text-lg">
+            Experience our teaching methodology firsthand with a personalized demo session
           </p>
-            <div className="flex gap-6 sm:gap-8">
-            <button
-                onClick={() => { setIsStudentUnder16(true); setStep(2); }}
-                className={buildComponent.button("primary", "lg")}
-              >
-                Yes, Under 16
-            </button>
-            <button
-                onClick={() => { setIsStudentUnder16(false); setStep(5); }}
-                className={buildComponent.button("secondary", "lg")}
-              >
-                No, 16 and Above
-            </button>
-          </div>
-            {formErrors.isStudentUnder16 && <p className={errorClasses}>{formErrors.isStudentUnder16}</p>}
         </div>
+
+        {/* Progress Indicator */}
+        <ProgressIndicator currentStep={formState.step} isUnder16={formState.isStudentUnder16} />
+
+        {/* Age Selection Step */}
+        {formState.step === 'age-selection' && (
+          <div className="flex flex-col items-center justify-center min-h-[300px] space-y-8">
+            <div className="text-center space-y-4">
+              <div className="w-20 h-20 mx-auto bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center">
+                <User className="h-10 w-10 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Let's Get Started!
+              </h3>
+              <p className="text-lg text-gray-600 dark:text-gray-400 max-w-md">
+                Is the student less than 16 years old? This helps us customize the registration process.
+              </p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-6">
+              <button
+                onClick={() => {
+                  setFormState(prev => ({ 
+                    ...prev, 
+                    isStudentUnder16: true, 
+                    step: 'parent-details',
+                    validationErrors: {} 
+                  }));
+                }}
+                className={buildComponent.button("primary", "lg") + " min-w-[200px] flex items-center justify-center gap-3"}
+              >
+                <Heart className="h-5 w-5" />
+                Yes, Under 16
+              </button>
+              <button
+                onClick={() => {
+                  setFormState(prev => ({ 
+                    ...prev, 
+                    isStudentUnder16: false, 
+                    step: 'complete-form',
+                    validationErrors: {} 
+                  }));
+                }}
+                className={buildComponent.button("secondary", "lg") + " min-w-[200px] flex items-center justify-center gap-3"}
+              >
+                <GraduationCap className="h-5 w-5" />
+                No, 16 and Above
+              </button>
+            </div>
+            
+            <ErrorMessage error={formState.validationErrors.age} field="age" />
+          </div>
         )}
 
-        {/* Parent Details Step (Under 16) */}
-        {step === 2 && isStudentUnder16 && (
-          <div className="space-y-6">
-            {/* Progress Indicator */}
-            <div className="flex items-center justify-center mb-6">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">1</div>
-                  <span className="ml-2 text-sm font-medium text-primary-500">Parent Details</span>
+        {/* Parent Details Step */}
+        {formState.step === 'parent-details' && formState.isStudentUnder16 && (
+          <div className="space-y-8">
+            <div className={buildAdvancedComponent.glassCard({ variant: 'light' }) + " p-6 space-y-6"}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
+                  <User className="h-6 w-6 text-white" />
                 </div>
-                <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600"></div>
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 text-gray-500 rounded-full flex items-center justify-center text-sm font-semibold">2</div>
-                  <span className="ml-2 text-sm font-medium text-gray-500">Student Details</span>
-                </div>
-                <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600"></div>
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 text-gray-500 rounded-full flex items-center justify-center text-sm font-semibold">3</div>
-                  <span className="ml-2 text-sm font-medium text-gray-500">Session & Consent</span>
-                </div>
+                <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+                  Parent/Guardian Details
+                </h3>
               </div>
-            </div>
 
-              <div className="glass-card-sm p-5 rounded-xl shadow-md space-y-4">
-                <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Parent/Guardian Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                    <label htmlFor="parentName" className={labelClasses}>Parent's Name <span className="text-red-500">*</span></label>
-                <input
-                  type="text"
-                  id="parentName"
-                  className={inputClasses}
-                  value={parentDetails.name}
-                  onChange={(e) => setParentDetails({ ...parentDetails, name: e.target.value })}
-                      placeholder="Enter parent's full name"
-                />
-                {formErrors.parentName && <p className={errorClasses}>{formErrors.parentName}</p>}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InputGroup label="Parent's Full Name" required icon={User} error={formState.validationErrors.parentName} field="parentName">
+                  <input
+                    type="text"
+                    className={getInputClasses(!!formState.validationErrors.parentName, isDark)}
+                    value={formState.parentDetails.name}
+                    onChange={(e) => setFormState(prev => ({ 
+                      ...prev, 
+                      parentDetails: { ...prev.parentDetails, name: e.target.value }
+                    }))}
+                    placeholder="Enter parent's full name"
+                    data-field="parentName"
+                  />
+                </InputGroup>
+
+                <InputGroup label="Parent's Email Address" required icon={Mail} error={formState.validationErrors.parentEmail} field="parentEmail">
+                  <input
+                    type="email"
+                    className={getInputClasses(!!formState.validationErrors.parentEmail, isDark)}
+                    value={formState.parentDetails.email}
+                    onChange={(e) => setFormState(prev => ({ 
+                      ...prev, 
+                      parentDetails: { ...prev.parentDetails, email: e.target.value }
+                    }))}
+                    placeholder="Enter parent's email address"
+                    data-field="parentEmail"
+                  />
+                </InputGroup>
               </div>
-              <div>
-                    <label htmlFor="parentEmail" className={labelClasses}>Parent's Email ID <span className="text-red-500">*</span></label>
-                <input
-                  type="email"
-                  id="parentEmail"
-                  className={inputClasses}
-                  value={parentDetails.email}
-                  onChange={(e) => setParentDetails({ ...parentDetails, email: e.target.value })}
-                      placeholder="Enter parent's email address"
-                />
-                {formErrors.parentEmail && <p className={errorClasses}>{formErrors.parentEmail}</p>}
-              </div>
-            </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Country <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <MapPin className={`h-5 w-5 ${formErrors.parentCountry ? 'text-red-400' : 'text-gray-400'}`} />
-                  </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InputGroup label="Country" required icon={Globe} error={formState.validationErrors.parentCountry} field="parentCountry">
                   <select
-                    className={`
-                      block w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl shadow-sm text-base font-medium
-                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition duration-200
-                      ${formErrors.parentCountry
-                        ? 'border-red-300 focus:ring-red-500 bg-red-50 dark:bg-red-900/10'
-                        : 'border-gray-300 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 dark:border-gray-700'
-                      }
-                    `}
-                    value={parentSelectedCountry}
-                    onChange={(e) => {
-                      const selectedCountry = e.target.value;
-                      setParentSelectedCountry(selectedCountry);
-                      
-                      // Find the country data to get the dial code
-                      const countryData = countriesData.find((country: any) => country.code === selectedCountry);
-                      
-                      if (countryData && countryData.dial_code) {
-                        // Update phone number with new country code
-                        setParentDetails({ ...parentDetails, mobile_no: countryData.dial_code });
-                      }
-                    }}
+                    className={getInputClasses(!!formState.validationErrors.parentCountry, isDark)}
+                    value={formState.parentDetails.country}
+                    onChange={(e) => setFormState(prev => ({ 
+                      ...prev, 
+                      parentDetails: { ...prev.parentDetails, country: e.target.value }
+                    }))}
+                    data-field="parentCountry"
                   >
                     {countriesData.map((country: any) => (
                       <option key={country.code} value={country.code}>
@@ -548,269 +727,274 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                       </option>
                     ))}
                   </select>
-                </div>
-                {formErrors.parentCountry && (
-                  <div className="flex items-center gap-2 text-red-600 text-sm font-medium mt-2">
-                    <AlertCircle className="h-4 w-4" />
-                    <span>{formErrors.parentCountry}</span>
-                  </div>
-                )}
+                </InputGroup>
+
+                <InputGroup label="Phone Number" required icon={Phone} error={formState.validationErrors.parentMobile} field="parentMobile">
+                  <PhoneNumberInput
+                    value={{ 
+                      country: formState.parentDetails.country || 'in', 
+                      number: formState.parentDetails.mobile_no 
+                    }}
+                    onChange={(val) => setFormState(prev => ({ 
+                      ...prev, 
+                      parentDetails: { 
+                        ...prev.parentDetails, 
+                        mobile_no: val.number,
+                        country: val.country
+                      }
+                    }))}
+                    placeholder="Enter phone number"
+                    error={formState.validationErrors.parentMobile}
+                  />
+                </InputGroup>
               </div>
 
-              <div className="space-y-3">
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Phone Number <span className="text-red-500">*</span>
-                </label>
-                <PhoneNumberInput
-                  value={{ 
-                    country: parentSelectedCountry, 
-                    number: parentDetails.mobile_no 
-                  }}
-                  onChange={val => {
-                    setParentDetails({ ...parentDetails, mobile_no: val.number });
-                    // Also update the country field if it changed in the phone input
-                    if (val.country !== parentSelectedCountry) {
-                      setParentSelectedCountry(val.country);
-                    }
-                  }}
-                  placeholder="Enter phone number"
-                  error={formErrors.parentMobileNo}
-                />
-              </div>
-            </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                    <label htmlFor="parentCity" className={labelClasses}>Parent's Current City <span className="text-red-500">*</span></label>
-                <input
-                  type="text"
-                  id="parentCity"
-                  className={inputClasses}
-                  value={parentDetails.city}
-                  onChange={(e) => setParentDetails({ ...parentDetails, city: e.target.value })}
-                      placeholder="e.g., New Delhi"
-                />
-                {formErrors.parentCity && <p className={errorClasses}>{formErrors.parentCity}</p>}
-            </div>
-            <div>
-                    <label htmlFor="parentPreferredTimings" className={labelClasses}>Preferred Timings to Connect</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <Clock className={`h-5 w-5 ${formErrors.parentPreferredTimings ? 'text-red-400' : 'text-gray-400'}`} />
-                      </div>
-                      <select
-                        id="parentPreferredTimings"
-                        className={inputClasses + " pl-12"}
-                        value={parentDetails.preferred_timings_to_connect || ""}
-                        onChange={(e) => setParentDetails({ ...parentDetails, preferred_timings_to_connect: e.target.value })}
-                      >
-                        <option value="">Select preferred timing</option>
-                        {preferredTimingsOptions.map(option => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InputGroup label="Current City" required icon={MapPin} error={formState.validationErrors.parentCity} field="parentCity">
+                  <input
+                    type="text"
+                    className={getInputClasses(!!formState.validationErrors.parentCity, isDark)}
+                    value={formState.parentDetails.city}
+                    onChange={(e) => setFormState(prev => ({ 
+                      ...prev, 
+                      parentDetails: { ...prev.parentDetails, city: e.target.value }
+                    }))}
+                    placeholder="e.g., New Delhi, Mumbai, Bangalore"
+                    data-field="parentCity"
+                  />
+                </InputGroup>
+
+                <InputGroup label="Preferred Time to Connect" icon={Clock} error={formState.validationErrors.parentTiming} field="parentTiming">
+                  <select
+                    className={getInputClasses(!!formState.validationErrors.parentTiming, isDark)}
+                    value={formState.parentDetails.preferred_timings_to_connect || ""}
+                    onChange={(e) => setFormState(prev => ({ 
+                      ...prev, 
+                      parentDetails: { ...prev.parentDetails, preferred_timings_to_connect: e.target.value }
+                    }))}
+                    data-field="parentTiming"
+                  >
+                    <option value="">Select preferred timing</option>
+                    {preferredTimingsOptions.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </InputGroup>
               </div>
             </div>
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between mt-6">
+            <div className="flex justify-between pt-6">
               <button
                 type="button"
-                onClick={() => setStep(1)}
+                onClick={goToPreviousStep}
                 className={buildComponent.button("secondary", "lg")}
               >
-                Back
+                ← Back
               </button>
               <button
                 type="button"
-                onClick={() => setStep(3)}
+                onClick={goToNextStep}
                 className={buildComponent.button("primary", "lg")}
               >
-                Next: Student Details
+                Next: Student Details →
               </button>
+            </div>
           </div>
-              </div>
-            )}
+        )}
 
         {/* Student Details Step (Under 16) */}
-        {step === 3 && isStudentUnder16 && (
-          <div className="space-y-6">
-            {/* Progress Indicator */}
-            <div className="flex items-center justify-center mb-6">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">✓</div>
-                  <span className="ml-2 text-sm font-medium text-primary-500">Parent Details</span>
+        {formState.step === 'student-details' && formState.isStudentUnder16 && (
+          <div className="space-y-8">
+            <div className={buildAdvancedComponent.glassCard({ variant: 'light' }) + " p-6 space-y-6"}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
+                  <GraduationCap className="h-6 w-6 text-white" />
                 </div>
-                <div className="w-12 h-1 bg-primary-500"></div>
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">2</div>
-                  <span className="ml-2 text-sm font-medium text-primary-500">Student Details</span>
-                </div>
-                <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600"></div>
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 text-gray-500 rounded-full flex items-center justify-center text-sm font-semibold">3</div>
-                  <span className="ml-2 text-sm font-medium text-gray-500">Session & Consent</span>
-                </div>
+                <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+                  Student Details
+                </h3>
               </div>
-            </div>
 
-            <div className="glass-card-sm p-5 rounded-xl shadow-md space-y-4">
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Student Details</h3>
-                <div className="space-y-4">
-              <div>
-                    <label htmlFor="studentName" className={labelClasses}>Student's Name <span className="text-red-500">*</span></label>
+              <div className="space-y-6">
+                <InputGroup label="Student's Full Name" required icon={User} error={formState.validationErrors.studentName} field="studentName">
+                  <input
+                    type="text"
+                    className={getInputClasses(!!formState.validationErrors.studentName, isDark)}
+                    value={formState.studentDetailsUnder16.name}
+                    onChange={(e) => setFormState(prev => ({ 
+                      ...prev, 
+                      studentDetailsUnder16: { ...prev.studentDetailsUnder16, name: e.target.value }
+                    }))}
+                    placeholder="Enter student's full name"
+                    data-field="studentName"
+                  />
+                </InputGroup>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <InputGroup label="Student's Email (Optional)" icon={Mail}>
+                    <input
+                      type="email"
+                      className={getInputClasses(false, isDark)}
+                      value={formState.studentDetailsUnder16.email || ""}
+                      onChange={(e) => setFormState(prev => ({ 
+                        ...prev, 
+                        studentDetailsUnder16: { ...prev.studentDetailsUnder16, email: e.target.value }
+                      }))}
+                      placeholder="Enter student's email address"
+                    />
+                  </InputGroup>
+
+                  <InputGroup label="School Name (Optional)" icon={Building}>
                     <input
                       type="text"
-                      id="studentName"
-                      className={inputClasses}
-                      value={studentDetailsUnder16.name}
-                      onChange={(e) => setStudentDetailsUnder16({ ...studentDetailsUnder16, name: e.target.value })}
-                      placeholder="Enter student's full name"
+                      className={getInputClasses(false, isDark)}
+                      value={formState.studentDetailsUnder16.school_name || ""}
+                      onChange={(e) => setFormState(prev => ({ 
+                        ...prev, 
+                        studentDetailsUnder16: { ...prev.studentDetailsUnder16, school_name: e.target.value }
+                      }))}
+                      placeholder="Enter student's school name"
                     />
-                    {formErrors.studentName && <p className={errorClasses}>{formErrors.studentName}</p>}
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                      <label htmlFor="studentEmail" className={labelClasses}>Student's Email ID (Optional)</label>
-                <input
-                  type="email"
-                        id="studentEmail"
-                  className={inputClasses}
-                        value={studentDetailsUnder16.email || ""}
-                  onChange={(e) => setStudentDetailsUnder16({ ...studentDetailsUnder16, email: e.target.value })}
-                        placeholder="Enter student's email address"
-                />
-              </div>
-              <div>
-                <label htmlFor="schoolName" className={labelClasses}>School Name (Optional)</label>
-                <input
-                  type="text"
-                  id="schoolName"
-                  className={inputClasses}
-                        value={studentDetailsUnder16.school_name || ""}
-                  onChange={(e) => setStudentDetailsUnder16({ ...studentDetailsUnder16, school_name: e.target.value })}
-                        placeholder="Enter student's school name"
-                />
-              </div>
-            </div>
-            <div>
-                    <label htmlFor="grade" className={labelClasses}>Student's Grade <span className="text-red-500">*</span></label>
-                    <CustomSelect
-                      options={gradeOptions}
-                      value={studentDetailsUnder16.grade}
-                      onChange={(value: TStudentGrade) => setStudentDetailsUnder16({ ...studentDetailsUnder16, grade: value })}
-                      placeholder="Select student's grade"
-                    />
-                    {formErrors.studentGrade && <p className={errorClasses}>{formErrors.studentGrade}</p>}
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="studentCity" className={labelClasses}>Student's Current City <span className="text-red-500">*</span></label>
-                      <input
-                        type="text"
-                        id="studentCity"
-                        className={inputClasses}
-                        value={studentDetailsUnder16.city}
-                        onChange={(e) => setStudentDetailsUnder16({ ...studentDetailsUnder16, city: e.target.value })}
-                        placeholder="e.g., New Delhi"
-                      />
-                      {formErrors.studentCity && <p className={errorClasses}>{formErrors.studentCity}</p>}
-                    </div>
-                    <div>
-                      <label htmlFor="studentState" className={labelClasses}>Student's State <span className="text-red-500">*</span></label>
-              <input
-                type="text"
-                id="studentState"
-                className={inputClasses}
-                value={studentDetailsUnder16.state}
-                onChange={(e) => setStudentDetailsUnder16({ ...studentDetailsUnder16, state: e.target.value })}
-                        placeholder="e.g., Delhi"
-              />
-              {formErrors.studentState && <p className={errorClasses}>{formErrors.studentState}</p>}
-            </div>
-          </div>
-                  <div>
-                    <label htmlFor="preferredCourse" className={labelClasses}>Preferred Course(s) <span className="text-red-500">*</span></label>
-                    <CustomSelect
-                      options={liveCourses.map(course => ({ value: course.title, label: course.title }))}
-                      value={studentDetailsUnder16.preferred_course}
-                      onChange={(value: string[]) => setStudentDetailsUnder16({ ...studentDetailsUnder16, preferred_course: value })}
-                      placeholder={isLoadingCourses ? "Loading courses..." : "Select preferred course(s)"}
-                      isMulti
-                      isDisabled={isLoadingCourses}
-                    />
-                    {formErrors.studentPreferredCourse && <p className={errorClasses}>{formErrors.studentPreferredCourse}</p>}
-                  </div>
-                <div>
-                  <label htmlFor="knowMedhFrom" className={labelClasses}>How did you hear about Medh? <span className="text-red-500">*</span></label>
-                  <CustomSelect
-                    options={knowMedhFromOptions}
-                    value={studentDetailsUnder16.know_medh_from}
-                    onChange={(value: TKnowMedhFrom) => setStudentDetailsUnder16({ ...studentDetailsUnder16, know_medh_from: value })}
-                    placeholder="Select an option"
-                  />
-                  {formErrors.knowMedhFrom && <p className={errorClasses}>{formErrors.knowMedhFrom}</p>}
+                  </InputGroup>
                 </div>
+
+                <InputGroup label="Student's Grade" required icon={GraduationCap} error={formState.validationErrors.studentGrade} field="studentGrade">
+                  <Select
+                    options={gradeOptions}
+                    value={gradeOptions.find(option => option.value === formState.studentDetailsUnder16.grade)}
+                    onChange={(selected) => setFormState(prev => ({ 
+                      ...prev, 
+                      studentDetailsUnder16: { ...prev.studentDetailsUnder16, grade: selected?.value || "Grade 1-2" }
+                    }))}
+                    styles={selectStyles}
+                    placeholder="Select student's grade"
+                    isSearchable
+                    data-field="studentGrade"
+                  />
+                </InputGroup>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <InputGroup label="Current City" required icon={MapPin} error={formState.validationErrors.studentCity} field="studentCity">
+                    <input
+                      type="text"
+                      className={getInputClasses(!!formState.validationErrors.studentCity, isDark)}
+                      value={formState.studentDetailsUnder16.city}
+                      onChange={(e) => setFormState(prev => ({ 
+                        ...prev, 
+                        studentDetailsUnder16: { ...prev.studentDetailsUnder16, city: e.target.value }
+                      }))}
+                      placeholder="e.g., New Delhi, Mumbai, Bangalore"
+                      data-field="studentCity"
+                    />
+                  </InputGroup>
+
+                  <InputGroup label="State/Region" required icon={MapPin} error={formState.validationErrors.studentState} field="studentState">
+                    <input
+                      type="text"
+                      className={getInputClasses(!!formState.validationErrors.studentState, isDark)}
+                      value={formState.studentDetailsUnder16.state}
+                      onChange={(e) => setFormState(prev => ({ 
+                        ...prev, 
+                        studentDetailsUnder16: { ...prev.studentDetailsUnder16, state: e.target.value }
+                      }))}
+                      placeholder="e.g., Delhi, Maharashtra, Karnataka"
+                      data-field="studentState"
+                    />
+                  </InputGroup>
+                </div>
+
+                <InputGroup label="Preferred Course(s)" required error={formState.validationErrors.preferredCourse} field="preferredCourse">
+                  <Select
+                    options={formState.liveCourses.map(course => ({ value: course.title, label: course.title }))}
+                    value={formState.liveCourses
+                      .filter(course => formState.studentDetailsUnder16.preferred_course.includes(course.title))
+                      .map(course => ({ value: course.title, label: course.title }))}
+                    onChange={(selected) => setFormState(prev => ({ 
+                      ...prev, 
+                      studentDetailsUnder16: { 
+                        ...prev.studentDetailsUnder16, 
+                        preferred_course: selected ? selected.map((s: any) => s.value) : [] 
+                      }
+                    }))}
+                    styles={selectStyles}
+                    placeholder={formState.isLoadingCourses ? "Loading courses..." : "Select preferred course(s)"}
+                    isMulti
+                    isDisabled={formState.isLoadingCourses}
+                    isSearchable
+                    data-field="preferredCourse"
+                  />
+                </InputGroup>
+
+                <InputGroup label="How did you hear about Medh?" required error={formState.validationErrors.knowMedh} field="knowMedh">
+                  <Select
+                    options={knowMedhFromOptions}
+                    value={knowMedhFromOptions.find(option => option.value === formState.studentDetailsUnder16.know_medh_from)}
+                    onChange={(selected) => setFormState(prev => ({ 
+                      ...prev, 
+                      studentDetailsUnder16: { ...prev.studentDetailsUnder16, know_medh_from: selected?.value || "social_media" }
+                    }))}
+                    styles={selectStyles}
+                    placeholder="Select an option"
+                    isSearchable
+                    data-field="knowMedh"
+                  />
+                </InputGroup>
               </div>
             </div>
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between mt-6">
+            <div className="flex justify-between pt-6">
               <button
                 type="button"
-                onClick={() => setStep(2)}
+                onClick={goToPreviousStep}
                 className={buildComponent.button("secondary", "lg")}
               >
-                Back: Parent Details
+                ← Back: Parent Details
               </button>
               <button
                 type="button"
-                onClick={() => setStep(4)}
+                onClick={goToNextStep}
                 className={buildComponent.button("primary", "lg")}
               >
-                Next: Demo Session & Consent
+                Next: Demo Session & Consent →
               </button>
             </div>
           </div>
         )}
 
         {/* Demo Session & Consent Step (Under 16) */}
-        {step === 4 && isStudentUnder16 && (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Progress Indicator */}
-            <div className="flex items-center justify-center mb-6">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">✓</div>
-                  <span className="ml-2 text-sm font-medium text-primary-500">Parent Details</span>
+        {formState.step === 'demo-consent' && formState.isStudentUnder16 && (
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className={buildAdvancedComponent.glassCard({ variant: 'light' }) + " p-6 space-y-6"}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center">
+                  <Calendar className="h-6 w-6 text-white" />
                 </div>
-                <div className="w-12 h-1 bg-primary-500"></div>
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">✓</div>
-                  <span className="ml-2 text-sm font-medium text-primary-500">Student Details</span>
-                </div>
-                <div className="w-12 h-1 bg-primary-500"></div>
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">3</div>
-                  <span className="ml-2 text-sm font-medium text-primary-500">Session & Consent</span>
-                </div>
+                <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+                  Demo Session Preferences
+                </h3>
               </div>
-            </div>
 
-            <div className="glass-card-sm p-5 rounded-xl shadow-md space-y-4">
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Demo Session Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="preferredDate" className={labelClasses}>Preferred Date</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InputGroup label="Preferred Date (Optional)" icon={Calendar}>
                   <DatePicker
-                    selected={demoSessionDetails.preferred_date}
-                    onChange={(date: Date | null) => setDemoSessionDetails({ ...demoSessionDetails, preferred_date: date || undefined })}
+                    selected={formState.demoSessionDetails.preferred_date}
+                    onChange={(date: Date | null) => setFormState(prev => ({ 
+                      ...prev, 
+                      demoSessionDetails: { ...prev.demoSessionDetails, preferred_date: date || undefined }
+                    }))}
                     dateFormat="dd/MM/yyyy"
-                    customInput={<input type="text" className={datepickerCustomInput} />}
+                    customInput={
+                      <input 
+                        type="text" 
+                        className={getInputClasses(false, isDark) + " cursor-pointer"}
+                        placeholder="Select preferred date"
+                        readOnly
+                      />
+                    }
                     minDate={new Date()}
                     className="w-full"
                     popperClassName="react-datepicker-popper-custom"
@@ -819,315 +1003,418 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                     showMonthDropdown
                     showYearDropdown
                   />
-                </div>
-                <div>
-                  <label htmlFor="preferredTimeSlot" className={labelClasses}>Preferred Time Slot</label>
-                  <CustomSelect
+                </InputGroup>
+
+                <InputGroup label="Preferred Time Slot (Optional)" icon={Clock}>
+                  <Select
                     options={preferredTimingsOptions}
-                    value={demoSessionDetails.preferred_time_slot}
-                    onChange={(value: string) => setDemoSessionDetails({ ...demoSessionDetails, preferred_time_slot: value })}
+                    value={preferredTimingsOptions.find(option => option.value === formState.demoSessionDetails.preferred_time_slot)}
+                    onChange={(selected) => setFormState(prev => ({ 
+                      ...prev, 
+                      demoSessionDetails: { ...prev.demoSessionDetails, preferred_time_slot: selected?.value || "" }
+                    }))}
+                    styles={selectStyles}
                     placeholder="Select a time slot"
+                    isClearable
                   />
-                </div>
+                </InputGroup>
               </div>
+
+              <InputGroup label="Special Requirements (Optional)">
+                <textarea
+                  className={getInputClasses(false, isDark) + " h-24 resize-none"}
+                  value={formState.demoSessionDetails.special_requirements || ""}
+                  onChange={(e) => setFormState(prev => ({ 
+                    ...prev, 
+                    demoSessionDetails: { ...prev.demoSessionDetails, special_requirements: e.target.value }
+                  }))}
+                  placeholder="Any specific topics you'd like to focus on or special requirements..."
+                />
+              </InputGroup>
             </div>
 
-            <div className="glass-card-sm p-5 rounded-xl shadow-md space-y-4">
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Consent</h3>
-              <div className="space-y-2">
-                <label className={radioLabelClasses}>
+            <div className={buildAdvancedComponent.glassCard({ variant: 'light' }) + " p-6 space-y-4"}>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                Consent & Agreements
+              </h3>
+              
+              <div className="space-y-4">
+                <label className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
                   <input
                     type="checkbox"
-                    className={`form-checkbox h-5 w-5 text-primary-600 rounded focus:ring-primary-500 ${isDark ? 'bg-gray-700 border-gray-600' : 'border-gray-300'}`}
-                    checked={consent.terms_accepted && consent.privacy_policy_accepted}
-                    onChange={(e) => setConsent({ 
-                      ...consent, 
-                      terms_accepted: e.target.checked,
-                      privacy_policy_accepted: e.target.checked 
-                    })}
+                    className="form-checkbox h-5 w-5 text-primary-600 rounded focus:ring-primary-500 mt-1 flex-shrink-0"
+                    checked={formState.consent.terms_accepted && formState.consent.privacy_policy_accepted}
+                    onChange={(e) => setFormState(prev => ({ 
+                      ...prev, 
+                      consent: { 
+                        ...prev.consent, 
+                        terms_accepted: e.target.checked,
+                        privacy_policy_accepted: e.target.checked 
+                      }
+                    }))}
                   />
-                  <span className="ml-2">
-                    I agree to the <Link href="/terms-and-services" className="text-primary-500 hover:underline">Terms of Use</Link> and <Link href="/privacy-policy" className="text-primary-500 hover:underline">Privacy Policy</Link> <span className="text-red-500">*</span>
+                  <div className="text-sm">
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      I agree to the{" "}
+                      <Link href="/terms-and-services" className="text-primary-500 hover:underline font-semibold">
+                        Terms of Use
+                      </Link>
+                      {" "}and{" "}
+                      <Link href="/privacy-policy" className="text-primary-500 hover:underline font-semibold">
+                        Privacy Policy
+                      </Link>
+                    </span>
+                    <span className="text-red-500 ml-1">*</span>
+                  </div>
+                </label>
+
+                <label className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="form-checkbox h-5 w-5 text-primary-600 rounded focus:ring-primary-500 mt-1 flex-shrink-0"
+                    checked={formState.consent.gdpr_consent}
+                    onChange={(e) => setFormState(prev => ({ 
+                      ...prev, 
+                      consent: { ...prev.consent, gdpr_consent: e.target.checked }
+                    }))}
+                  />
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    I consent to the processing of my data in accordance with GDPR regulations
                   </span>
                 </label>
-                {(formErrors.termsAccepted || formErrors.privacyPolicyAccepted) && <p className={errorClasses}>{formErrors.termsAccepted || formErrors.privacyPolicyAccepted}</p>}
 
-                <label className={radioLabelClasses}>
+                <label className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
                   <input
                     type="checkbox"
-                    className={`form-checkbox h-5 w-5 text-primary-600 rounded focus:ring-primary-500 ${isDark ? 'bg-gray-700 border-gray-600' : 'border-gray-300'}`}
-                    checked={consent.gdpr_consent}
-                    onChange={(e) => setConsent({ ...consent, gdpr_consent: e.target.checked })}
+                    className="form-checkbox h-5 w-5 text-primary-600 rounded focus:ring-primary-500 mt-1 flex-shrink-0"
+                    checked={formState.consent.marketing_consent}
+                    onChange={(e) => setFormState(prev => ({ 
+                      ...prev, 
+                      consent: { ...prev.consent, marketing_consent: e.target.checked }
+                    }))}
                   />
-                  <span className="ml-2">I consent to the processing of my data in accordance with GDPR.</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    I would like to receive updates about courses and educational content
+                  </span>
                 </label>
               </div>
+
+              <ErrorMessage error={formState.validationErrors.termsAccepted || formState.validationErrors.privacyAccepted} />
             </div>
 
             {/* Navigation and Submit */}
-            <div className="flex justify-between mt-6">
+            <div className="flex justify-between pt-6">
               <button
                 type="button"
-                onClick={() => setStep(3)}
+                onClick={goToPreviousStep}
+                disabled={formState.isSubmitting}
                 className={buildComponent.button("secondary", "lg")}
               >
-                Back: Student Details
+                ← Back: Student Details
               </button>
               <button
                 type="submit"
-                className={buildComponent.button("primary", "lg")}
-                disabled={isSubmitting}
+                disabled={formState.isSubmitting}
+                className={buildComponent.button("primary", "lg") + " min-w-[200px]"}
               >
-                {isSubmitting ? (
-                  <span className="flex items-center justify-center">
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Submitting...
+                {formState.isSubmitting ? (
+                  <span className="flex items-center justify-center gap-3">
+                    <Loader2 className="h-5 w-5 animate-spin" /> 
+                    Submitting...
                   </span>
                 ) : (
-                  "Book Your Demo Session Now"
+                  <span className="flex items-center justify-center gap-3">
+                    <CheckCircle className="h-5 w-5" />
+                    Book Demo Session
+                  </span>
                 )}
               </button>
             </div>
           </form>
         )}
 
-        {/* Form for 16 and Above */}
-        {step === 5 && !isStudentUnder16 && (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="glass-card-sm p-5 rounded-xl shadow-md space-y-4">
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Student Details</h3>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                      <label htmlFor="studentName" className={labelClasses}>Student's Name <span className="text-red-500">*</span></label>
-                <input
-                  type="text"
-                  id="studentName"
-                  className={inputClasses}
-                  value={studentDetails16AndAbove.name}
-                  onChange={(e) => setStudentDetails16AndAbove({ ...studentDetails16AndAbove, name: e.target.value })}
-                        placeholder="Enter student's full name"
-                />
-                {formErrors.studentName && <p className={errorClasses}>{formErrors.studentName}</p>}
-              </div>
-              <div>
-                      <label htmlFor="studentEmail" className={labelClasses}>Student's Email ID <span className="text-red-500">*</span></label>
-                <input
-                  type="email"
-                  id="studentEmail"
-                  className={inputClasses}
-                  value={studentDetails16AndAbove.email}
-                  onChange={(e) => setStudentDetails16AndAbove({ ...studentDetails16AndAbove, email: e.target.value })}
-                        placeholder="Enter student's email address"
-                />
-                {formErrors.studentEmail && <p className={errorClasses}>{formErrors.studentEmail}</p>}
-              </div>
-            </div>
-                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Country <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <MapPin className={`h-5 w-5 ${formErrors.studentCountry ? 'text-red-400' : 'text-gray-400'}`} />
-                  </div>
-                  <select
-                    className={`
-                      block w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl shadow-sm text-base font-medium
-                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition duration-200
-                      ${formErrors.studentCountry
-                        ? 'border-red-300 focus:ring-red-500 bg-red-50 dark:bg-red-900/10'
-                        : 'border-gray-300 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 dark:border-gray-700'
-                      }
-                    `}
-                    value={studentSelectedCountry}
-                    onChange={(e) => {
-                      const selectedCountry = e.target.value;
-                      setStudentSelectedCountry(selectedCountry);
-                      
-                      // Find the country data to get the dial code
-                      const countryData = countriesData.find((country: any) => country.code === selectedCountry);
-                      
-                      if (countryData && countryData.dial_code) {
-                        // Update phone number with new country code
-                        setStudentDetails16AndAbove({ ...studentDetails16AndAbove, mobile_no: countryData.dial_code });
-                      }
-                    }}
-                  >
-                    {countriesData.map((country: any) => (
-                      <option key={country.code} value={country.code}>
-                        {country.name}
-                      </option>
-                    ))}
-                  </select>
+        {/* Complete Form (16 and Above) */}
+        {formState.step === 'complete-form' && !formState.isStudentUnder16 && (
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className={buildAdvancedComponent.glassCard({ variant: 'light' }) + " p-6 space-y-6"}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-full flex items-center justify-center">
+                  <User className="h-6 w-6 text-white" />
                 </div>
-                {formErrors.studentCountry && (
-                  <div className="flex items-center gap-2 text-red-600 text-sm font-medium mt-2">
-                    <AlertCircle className="h-4 w-4" />
-                    <span>{formErrors.studentCountry}</span>
-                  </div>
-                )}
+                <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+                  Student Information
+                </h3>
               </div>
 
-              <div className="space-y-3">
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Phone Number <span className="text-red-500">*</span>
-                </label>
-                <PhoneNumberInput
-                  value={{ 
-                    country: studentSelectedCountry, 
-                    number: studentDetails16AndAbove.mobile_no 
-                  }}
-                  onChange={val => {
-                    setStudentDetails16AndAbove({ ...studentDetails16AndAbove, mobile_no: val.number });
-                    // Also update the country field if it changed in the phone input
-                    if (val.country !== studentSelectedCountry) {
-                      setStudentSelectedCountry(val.country);
-                    }
-                  }}
-                  placeholder="Enter phone number"
-                  error={formErrors.studentMobileNo}
-                />
-              </div>
-            </div>
-              <div>
-                    <label htmlFor="highestQualification" className={labelClasses}>Highest Qualification <span className="text-red-500">*</span></label>
-                    <CustomSelect
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <InputGroup label="Full Name" required icon={User} error={formState.validationErrors.studentName} field="studentName">
+                    <input
+                      type="text"
+                      className={getInputClasses(!!formState.validationErrors.studentName, isDark)}
+                      value={formState.studentDetails16AndAbove.name}
+                      onChange={(e) => setFormState(prev => ({ 
+                        ...prev, 
+                        studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, name: e.target.value }
+                      }))}
+                      placeholder="Enter your full name"
+                      data-field="studentName"
+                    />
+                  </InputGroup>
+
+                  <InputGroup label="Email Address" required icon={Mail} error={formState.validationErrors.studentEmail} field="studentEmail">
+                    <input
+                      type="email"
+                      className={getInputClasses(!!formState.validationErrors.studentEmail, isDark)}
+                      value={formState.studentDetails16AndAbove.email}
+                      onChange={(e) => setFormState(prev => ({ 
+                        ...prev, 
+                        studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, email: e.target.value }
+                      }))}
+                      placeholder="Enter your email address"
+                      data-field="studentEmail"
+                    />
+                  </InputGroup>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <InputGroup label="Country" required icon={Globe} error={formState.validationErrors.studentCountry} field="studentCountry">
+                    <select
+                      className={getInputClasses(!!formState.validationErrors.studentCountry, isDark)}
+                      value={formState.studentDetails16AndAbove.country}
+                      onChange={(e) => setFormState(prev => ({ 
+                        ...prev, 
+                        studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, country: e.target.value }
+                      }))}
+                      data-field="studentCountry"
+                    >
+                      {countriesData.map((country: any) => (
+                        <option key={country.code} value={country.code}>
+                          {country.name}
+                        </option>
+                      ))}
+                    </select>
+                  </InputGroup>
+
+                  <InputGroup label="Phone Number" required icon={Phone} error={formState.validationErrors.studentMobile} field="studentMobile">
+                    <PhoneNumberInput
+                      value={{ 
+                        country: formState.studentDetails16AndAbove.country || 'in', 
+                        number: formState.studentDetails16AndAbove.mobile_no 
+                      }}
+                      onChange={(val) => setFormState(prev => ({ 
+                        ...prev, 
+                        studentDetails16AndAbove: { 
+                          ...prev.studentDetails16AndAbove, 
+                          mobile_no: val.number,
+                          country: val.country
+                        }
+                      }))}
+                      placeholder="Enter your phone number"
+                      error={formState.validationErrors.studentMobile}
+                    />
+                  </InputGroup>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <InputGroup label="Highest Qualification" required icon={GraduationCap} error={formState.validationErrors.highestQualification} field="highestQualification">
+                    <Select
                       options={qualificationOptions}
-                      value={studentDetails16AndAbove.highest_qualification}
-                      onChange={(value: THighestQualification) => setStudentDetails16AndAbove({ ...studentDetails16AndAbove, highest_qualification: value })}
-                      placeholder="Select highest qualification"
+                      value={qualificationOptions.find(option => option.value === formState.studentDetails16AndAbove.highest_qualification)}
+                      onChange={(selected) => setFormState(prev => ({ 
+                        ...prev, 
+                        studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, highest_qualification: selected?.value || "10th passed" }
+                      }))}
+                      styles={selectStyles}
+                      placeholder="Select your highest qualification"
+                      isSearchable
+                      data-field="highestQualification"
                     />
-                    {formErrors.highestQualification && <p className={errorClasses}>{formErrors.highestQualification}</p>}
-                  </div>
-                  <div>
-                    <label htmlFor="educationInstitute" className={labelClasses}>Education Institute Name (Optional)</label>
-                <input
-                  type="text"
-                      id="educationInstitute"
-                  className={inputClasses}
-                      value={studentDetails16AndAbove.education_institute_name || ""}
-                      onChange={(e) => setStudentDetails16AndAbove({ ...studentDetails16AndAbove, education_institute_name: e.target.value })}
-                      placeholder="e.g., Delhi University"
+                  </InputGroup>
+
+                  <InputGroup label="Education Institute (Optional)" icon={Building}>
+                    <input
+                      type="text"
+                      className={getInputClasses(false, isDark)}
+                      value={formState.studentDetails16AndAbove.education_institute_name || ""}
+                      onChange={(e) => setFormState(prev => ({ 
+                        ...prev, 
+                        studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, education_institute_name: e.target.value }
+                      }))}
+                      placeholder="e.g., Delhi University, IIT Delhi"
                     />
-              </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                      <label className={labelClasses}>Currently Studying? <span className="text-red-500">*</span></label>
-                <div className={radioGroupClasses}>
-                  <label className={radioLabelClasses}>
-                          <Radio
-                            className={`mr-2 h-5 w-5 ${studentDetails16AndAbove.currently_studying ? 'text-primary-600' : 'text-gray-400'}`}
-                            onClick={() => setStudentDetails16AndAbove({ ...studentDetails16AndAbove, currently_studying: true })}
-                            fill={studentDetails16AndAbove.currently_studying ? 'currentColor' : 'none'}
-                          />
-                          Yes
-                  </label>
-                  <label className={radioLabelClasses}>
-                          <Radio
-                            className={`mr-2 h-5 w-5 ${!studentDetails16AndAbove.currently_studying ? 'text-primary-600' : 'text-gray-400'}`}
-                            onClick={() => setStudentDetails16AndAbove({ ...studentDetails16AndAbove, currently_studying: false })}
-                            fill={!studentDetails16AndAbove.currently_studying ? 'currentColor' : 'none'}
-                          />
-                          No
-                  </label>
+                  </InputGroup>
                 </div>
-                {formErrors.currentlyStudying && <p className={errorClasses}>{formErrors.currentlyStudying}</p>}
-              </div>
-              <div>
-                      <label className={labelClasses}>Currently Working? <span className="text-red-500">*</span></label>
-                <div className={radioGroupClasses}>
-                  <label className={radioLabelClasses}>
-                          <Radio
-                            className={`mr-2 h-5 w-5 ${studentDetails16AndAbove.currently_working ? 'text-primary-600' : 'text-gray-400'}`}
-                            onClick={() => setStudentDetails16AndAbove({ ...studentDetails16AndAbove, currently_working: true })}
-                            fill={studentDetails16AndAbove.currently_working ? 'currentColor' : 'none'}
-                          />
-                          Yes
-                  </label>
-                  <label className={radioLabelClasses}>
-                          <Radio
-                            className={`mr-2 h-5 w-5 ${!studentDetails16AndAbove.currently_working ? 'text-primary-600' : 'text-gray-400'}`}
-                            onClick={() => setStudentDetails16AndAbove({ ...studentDetails16AndAbove, currently_working: false })}
-                            fill={!studentDetails16AndAbove.currently_working ? 'currentColor' : 'none'}
-                          />
-                          No
-                  </label>
-                </div>
-                {formErrors.currentlyWorking && <p className={errorClasses}>{formErrors.currentlyWorking}</p>}
-              </div>
-            </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                      <label htmlFor="studentCity" className={labelClasses}>Student's Current City <span className="text-red-500">*</span></label>
-              <input
-                type="text"
-                        id="studentCity"
-                className={inputClasses}
-                        value={studentDetails16AndAbove.city}
-                        onChange={(e) => setStudentDetails16AndAbove({ ...studentDetails16AndAbove, city: e.target.value })}
-                        placeholder="e.g., New Delhi"
-                      />
-                      {formErrors.studentCity && <p className={errorClasses}>{formErrors.studentCity}</p>}
-            </div>
-                    <div>
-                      <label htmlFor="studentPreferredTimings" className={labelClasses}>Preferred Timings to Connect</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                          <Clock className={`h-5 w-5 ${formErrors.studentPreferredTimings ? 'text-red-400' : 'text-gray-400'}`} />
-                        </div>
-                        <select
-                          id="studentPreferredTimings"
-                          className={inputClasses + " pl-12"}
-                          value={studentDetails16AndAbove.preferred_timings_to_connect || ""}
-                          onChange={(e) => setStudentDetails16AndAbove({ ...studentDetails16AndAbove, preferred_timings_to_connect: e.target.value })}
-                        >
-                          <option value="">Select preferred timing</option>
-                          {preferredTimingsOptions.map(option => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-          </div>
-                  </div>
-                  <div>
-                    <label htmlFor="preferredCourse" className={labelClasses}>Preferred Course(s) <span className="text-red-500">*</span></label>
-                    <CustomSelect
-                      options={liveCourses.map(course => ({ value: course.title, label: course.title }))}
-                      value={studentDetails16AndAbove.preferred_course}
-                      onChange={(value: string[]) => setStudentDetails16AndAbove({ ...studentDetails16AndAbove, preferred_course: value })}
-                      placeholder={isLoadingCourses ? "Loading courses..." : "Select preferred course(s)"}
-                      isMulti
-                      isDisabled={isLoadingCourses}
-                    />
-                    {formErrors.studentPreferredCourse && <p className={errorClasses}>{formErrors.studentPreferredCourse}</p>}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <label className={labelClasses}>Currently Studying? <span className="text-red-500">*</span></label>
+                    <div className={radioGroupClasses}>
+                      <label className={radioLabelClasses}>
+                        <input
+                          type="radio"
+                          name="currently_studying"
+                          checked={formState.studentDetails16AndAbove.currently_studying === true}
+                          onChange={() => setFormState(prev => ({ 
+                            ...prev, 
+                            studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, currently_studying: true }
+                          }))}
+                          className="form-radio h-4 w-4 text-primary-600 focus:ring-primary-500"
+                        />
+                        <span className="ml-2">Yes</span>
+                      </label>
+                      <label className={radioLabelClasses}>
+                        <input
+                          type="radio"
+                          name="currently_studying"
+                          checked={formState.studentDetails16AndAbove.currently_studying === false}
+                          onChange={() => setFormState(prev => ({ 
+                            ...prev, 
+                            studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, currently_studying: false }
+                          }))}
+                          className="form-radio h-4 w-4 text-primary-600 focus:ring-primary-500"
+                        />
+                        <span className="ml-2">No</span>
+                      </label>
+                    </div>
+                    <ErrorMessage error={formState.validationErrors.currentlyStudying} />
                   </div>
 
-              <div>
-                <label htmlFor="knowMedhFrom" className={labelClasses}>How did you hear about Medh? <span className="text-red-500">*</span></label>
-                <CustomSelect
-                  options={knowMedhFromOptions}
-                    value={studentDetails16AndAbove.know_medh_from}
-                    onChange={(value: TKnowMedhFrom) => setStudentDetails16AndAbove({ ...studentDetails16AndAbove, know_medh_from: value })}
-                  placeholder="Select an option"
-                />
-                {formErrors.knowMedhFrom && <p className={errorClasses}>{formErrors.knowMedhFrom}</p>}
+                  <div className="space-y-4">
+                    <label className={labelClasses}>Currently Working? <span className="text-red-500">*</span></label>
+                    <div className={radioGroupClasses}>
+                      <label className={radioLabelClasses}>
+                        <input
+                          type="radio"
+                          name="currently_working"
+                          checked={formState.studentDetails16AndAbove.currently_working === true}
+                          onChange={() => setFormState(prev => ({ 
+                            ...prev, 
+                            studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, currently_working: true }
+                          }))}
+                          className="form-radio h-4 w-4 text-primary-600 focus:ring-primary-500"
+                        />
+                        <span className="ml-2">Yes</span>
+                      </label>
+                      <label className={radioLabelClasses}>
+                        <input
+                          type="radio"
+                          name="currently_working"
+                          checked={formState.studentDetails16AndAbove.currently_working === false}
+                          onChange={() => setFormState(prev => ({ 
+                            ...prev, 
+                            studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, currently_working: false }
+                          }))}
+                          className="form-radio h-4 w-4 text-primary-600 focus:ring-primary-500"
+                        />
+                        <span className="ml-2">No</span>
+                      </label>
+                    </div>
+                    <ErrorMessage error={formState.validationErrors.currentlyWorking} />
+                  </div>
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <InputGroup label="Current City" required icon={MapPin} error={formState.validationErrors.studentCity} field="studentCity">
+                    <input
+                      type="text"
+                      className={getInputClasses(!!formState.validationErrors.studentCity, isDark)}
+                      value={formState.studentDetails16AndAbove.city}
+                      onChange={(e) => setFormState(prev => ({ 
+                        ...prev, 
+                        studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, city: e.target.value }
+                      }))}
+                      placeholder="e.g., New Delhi, Mumbai, Bangalore"
+                      data-field="studentCity"
+                    />
+                  </InputGroup>
+
+                  <InputGroup label="Preferred Time to Connect" icon={Clock}>
+                    <select
+                      className={getInputClasses(false, isDark)}
+                      value={formState.studentDetails16AndAbove.preferred_timings_to_connect || ""}
+                      onChange={(e) => setFormState(prev => ({ 
+                        ...prev, 
+                        studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, preferred_timings_to_connect: e.target.value }
+                      }))}
+                    >
+                      <option value="">Select preferred timing</option>
+                      {preferredTimingsOptions.map(option => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </InputGroup>
+                </div>
+
+                <InputGroup label="Preferred Course(s)" required error={formState.validationErrors.preferredCourse} field="preferredCourse">
+                  <Select
+                    options={formState.liveCourses.map(course => ({ value: course.title, label: course.title }))}
+                    value={formState.liveCourses
+                      .filter(course => formState.studentDetails16AndAbove.preferred_course.includes(course.title))
+                      .map(course => ({ value: course.title, label: course.title }))}
+                    onChange={(selected) => setFormState(prev => ({ 
+                      ...prev, 
+                      studentDetails16AndAbove: { 
+                        ...prev.studentDetails16AndAbove, 
+                        preferred_course: selected ? selected.map((s: any) => s.value) : [] 
+                      }
+                    }))}
+                    styles={selectStyles}
+                    placeholder={formState.isLoadingCourses ? "Loading courses..." : "Select your preferred course(s)"}
+                    isMulti
+                    isDisabled={formState.isLoadingCourses}
+                    isSearchable
+                    data-field="preferredCourse"
+                  />
+                </InputGroup>
+
+                <InputGroup label="How did you hear about Medh?" required error={formState.validationErrors.knowMedh} field="knowMedh">
+                  <Select
+                    options={knowMedhFromOptions}
+                    value={knowMedhFromOptions.find(option => option.value === formState.studentDetails16AndAbove.know_medh_from)}
+                    onChange={(selected) => setFormState(prev => ({ 
+                      ...prev, 
+                      studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, know_medh_from: selected?.value || "social_media" }
+                    }))}
+                    styles={selectStyles}
+                    placeholder="Select an option"
+                    isSearchable
+                    data-field="knowMedh"
+                  />
+                </InputGroup>
               </div>
             </div>
 
-            <div className="glass-card-sm p-5 rounded-xl shadow-md space-y-4">
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Demo Session Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="preferredDate" className={labelClasses}>Preferred Date</label>
+            {/* Demo Session Details */}
+            <div className={buildAdvancedComponent.glassCard({ variant: 'light' }) + " p-6 space-y-6"}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center">
+                  <Calendar className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+                  Demo Session Preferences
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InputGroup label="Preferred Date (Optional)" icon={Calendar}>
                   <DatePicker
-                    selected={demoSessionDetails.preferred_date}
-                    onChange={(date: Date | null) => setDemoSessionDetails({ ...demoSessionDetails, preferred_date: date || undefined })}
+                    selected={formState.demoSessionDetails.preferred_date}
+                    onChange={(date: Date | null) => setFormState(prev => ({ 
+                      ...prev, 
+                      demoSessionDetails: { ...prev.demoSessionDetails, preferred_date: date || undefined }
+                    }))}
                     dateFormat="dd/MM/yyyy"
-                    customInput={<input type="text" className={datepickerCustomInput} />}
+                    customInput={
+                      <input 
+                        type="text" 
+                        className={getInputClasses(false, isDark) + " cursor-pointer"}
+                        placeholder="Select preferred date"
+                        readOnly
+                      />
+                    }
                     minDate={new Date()}
                     className="w-full"
                     popperClassName="react-datepicker-popper-custom"
@@ -1136,82 +1423,143 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                     showMonthDropdown
                     showYearDropdown
                   />
-                </div>
-                <div>
-                  <label htmlFor="preferredTimeSlot" className={labelClasses}>Preferred Time Slot</label>
-                  <CustomSelect
+                </InputGroup>
+
+                <InputGroup label="Preferred Time Slot (Optional)" icon={Clock}>
+                  <Select
                     options={preferredTimingsOptions}
-                    value={demoSessionDetails.preferred_time_slot}
-                    onChange={(value: string) => setDemoSessionDetails({ ...demoSessionDetails, preferred_time_slot: value })}
+                    value={preferredTimingsOptions.find(option => option.value === formState.demoSessionDetails.preferred_time_slot)}
+                    onChange={(selected) => setFormState(prev => ({ 
+                      ...prev, 
+                      demoSessionDetails: { ...prev.demoSessionDetails, preferred_time_slot: selected?.value || "" }
+                    }))}
+                    styles={selectStyles}
                     placeholder="Select a time slot"
+                    isClearable
                   />
-                </div>
-                </div>
+                </InputGroup>
               </div>
 
-            <div className="glass-card-sm p-5 rounded-xl shadow-md space-y-4">
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Consent</h3>
-              <div className="space-y-2">
-                <label className={radioLabelClasses}>
+              <InputGroup label="Special Requirements (Optional)">
+                <textarea
+                  className={getInputClasses(false, isDark) + " h-24 resize-none"}
+                  value={formState.demoSessionDetails.special_requirements || ""}
+                  onChange={(e) => setFormState(prev => ({ 
+                    ...prev, 
+                    demoSessionDetails: { ...prev.demoSessionDetails, special_requirements: e.target.value }
+                  }))}
+                  placeholder="Any specific topics you'd like to focus on or special requirements..."
+                />
+              </InputGroup>
+            </div>
+
+            {/* Consent */}
+            <div className={buildAdvancedComponent.glassCard({ variant: 'light' }) + " p-6 space-y-4"}>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                Consent & Agreements
+              </h3>
+              
+              <div className="space-y-4">
+                <label className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
                   <input
                     type="checkbox"
-                    className={`form-checkbox h-5 w-5 text-primary-600 rounded focus:ring-primary-500 ${isDark ? 'bg-gray-700 border-gray-600' : 'border-gray-300'}`}
-                    checked={consent.terms_accepted && consent.privacy_policy_accepted}
-                    onChange={(e) => setConsent({ 
-                      ...consent, 
-                      terms_accepted: e.target.checked,
-                      privacy_policy_accepted: e.target.checked 
-                    })}
+                    className="form-checkbox h-5 w-5 text-primary-600 rounded focus:ring-primary-500 mt-1 flex-shrink-0"
+                    checked={formState.consent.terms_accepted && formState.consent.privacy_policy_accepted}
+                    onChange={(e) => setFormState(prev => ({ 
+                      ...prev, 
+                      consent: { 
+                        ...prev.consent, 
+                        terms_accepted: e.target.checked,
+                        privacy_policy_accepted: e.target.checked 
+                      }
+                    }))}
                   />
-                  <span className="ml-2">
-                    I agree to the <Link href="/terms-and-services" className="text-primary-500 hover:underline">Terms of Use</Link> and <Link href="/privacy-policy" className="text-primary-500 hover:underline">Privacy Policy</Link> <span className="text-red-500">*</span>
-                  </span>
-                  </label>
-                {(formErrors.termsAccepted || formErrors.privacyPolicyAccepted) && <p className={errorClasses}>{formErrors.termsAccepted || formErrors.privacyPolicyAccepted}</p>}
-
-                <label className={radioLabelClasses}>
-                    <input
-                      type="checkbox"
-                    className={`form-checkbox h-5 w-5 text-primary-600 rounded focus:ring-primary-500 ${isDark ? 'bg-gray-700 border-gray-600' : 'border-gray-300'}`}
-                      checked={consent.gdpr_consent}
-                      onChange={(e) => setConsent({ ...consent, gdpr_consent: e.target.checked })}
-                    />
-                  <span className="ml-2">I consent to the processing of my data in accordance with GDPR.</span>
-                    </label>
+                  <div className="text-sm">
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      I agree to the{" "}
+                      <Link href="/terms-and-services" className="text-primary-500 hover:underline font-semibold">
+                        Terms of Use
+                      </Link>
+                      {" "}and{" "}
+                      <Link href="/privacy-policy" className="text-primary-500 hover:underline font-semibold">
+                        Privacy Policy
+                      </Link>
+                    </span>
+                    <span className="text-red-500 ml-1">*</span>
                   </div>
+                </label>
+
+                <label className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="form-checkbox h-5 w-5 text-primary-600 rounded focus:ring-primary-500 mt-1 flex-shrink-0"
+                    checked={formState.consent.gdpr_consent}
+                    onChange={(e) => setFormState(prev => ({ 
+                      ...prev, 
+                      consent: { ...prev.consent, gdpr_consent: e.target.checked }
+                    }))}
+                  />
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    I consent to the processing of my data in accordance with GDPR regulations
+                  </span>
+                </label>
+
+                <label className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="form-checkbox h-5 w-5 text-primary-600 rounded focus:ring-primary-500 mt-1 flex-shrink-0"
+                    checked={formState.consent.marketing_consent}
+                    onChange={(e) => setFormState(prev => ({ 
+                      ...prev, 
+                      consent: { ...prev.consent, marketing_consent: e.target.checked }
+                    }))}
+                  />
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    I would like to receive updates about courses and educational content
+                  </span>
+                </label>
               </div>
+
+              <ErrorMessage error={formState.validationErrors.termsAccepted || formState.validationErrors.privacyAccepted} />
+            </div>
 
             {/* Navigation and Submit */}
-            <div className="flex justify-between mt-6">
+            <div className="flex justify-between pt-6">
               <button
                 type="button"
-                onClick={() => setStep(1)}
+                onClick={goToPreviousStep}
+                disabled={formState.isSubmitting}
                 className={buildComponent.button("secondary", "lg")}
               >
-                Back
+                ← Back
               </button>
-                                  <button
-                    type="submit"
-                className={buildComponent.button("primary", "lg")}
-                    disabled={isSubmitting}
-                  >
-                {isSubmitting ? (
-                  <span className="flex items-center justify-center">
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Submitting...
+              <button
+                type="submit"
+                disabled={formState.isSubmitting}
+                className={buildComponent.button("primary", "lg") + " min-w-[200px]"}
+              >
+                {formState.isSubmitting ? (
+                  <span className="flex items-center justify-center gap-3">
+                    <Loader2 className="h-5 w-5 animate-spin" /> 
+                    Submitting...
                   </span>
                 ) : (
-                  "Book Your Demo Session Now"
+                  <span className="flex items-center justify-center gap-3">
+                    <CheckCircle className="h-5 w-5" />
+                    Book Demo Session
+                  </span>
                 )}
-                </button>
-              </div>
-        </form>
+              </button>
+            </div>
+          </form>
         )}
       </div>
     );
   };
 
   return (
-    <div className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${isSubmitting ? 'cursor-wait opacity-100' : 'opacity-100'}`}>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300 opacity-100">
+      <div className="absolute inset-0" onClick={formState.isSubmitting ? undefined : onClose} />
       {renderFormContent()}
     </div>
   );
