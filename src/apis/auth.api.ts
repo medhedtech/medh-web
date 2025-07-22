@@ -2,6 +2,7 @@
 
 import { apiBaseUrl } from './config';
 
+
 // Authentication Interfaces
 export interface IRegisterData {
   full_name: string;
@@ -391,6 +392,123 @@ export interface IOAuthProvidersResponse {
   };
 }
 
+// Enhanced OAuth Management Interfaces
+export interface IOAuthAccountLinkRequest {
+  provider: 'google' | 'facebook' | 'github' | 'linkedin' | 'microsoft' | 'apple';
+  redirect_uri?: string;
+}
+
+export interface IOAuthAccountLinkResponse {
+  success: boolean;
+  message: string;
+  data: {
+    auth_url: string;
+    provider: string;
+    linking_mode: boolean;
+  };
+}
+
+export interface IOAuthAccountUnlinkRequest {
+  provider: 'google' | 'facebook' | 'github' | 'linkedin' | 'microsoft' | 'apple';
+}
+
+export interface IOAuthAccountUnlinkResponse {
+  success: boolean;
+  message: string;
+  data: {
+    provider: string;
+    unlinked_at: string;
+    remaining_oauth_providers: string[];
+    has_password: boolean;
+  };
+}
+
+export interface IOAuthConnectedProvider {
+  provider: string;
+  provider_id: string;
+  email?: string;
+  display_name?: string;
+  connected_at: string;
+  last_used?: string;
+  profile_picture?: string;
+}
+
+export interface IOAuthConnectedProvidersResponse {
+  success: boolean;
+  data: {
+    connected_providers: IOAuthConnectedProvider[];
+    unconnected_providers: string[];
+    total_connected: number;
+    has_password: boolean;
+  };
+}
+
+// Enhanced Email Synchronization Interfaces
+export interface IOAuthEmailSyncRequest {
+  provider: 'google' | 'facebook' | 'github' | 'linkedin' | 'microsoft' | 'apple';
+  action: 'use_oauth_email' | 'verify_current_email' | 'add_alternative_email';
+}
+
+export interface IOAuthEmailSyncResponse {
+  success: boolean;
+  message: string;
+  data: {
+    provider: string;
+    action: string;
+    oauth_email: string;
+    current_email: string;
+    email_verified: boolean;
+    changes: string[];
+    updated: boolean;
+  };
+}
+
+// Account Merging Interfaces
+export interface IOAuthMergeSuggestion {
+  type: 'email_verification' | 'profile_enhancement' | 'account_consolidation';
+  suggested_providers: string[];
+  risk_level: 'low' | 'medium' | 'high';
+  description: string;
+  action: string;
+}
+
+export interface IOAuthMergeSuggestionsResponse {
+  success: boolean;
+  data: {
+    suggestions: IOAuthMergeSuggestion[];
+    suggestion_count: number;
+  };
+}
+
+// Enhanced OAuth Login/Signup Response
+export interface IOAuthUserData {
+  id: string;
+  email: string;
+  full_name: string;
+  first_name?: string;
+  last_name?: string;
+  profile_picture?: string;
+  email_verified: boolean;
+  provider: string;
+  provider_id: string;
+  role: string[];
+  permissions?: string[];
+  access_token: string;
+  refresh_token?: string;
+  session_id?: string;
+  account_merged?: boolean;
+  profile_updated?: boolean;
+  email_conflicts?: Array<{
+    oauth_email: string;
+    user_email: string;
+    provider: string;
+  }>;
+  // Quick login key fields for enhanced OAuth
+  quick_login_key?: string;
+  quick_login_key_id?: string;
+  is_new_user?: boolean;
+}
+
 export interface IConnectedProvider {
   provider: string;
   provider_id: string;
@@ -633,49 +751,100 @@ export const authAPI = {
     failure: `${apiBaseUrl}/auth/oauth/failure`,
     connected: `${apiBaseUrl}/auth/oauth/connected`,
     
-    disconnect: (provider: string): string => {
-      if (!provider) throw new Error('Provider is required');
-      return `${apiBaseUrl}/auth/oauth/disconnect/${provider}`;
-    },
-    
+    // Account linking and unlinking
     link: (provider: string): string => {
       if (!provider) throw new Error('Provider is required');
       return `${apiBaseUrl}/auth/oauth/link/${provider}`;
     },
     
+    unlink: (provider: string): string => {
+      if (!provider) throw new Error('Provider is required');
+      return `${apiBaseUrl}/auth/oauth/unlink/${provider}`;
+    },
+    
+    // Legacy disconnect endpoint (for backward compatibility)
+    disconnect: (provider: string): string => {
+      if (!provider) throw new Error('Provider is required');
+      return `${apiBaseUrl}/auth/oauth/disconnect/${provider}`;
+    },
+    
+    // Enhanced email synchronization
+    syncEmail: `${apiBaseUrl}/auth/oauth/sync-email`,
+    mergeSuggestions: `${apiBaseUrl}/auth/oauth/merge-suggestions`,
+    
     // OAuth statistics (Admin only)
     stats: `${apiBaseUrl}/auth/oauth/stats`,
   },
 
-  // 🔐 3. Multi-Factor Authentication (MFA)
+  // 🔐 3. Multi-Factor Authentication (MFA) - Enhanced 2024
   mfa: {
     // MFA Status & Management
     status: `${apiBaseUrl}/auth/mfa/status`,
     disable: `${apiBaseUrl}/auth/mfa/disable`,
     
-    // TOTP Setup
+    // TOTP Setup - Enhanced
     setupTOTP: `${apiBaseUrl}/auth/mfa/setup/totp`,
     verifyTOTPSetup: `${apiBaseUrl}/auth/mfa/setup/totp/verify`,
     
-    // SMS Setup
+    // SMS Setup - Enhanced
     setupSMS: `${apiBaseUrl}/auth/mfa/setup/sms`,
     verifySMSSetup: `${apiBaseUrl}/auth/mfa/setup/sms/verify`,
     
-    // MFA Login Flow
+    // MFA Login Flow - Enhanced
     verify: `${apiBaseUrl}/auth/mfa/verify`,
     sendSMS: `${apiBaseUrl}/auth/mfa/send-sms`,
     completeMFALogin: `${apiBaseUrl}/auth/complete-mfa-login`,
     
-    // Backup Codes
+    // Backup Codes - Enhanced
     backupCodes: {
       regenerate: `${apiBaseUrl}/auth/mfa/backup-codes/regenerate`,
       count: `${apiBaseUrl}/auth/mfa/backup-codes/count`,
+      download: `${apiBaseUrl}/auth/mfa/backup-codes/download`,
     },
     
-    // MFA Recovery
+    // MFA Recovery - Enhanced
     recovery: {
       request: `${apiBaseUrl}/auth/mfa/recovery/request`,
+      verify: `${apiBaseUrl}/auth/mfa/recovery/verify`,
     },
+    
+    // Risk-based Authentication (NEW)
+    riskAssessment: `${apiBaseUrl}/auth/mfa/risk-assessment`,
+    adaptiveChallenge: `${apiBaseUrl}/auth/mfa/adaptive-challenge`,
+  },
+
+  // 🛡️ 4. Passkey Authentication (WebAuthn) - NEW
+  passkeys: {
+    // Feature Detection
+    capabilities: `${apiBaseUrl}/auth/passkeys/capabilities`,
+    
+    // Passkey Registration
+    registerOptions: `${apiBaseUrl}/auth/passkeys/register/options`,
+    registerVerify: `${apiBaseUrl}/auth/passkeys/register/verify`,
+    
+    // Passkey Authentication
+    authenticateOptions: `${apiBaseUrl}/auth/passkeys/authenticate/options`,
+    authenticateVerify: `${apiBaseUrl}/auth/passkeys/authenticate/verify`,
+    
+    // Passkey Management
+    list: `${apiBaseUrl}/auth/passkeys`,
+    rename: (passkeyId: string): string => {
+      if (!passkeyId) throw new Error('Passkey ID is required');
+      return `${apiBaseUrl}/auth/passkeys/${passkeyId}/name`;
+    },
+    delete: (passkeyId: string): string => {
+      if (!passkeyId) throw new Error('Passkey ID is required');
+      return `${apiBaseUrl}/auth/passkeys/${passkeyId}`;
+    },
+    
+    // Advanced Features
+    conditionalUI: `${apiBaseUrl}/auth/passkeys/conditional-ui`,
+    crossDevice: `${apiBaseUrl}/auth/passkeys/cross-device`,
+    deviceSync: `${apiBaseUrl}/auth/passkeys/device-sync`,
+    
+    // Security & Analytics
+    usage: `${apiBaseUrl}/auth/passkeys/usage`,
+    security: `${apiBaseUrl}/auth/passkeys/security-events`,
   },
   
   // 4. User Profile Management
@@ -965,7 +1134,7 @@ export const authUtils = {
   },
 
   /**
-   * Generate OAuth login URL
+   * Generate OAuth login URL with proper redirect URI handling
    */
   getOAuthLoginUrl: (provider: string, redirectUrl?: string): string => {
     const baseUrl = authAPI.oauth[provider as keyof typeof authAPI.oauth];
@@ -973,36 +1142,425 @@ export const authUtils = {
       throw new Error(`Unsupported OAuth provider: ${provider}`);
     }
     
-    if (redirectUrl) {
-      return `${baseUrl}?redirect_url=${encodeURIComponent(redirectUrl)}`;
-    }
-    
+    // Your backend handles OAuth internally and redirects to its own success page
     return baseUrl;
   },
 
   /**
-   * Handle OAuth popup window
+   * Frontend-initiated OAuth handler with Google Identity Services
    */
-  openOAuthPopup: (provider: string, onSuccess?: (data: any) => void, onError?: (error: any) => void): void => {
-    const url = authUtils.getOAuthLoginUrl(provider);
-    const popup = window.open(url, 'oauth', 'width=500,height=600,scrollbars=yes,resizable=yes');
+  openOAuthPopup: (
+    provider: string, 
+    onSuccess?: (data: IOAuthUserData) => void, 
+    onError?: (error: any) => void,
+    options?: {
+      width?: number;
+      height?: number;
+      redirectUri?: string;
+      mode?: 'login' | 'signup' | 'link';
+      generateQuickLoginKey?: boolean;
+    }
+  ): void => {
+    if (provider === 'google') {
+      authUtils.handleGoogleOAuth(onSuccess, onError, options);
+    } else {
+      // Fallback to other providers or show error
+      onError?.({ message: `${provider} OAuth not implemented yet` });
+    }
+  },
+
+  /**
+   * Google OAuth implementation using Google Identity Services
+   */
+  handleGoogleOAuth: (
+    onSuccess?: (data: IOAuthUserData) => void,
+    onError?: (error: any) => void,
+    options?: {
+      width?: number;
+      height?: number;
+      redirectUri?: string;
+      mode?: 'login' | 'signup' | 'link';
+      generateQuickLoginKey?: boolean;
+    }
+  ): void => {
+    // Check if Google Identity Services is already loaded
+    if ((window as any).google?.accounts?.id) {
+      authUtils.initializeGoogleSignIn(onSuccess, onError, options);
+      return;
+    }
     
-    const checkClosed = setInterval(() => {
-      if (popup?.closed) {
-        clearInterval(checkClosed);
-        // Check for success/failure in localStorage or postMessage
-        const result = localStorage.getItem('oauth_result');
-        if (result) {
-          localStorage.removeItem('oauth_result');
-          const data = JSON.parse(result);
-          if (data.success) {
-            onSuccess?.(data);
+    // Load Google Identity Services script
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    
+    script.onload = () => {
+      authUtils.initializeGoogleSignIn(onSuccess, onError, options);
+    };
+    
+    script.onerror = () => {
+      onError?.({ message: 'Failed to load Google OAuth. Please check your internet connection.' });
+    };
+
+    document.head.appendChild(script);
+  },
+
+  /**
+   * Initialize Google Sign-In
+   */
+  initializeGoogleSignIn: (
+    onSuccess?: (data: IOAuthUserData) => void,
+    onError?: (error: any) => void,
+    options?: {
+      width?: number;
+      height?: number;
+      redirectUri?: string;
+      mode?: 'login' | 'signup' | 'link';
+      generateQuickLoginKey?: boolean;
+    }
+  ): void => {
+    const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    
+    if (!googleClientId) {
+      onError?.({ message: 'Google Client ID not configured' });
+      return;
+    }
+
+    try {
+      (window as any).google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: (response: any) => authUtils.handleGoogleCredentialResponse(response, onSuccess, onError, options),
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+
+      // Create a temporary button element for programmatic trigger
+      const tempButton = document.createElement('div');
+      tempButton.id = 'temp-google-signin-button';
+      tempButton.style.display = 'none';
+      document.body.appendChild(tempButton);
+
+      (window as any).google.accounts.id.renderButton(tempButton, {
+        theme: 'outline',
+        size: 'large',
+        text: 'signin_with',
+        shape: 'rectangular',
+      });
+
+      // Trigger the sign-in programmatically
+      (window as any).google.accounts.id.prompt((notification: any) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          // Fallback: trigger the button click
+          const googleButton = tempButton.querySelector('div[role="button"]') as HTMLElement;
+          if (googleButton) {
+            googleButton.click();
           } else {
-            onError?.(data);
+            // Last resort: use one-tap
+            (window as any).google.accounts.id.prompt();
           }
         }
+      });
+
+      // Clean up temp button after a short delay
+      setTimeout(() => {
+        if (tempButton && tempButton.parentNode) {
+          tempButton.parentNode.removeChild(tempButton);
       }
     }, 1000);
+
+    } catch (error) {
+      console.error('Google OAuth initialization error:', error);
+      onError?.({ message: 'Failed to initialize Google OAuth' });
+    }
+  },
+
+  /**
+   * Handle Google credential response
+   */
+  handleGoogleCredentialResponse: async (
+    response: any,
+    onSuccess?: (data: IOAuthUserData) => void,
+    onError?: (error: any) => void,
+    options?: {
+      generateQuickLoginKey?: boolean;
+    }
+  ): Promise<void> => {
+    try {
+      if (!response.credential) {
+        throw new Error('No credential received from Google');
+      }
+
+      // Decode the JWT token to get user info
+      const userInfo = authUtils.decodeGoogleJWT(response.credential);
+      console.log('🔍 Google OAuth Debug - Decoded user info:', {
+        id: userInfo.sub,
+        email: userInfo.email,
+        name: userInfo.name,
+        email_verified: userInfo.email_verified
+      });
+      
+      // First, try the new frontend OAuth endpoint
+      let backendResponse;
+      const requestPayload = {
+        provider: 'google',
+        token: response.credential, // This is a JWT ID token
+        generate_quick_login_key: options?.generateQuickLoginKey || false, // Add quick login key option
+        userInfo: {
+          id: userInfo.sub,
+          email: userInfo.email,
+          name: userInfo.name,
+          picture: userInfo.picture,
+          email_verified: userInfo.email_verified,
+          given_name: userInfo.given_name,
+          family_name: userInfo.family_name,
+        }
+      };
+      
+      console.log('🔍 Google OAuth Debug - Sending request to backend:', {
+        url: `${apiBaseUrl}/auth/oauth/frontend`,
+        payload: requestPayload
+      });
+      
+      try {
+        backendResponse = await fetch(`${apiBaseUrl}/auth/oauth/frontend`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(requestPayload),
+        });
+      } catch (networkError) {
+        console.error('Network error calling backend OAuth:', networkError);
+        throw new Error('Network error. Please check your internet connection and backend server.');
+      }
+
+      if (!backendResponse.ok) {
+        const errorData = await backendResponse.json();
+        console.error('🚨 Backend OAuth error:', {
+          status: backendResponse.status,
+          statusText: backendResponse.statusText,
+          error: errorData,
+          url: `${apiBaseUrl}/auth/oauth/frontend`
+        });
+        
+        // More specific error messages
+        if (backendResponse.status === 404) {
+          throw new Error('🚧 Backend OAuth endpoint not implemented yet.\n\nPlease implement POST /api/v1/auth/oauth/frontend\n\nSee docs/backend-oauth-endpoint.md for implementation guide.');
+        } else if (backendResponse.status === 500 && errorData.error?.includes('handleOAuthCallback is not a function')) {
+          throw new Error('🔧 Backend OAuth handler missing.\n\nThe endpoint exists but handleOAuthCallback function is not implemented.\n\nCheck docs/backend-oauth-endpoint.md for code examples.');
+        } else if (backendResponse.status === 400 && errorData.error?.includes('Student ID must follow the pattern')) {
+          throw new Error('🚧 Account Creation Issue\n\nThere\'s a temporary issue with automatic account creation via Google.\n\nPlease try:\n1. Creating an account manually first\n2. Then linking your Google account in settings\n\nOr contact support for assistance.');
+        } else if (backendResponse.status === 500 && errorData.error?.includes('Student ID must follow the pattern')) {
+          throw new Error('🚧 Account Creation Issue\n\nThere\'s a temporary issue with automatic account creation via Google.\n\nPlease try:\n1. Creating an account manually first\n2. Then linking your Google account in settings\n\nOr contact support for assistance.');
+        } else if (errorData.error?.includes('validation failed')) {
+          throw new Error(`🔧 Account Creation Issue: ${errorData.error}\n\nPlease try creating an account manually first, then link your Google account in settings.`);
+        } else {
+          throw new Error(errorData.message || `OAuth authentication failed (${backendResponse.status})`);
+        }
+      }
+
+      const result = await backendResponse.json();
+      console.log('✅ Backend OAuth success response:', result);
+      
+      if (result.success && result.data) {
+        // Transform the response to match the expected format
+        const transformedData = {
+          ...result.data,
+          // Map tokens to expected format
+          access_token: result.data.tokens?.access_token || result.data.token,
+          refresh_token: result.data.tokens?.refresh_token || '',
+          // Map user data
+          id: result.data.user.id,
+          email: result.data.user.email,
+          full_name: result.data.user.full_name || result.data.user.name,
+          first_name: result.data.user.given_name || result.data.user.full_name?.split(' ')[0] || '',
+          last_name: result.data.user.family_name || result.data.user.full_name?.split(' ').slice(1).join(' ') || '',
+          profile_picture: result.data.user.user_image?.url || result.data.user.picture,
+          email_verified: result.data.user.email_verified,
+          provider: 'google',
+          provider_id: result.data.user.id,
+          role: ['student'], // Default role
+          permissions: [],
+          account_merged: result.data.user.oauth_providers?.length > 1,
+          profile_updated: result.data.user.profile_completion > 0,
+          email_conflicts: [],
+          // Add quick login key data if available
+          quick_login_key: result.data.quick_login_key,
+          quick_login_key_id: result.data.quick_login_key_id
+        };
+
+        onSuccess?.(transformedData as any);
+      } else {
+        throw new Error(result.message || 'OAuth authentication failed');
+      }
+
+    } catch (error: any) {
+      console.error('Google OAuth error:', error);
+      onError?.(error);
+    }
+  },
+
+  /**
+   * Decode Google JWT token to extract user info
+   */
+  decodeGoogleJWT: (token: string): any => {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch (error) {
+      console.error('Error decoding Google JWT:', error);
+      return {};
+    }
+  },
+
+  /**
+   * Link OAuth account to existing user account
+   */
+  linkOAuthAccount: async (provider: string): Promise<IOAuthAccountLinkResponse> => {
+    try {
+      const response = await fetch(authAPI.oauth.link(provider), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        }
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error),
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Unlink OAuth account from user account
+   */
+  unlinkOAuthAccount: async (provider: string): Promise<IOAuthAccountUnlinkResponse> => {
+    try {
+      const response = await fetch(authAPI.oauth.unlink(provider), {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        }
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error),
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Get connected OAuth providers
+   */
+  getConnectedProviders: async (): Promise<IOAuthConnectedProvidersResponse> => {
+    try {
+      const response = await fetch(authAPI.oauth.connected, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        }
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Synchronize email from OAuth provider
+   */
+  syncOAuthEmail: async (provider: string, action: 'use_oauth_email' | 'verify_current_email' | 'add_alternative_email'): Promise<IOAuthEmailSyncResponse> => {
+    try {
+      const response = await fetch(authAPI.oauth.syncEmail, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        },
+        body: JSON.stringify({ provider, action })
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error),
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Get OAuth account merge suggestions
+   */
+  getOAuthMergeSuggestions: async (): Promise<IOAuthMergeSuggestionsResponse> => {
+    try {
+      const response = await fetch(authAPI.oauth.mergeSuggestions, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        }
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        data: {} as any
+      };
+    }
+  },
+
+  /**
+   * Check if response indicates MFA is required
+   */
+  isMFARequired: (response: any): boolean => {
+    return response?.requires_mfa === true || response?.mfa_required === true;
+  },
+
+  /**
+   * Extract user information from OAuth response
+   */
+  extractOAuthUserData: (rawData: any, provider: string): IOAuthUserData => {
+    return {
+      id: rawData.id || rawData.user?.id || rawData.sub,
+      email: rawData.email || rawData.user?.email,
+      full_name: rawData.full_name || rawData.name || rawData.user?.full_name || `${rawData.given_name || ''} ${rawData.family_name || ''}`.trim(),
+      first_name: rawData.given_name || rawData.first_name,
+      last_name: rawData.family_name || rawData.last_name,
+      profile_picture: rawData.picture || rawData.avatar_url || rawData.user?.user_image,
+      email_verified: rawData.email_verified ?? rawData.verified_email ?? true,
+      provider,
+      provider_id: rawData.id || rawData.sub,
+      role: rawData.role || rawData.user?.role || ['student'],
+      permissions: rawData.permissions || rawData.user?.permissions || [],
+      access_token: rawData.access_token || rawData.token,
+      refresh_token: rawData.refresh_token,
+      session_id: rawData.session_id,
+      account_merged: rawData.account_merged || rawData.oauth_account_merged,
+      profile_updated: rawData.profile_updated || rawData.oauth_profile_updated,
+      email_conflicts: rawData.email_conflicts || rawData.oauth_email_conflicts
+    };
   },
 
   /**
@@ -1385,12 +1943,7 @@ export const authUtils = {
     return `otpauth://totp/${label}?${params.toString()}`;
   },
 
-  /**
-   * Check if MFA is required for login response
-   */
-  isMFARequired: (response: any): response is IMFALoginRequiredResponse => {
-    return response && response.requires_mfa === true;
-  },
+
 
   /**
    * Get MFA method display name
@@ -1615,7 +2168,742 @@ export const authUtils = {
         message: authUtils.handleAuthError(error)
       };
     }
+  },
+
+  // 🛡️ Passkey Authentication Utilities (WebAuthn) - NEW
+
+  /**
+   * Check browser capabilities for passkey support
+   */
+  getPasskeyCapabilities: async (): Promise<IPasskeyCapabilities> => {
+    const capabilities: IPasskeyCapabilities = {
+      webauthn: false,
+      conditionalMediation: false,
+      userVerifyingPlatformAuthenticator: false,
+      crossPlatformAuthenticator: false,
+      hybridTransport: false,
+      multiDevice: false,
+      biometrics: false,
+      securityKeys: false,
+    };
+
+    try {
+      // Check basic WebAuthn support
+      capabilities.webauthn = !!(
+        window.PublicKeyCredential &&
+        navigator.credentials &&
+        navigator.credentials.create &&
+        navigator.credentials.get
+      );
+
+      if (capabilities.webauthn) {
+        // Check conditional mediation (autofill) support
+        if (typeof PublicKeyCredential.isConditionalMediationAvailable === 'function') {
+          capabilities.conditionalMediation = await PublicKeyCredential.isConditionalMediationAvailable();
+        }
+
+        // Check platform authenticator support
+        if (typeof PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === 'function') {
+          capabilities.userVerifyingPlatformAuthenticator = 
+            await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+        }
+
+        // Enhanced capability detection using getClientCapabilities (Chrome 133+)
+        if ((PublicKeyCredential as any).getClientCapabilities) {
+          try {
+            const clientCapabilities = await (PublicKeyCredential as any).getClientCapabilities();
+            capabilities.conditionalMediation = clientCapabilities.conditionalGet || capabilities.conditionalMediation;
+            capabilities.hybridTransport = clientCapabilities.hybridTransport || false;
+            capabilities.multiDevice = clientCapabilities.passkeyPlatformAuthenticator || false;
+          } catch (e) {
+            console.log('Advanced capability detection not available');
+          }
+        }
+
+        // Infer additional capabilities based on platform
+        const userAgent = navigator.userAgent.toLowerCase();
+        capabilities.biometrics = capabilities.userVerifyingPlatformAuthenticator;
+        capabilities.securityKeys = true; // Most modern browsers support security keys
+        capabilities.crossPlatformAuthenticator = true;
+      }
+    } catch (error) {
+      console.error('Error detecting passkey capabilities:', error);
+    }
+
+    return capabilities;
+  },
+
+  /**
+   * Get passkey registration options from server
+   */
+  getPasskeyRegistrationOptions: async (): Promise<IPasskeyRegistrationOptions> => {
+    try {
+      const response = await fetch(authAPI.passkeys.registerOptions, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        }
+      });
+      return response.json();
+    } catch (error: any) {
+      throw new Error(authUtils.handleAuthError(error));
+    }
+  },
+
+  /**
+   * Register a new passkey
+   */
+  registerPasskey: async (name?: string): Promise<IPasskeyRegistrationResponse> => {
+    try {
+      // Get registration options from server
+      const options = await authUtils.getPasskeyRegistrationOptions();
+      
+      // Convert base64url strings to ArrayBuffers
+      const credentialCreationOptions: CredentialCreationOptions = {
+        publicKey: {
+          ...options,
+          challenge: authUtils.base64urlToArrayBuffer(options.challenge),
+          user: {
+            ...options.user,
+            id: authUtils.base64urlToArrayBuffer(options.user.id)
+          },
+          excludeCredentials: options.excludeCredentials?.map(cred => ({
+            ...cred,
+            id: authUtils.base64urlToArrayBuffer(cred.id),
+            transports: cred.transports as AuthenticatorTransport[]
+          }))
+        }
+      };
+
+      // Create the credential
+      const credential = await navigator.credentials.create(credentialCreationOptions) as PublicKeyCredential;
+      
+      if (!credential) {
+        throw new Error('Failed to create passkey');
+      }
+
+      // Prepare credential for server verification
+      const credentialData: IPasskeyCredential = {
+        id: credential.id,
+        rawId: authUtils.arrayBufferToBase64url(credential.rawId),
+        type: credential.type as 'public-key',
+        response: {
+          clientDataJSON: authUtils.arrayBufferToBase64url((credential.response as AuthenticatorAttestationResponse).clientDataJSON),
+          attestationObject: authUtils.arrayBufferToBase64url((credential.response as AuthenticatorAttestationResponse).attestationObject),
+          transports: (credential.response as AuthenticatorAttestationResponse).getTransports?.() || []
+        },
+        authenticatorAttachment: (credential as any).authenticatorAttachment,
+        clientExtensionResults: credential.getClientExtensionResults()
+      };
+
+      // Send to server for verification and storage
+      const response = await fetch(authAPI.passkeys.registerVerify, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        },
+        body: JSON.stringify({
+          credential: credentialData,
+          name: name || authUtils.generatePasskeyName()
+        })
+      });
+
+      return response.json();
+    } catch (error: any) {
+      console.error('Passkey registration error:', error);
+      throw new Error(authUtils.handlePasskeyError(error));
+    }
+  },
+
+  /**
+   * Get passkey authentication options from server
+   */
+  getPasskeyAuthenticationOptions: async (email?: string): Promise<IPasskeyAuthenticationOptions> => {
+    try {
+      const response = await fetch(authAPI.passkeys.authenticateOptions, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      });
+      return response.json();
+    } catch (error: any) {
+      throw new Error(authUtils.handleAuthError(error));
+    }
+  },
+
+  /**
+   * Authenticate with passkey
+   */
+  authenticateWithPasskey: async (email?: string, conditional: boolean = false): Promise<IPasskeyAuthenticationResponse> => {
+    try {
+      // Get authentication options from server
+      const options = await authUtils.getPasskeyAuthenticationOptions(email);
+      
+      // Convert base64url strings to ArrayBuffers
+      const credentialRequestOptions: CredentialRequestOptions = {
+        publicKey: {
+          ...options,
+          challenge: authUtils.base64urlToArrayBuffer(options.challenge),
+                     allowCredentials: options.allowCredentials?.map(cred => ({
+             ...cred,
+             id: authUtils.base64urlToArrayBuffer(cred.id),
+             transports: cred.transports as AuthenticatorTransport[]
+           })) || []
+        }
+      };
+
+      // Add conditional mediation for autofill
+      if (conditional) {
+        (credentialRequestOptions as any).mediation = 'conditional';
+      }
+
+      // Get the credential
+      const credential = await navigator.credentials.get(credentialRequestOptions) as PublicKeyCredential;
+      
+      if (!credential) {
+        throw new Error('Failed to authenticate with passkey');
+      }
+
+      // Prepare credential for server verification
+      const credentialData: IPasskeyCredential = {
+        id: credential.id,
+        rawId: authUtils.arrayBufferToBase64url(credential.rawId),
+        type: credential.type as 'public-key',
+        response: {
+          clientDataJSON: authUtils.arrayBufferToBase64url((credential.response as AuthenticatorAssertionResponse).clientDataJSON),
+          authenticatorData: authUtils.arrayBufferToBase64url((credential.response as AuthenticatorAssertionResponse).authenticatorData),
+          signature: authUtils.arrayBufferToBase64url((credential.response as AuthenticatorAssertionResponse).signature),
+          userHandle: (credential.response as AuthenticatorAssertionResponse).userHandle ? 
+            authUtils.arrayBufferToBase64url((credential.response as AuthenticatorAssertionResponse).userHandle!) : undefined
+        },
+        authenticatorAttachment: (credential as any).authenticatorAttachment,
+        clientExtensionResults: credential.getClientExtensionResults()
+      };
+
+      // Send to server for verification
+      const response = await fetch(authAPI.passkeys.authenticateVerify, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ credential: credentialData })
+      });
+
+      return response.json();
+    } catch (error: any) {
+      console.error('Passkey authentication error:', error);
+      throw new Error(authUtils.handlePasskeyError(error));
+    }
+  },
+
+  /**
+   * Get list of user's passkeys
+   */
+  getPasskeys: async (): Promise<IPasskeyListResponse> => {
+    try {
+      const response = await fetch(authAPI.passkeys.list, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        }
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error),
+        data: { passkeys: [], total: 0, capabilities: {} as IPasskeyCapabilities, recommendations: [] }
+      };
+    }
+  },
+
+  /**
+   * Rename a passkey
+   */
+  renamePasskey: async (passkeyId: string, newName: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await fetch(authAPI.passkeys.rename(passkeyId), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        },
+        body: JSON.stringify({ name: newName })
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error)
+      };
+    }
+  },
+
+  /**
+   * Delete a passkey
+   */
+  deletePasskey: async (passkeyId: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await fetch(authAPI.passkeys.delete(passkeyId), {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authUtils.getAuthHeaders()
+        }
+      });
+      return response.json();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: authUtils.handleAuthError(error)
+      };
+    }
+  },
+
+  // 🔧 Helper Functions for Passkeys
+
+  /**
+   * Convert base64url string to ArrayBuffer
+   */
+  base64urlToArrayBuffer: (base64url: string): ArrayBuffer => {
+    const padding = '='.repeat((4 - base64url.length % 4) % 4);
+    const base64 = (base64url + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray.buffer;
+  },
+
+  /**
+   * Convert ArrayBuffer to base64url string
+   */
+  arrayBufferToBase64url: (buffer: ArrayBuffer): string => {
+    const bytes = new Uint8Array(buffer);
+    let str = '';
+    for (const charCode of bytes) {
+      str += String.fromCharCode(charCode);
+    }
+    const base64String = btoa(str);
+    return base64String.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  },
+
+  /**
+   * Generate a default passkey name based on device/browser info
+   */
+  generatePasskeyName: (): string => {
+    const userAgent = navigator.userAgent;
+    let deviceName = 'Unknown Device';
+    
+    if (/iPhone/.test(userAgent)) {
+      deviceName = 'iPhone';
+    } else if (/iPad/.test(userAgent)) {
+      deviceName = 'iPad';
+    } else if (/Android/.test(userAgent)) {
+      deviceName = 'Android Device';
+    } else if (/Mac/.test(userAgent)) {
+      deviceName = 'Mac';
+    } else if (/Windows/.test(userAgent)) {
+      deviceName = 'Windows PC';
+    } else if (/Linux/.test(userAgent)) {
+      deviceName = 'Linux Device';
+    }
+
+    const timestamp = new Date().toLocaleDateString();
+    return `${deviceName} - ${timestamp}`;
+  },
+
+  /**
+   * Handle passkey-specific errors
+   */
+  handlePasskeyError: (error: any): string => {
+    if (error.name === 'InvalidStateError') {
+      return 'A passkey already exists for this device. Please try with a different device or remove the existing passkey first.';
+    }
+    
+    if (error.name === 'NotAllowedError') {
+      return 'Passkey operation was cancelled or not allowed. This might be due to user cancellation or security policy.';
+    }
+    
+    if (error.name === 'NotSupportedError') {
+      return 'Passkeys are not supported on this device or browser. Please try with a different device or use an alternative authentication method.';
+    }
+    
+    if (error.name === 'SecurityError') {
+      return 'Security error occurred. Please ensure you\'re on a secure connection (HTTPS) and try again.';
+    }
+    
+    if (error.name === 'AbortError') {
+      return 'Passkey operation timed out. Please try again.';
+    }
+    
+    if (error.name === 'ConstraintError') {
+      return 'The passkey request doesn\'t meet the security requirements. Please contact support.';
+    }
+    
+    return error.message || 'An error occurred with passkey authentication. Please try again.';
+  },
+
+  /**
+   * Check if device supports conditional UI (autofill)
+   */
+  supportsConditionalUI: async (): Promise<boolean> => {
+    try {
+      if (PublicKeyCredential?.isConditionalMediationAvailable) {
+        return await PublicKeyCredential.isConditionalMediationAvailable();
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  },
+
+  /**
+   * Enable passkey autofill on form inputs
+   */
+  enablePasskeyAutofill: (inputElement: HTMLInputElement, onSuccess: (result: IPasskeyAuthenticationResponse) => void): void => {
+    // Add webauthn to autocomplete attribute
+    const currentAutocomplete = inputElement.getAttribute('autocomplete') || '';
+    if (!currentAutocomplete.includes('webauthn')) {
+      inputElement.setAttribute('autocomplete', `${currentAutocomplete} webauthn`.trim());
+    }
+
+    // Start conditional authentication
+    authUtils.authenticateWithPasskey(undefined, true)
+      .then(onSuccess)
+      .catch(error => {
+        if (error.name !== 'NotAllowedError') {
+          console.error('Passkey autofill error:', error);
+        }
+      });
   }
 };
+
+// 🛡️ Passkey Authentication Interfaces (WebAuthn)
+
+export interface IPasskeyCapabilities {
+  webauthn: boolean;
+  conditionalMediation: boolean;
+  userVerifyingPlatformAuthenticator: boolean;
+  crossPlatformAuthenticator: boolean;
+  hybridTransport: boolean;
+  multiDevice: boolean;
+  biometrics: boolean;
+  securityKeys: boolean;
+}
+
+export interface IPasskeyRegistrationOptions {
+  challenge: string;
+  rp: {
+    name: string;
+    id: string;
+  };
+  user: {
+    id: string;
+    name: string;
+    displayName: string;
+  };
+  pubKeyCredParams: Array<{
+    type: 'public-key';
+    alg: number;
+  }>;
+  excludeCredentials?: Array<{
+    type: 'public-key';
+    id: string;
+    transports?: string[];
+  }>;
+  authenticatorSelection?: {
+    authenticatorAttachment?: 'platform' | 'cross-platform';
+    userVerification?: 'required' | 'preferred' | 'discouraged';
+    residentKey?: 'required' | 'preferred' | 'discouraged';
+    requireResidentKey?: boolean;
+  };
+  timeout?: number;
+  attestation?: 'none' | 'indirect' | 'direct' | 'enterprise';
+}
+
+export interface IPasskeyAuthenticationOptions {
+  challenge: string;
+  rpId: string;
+  allowCredentials?: Array<{
+    type: 'public-key';
+    id: string;
+    transports?: string[];
+  }>;
+  userVerification?: 'required' | 'preferred' | 'discouraged';
+  timeout?: number;
+}
+
+export interface IPasskeyCredential {
+  id: string;
+  rawId: string;
+  type: 'public-key';
+  response: {
+    clientDataJSON: string;
+    attestationObject?: string; // For registration
+    authenticatorData?: string; // For authentication
+    signature?: string; // For authentication
+    userHandle?: string; // For authentication
+    transports?: string[];
+  };
+  authenticatorAttachment?: 'platform' | 'cross-platform';
+  clientExtensionResults?: any;
+}
+
+export interface IPasskey {
+  id: string;
+  name: string;
+  credentialId: string;
+  publicKey: string;
+  counter: number;
+  deviceType: string;
+  backedUp: boolean;
+  backupEligible: boolean;
+  transports: string[];
+  aaguid: string;
+  attestationType: string;
+  createdAt: string;
+  lastUsed?: string;
+  usage: {
+    count: number;
+    lastIpAddress?: string;
+    lastUserAgent?: string;
+    lastLocation?: string;
+  };
+  sync: {
+    isSync: boolean;
+    provider?: string;
+    devices?: string[];
+  };
+}
+
+export interface IPasskeyRegistrationResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    passkey: IPasskey;
+    backupCodes?: string[];
+    recommendations: string[];
+  };
+}
+
+export interface IPasskeyAuthenticationResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    user: {
+      id: string;
+      email: string;
+      full_name: string;
+    };
+    passkey: IPasskey;
+    tokens: {
+      access_token: string;
+      refresh_token: string;
+    };
+    session_id: string;
+    deviceInfo: {
+      isNewDevice: boolean;
+      isTrustedDevice: boolean;
+      requiresAdditionalVerification: boolean;
+    };
+  };
+}
+
+export interface IPasskeyListResponse {
+  success: boolean;
+  message: string;
+  data: {
+    passkeys: IPasskey[];
+    total: number;
+    capabilities: IPasskeyCapabilities;
+    recommendations: string[];
+  };
+}
+
+// Enhanced 2FA Interfaces
+
+export interface IRiskAssessment {
+  riskScore: number;
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  factors: {
+    deviceTrust: number;
+    locationTrust: number;
+    behaviorTrust: number;
+    timeTrust: number;
+  };
+  recommendation: 'allow' | 'challenge' | 'block';
+  requiredMethods: string[];
+}
+
+export interface IAdaptiveChallenge {
+  challengeType: 'totp' | 'sms' | 'passkey' | 'biometric' | 'push';
+  reason: string;
+  alternatives: string[];
+  timeout: number;
+  maxAttempts: number;
+}
+
+export interface IEnhancedMFAStatus {
+  enabled: boolean;
+  methods: Array<{
+    type: 'totp' | 'sms' | 'passkey';
+    enabled: boolean;
+    primary: boolean;
+    setupDate: string;
+    lastUsed?: string;
+    deviceInfo?: string;
+  }>;
+  backupCodesCount: number;
+  riskProfile: {
+    trustScore: number;
+    deviceFingerprint: string;
+    lastRiskAssessment: string;
+  };
+  recommendations: string[];
+}
+
+// Email Notification Interfaces for OAuth
+export interface IOAuthEmailNotification {
+  type: 'welcome' | 'login_notification' | 'security_alert' | 'quick_login_key_generated';
+  recipient: {
+    email: string;
+    full_name: string;
+  };
+  data: {
+    provider: string;
+    device_info?: {
+      device: string;
+      location?: string;
+      ip_address?: string;
+      user_agent?: string;
+    };
+    timestamp: string;
+    is_new_user?: boolean;
+    quick_login_key_generated?: boolean;
+    account_merged?: boolean;
+  };
+  template_data?: {
+    [key: string]: any;
+  };
+}
+
+export interface IWelcomeEmailData {
+  user_name: string;
+  provider: string;
+  account_features: string[];
+  quick_login_enabled: boolean;
+  platform_features: string[];
+  support_links: {
+    getting_started: string;
+    help_center: string;
+    contact_support: string;
+  };
+}
+
+export interface ILoginNotificationData {
+  user_name: string;
+  provider: string;
+  login_time: string;
+  device_info: {
+    device: string;
+    location?: string;
+    browser?: string;
+  };
+  is_new_device: boolean;
+  security_actions: {
+    review_devices: string;
+    change_password: string;
+    enable_2fa: string;
+  };
+}
+
+export interface ISecurityAlertData {
+  user_name: string;
+  alert_type: 'suspicious_login' | 'new_device' | 'multiple_failed_attempts';
+  timestamp: string;
+  details: {
+    location?: string;
+    device?: string;
+    ip_address?: string;
+  };
+  recommended_actions: string[];
+  support_contact: string;
+}
+
+export interface IQuickLoginKeyNotificationData {
+  user_name: string;
+  provider: string;
+  key_generated_at: string;
+  key_expires_at: string;
+  security_info: {
+    storage_location: 'local_device';
+    encryption: 'AES-256';
+    auto_expiry: '30_days_inactive';
+  };
+  management_links: {
+    view_keys: string;
+    revoke_key: string;
+    security_settings: string;
+  };
+}
+
+// Email Template Response Interfaces
+export interface IEmailNotificationResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    email_id: string;
+    sent_at: string;
+    template_used: string;
+    delivery_status: 'queued' | 'sent' | 'delivered' | 'failed';
+  };
+}
+
+export interface IEmailTemplateConfig {
+  welcome: {
+    subject: string;
+    template_id: string;
+    features: {
+      oauth_registration: boolean;
+      quick_login_key: boolean;
+      platform_overview: boolean;
+      support_links: boolean;
+    };
+  };
+  login_notification: {
+    subject: string;
+    template_id: string;
+    features: {
+      device_detection: boolean;
+      location_tracking: boolean;
+      security_recommendations: boolean;
+    };
+  };
+  security_alert: {
+    subject: string;
+    template_id: string;
+    features: {
+      threat_detection: boolean;
+      immediate_actions: boolean;
+      support_escalation: boolean;
+    };
+  };
+  quick_login_key: {
+    subject: string;
+    template_id: string;
+    features: {
+      key_management: boolean;
+      security_explanation: boolean;
+      expiry_information: boolean;
+    };
+  };
+}
 
 export default authAPI; 

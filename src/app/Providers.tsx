@@ -7,24 +7,15 @@ import { PlacementFormProvider } from "@/context/PlacementFormContext";
 import { ServerLoadingProvider } from "@/providers/ServerLoadingProvider";
 import { LoadingProvider } from "@/contexts/LoadingContext";
 import { ThemeProvider } from "next-themes";
-import { ToastContainer } from "react-toastify";
-import { ReactNode, useEffect } from "react";
-import { showToast } from "@/utils/toastManager";
+import { ReactNode } from "react";
 import { ToastProvider } from "@/components/shared/ui/ToastProvider";
+import { GoogleOneTapProvider } from "@/providers/GoogleOneTapProvider";
 
 interface ProvidersProps {
   children: ReactNode;
 }
 
 export default function Providers({ children }: ProvidersProps) {
-  // Initialize global showToast
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      (window as any).showToast = showToast;
-      (globalThis as any).showToast = showToast;
-    }
-  }, []);
-
   return (
     <ThemeProvider
       attribute="class"
@@ -44,19 +35,10 @@ export default function Providers({ children }: ProvidersProps) {
               <CartContextProvider>
                 <PlacementFormProvider>
                   <ToastProvider>
-                    {children}
-                    <ToastContainer
-                      position="top-right"
-                      autoClose={5000}
-                      hideProgressBar={false}
-                      newestOnTop
-                      closeOnClick
-                      rtl={false}
-                      pauseOnFocusLoss
-                      draggable
-                      pauseOnHover
-                      theme="light"
-                    />
+                    {/* Google One Tap Authentication */}
+                    <GoogleOneTapProvider>
+                      {children}
+                    </GoogleOneTapProvider>
                   </ToastProvider>
                 </PlacementFormProvider>
               </CartContextProvider>

@@ -47,6 +47,9 @@ const SelectCourseModalMobile: React.FC<SelectCourseModalProps> = ({
   const normalizedPlanType = (planType || "").toLowerCase();
   const maxSelections = normalizedPlanType === "silver" ? 1 : normalizedPlanType === "gold" ? 3 : 1;
 
+  // Debug logging
+  console.log('SelectCourseModalMobile - planType:', planType, 'normalizedPlanType:', normalizedPlanType, 'maxSelections:', maxSelections);
+
   // Fetch categories/courses on open
   useEffect(() => {
     if (!isOpen) return;

@@ -31,15 +31,6 @@ const MembershipFeatures: React.FC = () => {
 
   const features: IFeature[] = [
     {
-      title: "Expert Programs",
-      description: "Industry-ready courses by professionals",
-      icon: BookOpen,
-      category: "courses",
-      highlight: "Market-Ready",
-      stats: "50+ Programs",
-      benefit: "Career-focused"
-    },
-    {
       title: "Live Sessions",
       description: "Real-time Q&A and mentorship",
       icon: MonitorPlay,
@@ -47,15 +38,6 @@ const MembershipFeatures: React.FC = () => {
       highlight: "Real-time",
       stats: "100+ Hours/Month",
       benefit: "Instant help"
-    },
-    {
-      title: "Expert Instructors",
-      description: "Learn from industry veterans",
-      icon: GraduationCap,
-      category: "experts",
-      highlight: "5+ Years Exp",
-      stats: "10+ Experts",
-      benefit: "Practical insights"
     },
     {
       title: "24/7 Support",
@@ -113,15 +95,15 @@ const MembershipFeatures: React.FC = () => {
               What's Included
             </h2>
           </div>
-          {/* Compact Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-6 md:px-8 lg:px-10 pb-6">
+          {/* Compact Features Grid - 2x2 Layout */}
+          <div className="grid grid-cols-2 gap-4 md:gap-6 px-6 md:px-8 lg:px-10 pb-6 max-w-6xl mx-auto">
             {features.map((feature: IFeature, index: number) => {
               const colors = getSemanticColor(feature.category);
               const isHovered = hoveredIndex === index;
               return (
                 <div
                   key={index}
-                  className="relative bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-100 dark:border-gray-600 p-5"
+                  className="relative bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-100 dark:border-gray-600 p-6 md:p-8"
                 >
                   {/* Top Section */}
                   <div className="flex items-center justify-between mb-4">

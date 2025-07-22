@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { ArrowRight, ChevronDown, Users, Crown, Sparkles, Trophy, Zap, BookOpen, Shield, Award } from "lucide-react";
+import { ArrowRight, ChevronDown, Users, Crown, BookOpen, Shield, Award } from "lucide-react";
 import { useTheme } from "next-themes";
 import medhLogo from "@/assets/images/logo/medh.png";
 
@@ -14,12 +14,7 @@ interface IValueItem {
   color: string;
 }
 
-interface IHighlightItem {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  color: string;
-}
+
 
 // Enhanced custom animations for the membership banner with theme-aware glassmorphism
 const getThemeStyles = (isDark: boolean): string => `
@@ -142,44 +137,24 @@ const categories: IValueItem[] = [
   {
     icon: <BookOpen className="w-6 h-6" />,
     title: "Unlimited Access",
-    description: "Access to all courses and learning materials",
+    description: "Access for all chosen courses and learning materials",
     color: "from-blue-500 to-cyan-500"
   },
   {
     icon: <Crown className="w-6 h-6" />,
-    title: "Premium Resources",
-    description: "Exclusive content and advanced learning paths",
+    title: "Exclusive Discounts",
+    description: "Special offers and savings on all MEDH Courses",
     color: "from-emerald-500 to-teal-500"
   },
   {
     icon: <Users className="w-6 h-6" />,
     title: "Expert Mentorship",
-    description: "One-on-one guidance from industry professionals",
+    description: "Get one-on-one guidance from industry professionals",
     color: "from-purple-500 to-indigo-500"
   }
 ];
 
-// Key highlights for membership (reduced to 3 items)
-const highlights: IHighlightItem[] = [
-  {
-    icon: <Sparkles className="w-8 h-8" />,
-    title: "Tailored Learning",
-    description: "Personalized learning paths for your success",
-    color: "from-blue-500 to-cyan-500"
-  },
-  {
-    icon: <Trophy className="w-8 h-8" />,
-    title: "Career Growth",
-    description: "Fast-track your professional development",
-    color: "from-emerald-500 to-teal-500"
-  },
-  {
-    icon: <Zap className="w-8 h-8" />,
-    title: "Instant Access",
-    description: "Immediate access to all premium features",
-    color: "from-purple-500 to-indigo-500"
-  }
-];
+// Key highlights for membership removed as requested
 
 const MembershipBanner: React.FC = () => {
   const { theme } = useTheme();
@@ -310,29 +285,7 @@ const MembershipBanner: React.FC = () => {
             </div>
           </div>
 
-          <div className={`mb-3 md:mb-4 transition-all duration-1000 delay-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-5xl lg:max-w-6xl mx-auto">
-              {highlights.map((highlight, index) => (
-                <div
-                  key={index}
-                  className="glass-stats rounded-xl p-4 md:p-6 text-center hover:scale-105 transition-all duration-300 group cursor-pointer overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
-                  <div className="relative z-10">
-                    <div className={`mb-1 sm:mb-2 group-hover:scale-110 transition-transform ${isDark ? 'text-primary-300' : 'text-primary-600'} flex justify-center`}>
-                      <div className={`bg-gradient-to-br ${highlight.color} text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform`}>
-                        <div className="w-6 h-6 md:w-8 md:h-8">
-                          {highlight.icon}
-                        </div>
-                      </div>
-                    </div>
-                    <div className={`font-semibold text-sm md:text-base group-hover:text-primary-300 transition-colors ${isDark ? 'text-white' : 'text-gray-800'}`}>{highlight.title}</div>
-                    <div className={`text-xs md:text-sm mt-1 ${isDark ? 'text-white' : 'text-gray-700'} font-medium`}>{highlight.description}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+
 
           <div className={`mb-4 md:mb-6 transition-all duration-1000 delay-500 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             <div className="glass-stats rounded-2xl p-6 md:p-8 max-w-5xl lg:max-w-6xl mx-auto">
@@ -358,10 +311,7 @@ const MembershipBanner: React.FC = () => {
             </div>
           </div>
 
-          <div className={`flex flex-col items-center mt-4 md:mt-6 transition-all duration-1000 delay-700 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <span className={`text-sm mb-2 ${isDark ? 'text-white' : 'text-gray-600'} font-medium`}>Discover Your Membership Benefits</span>
-            <ChevronDown className={`w-6 h-6 animate-bounce ${isDark ? 'text-white' : 'text-gray-500'}`} />
-          </div>
+
         </div>
       </div>
     </section>

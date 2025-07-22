@@ -84,7 +84,7 @@ const getStaticMembershipData = (): IMembershipData[] => [
     description: "Perfect for focused learning in one specialized area",
     features: [
       // HIGHLIGHTED FEATURE
-      "<span class='font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded block sm:hidden text-center'>Select <b>1 Category</b> only. Full access to all its courses.</span><span class='font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded hidden sm:inline'>Select <b>1 Category</b> only. Full access to all its courses.</span>",
+      "<span class='font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded block sm:hidden text-center text-[0.9rem]'>Choose any <b>ONE category</b> and unlock complete access to all its courses.</span><span class='font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded hidden sm:inline text-[0.9rem]'>Choose any <b>ONE category</b> and unlock complete access to all its courses.</span>",
       "Live Q&A sessions",
       "Community access",
       "Career support"
@@ -106,7 +106,7 @@ const getStaticMembershipData = (): IMembershipData[] => [
     description: "Most comprehensive package for serious learners",
     features: [
       // HIGHLIGHTED FEATURE
-      "<span class='font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded block sm:hidden text-center'>Select <b>up to 3 Categories</b>. Full access to all courses within them.</span><span class='font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded hidden sm:inline'>Select <b>up to 3 Categories</b>. Full access to all courses within them.</span>",
+      "<span class='font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded block sm:hidden text-center text-[0.9rem]'>Choose any <b>THREE categories</b> and gain complete access to all their courses.</span><span class='font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded hidden sm:inline text-[0.9rem]'>Choose any <b>THREE categories</b> and gain complete access to all their courses.</span>",
       "Priority support",
       "Career counseling",
       "Job placement assistance"
@@ -270,7 +270,6 @@ const PrimeMembership: React.FC = () => {
   }, []);
 
   const handleSelectCourseModal = useCallback((membershipType: string): void => {
-    const normalizedType = membershipType === 'medh-silver membership' ? 'silver' : membershipType === 'medh-gold membership' ? 'gold' : membershipType;
     if (!checkUserLogin()) {
       setModalState(prev => ({ ...prev, isLoginModalOpen: true }));
       return;
@@ -278,21 +277,25 @@ const PrimeMembership: React.FC = () => {
     
     setModalState(prev => ({ 
       ...prev, 
-      selectedMembershipType: normalizedType as TMembershipType,
+      selectedMembershipType: membershipType as TMembershipType,
       isSelectCourseModalOpen: true,
       modalError: null
     }));
   }, [checkUserLogin]);
 
   const handlePlanSelection = useCallback((membershipType: string, planDuration: string): void => {
-    const normalizedType = membershipType === 'medh-silver membership' ? 'silver' : membershipType === 'medh-gold membership' ? 'gold' : membershipType;
-    setModalState(prev => ({ ...prev, selectedMembershipType: normalizedType as TMembershipType }));
+    console.log('Plan selection called with:', { membershipType, planDuration });
     
-    if (normalizedType === "silver") {
-      setModalState(prev => ({ ...prev, selectedSilverPlan: planDuration }));
-    } else if (normalizedType === "gold") {
-      setModalState(prev => ({ ...prev, selectedGoldPlan: planDuration }));
-    }
+    setModalState(prev => {
+      const newState = {
+        ...prev,
+        selectedMembershipType: membershipType as TMembershipType,
+        ...(membershipType === "silver" && { selectedSilverPlan: planDuration }),
+        ...(membershipType === "gold" && { selectedGoldPlan: planDuration })
+      };
+      console.log('New modal state:', newState);
+      return newState;
+    });
   }, []);
 
   // Loading state
@@ -316,7 +319,7 @@ const PrimeMembership: React.FC = () => {
           <div id="membership-section" className="text-center mb-8 px-6 md:px-8 lg:px-10 pt-6 md:pt-8 lg:pt-10">
             <div className="inline-flex items-center gap-2 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 px-3 py-1 rounded-full text-sm font-medium mb-3">
               <Zap className="w-3 h-3" />
-              Limited Time Offer - 65% OFF
+              Limited Time Offer - 65% OFF with Medh Membership
             </div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Choose Your Learning Journey
@@ -330,6 +333,11 @@ const PrimeMembership: React.FC = () => {
         <div id="membership-cards" className="grid md:grid-cols-2 gap-6 mb-8 px-6 md:px-8 lg:px-10">
           {membershipData.map((membership: IMembershipData, index: number) => {
             const selectedPlanDuration = membership.type === "silver" ? modalState.selectedSilverPlan : modalState.selectedGoldPlan;
+            console.log('Rendering membership:', { 
+              type: membership.type, 
+              selectedPlan: selectedPlanDuration,
+              modalState: modalState 
+            });
             const selectedPlan = membership.plans.find(p => p.duration === selectedPlanDuration);
             const monthlyPlan = membership.plans.find(p => p.duration === "MONTHLY");
             
@@ -375,7 +383,7 @@ const PrimeMembership: React.FC = () => {
                         {membership.icon}
                       </span>
                       <h2 className="text-lg font-bold text-gray-900 dark:text-white capitalize">
-                        {membership.type}
+                        {membership.type === 'gold' ? 'medh gold membership' : membership.type === 'silver' ? 'medh silver membership' : membership.type}
                       </h2>
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -494,7 +502,12 @@ const PrimeMembership: React.FC = () => {
             <div className="inline-flex items-center gap-4 bg-gray-50 dark:bg-gray-700 rounded-lg px-6 py-3 shadow-sm border border-gray-100 dark:border-gray-600">
               <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
                 <CheckCircle className="w-4 h-4 text-green-500" />
-                <span>70+ Courses</span>
+                <span>14 Categories</span>
+              </div>
+              <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
+              <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span>50+ Courses</span>
               </div>
               <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
               <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
@@ -511,7 +524,7 @@ const PrimeMembership: React.FC = () => {
         {/* Highlighted Note */}
         <div className="text-center my-4">
           <span className="inline-block bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 font-semibold px-4 py-2 rounded-lg text-sm">
-            *Note: Only <span className="underline font-bold">Blended Courses</span> available with Medh Membership
+            *Note: Medh Membership provides access exclusively to Blended Courses (interactive videos with live doubt-clearing sessions).
           </span>
           </div>
         </div>
