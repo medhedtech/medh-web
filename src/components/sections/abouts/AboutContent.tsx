@@ -20,7 +20,8 @@ import {
   Globe,
   Zap,
   Heart,
-  Briefcase
+  Briefcase,
+  GraduationCap
 } from "lucide-react";
 import { buildAdvancedComponent, mobilePatterns } from "@/utils/designSystem";
 import { useRouter } from "next/navigation";
@@ -279,7 +280,7 @@ const AboutContent: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* Vision & Mission */}
+      {/* Who We Are Section */}
       <motion.div
         initial="hidden"
         whileInView="visible"
@@ -287,46 +288,536 @@ const AboutContent: React.FC = () => {
         variants={staggerChildren}
         className="relative z-10 py-8 px-4 sm:px-6 lg:px-8"
       >
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <motion.div variants={fadeInUp} className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
-              Our Purpose
+              Who We Are
             </h2>
+            <div className="max-w-5xl mx-auto">
+              <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
+                MEDH is a global EdTech leader delivering skill development through advanced technology and personalized mentorship. Our team of technologists, entrepreneurs, and visionaries creates a dynamic learning ecosystem by combining diverse expertise, empowering individuals from early childhood to professional life and homemakers.
+              </p>
+              <p className="text-lg text-slate-700 dark:text-slate-200 font-medium leading-relaxed">
+                We firmly believe technology-powered education builds the foundation for a brighter future for learners of all backgrounds.
+              </p>
+            </div>
           </motion.div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <motion.div
               variants={fadeInUp}
-              className="p-8 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-200/50 dark:border-blue-700/50 text-center"
+              className="p-8 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-200/50 dark:border-blue-700/50"
             >
-              <div className="flex items-center justify-center gap-4 mb-6">
+              <div className="flex items-center gap-4 mb-6">
                 <div className="w-12 h-12 bg-blue-600 text-white rounded-lg flex items-center justify-center">
                   <Target className="w-6 h-6" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Vision</h3>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Our Vision</h3>
               </div>
               <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                To lead the EdTech revolution, empowering individuals at every life stage from childhood to career advancement.
+                To lead the global EdTech revolution by providing transformative skill development solutions that empower individuals at every life stage—from early childhood to career advancement—enabling professional opportunities and personal enrichment for all learners, including homemakers seeking growth beyond traditional roles.
               </p>
             </motion.div>
 
             <motion.div
               variants={fadeInUp}
-              className="p-8 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl border border-emerald-200/50 dark:border-emerald-700/50 text-center"
+              className="p-8 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl border border-emerald-200/50 dark:border-emerald-700/50"
             >
-              <div className="flex items-center justify-center gap-4 mb-6">
+              <div className="flex items-center gap-4 mb-6">
                 <div className="w-12 h-12 bg-emerald-600 text-white rounded-lg flex items-center justify-center">
                   <Rocket className="w-6 h-6" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Mission</h3>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Our Mission</h3>
               </div>
               <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                Delivering AI-powered learning experiences with industry certifications and expert mentorship for measurable professional growth.
+                To transform learning through personalized skill development that meets today's evolving needs, combining innovative curriculum, AI-driven technology, and industry certifications. We collaborate with seasoned educators, corporates, and industry experts to nurture career readiness for diverse learners, supporting pathways to financial independence, digital literacy, entrepreneurship, and personal fulfillment for professionals and homemakers alike.
               </p>
             </motion.div>
           </div>
+        </div>
+      </motion.div>
+
+      {/* Our Unique Point of Difference */}
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={staggerChildren}
+        className="relative z-10 py-8 px-4 sm:px-6 lg:px-8 bg-white/50 dark:bg-slate-800/50"
+      >
+        <div className="max-w-6xl mx-auto">
+          <motion.div variants={fadeInUp} className="text-center mb-8">
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white">
+              Our Unique Point of Difference
+            </h2>
+          </motion.div>
+          <motion.div variants={fadeInUp} className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-2xl p-8 border border-indigo-200/50 dark:border-indigo-700/50">
+            <ul className="space-y-6 text-slate-700 dark:text-slate-300">
+              <li className="flex items-start gap-4">
+                <CheckCircle className="w-6 h-6 text-indigo-600 dark:text-indigo-400 mt-0.5 flex-shrink-0" />
+                <span className="text-lg leading-relaxed">
+                  MEDH stands apart by offering seamless skill development across all life stages.
+                </span>
+              </li>
+              <li className="flex items-start gap-4">
+                <CheckCircle className="w-6 h-6 text-indigo-600 dark:text-indigo-400 mt-0.5 flex-shrink-0" />
+                <span className="text-lg leading-relaxed">
+                  We create customized learning journeys from childhood to professional advancement, including pathways for homemakers' personal growth and empowerment.
+                </span>
+              </li>
+                             <li className="flex items-start gap-4">
+                 <CheckCircle className="w-6 h-6 text-indigo-600 dark:text-indigo-400 mt-0.5 flex-shrink-0" />
+                 <span className="text-lg leading-relaxed">
+                   Our approach ensures every individual—student, professional, or homemaker—develops the exact skills needed to thrive in their unique life context.
+                 </span>
+               </li>
+            </ul>
+          </motion.div>
+        </div>
+      </motion.div>
+
+      {/* Our Services */}
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={staggerChildren}
+        className="relative z-10 py-8 px-4 sm:px-6 lg:px-8"
+      >
+        <div className="max-w-6xl mx-auto">
+          <motion.div variants={fadeInUp} className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+              Our Services
+            </h2>
+          </motion.div>
+
+          <div className="space-y-12">
+            {/* For Individual Learners */}
+            <motion.div variants={fadeInUp} className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-8 border border-blue-200/50 dark:border-blue-700/50">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 bg-blue-600 text-white rounded-lg flex items-center justify-center">
+                  <Users className="w-6 h-6" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">For Individual Learners</h3>
+              </div>
+              <p className="text-lg text-slate-700 dark:text-slate-300 mb-6 leading-relaxed">
+                From early childhood development to professional upskilling, MEDH offers personalized learning pathways for individuals at every life stage:
+              </p>
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-700 dark:text-slate-300">
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-semibold">Early Schoolers (Ages 5-8):</span>
+                    <span className="block text-sm mt-1">Foundation-building courses in literacy, numeracy, creativity, and digital discovery</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-semibold">Pre-Teens (Ages 9-12):</span>
+                    <span className="block text-sm mt-1">Bridge courses developing critical thinking, digital literacy, and exploration across diverse domains</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-semibold">Teenagers (Ages 13-19):</span>
+                    <span className="block text-sm mt-1">Identity-shaping courses for career exploration, advanced academics, and leadership development</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-semibold">Young Adults (Ages 20-21):</span>
+                    <span className="block text-sm mt-1">Direction-setting courses for career launch, university success, and independent living</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-semibold">Working Professionals (Ages 22-35):</span>
+                    <span className="block text-sm mt-1">Career-building courses in technical mastery, leadership, and digital transformation</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-semibold">Senior Professionals (Ages 36-45):</span>
+                    <span className="block text-sm mt-1">Advanced courses in executive leadership, specialized expertise, and strategic communication</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-semibold">Older Adults (Ages 46-55):</span>
+                    <span className="block text-sm mt-1">Legacy-building courses for career reinvention, wealth optimization, and knowledge sharing</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-semibold">Homemakers & Caregivers:</span>
+                    <span className="block text-sm mt-1">Specialized courses for family management, digital literacy, and personal fulfillment</span>
+                  </div>
+                </li>
+              </ul>
+            </motion.div>
+
+            {/* For Corporate Partners */}
+            <motion.div variants={fadeInUp} className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl p-8 border border-emerald-200/50 dark:border-emerald-700/50">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 bg-emerald-600 text-white rounded-lg flex items-center justify-center">
+                  <Briefcase className="w-6 h-6" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">For Corporate Partners</h3>
+              </div>
+              <p className="text-lg text-slate-700 dark:text-slate-300 mb-6 leading-relaxed">
+                MEDH delivers comprehensive corporate training solutions designed to transform workforce capabilities and drive organizational success. Our corporate offerings include:
+              </p>
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-700 dark:text-slate-300 mb-8">
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-semibold">Customized Training Courses:</span>
+                    <span className="block text-sm mt-1">Tailored learning experiences aligned with organizational goals and specific workforce needs</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-semibold">Enterprise Skill Development Platform:</span>
+                    <span className="block text-sm mt-1">Scalable learning management system with customized learning paths and analytics</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-semibold">Technical & Digital Upskilling:</span>
+                    <span className="block text-sm mt-1">Specialized training in emerging technologies and digital transformation</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-semibold">Talent Assessment & Development:</span>
+                    <span className="block text-sm mt-1">Sophisticated tools to identify high-potential talent and create personalized development plans</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3 md:col-span-2">
+                  <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-semibold">Measuring Training Impact:</span>
+                    <span className="block text-sm mt-1">Robust analytics framework to measure learning outcomes and business impact</span>
+                  </div>
+                </li>
+              </ul>
+              
+              <div className="border-t border-emerald-200/50 dark:border-emerald-700/50 pt-6">
+                <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Benefits to Corporate Partners</h4>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-slate-700 dark:text-slate-300">
+                  <li className="flex items-start gap-3">
+                    <Star className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">Enhanced workforce capabilities and competitive advantage</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Star className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">Improved employee retention and loyalty</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Star className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">Accelerated innovation and seamless digital transformation</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Star className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">Leadership pipeline development and organizational continuity</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Star className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">Measurable performance improvement through comprehensive analytics</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Star className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">Reduced recruitment costs through internal talent development</span>
+                  </li>
+                </ul>
+              </div>
+            </motion.div>
+
+            {/* For Schools/Educational Institutions */}
+            <motion.div variants={fadeInUp} className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-2xl p-8 border border-purple-200/50 dark:border-purple-700/50">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 bg-purple-600 text-white rounded-lg flex items-center justify-center">
+                  <BookOpen className="w-6 h-6" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">For Schools/Educational Institutions</h3>
+              </div>
+              <p className="text-lg text-slate-700 dark:text-slate-300 mb-6 leading-relaxed">
+                MEDH partners with schools and educational institutes to enhance their curriculum with essential future-ready skill development courses:
+              </p>
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-700 dark:text-slate-300 mb-8">
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-semibold">Technology Infrastructure & Support:</span>
+                    <span className="block text-sm mt-1">Consultation and implementation support for educational technology</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-semibold">Student Assessment & Career Guidance:</span>
+                    <span className="block text-sm mt-1">Comprehensive tools for personalized learning paths along with mentorship from professionals</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-semibold">Co-branded Certification Courses:</span>
+                    <span className="block text-sm mt-1">Industry-recognized certifications that enhance institutional value</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-semibold">STEM & Digital Literacy Initiatives:</span>
+                    <span className="block text-sm mt-1">Specialized courses in coding, robotics, and data science</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3 md:col-span-2">
+                  <CheckCircle className="w-5 h-5 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-semibold">Entrepreneurship & Innovation Hubs:</span>
+                    <span className="block text-sm mt-1">Centers that nurture creativity and business acumen</span>
+                  </div>
+                </li>
+              </ul>
+              
+              <div className="border-t border-purple-200/50 dark:border-purple-700/50 pt-6">
+                <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Benefits to Educational Partners</h4>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-slate-700 dark:text-slate-300">
+                  <li className="flex items-start gap-3">
+                    <Star className="w-4 h-4 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">Enhanced educational offerings and improved student outcomes</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Star className="w-4 h-4 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">Competitive differentiation in the educational marketplace</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Star className="w-4 h-4 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">Teacher empowerment and effective technology integration</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Star className="w-4 h-4 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">Strong industry connections bridging academic learning and workplace requirements</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Star className="w-4 h-4 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">Holistic student development addressing cognitive, social, emotional, and practical skills</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Star className="w-4 h-4 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">Community impact as leaders in preparing students for tomorrow's challenges</span>
+                  </li>
+                </ul>
+              </div>
+            </motion.div>
+
+            {/* Our Talent Pipeline */}
+            <motion.div variants={fadeInUp} className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-2xl p-8 border border-amber-200/50 dark:border-amber-700/50">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 bg-amber-600 text-white rounded-lg flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Our Talent Pipeline: Connecting Education and Employment</h3>
+              </div>
+              <p className="text-lg text-slate-700 dark:text-slate-300 mb-8 leading-relaxed">
+                MEDH creates a seamless bridge between skill development and career opportunities through our innovative 'Hire-from-MEDH' program. This initiative connects our highest-achieving students with corporate partners seeking qualified talent, creating value for all stakeholders:
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {/* For Students */}
+                <div className="bg-white/50 dark:bg-slate-800/50 rounded-xl p-6 border border-amber-200/30 dark:border-amber-700/30">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-amber-600 text-white rounded-lg flex items-center justify-center">
+                      <GraduationCap className="w-5 h-5" />
+                    </div>
+                    <h4 className="text-lg font-bold text-slate-900 dark:text-white">For Students</h4>
+                  </div>
+                  <ul className="space-y-3 text-slate-700 dark:text-slate-300">
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm">Direct pathway to internship and employment opportunities with leading organizations</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm">Career readiness preparation including interview skills and portfolio development</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm">Mentorship from industry professionals during the transition to the workplace</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm">Confidence that their MEDH training directly aligns with employer requirements</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* For Corporate Partners */}
+                <div className="bg-white/50 dark:bg-slate-800/50 rounded-xl p-6 border border-amber-200/30 dark:border-amber-700/30">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-amber-600 text-white rounded-lg flex items-center justify-center">
+                      <Briefcase className="w-5 h-5" />
+                    </div>
+                    <h4 className="text-lg font-bold text-slate-900 dark:text-white">For Corporate Partners</h4>
+                  </div>
+                  <ul className="space-y-3 text-slate-700 dark:text-slate-300">
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm">Access to a pre-qualified talent pool with verified skills and certifications</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm">Reduced recruitment costs and onboarding time</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm">Ability to influence training content to ensure job-readiness</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm">Opportunity to observe potential hires through projects and internships before making hiring decisions</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* For Educational Partners */}
+                <div className="bg-white/50 dark:bg-slate-800/50 rounded-xl p-6 border border-amber-200/30 dark:border-amber-700/30">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-amber-600 text-white rounded-lg flex items-center justify-center">
+                      <BookOpen className="w-5 h-5" />
+                    </div>
+                    <h4 className="text-lg font-bold text-slate-900 dark:text-white">For Educational Partners</h4>
+                  </div>
+                  <ul className="space-y-3 text-slate-700 dark:text-slate-300">
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm">Enhanced value proposition demonstrating concrete employment outcomes</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm">Stronger industry connections informing curriculum relevance</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm">Graduate placement success metrics for institutional marketing</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm">Continuous feedback loop for program improvement based on employment outcomes</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </motion.div>
           </div>
-        </motion.div>
+        </div>
+      </motion.div>
+
+      {/* Our Commitment to Quality */}
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={staggerChildren}
+        className="relative z-10 py-8 px-4 sm:px-6 lg:px-8 bg-white/50 dark:bg-slate-800/50"
+      >
+        <div className="max-w-6xl mx-auto">
+          <motion.div variants={fadeInUp} className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+              Our Commitment to Quality
+            </h2>
+          </motion.div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                         <motion.div variants={fadeInUp} className="text-center p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300">
+               <div className="w-12 h-12 bg-blue-600 text-white rounded-lg flex items-center justify-center mx-auto mb-4">
+                 <Shield className="w-6 h-6" />
+               </div>
+               <p className="text-sm text-slate-600 dark:text-slate-300">Excellence as our foundation in all educational content</p>
+             </motion.div>
+
+             <motion.div variants={fadeInUp} className="text-center p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300">
+               <div className="w-12 h-12 bg-emerald-600 text-white rounded-lg flex items-center justify-center mx-auto mb-4">
+                 <TrendingUp className="w-6 h-6" />
+               </div>
+               <p className="text-sm text-slate-600 dark:text-slate-300">Cutting-edge, industry-aligned curriculum that evolves with market demands</p>
+             </motion.div>
+
+             <motion.div variants={fadeInUp} className="text-center p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300">
+               <div className="w-12 h-12 bg-purple-600 text-white rounded-lg flex items-center justify-center mx-auto mb-4">
+                 <Star className="w-6 h-6" />
+               </div>
+               <p className="text-sm text-slate-600 dark:text-slate-300">Subject matter experts ensuring engaging and effective learning materials</p>
+             </motion.div>
+
+             <motion.div variants={fadeInUp} className="text-center p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300">
+               <div className="w-12 h-12 bg-amber-600 text-white rounded-lg flex items-center justify-center mx-auto mb-4">
+                 <Award className="w-6 h-6" />
+               </div>
+               <p className="text-sm text-slate-600 dark:text-slate-300">Rigorous quality standards providing reliable educational experiences</p>
+             </motion.div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Join Our Ecosystem of Growth */}
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={staggerChildren}
+        className="relative z-10 py-8 px-4 sm:px-6 lg:px-8"
+      >
+        <div className="max-w-6xl mx-auto">
+          <motion.div variants={fadeInUp} className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+              Join Our Ecosystem of Growth
+            </h2>
+          </motion.div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                         <motion.div variants={fadeInUp} className="text-center p-8 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-200/50 dark:border-blue-700/50 hover:scale-105 transition-all duration-300">
+               <div className="w-14 h-14 bg-blue-600 text-white rounded-xl flex items-center justify-center mx-auto mb-6">
+                 <Heart className="w-7 h-7" />
+               </div>
+               <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">Personalized pathways for individual learners at every life stage</p>
+             </motion.div>
+
+             <motion.div variants={fadeInUp} className="text-center p-8 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl border border-emerald-200/50 dark:border-emerald-700/50 hover:scale-105 transition-all duration-300">
+               <div className="w-14 h-14 bg-emerald-600 text-white rounded-xl flex items-center justify-center mx-auto mb-6">
+                 <Briefcase className="w-7 h-7" />
+               </div>
+               <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">Transformative workforce solutions for corporate partners</p>
+             </motion.div>
+
+             <motion.div variants={fadeInUp} className="text-center p-8 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-2xl border border-purple-200/50 dark:border-purple-700/50 hover:scale-105 transition-all duration-300">
+               <div className="w-14 h-14 bg-purple-600 text-white rounded-xl flex items-center justify-center mx-auto mb-6">
+                 <BookOpen className="w-7 h-7" />
+               </div>
+               <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">Curriculum enhancement opportunities for educational institutions</p>
+             </motion.div>
+
+             <motion.div variants={fadeInUp} className="text-center p-8 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-2xl border border-amber-200/50 dark:border-amber-700/50 hover:scale-105 transition-all duration-300">
+               <div className="w-14 h-14 bg-amber-600 text-white rounded-xl flex items-center justify-center mx-auto mb-6">
+                 <Globe className="w-7 h-7" />
+               </div>
+               <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">Collaborative journey toward unlocking human potential worldwide</p>
+             </motion.div>
+          </div>
+        </div>
+      </motion.div>
 
       {/* CTA Section */}
       <motion.div
@@ -334,27 +825,24 @@ const AboutContent: React.FC = () => {
         whileInView="visible"
         viewport={{ once: true }}
         variants={fadeInUp}
-        className="relative z-10 py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-purple-600"
+        className="relative z-10 py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-purple-600"
       >
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-            Ready to Transform Your Future?
+          Join the MEDH Community Today
           </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of learners who are already building the skills that matter for tomorrow's world.
+          <p className="text-xl text-blue-100 mb-8 max-w-4xl mx-auto">
+          At MEDH, we don't just offer courses—we build futures. Start your journey with us 
+          <br />
+          and discover what's possible when quality education meets real-world opportunities.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
-              className="px-8 py-4 bg-white text-blue-600 font-semibold rounded-xl hover:bg-blue-50 transition-all duration-300 hover:scale-105"
-              onClick={() => router.push('/courses')}
-            >
-              Explore All Courses
-            </button>
+            
             <button
               className="px-8 py-4 border-2 border-white text-white font-semibold rounded-xl hover:bg-white/10 transition-all duration-300"
               onClick={() => router.push('/contact-us')}
             >
-              Talk to an Expert
+              Contact Us
             </button>
           </div>
       </div>
