@@ -328,7 +328,7 @@ const CourseAiBanner: React.FC<CourseAiBannerProps> = ({ onLearnMoreClick }) => 
                       Learning solutions for everyone—from children to professionals to homemakers.
                     </p>
                     <a 
-                      href="/all-courses" 
+                      href="/courses" 
                       className={`inline-flex items-center text-sm font-semibold transition-colors hover:underline ${
                         isDark 
                           ? 'text-primary-400 hover:text-primary-300' 
