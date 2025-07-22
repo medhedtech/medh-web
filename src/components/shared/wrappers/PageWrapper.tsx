@@ -113,111 +113,57 @@ const PageWrapper: React.FC<PageWrapperProps> = ({
 
   return (
     <div className="flex flex-col min-h-screen w-full bg-white dark:bg-gray-950 overflow-x-hidden">
-      {/* CSS Variables for layout measurements */}
+      {/* Google One Tap FedCM Support - Minimal CSS for browser compatibility */}
       <style jsx global>{`
-        :root {
-          --header-height: 64px;
-          --footer-margin: 0px;
+        /* Google One Tap FedCM - Browser-specific overrides that can't be done with Tailwind */
+        .credential-picker-container,
+        [data-testid="credential-picker-container"],
+        iframe[src*="accounts.google.com"] {
+          z-index: 2147483647 !important;
+          position: fixed !important;
         }
         
-        @media (min-width: 768px) {
-          :root {
-            --header-height: 80px;
-          }
-        }
-
-        /* Ensure proper stacking context */
-        #__next {
-          display: flex;
-          flex-direction: column;
-          min-height: 100vh;
-        }
-        
-        /* Optimize scrolling performance */
-        html {
-          scroll-behavior: smooth;
-        }
-        
-        /* Hide scrollbar but keep functionality */
-        body {
-          overflow-y: auto;
-          scrollbar-width: thin;
-        }
-        
-        /* Custom scrollbar for webkit browsers */
-        ::-webkit-scrollbar {
-          width: 6px;
-        }
-        
-        ::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-          background-color: rgba(156, 163, 175, 0.3);
-          border-radius: 20px;
-        }
-        
-        /* Dark mode scrollbar */
-        .dark ::-webkit-scrollbar-thumb {
-          background-color: rgba(156, 163, 175, 0.5);
-        }
-        
-        /* Auto-collapse long sections for better UX */
-        @media (max-width: 768px) {
-          .collapse-mobile {
-            max-height: 300px;
-            overflow: hidden;
-            position: relative;
-          }
-          
-          .collapse-mobile.expanded {
-            max-height: none;
-          }
-          
-          .collapse-mobile:not(.expanded)::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background: linear-gradient(to bottom, transparent, white);
-            pointer-events: none;
-          }
-          
-          .dark .collapse-mobile:not(.expanded)::after {
-            background: linear-gradient(to bottom, transparent, rgb(17, 24, 39));
-          }
+        dialog[open]:has([data-testid*="fedcm"]),
+        dialog[open]:has([class*="fedcm"]),
+        iframe[src*="accounts.google.com/gsi/"],
+        iframe[src*="accounts.google.com"][src*="client_id"] {
+          display: block !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          pointer-events: auto !important;
+          position: fixed !important;
+          z-index: 2147483647 !important;
+          top: 0 !important;
+          right: 0 !important;
         }
       `}</style>
 
       {/* Skip to content link for accessibility */}
       <a 
         href={`#${skipToContentId}`}
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-primary-500 focus:text-white focus:top-0 focus:left-0"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-blue-500 focus:text-white focus:top-0 focus:left-0 focus:rounded-md focus:shadow-lg"
       >
         Skip to content
       </a>
       
-      {/* Header - Fixed height */}
-      <Header className="h-[var(--header-height)]" />
+      {/* Header - Fixed height with Tailwind */}
+      <Header className="h-16 md:h-20 fixed top-0 left-0 right-0 z-40" />
 
 
 
-      {/* Main content with dynamic min-height */}
+      {/* Main content with Tailwind classes */}
       <main 
         ref={contentRef}
         id={skipToContentId}
         role="main"
         tabIndex={-1}
-        className={`flex-grow w-full transition-opacity duration-700 will-change-opacity ${
-          addTopPadding ? 'pt-[var(--header-height)]' : ''
+        className={`flex-grow w-full transition-opacity duration-700 will-change-opacity overflow-visible ${
+          addTopPadding ? 'pt-16 md:pt-20' : ''
         } ${
           addBottomPadding ? 'pb-8' : ''
         } ${hasPageLoaded ? 'opacity-100' : 'opacity-0'}`}
       >
-        <div className="animate-fadeIn">
+        <div className="animate-fade-in overflow-visible">
           {children}
         </div>
       </main>
@@ -225,8 +171,8 @@ const PageWrapper: React.FC<PageWrapperProps> = ({
       {/* Footer with theme prop */}
       {showFooter && <Footer />}
 
-      {/* Modal Portal Root: ensures modals render above header and all content */}
-      <div id="modal-root" className="z-[120]"></div>
+      {/* Modal Portal Root: ensures modals render above header and all content but below Google One Tap */}
+      <div id="modal-root" className="fixed inset-0 z-[120] pointer-events-none"></div>
 
       {/* Global Demo Session Form */}
       {showDemoForm && (
