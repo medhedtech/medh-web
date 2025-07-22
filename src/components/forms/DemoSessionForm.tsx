@@ -101,6 +101,104 @@ interface DemoSessionFormProps {
   onClose: () => void;
 }
 
+// Error display component
+const ErrorMessage = ({ error, field }: { error?: string; field?: string }) => {
+  if (!error) return null;
+  
+  return (
+    <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm font-medium mt-2" data-field={field}>
+      <AlertCircle className="h-4 w-4 flex-shrink-0" />
+      <span>{error}</span>
+    </div>
+  );
+};
+
+// Input wrapper component with enhanced styling
+const InputGroup = ({ 
+  label, 
+  required = false, 
+  error, 
+  field, 
+  icon: Icon, 
+  children 
+}: { 
+  label: string; 
+  required?: boolean; 
+  error?: string; 
+  field?: string;
+  icon?: React.ElementType;
+  children: React.ReactNode;
+}) => (
+  <div className="space-y-2">
+    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+      <div className="flex items-center gap-2">
+        {Icon && <Icon className="h-4 w-4 text-primary-500" />}
+        {label}
+        {required && <span className="text-red-500">*</span>}
+      </div>
+    </label>
+    {children}
+    <ErrorMessage error={error} field={field} />
+  </div>
+);
+
+// Progress indicator component
+const ProgressIndicator = ({ currentStep, isUnder16 }: { currentStep: FormStep; isUnder16: boolean | null }) => {
+  const steps = isUnder16 === true
+    ? ['age-selection', 'parent-details', 'student-details', 'demo-consent']
+    : isUnder16 === false
+    ? ['age-selection', 'complete-form']
+    : ['age-selection']; // Default when isUnder16 is null
+  
+  const stepLabels = isUnder16 === true
+    ? ['Age', 'Parent', 'Student', 'Session']
+    : isUnder16 === false
+    ? ['Age', 'Details']
+    : ['Age']; // Default when isUnder16 is null
+  
+  const currentIndex = steps.indexOf(currentStep);
+  
+  return (
+    <div className="flex items-center justify-center mb-8">
+      <div className="flex items-center space-x-4">
+        {steps.map((step, index) => (
+          <React.Fragment key={step}>
+            <div className="flex items-center">
+              <div className={`
+                w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200
+                ${index <= currentIndex 
+                  ? 'bg-primary-500 text-white shadow-lg' 
+                  : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
+                }
+              `}>
+                {index < currentIndex ? <CheckCircle size={20} /> : index + 1}
+              </div>
+              <span className={`
+                ml-3 text-sm font-medium transition-colors duration-200
+                ${index <= currentIndex 
+                  ? 'text-primary-500' 
+                  : 'text-gray-500 dark:text-gray-400'
+                }
+              `}>
+                {stepLabels[index]}
+              </span>
+            </div>
+            {index < steps.length - 1 && (
+              <div className={`
+                w-16 h-1 rounded-full transition-colors duration-200
+                ${index < currentIndex 
+                  ? 'bg-primary-500' 
+                  : 'bg-gray-300 dark:bg-gray-600'
+                }
+              `} />
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
   const { theme } = useTheme();
   const isDark = theme === "dark";
@@ -178,10 +276,17 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
         }
       } catch (error) {
         console.error("Error loading courses:", error);
-        setFormState(prev => ({ ...prev, isLoadingCourses: false }));
+        
+        setFormState(prev => ({ 
+          ...prev, 
+          liveCourses: [], // Set empty array, form will show appropriate message
+          isLoadingCourses: false 
+        }));
+        
+        // Show a user-friendly error message
         Swal.fire({
-          title: "Warning",
-          text: "Some course data couldn't be loaded, but you can still submit the form.",
+          title: "Course Loading Error",
+          text: "Unable to load available courses. Please try refreshing the page or contact support if the problem persists.",
           icon: "warning",
           confirmButtonText: "Continue",
           customClass: {
@@ -194,6 +299,167 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
     
     fetchCourses();
   }, [isDark]);
+
+  // Memoize course options to prevent re-creation on every render
+  const courseOptions = useMemo(() => {
+    return formState.liveCourses
+      .filter(course => course && course.title && course._id) // Filter out invalid courses
+      .map(course => ({ 
+        value: course._id, // Use _id as value for uniqueness
+        label: course.title 
+      }));
+  }, [formState.liveCourses]);
+
+  // Optimized handlers to prevent input focus issues
+  const handleParentNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormState(prev => ({ 
+      ...prev, 
+      parentDetails: { ...prev.parentDetails, name: e.target.value }
+    }));
+  }, []);
+
+  const handleParentEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormState(prev => ({ 
+      ...prev, 
+      parentDetails: { ...prev.parentDetails, email: e.target.value }
+    }));
+  }, []);
+
+  const handleParentMobileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormState(prev => ({ 
+      ...prev, 
+      parentDetails: { ...prev.parentDetails, mobile_no: e.target.value }
+    }));
+  }, []);
+
+  const handleParentCityChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormState(prev => ({ 
+      ...prev, 
+      parentDetails: { ...prev.parentDetails, city: e.target.value }
+    }));
+  }, []);
+
+  const handleStudentNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormState(prev => ({ 
+      ...prev, 
+      studentDetailsUnder16: { ...prev.studentDetailsUnder16, name: e.target.value }
+    }));
+  }, []);
+
+  const handleStudentEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormState(prev => ({ 
+      ...prev, 
+      studentDetailsUnder16: { ...prev.studentDetailsUnder16, email: e.target.value }
+    }));
+  }, []);
+
+  const handleStudentSchoolChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormState(prev => ({ 
+      ...prev, 
+      studentDetailsUnder16: { ...prev.studentDetailsUnder16, school_name: e.target.value }
+    }));
+  }, []);
+
+  const handleStudentCityChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormState(prev => ({ 
+      ...prev, 
+      studentDetailsUnder16: { ...prev.studentDetailsUnder16, city: e.target.value }
+    }));
+  }, []);
+
+  const handleStudentStateChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormState(prev => ({ 
+      ...prev, 
+      studentDetailsUnder16: { ...prev.studentDetailsUnder16, state: e.target.value }
+    }));
+  }, []);
+
+  // Handlers for 16+ student details
+  const handleStudent16NameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormState(prev => ({ 
+      ...prev, 
+      studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, name: e.target.value }
+    }));
+  }, []);
+
+  const handleStudent16EmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormState(prev => ({ 
+      ...prev, 
+      studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, email: e.target.value }
+    }));
+  }, []);
+
+  const handleStudent16MobileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormState(prev => ({ 
+      ...prev, 
+      studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, mobile_no: e.target.value }
+    }));
+  }, []);
+
+  const handleStudent16CityChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormState(prev => ({ 
+      ...prev, 
+      studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, city: e.target.value }
+    }));
+  }, []);
+
+  const handleStudent16CountryChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFormState(prev => ({ 
+      ...prev, 
+      studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, country: e.target.value }
+    }));
+  }, []);
+
+  const handleStudent16InstituteChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormState(prev => ({ 
+      ...prev, 
+      studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, education_institute_name: e.target.value }
+    }));
+  }, []);
+
+  const handleParentCountryChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFormState(prev => ({ 
+      ...prev, 
+      parentDetails: { ...prev.parentDetails, country: e.target.value }
+    }));
+  }, []);
+
+  const handleParentTimingChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFormState(prev => ({ 
+      ...prev, 
+      parentDetails: { ...prev.parentDetails, preferred_timings_to_connect: e.target.value }
+    }));
+  }, []);
+
+  const handleStudent16TimingChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFormState(prev => ({ 
+      ...prev, 
+      studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, preferred_timings_to_connect: e.target.value }
+    }));
+  }, []);
+
+  // Phone number handlers
+  const handleParentPhoneChange = useCallback((val: { country: string; number: string }) => {
+    setFormState(prev => ({ 
+      ...prev, 
+      parentDetails: { 
+        ...prev.parentDetails, 
+        mobile_no: val.number,
+        country: val.country
+      }
+    }));
+  }, []);
+
+  const handleStudent16PhoneChange = useCallback((val: { country: string; number: string }) => {
+    setFormState(prev => ({ 
+      ...prev, 
+      studentDetails16AndAbove: { 
+        ...prev.studentDetails16AndAbove, 
+        mobile_no: val.number,
+        country: val.country
+      }
+    }));
+  }, []);
 
   // Enhanced form validation with detailed error messages
   const validateCurrentStep = useCallback((): boolean => {
@@ -397,7 +663,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
   };
 
   // Navigation helpers
-  const goToNextStep = () => {
+  const goToNextStep = useCallback(() => {
     if (!validateCurrentStep()) return;
 
     const stepOrder: FormStep[] = ['age-selection', 'parent-details', 'student-details', 'demo-consent', 'complete-form'];
@@ -414,9 +680,9 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
         setFormState(prev => ({ ...prev, step: stepOrder[currentIndex + 1] }));
       }
     }
-  };
+  }, [formState.step, formState.isStudentUnder16, validateCurrentStep]);
 
-  const goToPreviousStep = () => {
+  const goToPreviousStep = useCallback(() => {
     const stepOrder: FormStep[] = ['age-selection', 'parent-details', 'student-details', 'demo-consent', 'complete-form'];
     const currentIndex = stepOrder.indexOf(formState.step);
     
@@ -427,7 +693,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
     } else if (currentIndex > 0) {
       setFormState(prev => ({ ...prev, step: stepOrder[currentIndex - 1] }));
     }
-  };
+  }, [formState.step, formState.isStudentUnder16]);
 
   // Enhanced select styles
   const selectStyles = useMemo(() => ({
@@ -496,100 +762,6 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
       fontStyle: 'normal',
     }),
   }), [isDark]);
-
-  // Progress indicator component
-  const ProgressIndicator = ({ currentStep, isUnder16 }: { currentStep: FormStep; isUnder16: boolean | null }) => {
-    const steps = isUnder16 
-      ? ['age-selection', 'parent-details', 'student-details', 'demo-consent']
-      : ['age-selection', 'complete-form'];
-    
-    const stepLabels = isUnder16 
-      ? ['Age', 'Parent', 'Student', 'Session']
-      : ['Age', 'Details'];
-    
-    const currentIndex = steps.indexOf(currentStep);
-    
-    return (
-      <div className="flex items-center justify-center mb-8">
-        <div className="flex items-center space-x-4">
-          {steps.map((step, index) => (
-            <React.Fragment key={step}>
-              <div className="flex items-center">
-                <div className={`
-                  w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200
-                  ${index <= currentIndex 
-                    ? 'bg-primary-500 text-white shadow-lg' 
-                    : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
-                  }
-                `}>
-                  {index < currentIndex ? <CheckCircle size={20} /> : index + 1}
-                </div>
-                <span className={`
-                  ml-3 text-sm font-medium transition-colors duration-200
-                  ${index <= currentIndex 
-                    ? 'text-primary-500' 
-                    : 'text-gray-500 dark:text-gray-400'
-                  }
-                `}>
-                  {stepLabels[index]}
-                </span>
-              </div>
-              {index < steps.length - 1 && (
-                <div className={`
-                  w-16 h-1 rounded-full transition-colors duration-200
-                  ${index < currentIndex 
-                    ? 'bg-primary-500' 
-                    : 'bg-gray-300 dark:bg-gray-600'
-                  }
-                `} />
-              )}
-            </React.Fragment>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  // Error display component
-  const ErrorMessage = ({ error, field }: { error?: string; field?: string }) => {
-    if (!error) return null;
-    
-    return (
-      <div className={errorClasses} data-field={field}>
-        <AlertCircle className="h-4 w-4 flex-shrink-0" />
-        <span>{error}</span>
-      </div>
-    );
-  };
-
-  // Input wrapper component with enhanced styling
-  const InputGroup = ({ 
-    label, 
-    required = false, 
-    error, 
-    field, 
-    icon: Icon, 
-    children 
-  }: { 
-    label: string; 
-    required?: boolean; 
-    error?: string; 
-    field?: string;
-    icon?: React.ElementType;
-    children: React.ReactNode;
-  }) => (
-    <div className="space-y-2">
-      <label className={labelClasses}>
-        <div className="flex items-center gap-2">
-          {Icon && <Icon className="h-4 w-4 text-primary-500" />}
-          {label}
-          {required && <span className="text-red-500">*</span>}
-        </div>
-      </label>
-      {children}
-      <ErrorMessage error={error} field={field} />
-    </div>
-  );
 
   const renderFormContent = () => {
     return (
@@ -670,7 +842,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
         {/* Parent Details Step */}
         {formState.step === 'parent-details' && formState.isStudentUnder16 && (
           <div className="space-y-8">
-            <div className={buildAdvancedComponent.glassCard({ variant: 'light' }) + " p-6 space-y-6"}>
+            <div className={buildAdvancedComponent.glassCard({ variant: 'primary' }) + " p-6 space-y-6"}>
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
                   <User className="h-6 w-6 text-white" />
@@ -686,10 +858,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                     type="text"
                     className={getInputClasses(!!formState.validationErrors.parentName, isDark)}
                     value={formState.parentDetails.name}
-                    onChange={(e) => setFormState(prev => ({ 
-                      ...prev, 
-                      parentDetails: { ...prev.parentDetails, name: e.target.value }
-                    }))}
+                    onChange={handleParentNameChange}
                     placeholder="Enter parent's full name"
                     data-field="parentName"
                   />
@@ -700,10 +869,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                     type="email"
                     className={getInputClasses(!!formState.validationErrors.parentEmail, isDark)}
                     value={formState.parentDetails.email}
-                    onChange={(e) => setFormState(prev => ({ 
-                      ...prev, 
-                      parentDetails: { ...prev.parentDetails, email: e.target.value }
-                    }))}
+                    onChange={handleParentEmailChange}
                     placeholder="Enter parent's email address"
                     data-field="parentEmail"
                   />
@@ -715,17 +881,16 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                   <select
                     className={getInputClasses(!!formState.validationErrors.parentCountry, isDark)}
                     value={formState.parentDetails.country}
-                    onChange={(e) => setFormState(prev => ({ 
-                      ...prev, 
-                      parentDetails: { ...prev.parentDetails, country: e.target.value }
-                    }))}
+                    onChange={handleParentCountryChange}
                     data-field="parentCountry"
                   >
-                    {countriesData.map((country: any) => (
-                      <option key={country.code} value={country.code}>
-                        {country.name}
-                      </option>
-                    ))}
+                    {countriesData
+                      .filter((country: any) => country && country.code && country.name)
+                      .map((country: any) => (
+                        <option key={country.code} value={country.code}>
+                          {country.name}
+                        </option>
+                      ))}
                   </select>
                 </InputGroup>
 
@@ -735,14 +900,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                       country: formState.parentDetails.country || 'in', 
                       number: formState.parentDetails.mobile_no 
                     }}
-                    onChange={(val) => setFormState(prev => ({ 
-                      ...prev, 
-                      parentDetails: { 
-                        ...prev.parentDetails, 
-                        mobile_no: val.number,
-                        country: val.country
-                      }
-                    }))}
+                    onChange={handleParentPhoneChange}
                     placeholder="Enter phone number"
                     error={formState.validationErrors.parentMobile}
                   />
@@ -755,10 +913,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                     type="text"
                     className={getInputClasses(!!formState.validationErrors.parentCity, isDark)}
                     value={formState.parentDetails.city}
-                    onChange={(e) => setFormState(prev => ({ 
-                      ...prev, 
-                      parentDetails: { ...prev.parentDetails, city: e.target.value }
-                    }))}
+                    onChange={handleParentCityChange}
                     placeholder="e.g., New Delhi, Mumbai, Bangalore"
                     data-field="parentCity"
                   />
@@ -768,10 +923,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                   <select
                     className={getInputClasses(!!formState.validationErrors.parentTiming, isDark)}
                     value={formState.parentDetails.preferred_timings_to_connect || ""}
-                    onChange={(e) => setFormState(prev => ({ 
-                      ...prev, 
-                      parentDetails: { ...prev.parentDetails, preferred_timings_to_connect: e.target.value }
-                    }))}
+                    onChange={handleParentTimingChange}
                     data-field="parentTiming"
                   >
                     <option value="">Select preferred timing</option>
@@ -808,7 +960,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
         {/* Student Details Step (Under 16) */}
         {formState.step === 'student-details' && formState.isStudentUnder16 && (
           <div className="space-y-8">
-            <div className={buildAdvancedComponent.glassCard({ variant: 'light' }) + " p-6 space-y-6"}>
+            <div className={buildAdvancedComponent.glassCard({ variant: 'primary' }) + " p-6 space-y-6"}>
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
                   <GraduationCap className="h-6 w-6 text-white" />
@@ -824,10 +976,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                     type="text"
                     className={getInputClasses(!!formState.validationErrors.studentName, isDark)}
                     value={formState.studentDetailsUnder16.name}
-                    onChange={(e) => setFormState(prev => ({ 
-                      ...prev, 
-                      studentDetailsUnder16: { ...prev.studentDetailsUnder16, name: e.target.value }
-                    }))}
+                    onChange={handleStudentNameChange}
                     placeholder="Enter student's full name"
                     data-field="studentName"
                   />
@@ -839,10 +988,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                       type="email"
                       className={getInputClasses(false, isDark)}
                       value={formState.studentDetailsUnder16.email || ""}
-                      onChange={(e) => setFormState(prev => ({ 
-                        ...prev, 
-                        studentDetailsUnder16: { ...prev.studentDetailsUnder16, email: e.target.value }
-                      }))}
+                      onChange={handleStudentEmailChange}
                       placeholder="Enter student's email address"
                     />
                   </InputGroup>
@@ -852,10 +998,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                       type="text"
                       className={getInputClasses(false, isDark)}
                       value={formState.studentDetailsUnder16.school_name || ""}
-                      onChange={(e) => setFormState(prev => ({ 
-                        ...prev, 
-                        studentDetailsUnder16: { ...prev.studentDetailsUnder16, school_name: e.target.value }
-                      }))}
+                      onChange={handleStudentSchoolChange}
                       placeholder="Enter student's school name"
                     />
                   </InputGroup>
@@ -882,10 +1025,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                       type="text"
                       className={getInputClasses(!!formState.validationErrors.studentCity, isDark)}
                       value={formState.studentDetailsUnder16.city}
-                      onChange={(e) => setFormState(prev => ({ 
-                        ...prev, 
-                        studentDetailsUnder16: { ...prev.studentDetailsUnder16, city: e.target.value }
-                      }))}
+                      onChange={handleStudentCityChange}
                       placeholder="e.g., New Delhi, Mumbai, Bangalore"
                       data-field="studentCity"
                     />
@@ -896,10 +1036,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                       type="text"
                       className={getInputClasses(!!formState.validationErrors.studentState, isDark)}
                       value={formState.studentDetailsUnder16.state}
-                      onChange={(e) => setFormState(prev => ({ 
-                        ...prev, 
-                        studentDetailsUnder16: { ...prev.studentDetailsUnder16, state: e.target.value }
-                      }))}
+                      onChange={handleStudentStateChange}
                       placeholder="e.g., Delhi, Maharashtra, Karnataka"
                       data-field="studentState"
                     />
@@ -908,21 +1045,27 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
 
                 <InputGroup label="Preferred Course(s)" required error={formState.validationErrors.preferredCourse} field="preferredCourse">
                   <Select
-                    options={formState.liveCourses.map(course => ({ value: course.title, label: course.title }))}
-                    value={formState.liveCourses
-                      .filter(course => formState.studentDetailsUnder16.preferred_course.includes(course.title))
-                      .map(course => ({ value: course.title, label: course.title }))}
+                    options={courseOptions}
+                    value={formState.studentDetailsUnder16.preferred_course
+                      .map(title => courseOptions.find(option => option.label === title))
+                      .filter(option => option !== undefined)} // Filter out undefined values
                     onChange={(selected) => setFormState(prev => ({ 
                       ...prev, 
                       studentDetailsUnder16: { 
                         ...prev.studentDetailsUnder16, 
-                        preferred_course: selected ? selected.map((s: any) => s.value) : [] 
+                        preferred_course: selected ? selected.map((s: any) => s.label) : [] 
                       }
                     }))}
                     styles={selectStyles}
-                    placeholder={formState.isLoadingCourses ? "Loading courses..." : "Select preferred course(s)"}
+                    placeholder={
+                      formState.isLoadingCourses 
+                        ? "Loading courses..." 
+                        : courseOptions.length === 0 
+                          ? "No courses available - please contact support"
+                          : "Select preferred course(s)"
+                    }
                     isMulti
-                    isDisabled={formState.isLoadingCourses}
+                    isDisabled={formState.isLoadingCourses || courseOptions.length === 0}
                     isSearchable
                     data-field="preferredCourse"
                   />
@@ -968,7 +1111,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
         {/* Demo Session & Consent Step (Under 16) */}
         {formState.step === 'demo-consent' && formState.isStudentUnder16 && (
           <form onSubmit={handleSubmit} className="space-y-8">
-            <div className={buildAdvancedComponent.glassCard({ variant: 'light' }) + " p-6 space-y-6"}>
+            <div className={buildAdvancedComponent.glassCard({ variant: 'primary' }) + " p-6 space-y-6"}>
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center">
                   <Calendar className="h-6 w-6 text-white" />
@@ -1033,7 +1176,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
               </InputGroup>
             </div>
 
-            <div className={buildAdvancedComponent.glassCard({ variant: 'light' }) + " p-6 space-y-4"}>
+            <div className={buildAdvancedComponent.glassCard({ variant: 'primary' }) + " p-6 space-y-4"}>
               <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
                 Consent & Agreements
               </h3>
@@ -1136,7 +1279,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
         {/* Complete Form (16 and Above) */}
         {formState.step === 'complete-form' && !formState.isStudentUnder16 && (
           <form onSubmit={handleSubmit} className="space-y-8">
-            <div className={buildAdvancedComponent.glassCard({ variant: 'light' }) + " p-6 space-y-6"}>
+            <div className={buildAdvancedComponent.glassCard({ variant: 'primary' }) + " p-6 space-y-6"}>
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-full flex items-center justify-center">
                   <User className="h-6 w-6 text-white" />
@@ -1153,10 +1296,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                       type="text"
                       className={getInputClasses(!!formState.validationErrors.studentName, isDark)}
                       value={formState.studentDetails16AndAbove.name}
-                      onChange={(e) => setFormState(prev => ({ 
-                        ...prev, 
-                        studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, name: e.target.value }
-                      }))}
+                      onChange={handleStudent16NameChange}
                       placeholder="Enter your full name"
                       data-field="studentName"
                     />
@@ -1167,10 +1307,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                       type="email"
                       className={getInputClasses(!!formState.validationErrors.studentEmail, isDark)}
                       value={formState.studentDetails16AndAbove.email}
-                      onChange={(e) => setFormState(prev => ({ 
-                        ...prev, 
-                        studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, email: e.target.value }
-                      }))}
+                      onChange={handleStudent16EmailChange}
                       placeholder="Enter your email address"
                       data-field="studentEmail"
                     />
@@ -1182,17 +1319,16 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                     <select
                       className={getInputClasses(!!formState.validationErrors.studentCountry, isDark)}
                       value={formState.studentDetails16AndAbove.country}
-                      onChange={(e) => setFormState(prev => ({ 
-                        ...prev, 
-                        studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, country: e.target.value }
-                      }))}
+                      onChange={handleStudent16CountryChange}
                       data-field="studentCountry"
                     >
-                      {countriesData.map((country: any) => (
-                        <option key={country.code} value={country.code}>
-                          {country.name}
-                        </option>
-                      ))}
+                      {countriesData
+                        .filter((country: any) => country && country.code && country.name)
+                        .map((country: any) => (
+                          <option key={country.code} value={country.code}>
+                            {country.name}
+                          </option>
+                        ))}
                     </select>
                   </InputGroup>
 
@@ -1202,14 +1338,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                         country: formState.studentDetails16AndAbove.country || 'in', 
                         number: formState.studentDetails16AndAbove.mobile_no 
                       }}
-                      onChange={(val) => setFormState(prev => ({ 
-                        ...prev, 
-                        studentDetails16AndAbove: { 
-                          ...prev.studentDetails16AndAbove, 
-                          mobile_no: val.number,
-                          country: val.country
-                        }
-                      }))}
+                      onChange={handleStudent16PhoneChange}
                       placeholder="Enter your phone number"
                       error={formState.validationErrors.studentMobile}
                     />
@@ -1237,10 +1366,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                       type="text"
                       className={getInputClasses(false, isDark)}
                       value={formState.studentDetails16AndAbove.education_institute_name || ""}
-                      onChange={(e) => setFormState(prev => ({ 
-                        ...prev, 
-                        studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, education_institute_name: e.target.value }
-                      }))}
+                      onChange={handleStudent16InstituteChange}
                       placeholder="e.g., Delhi University, IIT Delhi"
                     />
                   </InputGroup>
@@ -1320,10 +1446,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                       type="text"
                       className={getInputClasses(!!formState.validationErrors.studentCity, isDark)}
                       value={formState.studentDetails16AndAbove.city}
-                      onChange={(e) => setFormState(prev => ({ 
-                        ...prev, 
-                        studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, city: e.target.value }
-                      }))}
+                      onChange={handleStudent16CityChange}
                       placeholder="e.g., New Delhi, Mumbai, Bangalore"
                       data-field="studentCity"
                     />
@@ -1333,10 +1456,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
                     <select
                       className={getInputClasses(false, isDark)}
                       value={formState.studentDetails16AndAbove.preferred_timings_to_connect || ""}
-                      onChange={(e) => setFormState(prev => ({ 
-                        ...prev, 
-                        studentDetails16AndAbove: { ...prev.studentDetails16AndAbove, preferred_timings_to_connect: e.target.value }
-                      }))}
+                      onChange={handleStudent16TimingChange}
                     >
                       <option value="">Select preferred timing</option>
                       {preferredTimingsOptions.map(option => (
@@ -1350,21 +1470,27 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
 
                 <InputGroup label="Preferred Course(s)" required error={formState.validationErrors.preferredCourse} field="preferredCourse">
                   <Select
-                    options={formState.liveCourses.map(course => ({ value: course.title, label: course.title }))}
-                    value={formState.liveCourses
-                      .filter(course => formState.studentDetails16AndAbove.preferred_course.includes(course.title))
-                      .map(course => ({ value: course.title, label: course.title }))}
+                    options={courseOptions}
+                    value={formState.studentDetails16AndAbove.preferred_course
+                        .map(title => courseOptions.find(option => option.label === title))
+                        .filter(option => option !== undefined)} // Filter out undefined values
                     onChange={(selected) => setFormState(prev => ({ 
                       ...prev, 
                       studentDetails16AndAbove: { 
                         ...prev.studentDetails16AndAbove, 
-                        preferred_course: selected ? selected.map((s: any) => s.value) : [] 
+                        preferred_course: selected ? selected.map((s: any) => s.label) : [] 
                       }
                     }))}
                     styles={selectStyles}
-                    placeholder={formState.isLoadingCourses ? "Loading courses..." : "Select your preferred course(s)"}
+                    placeholder={
+                      formState.isLoadingCourses 
+                        ? "Loading courses..." 
+                        : courseOptions.length === 0 
+                          ? "No courses available - please contact support"
+                          : "Select your preferred course(s)"
+                    }
                     isMulti
-                    isDisabled={formState.isLoadingCourses}
+                    isDisabled={formState.isLoadingCourses || courseOptions.length === 0}
                     isSearchable
                     data-field="preferredCourse"
                   />
@@ -1388,7 +1514,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
             </div>
 
             {/* Demo Session Details */}
-            <div className={buildAdvancedComponent.glassCard({ variant: 'light' }) + " p-6 space-y-6"}>
+            <div className={buildAdvancedComponent.glassCard({ variant: 'primary' }) + " p-6 space-y-6"}>
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center">
                   <Calendar className="h-6 w-6 text-white" />
@@ -1454,7 +1580,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({ onClose }) => {
             </div>
 
             {/* Consent */}
-            <div className={buildAdvancedComponent.glassCard({ variant: 'light' }) + " p-6 space-y-4"}>
+            <div className={buildAdvancedComponent.glassCard({ variant: 'primary' }) + " p-6 space-y-4"}>
               <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
                 Consent & Agreements
               </h3>

@@ -1,5 +1,6 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { apiBaseUrl } from './index';
+import { courseTypesAPI, ILiveCourse as IDetailedLiveCourse } from './courses';
 
 // Enhanced Types and Enums
 export type TStudentGrade = "Grade 1-2" | "Grade 3-4" | "Grade 5-6" | "Grade 7-8" | "Grade 9-10" | "Grade 11-12" | "Home Study";
@@ -540,17 +541,65 @@ export class DemoSessionAPI {
    * Fetch all published live courses with caching
    */
   static async getLiveCourses(): Promise<IApiResponse<ILiveCourse[]>> {
-    return this.retryRequest(() =>
-      axios.get<ILiveCourse[]>(
-        `${apiBaseUrl}/category/live`,
-        {
-          timeout: 15000, // 15 second timeout
-          headers: {
-            'Cache-Control': 'max-age=300' // Cache for 5 minutes
-          }
-        }
-      )
-    );
+    try {
+      const response = await courseTypesAPI.getCoursesByType<IDetailedLiveCourse>('live');
+      
+      if (response?.data?.success && response.data.data) {
+        const liveCourses: ILiveCourse[] = Array.isArray(response.data.data) 
+          ? response.data.data
+              .filter(course => course.status === 'Published') // Only include published courses
+              .map(course => ({
+                _id: course._id || '',
+                title: course.course_title,
+                description: course.course_description?.program_overview || course.course_subtitle || '',
+                duration: course.course_duration,
+                level: course.course_level?.toLowerCase() as 'beginner' | 'intermediate' | 'advanced',
+                category: course.course_category,
+                instructor: course.instructors && course.instructors.length > 0 
+                  ? {
+                      name: course.instructors[0], // Take first instructor
+                      expertise: [] // This info is not available in the detailed interface
+                    }
+                  : undefined,
+                prerequisites: course.prerequisites || [],
+                is_active: course.status === 'Published',
+                demo_available: true // Assume all published live courses have demo available
+              })) 
+          : [];
+        
+        return {
+          success: true,
+          data: liveCourses,
+          timestamp: new Date().toISOString()
+        };
+      } else {
+        return {
+          success: false,
+          message: 'Failed to fetch live courses',
+          error: {
+            code: 'API_ERROR',
+            message: 'Invalid response format from course API',
+            details: ['Response structure does not match expected format']
+          },
+          timestamp: new Date().toISOString()
+        };
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        return ApiErrorHandler.handleAxiosError(error);
+      }
+      
+      return {
+        success: false,
+        message: 'An unknown error occurred while fetching live courses.',
+        error: {
+          code: 'UNKNOWN_ERROR',
+          message: error instanceof Error ? error.message : 'Something went wrong.',
+          details: [error instanceof Error ? error.message : 'Unknown error']
+        },
+        timestamp: new Date().toISOString()
+      };
+    }
   }
 
   /**
