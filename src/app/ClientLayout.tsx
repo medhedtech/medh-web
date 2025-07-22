@@ -61,11 +61,12 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
       // Apply smooth scrolling to html element
       document.documentElement.style.scrollBehavior = prefersReducedMotion ? 'auto' : 'smooth';
       
-      // Fix for body element styling
+      // Fix for body element styling - ensure Google One Tap visibility
       if (typeof window !== 'undefined') {
-        // Ensure proper overflow settings
+        // Ensure proper overflow settings but allow Google One Tap to show
         document.documentElement.style.overflowX = 'hidden';
-        document.documentElement.style.overflowY = 'auto';
+        document.documentElement.style.overflowY = 'visible';
+        document.body.style.overflowY = 'visible';
       }
     };
 
@@ -94,7 +95,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
         <meta name="theme-color" content="#ffffff" />
       </head>
-      <body className="relative bg-bodyBg dark:bg-bodyBg-dark text-gray-700 dark:text-gray-200 min-h-screen font-sans antialiased overflow-x-hidden">
+      <body className="relative bg-white dark:bg-gray-950 text-gray-700 dark:text-gray-200 min-h-screen font-sans antialiased overflow-x-hidden overflow-y-visible">
         {/* Google Analytics */}
         {GA_MEASUREMENT_ID && <GoogleAnalytics GA_MEASUREMENT_ID={GA_MEASUREMENT_ID} />}
         
@@ -102,7 +103,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
           {/* Skip to content link for accessibility */}
           <a 
             href={`#${MAIN_CONTENT_ID}`}
-            className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-primary focus:text-white focus:top-0 focus:left-0"
+            className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-blue-500 focus:text-white focus:top-0 focus:left-0 focus:rounded-md"
           >
             Skip to content
           </a>
@@ -113,10 +114,10 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
           {/* Preloader */}
           <PreloaderPrimary />
           
-          {/* Main Content - No Width Constraints */}
+          {/* Main Content - No Width Constraints, Overflow Visible for Google One Tap */}
           <div 
             id={MAIN_CONTENT_ID}
-            className="relative flex flex-col min-h-screen w-full z-10 pt-6"
+            className="relative flex flex-col min-h-screen w-full z-10 pt-6 overflow-visible"
             tabIndex={-1}
           >
             {children}
@@ -134,7 +135,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
           {/* Scroll to Top Button */}
           <ScrollToTop />
           
-          {/* Toast Notifications */}
+          {/* Toast Notifications - Lower z-index than Google One Tap */}
           <ToastContainer 
             position="top-right"
             autoClose={5000}
@@ -147,6 +148,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
             pauseOnHover
             theme="colored"
             className="z-[100]"
+            style={{ zIndex: 100 }}
           />
           {/* Vercel Speed Insights */}
           <SpeedInsights />
