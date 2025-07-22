@@ -22,7 +22,7 @@ import OTPVerification from './OTPVerification';
 import PhoneNumberInput, { phoneNumberSchema } from './PhoneNumberInput';
 import { authAPI, authUtils } from "@/apis/auth.api";
 import { useCurrentYear } from "@/utils/hydration";
-import { showToast } from "@/utils/toastManager";
+import { useToast } from "@/components/shared/ui/ToastProvider";
 
 declare global {
   interface Window {
@@ -132,7 +132,7 @@ const schema = yup
       .oneOf(["student"])
       .required("Role is required"),
     age_group: yup.string()
-      .oneOf(["Under 18", "18-24", "25-34", "35-44", "45-54", "55-64", "65+"])
+      .oneOf(["Under 16", "16-24", "25-34", "35-44", "45-54", "55-64", "65+"])
       .required("Age group is required"),
     phone_numbers: yup.array()
       .of(
@@ -235,6 +235,7 @@ const SignUpForm: React.FC = () => {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const currentYear = useCurrentYear();
+  const { showToast } = useToast();
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const { postQuery, loading } = usePostQuery();
@@ -243,7 +244,7 @@ const SignUpForm: React.FC = () => {
   const [recaptchaError, setRecaptchaError] = useState<boolean>(false);
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const [registrationSuccess, setRegistrationSuccess] = useState<boolean>(false);
-  const [selectedAgeGroup, setSelectedAgeGroup] = useState<AgeGroup>("18-24");
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState<AgeGroup>("16-24");
   const [phoneData, setPhoneData] = useState<PhoneData>({
     number: '',
     country: '',
@@ -283,7 +284,7 @@ const SignUpForm: React.FC = () => {
     resolver: yupResolver(schema) as Resolver<FormFields>,
     defaultValues: {
       role: "student",
-      age_group: "18-24",
+      age_group: "16-24",
       agree_terms: true, // Pre-accept terms and privacy policy
       phone_numbers: [{
         country: "in",
@@ -400,7 +401,7 @@ const SignUpForm: React.FC = () => {
       await trigger('email');
       if (!errors.email) {
         setVerificationEmail(email);
-        showToast.info("📧 Email format looks good! We'll send a verification code here.", { duration: 2000 });
+        showToast.info("Email format looks good! We'll send a verification code here.", { duration: 2000 });
       }
     }
   };
@@ -411,7 +412,7 @@ const SignUpForm: React.FC = () => {
       setIsOAuthLoading(prev => ({ ...prev, [provider]: true }));
       
       // Show informational toast
-      showToast.info(`🔄 Opening ${provider.charAt(0).toUpperCase() + provider.slice(1)} signup...`, { duration: 3000 });
+      showToast.info(`Opening ${provider.charAt(0).toUpperCase() + provider.slice(1)} signup...`, { duration: 3000 });
       
       // Get OAuth signup URL (same as login URL for OAuth)
       const oauthUrl = authUtils.getOAuthLoginUrl(provider, window.location.origin + '/auth/callback');
@@ -423,9 +424,9 @@ const SignUpForm: React.FC = () => {
         (data) => {
           console.log(`${provider} OAuth signup success:`, data);
           
-          if (data.token && data.user) {
+          if (data.access_token && data.id) {
             // Show processing toast
-            const processingToastId = showToast.loading("🔄 Setting up your account...", { duration: 8000 });
+            const processingToastId = showToast.loading("Setting up your account...", { duration: 8000 });
             
             // For OAuth signup, user is automatically verified
             setIsEmailVerified(true);
@@ -433,14 +434,14 @@ const SignUpForm: React.FC = () => {
             setCurrentStep(2);
             
             showToast.dismiss(processingToastId);
-            showToast.success(`🎉 ${provider.charAt(0).toUpperCase() + provider.slice(1)} signup successful! Welcome to Medh!`, { duration: 4000 });
+            showToast.success(`${provider.charAt(0).toUpperCase() + provider.slice(1)} signup successful! Welcome to Medh!`, { duration: 4000 });
             
             // Redirect to login or dashboard
             setTimeout(() => {
               router.push("/login");
             }, 2000);
           } else {
-            const errorMsg = `❌ ${provider.charAt(0).toUpperCase() + provider.slice(1)} signup failed. Invalid response from server.`;
+            const errorMsg = `${provider.charAt(0).toUpperCase() + provider.slice(1)} signup failed. Invalid response from server.`;
             showToast.error(errorMsg, { duration: 5000 });
           }
           
@@ -453,7 +454,7 @@ const SignUpForm: React.FC = () => {
           // Check if user already exists
           if (error.message && error.message.includes('already exists')) {
             showToast.error(
-              `👤 This ${provider} account is already registered. You can login instead.`,
+              `This ${provider} account is already registered. You can login instead.`,
               {
                 duration: 10000,
                 id: 'oauth-user-exists-error'
@@ -463,7 +464,7 @@ const SignUpForm: React.FC = () => {
             // Add a separate action toast for navigation
             setTimeout(() => {
               showToast.info(
-                "💡 You can go to the login page to sign in with this account",
+                "You can go to the login page to sign in with this account",
                 {
                   duration: 5000,
                   id: 'oauth-login-redirect'
@@ -472,7 +473,7 @@ const SignUpForm: React.FC = () => {
             }, 1000);
           } else {
             const enhancedError = getEnhancedErrorMessage(error);
-            showToast.error(`❌ ${provider.charAt(0).toUpperCase() + provider.slice(1)} signup failed: ${enhancedError}`, { duration: 6000 });
+            showToast.error(`${provider.charAt(0).toUpperCase() + provider.slice(1)} signup failed: ${enhancedError}`, { duration: 6000 });
           }
           
           setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
@@ -480,7 +481,7 @@ const SignUpForm: React.FC = () => {
       );
     } catch (error) {
       console.error(`${provider} OAuth signup error:`, error);
-      const errorMsg = `❌ Failed to initiate ${provider.charAt(0).toUpperCase() + provider.slice(1)} signup. Please try again.`;
+      const errorMsg = `Failed to initiate ${provider.charAt(0).toUpperCase() + provider.slice(1)} signup. Please try again.`;
       showToast.error(errorMsg, { duration: 5000 });
       setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
     }
@@ -495,19 +496,19 @@ const SignUpForm: React.FC = () => {
     console.log('Current phone_numbers value:', getValues('phone_numbers'));
     
     if (!isValid) {
-      showToast.warning('📝 Please fill in all required fields correctly', { duration: 4000 });
+      showToast.warning('Please fill in all required fields correctly', { duration: 4000 });
       return;
     }
     
     // Show loading toast
-    const loadingToastId = showToast.loading("🔄 Creating your account...", { duration: 20000 });
+    const loadingToastId = showToast.loading("Creating your account...", { duration: 20000 });
     
     setIsSubmitting(true);
     setApiError(null);
     
     try {
       console.log('Starting registration process...');
-      showToast.info("📋 Validating your information...", { duration: 2000 });
+      showToast.info("Validating your information...", { duration: 2000 });
       
       const phoneNumbers = getValues('phone_numbers');
       const hasValidPhoneNumber = phoneNumbers && 
@@ -519,7 +520,7 @@ const SignUpForm: React.FC = () => {
       
       if (!hasValidPhoneNumber) {
         showToast.dismiss(loadingToastId);
-        showToast.error("📱 Please enter a valid phone number", { duration: 4000 });
+        showToast.error("Please enter a valid phone number", { duration: 4000 });
         setIsSubmitting(false);
         return;
       }
@@ -560,14 +561,14 @@ const SignUpForm: React.FC = () => {
             const errorMessage = response?.message || "Registration failed";
             console.error('Registration error in onSuccess handler:', errorMessage);
             showToast.dismiss(loadingToastId);
-            showToast.error(`❌ ${errorMessage}`, { duration: 5000 });
+            showToast.error(`${errorMessage}`, { duration: 5000 });
             setApiError(errorMessage);
             return;
           }
           
           console.log('Registration successful, proceeding to verification');
           showToast.dismiss(loadingToastId);
-          showToast.success("🎉 Registration successful! Please verify your email with the code sent to your inbox.", { duration: 4000 });
+          showToast.success("Registration successful! Please verify your email with the code sent to your inbox.", { duration: 4000 });
           
           setIsRegistered(true);
           setCurrentStep(2);
@@ -613,7 +614,7 @@ const SignUpForm: React.FC = () => {
             setApiError("This email is already registered");
             
             showToast.error(
-              "👤 This email is already registered. You can login instead.",
+              "This email is already registered. You can login instead.",
               {
                 duration: 10000,
                 id: 'user-exists-error'
@@ -623,7 +624,7 @@ const SignUpForm: React.FC = () => {
             // Add a separate action toast for navigation
             setTimeout(() => {
               showToast.info(
-                "💡 You can go to the login page to sign in with this account",
+                "You can go to the login page to sign in with this account",
                 {
                   duration: 5000,
                   id: 'email-login-redirect'
@@ -655,7 +656,7 @@ const SignUpForm: React.FC = () => {
       setShowOTPVerification(false);
       
       const enhancedError = getEnhancedErrorMessage(error);
-      showToast.error(`❌ ${enhancedError}`, { duration: 6000, id: 'client-error' });
+      showToast.error(`${enhancedError}`, { duration: 6000, id: 'client-error' });
       setError(enhancedError);
     } finally {
       setIsSubmitting(false);
@@ -664,23 +665,35 @@ const SignUpForm: React.FC = () => {
 
   // Handle verification success
   const handleVerificationSuccess = (): void => {
-    // Show loading toast for completion
-    const completionToastId = showToast.loading("🎉 Finalizing your account setup...", { duration: 5000 });
-    
-    setIsEmailVerified(true);
-    setShowOTPVerification(false);
-    setValue('is_email_verified', true, { shouldValidate: false });
-    
-    // Dismiss loading and show success
-    setTimeout(() => {
-      showToast.dismiss(completionToastId);
-      showToast.success("✅ Email successfully verified! Welcome to Medh! You can now log in to your account.", { duration: 5000 });
+    try {
+      // Clear any previous errors
+      setApiError(null);
+      setError(null);
       
-      // Redirect to login page after verification
+      // Show loading toast for completion
+      const completionToastId = showToast.loading("Finalizing your account setup...", { duration: 5000 });
+      
+      setIsEmailVerified(true);
+      setShowOTPVerification(false);
+      setValue('is_email_verified', true, { shouldValidate: false });
+      
+      // Dismiss loading and show success
+      setTimeout(() => {
+        showToast.dismiss(completionToastId);
+        showToast.success("Email successfully verified! Welcome to Medh! You can now log in to your account.", { duration: 5000 });
+        
+        // Redirect to login page after verification
+        setTimeout(() => {
+          router.push("/login");
+        }, 2000);
+      }, 1000);
+    } catch (err) {
+      console.error('Error in handleVerificationSuccess:', err);
+      showToast.error('Verification successful, but there was an issue completing setup. Please try logging in.');
       setTimeout(() => {
         router.push("/login");
       }, 2000);
-    }, 1000);
+    }
   };
 
   const handleRecaptchaChange = (value: string | null): void => {
@@ -688,7 +701,7 @@ const SignUpForm: React.FC = () => {
     setRecaptchaError(false);
     if (value) {
       setValue('recaptcha', value, { shouldValidate: true });
-      showToast.success("✅ Human verification completed!", { duration: 2000 });
+      showToast.success("Human verification completed!", { duration: 2000 });
     }
   };
 
@@ -1284,8 +1297,8 @@ const SignUpForm: React.FC = () => {
                           aria-required="true"
                           className="w-full h-10 px-2 py-0 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-8 appearance-none text-sm"
                         >
-                          <option value="Under 18">Under 18</option>
-                          <option value="18-24">18-24</option>
+                          <option value="Under 16">Under 16</option>
+                          <option value="16-24">16-24</option>
                           <option value="25-34">25-34</option>
                           <option value="35-44">35-44</option>
                           <option value="45-54">45-54</option>

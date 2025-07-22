@@ -15,6 +15,7 @@ export interface RememberedAccount {
   role?: string;
   quickLoginKey?: string; // Change from refreshToken to quickLoginKey
   keyId?: string; // Server-side key identifier for revocation
+  provider?: string; // OAuth provider (google, github, etc.) for OAuth accounts
   // Note: We don't store passwords directly for security
   // Instead, we'll use a secure token-based approach
 }
