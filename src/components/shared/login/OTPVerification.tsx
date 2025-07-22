@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { showToast } from '@/utils/toastManager';
+import { useToast } from '@/components/shared/ui/ToastProvider';
 import { Loader2, AlertCircle, ArrowRight, RefreshCw, Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import usePostQuery from '@/hooks/postQuery.hook';
 import { apiUrls, IVerifyEmailData, IResendVerificationData, IOTPVerificationResponse } from '@/apis';
@@ -31,6 +31,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
   const { postQuery } = usePostQuery();
   const { theme, resolvedTheme } = useTheme();
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const { showToast } = useToast();
 
   // Handle countdown for resend button
   useEffect(() => {
@@ -64,7 +65,11 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
     // Only take the last character if more than one is pasted
     newOtp[index] = element.value.slice(-1);
     setOtp(newOtp);
-    setError(null);
+    
+    // Clear any previous errors when user starts typing
+    if (error) {
+      setError(null);
+    }
 
     // Move to next input if value is entered
     if (element.value && index < 5) {
@@ -142,9 +147,13 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
         url: apiUrls?.user?.verifyEmail,
         postData: verifyData,
         requireAuth: false,
-        showToast: true,
+        showToast: false, // Disable automatic toasts to avoid conflicts
         onSuccess: (response: any) => {
-          showToast.success(response.message || 'Email verified successfully!');
+          // Clear any previous errors
+          setError(null);
+          
+          // Show success toast and call success handler
+          showToast.success(response.message || 'Email verified successfully');
           onVerificationSuccess();
         },
         onFail: (error: any) => {
@@ -154,8 +163,9 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
         }
       });
     } catch (error) {
-      setError('An error occurred. Please try again.');
-      showToast.error('An error occurred. Please try again.');
+      const errorMessage = 'An error occurred. Please try again.';
+      setError(errorMessage);
+      showToast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -175,9 +185,12 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
         url: apiUrls?.user?.resendOTP,
         postData: resendData,
         requireAuth: false,
-        showToast: true,
+        showToast: false, // Disable automatic toasts to avoid conflicts
         onSuccess: (response: any) => {
-          showToast.success(response.message || 'Verification code resent successfully!');
+          // Clear any previous errors
+          setError(null);
+          
+          showToast.success(response.message || 'Verification code resent successfully');
           setResendDisabled(true);
           setCountdown(30);
           
@@ -196,8 +209,9 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
         }
       });
     } catch (error) {
-      setError('Failed to resend verification code. Please try again.');
-      showToast.error('Failed to resend verification code. Please try again.');
+      const errorMessage = 'Failed to resend verification code. Please try again.';
+      setError(errorMessage);
+      showToast.error(errorMessage);
     } finally {
       setLoading(false);
     }
