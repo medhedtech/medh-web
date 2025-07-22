@@ -172,7 +172,7 @@ const PageWrapper: React.FC<PageWrapperProps> = ({
       {showFooter && <Footer />}
 
       {/* Modal Portal Root: ensures modals render above header and all content but below Google One Tap */}
-      <div id="modal-root" className="fixed inset-0 z-[120] pointer-events-none"></div>
+      <div id="modal-root"></div>
 
       {/* Global Demo Session Form */}
       {showDemoForm && (
