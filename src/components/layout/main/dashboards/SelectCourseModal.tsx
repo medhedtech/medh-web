@@ -72,9 +72,9 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, categoryName }) => {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
       {/* Course Title Only */}
-      <h4 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">
-        {course.course_title}
-      </h4>
+        <h4 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">
+          {course.course_title}
+        </h4>
     </div>
   );
 };
@@ -302,73 +302,73 @@ export default function SelectCourseModal({
       console.log("Modal opened, fetching data...");
       
       const fetchData = async () => {
-        setError(null);
-        setCategoriesLoading(true);
-        setCoursesLoading(true);
+      setError(null);
+      setCategoriesLoading(true);
+      setCoursesLoading(true);
 
-        try {
-          // Fetch categories
+      try {
+        // Fetch categories
           const categoriesResult = await getQuery({
-            url: apiUrls?.categories?.getAllCategories,
+          url: apiUrls?.categories?.getAllCategories,
           });
           const categoriesData = categoriesResult?.data || [];
-          console.log("Categories fetched:", categoriesData.length);
-          setCategories(categoriesData);
-          setCategoriesLoading(false);
+            console.log("Categories fetched:", categoriesData.length);
+            setCategories(categoriesData);
+            setCategoriesLoading(false);
 
-          // Fetch courses
+        // Fetch courses
           const coursesResult = await getQuery({
-            url: getAllCoursesWithLimits({
-              page: 1,
+          url: getAllCoursesWithLimits({
+            page: 1,
               limit: 200,
-              status: "Published",
+            status: "Published",
               class_type: "Blended Courses",
-              sort_by: "course_title",
-              sort_order: "asc"
-            }),
+            sort_by: "course_title",
+            sort_order: "asc"
+          }),
           });
-          
+            
           const coursesData = coursesResult?.data?.courses || coursesResult?.courses || coursesResult || [];
-          const sanitizedCourses = Array.isArray(coursesData) 
-            ? coursesData.map((course: any) => ({
-                _id: course._id || '',
-                course_title: course.course_title || '',
-                course_category: course.course_category || course.category || '',
-                category: course.category || course.course_category || '',
-                course_description: typeof course.course_description === 'string' 
-                  ? course.course_description 
-                  : course.program_overview || '',
-                course_image: course.course_image || '',
-                course_fee: typeof course.course_fee === 'number' ? course.course_fee : 0,
-                no_of_Sessions: typeof course.no_of_Sessions === 'number' ? course.no_of_Sessions : 0,
-                course_duration: course.course_duration || '',
-                session_duration: course.session_duration || '',
-                class_type: course.class_type || '',
-                course_level: course.course_level || '',
-                status: course.status || '',
-                enrolledStudents: typeof course.enrolledStudents === 'number' ? course.enrolledStudents : 0,
-                meta: {
-                  views: typeof course.meta?.views === 'number' ? course.meta.views : 0
-                }
-              }))
-            : [];
-          
+            const sanitizedCourses = Array.isArray(coursesData) 
+              ? coursesData.map((course: any) => ({
+                  _id: course._id || '',
+                  course_title: course.course_title || '',
+                  course_category: course.course_category || course.category || '',
+                  category: course.category || course.course_category || '',
+                  course_description: typeof course.course_description === 'string' 
+                    ? course.course_description 
+                    : course.program_overview || '',
+                  course_image: course.course_image || '',
+                  course_fee: typeof course.course_fee === 'number' ? course.course_fee : 0,
+                  no_of_Sessions: typeof course.no_of_Sessions === 'number' ? course.no_of_Sessions : 0,
+                  course_duration: course.course_duration || '',
+                  session_duration: course.session_duration || '',
+                  class_type: course.class_type || '',
+                  course_level: course.course_level || '',
+                  status: course.status || '',
+                  enrolledStudents: typeof course.enrolledStudents === 'number' ? course.enrolledStudents : 0,
+                  meta: {
+                    views: typeof course.meta?.views === 'number' ? course.meta.views : 0
+                  }
+                }))
+              : [];
+            
           console.log("Courses fetched:", sanitizedCourses.length);
-          setCourses(sanitizedCourses);
-          setCoursesLoading(false);
-          setDataInitialized(true);
+            setCourses(sanitizedCourses);
+            setCoursesLoading(false);
+        setDataInitialized(true);
           
           console.log("Data fetch completed successfully");
-          
-        } catch (err) {
-          console.error("Data fetch failed:", err);
-          setError(err instanceof Error ? err.message : "Failed to load data. Please try again later.");
-          setCategoriesLoading(false);
-          setCoursesLoading(false);
-        }
-      };
-      
-      fetchData();
+        
+      } catch (err) {
+        console.error("Data fetch failed:", err);
+        setError(err instanceof Error ? err.message : "Failed to load data. Please try again later.");
+        setCategoriesLoading(false);
+        setCoursesLoading(false);
+      }
+    };
+
+    fetchData();
     }
   }, [isOpen, dataInitialized, getQuery]);
 
@@ -868,7 +868,7 @@ export default function SelectCourseModal({
                                 </p>
                               </div>
                             </div>
-                            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3">
                               {category.category_image && (
                                 <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700 shadow-sm">
                                   <Image
@@ -884,7 +884,7 @@ export default function SelectCourseModal({
                                 isExpanded ? 'rotate-180' : ''
                               }`} />
                             </div>
-                          </button>
+              </button>
                           
                           {/* Collapsible Course List */}
                           {isExpanded && (
@@ -900,7 +900,7 @@ export default function SelectCourseModal({
                                         <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
                                           {courseIndex + 1}
                                         </span>
-                                      </div>
+            </div>
                                       <div className="flex-1">
                                         <h5 className="text-sm font-medium text-gray-900 dark:text-white">
                                           {course.course_title}
@@ -910,10 +910,10 @@ export default function SelectCourseModal({
                                             Duration: {course.course_duration}
                                           </p>
                                         )}
-                                      </div>
+            </div>
                                       <div className="text-xs text-green-600 dark:text-green-400 font-medium">
                                         Included
-                                      </div>
+          </div>
                                     </div>
                                   ))}
                                 </div>
@@ -1074,7 +1074,7 @@ export default function SelectCourseModal({
           </div>
         </div>
 
-                {/* Category Grid */}
+        {/* Category Grid */}
         <div className="grid grid-cols-7 gap-4 px-6 py-6 overflow-y-auto flex-1 bg-white dark:bg-gray-900">
           {loading ? (
             <div className="col-span-full flex flex-col items-center justify-center py-8">
@@ -1114,26 +1114,26 @@ export default function SelectCourseModal({
                   />
                   
                   {/* Courses List */}
-                  {category.isExpanded && category.courses && category.courses.length > 0 && (
+                   {category.isExpanded && category.courses && category.courses.length > 0 && (
                     <div className="mt-4 p-4 bg-gray-50/50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
                       <div className="space-y-2">
-                        {category.courses.map(course => (
+                         {category.courses.map(course => (
                           <div key={course._id} className="group bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 hover:shadow-sm transition-all duration-200">
                             <h4 className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                               {course.course_title}
                             </h4>
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                         ))}
+                       </div>
+                     </div>
+                   )}
                 </div>
               );
             })
           )}
         </div>
 
-                         {/* Footer */}
+                 {/* Footer */}
         <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-4 bg-white dark:bg-gray-900">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             {/* Selected Categories */}
@@ -1142,8 +1142,8 @@ export default function SelectCourseModal({
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Selected Categories</span>
               </div>
               <div className="flex flex-wrap gap-2">
-                {selectedCategories.length > 0 ? (
-                  selectedCategories.map(category => (
+             {selectedCategories.length > 0 ? (
+               selectedCategories.map(category => (
                     <span key={category._id} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-sm font-medium group">
                       <span>{category.category_name}</span>
                       <button 
@@ -1151,13 +1151,13 @@ export default function SelectCourseModal({
                         className="hover:bg-blue-100 dark:hover:bg-blue-800 rounded-full p-0.5 transition-colors"
                       >
                         <X className="w-3.5 h-3.5" />
-                      </button>
-                    </span>
-                  ))
-                ) : (
+                   </button>
+                 </span>
+               ))
+             ) : (
                   <span className="text-sm text-gray-500 dark:text-gray-400 italic">No categories selected yet</span>
-                )}
-              </div>
+             )}
+           </div>
             </div>
             
             {/* Action Section */}
@@ -1169,8 +1169,8 @@ export default function SelectCourseModal({
                 <div className="text-xs text-gray-500 dark:text-gray-400">
                   Total access
                 </div>
-              </div>
-              <button
+             </div>
+             <button
                 onClick={handleShowPreview}
                 disabled={selectedCategories.length === 0}
                 className={`px-6 py-3 rounded-xl font-medium text-sm transition-all duration-200 ${
@@ -1179,14 +1179,14 @@ export default function SelectCourseModal({
                     : 'bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5'
                 }`}
               >
-                <span className="flex items-center gap-2">
+                 <span className="flex items-center gap-2">
                   Review Selection
                   <ChevronDown className="w-4 h-4 rotate-[-90deg]" />
-                </span>
-              </button>
+                 </span>
+             </button>
             </div>
-          </div>
-        </div>
+           </div>
+         </div>
       </div>
     </div>
   );

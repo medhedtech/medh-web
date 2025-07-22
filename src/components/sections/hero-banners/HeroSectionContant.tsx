@@ -260,7 +260,7 @@ const CourseAiBanner: React.FC<CourseAiBannerProps> = ({ onLearnMoreClick }) => 
                
               {/* Main Heading */}
               <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-center tracking-tight mb-2 sm:mb-3 md:mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Make Your Dreams Happen
+              Start Your Journey Towards Success
                 <span className="block mt-1 w-full text-center">
                   <em className="font-semibold inline-flex items-baseline mr-1" style={{ transform: 'scale(0.9) translateY(2px)' }}>with</em>
                   <Image 
@@ -280,7 +280,7 @@ const CourseAiBanner: React.FC<CourseAiBannerProps> = ({ onLearnMoreClick }) => 
               </h1>
                 
               <p className={`text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed mb-3 sm:mb-4 md:mb-6 max-w-3xl mx-auto ${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
-                At Medh, we're more than just an EdTech platform. We're a community dedicated to transforming passionate learners into industry-ready professionals.
+              Quality drives everything at MEDH—creating industry-relevant, expert-developed learning materials that are current, engaging, and truly effective.
               </p>
 
               {/* Enhanced CTA Buttons */}
@@ -293,7 +293,7 @@ const CourseAiBanner: React.FC<CourseAiBannerProps> = ({ onLearnMoreClick }) => 
                       : 'bg-white/95 backdrop-blur-lg text-gray-900 border-2 border-primary-500/40 hover:border-primary-500/70 hover:bg-white shadow-2xl hover:shadow-3xl'
                   }`}
                 >
-                  <span className="relative z-10 font-extrabold tracking-wide">Learn More</span>
+                  <span className="relative z-10 font-extrabold tracking-wide">Explore More</span>
                   <ArrowRight size={16} className="relative z-10 ml-3 group-hover:translate-x-1 transition-transform sm:w-4 sm:h-4 md:w-5 md:h-5" />
                 </button>
               </div>
@@ -312,36 +312,96 @@ const CourseAiBanner: React.FC<CourseAiBannerProps> = ({ onLearnMoreClick }) => 
           {/* Enhanced Features Section */}
           {/* Removed the top three feature cards as requested */}
 
-          {/* Enhanced Values Section */}
+          {/* Enhanced Promise Section */}
           <div className={`mb-4 md:mb-6 transition-all duration-1000 delay-500 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             <div className="glass-stats rounded-2xl p-6 md:p-8 max-w-5xl lg:max-w-6xl mx-auto">
-              <h3 className={`text-xl md:text-2xl font-bold mb-4 md:mb-6 text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>Learning Benefits</h3>
+              <h3 className={`text-xl md:text-2xl font-bold mb-4 md:mb-6 text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>Our Promise</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-                {values.map((value, index) => (
-                  <div
-                    key={index}
-                    className="relative overflow-hidden rounded-xl p-4 md:p-6 cursor-pointer group transition-all duration-300 text-center glass-stats hover:scale-105"
-                  >
-                    <div className="relative z-10">
-                      <div className={`bg-gradient-to-br ${value.color} text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform`}>
-                        <div className="w-5 h-5 md:w-6 md:h-6">
-                          {value.icon}
-                        </div>
-                      </div>
-                      <h4 className={`text-base md:text-lg font-bold mb-2 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'}`}>{value.title}</h4>
-                      <p className={`text-sm md:text-base transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'}`}>{value.description}</p>
+                {/* To Individuals */}
+                <div className="relative overflow-hidden rounded-xl p-4 md:p-6 cursor-pointer group transition-all duration-300 text-center glass-stats hover:scale-105">
+                  <div className="relative z-10">
+                    <div className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform">
+                      <Heart className="w-5 h-5 md:w-6 md:h-6" />
                     </div>
+                    <h4 className={`text-base md:text-lg font-bold mb-3 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'}`}>To Individuals</h4>
+                    <p className={`text-sm md:text-base mb-4 transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'}`}>
+                      Learning solutions for everyone—from children to professionals to homemakers.
+                    </p>
+                    <a 
+                      href="/all-courses" 
+                      className={`inline-flex items-center text-sm font-semibold transition-colors hover:underline ${
+                        isDark 
+                          ? 'text-primary-400 hover:text-primary-300' 
+                          : 'text-primary-600 hover:text-primary-700'
+                      }`}
+                    >
+                      Find Your Learning Path →
+                    </a>
                   </div>
-                ))}
+                </div>
+
+                {/* To Companies */}
+                <div className="relative overflow-hidden rounded-xl p-4 md:p-6 cursor-pointer group transition-all duration-300 text-center glass-stats hover:scale-105">
+                  <div className="relative z-10">
+                    <div className="bg-gradient-to-br from-emerald-500 to-teal-500 text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform">
+                      <TrendingUp className="w-5 h-5 md:w-6 md:h-6" />
+                    </div>
+                    <h4 className={`text-base md:text-lg font-bold mb-3 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'}`}>To Companies</h4>
+                    <p className={`text-sm md:text-base mb-4 transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'}`}>
+                      Transforms your workforce with effective training and hiring job-ready professionals.
+                    </p>
+                    <a 
+                      href="/corporate-training-courses" 
+                      className={`inline-flex items-center text-sm font-semibold transition-colors hover:underline ${
+                        isDark 
+                          ? 'text-primary-400 hover:text-primary-300' 
+                          : 'text-primary-600 hover:text-primary-700'
+                      }`}
+                    >
+                      Elevate Your Workforce →
+                    </a>
+                  </div>
+                </div>
+
+                {/* To Schools and Colleges */}
+                <div className="relative overflow-hidden rounded-xl p-4 md:p-6 cursor-pointer group transition-all duration-300 text-center glass-stats hover:scale-105">
+                  <div className="relative z-10">
+                    <div className="bg-gradient-to-br from-purple-500 to-indigo-500 text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform">
+                      <GraduationCap className="w-5 h-5 md:w-6 md:h-6" />
+                    </div>
+                    <h4 className={`text-base md:text-lg font-bold mb-3 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'}`}>To Schools and Colleges</h4>
+                    <p className={`text-sm md:text-base mb-4 transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'}`}>
+                      Empower your students with real-world skills that will actually drive success.
+                    </p>
+                    <a 
+                      href="/join-us-as-school-institute" 
+                      className={`inline-flex items-center text-sm font-semibold transition-colors hover:underline ${
+                        isDark 
+                          ? 'text-primary-400 hover:text-primary-300' 
+                          : 'text-primary-600 hover:text-primary-700'
+                      }`}
+                    >
+                      Empower Your Students →
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Scroll Indicator */}
-          <div className={`flex flex-col items-center mt-4 md:mt-6 transition-all duration-1000 delay-700 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <span className={`text-sm mb-2 ${isDark ? 'text-white' : 'text-gray-600'} font-medium`}>Discover Our Story</span>
-            <ChevronDown className={`w-6 h-6 animate-bounce ${isDark ? 'text-white' : 'text-gray-500'}`} />
+          {/* Community Message Section - Outside Container */}
+          <div className={`mb-4 md:mb-6 transition-all duration-1000 delay-600 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+            <div className="max-w-5xl lg:max-w-6xl mx-auto text-center px-4 md:px-8">
+              <p className={`text-sm md:text-base lg:text-lg leading-relaxed mb-4 md:mb-6 ${isDark ? 'text-white/90' : 'text-gray-800'} font-medium`}>
+                We're not just another online learning platform. We're building a community where people learn, grow, and succeed together. By combining technology with personal guidance, we help everyone reach their full potential.
+              </p>
+              <p className={`text-base md:text-lg lg:text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Join us and see what's possible when quality education meets real-world needs.
+              </p>
+            </div>
           </div>
+
+
         </div>
       </div>
     </section>
