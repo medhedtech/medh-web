@@ -10,7 +10,7 @@ import iso10002 from "@/assets/images/iso/iso10002.png";
 import iso20000 from "@/assets/images/iso/iso20000.png";
 import iso22301 from "@/assets/images/iso/iso22301.png";
 import iso9001 from "@/assets/images/iso/iso9001.png";
-import iso270001 from "@/assets/images/iso/iso27001.png";
+import iso27701 from "@/assets/images/iso/iso27701.jpg";
 import isoSTEM from "@/assets/images/iso/iso-STEM.jpg";
 import isoUAEA from "@/assets/images/iso/iso-UAEA.jpg";
 
@@ -232,7 +232,7 @@ const Certified: React.FC = () => {
       description: "Ensuring consistently exceptional learning experiences through quality management processes."
     },
     { 
-      image: iso270001.src, 
+      image: iso27701.src, 
       alt: "ISO 27701 Certification", 
       title: "ISO 27701:2019",
       description: "Safeguarding your privacy with advanced data protection that exceeds regulatory requirements."

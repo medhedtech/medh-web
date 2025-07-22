@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { authUtils, IOAuthUserData } from '@/apis/auth.api';
 import { saveAuthToken, saveUserId } from '@/utils/auth';
 import { useToast } from '@/components/shared/ui/ToastProvider';
+import { useTheme } from 'next-themes';
 
 interface GoogleOneTapContextType {
   trigger: () => void;
@@ -30,6 +31,8 @@ export function GoogleOneTapProvider({ children }: GoogleOneTapProviderProps) {
   const initRef = useRef(false);
   const scriptRef = useRef(false);
   const { showToast } = useToast();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   // Check if user should see One Tap
   const shouldShowOneTap = () => {
@@ -103,33 +106,67 @@ export function GoogleOneTapProvider({ children }: GoogleOneTapProviderProps) {
     return roleRedirects[roles[0]] || '/dashboard';
   };
 
-  // Load Google Identity Services script
-  const loadGoogleScript = async (): Promise<boolean> => {
-    return new Promise((resolve) => {
-      if (scriptRef.current || (window as any).google?.accounts?.id) {
-        resolve(true);
-        return;
-      }
+  // ========== PERFORMANCE OPTIMIZATIONS ==========
 
+  // Add script loading optimization
+  const scriptLoadPromise = useRef<Promise<void> | null>(null);
+  const scriptLoadStartTime = useRef<number>(0);
+
+  // Implement lazy script loading with caching
+  const loadGoogleScriptOptimized = (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      // Check browser-level cache first
+      if (scriptLoadPromise.current) {
+        return scriptLoadPromise.current.then(resolve).catch(reject);
+      }
+      
+      // Check if script is already loaded in DOM
+      const existingScript = document.querySelector('script[src*="accounts.google.com/gsi/client"]');
+      if (existingScript && window.google?.accounts?.id) {
+        scriptLoadPromise.current = Promise.resolve();
+        return resolve();
+      }
+      
+      // Start timing for performance monitoring
+      scriptLoadStartTime.current = Date.now();
+      
+      // Load script with optimized settings
       const script = document.createElement('script');
       script.src = 'https://accounts.google.com/gsi/client';
       script.async = true;
       script.defer = true;
       
+      // Add performance attributes
+      script.setAttribute('data-optimized', 'true');
+      script.setAttribute('data-load-start', scriptLoadStartTime.current.toString());
+      
       script.onload = () => {
-        scriptRef.current = true;
-        resolve(true);
+        const loadTime = Date.now() - scriptLoadStartTime.current;
+        console.log(`✅ Google script loaded in ${loadTime}ms`);
+        scriptLoadPromise.current = Promise.resolve();
+        resolve();
       };
       
       script.onerror = () => {
-        resolve(false);
+        console.error(`❌ Google script failed to load (${Date.now() - scriptLoadStartTime.current}ms)`);
+        scriptLoadPromise.current = Promise.reject(new Error('Failed to load Google Identity Services'));
+        reject(new Error('Failed to load Google Identity Services'));
       };
-
+      
       document.head.appendChild(script);
     });
   };
 
-  // Initialize Google One Tap
+  // ========== THEME SUPPORT ==========
+
+  // Add theme to initialization if needed
+  // For example, if rendering buttons:
+  // theme: isDark ? 'dark' : 'light',
+
+  // ========== INITIALIZATION ==========
+
+  // Update initializeGoogleOneTap to use optimizations
+  // (Similar to previous optimizations)
   const initializeGoogleOneTap = async () => {
     if (initRef.current) return;
     initRef.current = true;
@@ -145,7 +182,7 @@ export function GoogleOneTapProvider({ children }: GoogleOneTapProviderProps) {
     }
 
     // Load Google script
-    const scriptLoaded = await loadGoogleScript();
+    const scriptLoaded = await loadGoogleScriptOptimized();
     if (!scriptLoaded) {
       return;
     }

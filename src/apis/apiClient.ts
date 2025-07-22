@@ -369,16 +369,22 @@ export class ApiClient {
 
     // Handle non-2xx responses
     if (!response.ok) {
-      // If still unauthorized after refresh, clear tokens and redirect to login
+      // If still unauthorized after refresh, only redirect for protected endpoints
       if (response.status === 401) {
-        if (typeof window !== 'undefined') {
+        // Only redirect to login if this was an authenticated request
+        // Check if the original URL was for a public endpoint
+        const isPublic = this.isPublicEndpoint(response.url);
+        
+        if (!isPublic && typeof window !== 'undefined') {
           // Clear stored tokens
           this.clearAuthToken();
           localStorage.removeItem('refreshToken');
           sessionStorage.removeItem('refreshToken');
-          // Redirect to login page
+          // Only redirect to login for protected endpoints
+          console.log('Redirecting to login due to 401 on protected endpoint');
           window.location.href = '/login';
         }
+        
         return {
           status: 'error',
           error: data.error || data.message || 'Unauthorized',

@@ -24,7 +24,12 @@ export const PUBLIC_ENDPOINTS = [
   '/faq/public',
   '/announcements/public',
   '/broucher/create',
-  '/broucher/download'
+  '/broucher/download',
+  // Demo session form endpoints (public forms)
+  '/forms/submit',
+  '/forms/demo-sessions/available-slots',
+  '/forms/demo-sessions',
+  '/forms/config'
 ];
 
 // Import demo booking interfaces and functions
