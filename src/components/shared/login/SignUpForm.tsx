@@ -968,7 +968,7 @@ const SignUpForm: React.FC = () => {
         }
         
         .phone-input-container .react-tel-input .form-control {
-          @apply w-full h-10 px-3 py-0 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-12;
+          @apply w-full h-12 px-3 py-0 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-12;
           font-size: 0.875rem;
           letter-spacing: 0;
         }
@@ -980,7 +980,7 @@ const SignUpForm: React.FC = () => {
         }
         
         .phone-input-container .react-tel-input .flag-dropdown {
-          @apply bg-transparent border-0 rounded-l-lg sm:rounded-l-xl hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors h-10;
+          @apply bg-transparent border-0 rounded-l-lg sm:rounded-l-xl hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors h-12;
           min-width: 42px;
           border-right: 1px solid #e5e7eb;
         }
@@ -1192,7 +1192,7 @@ const SignUpForm: React.FC = () => {
                         aria-invalid={!!errors.email || apiError?.includes("email")}
                         autoComplete="email"
                         placeholder="Enter your email address"
-                        className={`w-full h-10 px-3 py-0 ${apiError?.includes("email") ? 'bg-red-50 dark:bg-red-900/10 border-red-300 dark:border-red-800 ring-red-400/30' : 'bg-gray-50/50 dark:bg-gray-700/30 border-gray-200 dark:border-gray-600'} rounded-lg sm:rounded-xl border focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-9 text-sm`}
+                        className={`w-full h-12 px-3 py-0 ${apiError?.includes("email") ? 'bg-red-50 dark:bg-red-900/10 border-red-300 dark:border-red-800 ring-red-400/30' : 'bg-gray-50/50 dark:bg-gray-700/30 border-gray-200 dark:border-gray-600'} rounded-lg sm:rounded-xl border focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-9 text-sm`}
                         onBlur={handleEmailBlur}
                       />
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -1236,7 +1236,7 @@ const SignUpForm: React.FC = () => {
                         aria-invalid={!!errors.full_name}
                         autoComplete="name"
                         placeholder="Enter your full name"
-                        className="w-full h-10 px-3 py-0 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-9 text-sm"
+                        className="w-full h-12 px-3 py-0 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-9 text-sm"
                       />
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <User className="h-4 w-4 text-gray-400 dark:text-gray-500" />
@@ -1295,7 +1295,7 @@ const SignUpForm: React.FC = () => {
                           onChange={handleAgeGroupChange}
                           value={selectedAgeGroup}
                           aria-required="true"
-                          className="w-full h-10 px-2 py-0 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-8 appearance-none text-sm"
+                          className="w-full h-12 px-2 py-0 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-8 appearance-none text-sm"
                         >
                           <option value="Under 16">Under 16</option>
                           <option value="16-24">16-24</option>
@@ -1325,7 +1325,7 @@ const SignUpForm: React.FC = () => {
                         {...register("password")}
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
-                        className="w-full h-10 px-3 py-0 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-9 pr-9 text-sm"
+                        className="w-full h-12 px-3 py-0 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-9 pr-9 text-sm"
                       />
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Lock className="h-4 w-4 text-gray-400 dark:text-gray-500" />
@@ -1383,7 +1383,7 @@ const SignUpForm: React.FC = () => {
                         {...register("confirm_password")}
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder="Confirm your password"
-                        className="w-full h-10 px-3 py-0 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-9 pr-9 text-sm"
+                        className="w-full h-12 px-3 py-0 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 transition-all duration-200 outline-none pl-9 pr-9 text-sm"
                       />
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Lock className="h-4 w-4 text-gray-400 dark:text-gray-500" />
