@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { VideoBackgroundContext } from "@/components/layout/main/Home2";
 import medhLogo from "@/assets/images/logo/medh.png";
-import DemoSessionForm from "@/components/forms/DemoSessionForm";
+import { openDemoForm } from "@/utils/demoFormUtils";
 
 // Mobile-specific tagline styling - 10% bigger with GPU acceleration
 const mobileTaglineStyles = `
@@ -355,11 +355,8 @@ const HeroMobile = memo<{
                 {/* Secondary CTA - Book a Free Demo - positioned next to main CTA */}
                 <button
                   type="button"
-                  onClick={() => setShowDemoForm(true)}
-                  className={ctaClasses.replace(
-                    "bg-gradient-to-r from-primary-500 to-purple-500 text-white hover:shadow-lg hover:shadow-primary-500/25 glass-stats",
-                    "bg-white/70 backdrop-blur-md text-gray-900 border border-gray-300 hover:border-gray-400 hover:bg-white/80 shadow-md hover:shadow-lg"
-                  )}
+                  onClick={openDemoForm}
+                  className="inline-flex items-center justify-center py-2.5 px-5 font-semibold rounded-xl transition-gpu hover:scale-105 group text-sm relative overflow-hidden gpu-accelerated bg-[#3bac63] hover:bg-[#339955] text-white border border-[#3bac63] hover:border-[#339955] shadow-md hover:shadow-lg hover:shadow-[#3bac63]/25"
                 >
                   <span className="relative z-10 font-bold gpu-accelerated">Book a Free Demo</span>
                   <Video size={14} className="relative z-10 ml-2 group-hover:translate-x-1 transition-gpu gpu-accelerated" />
@@ -488,7 +485,6 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
   
   // Improved state management with fallbacks
   const [contextReady, setContextReady] = useState(false);
-  const [showDemoForm, setShowDemoForm] = useState(false);
   
   // Check if context is ready
   useEffect(() => {
@@ -660,11 +656,8 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
                 {/* Secondary CTA - Book a Free Demo - positioned next to main CTA */} 
                 <button
                   type="button"
-                  onClick={() => setShowDemoForm(true)}
-                  className={desktopCtaClasses.replace(
-                    "bg-gradient-to-r from-primary-500 to-purple-500 text-white hover:shadow-2xl hover:shadow-primary-500/30 glass-stats",
-                    "bg-white/70 backdrop-blur-md text-gray-900 border border-gray-300 hover:border-gray-400 hover:bg-white/80 shadow-md hover:shadow-lg"
-                  )}
+                  onClick={openDemoForm}
+                  className="inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-gpu hover:scale-105 group text-sm sm:text-base md:text-lg relative overflow-hidden gpu-accelerated bg-[#3bac63] hover:bg-[#339955] text-white border border-[#3bac63] hover:border-[#339955] shadow-2xl hover:shadow-[#3bac63]/30"
                 >
                   <span className="relative z-10 font-extrabold tracking-wide gpu-accelerated">Book a Free Demo</span>
                   <Video size={16} className="relative z-10 ml-3 group-hover:translate-x-1 transition-gpu sm:w-4 sm:h-4 md:w-5 md:h-5 gpu-accelerated" />
@@ -730,7 +723,6 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
           </div>
         </div>
       </div>
-      {showDemoForm && <DemoSessionForm onClose={() => setShowDemoForm(false)} />}
     </section>
   );
 }, (prevProps, nextProps) => {

@@ -3,7 +3,6 @@ import Providers from './Providers';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
-import 'react-toastify/dist/ReactToastify.css';
 import '@/components/sidebar/sidebar-styles.css';
 import 'quill/dist/quill.snow.css';
 import '@/styles/vendor.scss'; // New: Import global vendor SCSS directly
@@ -149,8 +148,30 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <head>
         {/* Updated viewport meta tag with proper settings */}
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+        
+        {/* Google One Tap FedCM Critical CSS */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            /* Critical Google One Tap visibility overrides */
+            iframe[src*="accounts.google.com"],
+            .credential-picker-container,
+            [data-testid="credential-picker-container"] {
+              display: block !important;
+              visibility: visible !important;
+              opacity: 1 !important;
+              position: fixed !important;
+              z-index: 2147483647 !important;
+              pointer-events: auto !important;
+            }
+            
+            /* Ensure body doesn't clip Google One Tap */
+            body, html {
+              overflow-y: visible !important;
+            }
+          `
+        }} />
       </head>
-      <body className={`${poppins.className} antialiased min-h-screen overflow-x-hidden`} suppressHydrationWarning>
+      <body className={`${poppins.className} antialiased min-h-screen overflow-x-hidden overflow-y-visible`} suppressHydrationWarning>
         <Suspense fallback={<div>Loading...</div>}>
           <Providers>
             <ThemeController className="hidden sm:block" />

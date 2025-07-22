@@ -13,7 +13,7 @@ export type TSource = "website_form" | "email" | "phone" | "referral" | "social_
 export interface IParentDetails {
   name: string;
   email: string;
-  mobile_no: string; // International format, e.g., "+919343011613"
+  mobile_no: string;
   city?: string; // Add current city
   preferred_timings_to_connect?: string; // Add preferred timings
 }

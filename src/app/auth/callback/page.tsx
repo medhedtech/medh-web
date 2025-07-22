@@ -2,20 +2,22 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, CheckCircle, AlertCircle, ArrowRight } from 'lucide-react';
+import { Loader2, CheckCircle, AlertCircle, ArrowRight, UserCheck, Mail, Shield } from 'lucide-react';
 import { showToast } from '@/utils/toastManager';
-import { authUtils } from '@/apis/auth.api';
+import { authUtils, IOAuthUserData } from '@/apis/auth.api';
 
 interface IOAuthCallbackData {
   token?: string;
   refresh_token?: string;
-  user?: {
-    id: string;
-    email: string;
-    full_name: string;
-    role: string[];
-    permissions?: string[];
-  };
+  user?: IOAuthUserData;
+  account_merged?: boolean;
+  profile_updated?: boolean;
+  email_verified?: boolean;
+  email_conflicts?: Array<{
+    oauth_email: string;
+    user_email: string;
+    provider: string;
+  }>;
   error?: string;
   error_description?: string;
 }
@@ -96,66 +98,162 @@ const AuthCallbackPage: React.FC = () => {
         
         setMessage(`Completing ${provider} authentication...`);
 
-        // Exchange code for tokens (this would typically be done on the server)
-        // For now, we'll simulate the response
-        const mockOAuthData: IOAuthCallbackData = {
-          token: 'mock_jwt_token_' + Date.now(),
-          refresh_token: 'mock_refresh_token_' + Date.now(),
-          user: {
-            id: 'oauth_user_' + Date.now(),
-            email: 'user@example.com',
-            full_name: 'OAuth User',
-            role: ['student'],
-            permissions: []
+        // Exchange code for tokens with the backend
+        try {
+          const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+          const response = await fetch(`${apiBaseUrl}/api/v1/auth/oauth/callback`, {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({ 
+              code, 
+              state, 
+              provider,
+              redirect_uri: window.location.origin + '/auth/callback'
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
-        };
 
-        // In a real implementation, you would make an API call here:
-        // const response = await fetch('/api/auth/oauth/callback', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ code, state, provider })
-        // });
-        // const oauthData = await response.json();
+          const backendResponse = await response.json();
 
-        setStatus('success');
-        setMessage(`${provider.charAt(0).toUpperCase() + provider.slice(1)} authentication successful!`);
+          if (!backendResponse || !backendResponse.success) {
+            throw new Error(backendResponse?.message || 'OAuth authentication failed');
+          }
 
-        // Send success data to parent window if in popup
-        if (window.opener) {
-          window.opener.postMessage({
-            type: 'oauth_success',
-            data: mockOAuthData
-          }, window.location.origin);
+          console.log('✅ OAuth Backend Response:', backendResponse);
           
-          // Close popup after a short delay
-          setTimeout(() => {
+          // Extract user data from your backend response structure
+          const userData = {
+            id: backendResponse.data.user.id,
+            email: backendResponse.data.user.email,
+            full_name: backendResponse.data.user.full_name,
+            first_name: backendResponse.data.user.full_name?.split(' ')[0] || '',
+            last_name: backendResponse.data.user.full_name?.split(' ').slice(1).join(' ') || '',
+            profile_picture: backendResponse.data.user.user_image?.url,
+            email_verified: backendResponse.data.user.email_verified,
+            provider,
+            provider_id: backendResponse.data.user.id,
+            role: ['student'], // Default role
+            permissions: [],
+            access_token: backendResponse.data.token,
+            refresh_token: backendResponse.data.refresh_token || '',
+            session_id: backendResponse.data.session_id || '',
+            account_merged: backendResponse.data.oauth?.total_connected > 1,
+            profile_updated: backendResponse.data.user.profile_completion > 0,
+            email_conflicts: []
+          };
+
+          setStatus('success');
+          
+          // Enhanced success message based on account status
+          let successMessage = `${provider.charAt(0).toUpperCase() + provider.slice(1)} authentication successful!`;
+          
+          if (userData.account_merged) {
+            successMessage += ' Your existing account has been linked.';
+          }
+          
+          if (userData.email_verified) {
+            successMessage += ' Email verified.';
+          }
+          
+          setMessage(successMessage);
+
+          // Send enhanced success data to parent window if in popup
+          if (window.opener) {
+            window.opener.postMessage({
+              type: 'oauth_success',
+              data: {
+                ...backendResponse.data,
+                user: userData,
+                provider,
+                account_merged: userData.account_merged,
+                profile_updated: userData.profile_updated,
+                email_verified: userData.email_verified,
+                email_conflicts: userData.email_conflicts
+              }
+            }, window.location.origin);
+            
+            // Close popup after a short delay
+            setTimeout(() => {
+              window.close();
+            }, 1500);
+            return;
+          }
+
+          // If not in popup, handle redirect manually
+          // Store enhanced auth data and redirect
+          if (backendResponse.data.token && userData) {
+            // Store authentication data
+            localStorage.setItem('token', backendResponse.data.token);
+            localStorage.setItem('refresh_token', userData.refresh_token || '');
+            localStorage.setItem('userId', userData.id);
+            localStorage.setItem('userEmail', userData.email);
+            localStorage.setItem('userName', userData.full_name);
+            localStorage.setItem('role', userData.role[0] || 'student');
+
+            // Store enhanced OAuth metadata
+            if (userData.account_merged) {
+              localStorage.setItem('oauth_account_merged', 'true');
+            }
+            if (userData.profile_updated) {
+              localStorage.setItem('oauth_profile_updated', 'true');
+            }
+            if (userData.email_conflicts && userData.email_conflicts.length > 0) {
+              localStorage.setItem('oauth_email_conflicts', JSON.stringify(userData.email_conflicts));
+            }
+
+            // Enhanced success toast with account status
+            let toastMessage = `${provider.charAt(0).toUpperCase() + provider.slice(1)} login successful!`;
+            if (userData.account_merged) {
+              toastMessage += ' Account linked successfully.';
+            }
+            
+            showToast.success(toastMessage);
+            
+            // Show additional notifications for important events
+            if (userData.email_verified) {
+              showToast.success('✅ Email verified through OAuth!', { duration: 4000 });
+            }
+            
+            if (userData.email_conflicts && userData.email_conflicts.length > 0) {
+              showToast.info(`📧 Email conflicts detected. Please check your account settings.`, { duration: 6000 });
+            }
+            
+            // Redirect to dashboard
+            setTimeout(() => {
+              const role = userData.role[0] || 'student';
+              const dashboardPath = role === 'admin' ? '/dashboards/admin' : 
+                                   role === 'instructor' ? '/dashboards/instructor' : 
+                                   '/dashboards/student';
+              router.push(dashboardPath);
+            }, 2000);
+          }
+
+        } catch (apiError: any) {
+          console.error('OAuth API error:', apiError);
+          setStatus('error');
+          setMessage(apiError.message || 'Failed to complete authentication with server');
+          
+          if (window.opener) {
+            window.opener.postMessage({
+              type: 'oauth_error',
+              error: {
+                message: apiError.message || 'Failed to complete authentication with server'
+              }
+            }, window.location.origin);
             window.close();
-          }, 1500);
-          return;
-        }
-
-        // If not in popup, handle redirect manually
-        // Store auth data and redirect
-        if (mockOAuthData.token && mockOAuthData.user) {
-          // Store authentication data
-          localStorage.setItem('token', mockOAuthData.token);
-          localStorage.setItem('refresh_token', mockOAuthData.refresh_token || '');
-          localStorage.setItem('userId', mockOAuthData.user.id);
-          localStorage.setItem('userEmail', mockOAuthData.user.email);
-          localStorage.setItem('userName', mockOAuthData.user.full_name);
-          localStorage.setItem('role', mockOAuthData.user.role[0] || 'student');
-
-          showToast.success(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login successful!`);
+            return;
+          }
           
-          // Redirect to dashboard
           setTimeout(() => {
-            const role = mockOAuthData.user?.role[0] || 'student';
-            const dashboardPath = role === 'admin' ? '/dashboards/admin' : 
-                                 role === 'instructor' ? '/dashboards/instructor' : 
-                                 '/dashboards/student';
-            router.push(dashboardPath);
-          }, 2000);
+            router.push('/login?error=' + encodeURIComponent(apiError.message || 'Authentication failed'));
+          }, 3000);
+          return;
         }
 
       } catch (error) {
@@ -202,18 +300,38 @@ const AuthCallbackPage: React.FC = () => {
 
         {status === 'success' && (
           <>
-            <div className="mb-6">
-              <CheckCircle className="w-12 h-12 text-green-500 mx-auto" />
+            <div className="mb-6 relative">
+              <div className="absolute inset-0 bg-green-400/20 dark:bg-green-600/20 rounded-full animate-pulse"></div>
+              <CheckCircle className="relative w-12 h-12 text-green-500 mx-auto" />
             </div>
             <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
               Success!
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mb-6">
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
               {message}
             </p>
-            <div className="flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+            
+            {/* Enhanced status indicators */}
+            <div className="space-y-2 mb-6 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+              <div className="flex items-center justify-center gap-2 text-sm text-green-600 dark:text-green-400">
+                <UserCheck className="h-4 w-4" />
+                <span>Account authenticated</span>
+              </div>
+              
+              <div className="flex items-center justify-center gap-2 text-sm text-blue-600 dark:text-blue-400">
+                <Shield className="h-4 w-4" />
+                <span>Secure OAuth connection</span>
+              </div>
+              
+              <div className="flex items-center justify-center gap-2 text-sm text-green-600 dark:text-green-400">
+                <Mail className="h-4 w-4" />
+                <span>Email verified</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-center text-sm text-gray-500 dark:text-gray-400 bg-primary-50 dark:bg-primary-900/20 rounded-lg px-3 py-2">
               <span>Redirecting to dashboard</span>
-              <ArrowRight className="w-4 h-4 ml-2" />
+              <ArrowRight className="w-4 h-4 ml-2 animate-pulse" />
             </div>
           </>
         )}
