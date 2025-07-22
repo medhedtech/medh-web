@@ -218,6 +218,12 @@ const FORM_CONFIG = {
 
 // ========== ENHANCED FORM STATE TYPES ==========
 
+// Extended interfaces for form with phone validation
+interface IEnhancedStudentDetails16AndAbove extends IStudentDetails16AndAbove {
+  formatted_phone?: string;
+  phone_valid?: boolean;
+}
+
 interface IFormState {
   // Current step and UI state
   step: TFormStep;
@@ -233,9 +239,11 @@ interface IFormState {
     country: string;
     relationship: 'father' | 'mother' | 'guardian';
     preferred_timings_to_connect: TPreferredTiming;
+    formatted_phone?: string;
+    phone_valid?: boolean;
   };
   studentDetailsUnder16: IStudentDetailsUnder16;
-  studentDetails16AndAbove: IStudentDetails16AndAbove;
+  studentDetails16AndAbove: IEnhancedStudentDetails16AndAbove;
   demoSessionDetails: IDemoSessionDetails;
   consent: IConsent;
   
@@ -927,27 +935,41 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
     console.log('🚀 Submitting payload:', backendPayload);
 
     // ✅ Use your established usePostQuery pattern instead of raw fetch
+    console.log('📤 About to submit form...');
     const { data, error } = await postQuery({
       url: '/forms/submit',
       postData: backendPayload,
       requireAuth: false,
       enableToast: false, // We'll handle our own success/error messages
       onSuccess: async (result) => {
+        console.log('✅ SUCCESS CALLBACK TRIGGERED!');
+        console.log('📊 Success result:', result);
+        console.log('📊 Result type:', typeof result);
+        console.log('📊 Result keys:', result ? Object.keys(result) : 'null');
+        
+        try {
         await Swal.fire({
-          title: "🎉 Demo Booked Successfully!",
+            title: "🎉 Demo Booked Successfully!",
           html: `
-            <div class="text-center space-y-3">
+              <div class="text-center space-y-3">
               <div class="text-lg font-semibold text-green-600 dark:text-green-400">
-                Your demo session has been scheduled!
+                  Your demo session has been scheduled!
               </div>
               <div class="text-sm text-gray-600 dark:text-gray-400">
-                Check your email for session details and meeting link.
+                  Check your email for session details and meeting link.
               </div>
+                ${result?.data?.application_id ? `<div class="text-xs text-blue-600 mt-2">Booking ID: ${result.data.application_id}</div>` : ''}
             </div>
           `,
           icon: "success",
-          confirmButtonText: "Perfect!",
-        });
+            confirmButtonText: "Perfect!",
+          });
+          console.log('✅ Swal.fire completed successfully');
+        } catch (swalError) {
+          console.error('❌ Swal.fire error:', swalError);
+          // Fallback alert if Swal fails
+          alert('🎉 Demo Booked Successfully! Check your email for session details.');
+        }
         
         if (onSubmitSuccess) {
           onSubmitSuccess(result);
@@ -986,6 +1008,20 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
         });
         }
       });
+    
+    // ✅ Debug the response after postQuery
+    console.log('📥 PostQuery Response:');
+    console.log('📊 Data:', data);
+    console.log('📊 Error:', error);
+    console.log('📊 Data success field:', data?.success);
+    
+    if (data?.success) {
+      console.log('🎯 Response indicates success, but onSuccess may not have been called');
+    } else if (error) {
+      console.log('💥 Response indicates error:', error);
+    } else {
+      console.log('🤔 Unclear response state');
+    }
   };
 
   // ========== NAVIGATION ==========
@@ -1210,7 +1246,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
                         <InputGroup label="Phone Number" required icon={Phone} error={formState.validationErrors.parentMobile}>
                   <PhoneNumberInput
                     value={{ 
-                      country: formState.parentDetails.country || 'in', 
+                      country: formState.parentDetails.country || 'IN', 
                               number: formState.parentDetails.phone_number 
                     }}
                             onChange={(val) => {
@@ -1219,12 +1255,16 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
                                 parentDetails: { 
                                   ...prev.parentDetails, 
                                   phone_number: val.number,
-                                  country: val.country
+                                  country: val.country,
+                                  formatted_phone: val.formattedNumber,
+                                  phone_valid: val.isValid
                                 }
                               }));
                               markAsDirty();
                             }}
-                    placeholder="Enter phone number"
+                    placeholder="Enter parent's phone number"
+                    defaultCountry="IN"
+                    preferredCountries={['IN', 'US', 'GB', 'AU', 'CA', 'AE', 'SG', 'MY', 'BD', 'PK', 'LK']}
                     error={formState.validationErrors.parentMobile}
                   />
                 </InputGroup>
@@ -1457,7 +1497,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
                       <InputGroup label="Phone Number" required icon={Phone} error={formState.validationErrors.studentMobile}>
                     <PhoneNumberInput
                       value={{ 
-                        country: formState.studentDetails16AndAbove.country || 'in', 
+                        country: formState.studentDetails16AndAbove.country || 'IN', 
                         number: formState.studentDetails16AndAbove.mobile_no 
                       }}
                           onChange={(val) => {
@@ -1466,12 +1506,16 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
                               studentDetails16AndAbove: { 
                                 ...prev.studentDetails16AndAbove, 
                                 mobile_no: val.number,
-                                country: val.country
+                                country: val.country,
+                                formatted_phone: val.formattedNumber,
+                                phone_valid: val.isValid
                               }
                             }));
                             markAsDirty();
                           }}
-                          placeholder="Enter your phone"
+                      placeholder="Enter your phone number"
+                          defaultCountry="IN"
+                          preferredCountries={['IN', 'US', 'GB', 'AU', 'CA', 'AE', 'SG', 'MY', 'BD', 'PK', 'LK']}
                       error={formState.validationErrors.studentMobile}
                     />
                   </InputGroup>
