@@ -298,6 +298,10 @@ h6 {
   animation: text-shimmer 3s linear infinite;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  /* LCP Optimization */
+  will-change: transform;
+  contain: layout style paint;
+  font-display: swap;
 }
 
 .hero-heading-text {
