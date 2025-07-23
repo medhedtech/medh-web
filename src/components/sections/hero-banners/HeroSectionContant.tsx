@@ -254,7 +254,7 @@ const CourseAiBanner: React.FC<CourseAiBannerProps> = ({ onLearnMoreClick }) => 
                 </div>
                 <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
                   <Award size={10} className="mr-1 sm:w-3 sm:h-3" />
-                  STEM Certified
+                  STEM Accredited
                 </div>
               </div>
                

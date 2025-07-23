@@ -481,11 +481,11 @@ const WhyMedh = memo(() => {
             {/* Featured Certifications - Compact Display */}
             <div className="relative max-w-5xl mx-auto px-4 sm:px-6 mb-12">
               <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                {/* STEM Certified */}
+                {/* STEM Accredited */}
                 <CertificationCard
                   image={stemAccreditation}
-                  alt="STEM Certified"
-                  title="STEM Certified"
+                  alt="STEM Accredited"
+                  title="STEM Accredited"
                   description="Excellence in Science, Technology, Engineering, and Mathematics education with globally recognized standards."
                 />
                 
