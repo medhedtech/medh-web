@@ -234,7 +234,10 @@ interface IFormState {
   parentDetails: {
     full_name: string;
     email: string;
-    phone_number: string;
+    mobile_number: {
+      country_code: string;
+      number: string;
+    };
     city: string;
     country: string;
     relationship: 'father' | 'mother' | 'guardian';
@@ -271,14 +274,14 @@ interface DemoSessionFormProps {
 
 // ========== FORM OPTIONS & CONSTANTS ==========
 
-const gradeOptions: { value: TStudentGrade; label: string; description: string }[] = [
-  { value: "Grade 1-2", label: "Grade 1-2", description: "Ages 6-8" },
-  { value: "Grade 3-4", label: "Grade 3-4", description: "Ages 8-10" },
-  { value: "Grade 5-6", label: "Grade 5-6", description: "Ages 10-12" },
-  { value: "Grade 7-8", label: "Grade 7-8", description: "Ages 12-14" },
-  { value: "Grade 9-10", label: "Grade 9-10", description: "Ages 14-16" },
-  { value: "Grade 11-12", label: "Grade 11-12", description: "Ages 16-18" },
-  { value: "Home Study", label: "Home Study", description: "Homeschooled" },
+const gradeOptions: { value: 'grade_1-2' | 'grade_3-4' | 'grade_5-6' | 'grade_7-8' | 'grade_9-10' | 'grade_11-12' | 'home_study'; label: string; description: string }[] = [
+  { value: "grade_1-2", label: "Grade 1-2", description: "Ages 6-8" },
+  { value: "grade_3-4", label: "Grade 3-4", description: "Ages 8-10" },
+  { value: "grade_5-6", label: "Grade 5-6", description: "Ages 10-12" },
+  { value: "grade_7-8", label: "Grade 7-8", description: "Ages 12-14" },
+  { value: "grade_9-10", label: "Grade 9-10", description: "Ages 14-16" },
+  { value: "grade_11-12", label: "Grade 11-12", description: "Ages 16-18" },
+  { value: "home_study", label: "Home Study", description: "Homeschooled" },
 ];
 
 const qualificationOptions: { value: THighestQualification; label: string }[] = [
@@ -461,16 +464,24 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
     step: 'details',
     isStudentUnder16: null,
     contactInfo: {
+      first_name: '',
+      last_name: '',
       full_name: '',
       email: '',
-      phone_number: '', // Keep existing field name for now
+      mobile_number: {
+        country_code: '+91',
+        number: ''
+      },
       city: '',
       country: 'in'
     },
     parentDetails: { 
       full_name: '',
       email: '',
-      phone_number: '',
+      mobile_number: {
+        country_code: '+91',
+        number: ''
+      },
       city: '',
       country: 'in',
       relationship: 'father',
@@ -478,7 +489,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
     },
     studentDetailsUnder16: { 
       name: '',
-      grade: 'Grade 1-2' as TStudentGrade, // Keep existing for now
+      grade: 'grade_1-2' as const,
       city: '',
       state: '',
       country: 'in',
@@ -703,7 +714,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
           email: formState.parentDetails.email || '',
           mobile_number: {
             country_code: `+${formState.parentDetails.country === 'in' ? '91' : '1'}`,
-            number: formState.parentDetails.phone_number || ''
+            number: formState.parentDetails.mobile_number.number || ''
           },
           city: formState.parentDetails.city || '',
           country: formState.parentDetails.country || 'in'
@@ -770,7 +781,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
         // Validate parent details
         if (!formState.parentDetails.full_name.trim()) errors.parentName = "Required";
         if (!FormValidationService.validateEmail(formState.parentDetails.email).isValid) errors.parentEmail = "Invalid email";
-        if (!formState.parentDetails.phone_number.trim()) errors.parentMobile = "Required";
+        if (!formState.parentDetails.mobile_number.number.trim()) errors.parentMobile = "Required";
         if (!formState.parentDetails.city.trim()) errors.parentCity = "Required";
         
         // Validate student details
@@ -825,7 +836,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
             email: formState.parentDetails.email || '',
             mobile_number: {
               country_code: '+91',
-              number: (formState.parentDetails.phone_number || '').replace(/\D/g, '') // ✅ Fixed: Clean phone number to digits only
+              number: (formState.parentDetails.mobile_number.number || '').replace(/\D/g, '') // ✅ Fixed: Clean phone number to digits only
             },
             city: formState.parentDetails.city || '',
             country: formState.parentDetails.country || 'in'
@@ -1247,14 +1258,17 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
                   <PhoneNumberInput
                     value={{ 
                       country: formState.parentDetails.country || 'IN', 
-                              number: formState.parentDetails.phone_number 
+                              number: formState.parentDetails.mobile_number.number 
                     }}
                             onChange={(val) => {
                               setFormState(prev => ({ 
                                 ...prev, 
                                 parentDetails: { 
                                   ...prev.parentDetails, 
-                                  phone_number: val.number,
+                                  mobile_number: {
+                                    ...prev.parentDetails.mobile_number,
+                                    number: val.number
+                                  },
                                   country: val.country,
                                   formatted_phone: val.formattedNumber,
                                   phone_valid: val.isValid
@@ -1335,7 +1349,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
                             onChange={(selected) => {
                               setFormState(prev => ({ 
                       ...prev, 
-                      studentDetailsUnder16: { ...prev.studentDetailsUnder16, grade: selected?.value || "Grade 1-2" }
+                      studentDetailsUnder16: { ...prev.studentDetailsUnder16, grade: selected?.value || "grade_1-2" }
                               }));
                               markAsDirty();
                             }}
@@ -1498,7 +1512,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
                     <PhoneNumberInput
                       value={{ 
                         country: formState.studentDetails16AndAbove.country || 'IN', 
-                        number: formState.studentDetails16AndAbove.mobile_no 
+                        number: formState.studentDetails16AndAbove.mobile_no || ''
                       }}
                           onChange={(val) => {
                             setFormState(prev => ({ 
