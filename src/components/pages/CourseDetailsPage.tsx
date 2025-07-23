@@ -116,6 +116,7 @@ interface ICourseDetailsPageProps {
   initialActiveSection?: string;
   classType?: string;
   courseSelectionComponent?: React.ReactNode;
+  isEnrollmentPage?: boolean; // Add prop to indicate if this is an enrollment page
 }
 
 interface ICategoryColorClasses {
@@ -367,6 +368,7 @@ const CourseVideoPlayer: React.FC<ICourseVideoPlayerProps> = ({ courseId, course
 };
 
 const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
+  const { isEnrollmentPage = false } = props;
   // All hooks must be at the top, before any return or conditional
   // Removed: const brochureFormRef = useRef<HTMLDivElement>(null); // This was for scroll-to-form, now replaced by modal
   // Removed: const [showBrochureModal, setShowBrochureModal] = useState(false); // This was for old modal, replaced by isBrochureOpen
@@ -1872,6 +1874,7 @@ const CourseDetailsPage: React.FC<ICourseDetailsPageProps> = ({ ...props }) => {
                       setIsBrochureOpen(true); // Always open the modal
                     }}
                     compact={true}
+                    showBookDemo={isEnrollmentPage}
                   />
                 </div>
 
