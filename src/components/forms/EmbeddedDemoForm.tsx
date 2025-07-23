@@ -534,6 +534,7 @@ const EmbeddedDemoForm: React.FC<EmbeddedDemoFormProps> = ({
           if (!formData.studentState.trim()) errors.studentState = "Student state is required";
         } else {
           // For 16+ students, only validate student contact and info
+          if (!FormValidationService.validateEmail(formData.studentEmail).isValid) errors.studentEmail = "Valid student email is required";
           if (!formData.mobileNumber.trim()) {
             errors.mobileNumber = "Mobile number is required";
           } else if (!validatePhoneNumber(formData.mobileNumber, formData.country)) {
@@ -1538,6 +1539,26 @@ const EmbeddedDemoForm: React.FC<EmbeddedDemoFormProps> = ({
                     )}
                   </div>
 
+                  {/* Student Email (for 16+ only) */}
+                  {!formState.isStudentUnder16 && (
+                    <div>
+                      <label className={labelClasses}>Student Email *</label>
+                      <input
+                        type="email"
+                        value={formState.formData.studentEmail}
+                        onChange={(e) => updateFormData({ studentEmail: e.target.value })}
+                        className={inputClasses(!!formState.errors.studentEmail)}
+                        placeholder="Enter student's email address"
+                      />
+                      {formState.errors.studentEmail && (
+                        <div className="text-red-600 text-xs mt-1 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {formState.errors.studentEmail}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                                   {/* Conditional Fields for Under 16 */}
                   {formState.isStudentUnder16 ? (
                     <>
@@ -2136,11 +2157,26 @@ const EmbeddedDemoForm: React.FC<EmbeddedDemoFormProps> = ({
         {/* Navigation Footer - Only for steps without built-in navigation */}
         {!['details', 'course-preferences', 'communication-preferences', 'consent'].includes(formState.step) && (
           <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 flex-shrink-0">
-            <div className="flex justify-end items-center">
+            <div className="flex justify-between items-center">
+              {/* Back Button - Show for all steps except 'age' */}
+              {formState.step !== 'age' && (
+                <button
+                  onClick={prevStep}
+                  disabled={formState.isSubmitting}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Back
+                </button>
+              )}
+              
+              {/* Continue Button */}
               <button
                 onClick={nextStep}
                 disabled={formState.isSubmitting || (formState.step === 'age' && formState.isStudentUnder16 === null)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                  formState.step === 'age' ? 'ml-auto' : ''
+                }`}
               >
                 Continue
                 <ChevronRight className="w-4 h-4" />
