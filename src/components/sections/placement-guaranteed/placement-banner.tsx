@@ -113,7 +113,7 @@ const PlacementGauranteedBanner: React.FC = () => {
                   </div>
                   <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/20 dark:border-slate-700/30 rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}> 
                     <Award size={10} className="mr-1 sm:w-3 sm:h-3" />
-                    STEM Certified
+                    STEM Accredited
                   </div>
                 </div>
                 {/* Main Heading */}

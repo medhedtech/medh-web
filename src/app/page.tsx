@@ -219,7 +219,7 @@ export default function HomePage() {
                   },
                   {
                     "@type": "EducationalOccupationalCredential", 
-                    name: "STEM Certified Programs"
+                    name: "STEM Accredited Programs"
                   }
                 ],
                 educationalCredentialAwarded: "Skill Development Certificates",
