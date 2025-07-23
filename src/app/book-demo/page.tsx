@@ -166,42 +166,32 @@ const DemoBookingPage: React.FC = () => {
 
         {/* Main Content - Full scrollable page */}
         <main className="relative z-10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6 lg:gap-8 py-8">
+          <div className="px-8 py-8">
+            <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6 lg:gap-8">
               
               {/* Benefits Section */}
               <div className="lg:col-span-5 space-y-6 order-1 lg:order-1">
                 {/* Header */}
-                <div className="text-center lg:text-left">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/40 dark:to-purple-900/40 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium mb-4 backdrop-blur-sm border border-blue-200/50 dark:border-blue-700/50">
-                    <Star className="w-4 h-4" />
-                    Premium Demo Experience
-                  </div>
-                  <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-3">
-                    Why Choose Our Demo?
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300 text-base lg:text-lg mb-6">
-                    Discover the key benefits of experiencing MEDH before you commit
-                  </p>
+                                  <div className="text-center lg:text-left">
+                    <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-3" style={{ whiteSpace: 'nowrap' }}>
+                      Key Benefits of the Medh-Demo-Session
+                    </h2>
+                                      <p className="text-gray-600 dark:text-gray-300 text-base mb-6" style={{ whiteSpace: 'nowrap' }}>
+                      Discover the key benefits of experiencing MEDH before you commit
+                    </p>
                 </div>
 
                 {/* Benefits List - Compact Grid */}
-                <div className="grid grid-cols-1 gap-3">
+                <div className="grid grid-cols-1 gap-8">
                   {demoSessionBenefits.map((benefit, index) => {
                     const IconComponent = benefit.icon;
-                    const isSelected = selectedBenefit === benefit.id;
                     
                     return (
                       <div
                         key={benefit.id}
-                        onMouseEnter={() => handleBenefitHover(benefit.id)}
-                        onMouseLeave={handleBenefitLeave}
                         className={`
-                          relative p-4 rounded-xl border transition-all duration-300 cursor-pointer backdrop-blur-sm
-                          ${isSelected 
-                            ? `bg-gradient-to-r ${benefit.bgGradient} border-transparent shadow-lg shadow-${benefit.gradient.split('-')[1]}-500/20 scale-[1.02]` 
-                            : 'bg-white/80 dark:bg-gray-800/80 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-white/90 dark:hover:bg-gray-800/90'
-                          }
+                          relative p-4 rounded-xl border-transparent backdrop-blur-sm
+                          bg-gradient-to-r ${benefit.bgGradient} shadow-lg
                         `}
                         style={{
                           animationDelay: `${index * 50}ms`
@@ -211,48 +201,23 @@ const DemoBookingPage: React.FC = () => {
                           {/* Icon */}
                           <div className={`
                             flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center
-                            ${isSelected 
-                              ? `bg-gradient-to-r ${benefit.gradient} text-white shadow-md` 
-                              : 'bg-gray-100 dark:bg-gray-700/80 text-gray-600 dark:text-gray-300'
-                            }
-                            transition-all duration-300
+                            bg-gradient-to-r ${benefit.gradient} text-white shadow-md
                           `}>
                             <IconComponent className="w-5 h-5" />
                           </div>
                           
                           {/* Content */}
                           <div className="flex-1 min-w-0">
-                            <h3 className={`
-                              font-semibold text-base mb-1
-                              ${isSelected 
-                                ? 'text-gray-900 dark:text-white' 
-                                : 'text-gray-800 dark:text-gray-100'
-                              }
-                              transition-colors duration-300
-                            `}>
+                            <h3 className="font-semibold text-base mb-1 text-gray-900 dark:text-white">
                               {benefit.title}
                             </h3>
-                            <p className={`
-                              text-sm leading-snug
-                              ${isSelected 
-                                ? 'text-gray-700 dark:text-gray-200' 
-                                : 'text-gray-600 dark:text-gray-300'
-                              }
-                              transition-colors duration-300
-                            `}>
+                            <p className="text-sm leading-snug text-gray-700 dark:text-gray-200">
                               {benefit.description}
                             </p>
                           </div>
 
                           {/* Check Icon */}
-                          <div className={`
-                            flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center
-                            ${isSelected 
-                              ? 'bg-green-500 text-white shadow-md' 
-                              : 'bg-gray-200 dark:bg-gray-600/80 text-gray-400 dark:text-gray-500'
-                            }
-                            transition-all duration-300
-                          `}>
+                          <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center bg-green-500 text-white shadow-md">
                             <CheckCircle className="w-4 h-4" />
                           </div>
                         </div>
@@ -269,10 +234,6 @@ const DemoBookingPage: React.FC = () => {
                 <div className="flex flex-col">
                   {/* Form Header */}
                   <div className="text-center mb-6">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full text-sm font-medium mb-4">
-                      <Calendar className="w-4 h-4" />
-                      Start Your Learning Journey
-                    </div>
                     <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-3">
                       Book Your Free Demo Session
                     </h3>
@@ -306,7 +267,7 @@ const DemoBookingPage: React.FC = () => {
           </div>
 
           {/* Full-Width Certifications Section */}
-          <section className="w-full mt-12 lg:mt-16 px-4 sm:px-6">
+          <section className="w-full mt-12 lg:mt-16 px-8">
             <div className="text-center mb-8 sm:mb-12">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 text-yellow-700 dark:text-yellow-300 rounded-full text-sm font-medium mb-4">
                 <Trophy className="w-4 h-4" />
