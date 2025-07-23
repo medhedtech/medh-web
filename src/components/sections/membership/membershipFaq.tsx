@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import MinimalEdgeFaq from "@/components/shared/ui/MinimalEdgeFaq";
+import { IFAQ } from "@/components/shared/ui/CommonFaq";
 import { CreditCard, AlertCircle, Award, Download, BookOpen, Settings, Clock, Users, Gift, HelpCircle } from "lucide-react";
 
 const MembershipFaq: React.FC = () => {
@@ -12,7 +13,7 @@ const MembershipFaq: React.FC = () => {
       iconColor: "#10b981",
       category: "courses",
       question: "What's the difference between Silver and Gold Memberships?",
-      answer: "Silver Membership gives you unlimited access to all courses within one category of your choice, while Gold Membership provides access to all courses across three categories of your choice. Gold also includes additional benefits like exclusive masterclasses and a personal learning advisor.",
+      answer: "Silver Membership gives you unlimited access to all courses within one category of your choice, while Gold Membership provides access to all courses across three categories of your choice.",
     },
     {
       icon: <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />,
@@ -20,7 +21,7 @@ const MembershipFaq: React.FC = () => {
       iconColor: "#10b981",
       category: "courses",
       question: "Can I change my selected category/categories after subscribing?",
-      answer: "Yes. Silver members can change their selected category once every 30 days. Gold members can modify their three chosen categories once every 30 days. Changes take effect immediately without affecting your current progress.",
+      answer: "Yes. Silver members can change their selected category once every 30 days. Gold members can modify their three chosen categories once every 90 days. Changes take effect immediately without affecting your current progress.",
     },
     {
       icon: <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />,
@@ -125,7 +126,8 @@ const MembershipFaq: React.FC = () => {
       faqs={faqs}
       title="Frequently Asked Questions"
       contactText="Have more questions about our membership program? Contact our team at"
-      contactEmail="care@medh.co"
+      contactEmail="memberships@medh.co"
+      emailLink="https://mail.google.com/mail/u/0/?to=memberships@medh.co&fs=1&tf=cm"
     />
   );
 };

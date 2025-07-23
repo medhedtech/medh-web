@@ -201,20 +201,20 @@ const highlights: IHighlightItem[] = [
 const talentPoolValues: IValueItem[] = [
   {
     icon: <Award className="w-6 h-6" />, // Award icon for certification
-    title: "Certified Professionals",
-    description: "Industry-recognized certifications and validated skills",
+    title: "Soft Skills",
+    description: "Communication, teamwork, and problem-solving training",
     color: "from-blue-500 to-cyan-500"
   },
   {
     icon: <Brain className="w-6 h-6" />, // Brain icon for experience
     title: "Real Experience",
-    description: "Hands-on project experience across industries",
+    description: "Hands-on project experience and mentorship",
     color: "from-emerald-500 to-teal-500"
   },
   {
     icon: <TrendingUp className="w-6 h-6" />, // TrendingUp icon for learning
     title: "Continuous Learning",
-    description: "Up-to-date with latest technologies and trends",
+    description: "Regular upskilling with latest technologies and trends",
     color: "from-purple-500 to-indigo-500"
   }
 ];
@@ -289,7 +289,7 @@ const HireFromMedhBanner: React.FC<HireFromMedhBannerProps> = ({ onLearnMoreClic
             <div className="glass-container rounded-3xl p-4 md:p-6 lg:p-8 mb-1 -mt-7 transform scale-90 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
               <div className="flex flex-wrap justify-center gap-3 mb-4">
                 <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}> <Shield size={10} className="mr-1 sm:w-3 sm:h-3" /> ISO Certified </div>
-                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}> <Award size={10} className="mr-1 sm:w-3 sm:h-3" /> STEM Certified </div>
+                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}> <Award size={10} className="mr-1 sm:w-3 sm:h-3" /> STEM Accredited </div>
               </div>
               <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-center tracking-tight mb-2 sm:mb-3 md:mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 Find your Perfect Hire

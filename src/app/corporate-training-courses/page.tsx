@@ -3,12 +3,13 @@
 import React from "react";
 import { NextPage } from "next";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
+import { toast } from 'react-toastify';
 import CorporateBanner from "@/components/sections/corporate-training/corporateBanner";
 import CorporateFaq from "@/components/sections/corporate-training/corporateFaq";
 import CorporateOverview from "@/components/sections/corporate-training/corporateOverview";
 import CourceBanner from "@/components/sections/corporate-training/courseBanner";
 import Certified from "@/components/sections/why-medh/Certified";
-import { CorporateForm as CorporateJourneyForm } from "@/components/sections/corporate-enquiry-form/Corporate-Form";
+import EmbeddedCorporateForm from "@/components/forms/EmbeddedCorporateForm";
 import { AnimatedContent } from "@/components/shared/course-content";
 import { mobilePatterns } from "@/utils/designSystem";
 
@@ -41,7 +42,7 @@ const CorporateTraining: NextPage = () => {
             <Certified />
           </section>
 
-          {/* Enrollment Form - Mobile optimized professional styling */}
+          {/* Corporate Training Inquiry Form - Mobile optimized professional styling */}
           <section 
             id="enroll-form" 
             className={`relative ${mobilePatterns.mobileSection()} ${mobilePatterns.mobileSpacing.section}`}
@@ -52,16 +53,49 @@ const CorporateTraining: NextPage = () => {
                 <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-3 md:mb-4 leading-tight">
                   Ready to <span className="text-blue-600 dark:text-blue-400">Transform</span> Your Team?
                 </h2>
-                <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+                <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 max-w-4xl mx-auto">
                   Get started with our corporate training programs designed for enterprise success
                 </p>
               </div>
               
-              {/* Enhanced form container for mobile */}
-              <div className={mobilePatterns.mobileCard('elevated')}>
-                <CorporateJourneyForm 
-                  mainText="Start Your Corporate Training" 
-                  subText="Transform your team's potential into performance"
+              {/* Enhanced Corporate Training Form */}
+              <div className="flex justify-center">
+                <EmbeddedCorporateForm 
+                  onSubmitSuccess={(data) => {
+                    console.log('🎉 Corporate training inquiry submitted successfully:', data);
+                    toast.success(
+                      `Thank you! Your corporate training inquiry has been submitted successfully. 
+                       Application ID: ${data.application_id || 'Generated'}. 
+                       Our team will contact you within 24 hours.`,
+                      {
+                        position: "top-center",
+                        autoClose: 8000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                      }
+                    );
+                    // Could add analytics tracking or redirect here
+                    // Example: gtag('event', 'corporate_inquiry_submitted', { application_id: data.application_id });
+                  }}
+                  onSubmitError={(error) => {
+                    console.error('❌ Corporate training inquiry submission failed:', error);
+                    toast.error(
+                      'There was an issue submitting your corporate training inquiry. Please try again or contact our support team.',
+                      {
+                        position: "top-center",
+                        autoClose: 6000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                      }
+                    );
+                    // Could add error analytics tracking here
+                    // Example: gtag('event', 'corporate_inquiry_error', { error: error.message });
+                  }}
+                  className="w-full max-w-4xl"
                 />
               </div>
             </div>

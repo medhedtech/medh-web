@@ -182,7 +182,7 @@ const ProfileDetails = ({ onEditClick }) => {
               width={128}
               height={128}
               className="rounded-full object-cover border-4 border-emerald-600 dark:border-emerald-400"
-              onLoadingComplete={() => setIsImageLoading(false)}
+              onLoad={() => setIsImageLoading(false)}
             />
           </div>
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">

@@ -7,7 +7,7 @@ import Image from 'next/image';
 
 // Core components
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
-import CourseBanner from "@/components/sections/course-ai/courseAiCourseBanner";
+import { AIAndDataScienceHero } from "@/components/sections/hero-banners";
 import ThemeController from "@/components/shared/others/ThemeController";
 
 // Section components
@@ -194,7 +194,7 @@ function CourseAi(): React.ReactElement {
     <PageWrapper>
       {/* Course Banner Section */}
       <section className="relative w-full">
-        <CourseBanner {...bannerProps} />
+        <AIAndDataScienceHero />
         <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-gray-50 dark:from-gray-900 to-transparent" />
       </section>
 

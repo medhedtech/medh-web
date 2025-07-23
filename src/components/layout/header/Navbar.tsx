@@ -309,18 +309,18 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }: Nav
             {(isHome4 || isHome4Dark || isHome5 || isHome5Dark) && <NavbarTop />}
 
             {/* Main Navigation with enhanced spacing and hover effects */}
-            <div className={`flex items-center justify-between transition-all duration-300 ${navbarHeightClass}`}>
+            <div className={`relative flex items-center justify-between transition-all duration-300 ${navbarHeightClass}`}>
               {/* Logo section with improved styling - optimized for mobile */}
               <div className="flex-shrink-0 mr-1 sm:mr-2 lg:mr-8 transition-transform duration-300 hover:scale-105">
                 <NavbarLogo isScrolled={isScrolled} />
               </div>
 
-              {/* Center section with navigation - now centered */}
+              {/* Center section with navigation - now globally centered */}
               <div 
-                className={`hidden lg:flex flex-grow justify-center transition-all duration-500 ease-out ${
+                className={`hidden lg:flex lg:absolute lg:left-1/2 lg:-translate-x-1/2 transition-all duration-500 ease-out ${
                   isSearchActive 
-                    ? 'transform -translate-x-14 opacity-90' 
-                    : 'transform translate-x-0 opacity-100'
+                    ? 'opacity-90' 
+                    : 'opacity-100'
                 }`}
                 style={{
                   transitionTimingFunction: isSearchActive 

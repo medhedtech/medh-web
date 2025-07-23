@@ -29,7 +29,8 @@ import {
   Image as ImageIcon,
   Tag,
   User,
-  X
+  X,
+  SquarePen
 } from "lucide-react";
 import { showToast } from '@/utils/toastManager';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -915,46 +916,60 @@ const ManageCoursesPage: React.FC = () => {
         )}
 
         {/* Actions */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
-          <div className="flex items-center space-x-2">
-            <Link
-              href={`/course-details/${course._id}`}
-              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-              title="View Course"
-            >
-              <Eye className="h-4 w-4" />
-            </Link>
-            <Link
-              href={`/dashboards/admin/courses/edit/${course._id}`}
-              className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
-              title="Edit Course"
-            >
-              <Edit className="h-4 w-4" />
-            </Link>
-            <button
-              onClick={() => handleAssignInstructor(course)}
-              className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
-              title="Assign Instructor"
-            >
-              <User className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => handleDeleteCourse(course._id, course.course_title)}
-              disabled={loadingStates.deleting === course._id}
-              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
-              title="Delete Course"
-            >
-              {loadingStates.deleting === course._id ? (
-                <RefreshCw className="h-4 w-4 animate-spin" />
-              ) : (
-                <Trash2 className="h-4 w-4" />
-              )}
-            </button>
-          </div>
-          
-          <span className="text-xs text-gray-400">
-            {course.updated_at ? new Date(course.updated_at).toLocaleDateString() : 'No date'}
-          </span>
+        <div className="flex items-center gap-1 sm:gap-2">
+          {/* Manage Course */}
+          <Link
+            href={`/dashboards/admin/courses/edit/${course._id}`}
+            className="p-2 flex items-center gap-1 rounded-lg transition-colors text-blue-600 hover:text-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            title="Manage Course"
+            aria-label="Manage Course"
+          >
+            <Settings className="h-4 w-4" />
+            <span className="hidden sm:inline text-xs font-medium">Manage</span>
+          </Link>
+          {/* Edit Course */}
+          <Link
+            href={`/dashboards/admin/courses/edit/${course._id}`}
+            className="p-2 rounded-lg transition-colors text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 focus:outline-none focus:ring-2 focus:ring-green-400"
+            title="Edit Course"
+            aria-label="Edit Course"
+          >
+            <SquarePen className="h-4 w-4" />
+          </Link>
+          {/* View Course */}
+          <Link
+            href={`/course-details/${course._id}`}
+            className="p-2 rounded-lg transition-colors text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            title="View Course"
+            aria-label="View Course"
+          >
+            <Eye className="h-4 w-4" />
+          </Link>
+          {/* Assign Instructor */}
+          <button
+            onClick={() => handleAssignInstructor(course)}
+            className="p-2 rounded-lg transition-colors text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 focus:outline-none focus:ring-2 focus:ring-purple-400"
+            title="Assign Instructor"
+            aria-label="Assign Instructor"
+            type="button"
+          >
+            <User className="h-4 w-4" />
+          </button>
+          {/* Delete Course */}
+          <button
+            onClick={() => handleDeleteCourse(course._id, course.course_title)}
+            disabled={loadingStates.deleting === course._id}
+            className="p-2 rounded-lg transition-colors text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus:ring-2 focus:ring-red-400 disabled:opacity-50"
+            title="Delete Course"
+            aria-label="Delete Course"
+            type="button"
+          >
+            {loadingStates.deleting === course._id ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4" />
+            )}
+          </button>
         </div>
       </div>
     </motion.div>
@@ -1104,6 +1119,14 @@ const ManageCoursesPage: React.FC = () => {
                 <RefreshCw className={`h-4 w-4 mr-2 ${loadingStates.courses ? 'animate-spin' : ''}`} />
                 Refresh
               </button>
+              <Link
+                href="/dashboards/admin/course-fee"
+                className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                title="Manage Course Fees"
+              >
+                <DollarSign className="h-4 w-4 mr-2" />
+                Manage Course Fees
+              </Link>
               <Link
                 href="/dashboards/admin/courses/create"
                 className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"

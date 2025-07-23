@@ -13,7 +13,8 @@ import {
   Instagram, 
   Linkedin, 
   Youtube,
-  ExternalLink
+  ExternalLink,
+  Share2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useIsClient, useCurrentYear } from "@/utils/hydration";
@@ -175,13 +176,13 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
       title: "Learning",
       items: [
         { 
-          name: "Live Courses", 
+          name: "Live Courses (Learn your way: 1:1 coaching or small group learning)", 
           path: "/courses",
           children: [
-            { name: "AI & Data Science", path: "/courses/?category=ai-data-science" },
-            { name: "Digital Marketing", path: "/courses/?category=digital-marketing" },
-            { name: "Personality Development", path: "/courses/?category=personality-development" },
-            { name: "Vedic Mathematics", path: "/courses/?category=vedic-mathematics" },
+            { name: "AI & Data Science", path: "/ai-and-data-science-course/" },
+            { name: "Digital Marketing", path: "/digital-marketing-with-data-analytics-course/" },
+            { name: "Personality Development", path: "/personality-development-course/" },
+            { name: "Vedic Mathematics", path: "/vedic-mathematics-course/" },
           ]
         },
         { 
@@ -323,7 +324,7 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
       {navigationSections.find(section => section.title === "Learning") && (
         <div className="relative z-10 mt-16">
           <div className={`border-t ${currentTheme.navBorder}`}></div>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+          <div className="max-w-7xl mx-auto px-0 pt-8">
             <h2 className={`text-2xl font-bold ${currentTheme.titleText} mb-8 text-center`}>Learning</h2>
             
             <div className="space-y-12">
@@ -350,7 +351,7 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                               <div key={categoryIndex} className="space-y-3">
                                 <Link 
                                   href={category.path}
-                                  className={`${currentTheme.bodyText} ${currentTheme.contactText} transition-colors text-sm font-semibold block py-2 leading-tight border-b ${currentTheme.learningBorder} pb-1`}
+                                  className={`${currentTheme.bodyText} ${currentTheme.contactText} transition-colors text-base font-semibold block py-2 leading-tight border-b ${currentTheme.learningBorder} pb-1`}
                                 >
                                   {category.name}
                                 </Link>
@@ -360,7 +361,7 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                                       <li key={courseIndex}>
                                         <Link 
                                           href={course.path}
-                                          className={`${theme === 'light' ? 'text-gray-500 hover:text-gray-700' : 'text-gray-500 hover:text-gray-300'} transition-colors text-xs flex items-start gap-2 py-1 leading-relaxed`}
+                                          className={`${theme === 'light' ? 'text-gray-500 hover:text-gray-700' : 'text-gray-500 hover:text-gray-300'} transition-colors text-sm flex items-start gap-2 py-1 leading-relaxed`}
                                         >
                                           <span className={`w-1 h-1 ${theme === 'light' ? 'bg-gray-400' : 'bg-gray-500'} rounded-full flex-shrink-0 mt-2`}></span>
                                           <span className="break-words hyphens-auto">{course.name}</span>
@@ -384,7 +385,7 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                         <Link 
                           key={childIndex}
                           href={child.path}
-                          className={`${currentTheme.linkText} transition-colors text-sm flex items-center gap-3 py-2 px-4 ${currentTheme.learningBg} rounded-lg hover:${theme === 'light' ? 'bg-gray-400' : 'bg-slate-700'}`}
+                          className={`${currentTheme.linkText} transition-colors text-base flex items-center gap-3 py-2 px-4 ${currentTheme.learningBg} rounded-lg hover:${theme === 'light' ? 'bg-gray-400' : 'bg-slate-700'}`}
                         >
                           <span className="w-2 h-2 bg-primary-400 rounded-full flex-shrink-0"></span>
                           {child.name}
@@ -460,19 +461,17 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                         className="group flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-base font-medium"
                       >
                         <Phone className="w-4 h-4" />
-                        +917710840696
+                        +91 7710840696
                       </a>
                       <a 
-                        href="mailto:care@medh.co"
+                        href="https://mail.google.com/mail/?view=cm&fs=1&to=care@medh.co&su=Contact from Medh Website"
                         className="group flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-base font-medium"
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
                         <Mail className="w-4 h-4" />
                         care@medh.co
                       </a>
-                      <span className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-base font-medium">
-                        <MapPin className="w-4 h-4" />
-                        India
-                      </span>
                     </div>
                   </div>
                 </div>
@@ -492,9 +491,10 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                       className="object-contain w-32 h-32"
                     />
                   </div>
-                  <div className="text-center space-y-2">
+                  <div className="text-center space-y-4">
                     <p className="text-lg font-semibold text-slate-900 dark:text-white">Medh QR Code</p>
-                    <p className="text-base text-slate-600 dark:text-slate-400">Scan to visit our website</p>
+                    
+
                   </div>
                 </div>
               </div>

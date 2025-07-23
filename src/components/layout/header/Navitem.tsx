@@ -3,11 +3,22 @@
 import Link from "next/link";
 import React, { useState, useRef, useEffect } from "react";
 
-export default function Navitem({ navItem, idx, children }) {
+interface INavItemProps {
+  navItem: {
+    name: string;
+    path: string;
+    dropdown?: boolean;
+    isRelative?: boolean;
+  };
+  idx: number;
+  children?: React.ReactElement; // Children can be a React element
+}
+
+export const Navitem: React.FC<INavItemProps> = ({ navItem, idx, children }) => {
   const { name, path, dropdown, isRelative } = navItem;
-  const [isOpen, setIsOpen] = useState(false);
-  const navItemRef = useRef(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const navItemRef = useRef<HTMLLIElement>(null); // Specify HTMLUListElement for useRef
+  const [isMobile, setIsMobile] = useState<boolean>(false);
   
   // Check if device is mobile
   useEffect(() => {
@@ -27,8 +38,8 @@ export default function Navitem({ navItem, idx, children }) {
   useEffect(() => {
     if (!dropdown) return;
     
-    const handleClickOutside = (event) => {
-      if (navItemRef.current && !navItemRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => { // Specify MouseEvent type
+      if (navItemRef.current && !navItemRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -40,7 +51,7 @@ export default function Navitem({ navItem, idx, children }) {
   }, [dropdown]);
   
   // Toggle dropdown visibility on nav item click
-  const handleNavItemClick = (e) => {
+  const handleNavItemClick = (e: React.MouseEvent<HTMLAnchorElement>) => { // Specify React.MouseEvent
     if (dropdown && !path) {
       e.preventDefault();
       setIsOpen(!isOpen);
@@ -117,4 +128,4 @@ export default function Navitem({ navItem, idx, children }) {
       </div>
     </li>
   );
-}
+} 

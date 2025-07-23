@@ -249,7 +249,9 @@ const JobGuaranteedSection = memo<IJobGuaranteedProps>(({
 
             {/* Main Heading */}
             <h2 className={headingClasses}>
-              100% Job-guaranteed Courses from{" "}
+              100% Job-guaranteed Courses{" "}
+              <br />
+              <em className="font-semibold">with</em>{" "}
               <span className="inline-flex items-baseline align-baseline">
                 <Image 
                   src={medhLogo} 

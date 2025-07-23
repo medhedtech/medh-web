@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { VideoBackgroundContext } from "@/components/layout/main/Home2";
 import medhLogo from "@/assets/images/logo/medh.png";
+// import { openDemoForm } from "@/utils/demoFormUtils"; // Now using direct navigation
 
 // Mobile-specific tagline styling - 10% bigger with GPU acceleration
 const mobileTaglineStyles = `
@@ -31,7 +32,7 @@ import {
   Database, Calculator, Rocket, Briefcase, Target, MessageCircle, BarChart3, 
   DollarSign, Code, PenTool, Zap, Shield, Award, Laptop, Heart, Settings, 
   Globe, Scale, Smile, ShoppingCart, Leaf, CheckCircle, Camera, Music, 
-  Activity, Lightbulb
+  Activity, Lightbulb, Video
 } from "lucide-react";
 
 // Complete course categories - all available courses - MOVED OUTSIDE AND FROZEN FOR PERFORMANCE
@@ -221,6 +222,8 @@ const HeroMobile = memo<{
   isLoaded: boolean;
   isDark: boolean;
 }>(({ isLoaded, isDark }) => {
+  const router = useRouter();
+  
   // Always show mobile content, don't wait for isLoaded
   const showContent = true;
   
@@ -270,7 +273,7 @@ const HeroMobile = memo<{
                 </div>
                 <div className={`inline-flex items-center px-2 py-1 glass-stats rounded-full text-xs font-medium opacity-95 gpu-accelerated ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
                   <Award size={10} className="mr-1 gpu-accelerated" />
-                  STEM Certified
+                  STEM Accredited
                 </div>
               </div>
               
@@ -345,11 +348,21 @@ const HeroMobile = memo<{
               </div>
 
               {/* CTA Button */}
-              <div className="mt-3 sm:mt-4 gpu-accelerated">
+              <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 gpu-accelerated">
                 <Link href="/courses" className={ctaClasses}>
                   <span className="relative z-10 font-bold gpu-accelerated">Explore Courses</span>
                   <ArrowRight size={14} className="relative z-10 ml-2 group-hover:translate-x-1 transition-gpu gpu-accelerated" />
                 </Link>
+
+                {/* Secondary CTA - Book a Free Demo - positioned next to main CTA */}
+                <button
+                  type="button"
+                  onClick={() => router.push('/book-demo')}
+                  className="inline-flex items-center justify-center py-2.5 px-5 font-semibold rounded-xl transition-gpu hover:scale-105 group text-sm relative overflow-hidden gpu-accelerated bg-[#3bac63] hover:bg-[#339955] text-white border border-[#3bac63] hover:border-[#339955] shadow-md hover:shadow-lg hover:shadow-[#3bac63]/25"
+                >
+                  <span className="relative z-10 font-bold gpu-accelerated">Book a Free Demo</span>
+                  <Video size={14} className="relative z-10 ml-2 group-hover:translate-x-1 transition-gpu gpu-accelerated" />
+                </button>
               </div>
 
               {/* Tagline */}
@@ -469,6 +482,7 @@ const useMobileDetection = () => {
 // GPU-OPTIMIZED Main Hero component with better mobile handling and error boundaries
 const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) => {
   const { theme } = useTheme();
+  const router = useRouter();
   const { isMobile, mounted } = useMobileDetection();
   const videoContext = useContext(VideoBackgroundContext);
   
@@ -562,7 +576,7 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
                 </div>
                 <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 gpu-accelerated ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
                   <Award size={10} className="mr-1 sm:w-3 sm:h-3 gpu-accelerated" />
-                  STEM Certified
+                  STEM Accredited
                 </div>
               </div>
                
@@ -634,12 +648,23 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
                 </div>
               </div>
 
-              {/* CTA Button */}
-              <div className="mt-4 sm:mt-6 md:mt-8 gpu-accelerated">
+              {/* CTA Buttons Container */}
+              <div className="mt-4 sm:mt-6 md:mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 md:gap-6 gpu-accelerated">
+                {/* CTA Button */}
                 <Link href="/courses" className={desktopCtaClasses}>
                   <span className="relative z-10 font-extrabold tracking-wide gpu-accelerated">Explore Courses</span>
                   <ArrowRight size={16} className="relative z-10 ml-3 group-hover:translate-x-1 transition-gpu sm:w-4 sm:h-4 md:w-5 md:h-5 gpu-accelerated" />
                 </Link>
+
+                {/* Secondary CTA - Book a Free Demo - positioned next to main CTA */} 
+                <button
+                  type="button"
+                  onClick={() => router.push('/book-demo')}
+                  className="inline-flex items-center justify-center px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 font-bold rounded-xl transition-gpu hover:scale-105 group text-sm sm:text-base md:text-lg relative overflow-hidden gpu-accelerated bg-[#3bac63] hover:bg-[#339955] text-white border border-[#3bac63] hover:border-[#339955] shadow-2xl hover:shadow-[#3bac63]/30"
+                >
+                  <span className="relative z-10 font-extrabold tracking-wide gpu-accelerated">Book a Free Demo</span>
+                  <Video size={16} className="relative z-10 ml-3 group-hover:translate-x-1 transition-gpu sm:w-4 sm:h-4 md:w-5 md:h-5 gpu-accelerated" />
+                </button>
               </div>
 
               {/* Tagline */}

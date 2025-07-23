@@ -24,7 +24,12 @@ export const PUBLIC_ENDPOINTS = [
   '/faq/public',
   '/announcements/public',
   '/broucher/create',
-  '/broucher/download'
+  '/broucher/download',
+  // Demo session form endpoints (public forms)
+  '/forms/submit',
+  '/forms/demo-sessions/available-slots',
+  '/forms/demo-sessions',
+  '/forms/config'
 ];
 
 // Import demo booking interfaces and functions
@@ -367,7 +372,9 @@ export const apiUrls = {
     getRelatedCourses: (id: string): string => {
       if (!id) throw new Error('Category ID is required');
       return `/categories/related-courses/${id}`;
-    }
+    },
+    getLiveCategories: `$/category/live`,
+    getBlendedCategories: `$/category/blended`,
   },
   courses: {
     getAllCourses: `${apiBaseUrl}/courses/get`,
