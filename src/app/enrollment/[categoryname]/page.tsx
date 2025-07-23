@@ -2083,6 +2083,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
                         <CourseDetailsPage 
                           courseId={(selectedCourse || lastValidCourse)?._id} 
                           initialActiveSection={activeSection !== 'overview' ? activeSection : 'about'}
+                          isEnrollmentPage={true}
                           courseSelectionComponent={ // Corrected prop name
                             !isCourseView && (
                               <motion.div

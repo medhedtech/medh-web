@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { FaCalendarAlt, FaClock, FaRegCalendarAlt, FaPlay, FaVideo, FaUsers, FaGraduationCap, FaPlus, FaSearch, FaArrowRight, FaArrowLeft } from "react-icons/fa";
 import { HiSparkles, HiLightningBolt, HiCollection, HiAcademicCap } from "react-icons/hi";
 import DatePicker from "react-datepicker";
-import "@/styles/vendor.css";
+import "@/styles/vendor.scss";
 import "@/assets/css/popup.css";
 import usePostQuery from "@/hooks/postQuery.hook";
 import useGetQuery from "@/hooks/getQuery.hook";

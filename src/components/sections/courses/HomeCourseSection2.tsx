@@ -1186,10 +1186,13 @@ const HomeCourseSection2 = memo<{
 
               {/* GPU-optimized Live Courses Section */}
         <div className="mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-3 sm:px-4 md:px-6 lg:px-8 gpu-accelerated">
-          <div className="flex items-center justify-center mb-6 sm:mb-8 gpu-accelerated">
+          <div className="flex flex-col items-center justify-center text-center gap-2 mb-6 sm:mb-8 gpu-accelerated">
             <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#3bac63] dark:text-[#3bac63] transition-gpu">
               Live Interactive Courses
             </h3>
+            <p className="text-sm mt-1 text-black dark:text-[#3bac63] transition-gpu">
+            (Learn your way: 1:1 coaching or small group learning)
+            </p>
           </div>
 
         {liveCourses.length > 0 ? (
@@ -1217,7 +1220,7 @@ const HomeCourseSection2 = memo<{
               <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#3bac63] dark:text-[#3bac63] transition-gpu">
                 Self-Paced Blended Courses
               </h3>
-              <p className="text-xs mt-1 text-black dark:text-[#3bac63] transition-gpu">
+              <p className="text-sm mt-1 text-black dark:text-[#3bac63] transition-gpu">
                 (Interactive Video Courses with live doubt-clearing sessions)
               </p>
             </div>

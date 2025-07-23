@@ -7,7 +7,7 @@ import SharedAnimatedContent from '@/components/shared/course-content/AnimatedCo
 interface IAnimatedContentProps {
   components: {
     CourseBanner: () => ReactElement;
-    PersonalityOvereveiw: FC<any>;
+    PersonalityOverview: FC<any>;
     PersonalityCourse: FC<any>;
     PersonalityFaq: FC<any>;
     PersonalityRelatedCourse: FC<any>;
@@ -59,7 +59,7 @@ const AnimatedContent: FC<IAnimatedContentProps> = ({
   const mappedComponents = {
     CourseBanner: components.CourseBanner,
     CourseContent: components.PersonalityCourse,
-    CourseOverview: components.PersonalityOvereveiw,
+          CourseOverview: components.PersonalityOverview,
     CourseFAQ: components.PersonalityFaq,
     ThemeController: components.ThemeController,
     ExploreJourney: components.ExploreJourney

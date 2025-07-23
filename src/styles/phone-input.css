@@ -1,0 +1,196 @@
+/* Enhanced Phone Number Input Styles */
+
+/* Container styling */
+.enhanced-phone-input {
+  @apply w-full relative;
+}
+
+/* Country selector styling */
+.enhanced-phone-input .PhoneInputCountry {
+  @apply absolute left-12 top-0 bottom-0 z-20;
+  @apply bg-transparent border-0 cursor-pointer;
+  @apply flex items-center pr-2;
+  @apply text-base font-medium;
+  @apply focus:outline-none focus:ring-0;
+}
+
+.enhanced-phone-input .PhoneInputCountry:hover {
+  @apply bg-gray-50 dark:bg-gray-700 rounded-md;
+}
+
+.enhanced-phone-input .PhoneInputCountry:focus {
+  @apply bg-blue-50 dark:bg-blue-900/20 rounded-md;
+}
+
+/* Country flag styling */
+.enhanced-phone-input .PhoneInputCountryIconUnicode {
+  @apply text-xl mr-1;
+  @apply shadow-sm rounded;
+}
+
+.enhanced-phone-input .PhoneInputCountrySelectArrow {
+  @apply ml-1 opacity-60 h-3 w-3;
+}
+
+/* Number input styling */
+.enhanced-phone-input .PhoneInputInput {
+  @apply w-full pl-20 pr-4 py-4 bg-transparent border-0;
+  @apply text-base font-medium placeholder-gray-400 dark:placeholder-gray-400;
+  @apply text-gray-900 dark:text-white;
+  @apply focus:outline-none focus:ring-0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .enhanced-phone-input .PhoneInputInput {
+    @apply pl-16 text-sm;
+  }
+  
+  .enhanced-phone-input .PhoneInputCountry {
+    @apply left-10 text-sm;
+  }
+}
+
+/* Dark mode specific adjustments */
+@media (prefers-color-scheme: dark) {
+  .enhanced-phone-input .PhoneInputCountry:hover {
+    @apply bg-gray-700;
+  }
+  
+  .enhanced-phone-input .PhoneInputCountry:focus {
+    @apply bg-blue-900/20;
+  }
+}
+
+/* Country dropdown menu styling */
+.PhoneInputCountrySelectDropdown {
+  @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600;
+  @apply rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto;
+  @apply text-sm font-medium;
+}
+
+.PhoneInputCountryOption {
+  @apply px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700;
+  @apply cursor-pointer flex items-center gap-3;
+  @apply text-gray-900 dark:text-white;
+}
+
+.PhoneInputCountryOption:hover {
+  @apply bg-blue-50 dark:bg-blue-900/20;
+}
+
+.PhoneInputCountryOption--selected {
+  @apply bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300;
+}
+
+/* Phone number validation states */
+.phone-input-valid {
+  @apply border-green-300 bg-green-50 dark:bg-green-900/10;
+}
+
+.phone-input-invalid {
+  @apply border-amber-300 bg-amber-50 dark:bg-amber-900/10;
+}
+
+.phone-input-error {
+  @apply border-red-300 bg-red-50 dark:bg-red-900/10;
+}
+
+/* Success, warning, and error icons */
+.phone-validation-icon {
+  @apply w-5 h-5 flex-shrink-0;
+}
+
+.phone-validation-success {
+  @apply text-green-500;
+}
+
+.phone-validation-warning {
+  @apply text-amber-500;
+}
+
+.phone-validation-error {
+  @apply text-red-500;
+}
+
+/* Animation for validation state changes */
+.phone-input-container {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+/* Focus ring for accessibility */
+.enhanced-phone-input:focus-within {
+  @apply ring-2 ring-offset-2;
+}
+
+.enhanced-phone-input:focus-within.phone-input-valid {
+  @apply ring-green-500;
+}
+
+.enhanced-phone-input:focus-within.phone-input-error {
+  @apply ring-red-500;
+}
+
+.enhanced-phone-input:focus-within:not(.phone-input-valid):not(.phone-input-error) {
+  @apply ring-blue-500;
+}
+
+/* Preferred countries section in dropdown */
+.PhoneInputCountryOption--preferred {
+  @apply border-b border-gray-200 dark:border-gray-600;
+}
+
+/* Loading state for country list */
+.PhoneInputCountrySelect--loading {
+  @apply opacity-50 cursor-wait;
+}
+
+/* RTL support */
+[dir="rtl"] .enhanced-phone-input .PhoneInputInput {
+  @apply pr-20 pl-4;
+}
+
+[dir="rtl"] .enhanced-phone-input .PhoneInputCountry {
+  @apply right-12 left-auto;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .enhanced-phone-input .PhoneInputInput {
+    @apply border-2 border-gray-800 dark:border-white;
+  }
+  
+  .PhoneInputCountryOption {
+    @apply border-b border-gray-300 dark:border-gray-600;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .phone-input-container {
+    @apply transition-none;
+  }
+}
+
+/* Additional refinements */
+.enhanced-phone-input .PhoneInputCountrySelect {
+  @apply pl-2;
+}
+
+.enhanced-phone-input .PhoneInputInput {
+  @apply pl-24;
+}
+
+@media (max-width: 640px) {
+  .enhanced-phone-input .PhoneInputInput {
+    @apply pl-20;
+  }
+  
+  .enhanced-phone-input .PhoneInputCountry {
+    @apply left-12;
+  }
+}
+
+.enhanced-phone-input .PhoneInputCountryIconUnicode {
+  @apply rounded-sm;
+} 

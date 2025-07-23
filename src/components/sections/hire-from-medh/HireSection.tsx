@@ -118,8 +118,15 @@ const HireSection: React.FC<IHireSectionProps> = memo(({ className = "" }) => {
   }, []);
 
   const handleContactClick = useCallback(() => {
-    router.push('/contact-us');
-  }, [router]);
+    // Scroll to the registration form on the same page
+    const formElement = document.getElementById('registration-form');
+    if (formElement) {
+      formElement.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  }, []);
 
   if (isLoading) {
     return (
@@ -319,10 +326,10 @@ const HireSection: React.FC<IHireSectionProps> = memo(({ className = "" }) => {
               
               <div className="relative z-10">
                 <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3">
-                  Ready to Find Your Perfect Candidate?
+                Ready to enhance your team?
                 </h3>
                 <p className="text-sm sm:text-base text-emerald-100 leading-relaxed mb-4 sm:mb-5">
-                  Connect with industry-ready professionals who can drive your business forward
+                Discover how MEDH can provide the skilled talent your organization needs
                 </p>
                 
                 <button

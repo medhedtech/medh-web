@@ -67,7 +67,7 @@ function CourseContentAdapter(props) {
       componentMap: {
         // Map from Personality Development component names to standard names
         CourseBanner: components.CourseBanner,
-        CourseOverview: components.PersonalityOvereveiw,
+        CourseOverview: components.PersonalityOverview,
         CourseContent: components.PersonalityCourse,
         CourseFAQ: components.PersonalityFaq,
         // CourseContentBanner: components.PersonalityCourseBanner,

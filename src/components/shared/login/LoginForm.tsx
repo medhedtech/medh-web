@@ -47,7 +47,7 @@ import {
   IMFASendSMSResponse
 } from "@/apis/auth.api";
 import { useCurrentYear } from "@/utils/hydration";
-import { showToast } from "@/utils/toastManager";
+import { useToast } from "@/components/shared/ui/ToastProvider";
 
 interface FormInputs {
   email: string;
@@ -168,10 +168,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
   const redirectPath = propRedirectPath || (redirectParam ? decodeURIComponent(redirectParam) : '');
   const actionParam = searchParams.get('action') || '';
   const isDemoScheduling = actionParam === 'schedule-demo';
+  
+  // Check for OAuth completion parameters
+  const oauthSuccess = searchParams.get('oauth_success');
+  const oauthError = searchParams.get('oauth_error');
+  const oauthProvider = searchParams.get('oauth_provider');
   const { postQuery, loading } = usePostQuery();
   const storageManager = useStorage();
   const { theme, setTheme } = useTheme();
   const currentYear = useCurrentYear();
+  const { showToast } = useToast();
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [recaptchaValue, setRecaptchaValue] = useState<string | null>(null);
   const [recaptchaError, setRecaptchaError] = useState<boolean>(false);
@@ -220,6 +226,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
   const [selectedAccount, setSelectedAccount] = useState<RememberedAccount | null>(null);
   const [showQuickPassword, setShowQuickPassword] = useState<boolean>(false);
   const [quickLoginError, setQuickLoginError] = useState<string>('');
+  const [showManualLoginOptions, setShowManualLoginOptions] = useState<boolean>(false);
+  const [showEmailLogin, setShowEmailLogin] = useState<boolean>(false);
 
   const {
     register,
@@ -232,7 +240,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
     clearErrors
   } = useForm<FormInputs>({
     resolver: yupResolver(schema) as any,
-    defaultValues: prefilledValues,
+    defaultValues: {
+      ...prefilledValues,
+      agree_terms: true
+    },
     mode: "onChange",
     reValidateMode: "onChange",
   });
@@ -253,9 +264,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
       const hasAccounts = hasRememberedAccounts();
       setShowQuickLogin(hasAccounts);
       
-      // If we have accounts, hide the regular form initially
+      // If we have accounts, show quick login by default
+      // If no accounts, show manual login options directly
       if (hasAccounts) {
         console.log('Found remembered accounts, showing quick login interface');
+        setShowManualLoginOptions(false);
+        setShowEmailLogin(false);
+      } else {
+        console.log('No remembered accounts found, showing manual login options');
+        setShowQuickLogin(false);
+        setShowManualLoginOptions(false);
+        setShowEmailLogin(false);
       }
     }
   }, []);
@@ -323,11 +342,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
     }
   }, [theme, setTheme]);
 
+
+
   const handleRecaptchaChange = (value: string): void => {
     setRecaptchaValue(value);
     setRecaptchaError(false);
     if (value) {
-      showToast.success("✅ Human verification completed!", { duration: 2000 });
+      showToast.success("Human verification completed successfully", { duration: 2000 });
     }
   };
 
@@ -397,6 +418,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
         case "guardian":
           demoPath = "/dashboards/parent/demo-classes/";
           break;
+        case "sales_team":
+        case "sales-team":
+        case "sales":
+          demoPath = "/dashboards/sales/demo-classes/";
+          break;
+        case "support_team":
+        case "support-team":
+        case "support":
+          demoPath = "/dashboards/support/demo-classes/";
+          break;
         default:
           demoPath = "/dashboards/student/demo-classes/";
       }
@@ -455,6 +486,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
       case "guardian":
         dashboardPath = "/dashboards/parent";
         break;
+      case "sales_team":
+      case "sales-team":
+      case "sales":
+        dashboardPath = "/dashboards/sales";
+        break;
+      case "support_team":
+      case "support-team":
+      case "support":
+        dashboardPath = "/dashboards/support";
+        break;
       default:
         dashboardPath = "/dashboards/student";
     }
@@ -463,6 +504,49 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
     rolePathCache.set(roleLower, dashboardPath);
     return dashboardPath;
   }, [rolePathCache, demoPathCache]);
+
+  // Handle OAuth completion when returning from backend
+  useEffect(() => {
+    if (oauthSuccess === 'true') {
+      // OAuth was successful, check if we have stored auth data
+      const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+      const userId = localStorage.getItem('userId');
+      const userRole = localStorage.getItem('role');
+      
+      if (token && userId) {
+        showToast.success(`${oauthProvider || 'OAuth'} authentication successful. Redirecting to your dashboard.`, { duration: 3000 });
+        
+        // Determine redirect path
+        const shouldRedirectToDemo = isDemoScheduling && !redirectPath;
+        const dashboardPath = getRoleBasedRedirectPath(userRole || 'student', shouldRedirectToDemo);
+        const finalRedirectPath = redirectPath && redirectPath.startsWith('/') ? redirectPath : dashboardPath;
+        
+        // Redirect to dashboard
+        setTimeout(() => {
+          setIsRedirecting(true);
+          router.push(finalRedirectPath);
+        }, 1500);
+      } else {
+        // Auth data not found, something went wrong
+        showToast.error('Authentication data not found. Please try logging in again.', { duration: 4000 });
+      }
+      
+      // Clean up URL parameters
+      const url = new URL(window.location.href);
+      url.searchParams.delete('oauth_success');
+      url.searchParams.delete('oauth_provider');
+      window.history.replaceState({}, '', url.toString());
+    }
+    
+    if (oauthError === 'true') {
+      showToast.error('OAuth authentication failed. Please try again.', { duration: 4000 });
+      
+      // Clean up URL parameters
+      const url = new URL(window.location.href);
+      url.searchParams.delete('oauth_error');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [oauthSuccess, oauthError, oauthProvider, isDemoScheduling, redirectPath, getRoleBasedRedirectPath, router]);
 
   // Sanitize any invalid auth data when component mounts and check if user is already logged in
   useEffect(() => {
@@ -512,71 +596,71 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
 
     // Network and connection errors
     if (!navigator.onLine) {
-      return "🌐 No internet connection. Please check your network and try again.";
+      return "No internet connection. Please check your network and try again.";
     }
 
     if (error?.code === 'NETWORK_ERROR' || !error?.response) {
-      return "🔌 Unable to connect to our servers. Please check your internet connection and try again.";
+      return "Unable to connect to our servers. Please check your internet connection and try again.";
     }
 
     // Timeout errors
     if (error?.code === 'ECONNABORTED' || message.includes('timeout')) {
-      return "⏱️ Request timed out. Our servers might be busy. Please try again in a few moments.";
+      return "Request timed out. Our servers might be busy. Please try again in a few moments.";
     }
 
     // HTTP status specific errors
     switch (status) {
       case 400:
         if (message.includes('password')) {
-          return "🔑 Invalid email or password. Please check your credentials and try again.";
+          return "Invalid email or password. Please check your credentials and try again.";
         }
         if (message.includes('email')) {
-          return "📧 Please enter a valid email address.";
+          return "Please enter a valid email address.";
         }
-        return `❌ ${message}`;
+        return `${message}`;
       
       case 401:
-        return "🔒 Invalid email or password. Please check your credentials.";
+        return "Invalid email or password. Please check your credentials.";
       
       case 403:
-        return "🚫 Access denied. Your account may be suspended or restricted.";
+        return "Access denied. Your account may be suspended or restricted.";
       
       case 404:
-        return "❓ Account not found. Please check your email or create a new account.";
+        return "Account not found. Please check your email or create a new account.";
       
       case 409:
         if (message.includes('already exists')) {
-          return "👤 An account with this email already exists. Try logging in instead.";
+          return "An account with this email already exists. Try logging in instead.";
         }
-        return `⚠️ ${message}`;
+        return `${message}`;
       
       case 422:
-        return "📝 Please check your input and try again. Some fields may be invalid.";
+        return "Please check your input and try again. Some fields may be invalid.";
       
       case 429:
-        return "🚦 Too many attempts. Please wait a few minutes before trying again.";
+        return "Too many attempts. Please wait a few minutes before trying again.";
       
       case 500:
-        return "🛠️ Our servers are experiencing issues. Please try again later.";
+        return "Our servers are experiencing issues. Please try again later.";
       
       case 502:
       case 503:
       case 504:
-        return "⚙️ Our services are temporarily unavailable. Please try again in a few minutes.";
+        return "Our services are temporarily unavailable. Please try again in a few minutes.";
       
       default:
         // Account locked scenarios
         if (message.includes('locked') || message.includes('suspended')) {
-          return "🔐 Your account has been temporarily locked for security reasons.";
+          return "Your account has been temporarily locked for security reasons.";
         }
         
         // Email verification scenarios
         if (message.includes('verify') || message.includes('verification')) {
-          return "✉️ Please verify your email address to continue.";
+          return "Please verify your email address to continue.";
         }
         
-        // Generic fallback with emoji for better UX
-        return `❗ ${message}`;
+        // Generic fallback with professional messaging
+        return `${message}`;
     }
   };
 
@@ -627,7 +711,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
   const handleVerificationSuccess = (): void => {
     if (pendingLoginData) {
       // Show loading toast
-      const loadingToastId = showToast.loading("🔄 Completing your login...", { duration: 10000 });
+      const loadingToastId = showToast.loading("Completing your login...", { duration: 10000 });
       
       // If we have incomplete login data, attempt login again after verification
       if (!pendingLoginData.access_token || !pendingLoginData.id) {
@@ -645,14 +729,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           onSuccess: (res: LoginResponse) => {
             console.log('Login after verification successful:', res);
             showToast.dismiss(loadingToastId);
-            showToast.success("✅ Email verified successfully! Welcome back!", { duration: 3000 });
-            completeLoginProcess(res.data);
+            showToast.success("Email verified successfully. Welcome back!", { duration: 3000 });
+            completeLoginProcess(res.data, undefined, undefined);
           },
           onFail: (error) => {
             console.error('Login failed after verification:', error);
             showToast.dismiss(loadingToastId);
             const errorMessage = getEnhancedErrorMessage(error);
-            showToast.error(`❌ Login failed after verification: ${errorMessage}`, { duration: 6000 });
+            showToast.error(`Login failed after verification: ${errorMessage}`, { duration: 6000 });
             // Reset to login form
             handleBackFromVerification();
           }
@@ -660,18 +744,18 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
       } else {
         // Complete the login process with existing data
         showToast.dismiss(loadingToastId);
-        showToast.success("✅ Email verified successfully! Welcome back!", { duration: 3000 });
-        completeLoginProcess(pendingLoginData);
+        showToast.success("Email verified successfully. Welcome back.", { duration: 3000 });
+        completeLoginProcess(pendingLoginData, undefined, undefined);
       }
     } else {
       // Fallback: redirect to login
-      showToast.success("✅ Email verified successfully! Please log in again.", { duration: 4000 });
+      showToast.success("Email verified successfully. Please log in again.", { duration: 4000 });
       handleBackFromVerification();
     }
   };
 
   // Complete login process after verification
-  const completeLoginProcess = (loginData: LoginResponseData, quickLoginKey?: string): void => {
+  const completeLoginProcess = (loginData: LoginResponseData, quickLoginKey?: string, quickLoginKeyId?: string): void => {
     // Add safety checks for loginData
     if (!loginData || !loginData.id || !loginData.email) {
       console.error('Invalid login data:', loginData);
@@ -767,7 +851,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
     } else if (shouldRedirectToDemo) {
       finalRedirectPath = dashboardPath; // This will be the demo classes path
       // Show demo-specific welcome message
-      showToast.info("🎯 Redirecting to demo classes...", { duration: 2000 });
+                  showToast.info("Redirecting to demo classes...", { duration: 2000 });
     } else {
       finalRedirectPath = dashboardPath;
     }
@@ -801,7 +885,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           email: loginData.email,
           fullName: fullName || loginData.email.split('@')[0],
           role: userRole,
-          quickLoginKey: quickLoginKey // Ensure quickLoginKey is passed here
+          quickLoginKey: quickLoginKey, // Ensure quickLoginKey is passed here
+          keyId: quickLoginKeyId // Add keyId
         });
       } catch (error) {
         console.warn('Failed to save to remembered accounts:', error);
@@ -861,29 +946,27 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
     setCurrentStep(1);
   };
   
-  // OAuth login handlers
+  // Enhanced OAuth login handlers
   const handleOAuthLogin = async (provider: 'google' | 'github'): Promise<void> => {
     try {
       setIsOAuthLoading(prev => ({ ...prev, [provider]: true }));
       
       // Show informational toast
-      showToast.info(`🔄 Opening ${provider.charAt(0).toUpperCase() + provider.slice(1)} login...`, { duration: 3000 });
+      showToast.info(`Opening ${provider.charAt(0).toUpperCase() + provider.slice(1)} login...`, { duration: 3000 });
       
-      // Get OAuth login URL
-      const oauthUrl = authUtils.getOAuthLoginUrl(provider, window.location.origin + '/auth/callback');
-      
-      // Open OAuth popup
+      // Open enhanced OAuth popup with quick login key generation if remember me is enabled
       authUtils.openOAuthPopup(
         provider,
         // Success callback
         (data) => {
           console.log(`${provider} OAuth success:`, data);
           
+          // Handle the transformed OAuth data from frontend OAuth
           if (data.access_token && data.id) {
             // Show processing toast
-            const processingToastId = showToast.loading("🔄 Setting up your account...", { duration: 8000 });
+            const processingToastId = showToast.loading("Setting up your account...", { duration: 8000 });
             
-            // Store auth data
+            // Store enhanced auth data using frontend OAuth structure
             const authData = {
               token: data.access_token,
               refresh_token: data.refresh_token || '',
@@ -895,8 +978,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
             const authSuccess = storeAuthData(authData, rememberMe, data.email);
             
             if (authSuccess) {
-              // Fast role extraction and path determination
-              const userRole = (Array.isArray(data.role) ? data.role[0] : data.role)?.toLowerCase().trim() || 'student';
+              // Extract role from JWT token or use provided role
+              const userRole = getUserRoleFromToken(data.access_token) || (Array.isArray(data.role) ? data.role[0] : data.role) || 'student';
               const shouldRedirectToDemo = isDemoScheduling && !redirectPath;
               const dashboardPath = getRoleBasedRedirectPath(userRole, shouldRedirectToDemo);
               
@@ -907,18 +990,24 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
               } else if (shouldRedirectToDemo) {
                 finalRedirectPath = dashboardPath; // This will be the demo classes path
                 // Show demo-specific welcome message for OAuth
-                showToast.info("🎯 Taking you to demo classes...", { duration: 2000 });
+                showToast.info("Taking you to demo classes...", { duration: 2000 });
               } else {
                 finalRedirectPath = dashboardPath;
               }
               
-              // Batch localStorage operations
+              // Batch localStorage operations with enhanced data
               const localStorageUpdates: [string, string][] = [];
               if (userRole) localStorageUpdates.push(["role", userRole]);
               if (data.full_name) localStorageUpdates.push(["fullName", data.full_name]);
+              
+              // Store enhanced OAuth metadata
+              if (data.account_merged) localStorageUpdates.push(["oauth_account_merged", "true"]);
+              if (data.profile_updated) localStorageUpdates.push(["oauth_profile_updated", "true"]);
+              if (data.email_verified) localStorageUpdates.push(["oauth_email_verified", "true"]);
+              
               localStorageUpdates.forEach(([key, value]) => localStorage.setItem(key, value));
               
-              // Prepare storage data
+              // Prepare enhanced storage data
               const storageData = {
                 token: data.access_token,
                 refresh_token: data.refresh_token || '',
@@ -930,34 +1019,84 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
                 rememberMe: rememberMe
               };
               
+              // Save to remembered accounts with OAuth quick login key if available
+              if (rememberMe) {
+                try {
+                  RememberedAccountsManager.addRememberedAccount({
+                    email: data.email,
+                    fullName: data.full_name || data.email.split('@')[0],
+                    role: userRole,
+                    quickLoginKey: data.quick_login_key, // Store OAuth quick login key
+                    keyId: data.quick_login_key_id,
+                    provider: provider // Add provider info for OAuth accounts
+                  });
+                  
+                  // Show quick login key notification if generated
+                  if (data.quick_login_key) {
+                    showToast.success('🔑 Quick login key generated for faster future logins!', { duration: 4000 });
+                  }
+                } catch (error) {
+                  console.warn('Failed to save OAuth account to remembered accounts:', error);
+                }
+              }
+              
               // Parallel operations
               const operations = [
                 () => storageManager.login(storageData),
                 () => events.login(`${provider}_oauth`),
                 () => {
                   showToast.dismiss(processingToastId);
-                  showToast.success(`🎉 ${provider.charAt(0).toUpperCase() + provider.slice(1)} login successful! Welcome back!`, { duration: 3000 });
+                  
+                  // Enhanced success message based on account status
+                  let successMessage = `${provider.charAt(0).toUpperCase() + provider.slice(1)} login successful.`;
+                  if (data.account_merged) {
+                    successMessage += ' Account linked successfully.';
+                  } else if (data.is_new_user) {
+                    successMessage += ' Welcome to Medh!';
+                  } else {
+                    successMessage += ' Welcome back.';
+                  }
+                  
+                  showToast.success(successMessage, { duration: 4000 });
+                  
+                  // Show additional notifications for important events
+                  if (data.email_verified) {
+                    showToast.success('Email verified through OAuth', { duration: 3000 });
+                  }
+                  
+                  if (data.profile_updated) {
+                    showToast.info('Profile enhanced with OAuth data', { duration: 3000 });
+                  }
+                  
+                  if (data.account_merged) {
+                    showToast.info('Multiple OAuth providers connected', { duration: 3000 });
+                  }
+                  
+                  // Show welcome message for new users
+                  if (data.is_new_user) {
+                    showToast.info('📧 Welcome email sent! Check your inbox for getting started guide.', { duration: 5000 });
+                  } else {
+                    showToast.info('🔔 Login notification sent if accessing from a new device.', { duration: 3000 });
+                  }
                 }
               ];
               
-              operations.forEach(op => {
-                try {
-                  op();
-                } catch (error) {
-                  console.warn('Non-critical OAuth operation failed:', error);
-                }
+              // Execute operations in parallel
+              Promise.all(operations.map(op => op())).then(() => {
+                setIsRedirecting(true);
+                router.push(finalRedirectPath);
+              }).catch(error => {
+                console.error('Error during login operations:', error);
+                showToast.error("Login successful but encountered some issues. Please refresh if needed.", { duration: 5000 });
+                setIsRedirecting(true);
+                router.push(finalRedirectPath);
               });
-              
-              // Immediate redirect with loading state
-              setIsRedirecting(true);
-              router.push(finalRedirectPath);
             } else {
               showToast.dismiss(processingToastId);
-              showToast.error("❌ Failed to save authentication data. Please try again.", { duration: 5000 });
+              showToast.error("Failed to complete login process. Please try again.", { duration: 5000 });
             }
           } else {
-            const errorMsg = `❌ ${provider.charAt(0).toUpperCase() + provider.slice(1)} login failed. Invalid response from server.`;
-            showToast.error(errorMsg, { duration: 5000 });
+            showToast.error(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login failed. Invalid response from server.`, { duration: 5000 });
           }
           
           setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
@@ -966,13 +1105,26 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
         (error) => {
           console.error(`${provider} OAuth error:`, error);
           const enhancedError = getEnhancedErrorMessage(error);
-          showToast.error(`❌ ${provider.charAt(0).toUpperCase() + provider.slice(1)} login failed: ${enhancedError}`, { duration: 6000 });
+          
+          // Check if this is the student ID validation error
+          if (error.message?.includes('Account Creation Issue') || error.message?.includes('Student ID must follow the pattern')) {
+            showToast.error(`${provider.charAt(0).toUpperCase() + provider.slice(1)} sign-up temporarily unavailable`, { duration: 8000 });
+            showToast.info(`Workaround: Create an account manually first, then link Google in your profile settings.`, { duration: 10000 });
+          } else {
+            showToast.error(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login failed: ${enhancedError}`, { duration: 6000 });
+          }
+          
           setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
+        },
+        // Options including quick login key generation
+        {
+          mode: 'login',
+          generateQuickLoginKey: rememberMe // Generate quick login key if remember me is enabled
         }
       );
     } catch (error) {
       console.error(`${provider} OAuth error:`, error);
-      const errorMsg = `❌ Failed to initiate ${provider.charAt(0).toUpperCase() + provider.slice(1)} login. Please try again.`;
+      const errorMsg = `Failed to initiate ${provider.charAt(0).toUpperCase() + provider.slice(1)} login. Please try again.`;
       showToast.error(errorMsg, { duration: 5000 });
       setIsOAuthLoading(prev => ({ ...prev, [provider]: false }));
     }
@@ -1037,7 +1189,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           );
 
           if (loginResponse.success) {
-            showToast.success("✅ Authentication successful!", { duration: 3000 });
+            showToast.success("Authentication successful", { duration: 3000 });
             onVerificationSuccess(loginResponse);
           } else {
             throw new Error(loginResponse.message || 'Failed to complete login');
@@ -1059,7 +1211,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
       try {
         const smsResponse: IMFASendSMSResponse = await authUtils.sendMFASMS(mfaState.userId);
         if (smsResponse.success) {
-          showToast.success("📱 New verification code sent to your phone", { duration: 3000 });
+          showToast.success("New verification code sent to your phone", { duration: 3000 });
           setResendCooldown(60); // 60 second cooldown
         } else {
           showToast.error(smsResponse.message || 'Failed to send SMS code');
@@ -1235,19 +1387,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
     // Check terms agreement first with immediate feedback
     if (!data.agree_terms) {
       trigger("agree_terms");
-      showToast.warning("📋 Please accept the Terms of Use and Privacy Policy to continue.", { duration: 4000 });
+      showToast.warning("Please accept the Terms of Use and Privacy Policy to continue.", { duration: 4000 });
       return;
     }
 
     if (!recaptchaValue) {
       setRecaptchaError(true);
-      showToast.warning("🤖 Please complete the reCAPTCHA verification to continue.", { duration: 4000 });
+      showToast.warning("Please complete the reCAPTCHA verification to continue.", { duration: 4000 });
       setTimeout(() => emailInputRef.current?.focus(), 100);
       return;
     }
     
     // Show loading toast
-    const loadingToastId = showToast.loading("🔐 Signing you in...", { duration: 15000 });
+    const loadingToastId = showToast.loading("Signing you in...", { duration: 15000 });
     
     try {
       const loginData: ILoginData = {
@@ -1270,9 +1422,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           
           // Check if MFA is required
           if (authUtils.isMFARequired(res)) {
-            const mfaResponse = res as IMFALoginRequiredResponse;
-            showToast.dismiss(loadingToastId);
-            showToast.info("🔐 Multi-factor authentication required", { duration: 3000 });
+                      const mfaResponse = res as IMFALoginRequiredResponse;
+          showToast.dismiss(loadingToastId);
+          showToast.info("Multi-factor authentication required", { duration: 3000 });
             
             setMFAVerificationState({
               isRequired: true,
@@ -1290,27 +1442,27 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           if (!res || !res.data) {
             console.error('Invalid response structure:', res);
             showToast.dismiss(loadingToastId);
-            showToast.error("❌ Invalid response from server. Please try again.", { duration: 5000 });
-            return;
-          }
-          
-          // Handle both response structures - nested user object or flat structure
-          const isNestedStructure = res.data && 'user' in res.data && res.data.user;
-          const userData = isNestedStructure ? res.data.user : res.data;
-          const token = isNestedStructure ? res.data.token : res.data.access_token;
-          const refreshToken = isNestedStructure ? res.data.session_id : res.data.refresh_token;
-          
-          console.log('User data:', userData);
-          console.log('User role:', userData?.role);
-          console.log('Email verified:', userData?.email_verified);
+                        showToast.error("Invalid response from server. Please try again.", { duration: 5000 });
+          return;
+        }
+        
+        // Handle both response structures - nested user object or flat structure
+        const isNestedStructure = res.data && 'user' in res.data && res.data.user;
+        const userData = isNestedStructure ? res.data.user : res.data;
+        const token = isNestedStructure ? res.data.token : res.data.access_token;
+        const refreshToken = isNestedStructure ? res.data.session_id : res.data.refresh_token;
+        
+        console.log('User data:', userData);
+        console.log('User role:', userData?.role);
+        console.log('Email verified:', userData?.email_verified);
 
-          // Additional safety check for userData
-          if (!userData || !userData.id || !userData.email) {
-            console.error('Missing required user data:', userData);
-            showToast.dismiss(loadingToastId);
-            showToast.error("❌ Incomplete user data received. Please try again.", { duration: 5000 });
-            return;
-          }
+        // Additional safety check for userData
+        if (!userData || !userData.id || !userData.email) {
+          console.error('Missing required user data:', userData);
+          showToast.dismiss(loadingToastId);
+          showToast.error("Incomplete user data received. Please try again.", { duration: 5000 });
+          return;
+        }
 
           // Check if email verification is required
           // Configuration: Set this to true to skip email verification entirely
@@ -1333,7 +1485,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           if (userData?.email_verified === false && !shouldSkipVerification) {
             // User needs to verify email first
             showToast.dismiss(loadingToastId);
-            showToast.info("📧 Please verify your email to complete login.", { duration: 5000 });
+            showToast.info("Please verify your email to complete login.", { duration: 5000 });
             
             const mockLoginData = {
               id: userData.id || '',
@@ -1357,12 +1509,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
               postData: { email: userData.email || data.email },
               requireAuth: false,
               onSuccess: () => {
-                showToast.info("📨 Verification code sent to your email inbox.", { duration: 4000 });
+                showToast.info("Verification code sent to your email inbox.", { duration: 4000 });
               },
               onFail: (error) => {
                 console.error("Failed to send verification email:", error);
                 const errorMsg = getEnhancedErrorMessage(error);
-                showToast.warning(`⚠️ Login successful, but verification email failed: ${errorMsg}`, { duration: 6000 });
+                showToast.warning(`Login successful, but verification email failed: ${errorMsg}`, { duration: 6000 });
               }
             });
             
@@ -1385,8 +1537,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
 
           // Extract quick_login_key if present in the response
           const quickLoginKey = res.data?.quick_login_key || null;
+          const quickLoginKeyId = res.data?.quick_login_key_id || null;
 
-          completeLoginProcess(loginResponseData, quickLoginKey);
+          completeLoginProcess(loginResponseData, quickLoginKey, quickLoginKeyId);
           setRecaptchaError(false);
           setRecaptchaValue(null);
         },
@@ -1399,7 +1552,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           const isNetworkError = error?.message?.includes('Network Error') || error?.code === 'NETWORK_ERROR';
           
           if (isTimeoutError || isNetworkError) {
-            showToast.error("⏱️ Connection timeout. Please check your internet connection and try again.", { 
+            showToast.error("Connection timeout. Please check your internet connection and try again.", { 
               duration: 6000
             });
             return;
@@ -1431,7 +1584,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
             setShowOTPVerification(true);
             
             const message = errorResponse?.message || "Please verify your email. A verification code has been sent to your inbox.";
-            showToast.info(`📧 ${message}`, { duration: 5000 });
+            showToast.info(`${message}`, { duration: 5000 });
             return;
           }
           
@@ -1447,7 +1600,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
               lockedUntil: errorResponse?.locked_until,
               message: errorResponse?.message || "Account temporarily locked due to multiple failed login attempts"
             });
-            showToast.error("🔒 Account temporarily locked for security reasons.", { duration: 6000 });
+            showToast.error("Account temporarily locked for security reasons.", { duration: 6000 });
             return;
           }
           
@@ -1460,7 +1613,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
     } catch (error: any) {
       console.error('Login submission error:', error);
       showToast.dismiss(loadingToastId);
-      showToast.error("❌ An unexpected error occurred. Please try again.", { duration: 5000 });
+      showToast.error("An unexpected error occurred. Please try again.", { duration: 5000 });
     }
   };
 
@@ -1480,7 +1633,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
         emailVerified: loginResponse.data.user.email_verified
       };
 
-      completeLoginProcess(loginResponseData);
+      completeLoginProcess(loginResponseData, undefined, undefined);
       setShowMFAVerification(false);
       setMFAVerificationState({
         isRequired: false,
@@ -1532,15 +1685,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
   };
 
   const handleManualLogin = (): void => {
-    setShowQuickLogin(false);
+    setShowManualLoginOptions(true);
     setSelectedAccount(null);
     setShowQuickPassword(false);
+    setShowEmailLogin(false);
     setQuickLoginError('');
   };
 
   const handleRemoveQuickAccount = (email: string): void => {
     try {
       RememberedAccountsManager.removeRememberedAccount(email);
+      showToast.info('Account removed locally. To fully revoke the login key on the server, please do so from your dashboard after logging in.', { duration: 6000 });
       
       // If no more accounts, switch to manual login
       if (!hasRememberedAccounts()) {
@@ -1555,7 +1710,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
   const performQuickLogin = async (account: RememberedAccount, password?: string, retryCount = 0): Promise<void> => {
     const maxRetries = 2;
     const loadingToastId = showToast.loading(
-      retryCount > 0 ? `🔄 Retrying login (${retryCount}/${maxRetries})...` : "🔐 Signing you in...", 
+      retryCount > 0 ? `Retrying login (${retryCount}/${maxRetries})...` : "Signing you in...", 
       { duration: 15000 }
     );
     
@@ -1586,7 +1741,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           // and should contain new access token and possibly new refresh token
           if (res && res.data && res.data.data && (res.data.data.access_token || res.data.data.token)) {
             showToast.dismiss(loadingToastId);
-            showToast.success("✅ Welcome back! Logged in with quick login key.", { duration: 2000 });
+            showToast.success("Welcome back! Logged in with quick login key.", { duration: 2000 });
             
             const newQuickLoginKey = res.data.data.quick_login_key; // Corrected path
 
@@ -1596,7 +1751,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
               email: account.email,
               fullName: account.fullName,
               role: account.role,
-              quickLoginKey: newQuickLoginKey !== null ? newQuickLoginKey : account.quickLoginKey // Preserve if null
+              quickLoginKey: newQuickLoginKey !== null ? newQuickLoginKey : account.quickLoginKey, // Preserve if null
+              keyId: newQuickLoginKey !== null ? res.data.data.key_id : null // Add keyId
             });
             
             completeLoginProcess({
@@ -1608,7 +1764,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
               access_token: res.data.data.access_token || res.data.data.token, // Corrected path
               refresh_token: res.data.data.refresh_token || res.data.data.session_id, // Corrected path
               emailVerified: res.data.data.user.email_verified
-            }, newQuickLoginKey !== null ? newQuickLoginKey : account.quickLoginKey); // Pass the new or existing quickLoginKey
+            }, newQuickLoginKey !== null ? newQuickLoginKey : account.quickLoginKey, newQuickLoginKey !== null ? res.data.data.key_id : null); // Pass the new or existing quickLoginKey and keyId
             return; // Exit after successful quick login
           } else {
             console.warn('Quick login key returned invalid data, falling back to password login.', res);
@@ -1621,7 +1777,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           console.error('Quick login failed, falling back to password login:', quickLoginError);
           console.log('Full quickLoginError object:', quickLoginError); // Log the full error object
           const errorMessage = getEnhancedErrorMessage(quickLoginError); // Reuse existing helper
-          showToast.error(`❌ Quick login failed: ${errorMessage}`, { duration: 6000 }); // Show the error to the user
+                      showToast.error(`Quick login failed: ${errorMessage}`, { duration: 6000 }); // Show the error to the user
           setQuickLoginError("Quick login session expired or invalid. Please enter your password.");
           setShowQuickPassword(true); // Force password entry
           showToast.dismiss(loadingToastId);
@@ -1655,7 +1811,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           // Handle the same login success flow as regular login
           if (authUtils.isMFARequired(res)) {
             const mfaResponse = res as IMFALoginRequiredResponse;
-            showToast.info("🔐 Multi-factor authentication required", { duration: 3000 });
+            showToast.info("Multi-factor authentication required", { duration: 3000 });
             
             setMFAVerificationState({
               isRequired: true,
@@ -1671,20 +1827,21 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           }
           
           if (!res || !res.data) {
-            showToast.error("❌ Invalid response from server. Please try again.", { duration: 5000 });
-            return;
-          }
-          
-          const isNestedStructure = res.data && 'user' in res.data && res.data.user;
-          const userData = isNestedStructure ? res.data.user : res.data;
-          const token = isNestedStructure ? res.data.token : res.data.access_token;
-          const refreshToken = isNestedStructure ? res.data.session_id : res.data.refresh_token;
-          const quickLoginKey = res.data?.quick_login_key || null; // Capture quick_login_key from regular login as well
-          
-          if (!userData || !userData.id || !userData.email) {
-            showToast.error("❌ Incomplete user data received. Please try again.", { duration: 5000 });
-            return;
-          }
+                        showToast.error("Invalid response from server. Please try again.", { duration: 5000 });
+          return;
+        }
+        
+        const isNestedStructure = res.data && 'user' in res.data && res.data.user;
+        const userData = isNestedStructure ? res.data.user : res.data;
+        const token = isNestedStructure ? res.data.token : res.data.access_token;
+        const refreshToken = isNestedStructure ? res.data.session_id : res.data.refresh_token;
+        const quickLoginKey = res.data?.quick_login_key || null; // Capture quick_login_key from regular login as well
+        const quickLoginKeyId = res.data?.quick_login_key_id || null;
+        
+        if (!userData || !userData.id || !userData.email) {
+          showToast.error("Incomplete user data received. Please try again.", { duration: 5000 });
+          return;
+        }
 
           const loginResponseData: LoginResponseData = {
             id: userData.id || '',
@@ -1704,7 +1861,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
               email: account.email,
               fullName: account.fullName,
               role: account.role,
-              quickLoginKey: quickLoginKey // Update with the new quickLoginKey from login
+              quickLoginKey: quickLoginKey, // Update with the new quickLoginKey from login
+              keyId: quickLoginKeyId
             });
           } else {
             // If quickLoginKey is not present, remove any old one to ensure password prompt for next login
@@ -1712,11 +1870,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
               email: account.email,
               fullName: account.fullName,
               role: account.role,
-              quickLoginKey: undefined
+              quickLoginKey: undefined,
+              keyId: undefined
             });
           }
           
-          completeLoginProcess(loginResponseData, quickLoginKey); // Pass quickLoginKey to completeLoginProcess
+          completeLoginProcess(loginResponseData, quickLoginKey, quickLoginKeyId); // Pass quickLoginKey to completeLoginProcess
         },
         onFail: async (error) => {
           showToast.dismiss(loadingToastId);
@@ -1728,7 +1887,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           
           if ((isTimeoutError || isNetworkError) && retryCount < maxRetries) {
             console.log(`Retrying login due to ${isTimeoutError ? 'timeout' : 'network'} error (attempt ${retryCount + 1}/${maxRetries})`);
-            showToast.info(`🔄 Connection issue detected. Retrying... (${retryCount + 1}/${maxRetries})`, { duration: 3000 });
+            showToast.info(`Connection issue detected. Retrying... (${retryCount + 1}/${maxRetries})`, { duration: 3000 });
             
             // Wait a bit before retrying
             await new Promise(resolve => setTimeout(resolve, 1000 + (retryCount * 1000)));
@@ -1754,7 +1913,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
     } catch (error: any) {
       showToast.dismiss(loadingToastId);
       console.error('Quick login submission error:', error);
-      setQuickLoginError("❌ An unexpected error occurred. Please try again.");
+      setQuickLoginError("An unexpected error occurred. Please try again.");
     }
   };
 
@@ -1901,8 +2060,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           </div>
 
           {/* Footer */}
-          <div className="text-center mt-4 text-xs text-gray-400 dark:text-gray-500">
-            <p>© {currentYear} Medh. All rights reserved.</p>
+          <div className="text-center mt-4 text-xs text-gray-400 dark:text-gray-500 space-y-1">
+            <p>Copyright © {currentYear} MEDH. All Rights Reserved.</p>
+            <p className="text-blue-600 dark:text-blue-400 font-semibold">
+              LEARN. UPSKILL. ELEVATE.
+            </p>
           </div>
         </div>
       </div>
@@ -2047,8 +2209,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           </div>
           
           {/* Copyright notice */}
-          <div className="text-center mt-2 text-xs text-gray-400 dark:text-gray-500">
-            <p>© {currentYear} Medh. All rights reserved.</p>
+          <div className="text-center mt-2 text-xs text-gray-400 dark:text-gray-500 space-y-1">
+            <p>Copyright © {currentYear} MEDH. All Rights Reserved.</p>
+            <p className="text-blue-600 dark:text-blue-400 font-semibold">
+              LEARN. UPSKILL. ELEVATE.
+            </p>
           </div>
         </div>
       </div>
@@ -2107,38 +2272,26 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           letter-spacing: 0;
         }
 
-        /* Enable scrolling for mobile view only */
-        @media (max-width: 640px) {
-          html, body {
-            overflow: auto;
-            height: auto;
-            position: relative;
-            width: 100%;
-          }
-        }
-
-        /* Disable scrolling for desktop view */
-        @media (min-width: 641px) {
-          html, body {
-            overflow: hidden;
-            height: 100%;
-            position: fixed;
-            width: 100%;
-          }
+        /* Remove all scrolling */
+        html, body {
+          overflow: hidden;
+          height: 100vh;
+          position: fixed;
+          width: 100%;
         }
       `}</style>
       
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-4 px-4 sm:px-6 lg:px-8">
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4">
         <div className="w-full max-w-md relative">
-          {/* Decorative elements - hidden on mobile */}
+          {/* Decorative elements */}
           <div className="absolute -top-10 -left-10 w-20 h-20 bg-primary-300/30 dark:bg-primary-600/20 rounded-full blur-xl hidden sm:block"></div>
           <div className="absolute -bottom-12 -right-12 w-24 h-24 bg-indigo-300/30 dark:bg-indigo-600/20 rounded-full blur-xl hidden sm:block"></div>
           
-          {/* Card container with glass morphism effect */}
-          <div className="login-card bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300">
+          {/* Card container */}
+          <div className="login-card bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300 max-h-[85vh] overflow-y-auto">
             
-            {/* Header area with navigation */}
-            <div className="px-4 sm:px-8 pt-4 sm:pt-8 pb-2 sm:pb-4 text-center relative">
+            {/* Header area */}
+            <div className="px-4 sm:px-8 pt-4 sm:pt-6 pb-2 text-center relative">
               {/* Back to Home link */}
               <Link 
                 href="/"
@@ -2149,7 +2302,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
                 <span className="hidden sm:inline">Back</span>
               </Link>
               
-              <Link href="/" className="inline-block mb-2 sm:mb-4">
+              <Link href="/" className="inline-block mb-2 sm:mb-3">
                 <Image 
                   src={theme === 'dark' ? logo1 : logo2} 
                   alt="Medh Logo" 
@@ -2159,18 +2312,24 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
                   priority
                 />
               </Link>
-              <h2 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
-                {isDemoScheduling ? 'Join Demo Class!' : 'Welcome Back!'}
-              </h2>
-              <p className="mt-1 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                {isDemoScheduling 
-                  ? 'Sign in to schedule your free demo class' 
-                  : 'Sign in to continue your learning journey'
-                }
-              </p>
+              
+              {/* Show header only when not in quick login or when showing manual login options */}
+              {(!showQuickLogin || showManualLoginOptions) && (
+                <>
+                  <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
+                    {isDemoScheduling ? 'Join Demo Class!' : 'Welcome Back!'}
+                  </h2>
+                  <p className="mt-1 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                    {isDemoScheduling 
+                      ? 'Sign in to schedule your free demo class' 
+                      : 'Sign in to continue your learning journey'
+                    }
+                  </p>
+                </>
+              )}
               
               {/* Demo scheduling indicator */}
-              {isDemoScheduling && (
+              {isDemoScheduling && (!showQuickLogin || showManualLoginOptions) && (
                 <div className="mt-2 inline-flex items-center px-2.5 py-1 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/20 rounded-full text-xs font-medium text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800">
                   <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5 animate-pulse"></div>
                   Free Demo Class Access
@@ -2179,15 +2338,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
             </div>
             
             {/* Form area */}
-            <div className="px-4 sm:px-8 pb-4 sm:pb-8">
-              {/* Quick Login Interface */}
-              {showQuickLogin && !showQuickPassword ? (
-                <QuickLoginAccounts
-                  onAccountSelect={handleQuickAccountSelect}
-                  onManualLogin={handleManualLogin}
-                  onRemoveAccount={handleRemoveQuickAccount}
-                  isLoading={loading}
-                />
+            <div className="px-4 sm:px-8 pb-4 sm:pb-6">
+              {/* Quick Login Interface - Show by default if accounts exist */}
+              {showQuickLogin && !showQuickPassword && !showManualLoginOptions && !showEmailLogin ? (
+                <div className="space-y-4">
+                  <QuickLoginAccounts
+                    onAccountSelect={handleQuickAccountSelect}
+                    onManualLogin={() => setShowManualLoginOptions(true)}
+                    onRemoveAccount={handleRemoveQuickAccount}
+                    isLoading={loading}
+                  />
+                </div>
               ) : showQuickPassword && selectedAccount ? (
                 <QuickLoginPassword
                   account={selectedAccount}
@@ -2196,229 +2357,381 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
                   isLoading={loading}
                   error={quickLoginError}
                 />
-              ) : (
-                /* Regular Login Form */
-                <form 
-                  onSubmit={handleSubmit(onSubmit)} 
-                  className="space-y-3 sm:space-y-5"
-                  onKeyDown={handleKeyDown}
-                >
-                  {/* Back to Quick Login button if we have accounts */}
+              ) : showManualLoginOptions ? (
+                /* Manual Login Options */
+                <div className="space-y-4">
+                  {/* Back to saved accounts if available */}
                   {hasRememberedAccounts() && (
                     <div className="mb-4">
                       <button
                         type="button"
-                        onClick={() => setShowQuickLogin(true)}
+                        onClick={() => setShowManualLoginOptions(false)}
                         className="w-full py-2.5 px-4 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium rounded-xl border border-dashed border-blue-300 dark:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-solid transition-all flex items-center justify-center gap-2"
                       >
                         <ChevronLeft className="w-4 h-4" />
-                        ✨ Back to saved accounts
+                        Back to saved accounts
                       </button>
                     </div>
                   )}
-                {/* Email field */}
-                <div>
-                  <div className="relative">
-                    <input
-                      id="email"
-                      type="email"
-                      autoComplete="email"
-                      placeholder="Email address"
-                      className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border ${
-                        errors.email ? 'border-red-300 dark:border-red-500' : 'border-gray-200 dark:border-gray-600'
-                      } focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 text-sm sm:text-base`}
-                      {...register("email", {
-                        required: true,
-                        onChange: (e) => {
-                          // Trim value on change
-                          e.target.value = e.target.value.trimStart();
-                          setTimeout(() => trigger("email"), 100);
-                        },
-                        onBlur: (e) => {
-                          // Trim value on blur
-                          setValue("email", e.target.value.trim(), { shouldValidate: true });
-                        }
-                      })}
-                      ref={emailInputRef}
-                      aria-invalid={errors.email ? "true" : "false"}
-                    />
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                    </div>
-                  </div>
-                  {errors.email && (
-                    <p className="mt-1 text-xs text-red-500 flex items-start" role="alert">
-                      <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
-                      <span>{errors.email.message}</span>
-                    </p>
-                  )}
-                </div>
-                
-                {/* Password field */}
-                <div>
-                  <div className="relative">
-                    <input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      autoComplete="current-password"
-                      placeholder="Password"
-                      className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50/50 dark:bg-gray-700/30 rounded-lg sm:rounded-xl border ${
-                        errors.password ? 'border-red-300 dark:border-red-500' : 'border-gray-200 dark:border-gray-600'
-                      } focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-10 sm:pl-11 pr-10 sm:pr-11 text-sm sm:text-base`}
-                      {...register("password")}
-                    />
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                    </div>
+
+                                     {/* Login Options */}
+                   <div className="space-y-3">
+                     <h3 className="text-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+                       Choose your sign-in method
+                     </h3>
+                     
+                     {/* Email Login Option */}
+                     <button
+                       type="button"
+                       onClick={() => {
+                         console.log('Email login button clicked');
+                         setShowEmailLogin(true);
+                         setShowManualLoginOptions(false);
+                         setShowQuickLogin(false);
+                       }}
+                       className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-primary-500 to-indigo-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
+                     >
+                       <Mail className="w-5 h-5 mr-3" />
+                       Sign in with Email
+                     </button>
+                    
+                    {/* Google Login Option */}
                     <button
                       type="button"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      onClick={() => handleOAuthLogin('google')}
+                      disabled={isOAuthLoading.google}
+                      className="w-full flex items-center justify-center px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-200 shadow-sm hover:shadow-md"
                     >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" />
+                      {isOAuthLoading.google ? (
+                        <Loader2 className="w-5 h-5 animate-spin text-gray-600 dark:text-gray-300" />
                       ) : (
-                        <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" />
+                        <>
+                          <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                          </svg>
+                          <span className="text-gray-700 dark:text-gray-300 font-medium">
+                            Continue with Google
+                          </span>
+                        </>
                       )}
                     </button>
                   </div>
-                  {errors.password && (
-                    <p className="mt-1 text-xs text-red-500 flex items-start" role="alert">
-                      <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
-                      <span>{errors.password.message}</span>
+
+                  {/* Sign Up Link */}
+                  <div className="text-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      Don't have an account?{" "}
+                      <a 
+                        href="/signup" 
+                        className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
+                      >
+                        Sign Up
+                      </a>
                     </p>
-                  )}
-                </div>
-                
-                {/* Options row */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <input
-                      id="remember-me"
-                      name="remember-me"
-                      type="checkbox"
-                      className="h-4 w-4 rounded-md text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
-                      onChange={handleRememberMeChange}
-                      checked={rememberMe}
-                    />
-                    <label htmlFor="remember-me" className="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Remember me
-                    </label>
                   </div>
-                  <div className="text-right">
-                    <a
-                      href="/forgot-password"
-                      className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors"
+                </div>
+              ) : showEmailLogin ? (
+                /* Email Login Form */
+                <form 
+                  onSubmit={handleSubmit(onSubmit)} 
+                  className="space-y-4"
+                  onKeyDown={handleKeyDown}
+                >
+                  {/* Back to options */}
+                  <div className="mb-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowEmailLogin(false);
+                        setShowManualLoginOptions(true);
+                        // Restore quick login if accounts exist
+                        if (hasRememberedAccounts()) {
+                          setShowQuickLogin(true);
+                        }
+                      }}
+                      className="w-full py-2.5 px-4 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium rounded-xl border border-dashed border-blue-300 dark:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-solid transition-all flex items-center justify-center gap-2"
                     >
-                      Forgot password?
-                    </a>
+                      <ChevronLeft className="w-4 h-4" />
+                      Back to sign-in options
+                    </button>
                   </div>
-                </div>
-                
-                {/* Terms and conditions */}
-                <div className={`rounded-xl p-4 transition-all duration-200 ${
-                  errors.agree_terms 
-                    ? 'border-2 border-red-300 dark:border-red-500 bg-red-50/50 dark:bg-red-900/10' 
-                    : 'border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50'
-                }`}>
-                  <label className="flex items-start cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      className={`rounded-lg text-primary-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 h-5 w-5 mt-0.5 transition-all shadow-sm ${
-                        errors.agree_terms 
-                          ? 'border-red-300 dark:border-red-500' 
-                          : 'border-gray-300 dark:border-gray-600 group-hover:border-primary-400'
-                      } dark:bg-gray-700`}
-                      {...register("agree_terms")}
-                    />
-                    <div className="ml-3 flex-1">
-                      <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                        I agree to the{" "}
-                        <a
-                          href="/terms-and-services"
-                          className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-semibold no-underline hover:underline underline-offset-2 decoration-2"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Terms of Use
-                        </a>{" "}
-                        and{" "}
-                        <a
-                          href="/privacy-policy"
-                          className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-semibold no-underline hover:underline underline-offset-2 decoration-2"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Privacy Policy
-                        </a>
-                      </span>
-                      <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                        Required to create your account and access our services
+
+                  {/* Email field */}
+                  <div>
+                    <div className="relative">
+                      <input
+                        id="email"
+                        type="email"
+                        autoComplete="email"
+                        placeholder="Email address"
+                        className={`w-full px-4 py-3 bg-gray-50/50 dark:bg-gray-700/30 rounded-xl border ${
+                          errors.email ? 'border-red-300 dark:border-red-500' : 'border-gray-200 dark:border-gray-600'
+                        } focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-11`}
+                        {...register("email", {
+                          required: true,
+                          onChange: (e) => {
+                            e.target.value = e.target.value.trimStart();
+                            setTimeout(() => trigger("email"), 100);
+                          },
+                          onBlur: (e) => {
+                            setValue("email", e.target.value.trim(), { shouldValidate: true });
+                          }
+                        })}
+                        ref={emailInputRef}
+                        aria-invalid={errors.email ? "true" : "false"}
+                      />
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Mail className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                       </div>
                     </div>
-                  </label>
-                  {errors.agree_terms && (
-                    <div className="mt-3 pt-3 border-t border-red-200 dark:border-red-800 flex items-start gap-2 text-red-600 dark:text-red-400">
-                      <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm font-medium">{errors.agree_terms.message}</span>
+                    {errors.email && (
+                      <p className="mt-1 text-xs text-red-500 flex items-start" role="alert">
+                        <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
+                        <span>{errors.email.message}</span>
+                      </p>
+                    )}
+                  </div>
+                  
+                  {/* Password field */}
+                  <div>
+                    <div className="relative">
+                      <input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="current-password"
+                        placeholder="Password"
+                        className={`w-full px-4 py-3 bg-gray-50/50 dark:bg-gray-700/30 rounded-xl border ${
+                          errors.password ? 'border-red-300 dark:border-red-500' : 'border-gray-200 dark:border-gray-600'
+                        } focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-11 pr-11`}
+                        {...register("password")}
+                      />
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" />
+                        ) : (
+                          <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" />
+                        )}
+                      </button>
                     </div>
-                  )}
-                </div>
-                
-                {/* Custom ReCAPTCHA */}
-                <div className={`scale-90 sm:scale-100 origin-center transition-all duration-200 ${
-                  recaptchaError 
-                    ? 'border-2 border-red-300 dark:border-red-500 rounded-lg bg-red-50/30 dark:bg-red-900/10 p-2' 
-                    : ''
-                }`}>
-                  <CustomReCaptcha onChange={handleRecaptchaChange} error={!!recaptchaError} />
-                  {recaptchaError && (
-                    <div className="mt-2 flex items-center gap-2 text-red-600 dark:text-red-400 text-sm">
-                      <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                      <span>Please complete the verification to continue</span>
+                    {errors.password && (
+                      <p className="mt-1 text-xs text-red-500 flex items-start" role="alert">
+                        <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
+                        <span>{errors.password.message}</span>
+                      </p>
+                    )}
+                  </div>
+                  
+                  {/* Options row */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <input
+                        id="remember-me"
+                        name="remember-me"
+                        type="checkbox"
+                        className="h-4 w-4 rounded-md text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                        onChange={handleRememberMeChange}
+                        checked={rememberMe}
+                      />
+                      <label htmlFor="remember-me" className="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Remember me
+                      </label>
                     </div>
-                  )}
-                </div>
-                
-                {/* Submit Button */}
-                <div className="pt-1">
-                  <button
-                    type="submit"
-                    className="w-full py-2 sm:py-2.5 px-4 bg-gradient-to-r from-primary-500 to-indigo-600 text-white font-medium rounded-lg sm:rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-primary-500/40 transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 relative overflow-hidden group text-sm sm:text-base"
-                  >
-                    <span className="relative z-10 flex items-center justify-center">
-                      Sign In
-                      <ArrowRight className="ml-2 h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-                    </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-primary-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  </button>
-                </div>
-
-                {/* Sign Up Link */}
-                <div className="text-center mt-2 sm:mt-4">
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    Don't have an account?{" "}
-                    <a 
-                      href="/signup" 
-                      className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
+                    <div className="text-right">
+                      <a
+                        href="/forgot-password"
+                        className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors"
+                      >
+                        Forgot password?
+                      </a>
+                    </div>
+                  </div>
+                  
+                  {/* Terms Checkbox */}
+                  <div className="w-full">
+                    <div
+                      className={`w-full p-3 rounded-xl border transition-all duration-300 cursor-pointer select-none
+                        ${errors.agree_terms 
+                          ? 'border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-900/20' 
+                          : getValues('agree_terms')
+                            ? 'border-green-300 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
+                            : 'border-gray-200 bg-gray-50/50 dark:border-gray-700 dark:bg-gray-700/30 hover:bg-gray-100/50 dark:hover:bg-gray-600/30'
+                        }`}
+                      onClick={() => setValue('agree_terms', !getValues('agree_terms'), { shouldValidate: true })}
                     >
-                      Sign Up
-                    </a>
-                  </p>
-                </div>
+                      <div className="flex items-center space-x-3">
+                        {getValues('agree_terms') ? (
+                          <CheckCircle className="h-5 w-5 text-green-500 dark:text-green-400" />
+                        ) : errors.agree_terms ? (
+                          <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400" />
+                        ) : (
+                          <Shield className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                        )}
+                        <span className={`text-sm ${
+                          errors.agree_terms 
+                            ? 'text-red-600 dark:text-red-400' 
+                            : getValues('agree_terms')
+                              ? 'text-green-600 dark:text-green-400'
+                              : 'text-gray-700 dark:text-gray-300'
+                        }`}>
+                          {errors.agree_terms 
+                            ? 'Terms acceptance required' 
+                            : getValues('agree_terms')
+                              ? 'Agreed to Terms of Use and Privacy Policy'
+                              : 'I agree to the Terms of Use and Privacy Policy'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <input
+                      type="checkbox"
+                      {...register("agree_terms")}
+                      className="hidden"
+                    />
+                    
+                    {errors.agree_terms && (
+                      <p className="mt-1 text-xs text-red-500 dark:text-red-400 flex items-start">
+                        <AlertCircle className="h-3 w-3 mt-0.5 mr-1.5 flex-shrink-0" />
+                        <span>Please accept our Terms of Use and Privacy Policy to continue</span>
+                      </p>
+                    )}
+                  </div>
+
+                                    {/* Custom ReCAPTCHA */}
+                   <div className={`transition-all duration-200 ${
+                     recaptchaError 
+                       ? 'border-2 border-red-300 dark:border-red-500 rounded-lg bg-red-50/30 dark:bg-red-900/10 p-2' 
+                       : ''
+                   }`}>
+                     <CustomReCaptcha onChange={handleRecaptchaChange} error={!!recaptchaError} />
+                     {recaptchaError && (
+                       <div className="mt-2 flex items-center gap-2 text-red-600 dark:text-red-400 text-sm">
+                         <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                         <span>Please complete the verification to continue</span>
+                       </div>
+                     )}
+                   </div>
+
+                   {/* Terms agreement text */}
+                   <div className="text-center text-xs text-gray-500 dark:text-gray-400">
+                     <span>By submitting this form, I agree to the{" "}
+                       <a 
+                         href="/terms-and-services" 
+                         className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline transition-colors" 
+                         target="_blank"
+                         rel="noopener noreferrer"
+                       >
+                         Terms of Use
+                       </a>
+                       {" "}and{" "}
+                       <a 
+                         href="/privacy-policy" 
+                         className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline transition-colors" 
+                         target="_blank"
+                         rel="noopener noreferrer"
+                       >
+                         Privacy Policy
+                       </a>
+                     </span>
+                   </div>
+                  
+                  {/* Submit Button */}
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      className="w-full py-3 px-4 bg-gradient-to-r from-primary-500 to-indigo-600 text-white font-medium rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-primary-500/40 transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 relative overflow-hidden group"
+                    >
+                      <span className="relative z-10 flex items-center justify-center">
+                        Sign In
+                        <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </span>
+                      <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-primary-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </button>
+                  </div>
                 </form>
+              ) : (
+                                 /* No saved accounts - show manual login options directly */
+                 <div className="space-y-4">
+                   <div className="space-y-3">
+                     <h3 className="text-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+                       Choose your sign-in method
+                     </h3>
+                     
+                     {/* Email Login Option */}
+                     <button
+                       type="button"
+                       onClick={() => {
+                         console.log('Email login button clicked (no saved accounts)');
+                         setShowEmailLogin(true);
+                       }}
+                       className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-primary-500 to-indigo-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
+                     >
+                       <Mail className="w-5 h-5 mr-3" />
+                       Sign in with Email
+                     </button>
+                    
+                    {/* Google Login Option */}
+                    <button
+                      type="button"
+                      onClick={() => handleOAuthLogin('google')}
+                      disabled={isOAuthLoading.google}
+                      className="w-full flex items-center justify-center px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-200 shadow-sm hover:shadow-md"
+                    >
+                      {isOAuthLoading.google ? (
+                        <Loader2 className="w-5 h-5 animate-spin text-gray-600 dark:text-gray-300" />
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                          </svg>
+                          <span className="text-gray-700 dark:text-gray-300 font-medium">
+                            Continue with Google
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Sign Up Link */}
+                  <div className="text-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      Don't have an account?{" "}
+                      <a 
+                        href="/signup" 
+                        className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
+                      >
+                        Sign Up
+                      </a>
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
           </div>
           
           {/* Social proof */}
-          <div className="text-center mt-3 sm:mt-4 text-xs text-gray-500 dark:text-gray-400">
-            <p>Trusted by students worldwide 🌎</p>
+          <div className="text-center mt-3 text-xs text-gray-500 dark:text-gray-400">
+            <p>Trusted by students worldwide</p>
           </div>
           
-          {/* Copyright notice */}
-          <div className="text-center mt-2 text-xs text-gray-400 dark:text-gray-500">
-            <p>© {currentYear} Medh. All rights reserved.</p>
+          {/* Updated Copyright notice */}
+          <div className="text-center mt-2 text-xs text-gray-400 dark:text-gray-500 space-y-1">
+            <p>Copyright © {currentYear} MEDH. All Rights Reserved.</p>
+            <p className="text-blue-600 dark:text-blue-400 font-semibold">
+              LEARN. UPSKILL. ELEVATE.
+            </p>
           </div>
         </div>
       </div>
