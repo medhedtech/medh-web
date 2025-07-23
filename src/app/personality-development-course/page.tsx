@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { NextPage } from "next";
 import PersonalityFaq from "@/components/sections/personality-development/personalityFaq";
-import PersonalityOverview from "@/components/sections/personality-development/personality-overview";
+import PersonalityOverview from "@/components/sections/personality-development/personality-overview.js";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import PersonalityCourse from "@/components/sections/personality-development/personalityCourse";
 import PersonalityRelatedCourse from "@/components/sections/personality-development/relatedCourses";
