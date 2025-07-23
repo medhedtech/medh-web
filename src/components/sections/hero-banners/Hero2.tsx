@@ -222,6 +222,8 @@ const HeroMobile = memo<{
   isLoaded: boolean;
   isDark: boolean;
 }>(({ isLoaded, isDark }) => {
+  const router = useRouter();
+  
   // Always show mobile content, don't wait for isLoaded
   const showContent = true;
   
