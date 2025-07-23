@@ -108,6 +108,31 @@ interface EmbeddedDemoFormProps {
   className?: string;
 }
 
+// ========== PHONE VALIDATION ==========
+
+const validatePhoneNumber = (number: string, countryCode: string): boolean => {
+  if (!number) return false;
+  
+  // Remove all non-digit characters
+  const cleanNumber = number.replace(/\D/g, '');
+  
+  // Country-specific validation
+  switch (countryCode.toUpperCase()) {
+    case 'IN': // India
+      return cleanNumber.length === 10 && /^[6-9]/.test(cleanNumber);
+    case 'US': // United States
+    case 'CA': // Canada
+      return cleanNumber.length === 10;
+    case 'GB': // United Kingdom
+      return cleanNumber.length >= 10 && cleanNumber.length <= 11;
+    case 'AU': // Australia
+      return cleanNumber.length === 9 || cleanNumber.length === 10;
+    default:
+      // General validation for other countries
+      return cleanNumber.length >= 7 && cleanNumber.length <= 15;
+  }
+};
+
 // ========== FORM OPTIONS ==========
 
 const gradeOptions = [
@@ -471,7 +496,11 @@ const EmbeddedDemoForm: React.FC<EmbeddedDemoFormProps> = ({
       if (!formData.firstName.trim()) errors.firstName = "Parent name is required";
       if (!formData.lastName.trim()) errors.lastName = "Parent last name is required"; 
       if (!FormValidationService.validateEmail(formData.email).isValid) errors.email = "Valid parent email is required";
-      if (!formData.mobileNumber.trim()) errors.mobileNumber = "Parent mobile number is required";
+      if (!formData.mobileNumber.trim()) {
+        errors.mobileNumber = "Parent mobile number is required";
+      } else if (!validatePhoneNumber(formData.mobileNumber, formData.country)) {
+        errors.mobileNumber = "Please enter a valid mobile number";
+      }
       if (!formData.city.trim()) errors.city = "Parent city is required";
     }
 
@@ -487,24 +516,32 @@ const EmbeddedDemoForm: React.FC<EmbeddedDemoFormProps> = ({
       // Student details validation
       if (!formData.studentName.trim()) errors.studentName = "Student name is required";
       
-      // Conditional validation based on age
-      if (isStudentUnder16) {
-        // Contact Info validation for under 16 (parent details)
-        if (!formData.firstName.trim()) errors.firstName = "First name is required";
-        if (!formData.lastName.trim()) errors.lastName = "Last name is required";
-        if (!FormValidationService.validateEmail(formData.email).isValid) errors.email = "Valid email is required";
-        if (!formData.mobileNumber.trim()) errors.mobileNumber = "Mobile number is required";
-        if (!formData.city.trim()) errors.city = "City is required";
-        
-        if (!formData.grade) errors.grade = "Grade is required";
-        if (!formData.studentCity.trim()) errors.studentCity = "Student city is required";
-        if (!formData.studentState.trim()) errors.studentState = "Student state is required";
-      } else {
-        // For 16+ students, only validate student contact and info
-        if (!formData.mobileNumber.trim()) errors.mobileNumber = "Mobile number is required";
-        if (!formData.city.trim()) errors.city = "City is required";
-        if (!formData.highestQualification) errors.qualification = "Qualification is required";
-      }
+              // Conditional validation based on age
+        if (isStudentUnder16) {
+          // Contact Info validation for under 16 (parent details)
+          if (!formData.firstName.trim()) errors.firstName = "First name is required";
+          if (!formData.lastName.trim()) errors.lastName = "Last name is required";
+          if (!FormValidationService.validateEmail(formData.email).isValid) errors.email = "Valid email is required";
+          if (!formData.mobileNumber.trim()) {
+            errors.mobileNumber = "Mobile number is required";
+          } else if (!validatePhoneNumber(formData.mobileNumber, formData.country)) {
+            errors.mobileNumber = "Please enter a valid mobile number";
+          }
+          if (!formData.city.trim()) errors.city = "City is required";
+          
+          if (!formData.grade) errors.grade = "Grade is required";
+          if (!formData.studentCity.trim()) errors.studentCity = "Student city is required";
+          if (!formData.studentState.trim()) errors.studentState = "Student state is required";
+        } else {
+          // For 16+ students, only validate student contact and info
+          if (!formData.mobileNumber.trim()) {
+            errors.mobileNumber = "Mobile number is required";
+          } else if (!validatePhoneNumber(formData.mobileNumber, formData.country)) {
+            errors.mobileNumber = "Please enter a valid mobile number";
+          }
+          if (!formData.city.trim()) errors.city = "City is required";
+          if (!formData.highestQualification) errors.qualification = "Qualification is required";
+        }
     }
 
     if (step === 'course-preferences') {
@@ -941,17 +978,28 @@ const EmbeddedDemoForm: React.FC<EmbeddedDemoFormProps> = ({
                       <PhoneNumberInput
                         value={{ 
                           country: formState.formData.country.toUpperCase(), 
-                          number: formState.formData.mobileNumber 
+                          number: formState.formData.mobileNumber,
+                          formattedNumber: formState.formData.mobileNumber,
+                          isValid: validatePhoneNumber(formState.formData.mobileNumber, formState.formData.country)
                         }}
                         onChange={(val) => {
+                          const isValid = validatePhoneNumber(val.number, val.country);
                           updateFormData({ 
                             mobileNumber: val.number,
-                            mobileCountryCode: '+91' // Will be set based on country later
+                            country: val.country.toLowerCase(),
+                            mobileCountryCode: val.country === 'IN' ? '+91' : val.country === 'US' ? '+1' : val.country === 'GB' ? '+44' : '+91'
                           });
+                          
+                          // Clear mobile number error if validation passes
+                          if (isValid && formState.errors.mobileNumber) {
+                            setFormState(prev => ({
+                              ...prev,
+                              errors: { ...prev.errors, mobileNumber: '' }
+                            }));
+                          }
                         }}
                         placeholder="Enter mobile number"
                         defaultCountry="IN"
-
                         error={formState.errors.mobileNumber}
                       />
                     </div>
@@ -1569,14 +1617,26 @@ const EmbeddedDemoForm: React.FC<EmbeddedDemoFormProps> = ({
                         <PhoneNumberInput
                           value={{ 
                             country: formState.formData.country.toUpperCase(), 
-                            number: formState.formData.mobileNumber 
+                            number: formState.formData.mobileNumber,
+                            formattedNumber: formState.formData.mobileNumber,
+                            isValid: validatePhoneNumber(formState.formData.mobileNumber, formState.formData.country)
                           }}
-                          onChange={(val) => {
-                            updateFormData({ 
-                              mobileNumber: val.number,
-                              mobileCountryCode: '+91' // Will be set based on country later
-                            });
-                          }}
+                                                      onChange={(val) => {
+                              const isValid = validatePhoneNumber(val.number, val.country);
+                              updateFormData({ 
+                                mobileNumber: val.number,
+                                country: val.country.toLowerCase(),
+                                mobileCountryCode: val.country === 'IN' ? '+91' : val.country === 'US' ? '+1' : val.country === 'GB' ? '+44' : '+91'
+                              });
+                              
+                              // Clear mobile number error if validation passes
+                              if (isValid && formState.errors.mobileNumber) {
+                                setFormState(prev => ({
+                                  ...prev,
+                                  errors: { ...prev.errors, mobileNumber: '' }
+                                }));
+                              }
+                            }}
                           placeholder="Enter mobile number"
                           defaultCountry="IN"
                           error={formState.errors.mobileNumber}
