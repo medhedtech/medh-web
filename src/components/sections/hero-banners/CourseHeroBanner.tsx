@@ -4,7 +4,7 @@ import React, { useMemo, memo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useTheme } from "next-themes";
-import { ArrowRight, Shield, Award } from 'lucide-react';
+import { ArrowRight, Shield, Award, Video } from 'lucide-react';
 import { buildAdvancedComponent, getResponsive } from '@/utils/designSystem';
 
 // TypeScript interfaces
@@ -19,7 +19,7 @@ export interface IFeatureCard {
 export interface ICourseHeroBannerProps {
   courseType: 'ai-data-science' | 'digital-marketing' | 'personality-development' | 'vedic-mathematics';
   title: string;
-  description: string;
+  description: string | React.ReactNode;
   features: Array<{
     icon: React.ReactNode;
     title: string;
@@ -324,8 +324,8 @@ const CourseHeroBanner: React.FC<ICourseHeroBannerProps> = memo(({
               {description}
             </p>
 
-            {/* CTA Button */}
-            <div className="text-center mb-4 md:mb-6 gpu-accelerated">
+            {/* CTA Buttons */}
+            <div className="text-center mb-4 md:mb-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 md:gap-6 gpu-accelerated">
               <button
                 className={`hero-cta-button ${ctaClasses}`}
                 onClick={e => {
@@ -336,6 +336,20 @@ const CourseHeroBanner: React.FC<ICourseHeroBannerProps> = memo(({
               >
                 <span className="relative z-10 font-extrabold tracking-wide gpu-accelerated" style={{ letterSpacing: '0.05em' }}>Enroll Now</span>
                 <ArrowRight size={16} className="relative z-10 ml-2 group-hover:translate-x-1 transition-gpu gpu-accelerated" />
+              </button>
+
+              {/* Book a Free Demo Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.open('/book-demo', '_blank');
+                  }
+                }}
+                className="!inline-flex !items-center !justify-center !px-5 md:!px-6 !py-2.5 md:!py-3 !font-bold !rounded-xl !transition-all !duration-300 hover:!scale-105 group !text-sm md:!text-base !relative !overflow-hidden gpu-accelerated !bg-[#3bac63] hover:!bg-[#339955] !text-white !border !border-[#3bac63] hover:!border-[#339955] !shadow-xl hover:!shadow-[#3bac63]/30"
+              >
+                <span className="relative z-10 font-extrabold tracking-wide gpu-accelerated" style={{ letterSpacing: '0.05em' }}>Book a Free Demo</span>
+                <Video size={16} className="relative z-10 ml-2 group-hover:translate-x-1 transition-gpu gpu-accelerated" />
               </button>
             </div>
 

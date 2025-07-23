@@ -8,6 +8,7 @@ import {
   Star, 
   Award,
   Download,
+  Video,
   LucideIcon
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -29,6 +30,7 @@ interface CourseNavigationProps {
   onDownloadBrochure?: () => void;
   courseId?: string; // Add courseId prop for direct API calls
   courseTitle?: string; // Add courseTitle prop for user feedback
+  showBookDemo?: boolean; // Add prop to control Book Demo button visibility
 }
 
 // Animation variants
@@ -87,7 +89,8 @@ const CourseNavigation: React.FC<CourseNavigationProps> = ({
   showDownloadBrochure = false,
   onDownloadBrochure,
   courseId,
-  courseTitle
+  courseTitle,
+  showBookDemo = false
 }) => {
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -221,6 +224,50 @@ const CourseNavigation: React.FC<CourseNavigationProps> = ({
             </motion.button>
           );
         })}
+        
+        {/* Book a Free Demo Button */}
+        {showBookDemo && (
+          <motion.button
+          onClick={() => {
+            if (typeof window !== 'undefined') {
+              window.open('/book-demo', '_blank');
+            }
+          }}
+          className={`
+            flex items-center justify-center
+            ${compact 
+              ? 'px-4 py-2.5 min-w-[120px]' 
+              : 'px-5 py-3 sm:px-6 sm:py-3.5 min-w-[140px] sm:min-w-[160px]'
+            }
+            rounded-lg
+            text-sm sm:text-base font-semibold
+            transition-all duration-200
+            bg-[#3bac63] hover:bg-[#339955]
+            text-white
+            shadow-lg shadow-[#3bac63]/25
+            hover:shadow-xl hover:shadow-[#3bac63]/30
+            focus:outline-none focus:ring-2 focus:ring-[#3bac63] focus:ring-offset-2
+            transform hover:scale-105 active:scale-95
+          `}
+          aria-label="Book a free demo session"
+          variants={buttonVariants}
+          whileHover="hover"
+          whileTap="tap"
+        >
+          <Video 
+            className={`
+              ${compact ? 'h-4 w-4' : 'h-5 w-5 sm:h-5 sm:w-5'} 
+              ${compact ? 'mr-1.5' : 'mr-2 sm:mr-2.5'}
+              text-white
+            `} 
+            strokeWidth={2}
+          />
+          
+          <span className="text-sm sm:text-base font-semibold text-white">
+            Book Demo
+          </span>
+        </motion.button>
+        )}
         
         {/* Enhanced Download Brochure Button */}
         {showDownloadBrochure && (

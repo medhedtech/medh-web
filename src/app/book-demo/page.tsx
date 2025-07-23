@@ -169,20 +169,30 @@ const DemoBookingPage: React.FC = () => {
           <div className="px-8 py-8">
             <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6 lg:gap-8">
               
-              {/* Benefits Section */}
+                            {/* Benefits Section */}
               <div className="lg:col-span-5 space-y-6 order-1 lg:order-1">
-                {/* Header */}
-                                  <div className="text-center lg:text-left">
-                    <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-3" style={{ whiteSpace: 'nowrap' }}>
-                      Key Benefits of the Medh-Demo-Session
-                    </h2>
-                                      <p className="text-gray-600 dark:text-gray-300 text-base mb-6" style={{ whiteSpace: 'nowrap' }}>
-                      Discover the key benefits of experiencing MEDH before you commit
-                    </p>
+                {/* Desktop Header - Hidden on mobile */}
+                <div className="hidden lg:block text-center lg:text-left">
+                  <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-3" style={{ whiteSpace: 'nowrap' }}>
+                    Key Benefits of the Medh-Demo-Session
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300 text-base mb-6" style={{ whiteSpace: 'nowrap' }}>
+                    Discover the key benefits of experiencing MEDH before you commit
+                  </p>
                 </div>
 
-                {/* Benefits List - Compact Grid */}
-                <div className="grid grid-cols-1 gap-8">
+                {/* Mobile Header - Optimized for mobile */}
+                <div className="lg:hidden text-center">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2 leading-tight">
+                    Key Benefits of the<br />Medh-Demo-Session
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 leading-relaxed">
+                    Discover the key benefits of<br />experiencing MEDH before you commit
+                  </p>
+                </div>
+
+                {/* Desktop Benefits List - Original layout */}
+                <div className="hidden lg:grid grid-cols-1 gap-8">
                   {demoSessionBenefits.map((benefit, index) => {
                     const IconComponent = benefit.icon;
                     
@@ -226,6 +236,50 @@ const DemoBookingPage: React.FC = () => {
                   })}
                 </div>
 
+                {/* Mobile Benefits List - Optimized for mobile */}
+                <div className="lg:hidden grid grid-cols-1 gap-4">
+                  {demoSessionBenefits.map((benefit, index) => {
+                    const IconComponent = benefit.icon;
+                    
+                    return (
+                      <div
+                        key={benefit.id}
+                        className={`
+                          relative p-3 rounded-lg border-transparent backdrop-blur-sm
+                          bg-gradient-to-r ${benefit.bgGradient} shadow-md
+                        `}
+                        style={{
+                          animationDelay: `${index * 50}ms`
+                        }}
+                      >
+                        <div className="flex items-start gap-3">
+                          {/* Icon */}
+                          <div className={`
+                            flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center
+                            bg-gradient-to-r ${benefit.gradient} text-white shadow-md
+                          `}>
+                            <IconComponent className="w-4 h-4" />
+                          </div>
+                          
+                          {/* Content */}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-sm mb-1 text-gray-900 dark:text-white">
+                              {benefit.title}
+                            </h3>
+                            <p className="text-xs leading-relaxed text-gray-700 dark:text-gray-200">
+                              {benefit.description}
+                            </p>
+                          </div>
+
+                          {/* Check Icon */}
+                          <div className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center bg-green-500 text-white shadow-md">
+                            <CheckCircle className="w-3 h-3" />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
 
               </div>
 
