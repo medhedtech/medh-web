@@ -40,9 +40,10 @@ const OptimizedImage: React.FC<IOptimizedImageProps> = memo(({
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [fallbackAttempts, setFallbackAttempts] = useState(0);
+  const [retryTimeout, setRetryTimeout] = useState<NodeJS.Timeout | null>(null);
   const imgRef = useRef<HTMLDivElement>(null);
 
-  // Generate fallback URLs for S3 images
+  // Generate optimized fallback URLs for S3 images
   const generateFallbacks = useCallback((originalSrc: string): string[] => {
     const fallbacks: string[] = [];
     
@@ -52,56 +53,66 @@ const OptimizedImage: React.FC<IOptimizedImageProps> = memo(({
       const urlParts = originalSrc.split('/');
       const fileName = urlParts[urlParts.length - 1];
       
-      // Use the proxy endpoint for S3 images
-      fallbacks.push(`/api/image-proxy?url=${encodeURIComponent(originalSrc)}`);
+      // Prioritize most likely to work fallbacks first
       
-      // Try different S3 endpoints
+      // 1. Try global S3 endpoint (most reliable)
       if (originalSrc.includes('ap-south-1')) {
-        // Try without region-specific endpoint
         const globalUrl = originalSrc.replace('medhdocuments.s3.ap-south-1.amazonaws.com', 'medhdocuments.s3.amazonaws.com');
         fallbacks.push(globalUrl);
-        fallbacks.push(`/api/image-proxy?url=${encodeURIComponent(globalUrl)}`);
-      } else {
-        // Try with region-specific endpoint
-        const regionalUrl = originalSrc.replace('medhdocuments.s3.amazonaws.com', 'medhdocuments.s3.ap-south-1.amazonaws.com');
-        fallbacks.push(regionalUrl);
-        fallbacks.push(`/api/image-proxy?url=${encodeURIComponent(regionalUrl)}`);
       }
       
-      // Try direct CloudFront URL if available
-      if (originalSrc.includes('medhdocuments')) {
-        fallbacks.push(`https://medh-documents.s3.amazonaws.com/images/${fileName}`);
-      }
+      // 2. Try image proxy as backup (server-side processing)
+      fallbacks.push(`/api/image-proxy?url=${encodeURIComponent(originalSrc)}`);
       
-      // Add local fallback for common images
+      // 3. For course/blog images, go straight to placeholder (faster UX)
       if (fileName.includes('course') || fileName.includes('blog')) {
-        fallbacks.push('/placeholder.jpg');
+        fallbacks.push('/fallback-course-image.jpg');
       }
     }
     
-    // Always add the default fallback as last resort
+    // Always add the default fallbacks as last resort
     fallbacks.push(fallbackSrc);
-    fallbacks.push('/placeholder.jpg'); // Final fallback
+    fallbacks.push('/placeholder.jpg');
     
     // Remove duplicates while preserving order
     return [...new Set(fallbacks)];
   }, [fallbackSrc]);
 
-  // Handle image loading errors
+  // Handle image loading errors with optimized fallback strategy
   const handleError = useCallback(() => {
     const fallbacks = generateFallbacks(srcString);
     
     if (fallbackAttempts < fallbacks.length) {
       const currentSrc = typeof imgSrc === 'string' ? imgSrc : imgSrc.src;
-      console.warn(`Image failed to load: ${currentSrc}, attempting fallback ${fallbackAttempts + 1}`);
-      setImgSrc(fallbacks[fallbackAttempts]);
-      setFallbackAttempts(prev => prev + 1);
-      setIsLoading(true);
+      
+      // Only log in development to reduce console noise in production
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`Image failed to load: ${currentSrc}, attempting fallback ${fallbackAttempts + 1}`);
+      }
+      
+      // Clear any existing timeout
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+      }
+      
+      // Add small delay before trying next fallback to avoid rapid requests
+      const timeout = setTimeout(() => {
+        setImgSrc(fallbacks[fallbackAttempts]);
+        setFallbackAttempts(prev => prev + 1);
+        setIsLoading(true);
+        setRetryTimeout(null);
+      }, Math.min(100 * (fallbackAttempts + 1), 500)); // Exponential backoff up to 500ms
+      
+      setRetryTimeout(timeout);
     } else {
-      console.error(`All image fallbacks failed for: ${srcString}`);
+      // Log final failure only in development
+      if (process.env.NODE_ENV === 'development') {
+        console.error(`All image fallbacks failed for: ${srcString}`);
+      }
+      
       setHasError(true);
-      // As last resort, use the original src directly, unoptimized
-      setImgSrc(srcString);
+      // Use placeholder as final fallback for better UX
+      setImgSrc('/placeholder.jpg');
       setUnoptimized(true);
       if (customOnError) customOnError();
     }
@@ -120,13 +131,28 @@ const OptimizedImage: React.FC<IOptimizedImageProps> = memo(({
   // Reset state when src changes
   React.useEffect(() => {
     if (src !== imgSrc && fallbackAttempts === 0) {
+      // Clear any pending retry timeout
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+        setRetryTimeout(null);
+      }
+      
       setImgSrc(src);
       setIsLoading(true);
       setHasError(false);
       setFallbackAttempts(0);
       setUnoptimized(false);
     }
-  }, [src, imgSrc, fallbackAttempts]);
+  }, [src, imgSrc, fallbackAttempts, retryTimeout]);
+  
+  // Cleanup timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+      }
+    };
+  }, [retryTimeout]);
 
   // Generate blur placeholder if not provided
   const defaultBlurDataURL = blurDataURL || (placeholder === 'blur' ? `data:image/svg+xml;base64,${toBase64(shimmer(Number(width) || 400, Number(height) || 300))}` : undefined);
@@ -177,7 +203,7 @@ const OptimizedImage: React.FC<IOptimizedImageProps> = memo(({
     <Image
       {...(imageProps as any)}
       {...rest}
-      onLoadingComplete={handleLoad}
+      onLoad={handleLoad}
       onError={handleError}
     />
   );
