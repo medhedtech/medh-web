@@ -71,7 +71,6 @@ export function GoogleOneTapProvider({ children }: GoogleOneTapProviderProps) {
     // Don't show on auth pages or dashboards
     const excludePaths = ['/login', '/signup', '/forgot-password', '/reset-password', '/dashboards/', '/auth/', '/oauth'];
     if (excludePaths.some(path => pathname.startsWith(path))) {
-      console.log('🚫 Google One Tap: Excluded path:', pathname);
       return false;
     }
     
@@ -80,11 +79,9 @@ export function GoogleOneTapProvider({ children }: GoogleOneTapProviderProps) {
     const userId = localStorage.getItem('userId');
     
     if (token && userId && authUtils.isAuthenticated()) {
-      console.log('🚫 Google One Tap: User already authenticated');
       return false;
     }
     
-    console.log('✅ Google One Tap: Should show on path:', pathname);
     return true;
   };
 
@@ -106,7 +103,6 @@ export function GoogleOneTapProvider({ children }: GoogleOneTapProviderProps) {
 
   // Handle successful authentication
   const handleSuccess = async (userData: IOAuthUserData) => {
-    console.log('🎉 Google One Tap success:', userData);
     setIsLoading(true);
     
     const processingToastId = showToast.loading("🔄 Signing you in with Google...", { duration: 8000 });
@@ -178,14 +174,11 @@ export function GoogleOneTapProvider({ children }: GoogleOneTapProviderProps) {
 
   // Handle authentication errors
   const handleError = (err: any) => {
-    console.error('Google One Tap error:', err);
-    
     // Don't show error for user cancellations or common issues
     if (err?.type === 'popup_closed_by_user' || 
         err?.message?.includes('popup_closed_by_user') ||
         err?.message?.includes('access_denied') ||
         err?.message?.includes('cancelled')) {
-      console.log('Google One Tap: User cancelled or popup blocked');
       return;
     }
     
@@ -193,12 +186,13 @@ export function GoogleOneTapProvider({ children }: GoogleOneTapProviderProps) {
     if (err?.message?.includes('NetworkError') || 
         err?.message?.includes('Failed to load') ||
         err?.message?.includes('fetch')) {
-      console.log('Google One Tap: Network error (silent handling)');
       return;
     }
     
-    // Only log unexpected errors
-    console.warn('Google One Tap: Unexpected error:', err?.message || err);
+    // Only log unexpected errors in development
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Google One Tap: Unexpected error:', err?.message || err);
+    }
   };
 
   // Load Google script with optimization
@@ -221,12 +215,13 @@ export function GoogleOneTapProvider({ children }: GoogleOneTapProviderProps) {
       script.defer = true;
       
       script.onload = () => {
-        console.log('✅ Google One Tap script loaded successfully');
         resolve();
       };
       
       script.onerror = () => {
-        console.error('❌ Failed to load Google One Tap script');
+        if (process.env.NODE_ENV === 'development') {
+          console.error('❌ Failed to load Google One Tap script');
+        }
         scriptLoadPromise.current = null;
         reject(new Error('Failed to load Google Identity Services'));
       };
@@ -244,12 +239,13 @@ export function GoogleOneTapProvider({ children }: GoogleOneTapProviderProps) {
     }
     
     initRef.current = true;
-    console.log('🔄 Initializing Google One Tap...');
 
     const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     
     if (!googleClientId) {
-      console.error('❌ Google Client ID not found');
+      if (process.env.NODE_ENV === 'development') {
+        console.error('❌ Google Client ID not found');
+      }
       return;
     }
 
@@ -270,18 +266,22 @@ export function GoogleOneTapProvider({ children }: GoogleOneTapProviderProps) {
         attempts++;
         if (attempts < maxAttempts) {
           setTimeout(waitForGoogle, 100);
-        } else {
-          console.error('❌ Google API not available after waiting');
-          initRef.current = false;
-        }
+                 } else {
+           if (process.env.NODE_ENV === 'development') {
+             console.error('❌ Google API not available after waiting');
+           }
+           initRef.current = false;
+         }
       };
 
       waitForGoogle();
-      
-    } catch (error) {
-      console.error('❌ Failed to initialize Google One Tap:', error);
-      initRef.current = false;
-    }
+             
+     } catch (error) {
+       if (process.env.NODE_ENV === 'development') {
+         console.error('❌ Failed to initialize Google One Tap:', error);
+       }
+       initRef.current = false;
+     }
   };
 
   // Setup Google One Tap
@@ -289,13 +289,10 @@ export function GoogleOneTapProvider({ children }: GoogleOneTapProviderProps) {
     const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
     
     try {
-      console.log('🔧 Setting up Google One Tap with client ID:', googleClientId.substring(0, 20) + '...');
-      
       window.google!.accounts.id.initialize({
         client_id: googleClientId,
         callback: async (response: any) => {
           try {
-            console.log('📥 Google One Tap callback received');
             await authUtils.handleGoogleCredentialResponse(
               response,
               handleSuccess,
@@ -314,7 +311,6 @@ export function GoogleOneTapProvider({ children }: GoogleOneTapProviderProps) {
       });
       
       setIsInitialized(true);
-      console.log('✅ Google One Tap initialized successfully');
       
       // Auto-trigger after delay
       if (!promptShown.current) {
@@ -324,7 +320,9 @@ export function GoogleOneTapProvider({ children }: GoogleOneTapProviderProps) {
       }
       
     } catch (err) {
-      console.error('❌ Failed to setup Google One Tap:', err);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('❌ Failed to setup Google One Tap:', err);
+      }
       initRef.current = false;
     }
   };
@@ -332,16 +330,10 @@ export function GoogleOneTapProvider({ children }: GoogleOneTapProviderProps) {
   // Trigger One Tap prompt
   const triggerOneTap = () => {
     if (!window.google?.accounts?.id || !isInitialized || promptShown.current) {
-      console.log('🚫 Cannot trigger One Tap:', { 
-        googleAvailable: !!window.google?.accounts?.id, 
-        initialized: isInitialized, 
-        promptShown: promptShown.current 
-      });
       return;
     }
 
     try {
-      console.log('🚀 Triggering Google One Tap prompt...');
       promptShown.current = true;
       
       // Cancel any existing prompts first
@@ -349,16 +341,12 @@ export function GoogleOneTapProvider({ children }: GoogleOneTapProviderProps) {
       
       // Show the prompt with callback
       window.google.accounts.id.prompt((notification: any) => {
-        console.log('📋 Google One Tap notification:', notification);
-        
         if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          console.log('ℹ️ Google One Tap not displayed:', notification.getNotDisplayedReason() || notification.getSkippedReason());
           promptShown.current = false; // Allow retry
         }
       });
       
     } catch (err) {
-      console.error('❌ Failed to trigger Google One Tap:', err);
       promptShown.current = false;
     }
   };
@@ -384,14 +372,16 @@ export function GoogleOneTapProvider({ children }: GoogleOneTapProviderProps) {
     }
   }, [pathname, mounted]);
 
-  // Mount effect
+  // Mount effect with proper hydration handling
   useEffect(() => {
+    // Prevent hydration mismatch by ensuring client-side only execution
+    if (typeof window === 'undefined') return;
+    
     setMounted(true);
     
-    // Add global debugging functions
+    // Add global debugging functions in development
     if (process.env.NODE_ENV === 'development') {
       (window as any).testGoogleOneTap = () => {
-        console.log('🧪 Testing Google One Tap...');
         triggerOneTap();
       };
       
@@ -408,15 +398,11 @@ export function GoogleOneTapProvider({ children }: GoogleOneTapProviderProps) {
         console.log('User ID:', localStorage.getItem('userId') ? 'Present' : 'Not found');
         console.groupEnd();
       };
-      
-      console.log('🔧 Google One Tap debugging functions available:');
-      console.log('- window.testGoogleOneTap() - Manually trigger One Tap');
-      console.log('- window.debugGoogleOneTap() - Show debug information');
     }
     
     return () => {
       // Cleanup on unmount
-      if (window.google?.accounts?.id) {
+      if (typeof window !== 'undefined' && window.google?.accounts?.id) {
         try {
           window.google.accounts.id.cancel();
         } catch (error) {
@@ -437,51 +423,6 @@ export function GoogleOneTapProvider({ children }: GoogleOneTapProviderProps) {
   return (
     <GoogleOneTapContext.Provider value={contextValue}>
       {children}
-      {/* Debug info in development */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="fixed top-4 right-4 z-[2147483646] space-y-1">
-          <div className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-mono opacity-80">
-            Google One Tap: {isInitialized ? 'Ready' : 'Loading...'}
-          </div>
-          <div className="bg-gray-600 text-white px-2 py-1 rounded text-xs font-mono opacity-80">
-            Path: {pathname}
-          </div>
-          {mounted && shouldShowOneTap() ? (
-            <div className="bg-green-500 text-white px-2 py-1 rounded text-xs font-mono opacity-80">
-              Should Show: ✓
-            </div>
-          ) : (
-            <div className="bg-red-500 text-white px-2 py-1 rounded text-xs font-mono opacity-80">
-              Should Show: ✗
-            </div>
-          )}
-          {isInitialized && (
-            <button
-              onClick={triggerOneTap}
-              className="block w-full bg-purple-500 hover:bg-purple-600 text-white px-2 py-1 rounded text-xs font-mono transition-colors"
-            >
-              Trigger One Tap
-            </button>
-          )}
-          <button
-            onClick={() => {
-              console.log('🔍 Google One Tap Debug Info:', {
-                mounted,
-                isInitialized,
-                shouldShow: shouldShowOneTap(),
-                pathname,
-                googleAvailable: !!window.google?.accounts?.id,
-                promptShown: promptShown.current,
-                token: localStorage.getItem('token'),
-                userId: localStorage.getItem('userId')
-              });
-            }}
-            className="block w-full bg-orange-500 hover:bg-orange-600 text-white px-2 py-1 rounded text-xs font-mono transition-colors"
-          >
-            Debug Info
-          </button>
-        </div>
-      )}
     </GoogleOneTapContext.Provider>
   );
 } 
