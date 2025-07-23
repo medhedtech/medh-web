@@ -177,7 +177,7 @@ const OptimizedImage: React.FC<IOptimizedImageProps> = memo(({
     <Image
       {...(imageProps as any)}
       {...rest}
-      onLoadingComplete={handleLoad}
+      onLoad={handleLoad}
       onError={handleError}
     />
   );

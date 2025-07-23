@@ -199,7 +199,9 @@ const NavbarLogo: React.FC<NavbarLogoProps> = ({ isScrolled }) => {
               `}
               onLoad={handleLogoLoad}
               onError={handleLogoLoad}
-              style={{ objectFit: 'contain' }}
+              style={{ 
+                objectFit: 'contain'
+              }}
             />
             
             {/* Light mode logo (logo0) */}
