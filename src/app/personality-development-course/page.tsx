@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { NextPage } from "next";
 import PersonalityFaq from "@/components/sections/personality-development/personalityFaq";
-import PersonalityOvereveiw from "@/components/sections/personality-development/personality-overview";
+import PersonalityOverview from "@/components/sections/personality-development/personality-overview";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import PersonalityCourse from "@/components/sections/personality-development/personalityCourse";
 import PersonalityRelatedCourse from "@/components/sections/personality-development/relatedCourses";
@@ -212,23 +212,12 @@ const PersonalityDevelopment: NextPage = () => {
   return (
     <PageWrapper>
       <div className="relative min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-        {/* Fixed Header */}
-        <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transform-gpu">
-          <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Personality Development
-              </h1>
-            </div>
-          </nav>
-        </header>
-
-        {/* Content with Header Offset */}
+        {/* Content */}
         <main className="flex-grow">
           <AnimatedContent
             components={{
               CourseBanner: () => <PersonalityDevelopmentHero />,
-              PersonalityOvereveiw: PersonalityOvereveiw,
+              PersonalityOverview: PersonalityOverview,
               PersonalityCourse: PersonalityCourse,
               PersonalityFaq: () => (
                 <section className="bg-slate-50 dark:bg-slate-900 min-h-screen px-4 sm:px-[50px]">

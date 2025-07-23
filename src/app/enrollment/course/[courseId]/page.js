@@ -190,6 +190,7 @@ export default function CourseView() {
                       <CourseDetailsPage 
                         courseId={course._id} 
                         initialActiveSection={activeSection}
+                        isEnrollmentPage={true}
                         faqComponent={<CourseFaq courseId={course._id} />}
                       />
                     </div>
