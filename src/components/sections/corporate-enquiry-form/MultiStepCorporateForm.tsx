@@ -62,6 +62,18 @@ import PhoneNumberInput, { CountryOption } from '../../shared/login/PhoneNumberI
 // Toast notifications
 import { toast } from 'react-toastify';
 
+// Custom debounce utility to avoid lodash dependency
+const debounce = <T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): ((...args: Parameters<T>) => void) => {
+  let timeout: NodeJS.Timeout;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+};
+
 // Enhanced Form Data Interface following JSON structure
 interface IFormData {
   // Step 1: Contact Information
@@ -253,9 +265,28 @@ const AUTOCOMPLETE_SUGGESTIONS = {
 const phoneNumberYupSchema = yup.object({
   country: yup.string().required('Country code is required'),
   number: yup.string()
-    .matches(/^[0-9]+$/, 'Phone number must consist of digits only')
-    .min(6, 'Phone number must be at least 6 digits')
-    .max(15, 'Phone number cannot exceed 15 digits')
+    .test('phone-validation', 'Please enter a valid phone number', function(value) {
+      if (!value) return false;
+      
+      // Remove any non-digit characters except + at the beginning
+      const cleanedNumber = value.replace(/[^\d+]/g, '');
+      
+      // Basic validation for phone number length and format
+      if (cleanedNumber.length < 6) {
+        return this.createError({ message: 'Phone number must be at least 6 digits' });
+      }
+      
+      if (cleanedNumber.length > 15) {
+        return this.createError({ message: 'Phone number cannot exceed 15 digits' });
+      }
+      
+      // Check if it starts with country code digits
+      if (/^(\+?[1-9]\d{1,4})?[1-9]\d{5,14}$/.test(cleanedNumber)) {
+        return true;
+      }
+      
+      return this.createError({ message: 'Please enter a valid phone number' });
+    })
     .required('Phone number is required'),
 }).required();
 
@@ -511,7 +542,16 @@ interface IUniversalFormResponse {
 // Enhanced Universal Form Model Utilities
 const universalFormUtils = {
   transformToUniversalFormat: (data: IFormData) => {
-    const phoneNumber = `+${data.contact_info.phone_number.country}${data.contact_info.phone_number.number}`;
+    // Enhanced phone number formatting to handle country codes properly
+    let phoneNumber = '';
+    if (data.contact_info.phone_number) {
+      const { country, number } = data.contact_info.phone_number;
+      // Clean the number by removing any existing country code prefix
+      const cleanNumber = number.replace(/^\+?[0-9]{1,4}/, '');
+      // Get the country code based on the selected country
+      const countryCode = country.toUpperCase();
+      phoneNumber = `+${countryCode}${cleanNumber}`;
+    }
     
     return {
       form_type: UNIVERSAL_FORM_CONSTANTS.FORM_TYPE,
@@ -560,16 +600,16 @@ const universalFormUtils = {
       terms_accepted: data.consent.terms_accepted,
       privacy_policy_accepted: data.consent.terms_accepted,
       
-      // Enhanced Submission Metadata
+      // Enhanced Submission Metadata (SSR-safe)
       submission_metadata: {
-        user_agent: typeof window !== 'undefined' ? window.navigator.userAgent : '',
+        user_agent: typeof window !== 'undefined' ? window.navigator?.userAgent || '' : '',
         timestamp: new Date().toISOString(),
-        referrer: typeof window !== 'undefined' ? document.referrer : '',
+        referrer: typeof window !== 'undefined' ? document?.referrer || '' : '',
         form_version: UNIVERSAL_FORM_CONSTANTS.FORM_VERSION,
         form_config: FORM_CONFIG,
         validation_passed: true,
-        session_id: typeof window !== 'undefined' ? sessionStorage.getItem('session_id') : '',
-        page_url: typeof window !== 'undefined' ? window.location.href : '',
+        session_id: typeof window !== 'undefined' ? sessionStorage?.getItem('session_id') || '' : '',
+        page_url: typeof window !== 'undefined' ? window.location?.href || '' : '',
       }
     };
   },
@@ -600,18 +640,23 @@ const universalFormUtils = {
 
   storeSubmissionDetails: (response: IUniversalFormResponse, companyName: string) => {
     if (typeof window !== 'undefined' && response.success && response.data) {
-      const submissionDetails = {
-        application_id: response.data.application_id,
-        submitted_at: response.data.submitted_at,
-        status: response.data.status,
-        company_name: companyName,
-        form_type: UNIVERSAL_FORM_CONSTANTS.FORM_TYPE,
-        form_version: UNIVERSAL_FORM_CONSTANTS.FORM_VERSION,
-        stored_at: new Date().toISOString(),
-      };
-      
-      localStorage.setItem('last_corporate_inquiry', JSON.stringify(submissionDetails));
-      sessionStorage.setItem('current_form_submission', JSON.stringify(submissionDetails));
+      try {
+        const submissionDetails = {
+          application_id: response.data.application_id,
+          submitted_at: response.data.submitted_at,
+          status: response.data.status,
+          company_name: companyName,
+          form_type: UNIVERSAL_FORM_CONSTANTS.FORM_TYPE,
+          form_version: UNIVERSAL_FORM_CONSTANTS.FORM_VERSION,
+          stored_at: new Date().toISOString(),
+        };
+        
+        localStorage.setItem('last_corporate_inquiry', JSON.stringify(submissionDetails));
+        sessionStorage.setItem('current_form_submission', JSON.stringify(submissionDetails));
+        console.log('💾 Submission details stored successfully');
+      } catch (error) {
+        console.warn('Failed to store submission details:', error);
+      }
     }
   },
 };
@@ -1214,35 +1259,69 @@ const MultiStepCorporateForm: React.FC<{
     });
   }, []);
 
-  // Auto-save form data to localStorage
-  useEffect(() => {
-    if (mounted) {
-      const formData = getValues();
-      localStorage.setItem('corporateFormDraft', JSON.stringify({
-        ...formData,
-        currentStep,
-        completedSteps: Array.from(completedSteps),
-        timestamp: Date.now()
-      }));
-    }
-  }, [watchedFields, currentStep, completedSteps, mounted, getValues]);
-
-  // Load saved form data on mount
-  useEffect(() => {
-    if (mounted) {
-      try {
-        const savedData = localStorage.getItem('corporateFormDraft');
-        if (savedData) {
-          const parsed = JSON.parse(savedData);
-          if (Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
-            const { currentStep: savedStep, completedSteps: savedCompleted, timestamp, ...formData } = parsed;
-            reset(formData);
-            setCurrentStep(savedStep || 0);
-            setCompletedSteps(new Set(savedCompleted || []));
+  // Enhanced debounced auto-save for better performance (client-side only)
+  const debouncedAutoSave = React.useMemo(
+    () => {
+      if (typeof window === 'undefined') {
+        // Return a no-op function for SSR
+        return () => {};
+      }
+      
+      return debounce((formData: IFormData, step: number, completed: Set<number>) => {
+        if (mounted && typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('corporateFormDraft', JSON.stringify({
+              ...formData,
+              currentStep: step,
+              completedSteps: Array.from(completed),
+              timestamp: Date.now()
+            }));
+            console.log('📦 Form auto-saved to localStorage');
+          } catch (error) {
+            console.warn('Failed to save form data to localStorage:', error);
           }
         }
-      } catch (error) {
-        console.log('Could not restore form data:', error);
+      }, 1000);
+    },
+    [mounted]
+  );
+
+  // Auto-save form data to localStorage with debouncing (client-side only)
+  useEffect(() => {
+    if (!mounted || typeof window === 'undefined') return;
+    
+    const formData = getValues();
+    debouncedAutoSave(formData, currentStep, completedSteps);
+  }, [watchedFields, currentStep, completedSteps, debouncedAutoSave, getValues, mounted]);
+
+  // Load saved form data on mount (client-side only)
+  useEffect(() => {
+    if (!mounted || typeof window === 'undefined') return;
+    
+    try {
+      const savedData = localStorage.getItem('corporateFormDraft');
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        // Only restore data from the last 24 hours
+        if (Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
+          const { currentStep: savedStep, completedSteps: savedCompleted, timestamp, ...formData } = parsed;
+          reset(formData);
+          setCurrentStep(savedStep || 0);
+          setCompletedSteps(new Set(savedCompleted || []));
+          console.log('📂 Form data restored from localStorage');
+        } else {
+          // Clean up old data
+          localStorage.removeItem('corporateFormDraft');
+          console.log('🗑️ Old form data cleaned up');
+        }
+      }
+    } catch (error) {
+      console.warn('Could not restore form data:', error);
+      // Clean up corrupted data
+      try {
+        localStorage.removeItem('corporateFormDraft');
+      } catch (cleanupError) {
+        console.warn('Could not clean up corrupted form data:', cleanupError);
       }
     }
   }, [mounted, reset]);
@@ -1354,20 +1433,36 @@ const MultiStepCorporateForm: React.FC<{
     console.log('🔄 HANDLE NEXT CLICKED - Current Step:', currentStep);
     console.log('📝 Current Form Values:', getValues());
     
+    // Show processing feedback to user
+    toast.info(`Validating ${FORM_STEPS[currentStep]?.title}...`, { autoClose: 1000 });
+    
     const isValid = await validateCurrentStep();
     console.log('✅ Validation Result:', isValid);
     
     if (isValid) {
       console.log('✅ Step validation passed, proceeding to next step');
       setCompletedSteps(prev => new Set([...prev, currentStep]));
+      
+      // Enhanced step progression with smooth animations
       if (currentStep < FORM_STEPS.length - 1) {
         console.log(`➡️ Moving from step ${currentStep} to step ${currentStep + 1}`);
-        setCurrentStep(currentStep + 1);
+        
+        // Show step completion feedback
+        toast.success(`✅ ${FORM_STEPS[currentStep]?.title} completed!`, { 
+          autoClose: 2000,
+          position: "bottom-right"
+        });
+        
+        // Small delay for better UX
+        setTimeout(() => {
+          setCurrentStep(currentStep + 1);
+        }, 200);
       } else {
         console.log('🏁 Reached final step');
       }
     } else {
       console.log('❌ Step validation failed, staying on current step');
+      // Enhanced error feedback is already handled in validateCurrentStep
     }
   };
 
@@ -1376,6 +1471,38 @@ const MultiStepCorporateForm: React.FC<{
       setCurrentStep(currentStep - 1);
     }
   };
+
+  // Enhanced keyboard navigation support (client-side only)
+  useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined' || !mounted) return;
+    
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Only handle keyboard shortcuts when form is focused
+      if (!event.target || !(event.target as Element).closest('.dynamic-form')) return;
+      
+      // Enter key on final step submits form
+      if (event.key === 'Enter' && event.ctrlKey && currentStep === FORM_STEPS.length - 1) {
+        event.preventDefault();
+        handleSubmit(onSubmit)();
+        return;
+      }
+      
+      // Arrow keys for navigation (with Ctrl modifier to avoid conflicts)
+      if (event.ctrlKey) {
+        if (event.key === 'ArrowRight' && currentStep < FORM_STEPS.length - 1) {
+          event.preventDefault();
+          handleNext();
+        } else if (event.key === 'ArrowLeft' && currentStep > 0) {
+          event.preventDefault();
+          handlePrevious();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [currentStep, handleNext, handlePrevious, handleSubmit, onSubmit, mounted]);
 
   const onSubmit = async (data: IFormData): Promise<void> => {
     console.log('🚀 FORM SUBMISSION STARTED');
@@ -1412,29 +1539,63 @@ const MultiStepCorporateForm: React.FC<{
       
       console.log('✅ Demo Response Generated:', demoResponse);
       
-      // Show success feedback
-      toast.success('🎉 Demo submission completed successfully!');
+      // Enhanced success feedback with detailed information
+      toast.success(`🎉 Demo submission completed successfully for ${data.organization_info.company_name}!`, {
+        position: "top-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       
       // Store demo submission details
       universalFormUtils.storeSubmissionDetails(demoResponse, data.organization_info.company_name);
       console.log('💾 Demo submission details stored');
       
-      // Show success modal
-        setShowSuccessModal(true);
-      console.log('🎊 Success modal displayed');
+      // Show success modal with enhanced data
+      setShowSuccessModal(true);
+      console.log('🎊 Success modal displayed with enhanced feedback');
       
       // Reset form for next demo
-        reset();
-        setCurrentStep(0);
-        setCompletedSteps(new Set());
-      localStorage.removeItem('corporateFormDraft');
-      console.log('🔄 Form reset for next demo');
+      reset();
+      setCurrentStep(0);
+      setCompletedSteps(new Set());
+      
+      // Clean up localStorage (client-side only)
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.removeItem('corporateFormDraft');
+          console.log('🔄 Form reset for next demo');
+        } catch (error) {
+          console.warn('Failed to clean up form data:', error);
+        }
+      }
       
       console.log('🎯 Demo Submission Complete:', demoResponse);
       
     } catch (error) {
       console.error('❌ Demo Submission Error:', error);
-      toast.error('Demo submission failed. Please try again.');
+      
+      // Enhanced error feedback with specific error information
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast.error(`Demo submission failed: ${errorMessage}. Please check your information and try again.`, {
+        position: "top-center",
+        autoClose: 7000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      
+      // Log detailed error information for debugging
+      console.error('📊 Error Details:', {
+        error: errorMessage,
+        formData: JSON.stringify(data, null, 2),
+        timestamp: new Date().toISOString(),
+        currentStep,
+        completedSteps: Array.from(completedSteps)
+      });
     }
   };
 
@@ -1489,13 +1650,21 @@ const MultiStepCorporateForm: React.FC<{
                         country: watchedFields.contact_info?.country || 'in', 
                         number: typeof field.value === 'string' ? field.value : field.value?.number || '' 
                       }}
-                      onChange={val => field.onChange(val)}
+                      onChange={val => {
+                        console.log('📞 Phone number changed:', val);
+                        field.onChange(val);
+                      }}
                       placeholder="Enter your contact number"
                       error={fieldState.error?.message}
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       Country code is automatically set based on your selected location.
                     </p>
+                    {fieldState.error && (
+                      <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                        {fieldState.error.message}
+                      </p>
+                    )}
                   </div>
                 )}
               />
@@ -1666,7 +1835,7 @@ const MultiStepCorporateForm: React.FC<{
 
   return (
     <section className="min-h-screen w-full bg-white dark:bg-slate-900">
-      <div className="w-full">
+      <div className="w-full dynamic-form">
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -1692,6 +1861,15 @@ const MultiStepCorporateForm: React.FC<{
                 className="text-slate-600 dark:text-slate-400 text-base sm:text-lg"
               >
                 Tell us about your training needs
+              </motion.p>
+              
+              <motion.p 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-slate-500 dark:text-slate-500 text-xs sm:text-sm mt-2"
+              >
+                💡 Tip: Use Ctrl + ← → arrow keys to navigate between steps, Ctrl + Enter to submit on final step
               </motion.p>
             </div>
           </div>

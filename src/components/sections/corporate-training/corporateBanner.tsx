@@ -234,10 +234,7 @@ const CorporateBanner: React.FC<CorporateBannerProps> = ({ onLearnMoreClick }) =
     };
   }, [mounted, isDark]);
 
-  useEffect(() => {
-    setIsLoaded(true);
-  }, []);
-
+  // Define handleExplore function before it's used in JSX
   const handleExplore = (): void => {
     const element = document.getElementById('enroll-form');
     if (element) {
@@ -247,6 +244,27 @@ const CorporateBanner: React.FC<CorporateBannerProps> = ({ onLearnMoreClick }) =
       });
     }
   };
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
+
+  // Prevent hydration mismatch during SSR
+  if (!mounted) {
+    return (
+      <section className="relative min-h-screen overflow-hidden bg-slate-50 dark:bg-slate-900">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
+          <div className="flex flex-col items-center justify-center min-h-screen text-center py-4 md:py-6 lg:py-8">
+            <div className="animate-pulse">
+              <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded w-96 mx-auto mb-4"></div>
+              <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-64 mx-auto mb-6"></div>
+              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-32 mx-auto"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="relative min-h-screen overflow-hidden animate-theme-transition">
