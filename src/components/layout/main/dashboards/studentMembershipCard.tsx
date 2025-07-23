@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import StudentMainMembership from "./studentMainMembership";
 import Image from "next/image";
@@ -11,17 +12,75 @@ import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { motion, AnimatePresence } from "framer-motion";
 import { Crown, Search, Loader2, AlertCircle } from "lucide-react";
-const StudentMembershipCard = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [studentId, setStudentId] = useState(null);
-  const [courses, setCourses] = useState([]);
-  const { getQuery, loading } = useGetQuery();
-  const [memberships, setMemberships] = useState([]);
-  const [hasFetched, setHasFetched] = useState(false);
-  const [membershipDetails, setMembershipDetails] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
+import { useToast } from "@/components/shared/ui/ToastProvider";
 
-  const containerVariants = {
+interface Course {
+  course_id: string;
+  course_title: string;
+  category: string;
+  course_image: string;
+  course_category: string;
+  no_of_Sessions: number;
+  course_duration: string;
+  session_duration: string;
+}
+
+interface CategoryId {
+  category_name: string;
+}
+
+interface Membership {
+  _id: string;
+  plan_type: string;
+  expiry_date: string;
+  category_ids?: CategoryId[];
+}
+
+interface MembershipDetail extends Membership {
+  courses: Course[];
+}
+
+interface ContainerVariants {
+  hidden: {
+    opacity: number;
+    y: number;
+  };
+  visible: {
+    opacity: number;
+    y: number;
+    transition: {
+      duration: number;
+      staggerChildren: number;
+    };
+  };
+}
+
+interface ItemVariants {
+  hidden: {
+    opacity: number;
+    y: number;
+  };
+  visible: {
+    opacity: number;
+    y: number;
+    transition: {
+      duration: number;
+    };
+  };
+}
+
+const StudentMembershipCard: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [studentId, setStudentId] = useState<string | null>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const { getQuery, loading } = useGetQuery();
+  const [memberships, setMemberships] = useState<Membership[]>([]);
+  const [hasFetched, setHasFetched] = useState<boolean>(false);
+  const [membershipDetails, setMembershipDetails] = useState<MembershipDetail[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const { showToast } = useToast();
+
+  const containerVariants: ContainerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
@@ -33,7 +92,7 @@ const StudentMembershipCard = () => {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: ItemVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
@@ -50,14 +109,14 @@ const StudentMembershipCard = () => {
       setStudentId(storedUserId);
     }
 
-    const fetchCourses = async () => {
+    const fetchCourses = async (): Promise<void> => {
       try {
         await getQuery({
           url: apiUrls?.courses?.getAllCourses,
-          onSuccess: (res) => {
+          onSuccess: (res: Course[]) => {
             setCourses(res || []);
           },
-          onFail: (err) => {
+          onFail: (err: any) => {
             console.error("Error fetching courses:", err);
             showToast.error("Failed to fetch courses. Please try again.");
           },
@@ -69,30 +128,30 @@ const StudentMembershipCard = () => {
     };
 
     fetchCourses();
-  }, []);
+  }, [getQuery, showToast]);
 
   useEffect(() => {
-    const fetchMemberships = () => {
+    const fetchMemberships = (): void => {
       if (hasFetched) return;
       if (!studentId || courses.length === 0) return;
       
       getQuery({
         url: `${apiUrls?.Membership?.getMembershipBbyStudentId}/${studentId}`,
-        onSuccess: (res) => {
+        onSuccess: (res: { data: Membership[] }) => {
           setMemberships(res?.data || []);
           setHasFetched(true);
 
           const memberships = res?.data || [];
-          const membershipDetails = memberships.map((membership) => {
+          const membershipDetails: MembershipDetail[] = memberships.map((membership) => {
             const categoryNames = membership.category_ids?.map(
               (category) => category.category_name
             ) || [];
 
-            const groupedCourses = categoryNames.map((category) =>
+            const groupedCourses: Course[][] = categoryNames.map((category) =>
               courses.filter((course) => course.category === category)
             );
 
-            const enrolledCourses = groupedCourses.flat();
+            const enrolledCourses: Course[] = groupedCourses.flat();
 
             return {
               ...membership,
@@ -102,7 +161,7 @@ const StudentMembershipCard = () => {
 
           setMembershipDetails(membershipDetails);
         },
-        onFail: (err) => {
+        onFail: (err: any) => {
           console.error("Error fetching memberships:", err);
           showToast.error("Failed to fetch memberships. Please try again.");
         },
@@ -110,9 +169,9 @@ const StudentMembershipCard = () => {
     };
 
     fetchMemberships();
-  }, [studentId, courses]);
+  }, [studentId, courses, hasFetched, getQuery, showToast]);
 
-  const filteredMemberships = membershipDetails.map(membership => ({
+  const filteredMemberships: MembershipDetail[] = membershipDetails.map(membership => ({
     ...membership,
     courses: membership.courses.filter(course => 
       course.course_title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -168,7 +227,7 @@ const StudentMembershipCard = () => {
                 type="text"
                 placeholder="Search courses..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all duration-200"
               />
             </motion.div>
@@ -265,4 +324,4 @@ const StudentMembershipCard = () => {
   );
 };
 
-export default StudentMembershipCard;
+export default StudentMembershipCard; 
