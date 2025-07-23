@@ -218,6 +218,12 @@ const FORM_CONFIG = {
 
 // ========== ENHANCED FORM STATE TYPES ==========
 
+// Extended interfaces for form with phone validation
+interface IEnhancedStudentDetails16AndAbove extends IStudentDetails16AndAbove {
+  formatted_phone?: string;
+  phone_valid?: boolean;
+}
+
 interface IFormState {
   // Current step and UI state
   step: TFormStep;
@@ -228,14 +234,19 @@ interface IFormState {
   parentDetails: {
     full_name: string;
     email: string;
-    phone_number: string;
+    mobile_number: {
+      country_code: string;
+      number: string;
+    };
     city: string;
     country: string;
     relationship: 'father' | 'mother' | 'guardian';
     preferred_timings_to_connect: TPreferredTiming;
+    formatted_phone?: string;
+    phone_valid?: boolean;
   };
   studentDetailsUnder16: IStudentDetailsUnder16;
-  studentDetails16AndAbove: IStudentDetails16AndAbove;
+  studentDetails16AndAbove: IEnhancedStudentDetails16AndAbove;
   demoSessionDetails: IDemoSessionDetails;
   consent: IConsent;
   
@@ -263,14 +274,14 @@ interface DemoSessionFormProps {
 
 // ========== FORM OPTIONS & CONSTANTS ==========
 
-const gradeOptions: { value: TStudentGrade; label: string; description: string }[] = [
-  { value: "Grade 1-2", label: "Grade 1-2", description: "Ages 6-8" },
-  { value: "Grade 3-4", label: "Grade 3-4", description: "Ages 8-10" },
-  { value: "Grade 5-6", label: "Grade 5-6", description: "Ages 10-12" },
-  { value: "Grade 7-8", label: "Grade 7-8", description: "Ages 12-14" },
-  { value: "Grade 9-10", label: "Grade 9-10", description: "Ages 14-16" },
-  { value: "Grade 11-12", label: "Grade 11-12", description: "Ages 16-18" },
-  { value: "Home Study", label: "Home Study", description: "Homeschooled" },
+const gradeOptions: { value: 'grade_1-2' | 'grade_3-4' | 'grade_5-6' | 'grade_7-8' | 'grade_9-10' | 'grade_11-12' | 'home_study'; label: string; description: string }[] = [
+  { value: "grade_1-2", label: "Grade 1-2", description: "Ages 6-8" },
+  { value: "grade_3-4", label: "Grade 3-4", description: "Ages 8-10" },
+  { value: "grade_5-6", label: "Grade 5-6", description: "Ages 10-12" },
+  { value: "grade_7-8", label: "Grade 7-8", description: "Ages 12-14" },
+  { value: "grade_9-10", label: "Grade 9-10", description: "Ages 14-16" },
+  { value: "grade_11-12", label: "Grade 11-12", description: "Ages 16-18" },
+  { value: "home_study", label: "Home Study", description: "Homeschooled" },
 ];
 
 const qualificationOptions: { value: THighestQualification; label: string }[] = [
@@ -453,16 +464,24 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
     step: 'details',
     isStudentUnder16: null,
     contactInfo: {
+      first_name: '',
+      last_name: '',
       full_name: '',
       email: '',
-      phone_number: '', // Keep existing field name for now
+      mobile_number: {
+        country_code: '+91',
+        number: ''
+      },
       city: '',
       country: 'in'
     },
     parentDetails: { 
       full_name: '',
       email: '',
-      phone_number: '',
+      mobile_number: {
+        country_code: '+91',
+        number: ''
+      },
       city: '',
       country: 'in',
       relationship: 'father',
@@ -470,7 +489,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
     },
     studentDetailsUnder16: { 
       name: '',
-      grade: 'Grade 1-2' as TStudentGrade, // Keep existing for now
+      grade: 'grade_1-2' as const,
       city: '',
       state: '',
       country: 'in',
@@ -695,7 +714,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
           email: formState.parentDetails.email || '',
           mobile_number: {
             country_code: `+${formState.parentDetails.country === 'in' ? '91' : '1'}`,
-            number: formState.parentDetails.phone_number || ''
+            number: formState.parentDetails.mobile_number.number || ''
           },
           city: formState.parentDetails.city || '',
           country: formState.parentDetails.country || 'in'
@@ -762,7 +781,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
         // Validate parent details
         if (!formState.parentDetails.full_name.trim()) errors.parentName = "Required";
         if (!FormValidationService.validateEmail(formState.parentDetails.email).isValid) errors.parentEmail = "Invalid email";
-        if (!formState.parentDetails.phone_number.trim()) errors.parentMobile = "Required";
+        if (!formState.parentDetails.mobile_number.number.trim()) errors.parentMobile = "Required";
         if (!formState.parentDetails.city.trim()) errors.parentCity = "Required";
         
         // Validate student details
@@ -817,7 +836,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
             email: formState.parentDetails.email || '',
             mobile_number: {
               country_code: '+91',
-              number: (formState.parentDetails.phone_number || '').replace(/\D/g, '') // ✅ Fixed: Clean phone number to digits only
+              number: (formState.parentDetails.mobile_number.number || '').replace(/\D/g, '') // ✅ Fixed: Clean phone number to digits only
             },
             city: formState.parentDetails.city || '',
             country: formState.parentDetails.country || 'in'
@@ -927,27 +946,41 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
     console.log('🚀 Submitting payload:', backendPayload);
 
     // ✅ Use your established usePostQuery pattern instead of raw fetch
+    console.log('📤 About to submit form...');
     const { data, error } = await postQuery({
       url: '/forms/submit',
       postData: backendPayload,
       requireAuth: false,
       enableToast: false, // We'll handle our own success/error messages
       onSuccess: async (result) => {
+        console.log('✅ SUCCESS CALLBACK TRIGGERED!');
+        console.log('📊 Success result:', result);
+        console.log('📊 Result type:', typeof result);
+        console.log('📊 Result keys:', result ? Object.keys(result) : 'null');
+        
+        try {
         await Swal.fire({
-          title: "🎉 Demo Booked Successfully!",
+            title: "🎉 Demo Booked Successfully!",
           html: `
-            <div class="text-center space-y-3">
+              <div class="text-center space-y-3">
               <div class="text-lg font-semibold text-green-600 dark:text-green-400">
-                Your demo session has been scheduled!
+                  Your demo session has been scheduled!
               </div>
               <div class="text-sm text-gray-600 dark:text-gray-400">
-                Check your email for session details and meeting link.
+                  Check your email for session details and meeting link.
               </div>
+                ${result?.data?.application_id ? `<div class="text-xs text-blue-600 mt-2">Booking ID: ${result.data.application_id}</div>` : ''}
             </div>
           `,
           icon: "success",
-          confirmButtonText: "Perfect!",
-        });
+            confirmButtonText: "Perfect!",
+          });
+          console.log('✅ Swal.fire completed successfully');
+        } catch (swalError) {
+          console.error('❌ Swal.fire error:', swalError);
+          // Fallback alert if Swal fails
+          alert('🎉 Demo Booked Successfully! Check your email for session details.');
+        }
         
         if (onSubmitSuccess) {
           onSubmitSuccess(result);
@@ -986,6 +1019,20 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
         });
         }
       });
+    
+    // ✅ Debug the response after postQuery
+    console.log('📥 PostQuery Response:');
+    console.log('📊 Data:', data);
+    console.log('📊 Error:', error);
+    console.log('📊 Data success field:', data?.success);
+    
+    if (data?.success) {
+      console.log('🎯 Response indicates success, but onSuccess may not have been called');
+    } else if (error) {
+      console.log('💥 Response indicates error:', error);
+    } else {
+      console.log('🤔 Unclear response state');
+    }
   };
 
   // ========== NAVIGATION ==========
@@ -1210,21 +1257,28 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
                         <InputGroup label="Phone Number" required icon={Phone} error={formState.validationErrors.parentMobile}>
                   <PhoneNumberInput
                     value={{ 
-                      country: formState.parentDetails.country || 'in', 
-                              number: formState.parentDetails.phone_number 
+                      country: formState.parentDetails.country || 'IN', 
+                              number: formState.parentDetails.mobile_number.number 
                     }}
                             onChange={(val) => {
                               setFormState(prev => ({ 
                                 ...prev, 
                                 parentDetails: { 
                                   ...prev.parentDetails, 
-                                  phone_number: val.number,
-                                  country: val.country
+                                  mobile_number: {
+                                    ...prev.parentDetails.mobile_number,
+                                    number: val.number
+                                  },
+                                  country: val.country,
+                                  formatted_phone: val.formattedNumber,
+                                  phone_valid: val.isValid
                                 }
                               }));
                               markAsDirty();
                             }}
-                    placeholder="Enter phone number"
+                    placeholder="Enter parent's phone number"
+                    defaultCountry="IN"
+                    preferredCountries={['IN', 'US', 'GB', 'AU', 'CA', 'AE', 'SG', 'MY', 'BD', 'PK', 'LK']}
                     error={formState.validationErrors.parentMobile}
                   />
                 </InputGroup>
@@ -1295,7 +1349,7 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
                             onChange={(selected) => {
                               setFormState(prev => ({ 
                       ...prev, 
-                      studentDetailsUnder16: { ...prev.studentDetailsUnder16, grade: selected?.value || "Grade 1-2" }
+                      studentDetailsUnder16: { ...prev.studentDetailsUnder16, grade: selected?.value || "grade_1-2" }
                               }));
                               markAsDirty();
                             }}
@@ -1457,8 +1511,8 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
                       <InputGroup label="Phone Number" required icon={Phone} error={formState.validationErrors.studentMobile}>
                     <PhoneNumberInput
                       value={{ 
-                        country: formState.studentDetails16AndAbove.country || 'in', 
-                        number: formState.studentDetails16AndAbove.mobile_no 
+                        country: formState.studentDetails16AndAbove.country || 'IN', 
+                        number: formState.studentDetails16AndAbove.mobile_no || ''
                       }}
                           onChange={(val) => {
                             setFormState(prev => ({ 
@@ -1466,12 +1520,16 @@ const DemoSessionForm: React.FC<DemoSessionFormProps> = ({
                               studentDetails16AndAbove: { 
                                 ...prev.studentDetails16AndAbove, 
                                 mobile_no: val.number,
-                                country: val.country
+                                country: val.country,
+                                formatted_phone: val.formattedNumber,
+                                phone_valid: val.isValid
                               }
                             }));
                             markAsDirty();
                           }}
-                          placeholder="Enter your phone"
+                      placeholder="Enter your phone number"
+                          defaultCountry="IN"
+                          preferredCountries={['IN', 'US', 'GB', 'AU', 'CA', 'AE', 'SG', 'MY', 'BD', 'PK', 'LK']}
                       error={formState.validationErrors.studentMobile}
                     />
                   </InputGroup>
