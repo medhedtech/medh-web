@@ -273,7 +273,7 @@ const CareerBanner: React.FC<CareerBannerProps> = ({ onViewPositionsClick }) => 
               {/* Badges */}
               <div className="flex flex-wrap justify-center gap-3 mb-4">
                 <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}> <Shield size={10} className="mr-1 sm:w-3 sm:h-3" /> ISO Certified </div>
-                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}> <Award size={10} className="mr-1 sm:w-3 sm:h-3" /> STEM Certified </div>
+                <div className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 glass-stats rounded-full text-xs sm:text-sm font-medium opacity-95 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}> <Award size={10} className="mr-1 sm:w-3 sm:h-3" /> STEM Accredited </div>
               </div>
               {/* Main Heading */}
               <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-center tracking-tight mb-2 sm:mb-3 md:mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>

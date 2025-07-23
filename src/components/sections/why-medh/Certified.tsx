@@ -240,7 +240,7 @@ const Certified: React.FC = () => {
     { 
       image: isoSTEM.src, 
       alt: "STEM Certification", 
-      title: "STEM Certified",
+      title: "STEM Accredited",
       description: "Recognized excellence in Science, Technology, Engineering, and Mathematics education."
     },
     { 

@@ -154,7 +154,7 @@ const PersonalityCourseBanner: React.FC = memo(() => {
                   : 'bg-white/60 border-white/40 text-purple-700 hover:bg-white/80'
               }`}>
                 <Award size={12} className="mr-1.5 gpu-accelerated" />
-                STEM Certified
+                STEM Accredited
               </div>
             </div>
 
