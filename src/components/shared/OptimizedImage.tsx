@@ -48,13 +48,13 @@ const OptimizedImage: React.FC<IOptimizedImageProps> = memo(({
     if (customOnLoad) customOnLoad(event.currentTarget);
   }, [customOnLoad]);
 
-  // Generate simple blur placeholder
+  // Generate simple blur placeholder with browser-compatible base64 encoding
   const defaultBlurDataURL = blurDataURL || (placeholder === 'blur' ? 
-    `data:image/svg+xml;base64,${Buffer.from(
+    `data:image/svg+xml;base64,${typeof window !== 'undefined' ? btoa(
       `<svg width="${width || 400}" height="${height || 300}" xmlns="http://www.w3.org/2000/svg">
         <rect width="100%" height="100%" fill="#f1f5f9"/>
       </svg>`
-    ).toString('base64')}` : undefined);
+    ) : ''}` : undefined);
 
   // Prepare alt text
   const finalAlt = alt || 'Image';
