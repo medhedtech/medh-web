@@ -1,6 +1,6 @@
 /**
- * Image Optimization Utilities for LCP Improvement
- * Handles modern formats, compression, and responsive sizing
+ * Enhanced Image Optimization Utilities for Production
+ * Handles modern formats, compression, responsive sizing, and fallback strategies
  */
 
 import { ImageProps } from 'next/image';
@@ -13,6 +13,8 @@ export interface ImageOptimizationOptions {
   priority?: boolean;
   sizes?: string;
   fetchPriority?: 'high' | 'low' | 'auto';
+  enableProxy?: boolean;
+  retryCount?: number;
 }
 
 export interface ResponsiveImageSizes {
@@ -21,71 +23,79 @@ export interface ResponsiveImageSizes {
   desktop: { width: number; height: number };
 }
 
-// Maximum allowed dimensions
-const MAX_IMAGE_WIDTH = 9000;
-const MAX_IMAGE_HEIGHT = 7000;
-
-// Modern image format detection
-export const supportsWebP = (): Promise<boolean> => {
-  return new Promise((resolve) => {
-    if (typeof window === 'undefined') {
-      resolve(true); // Assume support on server
-      return;
-    }
-    
-    const webP = new Image();
-    webP.onload = webP.onerror = () => {
-      resolve(webP.height === 2);
-    };
-    webP.src = 'data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA';
-  });
-};
-
-export const supportsAVIF = (): Promise<boolean> => {
-  return new Promise((resolve) => {
-    if (typeof window === 'undefined') {
-      resolve(false); // Conservative approach for server
-      return;
-    }
-    
-    const avif = new Image();
-    avif.onload = avif.onerror = () => {
-      resolve(avif.height === 2);
-    };
-    avif.src = 'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgABogQEAwgMg8f8D///8WfhwB8+ErK42A=';
-  });
-};
-
-// Get optimal image format based on browser support
-export const getOptimalFormat = async (originalFormat?: string): Promise<string> => {
-  if (typeof window === 'undefined') {
-    return 'webp'; // Default to WebP on server
+// Enhanced optimization constants for production
+export const IMAGE_OPTIMIZATION = {
+  COURSE_CARD: {
+    maxWidth: 400,
+    maxHeight: 300,
+    aspectRatio: 4/3,
+    quality: {
+      lcp: 95,
+      normal: 85,
+      low: 75
+    },
+    maxSourceWidth: 8000,
+    maxSourceHeight: 6000,
+    maxFileSizeMB: 15,
+    formats: ['webp', 'jpg'] as const,
+    sizes: '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw'
+  },
+  COURSE_DETAIL: {
+    maxWidth: 800,
+    maxHeight: 600,
+    aspectRatio: 4/3,
+    quality: {
+      lcp: 95,
+      normal: 85,
+      low: 75
+    },
+    maxSourceWidth: 8000,
+    maxSourceHeight: 6000,
+    maxFileSizeMB: 15,
+    formats: ['webp', 'jpg'] as const,
+    sizes: '(max-width: 1024px) 100vw, 800px'
+  },
+  HERO: {
+    maxWidth: 1920,
+    maxHeight: 1080,
+    aspectRatio: 16/9,
+    quality: {
+      lcp: 95,
+      normal: 90,
+      low: 80
+    },
+    maxSourceWidth: 8000,
+    maxSourceHeight: 6000,
+    maxFileSizeMB: 20,
+    formats: ['webp', 'jpg'] as const,
+    sizes: '100vw'
   }
+} as const;
 
-  const [avifSupported, webpSupported] = await Promise.all([
-    supportsAVIF(),
-    supportsWebP()
-  ]);
+// Enhanced fallback images with different scenarios
+export const FALLBACK_IMAGES = {
+  course: '/fallback-course-image.jpg',
+  general: '/images/placeholder.jpg',
+  hero: '/images/hero-placeholder.jpg',
+  error: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjFmNWY5Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY0NzQ4YiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIFVuYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg=='
+} as const;
 
-  if (avifSupported) return 'avif';
-  if (webpSupported) return 'webp';
-  return originalFormat || 'jpg';
+// S3 URL patterns for proxy detection
+const S3_PATTERNS = [
+  'medhdocuments.s3.amazonaws.com',
+  'medhdocuments.s3.ap-south-1.amazonaws.com',
+  'medh-documents.s3.amazonaws.com',
+  's3.amazonaws.com/medhdocuments',
+  's3.ap-south-1.amazonaws.com/medhdocuments'
+] as const;
+
+// Check if URL needs proxy (S3 or external)
+export const needsImageProxy = (url: string): boolean => {
+  if (!url || url.startsWith('data:') || url.startsWith('/')) return false;
+  return S3_PATTERNS.some(pattern => url.includes(pattern));
 };
 
-// Generate responsive image sizes for course cards
-export const getCourseCardSizes = (viewportWidth: number): string => {
-  if (viewportWidth < 640) {
-    return '100vw'; // Full width on mobile
-  } else if (viewportWidth < 768) {
-    return '50vw';  // Two columns on small tablets
-  } else if (viewportWidth < 1024) {
-    return '33vw';  // Three columns on large tablets
-  } else {
-    return '25vw';  // Four columns on desktop
-  }
-};
-
-// Generate optimized image URL with compression and format conversion
+// Enhanced image URL optimization with proxy support
 export const getOptimizedImageUrl = (
   originalUrl: string | any,
   options: ImageOptimizationOptions = {}
@@ -98,41 +108,45 @@ export const getOptimizedImageUrl = (
     urlString = originalUrl;
   } else {
     console.warn('Invalid image URL provided:', originalUrl);
-    return '';
+    return FALLBACK_IMAGES.error;
   }
 
-  if (!urlString) return '';
+  if (!urlString) return FALLBACK_IMAGES.error;
 
   const {
     width = 800,
     height = 500,
     quality = 85,
-    format = 'auto'
+    format = 'auto',
+    enableProxy = true
   } = options;
 
-  // For local images, return as-is (will be handled by Next.js Image component)
+  // For local images, return as-is (handled by Next.js Image component)
   if (urlString.startsWith('/') || urlString.startsWith('./')) {
     return urlString;
   }
 
-  // Use our image optimization API for external images
-  try {
-    const params = new URLSearchParams();
-    params.set('url', urlString);
-    params.set('w', width.toString());
-    params.set('h', height.toString());
-    params.set('q', quality.toString());
-    if (format !== 'auto') {
-      params.set('f', format);
-    }
+  // Use proxy for S3 images
+  if (needsImageProxy(urlString) && enableProxy) {
+    try {
+      const params = new URLSearchParams();
+      params.set('url', encodeURIComponent(urlString));
+      if (width) params.set('w', width.toString());
+      if (height) params.set('h', height.toString());
+      params.set('q', quality.toString());
+      if (format !== 'auto') params.set('f', format);
 
-    return `/api/image-optimization?${params.toString()}`;
-  } catch {
-    return urlString;
+      return `/api/image-proxy?${params.toString()}`;
+    } catch (error) {
+      console.warn('Failed to create proxy URL:', error);
+      return urlString;
+    }
   }
+
+  return urlString;
 };
 
-// Generate srcSet for responsive images
+// Generate optimized srcSet for responsive images
 export const generateSrcSet = (
   originalUrl: string,
   sizes: ResponsiveImageSizes,
@@ -147,67 +161,15 @@ export const generateSrcSet = (
   return srcSetEntries.join(', ');
 };
 
-// Generate sizes attribute for responsive images
-export const generateSizesAttribute = (breakpoints?: {
-  mobile?: string;
-  tablet?: string;
-  desktop?: string;
-}): string => {
-  const {
-    mobile = '100vw',
-    tablet = '50vw',
-    desktop = '33vw'
-  } = breakpoints || {};
-
-  return `(max-width: 640px) ${mobile}, (max-width: 1024px) ${tablet}, ${desktop}`;
-};
-
-// Constants for image optimization - Updated for better handling
-export const IMAGE_OPTIMIZATION = {
-  COURSE_CARD: {
-    maxWidth: 400,
-    maxHeight: 300,
-    aspectRatio: 4/3, // Width/Height ratio
-    quality: {
-      lcp: 95,
-      normal: 85
-    },
-    // Add maximum source dimensions to prevent processing issues
-    maxSourceWidth: 8000,
-    maxSourceHeight: 6000,
-    maxFileSizeMB: 10
-  },
-  COURSE_DETAIL: {
-    maxWidth: 800,
-    maxHeight: 600,
-    aspectRatio: 4/3, // Width/Height ratio
-    quality: {
-      lcp: 95,
-      normal: 85
-    },
-    maxSourceWidth: 8000,
-    maxSourceHeight: 6000,
-    maxFileSizeMB: 10
-  }
-} as const;
-
-// Function to get image optimization settings
-export const getImageOptimization = (type: keyof typeof IMAGE_OPTIMIZATION) => {
-  return IMAGE_OPTIMIZATION[type];
-};
-
-// Function to calculate scaled dimensions
+// Calculate scaled dimensions maintaining aspect ratio
 export const calculateScaledDimensions = (
   originalWidth: number,
   originalHeight: number,
   maxWidth: number,
   maxHeight: number
 ): { width: number; height: number } => {
-  // Calculate scale factors
   const scaleX = maxWidth / originalWidth;
   const scaleY = maxHeight / originalHeight;
-  
-  // Use the smaller scale factor to ensure image fits within bounds
   const scale = Math.min(scaleX, scaleY, 1); // Don't scale up
   
   return {
@@ -216,140 +178,85 @@ export const calculateScaledDimensions = (
   };
 };
 
-// Function to get responsive image sizes
-export const getImageSizes = (type: 'card' | 'detail' | 'hero') => {
+// Get responsive image sizes string
+export const getImageSizes = (type: 'card' | 'detail' | 'hero'): string => {
   switch (type) {
     case 'card':
-      return '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw';
+      return IMAGE_OPTIMIZATION.COURSE_CARD.sizes;
     case 'detail':
-      return '(max-width: 1024px) 100vw, 800px';
+      return IMAGE_OPTIMIZATION.COURSE_DETAIL.sizes;
     case 'hero':
-      return '100vw';
+      return IMAGE_OPTIMIZATION.HERO.sizes;
     default:
       return '100vw';
   }
 };
 
-// Enhanced function to get safe course image URL with fallback logic
+// Enhanced safe course image URL with intelligent fallbacks
 export const getSafeCourseImageUrl = (
   courseImage: string | undefined | null,
   courseId?: string,
   courseTitle?: string
 ): string => {
-  // Default fallback image
-  const fallbackImage = '/fallback-course-image.jpg';
-  
   // If no image provided, use fallback
   if (!courseImage) {
-    return fallbackImage;
+    return FALLBACK_IMAGES.course;
   }
 
-  // Handle specific course images with known good dimensions
+  // Handle known problematic URLs
+  if (courseImage.includes('undefined') || courseImage.includes('null')) {
+    return FALLBACK_IMAGES.course;
+  }
+
+  // For course-specific optimizations
   if (courseId || courseTitle) {
     const id = courseId?.toLowerCase() || '';
     const title = courseTitle?.toLowerCase() || '';
     
-    // Use optimized PNG versions for these courses (they have good dimensions)
-    if (id.includes('ai_data_science') || title.includes('ai') || title.includes('data science')) {
-      return '/images/courses/ai-data-science.png';
-    } 
-    if (id.includes('digital_marketing') || title.includes('digital marketing')) {
-      return '/images/courses/digital-marketing.png';
-    }
-    
-    // For personality development and vedic mathematics, the original images are too large
-    // We'll use the fallback and let the optimization handle it
-    if (id.includes('personality_development') || title.includes('personality')) {
-      // Try to use the large image but with heavy optimization
-      return courseImage;
-    }
-    if (id.includes('vedic_mathematics') || title.includes('vedic')) {
-      // Try to use the large image but with heavy optimization
-      return courseImage;
+    // Map to optimized local images where available
+    const courseImageMap: Record<string, string> = {
+      'ai_data_science': '/images/courses/ai-data-science.png',
+      'digital_marketing': '/images/courses/digital-marketing.png',
+      'personality_development': '/images/courses/personality-development.jpg',
+      'vedic_mathematics': '/images/courses/vedic-mathematics.jpg'
+    };
+
+    // Check for matches
+    for (const [key, localImage] of Object.entries(courseImageMap)) {
+      if (id.includes(key) || title.includes(key.replace('_', ' '))) {
+        return localImage;
+      }
     }
   }
 
-  // For other images, return the original URL (will be processed by optimization)
   return courseImage;
 };
 
-// Function to optimize course image URL with enhanced scaling parameters
-export const optimizeCourseImage = (src: string, width?: number, height?: number): string => {
-  // If it's already an optimized URL or a data URL, return as is
-  if (src.startsWith('data:') || src.includes('?w=') || src.includes('_next/image')) {
-    return src;
-  }
-
-  // Get safe image URL first
-  const safeUrl = src;
-  
-  // For local images that might be too large, add optimization parameters
-  if (safeUrl.startsWith('/images/courses/')) {
-    // Build optimization parameters for large local images
-    const params = new URLSearchParams();
-    
-    if (width) {
-      params.append('w', Math.min(width, 800).toString()); // Cap width at 800px
-    }
-    if (height) {
-      params.append('h', Math.min(height, 600).toString()); // Cap height at 600px
-    }
-    
-    // Add quality parameter - higher compression for large source images
-    if (safeUrl.includes('pd.jpg') || safeUrl.includes('vd.jpg')) {
-      params.append('q', '75'); // Higher compression for large images
-    } else {
-      params.append('q', '85');
-    }
-    
-    // Add fit parameter to maintain aspect ratio
-    params.append('fit', 'cover');
-    
-    // Check if the URL already has parameters
-    const separator = safeUrl.includes('?') ? '&' : '?';
-    return `${safeUrl}${separator}${params.toString()}`;
-  }
-
-  // For external URLs, build optimization parameters
-  if (!safeUrl.startsWith('/')) {
-    const params = new URLSearchParams();
-    
-    if (width) {
-      params.append('w', width.toString());
-    }
-    if (height) {
-      params.append('h', height.toString());
-    }
-    
-    // Add quality parameter
-    params.append('q', '85');
-    
-    // Add fit parameter to maintain aspect ratio
-    params.append('fit', 'cover');
-    
-    // Check if the URL already has parameters
-    const separator = safeUrl.includes('?') ? '&' : '?';
-    return `${safeUrl}${separator}${params.toString()}`;
-  }
-  
-  return safeUrl;
-};
-
-// Function to generate a simple SVG blur placeholder with proper dimensions
-const generateBlurPlaceholder = (width: number, height: number): string => {
+// Generate blur placeholder with proper browser compatibility
+export const generateBlurPlaceholder = (width: number = 400, height: number = 300): string => {
   const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
     <defs>
-      <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" style="stop-color:#e2e8f0;stop-opacity:1" />
+      <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#e2e8f0;stop-opacity:1" />
         <stop offset="100%" style="stop-color:#cbd5e1;stop-opacity:1" />
       </linearGradient>
     </defs>
-    <rect width="${width}" height="${height}" fill="url(#grad)"/>
+    <rect width="100%" height="100%" fill="url(#g)"/>
+    <circle cx="${width/2}" cy="${height/2-20}" r="20" fill="#94a3b8" opacity="0.3"/>
+    <rect x="${width/2-40}" y="${height/2+10}" width="80" height="6" rx="3" fill="#94a3b8" opacity="0.3"/>
   </svg>`;
-  return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+  
+  // Use URL encoding for better browser compatibility
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 };
 
-// Function to get image props for Next.js Image component with proper scaling
+// Get image optimization settings
+export const getImageOptimization = (type: keyof typeof IMAGE_OPTIMIZATION) => {
+  return IMAGE_OPTIMIZATION[type];
+};
+
+// Enhanced image props generator for Next.js Image component
 export const getImageProps = (
   type: keyof typeof IMAGE_OPTIMIZATION,
   src: string,
@@ -360,7 +267,7 @@ export const getImageProps = (
 ): Partial<ImageProps> => {
   const optimization = getImageOptimization(type);
   
-  // Calculate scaled dimensions if original dimensions are provided
+  // Calculate scaled dimensions
   let scaledDimensions: { width: number; height: number };
   
   if (originalDimensions) {
@@ -371,26 +278,34 @@ export const getImageProps = (
       optimization.maxHeight
     );
   } else {
-    // Use aspect ratio to calculate height from width
     scaledDimensions = {
       width: optimization.maxWidth,
       height: Math.round(optimization.maxWidth / optimization.aspectRatio)
     };
   }
 
+  // Get optimized source URL
+  const optimizedSrc = getSafeCourseImageUrl(src);
+  const finalSrc = getOptimizedImageUrl(optimizedSrc, {
+    width: scaledDimensions.width,
+    height: scaledDimensions.height,
+    quality: isLCP ? optimization.quality.lcp : optimization.quality.normal,
+    enableProxy: true
+  });
+
   const baseProps = {
-    src: optimizeCourseImage(src, scaledDimensions.width, scaledDimensions.height),
+    src: finalSrc,
     alt,
     quality: isLCP ? optimization.quality.lcp : optimization.quality.normal,
     loading: isLCP ? 'eager' as const : 'lazy' as const,
     priority: isLCP,
-    sizes: getImageSizes(type === 'COURSE_CARD' ? 'card' : 'detail'),
+    sizes: optimization.sizes,
     className: "object-cover transition-opacity duration-300",
     placeholder: "blur" as const,
     blurDataURL: generateBlurPlaceholder(scaledDimensions.width, scaledDimensions.height)
   };
 
-  // If using fill mode, don't include width and height
+  // Handle fill vs fixed dimensions
   if (useFill) {
     return {
       ...baseProps,
@@ -402,7 +317,6 @@ export const getImageProps = (
     };
   }
 
-  // If not using fill mode, include scaled dimensions
   return {
     ...baseProps,
     width: scaledDimensions.width,
@@ -415,31 +329,43 @@ export const getImageProps = (
   };
 };
 
-// Function to preload critical images
-export const preloadCriticalImage = (imageUrl: string) => {
-  if (typeof window === 'undefined') return;
-  
-  const link = document.createElement('link');
-  link.rel = 'preload';
-  link.as = 'image';
-  link.href = optimizeCourseImage(imageUrl);
-  document.head.appendChild(link);
+// Image preloading utility
+export const preloadImage = (src: string, options: ImageOptimizationOptions = {}): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const optimizedSrc = getOptimizedImageUrl(src, options);
+    
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error(`Failed to preload image: ${optimizedSrc}`));
+    img.src = optimizedSrc;
+  });
 };
 
-// Function to generate blur data URL
-export const generateBlurDataURL = async (imageUrl: string) => {
-  try {
-    const response = await fetch(imageUrl);
-    const buffer = await response.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString('base64');
-    return `data:image/jpeg;base64,${base64}`;
-  } catch (error) {
-    console.error('Error generating blur data URL:', error);
-    return undefined;
-  }
+// Batch image preloading
+export const preloadImages = async (
+  urls: string[], 
+  options: ImageOptimizationOptions = {}
+): Promise<void> => {
+  const preloadPromises = urls.map(url => preloadImage(url, options));
+  await Promise.allSettled(preloadPromises);
 };
 
-// Compress image file (client-side)
+// Image dimension detection
+export const getImageDimensions = (url: string): Promise<{ width: number; height: number }> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      resolve({
+        width: img.naturalWidth,
+        height: img.naturalHeight
+      });
+    };
+    img.onerror = () => reject(new Error('Failed to load image'));
+    img.src = url;
+  });
+};
+
+// Client-side image compression
 export const compressImage = (
   file: File,
   options: {
@@ -462,9 +388,9 @@ export const compressImage = (
     const img = new Image();
 
     img.onload = () => {
-      // Calculate new dimensions
       let { width, height } = img;
       
+      // Calculate new dimensions
       if (width > maxWidth) {
         height = (height * maxWidth) / width;
         width = maxWidth;
@@ -499,41 +425,12 @@ export const compressImage = (
   });
 };
 
-// Lazy loading with intersection observer
-export const createLazyImageObserver = (
-  callback: (entry: IntersectionObserverEntry) => void,
-  options: IntersectionObserverInit = {}
-): IntersectionObserver => {
-  const defaultOptions = {
-    rootMargin: '50px 0px',
-    threshold: 0.01,
-    ...options
-  };
-
-  return new IntersectionObserver((entries) => {
-    entries.forEach(callback);
-  }, defaultOptions);
-};
-
-// Image optimization middleware for Next.js
-export const nextImageLoader = ({ src, width, quality }: {
-  src: string;
-  width: number;
-  quality?: number;
-}): string => {
-  const params = new URLSearchParams();
-  params.set('w', width.toString());
-  if (quality) {
-    params.set('q', quality.toString());
-  }
-
-  return `${src}?${params.toString()}`;
-};
-
-// Export constants
+// Export constants for external use
 export const IMAGE_CONSTANTS = {
-  MAX_WIDTH: MAX_IMAGE_WIDTH,
-  MAX_HEIGHT: MAX_IMAGE_HEIGHT,
+  MAX_WIDTH: 8000,
+  MAX_HEIGHT: 6000,
   DEFAULT_QUALITY: 85,
-  DEFAULT_FORMAT: 'webp' as const
-}; 
+  DEFAULT_FORMAT: 'webp' as const,
+  FALLBACK_IMAGES,
+  S3_PATTERNS
+} as const; 
