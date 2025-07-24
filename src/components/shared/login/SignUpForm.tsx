@@ -863,7 +863,7 @@ const SignUpForm: React.FC = () => {
                                 <>
                                   I agree to the{' '}
                                   <Link href="/terms-and-services" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 underline" target="_blank" onClick={(e) => e.stopPropagation()}>
-                                    Terms
+                                    Terms of Use
                                   </Link>
                                   {' '}and{' '}
                                   <Link href="/privacy-policy" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 underline" target="_blank" onClick={(e) => e.stopPropagation()}>
