@@ -15,7 +15,7 @@
  * @version 4.0.0 (Enhanced JSON Structure)
  * @since 2024-01-15
  */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import { useForm, Controller } from "react-hook-form";
@@ -57,7 +57,7 @@ import { apiUrls } from "@/apis";
 import * as countryCodesList from 'country-codes-list';
 
 // Phone Number Component
-import PhoneNumberInput, { CountryOption } from '../../shared/login/PhoneNumberInput';
+import PhoneNumberInput from '../../shared/login/PhoneNumberInput';
 
 // Toast notifications
 import { toast } from 'react-toastify';
@@ -1472,39 +1472,8 @@ const MultiStepCorporateForm: React.FC<{
     }
   };
 
-  // Enhanced keyboard navigation support (client-side only)
-  useEffect(() => {
-    // Only run on client side
-    if (typeof window === 'undefined' || !mounted) return;
-    
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Only handle keyboard shortcuts when form is focused
-      if (!event.target || !(event.target as Element).closest('.dynamic-form')) return;
-      
-      // Enter key on final step submits form
-      if (event.key === 'Enter' && event.ctrlKey && currentStep === FORM_STEPS.length - 1) {
-        event.preventDefault();
-        handleSubmit(onSubmit)();
-        return;
-      }
-      
-      // Arrow keys for navigation (with Ctrl modifier to avoid conflicts)
-      if (event.ctrlKey) {
-        if (event.key === 'ArrowRight' && currentStep < FORM_STEPS.length - 1) {
-          event.preventDefault();
-          handleNext();
-        } else if (event.key === 'ArrowLeft' && currentStep > 0) {
-          event.preventDefault();
-          handlePrevious();
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [currentStep, handleNext, handlePrevious, handleSubmit, onSubmit, mounted]);
-
-  const onSubmit = async (data: IFormData): Promise<void> => {
+  // Form submission handler - defined with useCallback to prevent re-renders
+  const onSubmit = useCallback(async (data: IFormData): Promise<void> => {
     console.log('🚀 FORM SUBMISSION STARTED');
     console.log('📋 Form Data Received:', data);
     
@@ -1597,7 +1566,39 @@ const MultiStepCorporateForm: React.FC<{
         completedSteps: Array.from(completedSteps)
       });
     }
-  };
+  }, [currentStep, completedSteps, handleSubmit, reset]);
+
+  // Enhanced keyboard navigation support (client-side only)
+  useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined' || !mounted) return;
+    
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Only handle keyboard shortcuts when form is focused
+      if (!event.target || !(event.target as Element).closest('.dynamic-form')) return;
+      
+      // Enter key on final step submits form
+      if (event.key === 'Enter' && event.ctrlKey && currentStep === FORM_STEPS.length - 1) {
+        event.preventDefault();
+        handleSubmit(onSubmit)();
+        return;
+      }
+      
+      // Arrow keys for navigation (with Ctrl modifier to avoid conflicts)
+      if (event.ctrlKey) {
+        if (event.key === 'ArrowRight' && currentStep < FORM_STEPS.length - 1) {
+          event.preventDefault();
+          handleNext();
+        } else if (event.key === 'ArrowLeft' && currentStep > 0) {
+          event.preventDefault();
+          handlePrevious();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [currentStep, handleNext, handlePrevious, handleSubmit, onSubmit, mounted]);
 
   const renderStep = () => {
     const step = FORM_STEPS[currentStep];
