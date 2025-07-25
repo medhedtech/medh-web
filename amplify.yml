@@ -125,17 +125,17 @@ frontend:
         - echo "Installing dependencies with clean approach..."
         - |
           # Try npm ci first (faster and more reliable for production)
-          # IMPORTANT: Include dev dependencies for build tools like tailwindcss
+          # Build tools are now in main dependencies for dev/prod parity
           if [ -f package-lock.json ]; then
-            echo "Using npm ci for clean install (including dev dependencies)..."
-            npm ci --include=dev --no-audit --prefer-offline --no-fund --verbose || {
+            echo "Using npm ci for clean install..."
+            npm ci --no-audit --prefer-offline --no-fund --verbose || {
               echo "npm ci failed, falling back to npm install..."
               rm -rf node_modules
-              npm install --include=dev --no-audit --prefer-offline --no-fund --verbose
+              npm install --no-audit --prefer-offline --no-fund --verbose
             }
           else
             echo "No package-lock.json found, using npm install..."
-            npm install --include=dev --no-audit --prefer-offline --no-fund --verbose
+            npm install --no-audit --prefer-offline --no-fund --verbose
           fi
           
           # Explicitly install ALL Radix UI dependencies that might be missing
