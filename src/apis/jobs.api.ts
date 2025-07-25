@@ -1,5 +1,5 @@
 import { apiClient, IApiResponse } from './apiClient';
-import { apiUrls } from './index';
+import { apiUrls } from './config';
 
 /**
  * Job Posting model - Enhanced to match backend schema

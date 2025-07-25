@@ -1,5 +1,5 @@
 import { apiBaseUrl } from './config';
-import { PUBLIC_ENDPOINTS } from './index';
+import { PUBLIC_ENDPOINTS } from './config';
 import { getRefreshToken } from '@/utils/auth';
 
 /**

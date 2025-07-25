@@ -1,4 +1,4 @@
-import { apiBaseUrl, apiUtils } from './index';
+import { apiBaseUrl, apiUtils } from './utils';
 
 /**
  * Comprehensive Demo Booking API endpoints for managing demo sessions

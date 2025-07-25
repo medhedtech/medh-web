@@ -1,6 +1,6 @@
 import { apiBaseUrl } from './config';
 import { apiClient } from './apiClient';
-import { apiUtils, type IApiResponse } from './index';
+import { apiUtils, type IApiResponse } from './utils';
 import axios from 'axios';
 
 /**

@@ -43,4 +43,27 @@ export const apiFeatures = {
   optimisticUpdates: true,
   compressionEnabled: true,
   requestBatching: process.env.NODE_ENV === 'production',
-}; 
+};
+
+// Define public endpoints that don't require authentication
+export const PUBLIC_ENDPOINTS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/verify-email',
+  '/auth/resend-verification',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+  '/auth/oauth',
+  '/courses/public',
+  '/blogs/public',
+  '/health',
+  '/faq/public',
+  '/announcements/public',
+  '/broucher/create',
+  '/broucher/download',
+  // Demo session form endpoints (public forms)
+  '/forms/submit',
+  '/forms/demo-sessions/available-slots',
+  '/forms/demo-sessions',
+  '/forms/config'
+]; 
