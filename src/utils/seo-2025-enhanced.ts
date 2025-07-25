@@ -244,8 +244,7 @@ export function generateEnhancedSEOMetadata(props: EnhancedSEOProps): Metadata {
         follow: !noIndex,
         'max-video-preview': -1,
         'max-image-preview': 'large',
-        'max-snippet': -1,
-        'max-image-preview': 'large'
+        'max-snippet': -1
       },
     },
     category: section || 'Education',
@@ -553,13 +552,13 @@ export function generateHrefLangTags(currentUrl: string, languages: string[]) {
   
   return languages.map(lang => ({
     rel: 'alternate',
-    hrefLang: INTERNATIONAL_SEO_CONFIG.hrefLangMapping[lang] || lang,
+    hrefLang: INTERNATIONAL_SEO_CONFIG.hrefLangMapping[lang as keyof typeof INTERNATIONAL_SEO_CONFIG.hrefLangMapping] || lang,
     href: `${baseUrl}/${lang}${currentUrl}`
   }));
 }
 
 export function getRegionalKeywords(region: string): string[] {
-  return INTERNATIONAL_SEO_CONFIG.regionalKeywords[region] || [];
+  return INTERNATIONAL_SEO_CONFIG.regionalKeywords[region as keyof typeof INTERNATIONAL_SEO_CONFIG.regionalKeywords] || [];
 }
 
 // Performance and Core Web Vitals Optimization

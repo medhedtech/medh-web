@@ -1,4 +1,9 @@
 import type { Config } from 'tailwindcss';
+import tailwindForms from '@tailwindcss/forms';
+import tailwindTypography from '@tailwindcss/typography';
+import tailwindAspectRatio from '@tailwindcss/aspect-ratio';
+import tailwindAnimate from 'tailwindcss-animate';
+import tailwindLineClamp from '@tailwindcss/line-clamp';
 
 const config: Config = {
   darkMode: 'class',
@@ -100,11 +105,11 @@ const config: Config = {
     },
   },
   plugins: [
-    require('@tailwindcss/forms'),
-    require('@tailwindcss/typography'),
-    require('@tailwindcss/aspect-ratio'),
-    require('tailwindcss-animate'),
-    require('@tailwindcss/line-clamp'),
+    tailwindForms,
+    tailwindTypography,
+    tailwindAspectRatio,
+    tailwindAnimate,
+    tailwindLineClamp,
   ],
 };
 

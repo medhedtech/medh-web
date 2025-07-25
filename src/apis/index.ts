@@ -429,29 +429,20 @@ export const apiUrls = {
       apiUtils.appendParam('sort_order', sort_order, queryParams);
       return `${apiBaseUrl}/courses/new?${queryParams.toString()}`;
     },
-    curriculum: (() => {
-      try {
-        // Dynamic import of curriculum API to handle "No curriculum available" scenarios
-        const { curriculumAPI } = require('./curriculum.api');
-        return curriculumAPI;
-      } catch (error) {
-        console.warn('Curriculum API not available, using fallback endpoints');
-        return {
-          getCurriculumByCourseId: (courseId: string): string => {
-            if (!courseId) throw new Error('Course ID is required');
-            return `${apiBaseUrl}/curriculum/course/${courseId}`;
-          },
-          checkCurriculumAvailability: (courseId: string): string => {
-            if (!courseId) throw new Error('Course ID is required');
-            return `${apiBaseUrl}/curriculum/course/${courseId}/check-availability`;
-          },
-          getOrCreateCurriculum: (courseId: string): string => {
-            if (!courseId) throw new Error('Course ID is required');
-            return `${apiBaseUrl}/curriculum/course/${courseId}/get-or-create`;
-          }
-        };
-      }
-    })(),
+         curriculum: {
+       getCurriculumByCourseId: (courseId: string): string => {
+         if (!courseId) throw new Error('Course ID is required');
+         return `${apiBaseUrl}/curriculum/course/${courseId}`;
+       },
+       checkCurriculumAvailability: (courseId: string): string => {
+         if (!courseId) throw new Error('Course ID is required');
+         return `${apiBaseUrl}/curriculum/course/${courseId}/check-availability`;
+       },
+       getOrCreateCurriculum: (courseId: string): string => {
+         if (!courseId) throw new Error('Course ID is required');
+         return `${apiBaseUrl}/curriculum/course/${courseId}/get-or-create`;
+       }
+     },
   },
   faqs: {
     getAllFaqs: "/faq/getAll",

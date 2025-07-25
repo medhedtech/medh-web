@@ -120,7 +120,7 @@ export class MobileInteractionManager {
       // Add touch-friendly properties
       element.style.touchAction = 'manipulation';
       element.style.userSelect = 'none';
-      element.style.webkitTapHighlightColor = 'transparent';
+      (element.style as any).webkitTapHighlightColor = 'transparent';
 
       // Prevent double-click if requested
       if (preventDoubleClick) {

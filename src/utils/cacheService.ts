@@ -25,7 +25,7 @@ interface CacheEntry<T> {
  * Provides a centralized caching solution using the official lru-cache package
  * Replaces all Map-based cache implementations throughout the project
  */
-export class CacheService<K = string, V = any> {
+export class CacheService<K extends {} = string, V = any> {
   private cache: LRUCache<K, CacheEntry<V>>;
   private defaultTTL: number;
 

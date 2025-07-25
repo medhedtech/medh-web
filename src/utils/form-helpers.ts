@@ -137,9 +137,9 @@ export const formTransformers = {
         if (transformed.phone) {
           transformed.phone = formTransformers.cleanPhone(transformed.phone as string);
         }
-        if (transformed.emergency_contact?.phone) {
-          transformed.emergency_contact.phone = formTransformers.cleanPhone(
-            transformed.emergency_contact.phone as string
+        if (transformed.emergency_contact && typeof transformed.emergency_contact === 'object' && 'phone' in transformed.emergency_contact && transformed.emergency_contact.phone) {
+          (transformed.emergency_contact as any).phone = formTransformers.cleanPhone(
+            (transformed.emergency_contact as any).phone as string
           );
         }
         break;

@@ -79,11 +79,11 @@ export const iosTest = {
     if (isIOS) {
       console.log('💡 iOS Device Detected - Recommendations:');
       
-      if (!videoTest.supportsPlaysinline) {
+      if (!videoTest || !videoTest.supportsPlaysinline) {
         console.log('⚠️  PlaysinIine not supported - video may not work correctly');
       }
       
-      if (!cssTest.supportsBackdropFilter) {
+      if (!cssTest || !cssTest.supportsBackdropFilter) {
         console.log('⚠️  Backdrop-filter not supported - using fallback backgrounds');
       }
       
@@ -106,7 +106,7 @@ export const iosTest = {
       recommendations: {
         shouldDisableVideo: isIOS && (deviceDetection.isLowPowerMode() || 
                             (deviceDetection.getMemoryInfo().deviceMemory || 0) < 3),
-        shouldUseGlassFallback: !cssTest.supportsBackdropFilter,
+        shouldUseGlassFallback: !cssTest || !cssTest.supportsBackdropFilter,
         shouldReduceAnimations: deviceDetection.isLowPowerMode()
       }
     };

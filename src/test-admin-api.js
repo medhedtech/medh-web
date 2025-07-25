@@ -1,7 +1,7 @@
 // Test script for Admin API endpoints
 // Run with: node src/test-admin-api.js
 
-const axios = require('axios');
+import axios from 'axios';
 
 // Configuration
 const BASE_URL = 'http://localhost:3000/api'; // Adjust if your API runs on different port
@@ -227,4 +227,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { runAllTests, testEndpoint, authenticate }; 
+export { runAllTests, testEndpoint, authenticate }; 

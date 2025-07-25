@@ -275,7 +275,6 @@ export const ADVANCED_SCHEMA_2025 = {
       "@type": "Thing",
       "name": courseData.category
     },
-    "teaches": courseData.learning_outcomes || [],
     "isAccessibleForFree": courseData.isFree || false,
     "creativeWorkStatus": courseData.status,
     "dateCreated": courseData.createdAt,
@@ -418,7 +417,7 @@ export class AdvancedSEOOptimizer {
     };
 
     const baseKeywords = semanticClusters[context as keyof typeof semanticClusters] || semanticClusters.education;
-    const variations = [];
+    const variations: string[] = [];
 
     baseKeywords.forEach(keyword => {
       variations.push(`${keyword} ${primaryKeyword}`);

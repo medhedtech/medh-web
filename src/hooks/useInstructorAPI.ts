@@ -328,9 +328,9 @@ export const useAssignmentManagement = (courseId?: string, batchId?: string) => 
     assignments: assignments.data,
     createAssignment: createAssignment.mutate,
     gradeSubmission: gradeSubmission.mutate,
-    isLoading: assignments.isLoading,
-    isCreating: createAssignment.isLoading,
-    isGrading: gradeSubmission.isLoading,
+    isLoading: assignments.isPending,
+    isCreating: createAssignment.isPending,
+    isGrading: gradeSubmission.isPending,
     error: assignments.error || createAssignment.error || gradeSubmission.error,
   };
 };
@@ -344,9 +344,9 @@ export const useAttendanceManagement = (batchId?: string) => {
     attendance: attendance.data,
     markAttendance: markAttendance.mutate,
     updateAttendance: updateAttendance.mutate,
-    isLoading: attendance.isLoading,
-    isMarking: markAttendance.isLoading,
-    isUpdating: updateAttendance.isLoading,
+    isLoading: attendance.isPending,
+    isMarking: markAttendance.isPending,
+    isUpdating: updateAttendance.isPending,
     error: attendance.error || markAttendance.error || updateAttendance.error,
   };
 };
