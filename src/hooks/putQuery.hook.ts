@@ -158,4 +158,6 @@ export const usePutQuery = <T = any>(): PutQueryReturn<T> => {
     putQuery,
     reset,
   };
-}; 
+};
+
+export default usePutQuery; 
