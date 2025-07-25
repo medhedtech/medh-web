@@ -7,12 +7,13 @@ import Link from "next/link";
 import { useMediaQuery } from "@/hooks";
 import { useLocalStorage } from "@/hooks";
 import { formatDuration, formatDate, formatDistanceToNow } from "@/utils/format";
-import useCourseLesson from "@/hooks/useCourseLesson.hook";
+import useCourseLesson, { CourseData, LessonData } from "@/hooks/useCourseLesson.hook";
 import Image from "next/image";
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
-import CourseCurriculum from "@/components/sections/course-detailed/CourseCurriculum";
+
 import ModernCourseFAQ from "@/components/sections/course-detailed/ModernCourseFAQ";
 import CourseTools from "@/components/sections/course-detailed/CourseTools";
+import { showToast } from '@/utils/toastManager';
 
 // Import icons from lucide-react
 import {
@@ -122,33 +123,6 @@ interface IToolTechnology {
   logo_url: string;
 }
 
-interface ILesson {
-  _id: string;
-  title: string;
-  duration: string;
-  completed?: boolean;
-  type?: string;
-  lessonType?: string;
-  description?: string;
-  status?: string;
-  is_completed?: boolean;
-}
-
-interface ISection {
-  _id: string;
-  title: string;
-  lessons: ILesson[];
-  description?: string;
-}
-
-interface IWeek {
-  _id: string;
-  weekTitle: string;
-  sections: ISection[];
-  lessons?: ILesson[];
-  weekDescription?: string;
-}
-
 interface ICourseDescription {
   program_overview: string;
   benefits: string;
@@ -157,32 +131,7 @@ interface ICourseDescription {
   target_audience: string[];
 }
 
-interface ICourseData {
-  _id: string;
-  course_title: string;
-  course_description: ICourseDescription | string;
-  curriculum: IWeek[];
-  prices: IPrice[];
-  tools_technologies: IToolTechnology[];
-  faqs: IFAQ[];
-  course_image?: string;
-  course_category?: string;
-  course_duration?: string;
-  course_tag?: string;
-  meta?: ICourseMeta;
-  no_of_Sessions?: number;
-  class_type?: string;
-  course_grade?: string;
-  course_level?: string;
-  is_Certification?: string;
-  is_Assignments?: string;
-  is_Projects?: string;
-  is_Quizes?: string;
-  isFree?: boolean;
-  min_hours_per_week?: number;
-  max_hours_per_week?: number;
-  efforts_per_Week?: string;
-}
+interface ICourseData extends CourseData {}
 
 // ----------------------
 // Utility Components
@@ -261,22 +210,22 @@ const IntegratedLesson: React.FC<IIntegratedLessonProps> = ({ params }) => {
   }, [params]);
 
   // Find the first lesson helper
-  const findFirstLesson = useCallback((courseData: ICourseData): string | null => {
+  const findFirstLesson = useCallback((courseData: CourseData): string | null => {
     if (!courseData?.curriculum?.length) return null;
     
       for (const week of courseData.curriculum) {
       if (week.lessons?.length) {
           const firstLesson = week.lessons[0];
-          const lessonId = firstLesson._id || firstLesson.id;
-            return typeof lessonId === 'object' ? lessonId.$oid : lessonId;
+          const lessonId = firstLesson._id;
+            return typeof lessonId === 'object' ? (lessonId as any).$oid : lessonId;
         }
         
       if (week.sections?.length) {
           for (const section of week.sections) {
           if (section.lessons?.length) {
               const firstLesson = section.lessons[0];
-              const lessonId = firstLesson._id || firstLesson.id;
-                return typeof lessonId === 'object' ? lessonId.$oid : lessonId;
+              const lessonId = firstLesson._id;
+                return typeof lessonId === 'object' ? (lessonId as any).$oid : lessonId;
             }
           }
         }
@@ -299,9 +248,9 @@ const IntegratedLesson: React.FC<IIntegratedLessonProps> = ({ params }) => {
   // Check if course has lessons
   const hasLessons = useMemo(() => {
     if (!courseData?.curriculum?.length) return false;
-    return courseData.curriculum.some((week: IWeek) => 
+    return courseData.curriculum.some((week: any) => 
       week.lessons?.length || 
-      week.sections?.some((section: ISection) => section.lessons?.length)
+      week.sections?.some((section: any) => section.lessons?.length)
     );
   }, [courseData]);
 
@@ -321,11 +270,12 @@ const IntegratedLesson: React.FC<IIntegratedLessonProps> = ({ params }) => {
   };
 
   // Handle lesson selection
-  const handleLessonSelect = (lesson: ILesson) => {
-      const lessonId = lesson._id || lesson.id;
+  const handleLessonSelect = (lesson: LessonData) => {
+      const lessonId = lesson._id;
     if (lessonId) {
-      const id = typeof lessonId === 'object' ? lessonId.$oid : lessonId;
-      router.push(`/integrated-lessons/${courseData!._id}/lecture/${id}`);
+      const id = typeof lessonId === 'object' ? (lessonId as any).$oid : lessonId;
+      const courseIdStr = typeof courseData!._id === 'object' ? (courseData!._id as any).$oid : courseData!._id;
+      router.push(`/integrated-lessons/${courseIdStr}/lecture/${id}`);
     }
   };
 
@@ -473,7 +423,7 @@ const IntegratedLesson: React.FC<IIntegratedLessonProps> = ({ params }) => {
                               <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">Level</span>
                                                 </div>
                             <p className="font-bold text-base text-gray-900 dark:text-white">
-                              {courseData.course_grade ? formatCourseGrade(courseData.course_grade) : courseData.course_level || "All levels"}
+                              {courseData.course_grade ? formatCourseGrade(courseData.course_grade) : "All levels"}
                             </p>
                                             </div>
                           
@@ -684,101 +634,63 @@ const IntegratedLesson: React.FC<IIntegratedLessonProps> = ({ params }) => {
               </motion.section>
 
               {/* Course Curriculum */}
-              <CourseCurriculum 
-                curriculum={courseData.curriculum || []}
-                onLessonSelect={handleLessonSelect}
-              />
-
-              {/* Learning Objectives */}
-              {typeof courseData.course_description === 'object' && courseData.course_description?.learning_objectives?.length > 0 && (
+              {courseData.curriculum && courseData.curriculum.length > 0 && (
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm"
+                  className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm border border-gray-100 dark:border-gray-700"
                 >
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
-                    <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mr-3">
-                      <Target className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-        </div>
-                    Learning Objectives
-      </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {courseData.course_description.learning_objectives.map((objective, index) => (
-          <motion.div
-                        key={index}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.1 * index }}
-                        className="flex items-start gap-3 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg"
-                      >
-                        <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <CheckCircle className="w-3.5 h-3.5 text-white" />
-                </div>
-                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{objective}</p>
-          </motion.div>
-        ))}
-          </div>
+                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mr-3">
+                      <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    Course Curriculum
+                  </h2>
+                  <div className="space-y-4">
+                    {courseData.curriculum.map((week: any, weekIndex: number) => (
+                      <div key={weekIndex} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                          {week.weekTitle || `Week ${weekIndex + 1}`}
+                        </h3>
+                        {week.weekDescription && (
+                          <p className="text-gray-600 dark:text-gray-400 mb-3 text-sm">
+                            {week.weekDescription}
+                          </p>
+                        )}
+                        {week.lessons && week.lessons.length > 0 && (
+                          <div className="space-y-2">
+                            {week.lessons.map((lesson: any, lessonIndex: number) => (
+                              <div 
+                                key={lessonIndex}
+                                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+                                onClick={() => handleLessonSelect(lesson)}
+                              >
+                                <div className="flex items-center">
+                                  <Play className="w-4 h-4 text-blue-500 mr-3" />
+                                  <span className="text-gray-900 dark:text-white">{lesson.title}</span>
+                                </div>
+                                {lesson.duration && (
+                                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                                    {lesson.duration}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </motion.section>
-          )}
-          
-          {/* Tools & Technologies */}
+              )}
+
+              {/* Tools & Technologies */}
               <CourseTools tools={courseData.tools_technologies || []} />
 
               {/* FAQ Section */}
               <ModernCourseFAQ faqs={courseData.faqs || []} />
 
-              {/* Target Audience & Requirements */}
-              {typeof courseData.course_description === 'object' && 
-               (courseData.course_description?.target_audience?.length > 0 || 
-                courseData.course_description?.course_requirements?.length > 0) && (
-                <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="grid grid-cols-1 md:grid-cols-2 gap-8"
-                >
-                  {/* Target Audience */}
-                  {courseData.course_description.target_audience?.length > 0 && (
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm">
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
-                        <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mr-3">
-                          <Users2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  </div>
-                        Who This Course Is For
-                      </h3>
-                      <ul className="space-y-3">
-                        {courseData.course_description.target_audience.map((audience, index) => (
-                          <li key={index} className="flex items-start gap-3">
-                            <ArrowRight className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                            <span className="text-gray-600 dark:text-gray-300">{audience}</span>
-                          </li>
-                        ))}
-                      </ul>
-                  </div>
-                      )}
-
-                  {/* Course Requirements */}
-                  {courseData.course_description.course_requirements?.length > 0 && (
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm">
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
-                        <div className="w-6 h-6 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center mr-3">
-                          <AlertCircle className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                            </div>
-                        Prerequisites
-                      </h3>
-                      <ul className="space-y-3">
-                        {courseData.course_description.course_requirements.map((requirement, index) => (
-                          <li key={index} className="flex items-start gap-3">
-                            <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                            <span className="text-gray-600 dark:text-gray-300">{requirement}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      </div>
-                  )}
-                </motion.section>
-        )}
       </div>
     </div>
         </div>
