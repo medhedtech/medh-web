@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
-import { apiBaseUrl } from './index';
+import { apiBaseUrl } from './config';
 
 // ========== FORM CONFIG TYPES (Following formjson.md) ==========
 

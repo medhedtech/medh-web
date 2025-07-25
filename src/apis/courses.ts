@@ -1,6 +1,6 @@
 import { apiBaseUrl } from './config';
 import { apiClient } from './apiClient';
-import { apiUtils } from './index';
+import { apiUtils } from './utils';
 
 /**
  * Course type definitions

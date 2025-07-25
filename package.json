@@ -14,6 +14,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:verbose": "NEXT_DEBUG=1 next build --debug",
+    "build:analyze": "ANALYZE=true next build",
     "start": "next start",
     "lint": "next lint --fix",
     "lint:check": "next lint",

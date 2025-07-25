@@ -1,5 +1,5 @@
 import { apiBaseUrl } from './config';
-import { IApiResponse } from './index';
+import { IApiResponse } from './utils';
 
 // Types and Interfaces
 export interface IWishlistItem {

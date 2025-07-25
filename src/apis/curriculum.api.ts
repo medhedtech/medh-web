@@ -1,5 +1,5 @@
 // curriculum.api.ts
-import { apiBaseUrl, apiUtils } from './index';
+import { apiBaseUrl, apiUtils } from './utils';
 
 /**
  * Comprehensive Curriculum API endpoints for handling course curriculum data

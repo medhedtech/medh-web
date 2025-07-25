@@ -1,6 +1,6 @@
 import { apiBaseUrl } from './config';
 import { apiClient } from './apiClient';
-import { apiUtils, type IApiResponse } from './index';
+import { apiUtils, type IApiResponse } from './utils';
 import { getValidAuthToken } from '@/utils/auth';
 import VideoUploadErrorHandler from '@/utils/videoUploadErrorHandler';
 import { getVideoConfig, videoConfigUtils } from '@/config/video.config';

@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
-import { apiBaseUrl } from './index';
+import { apiBaseUrl } from './config';
 import { courseTypesAPI, ILiveCourse as IDetailedLiveCourse } from './courses';
 
 // ========== FORM CONFIG TYPES (Following formjson.md) ==========
