@@ -19,6 +19,14 @@ const nextConfig = {
       exclude: ['error', 'warn'],
     } : false,
   },
+  
+  // Enhanced SWC configuration for better AWS CodeBuild compatibility
+  ...(process.env.CI && {
+    // Force Babel fallback in CI if SWC fails
+    experimental: {
+      forceSwcTransforms: false,
+    }
+  }),
 
   // Prevent build cancellation
   staticPageGenerationTimeout: 1800, // 30 minutes

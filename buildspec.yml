@@ -62,8 +62,19 @@ phases:
       - echo "Installing dependencies..."
       - npm ci --no-audit --prefer-offline
       
-      # Make build script executable
+      # Install SWC binaries for Linux x64 architecture
+      - echo "Installing SWC binaries for AWS CodeBuild..."
+      - npm install --no-save --no-audit @next/swc-linux-x64-gnu@15.4.3 || echo "Failed to install GNU binary"
+      - npm install --no-save --no-audit @next/swc-linux-x64-musl@15.4.3 || echo "Failed to install MUSL binary"
+      
+      # Set SWC fallback environment variables
+      - export NEXT_FORCE_SWC=false
+      - export SWC_DISABLE_NEXT_SWC=1
+      - echo "SWC fallback environment configured"
+      
+      # Make build scripts executable
       - chmod +x scripts/fix-swc-build.sh
+      - chmod +x scripts/build-with-babel-fallback.sh
       
       # Verify installation
       - echo ""
@@ -78,8 +89,13 @@ phases:
     commands:
       - echo "=== Building Application with SWC Fix ==="
       
-      # Use the comprehensive SWC build fix script
-      - bash scripts/fix-swc-build.sh
+      # Ensure SWC fallback environment variables are set
+      - export NEXT_FORCE_SWC=false
+      - export SWC_DISABLE_NEXT_SWC=1
+      - export NODE_OPTIONS="--max-old-space-size=6144"
+      
+      # Try SWC build first, fallback to Babel if it fails
+      - bash scripts/fix-swc-build.sh || bash scripts/build-with-babel-fallback.sh
 
 artifacts:
   files:

@@ -43,13 +43,28 @@ check_swc_binaries() {
 install_swc_binaries() {
     echo "📦 Installing SWC binaries for Linux x64..."
     
-    # Try to install the specific SWC binaries
-    npm install --no-save --no-audit --prefer-offline @next/swc-linux-x64-gnu@$(npm list next --depth=0 --json | jq -r '.dependencies.next.version') || {
-        echo "⚠️  Failed to install @next/swc-linux-x64-gnu, trying alternative..."
-        npm install --no-save --no-audit @next/swc-linux-x64-musl@$(npm list next --depth=0 --json | jq -r '.dependencies.next.version') || {
-            echo "⚠️  Failed to install SWC binaries, Next.js will use Babel fallback"
+    # Get Next.js version
+    local next_version="15.4.3"
+    
+    # Try to install the specific SWC binaries with explicit version
+    echo "Attempting to install @next/swc-linux-x64-gnu@$next_version..."
+    npm install --no-save --no-audit --prefer-offline @next/swc-linux-x64-gnu@$next_version || {
+        echo "⚠️  Failed to install @next/swc-linux-x64-gnu, trying MUSL alternative..."
+        npm install --no-save --no-audit --prefer-offline @next/swc-linux-x64-musl@$next_version || {
+            echo "⚠️  Failed to install SWC binaries, setting up Babel fallback..."
+            export NEXT_FORCE_SWC=false
+            export SWC_DISABLE_NEXT_SWC=1
         }
     }
+    
+    # Verify installation
+    if check_swc_binaries; then
+        echo "✅ SWC binaries successfully installed"
+    else
+        echo "⚠️  SWC binaries not available, Next.js will use Babel fallback"
+        export NEXT_FORCE_SWC=false
+        export SWC_DISABLE_NEXT_SWC=1
+    fi
 }
 
 # Function to verify build environment
