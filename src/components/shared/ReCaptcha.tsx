@@ -8,17 +8,34 @@ interface CustomReCaptchaProps {
   error?: boolean;
 }
 
+// Function to generate a realistic token
+const generateToken = (): string => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+  const segments = [
+    Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join(''),
+    Array.from({ length: 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join(''),
+    Array.from({ length: 16 }, () => chars[Math.floor(Math.random() * chars.length)]).join(''),
+    Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+  ];
+  return segments.join('.');
+};
+
 const CustomReCaptcha: React.FC<CustomReCaptchaProps> = ({ onChange, error = false }) => {
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isChecking, setIsChecking] = useState<boolean>(false);
+  const [token, setToken] = useState<string>('');
 
   const handleVerification = (): void => {
+    if (isVerified) return;
+    
     setIsChecking(true);
     // Simulate verification process
     setTimeout(() => {
+      const generatedToken = generateToken();
+      setToken(generatedToken);
       setIsVerified(true);
       setIsChecking(false);
-      onChange('verified');
+      onChange(generatedToken);
     }, 1000);
   };
 
@@ -32,7 +49,7 @@ const CustomReCaptcha: React.FC<CustomReCaptchaProps> = ({ onChange, error = fal
               ? 'border-green-300 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
               : 'border-gray-200 bg-gray-50/50 dark:border-gray-700 dark:bg-gray-700/30 hover:bg-gray-100/50 dark:hover:bg-gray-600/30'
           }`}
-        onClick={() => !isVerified && handleVerification()}
+        onClick={handleVerification}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
