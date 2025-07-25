@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+import crypto from 'crypto';
+
 const nextConfig = {
   reactStrictMode: false,
   eslint: {
@@ -12,9 +14,6 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
 
-  // Memory optimization settings
-  swcMinify: true, // Use SWC for faster, memory-efficient minification
-  
   // Disable source maps in production to save memory
   productionBrowserSourceMaps: false,
   
