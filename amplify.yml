@@ -3,14 +3,17 @@ frontend:
   phases:
     preBuild:
       commands:
-        - echo "=== ⚡ ULTRA-FAST AMPLIFY BUILD WITH PNPM ==="
-        - echo "Build ID: $AWS_BUILD_ID"
-        - echo "Branch: $AWS_BRANCH"
+        - echo "=== AWS Amplify Build Configuration ==="
+        - echo "Available Node.js$(node -v)"
+        - echo "Available npm$(npm -v)"
+        - echo "Target Node.js$(cat .nvmrc 2>/dev/null || echo 'Not specified')"
+        - echo "AWS Branch $AWS_BRANCH"
+        - echo "Build ID $AWS_BUILD_ID"
         - echo ""
         
         # BYPASS SSM ISSUES - Set environment variables directly
         - |
-          echo "=== Setting Environment Variables ==="
+          echo "=== Setting Environment Variables (Bypassing SSM) ==="
           export NODE_ENV="production"
           export NEXT_PUBLIC_API_URL="https://api.medh.co/api/v1"
           export NEXT_PUBLIC_APP_ENV="production"
@@ -20,263 +23,267 @@ frontend:
           export API_KEY_SALT="${API_KEY_SALT:-fallback-salt}"
           export SESSION_SECRET="${SESSION_SECRET:-fallback-session-secret}"
           
-          # PERFORMANCE OPTIMIZATIONS
+          # Set build timeout and memory configurations
           export NEXT_TIMEOUT=1800000  # 30 minutes
-          export NEXT_STATIC_EXPORT_TIMEOUT=1800000
+          export NEXT_STATIC_EXPORT_TIMEOUT=1800000  # 30 minutes
           export NODE_OPTIONS="--max-old-space-size=16384 --no-warnings --max-semi-space-size=1024"
           export AMPLIFY_DISABLE_TIMEOUT=true
-          export AMPLIFY_BUILD_TIMEOUT=3600
+          export AMPLIFY_BUILD_TIMEOUT=3600  # 1 hour
           
-          # Next.js & TypeScript optimizations
+          # TypeScript configuration for Next.js
           export NEXT_TELEMETRY_DISABLED=1
           export TSC_COMPILE_ON_ERROR=true
           export SKIP_TYPE_CHECK=false
           
-          # pnpm optimizations
-          export PNPM_HOME="/usr/local/share/pnpm"
-          export PATH="$PNPM_HOME:$PATH"
-          export CI=true
-          export HUSKY=0
+          # Log what we're using (without showing actual secrets)
+          echo "NODE_ENV: $NODE_ENV"
+          echo "NEXT_PUBLIC_API_URL: $NEXT_PUBLIC_API_URL"
+          echo "JWT_SECRET: ${JWT_SECRET:0:10}... (length: ${#JWT_SECRET})"
           
-          echo "✅ Environment variables configured"
-        
-        # Install latest pnpm for maximum speed
-        - |
-          echo "=== ⚡ Installing Latest pnpm ==="
-          curl -fsSL https://get.pnpm.io/install.sh | sh -
-          export PNPM_HOME="/usr/local/share/pnpm"
-          export PATH="$PNPM_HOME:$PATH"
-          
-          # Verify pnpm installation
-          pnpm --version
-          echo "✅ pnpm installed successfully"
-        
-        # Configure pnpm for maximum performance
-        - |
-          echo "=== ⚡ Configuring pnpm for Ultra Performance ==="
-          
-          # Create optimized .pnpmrc
-          cat > .pnpmrc << EOF
-          # Performance optimizations
-          store-dir=.pnpm-store
-          package-import-method=hardlink
-          symlink=false
-          hoist-pattern[]=*
-          public-hoist-pattern[]=*eslint*,*prettier*,*typescript*
-          
-          # Network optimizations
-          network-concurrency=16
-          fetch-retry-maxtimeout=120000
-          fetch-retry-mintimeout=10000
-          fetch-timeout=300000
-          
-          # Registry optimizations
-          registry=https://registry.npmjs.org/
-          prefer-offline=true
-          
-          # Build optimizations
-          frozen-lockfile=false
-          prefer-frozen-lockfile=true
-          strict-peer-dependencies=false
-          auto-install-peers=true
-          dedupe-peer-dependents=true
-          
-          # Cache optimizations
-          verify-store-integrity=false
-          side-effects-cache=true
-          side-effects-cache-readonly=false
-          
-          # Disable unnecessary features
-          enable-pre-post-scripts=false
-          ignore-scripts=false
-          fund=false
-          audit=false
-          update-notifier=false
+          # Create .env file for build
+          cat > .env << EOF
+          NODE_ENV=production
+          NEXT_PUBLIC_API_URL=https://api.medh.co/api/v1
+          NEXT_PUBLIC_APP_ENV=production
+          JWT_SECRET=$JWT_SECRET
+          API_KEY_SALT=$API_KEY_SALT
+          SESSION_SECRET=$SESSION_SECRET
           EOF
           
-          echo "✅ pnpm configured for maximum performance"
+          echo "✅ Environment variables set and .env file created"
         
-        # Clean and optimize dependency installation
+        # Flexible Node.js version handling
         - |
-          echo "=== ⚡ Ultra-Fast Dependency Installation ==="
+          CURRENT_MAJOR=$(node -v | sed 's/v//' | cut -d. -f1)
+          echo "Current Node.js major version v$CURRENT_MAJOR"
           
-          # Clean any existing installations
-          rm -rf node_modules .pnpm-store pnpm-lock.yaml 2>/dev/null || true
-          
-          # Generate fresh lockfile with optimizations
-          echo "Generating optimized lockfile..."
-          pnpm install --frozen-lockfile=false --prefer-offline --no-audit --no-fund
-          
-          # Install with maximum performance settings
-          echo "Installing dependencies with maximum performance..."
-          pnpm install \
-            --frozen-lockfile \
-            --prefer-offline \
-            --ignore-scripts=false \
-            --no-audit \
-            --no-fund \
-            --reporter=silent \
-            --production=false
-          
-          echo "✅ Dependencies installed at lightning speed"
-        
-        # Verify critical dependencies and optimize bundle
-        - |
-          echo "=== ⚡ Verifying and Optimizing Dependencies ==="
-          
-          # Check critical packages
-          echo "Verifying Next.js installation..."
-          pnpm list next react react-dom --depth=0 || echo "⚠️ Some dependencies missing"
-          
-          # Optimize bundle size by removing unnecessary packages
-          echo "Optimizing bundle size..."
-          
-          # Remove development-only packages from production bundle
-          pnpm prune --prod --no-optional 2>/dev/null || true
-          
-          # Reinstall all packages (including dev) for build
-          pnpm install --frozen-lockfile --prefer-offline --no-audit --no-fund --reporter=silent
-          
-          # Verify TypeScript
-          if [ -f "node_modules/.bin/tsc" ]; then
-            echo "✅ TypeScript verified: $(pnpm exec tsc --version)"
+          # Check minimum compatibility (Node.js 18+)
+          if [ "$CURRENT_MAJOR" -ge "18" ]; then
+            echo "✅ Node.js version is compatible for Next.js (v$CURRENT_MAJOR >= v18)"
           else
-            echo "❌ TypeScript missing - installing..."
-            pnpm add -D typescript @types/react @types/react-dom @types/node
+            echo "❌ Node.js version too old (v$CURRENT_MAJOR < v18)"
+            echo "This project requires Node.js 18 or higher"
+            exit 1
           fi
           
-          echo "✅ Dependencies verified and optimized"
+          # Try to use specific version if possible
+          if [ -f .nvmrc ] && command -v nvm >/dev/null 2>&1; then
+            REQUIRED_VERSION=$(cat .nvmrc)
+            echo ""
+            echo "Attempting to use Node.js v$REQUIRED_VERSION via nvm..."
+            nvm install $REQUIRED_VERSION && nvm use $REQUIRED_VERSION || {
+              echo "⚠️  Failed to switch to v$REQUIRED_VERSION, continuing with v$CURRENT_MAJOR"
+            }
+          fi
         
-        # Advanced build optimizations
+        - echo ""
+        - echo "Final environment"
+        - "echo \"Node.js $(node -v)\""
+        - "echo \"npm $(npm -v)\""
+        - echo "Configuring npm..."
+        - npm config set legacy-peer-deps true
+        - npm config set audit-level moderate
+        - npm config set fund false
+        - npm config set update-notifier false
+        - npm config set progress true
+        
+        # Clean up any potential lock file issues
+        - echo ""
+        - echo "=== Dependency Cleanup and Installation ==="
+        - echo "Cleaning up potential dependency conflicts..."
+        - rm -rf node_modules/.staging 2>/dev/null || true
+        - rm -rf node_modules/.cache 2>/dev/null || true
+        - rm -rf node_modules/@radix-ui 2>/dev/null || true  # Remove any corrupted Radix UI packages
+        
+        # Debug package.json and package-lock.json
+        - echo "Checking package.json..."
+        - ls -la package.json
+        - echo "Checking package-lock.json..."
+        - ls -la package-lock.json || echo "⚠️ No package-lock.json found"
+        - echo "Node modules before install:"
+        - ls -la node_modules/ 2>/dev/null || echo "No node_modules directory"
+        
+        # Ensure exact versions for problematic packages
+        - echo "Ensuring exact versions for Radix UI packages..."
         - |
-          echo "=== ⚡ Advanced Build Optimizations ==="
+          # Backup original package.json
+          cp package.json package.json.bak
           
-          # Create optimized next.config.js if it doesn't exist
-          if [ ! -f "next.config.js" ] && [ ! -f "next.config.mjs" ]; then
-            cat > next.config.js << 'EOF'
-          /** @type {import('next').NextConfig} */
-          const nextConfig = {
-            // Performance optimizations
-            swcMinify: true,
-            compress: true,
-            poweredByHeader: false,
-            
-            // Build optimizations
-            experimental: {
-              esmExternals: true,
-              serverComponentsExternalPackages: [],
-              optimizeCss: true,
-              optimizePackageImports: ['@aws-amplify/ui-react', 'lucide-react'],
-            },
-            
-            // Bundle analysis
-            webpack: (config, { dev, isServer }) => {
-              if (!dev && !isServer) {
-                config.optimization.splitChunks.cacheGroups = {
-                  ...config.optimization.splitChunks.cacheGroups,
-                  vendor: {
-                    test: /[\\/]node_modules[\\/]/,
-                    name: 'vendors',
-                    chunks: 'all',
-                  },
-                };
-              }
-              return config;
-            },
-            
-            // Image optimization
-            images: {
-              domains: ['images.unsplash.com', 'api.medh.co'],
-              formats: ['image/webp', 'image/avif'],
-            },
-          };
+          # Add exact versions for Radix UI packages
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.dependencies['@radix-ui/react-avatar'] = '1.1.10';
+            pkg.dependencies['@radix-ui/react-progress'] = '1.1.7';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+          "
           
-          module.exports = nextConfig;
-          EOF
-            echo "✅ Optimized Next.js config created"
+          echo "Updated package.json with exact versions"
+        
+        # Clean install with better error handling
+        - echo ""
+        - echo "Installing dependencies with clean approach..."
+        - |
+          # Try npm ci first (faster and more reliable for production)
+          if [ -f package-lock.json ]; then
+            echo "Using npm ci for clean install..."
+            npm ci --no-audit --prefer-offline --no-fund --verbose || {
+              echo "npm ci failed, falling back to npm install..."
+              rm -rf node_modules
+              npm install --no-audit --prefer-offline --no-fund --verbose
+            }
+          else
+            echo "No package-lock.json found, using npm install..."
+            npm install --no-audit --prefer-offline --no-fund --verbose
           fi
           
-          # Set up build-time optimizations
-          export NEXT_PRIVATE_STANDALONE=true
-          export NEXT_PRIVATE_SKIP_VALIDATION=true
+          # Explicitly install ALL Radix UI dependencies that might be missing
+          echo "Ensuring critical Radix UI dependencies are installed..."
+          npm install @radix-ui/react-avatar @radix-ui/react-progress @radix-ui/react-checkbox @radix-ui/react-label @radix-ui/react-roving-focus @radix-ui/react-select @radix-ui/react-separator @radix-ui/react-slot @radix-ui/react-switch @radix-ui/react-tabs --no-audit --prefer-offline --no-fund --verbose
           
-          echo "✅ Advanced optimizations configured"
-
+          # Force reinstall of problematic packages
+          echo "Force reinstalling problematic packages..."
+          npm install --force @radix-ui/react-avatar @radix-ui/react-progress
+          
+          # Clear npm cache and reinstall if still failing
+          echo "Clearing npm cache and double-checking installation..."
+          npm cache clean --force
+          npm install @radix-ui/react-avatar @radix-ui/react-progress --no-cache
+          
+          # Explicitly install TypeScript and related dependencies
+          echo "Ensuring TypeScript and build dependencies are installed..."
+          npm install typescript @types/react @types/react-dom @types/node tsx --no-audit --prefer-offline --no-fund --verbose
+          
+          # Verify TypeScript installation immediately
+          echo "Verifying TypeScript installation..."
+          if [ -f "node_modules/.bin/tsc" ]; then
+            echo "✅ TypeScript compiler installed successfully"
+            node_modules/.bin/tsc --version
+          else
+            echo "❌ TypeScript installation failed - trying global install"
+            npm install -g typescript
+          fi
+        
+        # Verify installation
+        - echo ""
+        - echo "=== Post-Install Verification ==="
+        - echo "Node modules after install:"
+        - ls -la node_modules/ | head -10
+        - echo "Checking critical dependencies..."
+        - npm list next react react-dom --depth=0 || echo "⚠️ Some critical dependencies missing"
+        - echo "Checking Radix UI dependencies..."
+        - |
+          # Detailed verification of Radix UI packages
+          echo "Verifying @radix-ui/react-avatar installation..."
+          if [ -d "node_modules/@radix-ui/react-avatar" ]; then
+            echo "✅ @radix-ui/react-avatar is installed"
+            ls -la node_modules/@radix-ui/react-avatar/
+          else
+            echo "❌ @radix-ui/react-avatar is NOT installed"
+            echo "Attempting emergency install..."
+            npm install @radix-ui/react-avatar --force --no-cache
+          fi
+          
+          echo "Verifying @radix-ui/react-progress installation..."
+          if [ -d "node_modules/@radix-ui/react-progress" ]; then
+            echo "✅ @radix-ui/react-progress is installed"
+            ls -la node_modules/@radix-ui/react-progress/
+          else
+            echo "❌ @radix-ui/react-progress is NOT installed"
+            echo "Attempting emergency install..."
+            npm install @radix-ui/react-progress --force --no-cache
+          fi
+          
+                     # Final verification with npm list
+           npm list @radix-ui/react-avatar @radix-ui/react-progress --depth=0 || {
+             echo "❌ Final verification failed - attempting manual installation"
+             
+             # Manual installation as last resort
+             mkdir -p node_modules/@radix-ui
+             
+             # Download and install avatar package manually
+             if [ ! -d "node_modules/@radix-ui/react-avatar" ]; then
+               echo "Manually downloading @radix-ui/react-avatar..."
+               curl -L "https://registry.npmjs.org/@radix-ui/react-avatar/-/react-avatar-1.1.10.tgz" -o avatar.tgz
+               mkdir -p node_modules/@radix-ui/react-avatar
+               tar -xzf avatar.tgz -C node_modules/@radix-ui/react-avatar --strip-components=1
+               rm avatar.tgz
+             fi
+             
+             # Download and install progress package manually
+             if [ ! -d "node_modules/@radix-ui/react-progress" ]; then
+               echo "Manually downloading @radix-ui/react-progress..."
+               curl -L "https://registry.npmjs.org/@radix-ui/react-progress/-/react-progress-1.1.7.tgz" -o progress.tgz
+               mkdir -p node_modules/@radix-ui/react-progress
+               tar -xzf progress.tgz -C node_modules/@radix-ui/react-progress --strip-components=1
+               rm progress.tgz
+             fi
+             
+             echo "✅ Manual installation completed"
+           }
+           
+           # Comprehensive TypeScript verification
+           echo "Final TypeScript verification..."
+           if [ -f "node_modules/.bin/tsc" ] && [ -f "node_modules/typescript/package.json" ]; then
+             echo "✅ TypeScript compiler found"
+             node_modules/.bin/tsc --version
+             
+             # Test TypeScript compilation
+             echo "Testing TypeScript compilation..."
+             echo 'console.log("TypeScript test");' > test.ts
+             if node_modules/.bin/tsc test.ts --noEmit 2>/dev/null; then
+               echo "✅ TypeScript compilation test passed"
+             else
+               echo "⚠️ TypeScript compilation test failed but continuing..."
+             fi
+             rm -f test.ts test.js 2>/dev/null || true
+           else
+             echo "❌ TypeScript compiler not found - attempting emergency install"
+             npm install typescript @types/react @types/react-dom @types/node --force --no-cache
+             
+             # If still failing, try global install
+             if [ ! -f "node_modules/.bin/tsc" ]; then
+               echo "❌ Local install failed - trying global TypeScript"
+               npm install -g typescript
+               export PATH="$PATH:$(npm config get prefix)/bin"
+             fi
+           fi
+           
+           # Final TypeScript types verification
+           echo "Verifying TypeScript types..."
+           npm list typescript @types/react @types/react-dom @types/node --depth=0 || {
+             echo "❌ TypeScript types verification failed - attempting final reinstall"
+             npm install typescript @types/react @types/react-dom @types/node tsx --force --no-cache
+           }
+           
+           # Set PATH for build phase
+           echo "Setting TypeScript PATH for build..."
+           export PATH="$PWD/node_modules/.bin:$PATH"
     build:
       commands:
-        - echo "=== ⚡ Lightning-Fast Build Process ==="
-        - export PATH="$PNPM_HOME:$PATH"
-        
-        # Pre-build optimizations
+        - echo ""
+        - echo "=== Starting Build Process ==="
+        - echo "Setting up TypeScript environment for build..."
+        - export PATH="$PWD/node_modules/.bin:$PATH"
+        - export NEXT_TELEMETRY_DISABLED=1
+        - export TSC_COMPILE_ON_ERROR=true
         - |
-          echo "Applying pre-build optimizations..."
-          
-          # Clear Next.js cache for fresh build
-          rm -rf .next/cache 2>/dev/null || true
-          
-          # Set optimal Node.js flags for build
-          export NODE_OPTIONS="--max-old-space-size=16384 --no-warnings"
-          
-          # Enable build parallelization
-          export NEXT_PRIVATE_CPU_PROFILE=false
-          export NEXT_PRIVATE_STANDALONE=true
-          
-          echo "✅ Pre-build optimizations applied"
-        
-        # Execute ultra-fast build
-        - |
-          echo "🚀 Starting ultra-fast build..."
-          
-          # Use pnpm for maximum build speed
-          time pnpm run build
-          
-          echo "✅ Build completed successfully!"
-        
-        # Post-build optimizations
-        - |
-          echo "=== ⚡ Post-Build Optimizations ==="
-          
-          # Optimize static assets
-          if [ -d ".next/static" ]; then
-            echo "Optimizing static assets..."
-            find .next/static -name "*.js" -exec gzip -k {} \; 2>/dev/null || true
-            find .next/static -name "*.css" -exec gzip -k {} \; 2>/dev/null || true
-            echo "✅ Static assets optimized"
+          # Final pre-build TypeScript check
+          if [ -f "node_modules/.bin/tsc" ]; then
+            echo "✅ TypeScript available for build: $(node_modules/.bin/tsc --version)"
+          else
+            echo "❌ TypeScript not found - emergency install"
+            npm install typescript --force
           fi
-          
-          # Clean up unnecessary files
-          rm -rf node_modules/.cache 2>/dev/null || true
-          rm -rf .pnpm-store/.tmp 2>/dev/null || true
-          
-          # Display build statistics
-          echo "📊 Build Statistics:"
-          echo "Build size: $(du -sh .next 2>/dev/null || echo 'N/A')"
-          echo "Node modules: $(du -sh node_modules 2>/dev/null || echo 'N/A')"
-          
-          echo "🎉 Ultra-fast build process completed!"
-
+        - chmod +x ./scripts/amplify-build.sh
+        - ./scripts/amplify-build.sh
   artifacts:
     baseDirectory: .next
     files:
       - '**/*'
   cache:
     paths:
-      - .pnpm-store/**/*
+      - node_modules/**/*
       - .next/cache/**/*
-      - node_modules/.pnpm/**/*
-      - ~/.pnpm-store/**/*
-
-# Build instance optimization - use Large for better performance
-buildSpec:
-  version: 0.2
-  phases:
-    install:
-      runtime-versions:
-        nodejs: 20  # Use latest LTS
-      commands:
-        - echo "Using optimized build instance"
-    build:
-      commands:
-        - echo "Build instance optimized for performance"
-
+      - .npm/**/*
 appRoot: .
