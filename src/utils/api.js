@@ -1,62 +1,6 @@
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
-
-/**
- * Cache controller for API requests
- * Implements a simple in-memory cache with configurable TTL
- */
-class CacheController {
-  constructor() {
-    this.cache = new Map();
-    this.defaultTTL = 5 * 60 * 1000; // 5 minutes default TTL
-  }
-
-  /**
-   * Get an item from cache
-   * @param {string} key - Cache key
-   * @returns {any|null} - Cached value or null if not found/expired
-   */
-  get(key) {
-    if (!this.cache.has(key)) return null;
-    
-    const { value, expiry } = this.cache.get(key);
-    if (expiry < Date.now()) {
-      this.delete(key);
-      return null;
-    }
-    
-    return value;
-  }
-
-  /**
-   * Set an item in cache
-   * @param {string} key - Cache key
-   * @param {any} value - Value to cache
-   * @param {number} ttl - Time to live in ms (optional)
-   */
-  set(key, value, ttl = this.defaultTTL) {
-    const expiry = Date.now() + ttl;
-    this.cache.set(key, { value, expiry });
-  }
-
-  /**
-   * Delete an item from cache
-   * @param {string} key - Cache key
-   */
-  delete(key) {
-    this.cache.delete(key);
-  }
-
-  /**
-   * Clear entire cache
-   */
-  clear() {
-    this.cache.clear();
-  }
-}
-
-// Create a global cache instance
-const apiCache = new CacheController();
+import { apiCache } from './cacheService';
 
 /**
  * API client with enhanced features:
