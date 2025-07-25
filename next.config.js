@@ -7,10 +7,16 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Prevent build timeout issues
+  // Prevent build timeout issues and optimize memory usage
   staticPageGenerationTimeout: 1800,
   generateBuildId: async () => {
     return `build-${Date.now()}`
+  },
+  // Optimize memory usage during build
+  experimental: {
+    // Reduce memory usage during build
+    workerThreads: false,
+    cpus: 1,
   },
   transpilePackages: [
     '@floating-ui/core',
