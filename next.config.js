@@ -11,12 +11,116 @@ const nextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
+
   // Prevent build cancellation
   staticPageGenerationTimeout: 1800, // 30 minutes
   generateBuildId: async () => {
     // Generate a unique build ID to prevent caching issues
     return `build-${Date.now()}`
   },
+
+  // Updated experimental settings for better Turbopack stability
+  experimental: {
+    // Enable optimized package imports
+    optimizePackageImports: [
+      '@radix-ui/react-avatar',
+      '@radix-ui/react-checkbox',
+      '@radix-ui/react-label',
+      '@radix-ui/react-progress',
+      '@radix-ui/react-radio-group',
+      '@radix-ui/react-select',
+      '@radix-ui/react-separator',
+      '@radix-ui/react-slot',
+      '@radix-ui/react-switch',
+      '@radix-ui/react-tabs',
+      '@heroicons/react',
+      'lucide-react',
+      'react-icons',
+    ],
+    // Improve HMR performance
+    webVitalsAttribution: ['CLS', 'LCP'],
+  },
+
+  // Move Turbopack configuration to the new stable location
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
+      },
+    },
+    resolveAlias: {
+      // Ensure consistent module resolution
+      'react': 'react',
+      'react-dom': 'react-dom',
+    },
+  },
+
+  // Enhanced webpack optimizations for better HMR stability
+  webpack: (config, { dev, isServer }) => {
+    if (dev && !isServer) {
+      // Improve HMR stability with better module resolution
+      config.optimization = {
+        ...config.optimization,
+        moduleIds: 'named',
+        chunkIds: 'named',
+        // Prevent module factory deletion issues
+        providedExports: true,
+        sideEffects: false,
+      };
+
+      // Better source maps for debugging
+      config.devtool = 'eval-source-map';
+
+      // Prevent module resolution issues with absolute paths
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'react': 'react',
+        'react-dom': 'react-dom',
+        'react/jsx-runtime': 'react/jsx-runtime',
+        'react/jsx-dev-runtime': 'react/jsx-dev-runtime',
+      };
+
+      // Ensure consistent module resolution
+      config.resolve.modules = ['node_modules', ...config.resolve.modules];
+
+      // Optimize chunk splitting for HMR with better cache groups
+      config.optimization.splitChunks = {
+        ...config.optimization.splitChunks,
+        chunks: 'all',
+        cacheGroups: {
+          ...config.optimization.splitChunks?.cacheGroups,
+          react: {
+            test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+            name: 'react',
+            chunks: 'all',
+            priority: 20,
+            enforce: true,
+          },
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+            priority: 10,
+          },
+          common: {
+            name: 'common',
+            minChunks: 2,
+            chunks: 'all',
+            priority: 5,
+          },
+        },
+      };
+
+      // Add HMR optimization plugins
+      config.plugins = [
+        ...config.plugins,
+      ];
+    }
+
+    return config;
+  },
+
   transpilePackages: [
     '@floating-ui/core',
     '@floating-ui/dom',
