@@ -14,23 +14,42 @@ frontend:
         - export NODE_OPTIONS="--max-old-space-size=8192"
         - export NEXT_TELEMETRY_DISABLED=1
         
-        # Install pnpm
-        - corepack enable
-        - corepack prepare pnpm@latest --activate
-        - pnpm --version
+        # Configure npm
+        - npm config set legacy-peer-deps true
+        - npm config set audit-level moderate
+        - npm config set fund false
+        - npm config set update-notifier false
         
-        # Configure pnpm
-        - pnpm config set store-dir .pnpm-store
-        - pnpm config set network-concurrency 16
-        - pnpm config set fetch-timeout 300000
-        
-        # Install dependencies
-        - pnpm install --frozen-lockfile --prefer-offline
+        # Install dependencies (project uses pnpm-lock.yaml, so use npm install)
+        - |
+          echo "Installing dependencies with npm..."
+          if [ -f "pnpm-lock.yaml" ] && [ ! -f "package-lock.json" ]; then
+            echo "Found pnpm-lock.yaml but no package-lock.json - using npm install"
+            npm install --no-audit --prefer-offline
+          elif [ -f "package-lock.json" ]; then
+            echo "Found package-lock.json - using npm ci"
+            npm ci --no-audit --prefer-offline
+          else
+            echo "No lock file found - using npm install"
+            npm install --no-audit --prefer-offline
+          fi
         
     build:
       commands:
         - echo "Building Next.js application"
-        - pnpm run build
+        - export NODE_OPTIONS="--max-old-space-size=8192 --no-warnings"
+        - npm run build
+        
+        # Verify build output
+        - |
+          if [ -d ".next" ]; then
+            echo "Build successful - .next directory created"
+            echo "Build size: $(du -sh .next 2>/dev/null | cut -f1 || echo 'unknown')"
+            ls -la .next/ | head -5
+          else
+            echo "Build failed - .next directory not found"
+            exit 1
+          fi
         
   artifacts:
     baseDirectory: .next
@@ -38,6 +57,6 @@ frontend:
       - '**/*'
   cache:
     paths:
-      - .pnpm-store/**/*
       - node_modules/**/*
       - .next/cache/**/*
+      - .npm/**/*
