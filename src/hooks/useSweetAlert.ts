@@ -1,6 +1,7 @@
 "use client";
 
-import Swal, { SweetAlertIcon, SweetAlertPosition, SweetAlertOptions } from "sweetalert2";
+import { useCallback, useMemo } from "react";
+import type { SweetAlertIcon, SweetAlertPosition, SweetAlertOptions } from "sweetalert2";
 
 export type AlertType = SweetAlertIcon;
 export type AlertPosition = SweetAlertPosition;
@@ -14,7 +15,7 @@ export interface AlertOptions {
 }
 
 export interface AlertResult {
-  createToast: (type: AlertType, message: string, options?: AlertOptions) => void;
+  createToast: (type: AlertType, message: string, options?: AlertOptions) => Promise<void>;
   createModal: (options: SweetAlertOptions) => Promise<any>;
   createConfirm: (
     title: string, 
@@ -23,6 +24,17 @@ export interface AlertResult {
     cancelText?: string
   ) => Promise<boolean>;
 }
+
+// Lazy load SweetAlert2 to prevent HMR issues
+const getSwal = async () => {
+  try {
+    const { default: Swal } = await import("sweetalert2");
+    return Swal;
+  } catch (error) {
+    console.error("Failed to load SweetAlert2:", error);
+    return null;
+  }
+};
 
 /**
  * Custom hook that provides various alert capabilities using SweetAlert2
@@ -35,38 +47,55 @@ export const useSweetAlert = (): AlertResult => {
    * @param message - The message to display
    * @param options - Additional options for customizing the toast
    */
-  const createToast = (
+  const createToast = useCallback(async (
     type: AlertType, 
     message: string, 
     options?: AlertOptions
-  ): void => {
-    const Toast = Swal.mixin({
-      toast: true,
-      position: options?.position || "bottom-start",
-      showConfirmButton: options?.showConfirmButton ?? false,
-      timer: options?.timer ?? 3000,
-      timerProgressBar: options?.timerProgressBar ?? true,
-      didOpen: (toast) => {
-        toast.onmouseenter = Swal.stopTimer;
-        toast.onmouseleave = Swal.resumeTimer;
-      },
-    });
-    
-    Toast.fire({
-      customClass: options?.customClass || "z-xxxl",
-      icon: type,
-      title: message,
-    });
-  };
+  ): Promise<void> => {
+    try {
+      const Swal = await getSwal();
+      if (!Swal) return;
+
+      const Toast = Swal.mixin({
+        toast: true,
+        position: options?.position || "bottom-start",
+        showConfirmButton: options?.showConfirmButton ?? false,
+        timer: options?.timer ?? 3000,
+        timerProgressBar: options?.timerProgressBar ?? true,
+        didOpen: (toast) => {
+          toast.onmouseenter = Swal.stopTimer;
+          toast.onmouseleave = Swal.resumeTimer;
+        },
+      });
+      
+      Toast.fire({
+        customClass: {
+          container: options?.customClass || "z-xxxl"
+        },
+        icon: type,
+        title: message,
+      });
+    } catch (error) {
+      console.error("Error creating toast:", error);
+    }
+  }, []);
 
   /**
    * Creates a modal dialog with custom options
    * @param options - SweetAlert2 options
    * @returns Promise resolving to the modal result
    */
-  const createModal = (options: SweetAlertOptions): Promise<any> => {
-    return Swal.fire(options);
-  };
+  const createModal = useCallback(async (options: SweetAlertOptions): Promise<any> => {
+    try {
+      const Swal = await getSwal();
+      if (!Swal) return null;
+      
+      return Swal.fire(options);
+    } catch (error) {
+      console.error("Error creating modal:", error);
+      return null;
+    }
+  }, []);
 
   /**
    * Creates a confirmation dialog
@@ -76,13 +105,16 @@ export const useSweetAlert = (): AlertResult => {
    * @param cancelText - Text for the cancel button
    * @returns Promise resolving to true if confirmed, false otherwise
    */
-  const createConfirm = async (
+  const createConfirm = useCallback(async (
     title: string, 
     message: string, 
     confirmText: string = "Yes",
     cancelText: string = "No"
   ): Promise<boolean> => {
     try {
+      const Swal = await getSwal();
+      if (!Swal) return false;
+
       const result = await Swal.fire({
         title,
         text: message,
@@ -99,7 +131,7 @@ export const useSweetAlert = (): AlertResult => {
       console.error("Error in confirmation dialog:", error);
       return false;
     }
-  };
+  }, []);
 
   return {
     createToast,

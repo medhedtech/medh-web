@@ -356,15 +356,15 @@ const HomeCard: React.FC<HomeCardProps> = ({
         <div className="relative">
           <div className="relative w-full aspect-[3/2] overflow-hidden rounded-t-xl group">
             <OptimizedImage
-              src={safeCourse?.course_image || ''}
+              src={safeCourse?.course_image || '/fallback-course-image.jpg'}
               alt={safeCourse?.course_title || "Course Image"}
               fill={true}
               className="object-cover transition-all duration-300 ease-out group-hover:scale-105"
               quality={isLCP ? 95 : 85}
               priority={isLCP}
               loading={isLCP ? 'eager' : 'lazy'}
-              decoding={isLCP ? 'sync' : 'async'}
               sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              fallbackSrc="/fallback-course-image.jpg"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/20 dark:from-black/10 dark:to-black/30" />
           </div>

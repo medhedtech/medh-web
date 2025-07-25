@@ -1,0 +1,17 @@
+/* Google One Tap FedCM Critical CSS */
+/* Critical Google One Tap visibility overrides */
+iframe[src*="accounts.google.com"],
+.credential-picker-container,
+[data-testid="credential-picker-container"] {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure body doesn't clip Google One Tap */
+body, html {
+  overflow-y: visible !important;
+} 
