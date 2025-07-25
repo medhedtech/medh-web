@@ -2,11 +2,6 @@ import { apiBaseUrl } from './config';
 import { apiClient } from './apiClient';
 import { apiUtils } from './index';
 import {
-  IBlog,
-  IBlogCreateInput,
-  IBlogUpdateInput,
-  IBlogCommentInput,
-  IBlogQueryParams,
   IBlogSearchParams,
   IBlogStatusUpdateInput
 } from '../types/blog.types';

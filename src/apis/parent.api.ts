@@ -56,16 +56,25 @@ export class ParentAPI {
   // Parent management endpoints
   static async getChildren(): Promise<ParentDashboardProfile> {
     const response = await this.client.get<ParentDashboardProfile>('/parent/children');
+    if (!response.data) {
+      throw new Error('No children data received');
+    }
     return response.data;
   }
 
   static async linkChild(data: ChildLinkRequest): Promise<{ linkId: string; relationship: string }> {
     const response = await this.client.post<{ linkId: string; relationship: string }>('/parent/link-child', data);
+    if (!response.data) {
+      throw new Error('No link response received');
+    }
     return response.data;
   }
 
   static async unlinkChild(childId: string): Promise<{ success: boolean; message: string }> {
     const response = await this.client.delete<{ success: boolean; message: string }>(`/parent/unlink-child/${childId}`);
+    if (!response.data) {
+      throw new Error('No unlink response received');
+    }
     return response.data;
   }
 
@@ -78,31 +87,39 @@ export class ParentAPI {
     child_id?: string;
   }): Promise<{ notifications: ParentNotification[]; unread_count: number }> {
     const response = await this.client.get<{ notifications: ParentNotification[]; unread_count: number }>('/parent/notifications', params);
+    if (!response.data) {
+      throw new Error('No notifications data received');
+    }
     return response.data;
   }
 
   static async markNotificationAsRead(notificationId: string): Promise<{ notification_id: string; read_at: Date }> {
     const response = await this.client.put<{ notification_id: string; read_at: Date }>(`/parent/notifications/${notificationId}/read`);
+    if (!response.data) throw new Error('No read response received');
     return response.data;
   }
 
   static async markAllNotificationsAsRead(): Promise<{ marked_count: number }> {
     const response = await this.client.put<{ marked_count: number }>('/parent/notifications/mark-all-read');
+    if (!response.data) throw new Error('No mark all response received');
     return response.data;
   }
 
   static async deleteNotification(notificationId: string): Promise<{ success: boolean }> {
     const response = await this.client.delete<{ success: boolean }>(`/parent/notifications/${notificationId}`);
+    if (!response.data) throw new Error('No delete response received');
     return response.data;
   }
 
   static async getNotificationPreferences(): Promise<NotificationPreferences> {
     const response = await this.client.get<NotificationPreferences>('/parent/notifications/preferences');
+    if (!response.data) throw new Error('No preferences data received');
     return response.data;
   }
 
   static async updateNotificationPreferences(preferences: Partial<NotificationPreferences>): Promise<NotificationPreferences> {
     const response = await this.client.put<NotificationPreferences>('/parent/notifications/preferences', preferences);
+    if (!response.data) throw new Error('No updated preferences received');
     return response.data;
   }
 
