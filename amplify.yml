@@ -27,7 +27,7 @@ frontend:
           export NEXT_TIMEOUT=3600000  # 60 minutes
           export NEXT_STATIC_EXPORT_TIMEOUT=3600000  # 60 minutes
           # Increase memory to 24GB and optimize garbage collection
-          export NODE_OPTIONS="--max-old-space-size=24576 --max-semi-space-size=2048 --no-warnings --optimize-for-size --gc-interval=100"
+          export NODE_OPTIONS="--max-old-space-size=24576 --max-semi-space-size=2048 --no-warnings"
           export AMPLIFY_DISABLE_TIMEOUT=true
           export AMPLIFY_BUILD_TIMEOUT=7200  # 2 hours
           

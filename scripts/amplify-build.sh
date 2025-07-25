@@ -33,7 +33,7 @@ export NODE_ENV="${NODE_ENV:-production}"
 export NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL:-https://api.medh.co/api/v1}"
 
 # AGGRESSIVE MEMORY SETTINGS - 24GB allocation with optimized GC
-export NODE_OPTIONS="--max-old-space-size=24576 --max-semi-space-size=2048 --no-warnings --optimize-for-size --gc-interval=100 --expose-gc"
+export NODE_OPTIONS="--max-old-space-size=24576 --max-semi-space-size=2048 --no-warnings --expose-gc"
 export NODE_MAX_OLD_SPACE_SIZE=24576
 export UV_THREADPOOL_SIZE=16
 
@@ -211,7 +211,7 @@ run_build_with_retry() {
     force_gc
     
     # Set memory-optimized environment for this build attempt
-    local build_node_options="--max-old-space-size=24576 --max-semi-space-size=2048 --no-warnings --optimize-for-size --gc-interval=100 --expose-gc"
+    local build_node_options="--max-old-space-size=24576 --max-semi-space-size=2048 --no-warnings --expose-gc"
     
     if NODE_OPTIONS="$build_node_options" timeout 3600 pnpm run build; then
       echo "✅ Build completed successfully on attempt $attempt!"

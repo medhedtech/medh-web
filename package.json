@@ -12,8 +12,8 @@
   "scripts": {
     "dev": "next dev",
     "dev:fast": "pnpm dev",
-    "build": "NODE_OPTIONS='--max-old-space-size=24576 --max-semi-space-size=2048 --no-warnings --optimize-for-size --gc-interval=100' next build",
-    "build:memory-optimized": "NODE_OPTIONS='--max-old-space-size=32768 --max-semi-space-size=4096 --no-warnings --optimize-for-size --gc-interval=50 --expose-gc' GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true next build",
+    "build": "NODE_OPTIONS='--max-old-space-size=24576 --max-semi-space-size=2048 --no-warnings' next build",
+    "build:memory-optimized": "NODE_OPTIONS='--max-old-space-size=32768 --max-semi-space-size=4096 --no-warnings --expose-gc' GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true next build",
     "build:fallback": "NODE_OPTIONS='--max-old-space-size=16384 --max-semi-space-size=1024' NEXT_BUILD_WORKERS=1 next build",
     "build:swc-first": "bash scripts/build-with-swc-first.sh",
     "build:babel": "NEXT_FORCE_SWC=false SWC_DISABLE_NEXT_SWC=1 DISABLE_SWC=true next build",
@@ -30,7 +30,7 @@
     "install-deps-npm": "npm ci --no-audit --prefer-offline",
     "clean": "rm -rf .next node_modules/.cache .pnpm-store",
     "clean:full": "rm -rf .next node_modules .pnpm-store pnpm-lock.yaml && pnpm install",
-    "postinstall": "npm audit fix --audit-level=moderate",
+    "postinstall": "if [ -f package-lock.json ]; then npm audit fix --audit-level=moderate; else echo 'Skipping npm audit (using pnpm)'; fi",
     "precommit": "npm run lint:check",
     "pnpm:install": "pnpm install --frozen-lockfile",
     "pnpm:update": "pnpm update --latest"
