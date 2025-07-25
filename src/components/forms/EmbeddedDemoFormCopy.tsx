@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import Select from "react-select";
 import { parsePhoneNumber, isValidPhoneNumber, getCountryCallingCode } from 'libphonenumber-js';
+import * as countryCodesList from 'country-codes-list';
 import {
   IBookFreeDemoSessionPayload,
   DemoSessionAPIService as DemoSessionAPI,
@@ -176,257 +177,30 @@ const courseCategories = [
   'Vedic Mathematics'
 ];
 
-const countryOptions = [
-  { value: 'ad', label: 'Andorra' },
-  { value: 'ae', label: 'United Arab Emirates' },
-  { value: 'af', label: 'Afghanistan' },
-  { value: 'ag', label: 'Antigua and Barbuda' },
-  { value: 'ai', label: 'Anguilla' },
-  { value: 'al', label: 'Albania' },
-  { value: 'am', label: 'Armenia' },
-  { value: 'ao', label: 'Angola' },
-  { value: 'aq', label: 'Antarctica' },
-  { value: 'ar', label: 'Argentina' },
-  { value: 'as', label: 'American Samoa' },
-  { value: 'at', label: 'Austria' },
-  { value: 'au', label: 'Australia' },
-  { value: 'aw', label: 'Aruba' },
-  { value: 'ax', label: 'Åland Islands' },
-  { value: 'az', label: 'Azerbaijan' },
-  { value: 'ba', label: 'Bosnia and Herzegovina' },
-  { value: 'bb', label: 'Barbados' },
-  { value: 'bd', label: 'Bangladesh' },
-  { value: 'be', label: 'Belgium' },
-  { value: 'bf', label: 'Burkina Faso' },
-  { value: 'bg', label: 'Bulgaria' },
-  { value: 'bh', label: 'Bahrain' },
-  { value: 'bi', label: 'Burundi' },
-  { value: 'bj', label: 'Benin' },
-  { value: 'bl', label: 'Saint Barthélemy' },
-  { value: 'bm', label: 'Bermuda' },
-  { value: 'bn', label: 'Brunei' },
-  { value: 'bo', label: 'Bolivia' },
-  { value: 'bq', label: 'Bonaire, Sint Eustatius and Saba' },
-  { value: 'br', label: 'Brazil' },
-  { value: 'bs', label: 'Bahamas' },
-  { value: 'bt', label: 'Bhutan' },
-  { value: 'bv', label: 'Bouvet Island' },
-  { value: 'bw', label: 'Botswana' },
-  { value: 'by', label: 'Belarus' },
-  { value: 'bz', label: 'Belize' },
-  { value: 'ca', label: 'Canada' },
-  { value: 'cc', label: 'Cocos (Keeling) Islands' },
-  { value: 'cd', label: 'Congo (Democratic Republic)' },
-  { value: 'cf', label: 'Central African Republic' },
-  { value: 'cg', label: 'Congo' },
-  { value: 'ch', label: 'Switzerland' },
-  { value: 'ci', label: 'Côte d\'Ivoire' },
-  { value: 'ck', label: 'Cook Islands' },
-  { value: 'cl', label: 'Chile' },
-  { value: 'cm', label: 'Cameroon' },
-  { value: 'cn', label: 'China' },
-  { value: 'co', label: 'Colombia' },
-  { value: 'cr', label: 'Costa Rica' },
-  { value: 'cu', label: 'Cuba' },
-  { value: 'cv', label: 'Cape Verde' },
-  { value: 'cw', label: 'Curaçao' },
-  { value: 'cx', label: 'Christmas Island' },
-  { value: 'cy', label: 'Cyprus' },
-  { value: 'cz', label: 'Czech Republic' },
-  { value: 'de', label: 'Germany' },
-  { value: 'dj', label: 'Djibouti' },
-  { value: 'dk', label: 'Denmark' },
-  { value: 'dm', label: 'Dominica' },
-  { value: 'do', label: 'Dominican Republic' },
-  { value: 'dz', label: 'Algeria' },
-  { value: 'ec', label: 'Ecuador' },
-  { value: 'ee', label: 'Estonia' },
-  { value: 'eg', label: 'Egypt' },
-  { value: 'eh', label: 'Western Sahara' },
-  { value: 'er', label: 'Eritrea' },
-  { value: 'es', label: 'Spain' },
-  { value: 'et', label: 'Ethiopia' },
-  { value: 'fi', label: 'Finland' },
-  { value: 'fj', label: 'Fiji' },
-  { value: 'fk', label: 'Falkland Islands' },
-  { value: 'fm', label: 'Micronesia' },
-  { value: 'fo', label: 'Faroe Islands' },
-  { value: 'fr', label: 'France' },
-  { value: 'ga', label: 'Gabon' },
-  { value: 'gb', label: 'United Kingdom' },
-  { value: 'gd', label: 'Grenada' },
-  { value: 'ge', label: 'Georgia' },
-  { value: 'gf', label: 'French Guiana' },
-  { value: 'gg', label: 'Guernsey' },
-  { value: 'gh', label: 'Ghana' },
-  { value: 'gi', label: 'Gibraltar' },
-  { value: 'gl', label: 'Greenland' },
-  { value: 'gm', label: 'Gambia' },
-  { value: 'gn', label: 'Guinea' },
-  { value: 'gp', label: 'Guadeloupe' },
-  { value: 'gq', label: 'Equatorial Guinea' },
-  { value: 'gr', label: 'Greece' },
-  { value: 'gs', label: 'South Georgia and the South Sandwich Islands' },
-  { value: 'gt', label: 'Guatemala' },
-  { value: 'gu', label: 'Guam' },
-  { value: 'gw', label: 'Guinea-Bissau' },
-  { value: 'gy', label: 'Guyana' },
-  { value: 'hk', label: 'Hong Kong' },
-  { value: 'hm', label: 'Heard Island and McDonald Islands' },
-  { value: 'hn', label: 'Honduras' },
-  { value: 'hr', label: 'Croatia' },
-  { value: 'ht', label: 'Haiti' },
-  { value: 'hu', label: 'Hungary' },
-  { value: 'id', label: 'Indonesia' },
-  { value: 'ie', label: 'Ireland' },
-  { value: 'il', label: 'Israel' },
-  { value: 'im', label: 'Isle of Man' },
-  { value: 'in', label: 'India' },
-  { value: 'io', label: 'British Indian Ocean Territory' },
-  { value: 'iq', label: 'Iraq' },
-  { value: 'ir', label: 'Iran' },
-  { value: 'is', label: 'Iceland' },
-  { value: 'it', label: 'Italy' },
-  { value: 'je', label: 'Jersey' },
-  { value: 'jm', label: 'Jamaica' },
-  { value: 'jo', label: 'Jordan' },
-  { value: 'jp', label: 'Japan' },
-  { value: 'ke', label: 'Kenya' },
-  { value: 'kg', label: 'Kyrgyzstan' },
-  { value: 'kh', label: 'Cambodia' },
-  { value: 'ki', label: 'Kiribati' },
-  { value: 'km', label: 'Comoros' },
-  { value: 'kn', label: 'Saint Kitts and Nevis' },
-  { value: 'kp', label: 'North Korea' },
-  { value: 'kr', label: 'South Korea' },
-  { value: 'kw', label: 'Kuwait' },
-  { value: 'ky', label: 'Cayman Islands' },
-  { value: 'kz', label: 'Kazakhstan' },
-  { value: 'la', label: 'Laos' },
-  { value: 'lb', label: 'Lebanon' },
-  { value: 'lc', label: 'Saint Lucia' },
-  { value: 'li', label: 'Liechtenstein' },
-  { value: 'lk', label: 'Sri Lanka' },
-  { value: 'lr', label: 'Liberia' },
-  { value: 'ls', label: 'Lesotho' },
-  { value: 'lt', label: 'Lithuania' },
-  { value: 'lu', label: 'Luxembourg' },
-  { value: 'lv', label: 'Latvia' },
-  { value: 'ly', label: 'Libya' },
-  { value: 'ma', label: 'Morocco' },
-  { value: 'mc', label: 'Monaco' },
-  { value: 'md', label: 'Moldova' },
-  { value: 'me', label: 'Montenegro' },
-  { value: 'mf', label: 'Saint Martin' },
-  { value: 'mg', label: 'Madagascar' },
-  { value: 'mh', label: 'Marshall Islands' },
-  { value: 'mk', label: 'North Macedonia' },
-  { value: 'ml', label: 'Mali' },
-  { value: 'mm', label: 'Myanmar' },
-  { value: 'mn', label: 'Mongolia' },
-  { value: 'mo', label: 'Macao' },
-  { value: 'mp', label: 'Northern Mariana Islands' },
-  { value: 'mq', label: 'Martinique' },
-  { value: 'mr', label: 'Mauritania' },
-  { value: 'ms', label: 'Montserrat' },
-  { value: 'mt', label: 'Malta' },
-  { value: 'mu', label: 'Mauritius' },
-  { value: 'mv', label: 'Maldives' },
-  { value: 'mw', label: 'Malawi' },
-  { value: 'mx', label: 'Mexico' },
-  { value: 'my', label: 'Malaysia' },
-  { value: 'mz', label: 'Mozambique' },
-  { value: 'na', label: 'Namibia' },
-  { value: 'nc', label: 'New Caledonia' },
-  { value: 'ne', label: 'Niger' },
-  { value: 'nf', label: 'Norfolk Island' },
-  { value: 'ng', label: 'Nigeria' },
-  { value: 'ni', label: 'Nicaragua' },
-  { value: 'nl', label: 'Netherlands' },
-  { value: 'no', label: 'Norway' },
-  { value: 'np', label: 'Nepal' },
-  { value: 'nr', label: 'Nauru' },
-  { value: 'nu', label: 'Niue' },
-  { value: 'nz', label: 'New Zealand' },
-  { value: 'om', label: 'Oman' },
-  { value: 'pa', label: 'Panama' },
-  { value: 'pe', label: 'Peru' },
-  { value: 'pf', label: 'French Polynesia' },
-  { value: 'pg', label: 'Papua New Guinea' },
-  { value: 'ph', label: 'Philippines' },
-  { value: 'pk', label: 'Pakistan' },
-  { value: 'pl', label: 'Poland' },
-  { value: 'pm', label: 'Saint Pierre and Miquelon' },
-  { value: 'pn', label: 'Pitcairn' },
-  { value: 'pr', label: 'Puerto Rico' },
-  { value: 'ps', label: 'Palestine' },
-  { value: 'pt', label: 'Portugal' },
-  { value: 'pw', label: 'Palau' },
-  { value: 'py', label: 'Paraguay' },
-  { value: 'qa', label: 'Qatar' },
-  { value: 're', label: 'Réunion' },
-  { value: 'ro', label: 'Romania' },
-  { value: 'rs', label: 'Serbia' },
-  { value: 'ru', label: 'Russia' },
-  { value: 'rw', label: 'Rwanda' },
-  { value: 'sa', label: 'Saudi Arabia' },
-  { value: 'sb', label: 'Solomon Islands' },
-  { value: 'sc', label: 'Seychelles' },
-  { value: 'sd', label: 'Sudan' },
-  { value: 'se', label: 'Sweden' },
-  { value: 'sg', label: 'Singapore' },
-  { value: 'sh', label: 'Saint Helena, Ascension and Tristan da Cunha' },
-  { value: 'si', label: 'Slovenia' },
-  { value: 'sj', label: 'Svalbard and Jan Mayen' },
-  { value: 'sk', label: 'Slovakia' },
-  { value: 'sl', label: 'Sierra Leone' },
-  { value: 'sm', label: 'San Marino' },
-  { value: 'sn', label: 'Senegal' },
-  { value: 'so', label: 'Somalia' },
-  { value: 'sr', label: 'Suriname' },
-  { value: 'ss', label: 'South Sudan' },
-  { value: 'st', label: 'São Tomé and Príncipe' },
-  { value: 'sv', label: 'El Salvador' },
-  { value: 'sx', label: 'Sint Maarten' },
-  { value: 'sy', label: 'Syria' },
-  { value: 'sz', label: 'Eswatini' },
-  { value: 'tc', label: 'Turks and Caicos Islands' },
-  { value: 'td', label: 'Chad' },
-  { value: 'tf', label: 'French Southern Territories' },
-  { value: 'tg', label: 'Togo' },
-  { value: 'th', label: 'Thailand' },
-  { value: 'tj', label: 'Tajikistan' },
-  { value: 'tk', label: 'Tokelau' },
-  { value: 'tl', label: 'Timor-Leste' },
-  { value: 'tm', label: 'Turkmenistan' },
-  { value: 'tn', label: 'Tunisia' },
-  { value: 'to', label: 'Tonga' },
-  { value: 'tr', label: 'Turkey' },
-  { value: 'tt', label: 'Trinidad and Tobago' },
-  { value: 'tv', label: 'Tuvalu' },
-  { value: 'tw', label: 'Taiwan' },
-  { value: 'tz', label: 'Tanzania' },
-  { value: 'ua', label: 'Ukraine' },
-  { value: 'ug', label: 'Uganda' },
-  { value: 'um', label: 'United States Minor Outlying Islands' },
-  { value: 'us', label: 'United States' },
-  { value: 'uy', label: 'Uruguay' },
-  { value: 'uz', label: 'Uzbekistan' },
-  { value: 'va', label: 'Vatican City' },
-  { value: 'vc', label: 'Saint Vincent and the Grenadines' },
-  { value: 've', label: 'Venezuela' },
-  { value: 'vg', label: 'British Virgin Islands' },
-  { value: 'vi', label: 'U.S. Virgin Islands' },
-  { value: 'vn', label: 'Vietnam' },
-  { value: 'vu', label: 'Vanuatu' },
-  { value: 'wf', label: 'Wallis and Futuna' },
-  { value: 'ws', label: 'Samoa' },
-  { value: 'ye', label: 'Yemen' },
-  { value: 'yt', label: 'Mayotte' },
-  { value: 'za', label: 'South Africa' },
-  { value: 'zm', label: 'Zambia' },
-  { value: 'zw', label: 'Zimbabwe' }
-];
+// Generate comprehensive country options from country-codes-list
+const generateCountryOptions = () => {
+  const allCountries = countryCodesList.all() as Record<string, any>;
+  const countryList = countryCodesList.customList('countryCode', '{countryNameEn}') as Record<string, string>;
+  
+  // Priority countries to show at the top
+  const priorityCountries = ['in', 'us', 'gb', 'ca', 'au', 'ae', 'sg'];
+  
+  const allOptions = Object.entries(countryList).map(([code, name]: [string, string]) => {
+    return {
+      value: code.toLowerCase(),
+      label: name,
+      dialCode: allCountries[code]?.countryCallingCode,
+      isPriority: priorityCountries.includes(code.toLowerCase())
+    };
+  });
+  
+  // Sort: Priority countries first, then alphabetical
+  return allOptions.sort((a, b) => {
+    if (a.isPriority && !b.isPriority) return -1;
+    if (!a.isPriority && b.isPriority) return 1;
+    return a.label.localeCompare(b.label);
+  });
+};
 
 const timeSlots = [
   { value: 'morning', label: 'Morning (9AM-12PM)' },
@@ -445,6 +219,9 @@ const EmbeddedDemoFormCopy: React.FC<EmbeddedDemoFormCopyProps> = ({
   const { theme } = useTheme();
   const { postQuery } = usePostQueryCopy();
   const isDark = theme === "dark";
+
+  // Generate country options
+  const countryOptions = useMemo(() => generateCountryOptions(), []);
 
   // Form state
   const [formState, setFormState] = useState<IEmbeddedFormState>({
@@ -849,9 +626,89 @@ const EmbeddedDemoFormCopy: React.FC<EmbeddedDemoFormCopyProps> = ({
         {/* Stepper Navigation */}
         <div className="w-full bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
           <div className="max-w-6xl mx-auto">
-            {formState.isStudentUnder16 ? (
-              /* Under 16 - 5 Step Flow */
-              <div className="flex items-center justify-between">
+            {/* Mobile Stepper - Center Aligned Current Step */}
+            <div className="block lg:hidden">
+              {formState.isStudentUnder16 ? (
+                /* Mobile Under 16 - 5 Step Flow */
+                <div className="text-center">
+                  {/* Step Counter */}
+                  <div className="mb-4">
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
+                      Step {
+                        formState.step === 'age-verification' ? '1' :
+                        formState.step === 'parent-details' ? '2' :
+                        formState.step === 'student-details' ? '3' :
+                        formState.step === 'demo-details' ? '4' : '5'
+                      } of 5
+                    </span>
+                  </div>
+                  
+                  {/* Progress Dots */}
+                  <div className="flex items-center justify-center gap-2">
+                    {[1, 2, 3, 4, 5].map((stepNum) => (
+                      <div
+                        key={stepNum}
+                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                          (stepNum === 1 && formState.step === 'age-verification') ||
+                          (stepNum === 2 && formState.step === 'parent-details') ||
+                          (stepNum === 3 && formState.step === 'student-details') ||
+                          (stepNum === 4 && formState.step === 'demo-details') ||
+                          (stepNum === 5 && formState.step === 'consent')
+                            ? 'bg-blue-500 w-3 h-3'
+                            : (stepNum === 1 && ['parent-details', 'student-details', 'demo-details', 'consent'].includes(formState.step)) ||
+                              (stepNum === 2 && ['student-details', 'demo-details', 'consent'].includes(formState.step)) ||
+                              (stepNum === 3 && ['demo-details', 'consent'].includes(formState.step)) ||
+                              (stepNum === 4 && formState.step === 'consent')
+                                ? 'bg-blue-300'
+                                : 'bg-gray-300 dark:bg-gray-600'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                /* Mobile 16+ - 4 Step Flow */
+                <div className="text-center">
+                  {/* Step Counter */}
+                  <div className="mb-4">
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
+                      Step {
+                        formState.step === 'age-verification' ? '1' :
+                        formState.step === 'student-details' ? '2' :
+                        formState.step === 'demo-details' ? '3' : '4'
+                      } of 4
+                    </span>
+                  </div>
+                  
+                  {/* Progress Dots */}
+                  <div className="flex items-center justify-center gap-2">
+                    {[1, 2, 3, 4].map((stepNum) => (
+                      <div
+                        key={stepNum}
+                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                          (stepNum === 1 && formState.step === 'age-verification') ||
+                          (stepNum === 2 && formState.step === 'student-details') ||
+                          (stepNum === 3 && formState.step === 'demo-details') ||
+                          (stepNum === 4 && formState.step === 'consent')
+                            ? 'bg-blue-500 w-3 h-3'
+                            : (stepNum === 1 && ['student-details', 'demo-details', 'consent'].includes(formState.step)) ||
+                              (stepNum === 2 && ['demo-details', 'consent'].includes(formState.step)) ||
+                              (stepNum === 3 && formState.step === 'consent')
+                                ? 'bg-blue-300'
+                                : 'bg-gray-300 dark:bg-gray-600'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Desktop Stepper - Original Layout */}
+            <div className="hidden lg:block">
+              {formState.isStudentUnder16 ? (
+                /* Desktop Under 16 - 5 Step Flow */
+                <div className="flex items-center justify-between">
                 {/* Step 1 - Age Verification */}
                 <div className="flex items-center flex-1">
                   <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all ${
@@ -1115,6 +972,7 @@ const EmbeddedDemoFormCopy: React.FC<EmbeddedDemoFormCopyProps> = ({
                 </div>
               </div>
             )}
+            </div>
           </div>
         </div>
 
@@ -1673,7 +1531,7 @@ const EmbeddedDemoFormCopy: React.FC<EmbeddedDemoFormCopyProps> = ({
                       <Label htmlFor="termsAndPrivacy" className="cursor-pointer">
                         I agree to the{" "}
                         <Link href="/terms-and-services" target="_blank" className="text-blue-600 hover:underline">
-                          Terms of Service
+                          Terms of Uses
                         </Link>
                         {" "}and{" "}
                         <Link href="/privacy-policy" target="_blank" className="text-blue-600 hover:underline">
