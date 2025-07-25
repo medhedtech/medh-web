@@ -9,6 +9,9 @@ import {
   PriceFilterParams
 } from '@/types/api-responses';
 
+// Import axios directly for type checking
+import axios from 'axios';
+
 // Lazy load axios to prevent HMR issues
 const getAxios = async () => {
   try {
@@ -1529,10 +1532,10 @@ const handlePriceError = (error: unknown, defaultMessage: string): ErrorResponse
   if (axios.isAxiosError(error)) {
     return {
       success: false,
-      message: error.response?.data.message || defaultMessage,
+      message: error.response?.data?.message || defaultMessage,
       error: {
-        code: error.response?.data.error.code || 'PRICE_API_ERROR',
-        details: error.response?.data.error.details
+        code: error.response?.data?.error?.code || 'PRICE_API_ERROR',
+        details: error.response?.data?.error?.details
       },
       timestamp: new Date().toISOString()
     };

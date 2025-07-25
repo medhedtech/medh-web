@@ -53,6 +53,9 @@ const config: ApiConfigType = {
 
 export const apiConfig = config[env];
 
+// Re-export apiBaseUrl for compatibility
+export { apiBaseUrl } from '@/apis/config';
+
 // Type definitions for endpoint parameters
 type IdParam = string | number;
 

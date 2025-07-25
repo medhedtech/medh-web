@@ -109,6 +109,19 @@ class ToastManager {
   setDuplicateTimeout(timeout: number): void {
     this.duplicateTimeout = Math.max(500, timeout);
   }
+
+  // Promise-based toast for async operations
+  async promise<T>(
+    promise: Promise<T>,
+    messages: {
+      loading: string;
+      success: string;
+      error: string;
+    },
+    options: ToastManagerOptions = {}
+  ): Promise<T> {
+    return toast.promise(promise, messages, options);
+  }
 }
 
 // Create and export the singleton instance
@@ -123,6 +136,7 @@ export const showToast = {
   loading: (message: string, options?: ToastManagerOptions) => toastManager.loading(message, options),
   dismiss: (toastId?: string) => toastManager.dismiss(toastId),
   dismissAll: () => toastManager.dismissAll(),
+  promise: <T>(promise: Promise<T>, messages: { loading: string; success: string; error: string; }, options?: ToastManagerOptions) => toastManager.promise(promise, messages, options),
 };
 
 // Also export the direct toast functions for compatibility
@@ -148,6 +162,7 @@ declare global {
       loading: (message: string, options?: ToastManagerOptions) => string;
       dismiss: (toastId?: string) => void;
       dismissAll: () => void;
+      promise: <T>(promise: Promise<T>, messages: { loading: string; success: string; error: string; }, options?: ToastManagerOptions) => Promise<T>;
     };
   }
   
@@ -160,5 +175,6 @@ declare global {
     loading: (message: string, options?: ToastManagerOptions) => string;
     dismiss: (toastId?: string) => void;
     dismissAll: () => void;
+    promise: <T>(promise: Promise<T>, messages: { loading: string; success: string; error: string; }, options?: ToastManagerOptions) => Promise<T>;
   };
 }

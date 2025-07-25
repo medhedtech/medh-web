@@ -1,4 +1,4 @@
-import { apiClient } from './apiClient';
+import { apiClient, IApiResponse } from './apiClient';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -26,23 +26,13 @@ export interface IMasterDataStats {
   lastUpdated: string;
 }
 
-export interface IMasterDataResponse {
-  success: boolean;
-  message: string;
-  data: IMasterData;
+export interface IMasterDataResponse extends IApiResponse<IMasterData> {
 }
 
-export interface IMasterDataStatsResponse {
-  success: boolean;
-  message: string;
-  data: IMasterDataStats;
+export interface IMasterDataStatsResponse extends IApiResponse<IMasterDataStats> {
 }
 
-export interface IMasterDataArrayResponse {
-  success: boolean;
-  message: string;
-  data: string[];
-  count: number;
+export interface IMasterDataArrayResponse extends IApiResponse<string[]> {
 }
 
 export interface IAddMasterDataItemRequest {
@@ -57,7 +47,7 @@ export interface IMasterDataValidationError {
   field: string;
   message: string;
   value?: any;
-}
+} 
 
 export interface IMasterDataErrorResponse {
   success: false;
@@ -428,7 +418,7 @@ export const formatMasterDataArrayResponse = (response: any): string[] => {
     throw new Error('Invalid response format: expected array');
   }
   
-  return response.filter(item => typeof item === 'string' && item.trim().length > 0);
+  return response.filter((item: any) => typeof item === 'string' && item.trim().length > 0);
 };
 
 export const validateMasterDataResponse = (response: any): boolean => {
@@ -440,7 +430,7 @@ export const validateMasterDataResponse = (response: any): boolean => {
   
   return requiredFields.every(field => 
     Array.isArray(response[field]) && 
-    response[field].every(item => typeof item === 'string')
+    response[field].every((item: any) => typeof item === 'string')
   );
 };
 

@@ -73,6 +73,31 @@ export interface IDemoStudentMeta {
   privacy_policy_accepted: boolean;
 }
 
+// Demo Session Type
+export interface IDemoSession {
+  _id: string;
+  session_date: string;
+  session_time: string;
+  duration_minutes: number;
+  course_category?: string;
+  course_title?: string;
+  session_type: TDemoClassType;
+  meeting_link?: string;
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+  feedback?: {
+    rating: number;
+    comment: string;
+    submitted_at: string;
+  };
+  attendance?: {
+    joined_at?: string;
+    left_at?: string;
+    duration_minutes?: number;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
 export interface IDemoStudent {
   _id: string;
   demo_student_id: string;
@@ -94,30 +119,7 @@ export interface IDemoStudent {
     email: string;
     phone_number?: string;
   };
-  demo_sessions?: Array<{
-    _id: string;
-    session_date: string;
-    session_time: string;
-    duration_minutes: number;
-    course_category?: string;
-    course_title?: string;
-    session_type: TDemoClassType;
-    meeting_link?: string;
-    status: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
-    feedback?: {
-      instructor_rating?: number;
-      content_rating?: number;
-      overall_satisfaction?: number;
-      comments?: string;
-      would_recommend?: boolean;
-    };
-    attendance?: {
-      joined_at?: string;
-      left_at?: string;
-      duration_attended_minutes?: number;
-      participation_score?: number;
-    };
-  }>;
+  demo_sessions?: IDemoSession[];
   conversion_tracking?: {
     demo_completed: boolean;
     enrolled_in_course: boolean;
@@ -692,7 +694,7 @@ export const getDemoSessionsByInstructor = async (
 ): Promise<IApiResponse<{
   sessions: Array<{
     demo_student: IDemoStudent;
-    session: IDemoStudent['demo_sessions'][0];
+    session: IDemoSession;
   }>;
   pagination: {
     page: number;
@@ -785,7 +787,7 @@ export const calculateDemoStudentAge = (demoStudent: IDemoStudent): number | nul
 /**
  * Format demo session date and time
  */
-export const formatDemoSessionDateTime = (session: IDemoStudent['demo_sessions'][0]): string => {
+export const formatDemoSessionDateTime = (session: IDemoSession): string => {
   const date = new Date(`${session.session_date}T${session.session_time}`);
   return date.toLocaleString('en-US', {
     weekday: 'short',
