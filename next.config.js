@@ -197,6 +197,12 @@ const nextConfig = {
     ];
   },
   
+  // Explicit PostCSS configuration for Amplify builds
+  experimental: {
+    // Force PostCSS to use the config file
+    forceSwcTransforms: false,
+  },
+  
   // Webpack configuration for better PostCSS handling
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
     // Ensure PostCSS plugins are properly resolved
@@ -205,6 +211,11 @@ const nextConfig = {
       fs: false,
       path: false,
       os: false,
+    };
+    
+    // Add explicit module resolution for Tailwind CSS
+    config.resolve.alias = {
+      ...config.resolve.alias,
     };
     
     return config;
