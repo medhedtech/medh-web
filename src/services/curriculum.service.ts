@@ -973,9 +973,9 @@ class CurriculumService {
   hasContent(curriculum: Curriculum): boolean {
     if (!curriculum) return false;
 
-    const hasWeeks = curriculum.weeks && curriculum.weeks.length > 0;
-    const hasSections = curriculum.sections && curriculum.sections.length > 0;
-    const hasLessons = curriculum.lessons && curriculum.lessons.length > 0;
+    const hasWeeks = !!(curriculum.weeks && curriculum.weeks.length > 0);
+    const hasSections = !!(curriculum.sections && curriculum.sections.length > 0);
+    const hasLessons = !!(curriculum.lessons && curriculum.lessons.length > 0);
 
     return hasWeeks || hasSections || hasLessons;
   }

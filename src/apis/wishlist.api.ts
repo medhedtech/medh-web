@@ -200,7 +200,18 @@ export const addToWishlist = async (
   data: IWishlistAddInput
 ): Promise<IApiResponse<IWishlistResponse['data']>> => {
   const url = `${apiBaseUrl}/students/wishlist/add`;
-  return { url, data };
+  // TODO: Implement actual API call
+  return { 
+    status: 'success', 
+    data: {
+      _id: 'mock-id',
+      student_id: data.student_id,
+      course_id: data.course_id,
+      added_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+  };
 };
 
 /**
@@ -210,7 +221,11 @@ export const removeFromWishlist = async (
   data: IWishlistRemoveInput
 ): Promise<IApiResponse<null>> => {
   const url = `${apiBaseUrl}/students/wishlist/remove`;
-  return { url, data };
+  // TODO: Implement actual API call
+  return { 
+    status: 'success',
+    message: 'Item removed from wishlist'
+  };
 };
 
 /**

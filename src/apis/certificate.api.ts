@@ -664,8 +664,7 @@ export const certificateAPI = {
       if (error.response?.status === 409) {
         return {
           success: false,
-          message: error.response.data?.message || 'Student is already enrolled in this course',
-          data: { enrollment: error.response.data?.enrollment }
+          message: error.response.data?.message || 'Student is already enrolled in this course'
         };
       }
       
