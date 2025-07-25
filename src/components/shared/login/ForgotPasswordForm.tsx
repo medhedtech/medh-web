@@ -270,14 +270,14 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ redirectPath })
           requireAuth: false,
           onSuccess: (res: any) => {
             showToast.dismiss(loadingToastId);
-            if (res?.data?.success) {
+            if (res?.success) {
               showToast.success("Password reset email sent! Please check your inbox.", { duration: 4000 });
               setUserEmail(data.email);
               setEmailSent(true);
               setCurrentStep(2);
               setRecaptchaError(false);
             } else {
-              const errorMessage = res?.data?.message || "Failed to send reset email";
+              const errorMessage = res?.message || "Failed to send reset email";
               showToast.error(errorMessage, { duration: 6000 });
             }
           },
@@ -298,12 +298,12 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ redirectPath })
           requireAuth: false,
           onSuccess: (res: any) => {
             showToast.dismiss(loadingToastId);
-            if (res?.data?.success) {
+            if (res?.success) {
               showToast.success("Password verified successfully!", { duration: 3000 });
               setTempPasswordVerified(true);
               setCurrentStep(3);
             } else {
-              const errorMessage = res?.data?.message || "Invalid temporary password";
+              const errorMessage = res?.message || "Invalid temporary password";
               showToast.error(errorMessage, { duration: 6000 });
             }
           },
@@ -325,13 +325,14 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ redirectPath })
           requireAuth: false,
           onSuccess: (res: any) => {
             showToast.dismiss(loadingToastId);
-            if (res?.data?.success) {
-              showToast.success("Password reset successful! You can now log in with your new password.", { duration: 5000 });
+            if (res?.success) {
+              showToast.success("Password reset successful! Redirecting to login...", { duration: 3000 });
+              // Immediate redirect to login page
               setTimeout(() => {
                 router.push(redirectPath || "/login");
-              }, 2000);
+              }, 1500);
             } else {
-              const errorMessage = res?.data?.message || "Failed to reset password";
+              const errorMessage = res?.message || "Failed to reset password";
               showToast.error(errorMessage, { duration: 6000 });
             }
           },
@@ -456,11 +457,11 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ redirectPath })
               {/* Back to Login link */}
               <Link 
                 href="/login"
-                className="absolute left-4 top-4 sm:left-6 sm:top-6 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors flex items-center text-xs"
+                className="absolute left-4 top-4 sm:left-6 sm:top-6 text-gray-600 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition-all duration-200 flex items-center text-xs sm:text-sm font-medium bg-gray-100/50 dark:bg-gray-700/50 hover:bg-primary-50 dark:hover:bg-primary-900/30 px-2 py-1.5 rounded-lg border border-gray-200/50 dark:border-gray-600/50"
                 aria-label="Back to login"
               >
                 <ChevronLeft className="h-3.5 w-3.5 mr-1" />
-                <span className="hidden sm:inline">Back</span>
+                <span>Login</span>
               </Link>
               
               <Link href="/" className="inline-block mb-2 sm:mb-3">
@@ -752,16 +753,21 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ redirectPath })
                   )}
                 </div>
 
-                {/* Back to Login Link */}
+                {/* Back to Login Link - Always visible */}
                 <div className="text-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    Remember your password?{" "}
-                    <Link 
-                      href="/login" 
-                      className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
-                    >
-                      Back to Login
-                    </Link>
+                  <Link 
+                    href="/login" 
+                    className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-200"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span>Back to Login</span>
+                  </Link>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    {currentStep === 1 
+                      ? "Remember your password?" 
+                      : currentStep === 2 
+                      ? "Want to try logging in instead?" 
+                      : "Ready to log in with your new password?"}
                   </p>
                 </div>
               </form>
