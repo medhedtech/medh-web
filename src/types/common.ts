@@ -141,6 +141,6 @@ export interface EnhancedApiResponse<T = any> extends ApiResponse<T> {
 }
 
 // Backwards compatibility with existing interface
-export interface IApiResponse<T = any> extends EnhancedApiResponse<T> {
+export interface IApiResponse<T = any> extends Omit<EnhancedApiResponse<T>, 'status'> {
   status: string;
 }

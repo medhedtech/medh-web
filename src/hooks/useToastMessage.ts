@@ -4,19 +4,19 @@ export const useToastMessage = () => {
   const { showToast } = useToast();
 
   const success = (message: string) => {
-    showToast(message, 'success');
+    showToast.success(message);
   };
 
   const error = (message: string) => {
-    showToast(message, 'error');
+    showToast.error(message);
   };
 
   const info = (message: string) => {
-    showToast(message, 'info');
+    showToast.info(message);
   };
 
   const warning = (message: string) => {
-    showToast(message, 'warning');
+    showToast.warning(message);
   };
 
   return {

@@ -2192,8 +2192,8 @@ export const authUtils = {
       capabilities.webauthn = !!(
         window.PublicKeyCredential &&
         navigator.credentials &&
-        navigator.credentials.create &&
-        navigator.credentials.get
+        typeof navigator.credentials.create === 'function' &&
+        typeof navigator.credentials.get === 'function'
       );
 
       if (capabilities.webauthn) {

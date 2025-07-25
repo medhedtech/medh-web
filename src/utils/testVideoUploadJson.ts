@@ -3,7 +3,7 @@
  * Simple test utility to verify the JSON upload functionality
  */
 
-import { videoStreamingApi } from '../apis/video-streaming';
+import { videoStreamingAPI } from '../apis/video-streaming';
 import { convertBlobToBase64, testBase64Encoding } from './videoUploadUtils';
 
 /**

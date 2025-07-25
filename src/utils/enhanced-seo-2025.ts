@@ -299,7 +299,7 @@ export function generateHrefLangTags(currentUrl: string, languages: string[]) {
   
   return languages.map(lang => ({
     rel: 'alternate',
-    hrefLang: INTERNATIONAL_CONFIG.hrefLangMapping[lang] || lang,
+    hrefLang: INTERNATIONAL_CONFIG.hrefLangMapping[lang as keyof typeof INTERNATIONAL_CONFIG.hrefLangMapping] || lang,
     href: `${baseUrl}/${lang}${currentUrl}`
   }));
 }

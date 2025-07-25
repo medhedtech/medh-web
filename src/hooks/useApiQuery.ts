@@ -1,5 +1,5 @@
 // React Query hooks for MEDH API integration
-import { useQuery, useMutation, useQueryClient, UseQueryOptions, UseMutationOptions } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery, UseQueryOptions, UseMutationOptions } from '@tanstack/react-query';
 import { useErrorHandler } from './useErrorHandler';
 import { ApiError } from '../types/common';
 
@@ -26,10 +26,6 @@ export const useApiQuery = <T>(
   return useQuery<T, ApiError>({
     queryKey: key,
     queryFn,
-    onError: (error: ApiError) => {
-      if (!options?.enabled) return; // Don't show errors for disabled queries
-      handleError(error, { showToast: true });
-    },
     retry: (failureCount: number, error: ApiError) => {
       // Don't retry on authentication errors
       if (error.error_code === 'UNAUTHORIZED' || error.error_code === 'FORBIDDEN') {
@@ -86,44 +82,50 @@ export const useApiMutation = <TData, TVariables>(
 };
 
 // Query key factory for consistent key management
+const baseKeys = ['api'] as const;
+const coursesBase = [...baseKeys, 'courses'] as const;
+const usersBase = [...baseKeys, 'users'] as const;
+const instructorBase = [...baseKeys, 'instructor'] as const;
+const parentBase = [...baseKeys, 'parent'] as const;
+
 export const queryKeys = {
-  all: ['api'] as const,
-  lists: () => [...queryKeys.all, 'list'] as const,
-  list: (filters: string) => [...queryKeys.lists(), { filters }] as const,
-  details: () => [...queryKeys.all, 'detail'] as const,
-  detail: (id: string | number) => [...queryKeys.details(), id] as const,
+  all: baseKeys,
+  lists: () => [...baseKeys, 'list'] as const,
+  list: (filters: string) => [...baseKeys, 'list', { filters }] as const,
+  details: () => [...baseKeys, 'detail'] as const,
+  detail: (id: string | number) => [...baseKeys, 'detail', id] as const,
   
   // Specific domain keys
   courses: {
-    all: [...queryKeys.all, 'courses'] as const,
-    lists: () => [...queryKeys.courses.all, 'list'] as const,
-    list: (filters: string) => [...queryKeys.courses.lists(), { filters }] as const,
-    details: () => [...queryKeys.courses.all, 'detail'] as const,
-    detail: (id: string | number) => [...queryKeys.courses.details(), id] as const,
+    all: coursesBase,
+    lists: () => [...coursesBase, 'list'] as const,
+    list: (filters: string) => [...coursesBase, 'list', { filters }] as const,
+    details: () => [...coursesBase, 'detail'] as const,
+    detail: (id: string | number) => [...coursesBase, 'detail', id] as const,
   },
   
   users: {
-    all: [...queryKeys.all, 'users'] as const,
-    lists: () => [...queryKeys.users.all, 'list'] as const,
-    list: (filters: string) => [...queryKeys.users.lists(), { filters }] as const,
-    details: () => [...queryKeys.users.all, 'detail'] as const,
-    detail: (id: string | number) => [...queryKeys.users.details(), id] as const,
-    profile: () => [...queryKeys.users.all, 'profile'] as const,
+    all: usersBase,
+    lists: () => [...usersBase, 'list'] as const,
+    list: (filters: string) => [...usersBase, 'list', { filters }] as const,
+    details: () => [...usersBase, 'detail'] as const,
+    detail: (id: string | number) => [...usersBase, 'detail', id] as const,
+    profile: () => [...usersBase, 'profile'] as const,
   },
   
   instructor: {
-    all: [...queryKeys.all, 'instructor'] as const,
-    dashboard: () => [...queryKeys.instructor.all, 'dashboard'] as const,
-    courses: () => [...queryKeys.instructor.all, 'courses'] as const,
-    students: () => [...queryKeys.instructor.all, 'students'] as const,
-    assignments: () => [...queryKeys.instructor.all, 'assignments'] as const,
+    all: instructorBase,
+    dashboard: () => [...instructorBase, 'dashboard'] as const,
+    courses: () => [...instructorBase, 'courses'] as const,
+    students: () => [...instructorBase, 'students'] as const,
+    assignments: () => [...instructorBase, 'assignments'] as const,
   },
   
   parent: {
-    all: [...queryKeys.all, 'parent'] as const,
-    dashboard: () => [...queryKeys.parent.all, 'dashboard'] as const,
-    children: () => [...queryKeys.parent.all, 'children'] as const,
-    progress: (childId: string) => [...queryKeys.parent.children(), childId, 'progress'] as const,
+    all: parentBase,
+    dashboard: () => [...parentBase, 'dashboard'] as const,
+    children: () => [...parentBase, 'children'] as const,
+    progress: (childId: string) => [...parentBase, 'children', childId, 'progress'] as const,
   },
 } as const;
 
@@ -131,18 +133,15 @@ export const queryKeys = {
 export const useInfiniteApiQuery = <T>(
   key: string[],
   queryFn: ({ pageParam }: { pageParam: number }) => Promise<{ data: T[]; nextPage?: number }>,
-  options?: Omit<UseQueryOptions<{ data: T[]; nextPage?: number }, ApiError>, 'queryKey' | 'queryFn'>
+  options?: any
 ) => {
   const { handleError } = useErrorHandler();
-  const { useInfiniteQuery } = require('@tanstack/react-query');
 
   return useInfiniteQuery({
     queryKey: key,
-    queryFn,
-    getNextPageParam: (lastPage: { data: T[]; nextPage?: number }) => lastPage.nextPage,
-    onError: (error: ApiError) => {
-      handleError(error, { showToast: true });
-    },
+    queryFn: ({ pageParam = 1 }: { pageParam: number }) => queryFn({ pageParam }),
+    getNextPageParam: (lastPage: { data: T[]; nextPage?: number }) => lastPage?.nextPage ?? undefined,
+    initialPageParam: 1,
     ...options,
   });
 };

@@ -420,16 +420,17 @@ export const recoverUploadSession = async (
  * @param error - The error to check
  * @returns Enhanced error information with recovery guidance
  */
-export const checkSessionExpirationError = (error: any): {
+export const checkSessionExpirationError = async (error: any): Promise<{
   isSessionExpired: boolean;
   needsRecovery: boolean;
   hasRecoveryData: boolean;
   canAttemptRecovery: boolean;
   missingRecoveryFields: string[];
   recoveryInstructions: string;
-} => {
+}> => {
   // Import error handler dynamically
-  const VideoUploadErrorHandler = require('./videoUploadErrorHandler').default;
+  const VideoUploadErrorHandlerModule = await import('./videoUploadErrorHandler');
+  const VideoUploadErrorHandler = VideoUploadErrorHandlerModule.default;
   const errorInfo = VideoUploadErrorHandler.parseError(error);
   
   const isSessionExpired = errorInfo.code === 'SESSION_EXPIRED' || 

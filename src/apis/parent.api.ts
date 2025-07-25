@@ -201,7 +201,10 @@ export class ParentAPI {
     child_id?: string;
   }): Promise<PaginatedResponse<ParentCommunication>> {
     const response = await this.client.get<PaginatedResponse<ParentCommunication>>('/parent/messages', params);
-    return response;
+    if (!response.data) {
+      throw new Error('No data received from server');
+    }
+    return response.data;
   }
 
   static async sendMessage(message: {

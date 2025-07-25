@@ -1,5 +1,13 @@
 // Instructor API types for MEDH platform
-import { AttendanceRecord, Course } from './common';
+import { Course } from './common';
+
+export interface AttendanceRecord {
+  student_id: string;
+  session_id: string;
+  attendance_status: 'present' | 'absent' | 'late';
+  marked_at: string;
+  notes?: string;
+}
 
 export interface ClassSchedule {
   day_of_week: number; // 0-6 (Sunday-Saturday)

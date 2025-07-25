@@ -2,6 +2,7 @@
   "name": "medh-web",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "MEDH - Professional Education Platform",
   "author": "MEDH Team",
   "license": "PROPRIETARY",

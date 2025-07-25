@@ -282,7 +282,7 @@ export async function fetchBlogsAction(
         cache: 'force-cache',
         next: { revalidate: 180 } // Revalidate every 3 minutes
       }),
-      fetch(`${apiBaseUrl}${apiUrls.Blogs.getCategories}`, {
+      fetch(`${apiBaseUrl}${apiUrls.Blogs.getBlogCategories}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         cache: 'force-cache',
@@ -333,13 +333,13 @@ export async function fetchBlogDetailsAction(
 
     // Parallel fetching for better performance
     const [blogResponse, relatedBlogsResponse] = await Promise.all([
-      fetch(`${apiBaseUrl}${apiUrls.blog.getBlogById}/${blogId}`, {
+      fetch(`${apiBaseUrl}${apiUrls.Blogs.getBlogById}/${blogId}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         cache: 'force-cache',
         next: { revalidate: 300 }
       }),
-      fetch(`${apiBaseUrl}${apiUrls.blog.getAllBlogs}?limit=3&exclude=${blogId}&status=published`, {
+      fetch(`${apiBaseUrl}${apiUrls.Blogs.getAllBlogs}?limit=3&exclude=${blogId}&status=published`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         cache: 'force-cache',
@@ -414,16 +414,16 @@ export async function fetchUserDashboardAction(
     // Define role-specific API endpoints
     const roleEndpoints = {
       student: {
-        courses: `${apiUrls.student.getEnrolledCourses}/${userId}`,
-        stats: `${apiUrls.student.getStats}/${userId}`
+        courses: `${apiUrls.Students.getEnrolledCourses}/${userId}`,
+        stats: `${apiUrls.Students.getStats}/${userId}`
       },
       instructor: {
         courses: `${apiUrls.Instructor.getCourses}/${userId}`,
         stats: `${apiUrls.Instructor.getStats}/${userId}`
       },
       admin: {
-        courses: `${apiUrls.course.getAllCourses}?limit=5`,
-        stats: `${apiUrls.admin.getStats}`
+        courses: `${apiUrls.courses.getAllCourses}?limit=5`,
+        stats: `${apiUrls.Admin.getStats}`
       }
     };
 
@@ -547,7 +547,7 @@ export async function globalSearchAction(
     // Search blogs
     if (type === 'all' || type === 'blogs') {
       searchPromises.push(
-        fetch(`${apiBaseUrl}${apiUrls.blog.getAllBlogs}?search=${encodeURIComponent(query)}&limit=${limit}`, {
+        fetch(`${apiBaseUrl}${apiUrls.Blogs.getAllBlogs}?search=${encodeURIComponent(query)}&limit=${limit}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
           cache: 'no-store'

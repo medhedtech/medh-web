@@ -91,7 +91,8 @@ interface ITimePickerProps {
 const MUITimePicker = dynamic(
   () => import('@mui/x-date-pickers').then((mod) => {
     const { LocalizationProvider, TimePicker } = mod;
-    const { AdapterMoment } = require('@mui/x-date-pickers/AdapterMoment');
+    const adapterModule = await import('@mui/x-date-pickers/AdapterMoment');
+    const { AdapterMoment } = adapterModule;
     
     return function TimePickerWrapper({ value, onChange }: ITimePickerProps) {
       return (

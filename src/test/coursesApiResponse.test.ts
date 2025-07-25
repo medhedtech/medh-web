@@ -138,7 +138,8 @@ jest.mock('../hooks/getQuery.hook', () => ({
 
 describe('Courses API Response', () => {
   it('should process standard courses API response format', async () => {
-    const { getQuery } = require('../hooks/getQuery.hook').default();
+    const getQueryModule = await import('../hooks/getQuery.hook');
+    const { getQuery } = getQueryModule.default();
     
     // Make the API call
     const url = getCoursesWithFields({
@@ -172,7 +173,8 @@ describe('Courses API Response', () => {
   });
 
   it('should handle courses with different currencies', async () => {
-    const { getQuery } = require('../hooks/getQuery.hook').default();
+    const getQueryModule = await import('../hooks/getQuery.hook');
+    const { getQuery } = getQueryModule.default();
     
     // Mock a different response for this test
     getQuery.mockImplementationOnce(({ url }) => {
@@ -226,7 +228,8 @@ describe('Courses API Response', () => {
   });
 
   it('should handle empty courses response', async () => {
-    const { getQuery } = require('../hooks/getQuery.hook').default();
+    const getQueryModule = await import('../hooks/getQuery.hook');
+    const { getQuery } = getQueryModule.default();
     
     // Mock an empty response for this test
     getQuery.mockImplementationOnce(({ url }) => {
@@ -256,7 +259,8 @@ describe('Courses API Response', () => {
   });
 
   it('should handle error response from courses API', async () => {
-    const { getQuery } = require('../hooks/getQuery.hook').default();
+    const getQueryModule = await import('../hooks/getQuery.hook');
+    const { getQuery } = getQueryModule.default();
     
     // Mock an error response for this test
     getQuery.mockImplementationOnce(({ url }) => {
@@ -284,7 +288,8 @@ describe('Courses API Response', () => {
   });
 
   it('should handle non-array response data', async () => {
-    const { getQuery } = require('../hooks/getQuery.hook').default();
+    const getQueryModule = await import('../hooks/getQuery.hook');
+    const { getQuery } = getQueryModule.default();
     
     // Mock a non-array response for this test
     getQuery.mockImplementationOnce(({ url }) => {
