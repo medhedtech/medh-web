@@ -1,6 +1,6 @@
 // Error handling hook for MEDH API
 import { useCallback } from 'react';
-import { toast } from '../utils/toast';
+import { showToast } from '@/utils/toastManager';
 import { ApiError } from '../types/common';
 import { ApiErrorHandler } from '../lib/error-handler';
 
@@ -10,16 +10,14 @@ export const useErrorHandler = () => {
     customMessage?: string;
     onRetry?: () => void;
   }) => {
-    const { showToast = true, customMessage, onRetry } = options || {};
+    const { showToast: enableToast = true, customMessage, onRetry } = options || {};
     
     const errorDetails = ApiErrorHandler.getErrorDetails(error);
     const message = customMessage || errorDetails.message;
     
     // Show toast notification if enabled
-    if (showToast) {
-      toast.error(message, {
-        duration: 5000, // Longer duration for errors
-      });
+    if (enableToast) {
+      showToast.error(message);
     }
     
     // Log detailed error information for debugging
@@ -67,7 +65,7 @@ export const useErrorHandler = () => {
     } = options || {};
 
     try {
-      const result = await toast.promise(
+      const result = await showToast.promise(
         asyncFn(),
         {
           loading: loadingMessage,

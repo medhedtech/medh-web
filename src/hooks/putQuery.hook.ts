@@ -5,6 +5,7 @@ import { apiClient } from "../apis/apiClient";
 import apiWithAuth from "../utils/apiWithAuth";
 import { logger } from "../utils/logger";
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+import { showToast } from '@/utils/toastManager';
 
 const DEFAULT_HEADERS = {
   "Content-Type": "application/json",
@@ -24,7 +25,7 @@ export interface PutQueryParams<T = any> {
   /** Optional request configuration */
   config?: AxiosRequestConfig;
   /** Whether to show toast messages */
-  showToast?: boolean;
+  enableToast?: boolean;
   /** Custom headers (merged with defaults) */
   headers?: Record<string, string>;
   /** Custom success message for toast */
@@ -38,87 +39,72 @@ export interface PutQueryParams<T = any> {
 export interface PutQueryResult<T = any> {
   data: T | null;
   error: Error | AxiosError | null;
+  loading: boolean;
+  success: boolean;
 }
 
-export interface UsePutQueryResult<T = any> {
-  /** Function to execute the PUT request */
-  putQuery: <D = any>(params: PutQueryParams<D>) => Promise<PutQueryResult<T>>;
-  /** Current loading state */
-  loading: boolean;
-  /** Set loading state manually */
-  setLoading: (loading: boolean) => void;
-  /** Last successful response data */
-  data: T | null;
-  /** Set data manually */
-  setData: (data: T | null) => void;
-  /** Last error */
-  error: Error | AxiosError | null;
-  /** Set error manually */
-  setError: (error: Error | AxiosError | null) => void;
-  /** Clear error state */
-  clearError: () => void;
-  /** Clear data state */
-  clearData: () => void;
-  /** Reset all states */
+export interface PutQueryReturn<T = any> extends PutQueryResult<T> {
+  putQuery: (params: PutQueryParams<T>) => Promise<T | null>;
   reset: () => void;
 }
 
 /**
- * Custom hook for handling PUT API requests
- * @returns Object with put query function and state
+ * Custom hook for making PUT requests
+ * @returns PutQueryReturn object with state and putQuery function
  */
-export const usePutQuery = <T = any>(): UsePutQueryResult<T> => {
-  const [loading, setLoading] = useState<boolean>(false);
+export const usePutQuery = <T = any>(): PutQueryReturn<T> => {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<Error | AxiosError | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [success, setSuccess] = useState<boolean>(false);
 
-  /**
-   * Execute a PUT request to the API
-   */
-  const putQuery = async <D = any>({
+  const reset = () => {
+    setData(null);
+    setError(null);
+    setLoading(false);
+    setSuccess(false);
+  };
+
+  const putQuery = async ({
     url,
     putData,
-    onSuccess = () => {},
-    onFail = () => {},
-    requireAuth = false,
+    onSuccess,
+    onFail,
+    requireAuth = true,
     config = {},
-    showToast = true,
+    enableToast = true,
     headers = {},
-    successMessage,
-    errorMessage = "Something went wrong",
+    successMessage = "Data updated successfully",
+    errorMessage = "Failed to update data",
     debug = false,
-  }: PutQueryParams<D>): Promise<PutQueryResult<T>> => {
-    // Reset states
+  }: PutQueryParams<T>): Promise<T | null> => {
     setLoading(true);
     setError(null);
+    setSuccess(false);
 
     try {
-      // Choose between authenticated and non-authenticated clients
-      const client = requireAuth ? apiWithAuth : apiClient;
-      
-      // Merge headers
+      // Merge headers with defaults
       const mergedHeaders = {
         ...DEFAULT_HEADERS,
         ...headers,
       };
-      
-      // Debug logging
-      if (debug) {
-        logger.log({ url, putData, headers: mergedHeaders }, "putQuery-request");
-      }
+
+      // Choose the appropriate client based on auth requirement
+      const client = requireAuth ? apiWithAuth : apiClient;
 
       // Make the request
-      const response: AxiosResponse = await client.put(url, putData, { 
+      const response: AxiosResponse<T> = await client.put(url, putData, { 
         ...config,
         headers: mergedHeaders 
       });
 
       // Extract and set the response data
-      const apiData = response.data as T || {};
+      const apiData = response.data || ({} as T);
       setData(apiData);
+      setSuccess(true);
 
       // Show success toast if configured
-      if (showToast && successMessage) {
+      if (enableToast && successMessage) {
         showToast.success(successMessage);
       }
 
@@ -129,82 +115,47 @@ export const usePutQuery = <T = any>(): UsePutQueryResult<T> => {
         logger.log("PUT request successful");
       }
 
-      // Call onSuccess callback
+      // Call success callback if provided
       if (onSuccess) {
         await onSuccess(apiData);
       }
 
-      return { data: apiData, error: null };
-    } catch (err: unknown) {
-      // Format error for consistent handling
-      const error = err as Error | AxiosError;
-      setError(error);
+      return apiData;
 
-      // Determine the most appropriate error message
-      const axiosError = error as AxiosError;
-      const message =
-        axiosError?.response?.data?.message ||
-        (error as any)?.message ||
-        errorMessage;
+    } catch (err) {
+      const axiosError = err as AxiosError;
+      setError(axiosError);
+      setSuccess(false);
 
       // Show error toast if configured
-      if (showToast) {
-        showToast.error(message);
+      if (enableToast && errorMessage) {
+        showToast.error(errorMessage);
       }
 
       // Debug logging
       if (debug) {
-        logger.log(error, "putQuery-fail");
+        logger.error(axiosError, "putQuery-error");
       } else {
-        logger.log("PUT request failed");
+        logger.error("PUT request failed");
       }
 
-      // Call onFail callback
+      // Call error callback if provided
       if (onFail) {
-        await onFail(error);
+        await onFail(axiosError);
       }
 
-      return { data: null, error };
+      return null;
     } finally {
       setLoading(false);
     }
   };
 
-  /**
-   * Clear error state
-   */
-  const clearError = (): void => {
-    setError(null);
-  };
-
-  /**
-   * Clear data state
-   */
-  const clearData = (): void => {
-    setData(null);
-  };
-
-  /**
-   * Reset all states
-   */
-  const reset = (): void => {
-    setLoading(false);
-    setData(null);
-    setError(null);
-  };
-
   return {
-    putQuery,
-    loading,
-    setLoading,
     data,
-    setData,
     error,
-    setError,
-    clearError,
-    clearData,
+    loading,
+    success,
+    putQuery,
     reset,
   };
-};
-
-export default usePutQuery; 
+}; 
