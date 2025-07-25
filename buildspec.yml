@@ -54,15 +54,23 @@ phases:
       
       - echo ""
       - echo "=== Installing Dependencies ==="
+      # Upgrade npm to latest version for better SWC binary handling
+      - npm install -g npm@latest
       - npm config set legacy-peer-deps true
       - npm config set fund false
       - npm config set audit-level moderate
+      - npm config set optional true
       
       # Clean install
       - echo "Installing dependencies..."
       - npm ci --no-audit --prefer-offline
       
-      # Install SWC binaries for Linux x64 architecture
+      # Force regenerate lockfile for proper SWC binary installation
+      - echo "Regenerating lockfile for proper SWC binary installation..."
+      - rm -f package-lock.json
+      - npm install --no-audit --prefer-offline
+      
+      # Install SWC binaries for Linux x64 architecture  
       - echo "Installing SWC binaries for AWS CodeBuild..."
       - npm install --no-save --no-audit @next/swc-linux-x64-gnu@15.4.3 || echo "Failed to install GNU binary"
       - npm install --no-save --no-audit @next/swc-linux-x64-musl@15.4.3 || echo "Failed to install MUSL binary"
@@ -94,8 +102,9 @@ phases:
       - export SWC_DISABLE_NEXT_SWC=1
       - export NODE_OPTIONS="--max-old-space-size=6144"
       
-      # Try SWC build first, fallback to Babel if it fails
-      - bash scripts/fix-swc-build.sh || bash scripts/build-with-babel-fallback.sh
+      # Use direct Babel fallback approach for reliable builds
+      - echo "Using Babel fallback for reliable AWS CodeBuild compatibility"
+      - bash scripts/build-with-babel-fallback.sh
 
 artifacts:
   files:

@@ -13,19 +13,13 @@ const nextConfig = {
   },
 
   // SWC Configuration for AWS CodeBuild compatibility
-  compiler: {
-    // Allow graceful fallback to Babel if SWC fails
-    removeConsole: process.env.NODE_ENV === 'production' ? {
-      exclude: ['error', 'warn'],
-    } : false,
-  },
-  
-  // Enhanced SWC configuration for better AWS CodeBuild compatibility
-  ...(process.env.CI && {
-    // Force Babel fallback in CI if SWC fails
-    experimental: {
-      forceSwcTransforms: false,
-    }
+  ...(process.env.SWC_DISABLE_NEXT_SWC === '1' ? {} : {
+    compiler: {
+      // Allow graceful fallback to Babel if SWC fails
+      removeConsole: process.env.NODE_ENV === 'production' ? {
+        exclude: ['error', 'warn'],
+      } : false,
+    },
   }),
 
   // Prevent build cancellation
@@ -35,24 +29,32 @@ const nextConfig = {
     return `build-${Date.now()}`
   },
 
-  // Updated experimental settings for better Turbopack stability
+  // Consolidated experimental settings
   experimental: {
-    // Enable optimized package imports
-    optimizePackageImports: [
-      '@radix-ui/react-avatar',
-      '@radix-ui/react-checkbox',
-      '@radix-ui/react-label',
-      '@radix-ui/react-progress',
-      '@radix-ui/react-radio-group',
-      '@radix-ui/react-select',
-      '@radix-ui/react-separator',
-      '@radix-ui/react-slot',
-      '@radix-ui/react-switch',
-      '@radix-ui/react-tabs',
-      '@heroicons/react',
-      'lucide-react',
-      'react-icons',
-    ],
+    // SWC disable settings for CI environments
+    ...(process.env.CI && process.env.SWC_DISABLE_NEXT_SWC === '1' && {
+      forceSwcTransforms: false,
+      swcPlugins: [],
+      optimizePackageImports: [],
+    }),
+    // Default optimized package imports (disabled in CI when SWC is disabled)
+    ...(!process.env.CI || process.env.SWC_DISABLE_NEXT_SWC !== '1') && {
+      optimizePackageImports: [
+        '@radix-ui/react-avatar',
+        '@radix-ui/react-checkbox',
+        '@radix-ui/react-label',
+        '@radix-ui/react-progress',
+        '@radix-ui/react-radio-group',
+        '@radix-ui/react-select',
+        '@radix-ui/react-separator',
+        '@radix-ui/react-slot',
+        '@radix-ui/react-switch',
+        '@radix-ui/react-tabs',
+        '@heroicons/react',
+        'lucide-react',
+        'react-icons',
+      ],
+    },
     // Improve HMR performance
     webVitalsAttribution: ['CLS', 'LCP'],
   },

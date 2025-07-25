@@ -14,6 +14,7 @@
     "dev:fast": "pnpm dev",
     "build": "next build",
     "build:fix-swc": "bash scripts/fix-swc-build.sh",
+    "build:babel": "NEXT_FORCE_SWC=false SWC_DISABLE_NEXT_SWC=1 DISABLE_SWC=true next build",
     "start": "next start",
     "lint": "next lint --fix",
     "lint:check": "next lint",
