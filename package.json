@@ -12,7 +12,9 @@
   "scripts": {
     "dev": "next dev",
     "dev:fast": "pnpm dev",
-    "build": "next build",
+    "build": "NODE_OPTIONS='--max-old-space-size=24576 --max-semi-space-size=2048 --no-warnings --optimize-for-size --gc-interval=100' next build",
+    "build:memory-optimized": "NODE_OPTIONS='--max-old-space-size=32768 --max-semi-space-size=4096 --no-warnings --optimize-for-size --gc-interval=50 --expose-gc' GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true next build",
+    "build:fallback": "NODE_OPTIONS='--max-old-space-size=16384 --max-semi-space-size=1024' NEXT_BUILD_WORKERS=1 next build",
     "build:swc-first": "bash scripts/build-with-swc-first.sh",
     "build:babel": "NEXT_FORCE_SWC=false SWC_DISABLE_NEXT_SWC=1 DISABLE_SWC=true next build",
     "build:fix-swc": "bash scripts/fix-swc-build.sh",

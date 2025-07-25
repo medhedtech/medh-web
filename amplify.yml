@@ -23,12 +23,21 @@ frontend:
           export API_KEY_SALT="${API_KEY_SALT:-fallback-salt}"
           export SESSION_SECRET="${SESSION_SECRET:-fallback-session-secret}"
           
-          # Set build timeout and memory configurations
-          export NEXT_TIMEOUT=1800000  # 30 minutes
-          export NEXT_STATIC_EXPORT_TIMEOUT=1800000  # 30 minutes
-          export NODE_OPTIONS="--max-old-space-size=16384 --no-warnings --max-semi-space-size=1024"
+          # AGGRESSIVE MEMORY CONFIGURATION FOR BUILD
+          export NEXT_TIMEOUT=3600000  # 60 minutes
+          export NEXT_STATIC_EXPORT_TIMEOUT=3600000  # 60 minutes
+          # Increase memory to 24GB and optimize garbage collection
+          export NODE_OPTIONS="--max-old-space-size=24576 --max-semi-space-size=2048 --no-warnings --optimize-for-size --gc-interval=100"
           export AMPLIFY_DISABLE_TIMEOUT=true
-          export AMPLIFY_BUILD_TIMEOUT=3600  # 1 hour
+          export AMPLIFY_BUILD_TIMEOUT=7200  # 2 hours
+          
+          # Memory optimization flags
+          export UV_THREADPOOL_SIZE=16
+          export NODE_MAX_OLD_SPACE_SIZE=24576
+          export GENERATE_SOURCEMAP=false
+          export DISABLE_ESLINT_PLUGIN=true
+          export TSC_COMPILE_ON_ERROR=true
+          export SKIP_PREFLIGHT_CHECK=true
           
           # TypeScript configuration for Next.js
           export NEXT_TELEMETRY_DISABLED=1
@@ -39,6 +48,8 @@ frontend:
           echo "NODE_ENV: $NODE_ENV"
           echo "NEXT_PUBLIC_API_URL: $NEXT_PUBLIC_API_URL"
           echo "JWT_SECRET: ${JWT_SECRET:0:10}... (length: ${#JWT_SECRET})"
+          echo "Memory allocated: 24GB"
+          echo "Build timeout: 2 hours"
           
           # Create .env file for build
           cat > .env << EOF
@@ -48,6 +59,8 @@ frontend:
           JWT_SECRET=$JWT_SECRET
           API_KEY_SALT=$API_KEY_SALT
           SESSION_SECRET=$SESSION_SECRET
+          GENERATE_SOURCEMAP=false
+          DISABLE_ESLINT_PLUGIN=true
           EOF
           
           echo "✅ Environment variables set and .env file created"
@@ -81,26 +94,31 @@ frontend:
         - "echo \"Node.js $(node -v)\""
         - "echo \"npm $(npm -v)\""
         
-        # Install pnpm globally
+        # Install pnpm globally with memory optimization
         - echo ""
         - echo "=== Installing pnpm ==="
-        - npm install -g pnpm@latest
+        - NODE_OPTIONS="--max-old-space-size=4096" npm install -g pnpm@latest
         - "echo \"pnpm $(pnpm -v)\""
         
-        - echo "Configuring npm..."
+        - echo "Configuring npm and pnpm for memory optimization..."
         - npm config set legacy-peer-deps true
         - npm config set audit-level moderate
         - npm config set fund false
         - npm config set update-notifier false
-        - npm config set progress true
+        - npm config set progress false
+        - pnpm config set store-dir ~/.pnpm-store
+        - pnpm config set verify-store-integrity false
+        - pnpm config set package-import-method hardlink
         
-        # Clean up any potential lock file issues
+        # Memory-optimized dependency cleanup and installation
         - echo ""
-        - echo "=== Dependency Cleanup and Installation ==="
+        - echo "=== Memory-Optimized Dependency Installation ==="
         - echo "Cleaning up potential dependency conflicts..."
         - rm -rf node_modules/.staging 2>/dev/null || true
         - rm -rf node_modules/.cache 2>/dev/null || true
-        - rm -rf node_modules/@radix-ui 2>/dev/null || true  # Remove any corrupted Radix UI packages
+        - rm -rf node_modules/@radix-ui 2>/dev/null || true
+        - rm -rf .next/cache 2>/dev/null || true
+        - rm -rf ~/.npm/_cacache 2>/dev/null || true
         
         # Debug package.json and pnpm-lock.yaml
         - echo "Checking package.json..."
@@ -127,39 +145,45 @@ frontend:
           
           echo "Updated package.json with exact versions"
         
-        # Clean install with better error handling
+        # Memory-optimized clean install with chunked installation
         - echo ""
-        - echo "Installing dependencies with pnpm..."
+        - echo "Installing dependencies with memory optimization..."
         - |
-          # Use pnpm for dependency installation
+          # Set memory limits for pnpm
+          export NODE_OPTIONS="--max-old-space-size=8192 --max-semi-space-size=1024"
+          
+          # Use pnpm for dependency installation with memory optimization
           if [ -f pnpm-lock.yaml ]; then
-            echo "Using pnpm install with frozen lockfile..."
-            pnpm install --frozen-lockfile --prefer-offline || {
+            echo "Using pnpm install with frozen lockfile and memory optimization..."
+            pnpm install --frozen-lockfile --prefer-offline --reporter=silent || {
               echo "pnpm frozen install failed, falling back to regular pnpm install..."
               rm -rf node_modules
-              pnpm install --prefer-offline
+              pnpm install --prefer-offline --reporter=silent
             }
           else
             echo "No pnpm-lock.yaml found, using pnpm install..."
-            pnpm install --prefer-offline
+            pnpm install --prefer-offline --reporter=silent
           fi
           
-          # Explicitly install ALL Radix UI dependencies that might be missing
-          echo "Ensuring critical Radix UI dependencies are installed..."
-          pnpm add @radix-ui/react-avatar @radix-ui/react-progress @radix-ui/react-checkbox @radix-ui/react-label @radix-ui/react-roving-focus @radix-ui/react-select @radix-ui/react-separator @radix-ui/react-slot @radix-ui/react-switch @radix-ui/react-tabs --prefer-offline
+          # Install critical dependencies in chunks to manage memory
+          echo "Installing critical UI dependencies in chunks..."
+          pnpm add @radix-ui/react-avatar @radix-ui/react-progress @radix-ui/react-checkbox @radix-ui/react-label --prefer-offline --reporter=silent
+          
+          echo "Installing remaining Radix UI dependencies..."
+          pnpm add @radix-ui/react-roving-focus @radix-ui/react-select @radix-ui/react-separator @radix-ui/react-slot @radix-ui/react-switch @radix-ui/react-tabs --prefer-offline --reporter=silent
           
           # Force reinstall of problematic packages
           echo "Force reinstalling problematic packages..."
-          pnpm add --force @radix-ui/react-avatar @radix-ui/react-progress
+          pnpm add --force @radix-ui/react-avatar @radix-ui/react-progress --reporter=silent
           
           # Clear pnpm store and reinstall if still failing
           echo "Clearing pnpm store and double-checking installation..."
           pnpm store prune
-          pnpm add @radix-ui/react-avatar @radix-ui/react-progress
+          pnpm add @radix-ui/react-avatar @radix-ui/react-progress --reporter=silent
           
           # Explicitly install TypeScript and related dependencies
           echo "Ensuring TypeScript and build dependencies are installed..."
-          pnpm add typescript @types/react @types/react-dom @types/node tsx --prefer-offline
+          pnpm add typescript @types/react @types/react-dom @types/node tsx --prefer-offline --reporter=silent
           
           # Verify TypeScript installation immediately
           echo "Verifying TypeScript installation..."
@@ -168,7 +192,7 @@ frontend:
             node_modules/.bin/tsc --version
           else
             echo "❌ TypeScript installation failed - trying global install"
-            npm install -g typescript
+            NODE_OPTIONS="--max-old-space-size=4096" npm install -g typescript
           fi
         
         # Verify installation
@@ -188,7 +212,7 @@ frontend:
           else
             echo "❌ @radix-ui/react-avatar is NOT installed"
             echo "Attempting emergency install..."
-            pnpm add @radix-ui/react-avatar --force
+            NODE_OPTIONS="--max-old-space-size=4096" pnpm add @radix-ui/react-avatar --force --reporter=silent
           fi
           
           echo "Verifying @radix-ui/react-progress installation..."
@@ -198,10 +222,10 @@ frontend:
           else
             echo "❌ @radix-ui/react-progress is NOT installed"
             echo "Attempting emergency install..."
-            pnpm add @radix-ui/react-progress --force
+            NODE_OPTIONS="--max-old-space-size=4096" pnpm add @radix-ui/react-progress --force --reporter=silent
           fi
           
-                     # Final verification with pnpm list
+          # Final verification with pnpm list
            pnpm list @radix-ui/react-avatar @radix-ui/react-progress --depth=0 || {
              echo "❌ Final verification failed - attempting manual installation"
              
@@ -246,12 +270,12 @@ frontend:
              rm -f test.ts test.js 2>/dev/null || true
            else
              echo "❌ TypeScript compiler not found - attempting emergency install"
-             npm install typescript @types/react @types/react-dom @types/node --force --no-cache
+             NODE_OPTIONS="--max-old-space-size=4096" npm install typescript @types/react @types/react-dom @types/node --force --no-cache
              
              # If still failing, try global install
              if [ ! -f "node_modules/.bin/tsc" ]; then
                echo "❌ Local install failed - trying global TypeScript"
-               npm install -g typescript
+               NODE_OPTIONS="--max-old-space-size=4096" npm install -g typescript
                export PATH="$PATH:$(npm config get prefix)/bin"
              fi
            fi
@@ -260,7 +284,7 @@ frontend:
            echo "Verifying TypeScript types..."
            pnpm list typescript @types/react @types/react-dom @types/node --depth=0 || {
              echo "❌ TypeScript types verification failed - attempting final reinstall"
-             pnpm add typescript @types/react @types/react-dom @types/node tsx --force
+             NODE_OPTIONS="--max-old-space-size=4096" pnpm add typescript @types/react @types/react-dom @types/node tsx --force --reporter=silent
            }
            
            # Set PATH for build phase
@@ -269,18 +293,20 @@ frontend:
     build:
       commands:
         - echo ""
-        - echo "=== Starting Build Process ==="
+        - echo "=== Starting Memory-Optimized Build Process ==="
         - echo "Setting up TypeScript environment for build..."
         - export PATH="$PWD/node_modules/.bin:$PATH"
         - export NEXT_TELEMETRY_DISABLED=1
         - export TSC_COMPILE_ON_ERROR=true
+        - export GENERATE_SOURCEMAP=false
+        - export DISABLE_ESLINT_PLUGIN=true
         - |
           # Final pre-build TypeScript check
           if [ -f "node_modules/.bin/tsc" ]; then
             echo "✅ TypeScript available for build: $(node_modules/.bin/tsc --version)"
           else
             echo "❌ TypeScript not found - emergency install"
-            pnpm add typescript --force
+            NODE_OPTIONS="--max-old-space-size=4096" pnpm add typescript --force --reporter=silent
           fi
         - chmod +x ./scripts/amplify-build.sh
         - ./scripts/amplify-build.sh

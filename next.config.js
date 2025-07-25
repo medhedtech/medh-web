@@ -12,6 +12,22 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
 
+  // Memory optimization settings
+  swcMinify: true, // Use SWC for faster, memory-efficient minification
+  
+  // Disable source maps in production to save memory
+  productionBrowserSourceMaps: false,
+  
+  // Optimize build output
+  output: 'standalone', // Reduce bundle size
+  
+  // Prevent build cancellation with longer timeout
+  staticPageGenerationTimeout: 3600, // 60 minutes
+  generateBuildId: async () => {
+    // Generate a unique build ID to prevent caching issues
+    return `build-${Date.now()}`
+  },
+
   // SWC Configuration for AWS CodeBuild compatibility
   ...(process.env.SWC_DISABLE_NEXT_SWC === '1' ? {} : {
     compiler: {
@@ -19,40 +35,30 @@ const nextConfig = {
       removeConsole: process.env.NODE_ENV === 'production' ? {
         exclude: ['error', 'warn'],
       } : false,
+      // Remove React DevTools in production
+      reactRemoveProperties: process.env.NODE_ENV === 'production',
     },
   }),
 
-  // Prevent build cancellation
-  staticPageGenerationTimeout: 1800, // 30 minutes
-  generateBuildId: async () => {
-    // Generate a unique build ID to prevent caching issues
-    return `build-${Date.now()}`
-  },
-
-  // Consolidated experimental settings
+  // Consolidated experimental settings with memory optimization
   experimental: {
+    // Memory optimization
+    memoryBasedWorkersCount: true,
+    workerThreads: false, // Disable worker threads to save memory
+    
     // SWC disable settings for CI environments
     ...(process.env.CI && process.env.SWC_DISABLE_NEXT_SWC === '1' && {
       forceSwcTransforms: false,
       swcPlugins: [],
       optimizePackageImports: [],
     }),
-    // Default optimized package imports (disabled in CI when SWC is disabled)
+    // Reduced package imports to save memory
     ...(!process.env.CI || process.env.SWC_DISABLE_NEXT_SWC !== '1') && {
       optimizePackageImports: [
         '@radix-ui/react-avatar',
-        '@radix-ui/react-checkbox',
-        '@radix-ui/react-label',
         '@radix-ui/react-progress',
-        '@radix-ui/react-radio-group',
-        '@radix-ui/react-select',
-        '@radix-ui/react-separator',
-        '@radix-ui/react-slot',
-        '@radix-ui/react-switch',
-        '@radix-ui/react-tabs',
         '@heroicons/react',
         'lucide-react',
-        'react-icons',
       ],
     },
     // Improve HMR performance
@@ -74,8 +80,81 @@ const nextConfig = {
     },
   },
 
-  // Enhanced webpack optimizations for better HMR stability
-  webpack: (config, { dev, isServer }) => {
+  // Enhanced webpack optimizations for memory efficiency
+  webpack: (config, { dev, isServer, webpack }) => {
+    // Memory optimization for production builds
+    if (!dev) {
+      // Reduce memory usage during build
+      config.optimization = {
+        ...config.optimization,
+        // Minimize memory usage
+        minimize: true,
+        // Better tree shaking
+        usedExports: true,
+        sideEffects: false,
+        // Reduce chunk overhead
+        concatenateModules: true,
+        // Memory-efficient chunk splitting
+        splitChunks: {
+          chunks: 'all',
+          minSize: 20000,
+          maxSize: 250000,
+          cacheGroups: {
+            framework: {
+              chunks: 'all',
+              name: 'framework',
+              test: /(?<!node_modules.*)[\\/]node_modules[\\/](react|react-dom|scheduler|prop-types|use-subscription)[\\/]/,
+              priority: 40,
+              enforce: true,
+            },
+            lib: {
+              test(module) {
+                return module.size() > 160000 && /node_modules[/\\]/.test(module.identifier());
+              },
+              name(module) {
+                const hash = crypto.createHash('sha1');
+                if (module.libIdent) {
+                  hash.update(module.libIdent({ context: config.context }));
+                } else {
+                  hash.update(module.identifier());
+                }
+                return hash.digest('hex').substring(0, 8);
+              },
+              priority: 30,
+              minChunks: 1,
+              reuseExistingChunk: true,
+            },
+            commons: {
+              name: 'commons',
+              minChunks: 2,
+              priority: 20,
+            },
+            shared: {
+              name: 'shared',
+              minChunks: 1,
+              priority: 10,
+              reuseExistingChunk: true,
+            },
+          },
+        },
+      };
+
+      // Add memory-efficient plugins
+      config.plugins.push(
+        new webpack.optimize.LimitChunkCountPlugin({
+          maxChunks: 50, // Limit chunks to reduce memory usage
+        })
+      );
+
+      // Resolve optimization
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+
     if (dev && !isServer) {
       // Improve HMR stability with better module resolution
       config.optimization = {
@@ -129,11 +208,6 @@ const nextConfig = {
           },
         },
       };
-
-      // Add HMR optimization plugins
-      config.plugins = [
-        ...config.plugins,
-      ];
     }
 
     return config;
@@ -147,8 +221,9 @@ const nextConfig = {
     'react-remove-scroll',
     '@jridgewell/resolve-uri'
   ],
-  // Don't specify output mode to use the default (which supports both static and dynamic routes)
+  
   trailingSlash: true, // Add trailing slashes to improve compatibility
+  
   images: {
     remotePatterns: [
       {
@@ -214,8 +289,7 @@ const nextConfig = {
     // Enable responsive images by default
     loader: 'default',
   },
-  // Enable production source maps for better debugging
-  productionBrowserSourceMaps: false, // Disable for faster builds
+  
   // Add headers for better caching, security, and video optimization
   async headers() {
     return [
