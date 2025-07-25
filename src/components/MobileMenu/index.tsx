@@ -46,22 +46,70 @@ const MobileMenu: React.FC<IMobileMenuProps> = ({
   // Determine actual open state
   const isOpen = propIsOpen !== undefined ? propIsOpen : isInternalOpen;
   
-  // Handle mounting state and data initialization
-  useEffect(() => {
-    setMounted(true);
-    
-    // Check authentication status
+  // Function to refresh user data (extracted for reusability)
+  const refreshUserData = useCallback(() => {
     const token = localStorage.getItem("token");
     const userId = localStorage.getItem("userId");
     setIsLoggedIn(!!token && !!userId);
 
     if (token && userId) {
-      const name = localStorage.getItem("name") || "";
-      const email = localStorage.getItem("email") || "";
-      setUserName(name || email?.split('@')[0] || "");
-      setUserRole(localStorage.getItem("role") || "");
+      try {
+        // Use the same name extraction pattern as desktop Navbar
+        const storedUserName = localStorage.getItem("userName") || "";
+        const storedFullName = localStorage.getItem("fullName") || "";
+        const storedName = storedUserName || storedFullName;
+        
+        if (storedName) {
+          // Get first name for display with proper formatting
+          const firstName = storedName.trim().split(' ')[0];
+          setUserName(firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase());
+        } else {
+          // Fallback to email-based name if no proper name is found
+          const email = localStorage.getItem("email") || "";
+          setUserName(email ? email.split('@')[0] : "User");
+        }
+        
+        // Handle role extraction with proper fallbacks
+        let role = localStorage.getItem("role") || "";
+        if (!role && token) {
+          try {
+            // Try to decode from token as fallback
+            const decoded = JSON.parse(atob(token.split(".")[1]));
+            if (decoded.user?.role) {
+              role = Array.isArray(decoded.user.role) ? decoded.user.role[0] : decoded.user.role;
+            } else if (decoded.role) {
+              role = Array.isArray(decoded.role) ? decoded.role[0] : decoded.role;
+            }
+          } catch (e) {
+            // Silent fallback if token decode fails
+            role = "";
+          }
+        }
+        setUserRole(role.toLowerCase());
+      } catch (error) {
+        console.error("Error accessing localStorage:", error);
+        setUserName("User");
+        setUserRole("");
+      }
+    } else {
+      // Clear user data if not logged in
+      setUserName("");
+      setUserRole("");
     }
   }, []);
+  
+  // Handle mounting state and data initialization
+  useEffect(() => {
+    setMounted(true);
+    refreshUserData();
+  }, [refreshUserData]);
+  
+  // Refresh user data when menu is opened
+  useEffect(() => {
+    if (isOpen && mounted) {
+      refreshUserData();
+    }
+  }, [isOpen, mounted, refreshUserData]);
   
   // Prevent body scroll when menu is open
   useEffect(() => {

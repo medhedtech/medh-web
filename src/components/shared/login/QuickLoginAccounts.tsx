@@ -15,10 +15,17 @@ import {
   Shield,
   UserCircle,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Fingerprint,
+  Check,
+  Key
 } from "lucide-react";
 import { RememberedAccountsManager, RememberedAccount } from "@/utils/rememberedAccounts";
 import { showToast } from "@/utils/toastManager";
+import { useIsMobile } from "@/utils/hydration";
+import { buildAdvancedComponent, mobilePatterns } from "@/utils/designSystem";
+import { BiometricAuthManager, useBiometricAuth } from "@/utils/biometricAuth";
+import { useMobileInteractions } from "@/utils/mobileInteractions";
 
 interface QuickLoginAccountsProps {
   onAccountSelect: (account: RememberedAccount) => void;
@@ -26,6 +33,8 @@ interface QuickLoginAccountsProps {
   onRemoveAccount?: (email: string) => void;
   isLoading?: boolean;
   className?: string;
+  enableBiometric?: boolean;
+  onBiometricLogin?: (account: RememberedAccount) => void;
 }
 
 const QuickLoginAccounts: React.FC<QuickLoginAccountsProps> = ({
@@ -33,12 +42,23 @@ const QuickLoginAccounts: React.FC<QuickLoginAccountsProps> = ({
   onManualLogin,
   onRemoveAccount,
   isLoading = false,
-  className = ""
+  className = "",
+  enableBiometric = true,
+  onBiometricLogin
 }) => {
   const [accounts, setAccounts] = useState<RememberedAccount[]>([]);
   const [quickLoginAccounts, setQuickLoginAccounts] = useState<RememberedAccount[]>([]);
   const [lastUsedAccount, setLastUsedAccount] = useState<RememberedAccount | null>(null);
   const [removingAccount, setRemovingAccount] = useState<string | null>(null);
+  const [biometricAuthenticating, setBiometricAuthenticating] = useState<string | null>(null);
+
+  // Hooks
+  const { isMobile } = useIsMobile();
+  const biometric = useBiometricAuth();
+  const mobileInteractions = useMobileInteractions({
+    hapticFeedback: true,
+    touchOptimization: true
+  });
 
   // Load accounts on component mount
   useEffect(() => {
@@ -64,7 +84,10 @@ const QuickLoginAccounts: React.FC<QuickLoginAccountsProps> = ({
   };
 
   const handleAccountClick = (account: RememberedAccount) => {
-    if (isLoading || removingAccount) return;
+    if (isLoading || removingAccount || biometricAuthenticating) return;
+    
+    // Provide haptic feedback for account selection
+    mobileInteractions.triggerHaptic('light');
     
     try {
       // Update last used account
@@ -76,10 +99,39 @@ const QuickLoginAccounts: React.FC<QuickLoginAccountsProps> = ({
     }
   };
 
+  const handleBiometricLogin = async (e: React.MouseEvent, account: RememberedAccount) => {
+    e.stopPropagation();
+    if (!enableBiometric || !biometric.capabilities.hasUserVerifyingPlatformAuthenticator || biometricAuthenticating) return;
+    
+    setBiometricAuthenticating(account.email);
+    mobileInteractions.triggerHaptic('medium');
+    
+    try {
+      const result = await BiometricAuthManager.authenticate(account.email);
+      
+      if (result.success) {
+        mobileInteractions.triggerHaptic('success');
+        RememberedAccountsManager.setLastUsedAccount(account.email);
+        onBiometricLogin?.(account) || onAccountSelect(account);
+      } else {
+        mobileInteractions.triggerHaptic('error');
+        showToast.error(result.error || "Biometric authentication failed");
+      }
+    } catch (error) {
+      console.error('Biometric authentication error:', error);
+      mobileInteractions.triggerHaptic('error');
+      showToast.error("Biometric authentication failed");
+    } finally {
+      setBiometricAuthenticating(null);
+    }
+  };
+
   const handleRemoveAccount = (e: React.MouseEvent, email: string) => {
     e.stopPropagation();
     if (removingAccount) return;
     
+    // Provide haptic feedback for removal action
+    mobileInteractions.triggerHaptic('medium');
     setRemovingAccount(email);
     
     try {
@@ -139,54 +191,74 @@ const QuickLoginAccounts: React.FC<QuickLoginAccountsProps> = ({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* Simple Header */}
+      {/* Enhanced Header with Mobile Optimization */}
       <div className="text-center">
-        <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+        <p className={isMobile ? mobilePatterns.mobileTypography.body : "text-sm text-gray-700 dark:text-gray-300 font-medium"}>
           Choose an account to continue
         </p>
+        {enableBiometric && biometric.capabilities.hasUserVerifyingPlatformAuthenticator && (
+          <div className="mt-2 flex items-center justify-center gap-2 text-xs text-blue-600 dark:text-blue-400">
+            <Fingerprint className="w-3 h-3" />
+            <span>Biometric login available</span>
+          </div>
+        )}
       </div>
 
-      {/* Simplified Accounts List */}
+      {/* Enhanced Mobile-First Accounts List */}
       <div className="space-y-3">
         {accounts.map((account) => {
           const isQuickLogin = isQuickLoginAvailable(account);
           const isLastUsed = lastUsedAccount?.email === account.email;
           const isRemoving = removingAccount === account.email;
+          const isBiometricAuthenticating = biometricAuthenticating === account.email;
+          const canUseBiometric = enableBiometric && biometric.capabilities.hasUserVerifyingPlatformAuthenticator && 
+                                 BiometricAuthManager.hasCredentialForEmail(account.email) && isQuickLogin;
           
           return (
             <div
               key={account.id}
               onClick={() => handleAccountClick(account)}
               className={`
-                relative p-4 rounded-xl border cursor-pointer transition-all duration-200
+                relative rounded-xl border cursor-pointer transition-all duration-300 group
+                ${isMobile ? 'p-4 active:scale-[0.98] touch-manipulation' : 'p-4'}
                 ${isLastUsed 
                   ? 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800' 
-                  : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                  : isMobile 
+                    ? buildAdvancedComponent.glassCard({ variant: 'primary' }).split(' ').slice(0, -1).join(' ') + ' border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
+                    : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                 }
-                ${isLoading || isRemoving ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-md'}
-                group
+                ${isLoading || isRemoving || isBiometricAuthenticating ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg'}
               `}
             >
-              {/* Last Used Badge - Simple */}
+              {/* Last Used Badge - Enhanced */}
               {isLastUsed && (
-                <div className="absolute -top-2 -right-2">
-                  <div className="bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-medium">
+                <div className="absolute -top-2 -right-2 z-10">
+                  <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-2 py-1 rounded-full text-xs font-medium shadow-lg">
                     LAST USED
+                  </div>
+                </div>
+              )}
+
+              {/* Biometric Available Badge */}
+              {canUseBiometric && !isLastUsed && (
+                <div className="absolute -top-2 -left-2 z-10">
+                  <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white p-1.5 rounded-full shadow-lg">
+                    <Fingerprint className="w-3 h-3" />
                   </div>
                 </div>
               )}
 
               {/* Account Content */}
               <div className="flex items-center gap-3">
-                {/* Avatar */}
+                {/* Enhanced Avatar */}
                 <div className="flex-shrink-0">
                   <div className="relative">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                    <div className={`${isMobile ? 'w-12 h-12' : 'w-10 h-10'} bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold ${isMobile ? 'text-lg' : 'text-sm'} shadow-lg`}>
                       {getAccountInitials(account.fullName, account.email)}
                     </div>
                     {/* OAuth Provider Badge */}
                     {account.provider && (
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-600">
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-sm">
                         {account.provider === 'google' ? (
                           <svg className="w-2.5 h-2.5" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -203,68 +275,96 @@ const QuickLoginAccounts: React.FC<QuickLoginAccountsProps> = ({
                         )}
                       </div>
                     )}
+
+                    {/* Quick Login Badge */}
+                    {isQuickLogin && (
+                      <div className="absolute -top-1 -left-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shadow-sm">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Account Details */}
+                {/* Enhanced Account Details */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                      {account.fullName}
+                    <h3 className={`font-semibold truncate ${isMobile ? 'text-base' : 'text-sm'} text-gray-900 dark:text-gray-100`}>
+                      {account.fullName || account.email.split('@')[0]}
                     </h3>
-                    {/* Quick Login Badge */}
-                    {isQuickLogin && (
-                      <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-xs font-medium">
-                        <Shield className="w-2.5 h-2.5" />
-                        <span>Quick</span>
-                      </div>
-                    )}
-                    {/* OAuth Badge */}
-                    {account.provider && (
-                      <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-full text-xs font-medium">
-                        <span>{account.provider.charAt(0).toUpperCase() + account.provider.slice(1)}</span>
-                      </div>
+                    {canUseBiometric && (
+                      <Fingerprint className="w-4 h-4 text-blue-500 flex-shrink-0" />
                     )}
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                  <p className={`text-gray-600 dark:text-gray-400 truncate ${isMobile ? 'text-sm' : 'text-xs'}`}>
                     {account.email}
                   </p>
                   <div className="flex items-center gap-3 mt-1">
-                    <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-500">
-                      <Clock className="w-3 h-3" />
-                      <span>{formatLastLogin(account.lastLogin)}</span>
-                    </div>
-                    {account.role && (
-                      <div className="text-xs text-gray-500 dark:text-gray-500 capitalize">
-                        {account.role}
+                    {account.lastLogin && (
+                      <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-500">
+                        <Clock className="w-3 h-3" />
+                        <span>{formatLastLogin(account.lastLogin)}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Status Badges */}
+                  <div className="flex items-center gap-2 mt-2">
+                    {isQuickLogin ? (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/20 rounded-full">
+                        <Shield className="w-3 h-3 text-green-600 dark:text-green-400" />
+                        <span className="text-xs font-medium text-green-700 dark:text-green-300">Quick</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-orange-100 dark:bg-orange-900/20 rounded-full">
+                        <Key className="w-3 h-3 text-orange-600 dark:text-orange-400" />
+                        <span className="text-xs font-medium text-orange-700 dark:text-orange-300">Key</span>
+                      </div>
+                    )}
+                    
+                    {account.provider && (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/20 rounded-full">
+                        <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                          {account.provider.charAt(0).toUpperCase() + account.provider.slice(1)}
+                        </span>
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* Action Buttons */}
+                {/* Enhanced Action Buttons */}
                 <div className="flex items-center gap-2">
-                  {/* Login Status Indicator */}
-                  <div className="flex flex-col items-center gap-1">
-                    {isQuickLogin ? (
-                      <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                        <Shield className="w-4 h-4" />
-                        <span className="text-xs font-medium">Ready</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
-                        <Clock className="w-4 h-4" />
-                        <span className="text-xs font-medium">Password</span>
-                      </div>
-                    )}
-                  </div>
+                  {/* Biometric Login Button */}
+                  {canUseBiometric && (
+                    <button
+                      onClick={(e) => handleBiometricLogin(e, account)}
+                      disabled={isBiometricAuthenticating}
+                      className={`
+                        p-2 rounded-lg transition-all duration-200 touch-manipulation
+                        ${isBiometricAuthenticating 
+                          ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600' 
+                          : 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 active:scale-95'
+                        }
+                      `}
+                      title="Use biometric login"
+                    >
+                      {isBiometricAuthenticating ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Fingerprint className="w-4 h-4" />
+                      )}
+                    </button>
+                  )}
 
                   {/* Remove Account Button */}
                   {onRemoveAccount && (
                     <button
                       onClick={(e) => handleRemoveAccount(e, account.email)}
                       disabled={isRemoving}
-                      className="p-1 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-0 group-hover:opacity-100"
+                      className={`
+                        p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 
+                        rounded-lg transition-colors touch-manipulation
+                        ${isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
+                      `}
                       title="Remove account"
                     >
                       {isRemoving ? (
@@ -276,7 +376,7 @@ const QuickLoginAccounts: React.FC<QuickLoginAccountsProps> = ({
                   )}
 
                   {/* Continue Arrow */}
-                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
+                  <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
                 </div>
               </div>
             </div>
@@ -284,36 +384,57 @@ const QuickLoginAccounts: React.FC<QuickLoginAccountsProps> = ({
         })}
       </div>
 
-      {/* Manual Login Option */}
+      {/* Enhanced Manual Login Option */}
       <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
         <button
           type="button"
           onClick={onManualLogin}
           disabled={isLoading}
-          className="w-full py-2.5 px-4 text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 font-medium rounded-lg border border-dashed border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-solid transition-all flex items-center justify-center gap-2"
+          className={`
+            w-full px-4 text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 
+            font-medium rounded-lg border border-dashed border-gray-300 dark:border-gray-600 
+            hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-solid transition-all 
+            flex items-center justify-center gap-2 touch-manipulation
+            ${isMobile ? mobilePatterns.mobileButton('ghost', 'md').replace('w-full justify-center gap-3', '') + ' py-3' : 'py-2.5'}
+          `}
         >
-          <UserCircle className="w-4 h-4" />
-          Use different account or password
+          <Key className="w-4 h-4" />
+          Login with different account
         </button>
       </div>
 
-      {/* Enhanced Help Text */}
-      <div className="mt-3 text-center">
-        <p className="text-xs text-gray-500 dark:text-gray-500">
-          {quickLoginAccounts.length > 0 ? (
+      {/* Enhanced Help Text with Mobile Optimization */}
+      <div className="mt-4 text-center space-y-2">
+        <div className="grid grid-cols-2 gap-4 text-center">
+          <div className="flex flex-col items-center gap-2">
+            <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-full">
+              <Shield className="w-4 h-4 text-green-600 dark:text-green-400" />
+            </div>
+            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Secure</span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-full">
+              <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            </div>
+            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Instant</span>
+          </div>
+        </div>
+        
+        <p className="text-xs text-gray-500 dark:text-gray-500 leading-relaxed">
+          {enableBiometric && biometric.capabilities.hasUserVerifyingPlatformAuthenticator ? (
+            <>
+              <Fingerprint className="w-3 h-3 inline mr-1" />
+              Biometric authentication available for enhanced security
+            </>
+          ) : quickLoginAccounts.length > 0 ? (
             <>
               <Shield className="w-3 h-3 inline mr-1" />
-              Accounts with quick login don't require password entry
+              Quick login accounts don't require password entry
             </>
           ) : (
-            'All saved accounts require password verification'
+            'Saved accounts provide quick access to your dashboard'
           )}
         </p>
-        {accounts.some(account => account.provider) && (
-          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-            OAuth accounts use secure token-based authentication
-          </p>
-        )}
       </div>
     </div>
   );

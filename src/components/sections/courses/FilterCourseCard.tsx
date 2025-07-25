@@ -31,7 +31,6 @@ import {
   Briefcase
 } from "lucide-react";
 import { isFreePrice } from '@/utils/priceUtils';
-import OptimizedImage from '@/components/shared/OptimizedImage';
 
 // Type definitions
 interface CoursePrice {
@@ -97,56 +96,6 @@ interface FilterCourseCardProps {
   isLCP?: boolean;
 }
 
-interface ImageWrapperProps {
-  src: string;
-  alt: string;
-  onLoad?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
-  onError?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
-  priority?: boolean;
-  isLCP?: boolean;
-  index?: number;
-}
-
-// Simple ImageWrapper component using OptimizedImage
-const ImageWrapper: React.FC<ImageWrapperProps & { coursesPageCompact?: boolean; isLiveCourse?: boolean }> = ({ 
-  src, 
-  alt, 
-  onLoad, 
-  onError, 
-  priority = false, 
-  isLCP = false,
-  index = 0,
-  coursesPageCompact = false,
-  isLiveCourse = false
-}) => {
-  // Determine if this is an LCP candidate (first 2 images above the fold)
-  const shouldBeLCP = isLCP || index < 2;
-
-  // Use consistent 3:2 aspect ratio for all images
-  const imageContainerClasses = `relative w-full aspect-[3/2] overflow-hidden rounded-t-xl group`;
-
-  return (
-    <div className={imageContainerClasses}>
-      <OptimizedImage
-        src={src}
-        alt={alt}
-        fill={true}
-        className="object-cover transition-all duration-300 ease-out group-hover:scale-105"
-        quality={shouldBeLCP ? 95 : 85}
-        priority={shouldBeLCP}
-        onLoad={onLoad}
-        onError={onError}
-        loading={shouldBeLCP ? 'eager' : 'lazy'}
-        decoding={shouldBeLCP ? 'sync' : 'async'}
-        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-      />
-
-      {/* Subtle gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/20 dark:from-black/10 dark:to-black/30" />
-    </div>
-  );
-};
-
 const FilterCourseCard: React.FC<FilterCourseCardProps> = ({ 
   course = {}, 
   onShowRelated = () => {},
@@ -178,8 +127,6 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
   const cardRef = useRef(null);
   const router = useRouter();
   const previewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-
 
   const handleImageLoad = () => {
     setIsImageLoaded(true);
@@ -332,6 +279,24 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
       const y = ((e.clientY - rect.top) / rect.height) * 100;
       setMousePosition({ x, y });
     }
+  };
+
+  // Industry-standard image props
+  const getImageProps = () => {
+    const imageSrc = course?.course_image || '/fallback-course-image.jpg';
+    
+    return {
+      src: imageSrc,
+      alt: course?.course_title || "Course Image",
+      fill: true,
+      quality: isLCP ? 95 : 85,
+      priority: isLCP,
+      sizes: "(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw",
+      className: "object-cover transition-all duration-300 ease-out group-hover:scale-105",
+      onLoad: handleImageLoad,
+      onError: handleImageError,
+      placeholder: 'empty' as const
+    };
   };
 
   // Helper function to get description text safely
@@ -933,17 +898,7 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
         {/* Image section with badge - Matching HomeCard.tsx */}
         <div className="relative">
           <div className="relative w-full aspect-[3/2] overflow-hidden rounded-t-xl group">
-            <OptimizedImage
-              src={course?.course_image || ''}
-              alt={course?.course_title || "Course Image"}
-              fill={true}
-              className="object-cover transition-all duration-300 ease-out group-hover:scale-105"
-              quality={isLCP ? 95 : 85}
-              priority={isLCP}
-              loading={isLCP ? 'eager' : 'lazy'}
-              decoding={isLCP ? 'sync' : 'async'}
-              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            />
+            <Image {...getImageProps()} />
             <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/20 dark:from-black/10 dark:to-black/30" />
           </div>
           
@@ -1221,19 +1176,7 @@ const FilterCourseCard: React.FC<FilterCourseCardProps> = ({
       >
         {/* Image section with sticky note badge - Reduced size */}
         <div className="relative h-[140px] md:h-[150px] lg:h-[160px] overflow-hidden rounded-t-xl group">
-          <OptimizedImage
-            src={course?.course_image || ''}
-            alt={course?.course_title || "Course Image"}
-            fill={true}
-            className="object-cover transition-all duration-300 ease-out group-hover:scale-105"
-            quality={isLCP ? 95 : 85}
-            priority={isLCP}
-            onLoad={handleImageLoad}
-            onError={handleImageError}
-            loading={isLCP ? 'eager' : 'lazy'}
-            decoding={isLCP ? 'sync' : 'async'}
-            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          />
+          <Image {...getImageProps()} />
 
           {/* Subtle gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/20 dark:from-black/10 dark:to-black/30" />
