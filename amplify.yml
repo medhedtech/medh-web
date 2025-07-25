@@ -4,8 +4,8 @@ frontend:
     preBuild:
       commands:
         - echo "=== ⚡ ULTRA-FAST AMPLIFY BUILD WITH PNPM ==="
-        - echo "Build ID: $AWS_BUILD_ID"
-        - echo "Branch: $AWS_BRANCH"
+        - echo "Build ID - $AWS_BUILD_ID"
+        - echo "Branch - $AWS_BRANCH"
         - echo ""
         
         # BYPASS SSM ISSUES - Set environment variables directly
@@ -21,7 +21,7 @@ frontend:
           export SESSION_SECRET="${SESSION_SECRET:-fallback-session-secret}"
           
           # PERFORMANCE OPTIMIZATIONS
-          export NEXT_TIMEOUT=1800000  # 30 minutes
+          export NEXT_TIMEOUT=1800000
           export NEXT_STATIC_EXPORT_TIMEOUT=1800000
           export NODE_OPTIONS="--max-old-space-size=16384 --no-warnings --max-semi-space-size=1024"
           export AMPLIFY_DISABLE_TIMEOUT=true
@@ -56,7 +56,7 @@ frontend:
           echo "=== ⚡ Configuring pnpm for Ultra Performance ==="
           
           # Create optimized .pnpmrc
-          cat > .pnpmrc << EOF
+          cat > .pnpmrc << 'PNPMEOF'
           # Performance optimizations
           store-dir=.pnpm-store
           package-import-method=hardlink
@@ -92,7 +92,7 @@ frontend:
           fund=false
           audit=false
           update-notifier=false
-          EOF
+          PNPMEOF
           
           echo "✅ pnpm configured for maximum performance"
         
@@ -139,7 +139,7 @@ frontend:
           
           # Verify TypeScript
           if [ -f "node_modules/.bin/tsc" ]; then
-            echo "✅ TypeScript verified: $(pnpm exec tsc --version)"
+            echo "✅ TypeScript verified - $(pnpm exec tsc --version)"
           else
             echo "❌ TypeScript missing - installing..."
             pnpm add -D typescript @types/react @types/react-dom @types/node
@@ -153,7 +153,7 @@ frontend:
           
           # Create optimized next.config.js if it doesn't exist
           if [ ! -f "next.config.js" ] && [ ! -f "next.config.mjs" ]; then
-            cat > next.config.js << 'EOF'
+            cat > next.config.js << 'NEXTEOF'
           /** @type {import('next').NextConfig} */
           const nextConfig = {
             // Performance optimizations
@@ -192,7 +192,7 @@ frontend:
           };
           
           module.exports = nextConfig;
-          EOF
+          NEXTEOF
             echo "✅ Optimized Next.js config created"
           fi
           
@@ -249,9 +249,9 @@ frontend:
           rm -rf .pnpm-store/.tmp 2>/dev/null || true
           
           # Display build statistics
-          echo "📊 Build Statistics:"
-          echo "Build size: $(du -sh .next 2>/dev/null || echo 'N/A')"
-          echo "Node modules: $(du -sh node_modules 2>/dev/null || echo 'N/A')"
+          echo "📊 Build Statistics"
+          echo "Build size - $(du -sh .next 2>/dev/null || echo 'N/A')"
+          echo "Node modules - $(du -sh node_modules 2>/dev/null || echo 'N/A')"
           
           echo "🎉 Ultra-fast build process completed!"
 
