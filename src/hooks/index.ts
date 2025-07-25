@@ -48,7 +48,7 @@ export type {
 export type {
   PutQueryParams,
   PutQueryResult,
-  UsePutQueryResult
+  PutQueryReturn
 } from './putQuery.hook';
 
 export type {

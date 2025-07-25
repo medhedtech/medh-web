@@ -4,6 +4,7 @@ import { useState } from "react";
 import { apiClient } from "../apis/apiClient";
 import apiWithAuth from "../utils/apiWithAuth";
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+import { showToast } from '@/utils/toastManager';
 
 export interface DeleteQueryParams<T = any> {
   /** API endpoint url */
@@ -65,12 +66,12 @@ export const useDeleteQuery = <T = any>(): UseDeleteQueryResult<T> => {
    */
   const deleteQuery = async <D = any>({
     url,
-    deleteData = {},
+    deleteData,
     onSuccess = () => {},
     onFail = () => {},
     requireAuth = false,
     config = {},
-    showToast = true,
+    showToast: enableToast = true,
     successMessage,
     errorMessage = "Something went wrong",
     resetErrorOnRequest = true,
@@ -96,7 +97,7 @@ export const useDeleteQuery = <T = any>(): UseDeleteQueryResult<T> => {
       setData(apiData);
 
       // Show success toast if configured
-      if (showToast && successMessage) {
+      if (enableToast && successMessage) {
         showToast.success(successMessage);
       }
 
@@ -114,14 +115,14 @@ export const useDeleteQuery = <T = any>(): UseDeleteQueryResult<T> => {
       // Determine the most appropriate error message
       const axiosError = error as AxiosError;
       const message =
-        axiosError?.response?.data?.message ||
+        (axiosError?.response?.data as any)?.message ||
         (error as any)?.message ||
         (error as any)?.data?.message ||
         (error as any)?.data?.data?.message ||
         errorMessage;
 
       // Show error toast if configured
-      if (showToast) {
+      if (enableToast) {
         showToast.error(message);
       }
 
