@@ -196,6 +196,19 @@ const nextConfig = {
       },
     ];
   },
+  
+  // Webpack configuration for better PostCSS handling
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Ensure PostCSS plugins are properly resolved
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      path: false,
+      os: false,
+    };
+    
+    return config;
+  },
 };
 
 export default nextConfig;
