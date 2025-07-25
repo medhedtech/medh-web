@@ -23,6 +23,35 @@ phases:
           exit 1
         fi
       
+      # Set build-time environment variables with defaults
+      - echo ""
+      - echo "=== Setting Build Environment Variables ==="
+      - export NODE_ENV=production
+      - export NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-"https://api.medh.co/api/v1"}
+      - export NEXT_TELEMETRY_DISABLED=1
+      - export CI=true
+      
+      # Provide build-time defaults for missing secrets
+      - export JWT_SECRET=${JWT_SECRET:-"build-time-placeholder-jwt-secret-minimum-32-chars"}
+      - export API_KEY_SALT=${API_KEY_SALT:-"build-placeholder-salt"}
+      - export API_KEY_HASH=${API_KEY_HASH:-"build-placeholder-hash"}
+      - export SESSION_SECRET=${SESSION_SECRET:-"build-placeholder-session-secret"}
+      - export REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET:-"build-placeholder-refresh-secret"}
+      
+      # Optional build-time defaults
+      - export OPENAI_API_KEY=${OPENAI_API_KEY:-""}
+      - export OPENAI_MODEL=${OPENAI_MODEL:-"gpt-4o-mini"}
+      - export CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-"https://medh.co,https://www.medh.co"}
+      - export RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-"900000"}
+      - export RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS:-"100"}
+      - export MAX_FILE_SIZE=${MAX_FILE_SIZE:-"5242880"}
+      - export ALLOWED_FILE_TYPES=${ALLOWED_FILE_TYPES:-"image/jpeg,image/png,image/gif,application/pdf"}
+      - export SANITIZE_HTML=${SANITIZE_HTML:-"true"}
+      - export ENABLE_XSS_PROTECTION=${ENABLE_XSS_PROTECTION:-"true"}
+      - export ENABLE_CSRF_PROTECTION=${ENABLE_CSRF_PROTECTION:-"true"}
+      
+      - echo "Build environment variables configured with defaults for missing secrets"
+      
       - echo ""
       - echo "=== Installing Dependencies ==="
       - npm config set legacy-peer-deps true
@@ -41,6 +70,8 @@ phases:
       - echo "Final environment verification:"
       - "echo \"Node.js $(node -v)\""
       - "echo \"npm $(npm -v)\""
+      - "echo \"NODE_ENV: $NODE_ENV\""
+      - "echo \"NEXT_PUBLIC_API_URL: $NEXT_PUBLIC_API_URL\""
       - echo "Next.js version: $(npm list next --depth=0)"
 
   build:

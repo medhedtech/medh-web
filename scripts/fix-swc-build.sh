@@ -79,10 +79,11 @@ verify_environment() {
 set_build_env() {
     echo "🔧 Setting build environment variables..."
     
-    export NODE_ENV=production
+    # Only set if not already set by buildspec.yml
+    export NODE_ENV=${NODE_ENV:-production}
     export NODE_OPTIONS="--max-old-space-size=6144"
-    export NEXT_TELEMETRY_DISABLED=1
-    export CI=true
+    export NEXT_TELEMETRY_DISABLED=${NEXT_TELEMETRY_DISABLED:-1}
+    export CI=${CI:-true}
     
     # Disable SWC if binaries are not available
     if ! check_swc_binaries; then
@@ -98,6 +99,7 @@ set_build_env() {
     echo "CI=$CI"
     echo "NEXT_FORCE_SWC=${NEXT_FORCE_SWC:-not set}"
     echo "SWC_DISABLE_NEXT_SWC=${SWC_DISABLE_NEXT_SWC:-not set}"
+    echo "NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-not set}"
 }
 
 # Function to run the build with retries
