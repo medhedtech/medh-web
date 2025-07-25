@@ -83,17 +83,46 @@ export const useDeleteQuery = <T = any>(): UseDeleteQueryResult<T> => {
     }
 
     try {
-      // Choose between authenticated and non-authenticated clients
-      const client = requireAuth ? apiWithAuth : apiClient;
+      let apiData: T;
 
-      // Make the request
-      const response: AxiosResponse = await client.delete(url, {
-        ...config,
-        data: deleteData,
-      });
+      if (requireAuth) {
+        // Use Axios-based authenticated client
+        const response: AxiosResponse = await apiWithAuth.delete(url, {
+          ...config,
+          data: deleteData,
+        });
+        apiData = response.data as T;
+      } else {
+        // Use Fetch-based non-authenticated client
+        const requestOptions: RequestInit = {
+          body: deleteData ? JSON.stringify(deleteData) : undefined,
+        };
+        
+        // Convert Axios headers to Fetch headers format
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+        
+        if (config.headers) {
+          Object.entries(config.headers).forEach(([key, value]) => {
+            if (typeof value === 'string') {
+              headers[key] = value;
+            }
+          });
+        }
+        
+        requestOptions.headers = headers;
+        
+        const response = await apiClient.delete(url, requestOptions);
+        
+        if (response.status === 'error') {
+          throw new Error(response.error || response.message || errorMessage);
+        }
+        
+        apiData = response.data as T;
+      }
 
-      // Extract and set the response data
-      const apiData = response.data as T;
+      // Set the response data
       setData(apiData);
 
       // Show success toast if configured
