@@ -12,15 +12,18 @@ import {
   formatMembershipDuration,
   isMembershipExpiringSoon,
   type TMembershipType,
+  type TBillingCycle,
   type IMembershipPricing,
+
   type IMembershipEnrollment,
   type IMembershipEnrollmentInput
 } from './index';
+import { IMembershipPricingData } from './membership';
 
 // ==================== EXAMPLE 1: Membership Pricing Display ====================
 
 export const MembershipPricingExample = () => {
-  const [pricingPlans, setPricingPlans] = useState<IMembershipPricing[]>([]);
+  const [pricingPlans, setPricingPlans] = useState<IMembershipPricingData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,7 +31,7 @@ export const MembershipPricingExample = () => {
       try {
         const response = await getMembershipPricing();
         if (response.status === 'success' && response.data) {
-          setPricingPlans(response.data.pricing_plans);
+          setPricingPlans(response.data.pricing);
         }
       } catch (error) {
         console.error('Failed to fetch pricing:', error);
@@ -91,7 +94,7 @@ export const MembershipEnrollmentExample = () => {
         auto_renewal: true,
         selected_categories: selectedCategories,
         payment_info: {
-          amount: calculateMembershipPricing(selectedMembership, selectedDuration).final_price,
+          amount: calculateMembershipPricing(selectedMembership, selectedDuration as TBillingCycle).final_price,
           currency: 'INR',
           payment_method: 'upi',
           transaction_id: 'TXN' + Date.now()
@@ -115,7 +118,7 @@ export const MembershipEnrollmentExample = () => {
     }
   };
 
-  const pricing = calculateMembershipPricing(selectedMembership, selectedDuration);
+  const pricing = calculateMembershipPricing(selectedMembership, selectedDuration as TBillingCycle);
 
   return (
     <div className="enrollment-form">
@@ -151,10 +154,10 @@ export const MembershipEnrollmentExample = () => {
           value={selectedDuration} 
           onChange={(e) => setSelectedDuration(Number(e.target.value))}
         >
-          <option value={1}>1 Month - ₹{calculateMembershipPricing(selectedMembership, 1).final_price}</option>
-          <option value={3}>3 Months - ₹{calculateMembershipPricing(selectedMembership, 3).final_price}</option>
-          <option value={6}>6 Months - ₹{calculateMembershipPricing(selectedMembership, 6).final_price}</option>
-          <option value={12}>12 Months - ₹{calculateMembershipPricing(selectedMembership, 12).final_price}</option>
+          <option value="monthly">1 Month - ₹{calculateMembershipPricing(selectedMembership, 'monthly').final_price}</option>
+          <option value="quarterly">3 Months - ₹{calculateMembershipPricing(selectedMembership, 'quarterly').final_price}</option>
+          <option value="half_yearly">6 Months - ₹{calculateMembershipPricing(selectedMembership, 'half_yearly').final_price}</option>
+          <option value="annually">12 Months - ₹{calculateMembershipPricing(selectedMembership, 'annually').final_price}</option>
         </select>
       </div>
 

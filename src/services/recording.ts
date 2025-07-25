@@ -1,7 +1,7 @@
 import AWS from 'aws-sdk';
 import axios from 'axios';
 import crypto from 'crypto';
-import { ZoomRecordingEvent } from '@/types/zoom';
+import { ZoomRecording } from '@/types/zoom';
 
 // AWS S3 Configuration
 const s3 = new AWS.S3({
@@ -115,7 +115,7 @@ export const processRecordingWebhook = async (event: ZoomRecordingEvent): Promis
     return signedUrl;
   } catch (error) {
     console.error('Error processing recording:', error);
-    throw new Error(`Failed to process recording: ${error.message || 'Unknown error'}`);
+    throw new Error(`Failed to process recording: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 
@@ -147,6 +147,10 @@ export const getRecordingsForMeeting = async (meetingId: string): Promise<any[]>
       });
       
       // Extract metadata
+      if (!obj.Key) {
+        throw new Error('Object key is undefined');
+      }
+      
       const metadata = await s3.headObject({
         Bucket: BUCKET_NAME,
         Key: obj.Key
@@ -162,7 +166,7 @@ export const getRecordingsForMeeting = async (meetingId: string): Promise<any[]>
     }));
   } catch (error) {
     console.error('Error getting recordings:', error);
-    throw new Error(`Failed to get recordings: ${error.message || 'Unknown error'}`);
+    throw new Error(`Failed to get recordings: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 

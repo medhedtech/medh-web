@@ -501,7 +501,7 @@ export class DemoSessionAPIService {
     maxRetries: number,
     operation: string
   ): Promise<IApiResponse<T>> {
-    let lastError: AxiosError | Error;
+    let lastError: AxiosError | Error | undefined;
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -544,6 +544,19 @@ export class DemoSessionAPIService {
     }
     
     // All retries failed
+    if (!lastError) {
+      return {
+        success: false,
+        message: 'Request failed with no error details',
+        error: {
+          code: 'UNKNOWN_ERROR',
+          message: 'Request failed with no error details'
+        },
+        timestamp: new Date().toISOString(),
+        request_id: this.generateRequestId()
+      };
+    }
+    
     const axiosError = lastError as AxiosError;
     const errorData = axiosError?.response?.data as any;
     

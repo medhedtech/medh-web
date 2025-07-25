@@ -19,16 +19,25 @@ export class ParentAPI {
   // Dashboard endpoints
   static async getDashboardProfile(): Promise<ParentDashboardProfile> {
     const response = await this.client.get<ParentDashboardProfile>('/parent/dashboard/profile');
+    if (!response.data) {
+      throw new Error('No profile data received');
+    }
     return response.data;
   }
 
   static async getUpcomingClasses(): Promise<UpcomingClass[]> {
     const response = await this.client.get<{ classes: UpcomingClass[] }>('/parent/dashboard/classes/upcoming');
+    if (!response.data) {
+      throw new Error('No classes data received');
+    }
     return response.data.classes;
   }
 
   static async getChildProgress(childId: string): Promise<ChildProgress> {
     const response = await this.client.get<ChildProgress>(`/parent/dashboard/progress/${childId}`);
+    if (!response.data) {
+      throw new Error('No progress data received');
+    }
     return response.data;
   }
 
@@ -38,6 +47,9 @@ export class ParentAPI {
     courseId?: string;
   }): Promise<ChildAttendance> {
     const response = await this.client.get<ChildAttendance>(`/parent/dashboard/attendance/${childId}`, params);
+    if (!response.data) {
+      throw new Error('No attendance data received');
+    }
     return response.data;
   }
 

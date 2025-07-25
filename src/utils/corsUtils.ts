@@ -1,4 +1,4 @@
-import apiClient from '../apis/apiClient';
+import { apiClient } from '../apis/apiClient';
 import { apiBaseUrl } from '@/apis';
 
 /**
@@ -36,11 +36,11 @@ export const testCorsConfiguration = async (): Promise<CorsTestResult> => {
 
     // Extract CORS headers
     const corsHeaders = {
-      allowOrigin: response.headers.get('Access-Control-Allow-Origin'),
-      allowMethods: response.headers.get('Access-Control-Allow-Methods'),
-      allowHeaders: response.headers.get('Access-Control-Allow-Headers'),
-      allowCredentials: response.headers.get('Access-Control-Allow-Credentials'),
-      maxAge: response.headers.get('Access-Control-Max-Age')
+      allowOrigin: response.headers.get('Access-Control-Allow-Origin') || undefined,
+      allowMethods: response.headers.get('Access-Control-Allow-Methods') || undefined,
+      allowHeaders: response.headers.get('Access-Control-Allow-Headers') || undefined,
+      allowCredentials: response.headers.get('Access-Control-Allow-Credentials') || undefined,
+      maxAge: response.headers.get('Access-Control-Max-Age') || undefined
     };
 
     // Check if CORS is configured correctly

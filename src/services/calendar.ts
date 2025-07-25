@@ -96,7 +96,7 @@ export class GoogleCalendarService implements CalendarService {
       return response.data;
     } catch (error) {
       console.error('Error creating Google Calendar event:', error);
-      throw new Error(`Failed to create Google Calendar event: ${error.message}`);
+      throw new Error(`Failed to create Google Calendar event: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -141,7 +141,7 @@ export class GoogleCalendarService implements CalendarService {
       return response.data;
     } catch (error) {
       console.error('Error updating Google Calendar event:', error);
-      throw new Error(`Failed to update Google Calendar event: ${error.message}`);
+      throw new Error(`Failed to update Google Calendar event: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -162,7 +162,7 @@ export class GoogleCalendarService implements CalendarService {
       );
     } catch (error) {
       console.error('Error deleting Google Calendar event:', error);
-      throw new Error(`Failed to delete Google Calendar event: ${error.message}`);
+      throw new Error(`Failed to delete Google Calendar event: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -191,7 +191,7 @@ export class GoogleCalendarService implements CalendarService {
       return response.data.items || [];
     } catch (error) {
       console.error('Error listing Google Calendar events:', error);
-      throw new Error(`Failed to list Google Calendar events: ${error.message}`);
+      throw new Error(`Failed to list Google Calendar events: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -277,7 +277,7 @@ export class OutlookCalendarService implements CalendarService {
       return response.data;
     } catch (error) {
       console.error('Error creating Outlook Calendar event:', error);
-      throw new Error(`Failed to create Outlook Calendar event: ${error.message}`);
+      throw new Error(`Failed to create Outlook Calendar event: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -328,7 +328,7 @@ export class OutlookCalendarService implements CalendarService {
       return response.data;
     } catch (error) {
       console.error('Error updating Outlook Calendar event:', error);
-      throw new Error(`Failed to update Outlook Calendar event: ${error.message}`);
+      throw new Error(`Failed to update Outlook Calendar event: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -344,7 +344,7 @@ export class OutlookCalendarService implements CalendarService {
       });
     } catch (error) {
       console.error('Error deleting Outlook Calendar event:', error);
-      throw new Error(`Failed to delete Outlook Calendar event: ${error.message}`);
+      throw new Error(`Failed to delete Outlook Calendar event: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -369,7 +369,7 @@ export class OutlookCalendarService implements CalendarService {
       return response.data.value || [];
     } catch (error) {
       console.error('Error listing Outlook Calendar events:', error);
-      throw new Error(`Failed to list Outlook Calendar events: ${error.message}`);
+      throw new Error(`Failed to list Outlook Calendar events: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
