@@ -110,9 +110,10 @@ export interface CurriculumServiceOptions {
   fallbackToSample?: boolean;
 }
 
+import { curriculumCache } from '@/utils/cacheService';
+
 class CurriculumService {
-  private cache: Map<string, Curriculum> = new Map();
-  private cacheTimeout = 5 * 60 * 1000; // 5 minutes
+  private cache = curriculumCache;
 
   /**
    * Generates comprehensive sample curriculum data based on course information
@@ -868,10 +869,8 @@ class CurriculumService {
    * Set cache with automatic timeout
    */
   private setCacheWithTimeout(key: string, curriculum: Curriculum): void {
+    // The new cache service handles TTL automatically, no need for setTimeout
     this.cache.set(key, curriculum);
-    setTimeout(() => {
-      this.cache.delete(key);
-    }, this.cacheTimeout);
   }
 
   /**
