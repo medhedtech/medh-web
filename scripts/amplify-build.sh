@@ -45,6 +45,22 @@ else
   npm install @radix-ui/react-progress --force --no-cache
 fi
 
+echo "Checking for Tailwind CSS..."
+if [ -d "node_modules/tailwindcss" ]; then
+  echo "✅ tailwindcss found"
+else
+  echo "❌ tailwindcss missing - installing now..."
+  npm install tailwindcss postcss autoprefixer --force --no-cache
+fi
+
+echo "Checking for PostCSS..."
+if [ -d "node_modules/postcss" ]; then
+  echo "✅ postcss found"
+else
+  echo "❌ postcss missing - installing now..."
+  npm install postcss autoprefixer --force --no-cache
+fi
+
 echo "Checking for TypeScript..."
 if [ -f "node_modules/.bin/tsc" ] && [ -f "node_modules/typescript/package.json" ]; then
   echo "✅ TypeScript compiler found"
