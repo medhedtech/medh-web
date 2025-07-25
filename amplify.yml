@@ -80,6 +80,13 @@ frontend:
         - echo "Final environment"
         - "echo \"Node.js $(node -v)\""
         - "echo \"npm $(npm -v)\""
+        
+        # Install pnpm globally
+        - echo ""
+        - echo "=== Installing pnpm ==="
+        - npm install -g pnpm@latest
+        - "echo \"pnpm $(pnpm -v)\""
+        
         - echo "Configuring npm..."
         - npm config set legacy-peer-deps true
         - npm config set audit-level moderate
@@ -95,11 +102,11 @@ frontend:
         - rm -rf node_modules/.cache 2>/dev/null || true
         - rm -rf node_modules/@radix-ui 2>/dev/null || true  # Remove any corrupted Radix UI packages
         
-        # Debug package.json and package-lock.json
+        # Debug package.json and pnpm-lock.yaml
         - echo "Checking package.json..."
         - ls -la package.json
-        - echo "Checking package-lock.json..."
-        - ls -la package-lock.json || echo "⚠️ No package-lock.json found"
+        - echo "Checking pnpm-lock.yaml..."
+        - ls -la pnpm-lock.yaml || echo "⚠️ No pnpm-lock.yaml found"
         - echo "Node modules before install:"
         - ls -la node_modules/ 2>/dev/null || echo "No node_modules directory"
         
@@ -122,37 +129,37 @@ frontend:
         
         # Clean install with better error handling
         - echo ""
-        - echo "Installing dependencies with clean approach..."
+        - echo "Installing dependencies with pnpm..."
         - |
-          # Try npm ci first (faster and more reliable for production)
-          if [ -f package-lock.json ]; then
-            echo "Using npm ci for clean install..."
-            npm ci --no-audit --prefer-offline --no-fund --verbose || {
-              echo "npm ci failed, falling back to npm install..."
+          # Use pnpm for dependency installation
+          if [ -f pnpm-lock.yaml ]; then
+            echo "Using pnpm install with frozen lockfile..."
+            pnpm install --frozen-lockfile --prefer-offline || {
+              echo "pnpm frozen install failed, falling back to regular pnpm install..."
               rm -rf node_modules
-              npm install --no-audit --prefer-offline --no-fund --verbose
+              pnpm install --prefer-offline
             }
           else
-            echo "No package-lock.json found, using npm install..."
-            npm install --no-audit --prefer-offline --no-fund --verbose
+            echo "No pnpm-lock.yaml found, using pnpm install..."
+            pnpm install --prefer-offline
           fi
           
           # Explicitly install ALL Radix UI dependencies that might be missing
           echo "Ensuring critical Radix UI dependencies are installed..."
-          npm install @radix-ui/react-avatar @radix-ui/react-progress @radix-ui/react-checkbox @radix-ui/react-label @radix-ui/react-roving-focus @radix-ui/react-select @radix-ui/react-separator @radix-ui/react-slot @radix-ui/react-switch @radix-ui/react-tabs --no-audit --prefer-offline --no-fund --verbose
+          pnpm add @radix-ui/react-avatar @radix-ui/react-progress @radix-ui/react-checkbox @radix-ui/react-label @radix-ui/react-roving-focus @radix-ui/react-select @radix-ui/react-separator @radix-ui/react-slot @radix-ui/react-switch @radix-ui/react-tabs --prefer-offline
           
           # Force reinstall of problematic packages
           echo "Force reinstalling problematic packages..."
-          npm install --force @radix-ui/react-avatar @radix-ui/react-progress
+          pnpm add --force @radix-ui/react-avatar @radix-ui/react-progress
           
-          # Clear npm cache and reinstall if still failing
-          echo "Clearing npm cache and double-checking installation..."
-          npm cache clean --force
-          npm install @radix-ui/react-avatar @radix-ui/react-progress --no-cache
+          # Clear pnpm store and reinstall if still failing
+          echo "Clearing pnpm store and double-checking installation..."
+          pnpm store prune
+          pnpm add @radix-ui/react-avatar @radix-ui/react-progress
           
           # Explicitly install TypeScript and related dependencies
           echo "Ensuring TypeScript and build dependencies are installed..."
-          npm install typescript @types/react @types/react-dom @types/node tsx --no-audit --prefer-offline --no-fund --verbose
+          pnpm add typescript @types/react @types/react-dom @types/node tsx --prefer-offline
           
           # Verify TypeScript installation immediately
           echo "Verifying TypeScript installation..."
@@ -170,7 +177,7 @@ frontend:
         - echo "Node modules after install:"
         - ls -la node_modules/ | head -10
         - echo "Checking critical dependencies..."
-        - npm list next react react-dom --depth=0 || echo "⚠️ Some critical dependencies missing"
+        - pnpm list next react react-dom --depth=0 || echo "⚠️ Some critical dependencies missing"
         - echo "Checking Radix UI dependencies..."
         - |
           # Detailed verification of Radix UI packages
@@ -181,7 +188,7 @@ frontend:
           else
             echo "❌ @radix-ui/react-avatar is NOT installed"
             echo "Attempting emergency install..."
-            npm install @radix-ui/react-avatar --force --no-cache
+            pnpm add @radix-ui/react-avatar --force
           fi
           
           echo "Verifying @radix-ui/react-progress installation..."
@@ -191,11 +198,11 @@ frontend:
           else
             echo "❌ @radix-ui/react-progress is NOT installed"
             echo "Attempting emergency install..."
-            npm install @radix-ui/react-progress --force --no-cache
+            pnpm add @radix-ui/react-progress --force
           fi
           
-                     # Final verification with npm list
-           npm list @radix-ui/react-avatar @radix-ui/react-progress --depth=0 || {
+                     # Final verification with pnpm list
+           pnpm list @radix-ui/react-avatar @radix-ui/react-progress --depth=0 || {
              echo "❌ Final verification failed - attempting manual installation"
              
              # Manual installation as last resort
@@ -251,9 +258,9 @@ frontend:
            
            # Final TypeScript types verification
            echo "Verifying TypeScript types..."
-           npm list typescript @types/react @types/react-dom @types/node --depth=0 || {
+           pnpm list typescript @types/react @types/react-dom @types/node --depth=0 || {
              echo "❌ TypeScript types verification failed - attempting final reinstall"
-             npm install typescript @types/react @types/react-dom @types/node tsx --force --no-cache
+             pnpm add typescript @types/react @types/react-dom @types/node tsx --force
            }
            
            # Set PATH for build phase
@@ -273,7 +280,7 @@ frontend:
             echo "✅ TypeScript available for build: $(node_modules/.bin/tsc --version)"
           else
             echo "❌ TypeScript not found - emergency install"
-            npm install typescript --force
+            pnpm add typescript --force
           fi
         - chmod +x ./scripts/amplify-build.sh
         - ./scripts/amplify-build.sh
@@ -285,5 +292,5 @@ frontend:
     paths:
       - node_modules/**/*
       - .next/cache/**/*
-      - .npm/**/*
+      - ~/.pnpm-store/**/*
 appRoot: .

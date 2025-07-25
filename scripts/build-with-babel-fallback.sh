@@ -17,7 +17,7 @@ export NODE_ENV=production
 export NEXT_TELEMETRY_DISABLED=1
 export CI=true
 
-# Ensure npm allows optional packages
+# Package manager configuration - keep npm configs for compatibility
 npm config set optional true
 npm config set legacy-peer-deps true
 
@@ -32,7 +32,7 @@ rm -rf .next || true
 
 # Run the build with explicit Babel configuration
 echo "🚀 Starting Next.js build with Babel..."
-npm run build:babel
+pnpm build:babel
 
 # Verify build
 if [ -d ".next" ] && [ -f ".next/package.json" ]; then

@@ -3,11 +3,12 @@
 
 set -e  # Exit on any error
 
-# Print Node.js and npm versions
+# Print Node.js and package manager versions
 echo "=== Build Environment Info ==="
 echo "Build script starting..."
 echo "Node version: $(node -v)"
 echo "NPM version: $(npm -v)"
+echo "PNPM version: $(pnpm -v)"
 echo "Expected Node version from .nvmrc: $(cat .nvmrc 2>/dev/null || echo 'No .nvmrc found')"
 echo "AWS Branch: ${AWS_BRANCH:-'not-set'}"
 echo "Build ID: ${AWS_BUILD_ID:-'not-set'}"
@@ -34,7 +35,7 @@ if [ -d "node_modules/@radix-ui/react-avatar" ]; then
   echo "✅ @radix-ui/react-avatar found"
 else
   echo "❌ @radix-ui/react-avatar missing - installing now..."
-  npm install @radix-ui/react-avatar --force --no-cache
+  pnpm add @radix-ui/react-avatar --force
 fi
 
 echo "Checking for @radix-ui/react-progress..."
@@ -42,7 +43,7 @@ if [ -d "node_modules/@radix-ui/react-progress" ]; then
   echo "✅ @radix-ui/react-progress found"
 else
   echo "❌ @radix-ui/react-progress missing - installing now..."
-  npm install @radix-ui/react-progress --force --no-cache
+  pnpm add @radix-ui/react-progress --force
 fi
 
 echo "Checking for TypeScript..."
@@ -51,7 +52,7 @@ if [ -f "node_modules/.bin/tsc" ] && [ -f "node_modules/typescript/package.json"
   node_modules/.bin/tsc --version
 else
   echo "❌ TypeScript compiler missing - installing now..."
-  npm install typescript @types/node @types/react @types/react-dom --force --no-cache
+  pnpm add typescript @types/node @types/react @types/react-dom --force
   
   # Verify installation again
   if [ -f "node_modules/.bin/tsc" ]; then
@@ -166,7 +167,7 @@ run_build_with_retry() {
   while [ $attempt -le $max_attempts ]; do
     echo "Build attempt $attempt of $max_attempts..."
     
-    if NODE_OPTIONS="$NODE_OPTIONS" npm run build; then
+    if NODE_OPTIONS="$NODE_OPTIONS" pnpm build; then
       echo "✅ Build completed successfully on attempt $attempt!"
       return 0
     else

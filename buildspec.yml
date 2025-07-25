@@ -54,26 +54,18 @@ phases:
       
       - echo ""
       - echo "=== Installing Dependencies ==="
-      # Upgrade npm to latest version for better SWC binary handling
-      - npm install -g npm@latest
-      - npm config set legacy-peer-deps true
-      - npm config set fund false
-      - npm config set audit-level moderate
-      - npm config set optional true
+      # Install pnpm globally
+      - npm install -g pnpm@latest
+      - "echo \"pnpm $(pnpm -v)\""
       
-      # Clean install
-      - echo "Installing dependencies..."
-      - npm ci --no-audit --prefer-offline
-      
-      # Force regenerate lockfile for proper SWC binary installation
-      - echo "Regenerating lockfile for proper SWC binary installation..."
-      - rm -f package-lock.json
-      - npm install --no-audit --prefer-offline
+      # Clean install with pnpm
+      - echo "Installing dependencies with pnpm..."
+      - pnpm install --frozen-lockfile --prefer-offline
       
       # Install SWC binaries for Linux x64 architecture  
       - echo "Installing SWC binaries for AWS CodeBuild..."
-      - npm install --no-save --no-audit @next/swc-linux-x64-gnu@15.4.3 || echo "Failed to install GNU binary"
-      - npm install --no-save --no-audit @next/swc-linux-x64-musl@15.4.3 || echo "Failed to install MUSL binary"
+      - pnpm add @next/swc-linux-x64-gnu@15.4.3 || echo "Failed to install GNU binary"
+      - pnpm add @next/swc-linux-x64-musl@15.4.3 || echo "Failed to install MUSL binary"
       
       # Set SWC fallback environment variables
       - export NEXT_FORCE_SWC=false
@@ -89,9 +81,10 @@ phases:
       - echo "Final environment verification:"
       - "echo \"Node.js $(node -v)\""
       - "echo \"npm $(npm -v)\""
+      - "echo \"pnpm $(pnpm -v)\""
       - "echo \"NODE_ENV: $NODE_ENV\""
       - "echo \"NEXT_PUBLIC_API_URL: $NEXT_PUBLIC_API_URL\""
-      - echo "Next.js version: $(npm list next --depth=0)"
+      - echo "Next.js version: $(pnpm list next --depth=0)"
 
   build:
     commands:
@@ -115,4 +108,4 @@ cache:
   paths:
     - 'node_modules/**/*'
     - '.next/cache/**/*'
-    - '.npm/**/*' 
+    - '~/.pnpm-store/**/*' 
