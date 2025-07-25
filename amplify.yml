@@ -32,7 +32,7 @@ frontend:
         - "npm config set update-notifier false"
         - "echo 'Installing dependencies...'"
         - "rm -rf node_modules"
-        - "npm ci --legacy-peer-deps --no-optional"
+        - "npm ci --legacy-peer-deps"
         - "echo 'Verifying critical build dependencies...'"
         - "node -e \"console.log('TailwindCSS:', require('tailwindcss').version || 'OK')\" || echo 'TailwindCSS not found'"
         - "node -e \"console.log('PostCSS:', require('postcss').version || 'OK')\" || echo 'PostCSS not found'"
