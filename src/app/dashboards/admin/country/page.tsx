@@ -4,8 +4,13 @@ import React, { useState, useMemo, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Globe, Filter, Download, RefreshCw } from "lucide-react";
 import { useIsClient } from "@/utils/hydration";
-import { ComposableMap, Geographies, Geography } from "react-simple-maps";
-import { Tooltip as ReactTooltip } from "react-tooltip";
+import dynamic from "next/dynamic";
+
+// Secure map component using Leaflet instead of vulnerable react-simple-maps
+const SecureMap = dynamic(() => import('./SecureMapComponent'), { 
+  ssr: false,
+  loading: () => <div className="h-[400px] bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center">Loading map...</div>
+});
 
 // Define type for country data
 interface CountryDataItem {
@@ -35,16 +40,7 @@ interface CustomLabelProps {
   index: number;
 }
 
-// URL to a TopoJSON world map
-const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
-
-// Country name mapping for matching data to map
-const COUNTRY_NAME_MAP: Record<string, string> = {
-  "USA": "United States of America",
-  "UK": "United Kingdom",
-  "UAE": "United Arab Emirates",
-  // Add more as needed
-};
+// Removed unused map configuration - now using secure Leaflet-based component
 
 const CountryAnalyticsPage = () => {
   const [countryData, setCountryData] = useState<CountryDataItem[]>(INITIAL_DATA);
@@ -52,7 +48,7 @@ const CountryAnalyticsPage = () => {
   const [viewType, setViewType] = useState<"bar" | "pie">("bar");
   const [timeRange, setTimeRange] = useState<string>("last-30-days");
   const [changeValues, setChangeValues] = useState<number[]>([]);
-  const [tooltipContent, setTooltipContent] = useState<string>("");
+  // Removed tooltipContent state - now handled by Leaflet popups
   const isClient = useIsClient();
 
   // Generate random change values on mount and when countryData changes length
@@ -148,43 +144,11 @@ const CountryAnalyticsPage = () => {
       <div className="mb-10 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
         <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">User Distribution Map</h2>
         <div className="w-full flex justify-center">
-          <div className="w-full max-w-3xl">
-            <ComposableMap data-tip="" projectionConfig={{ scale: 140 }}>
-              <Geographies geography={geoUrl}>
-                {({ geographies }: { geographies: any[] }) =>
-                  geographies.map((geo: any) => {
-                    // Use ADMIN or NAME for matching
-                    const countryName = geo.properties && (geo.properties.ADMIN || geo.properties.NAME);
-                    // Find the data item whose mapped name matches the map's country name
-                    const dataItem = countryData.find((item) => {
-                      const mappedName = COUNTRY_NAME_MAP[item.name] || item.name;
-                      return (
-                        countryName &&
-                        mappedName.trim().toLowerCase() === countryName.trim().toLowerCase()
-                      );
-                    });
-                    return (
-                      <Geography
-                        key={geo.rsmKey}
-                        geography={geo}
-                        fill={dataItem ? dataItem.color : "#E5E7EB"} // Use graph color or gray
-                        stroke="#fff"
-                        style={{
-                          default: { outline: "none" },
-                          hover: { fill: "#F53", outline: "none" },
-                          pressed: { fill: "#E42", outline: "none" },
-                        }}
-                        onMouseEnter={() => {
-                          if (dataItem) setTooltipContent(`${dataItem.name}: ${dataItem.value}`);
-                        }}
-                        onMouseLeave={() => setTooltipContent("")}
-                      />
-                    );
-                  })
-                }
-              </Geographies>
-            </ComposableMap>
-            <div>{tooltipContent}</div>
+          <div className="w-full max-w-4xl">
+            <SecureMap 
+              data={countryData} 
+              isDark={typeof window !== 'undefined' && document?.documentElement?.classList?.contains('dark')}
+            />
           </div>
         </div>
       </div>

@@ -26,7 +26,7 @@ import usePutQuery from "@/hooks/putQuery.hook";
 import useGetQuery from "@/hooks/getQuery.hook";
 import { useUpload } from "@/hooks/useUpload";
 import { apiUrls, aiUtils, IAIBlogEnhanceInput, IAIBlogGenerateContentInput } from "@/apis";
-import NoSSRQuill from "@/components/shared/editors/NoSSRQuill";
+import MDEditor from '@uiw/react-md-editor';
 import Select, { MultiValue } from 'react-select';
 
 interface IBlogData {
@@ -1080,7 +1080,7 @@ const EditBlog: React.FC<IEditBlogProps> = ({ blog, onCancel, onSave }) => {
               ) : (
                 <>
                   <div className={`rounded-xl overflow-hidden border ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
-                    <NoSSRQuill
+                    <MDEditor
                       key={editorKey}
                       value={content}
                       onChange={(value) => {

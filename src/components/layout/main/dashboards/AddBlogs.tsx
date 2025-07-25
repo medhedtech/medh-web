@@ -28,7 +28,7 @@ import {
   Wand2,
   Bot
 } from 'lucide-react';
-import NoSSRQuill from "@/components/shared/editors/NoSSRQuill";
+import MDEditor from '@uiw/react-md-editor';
 import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
 
@@ -47,27 +47,11 @@ const slugify = (text: string): string => {
     .replace(/\-\-+/g, '-');     // Replace multiple - with single -
 };
 
-// Dynamic import of the rich text editor to avoid SSR issues with modern React 18 compatibility
-const ReactQuill = dynamic(() => 
-  import('react-quill'), { 
-    ssr: false,
-    loading: () => <div className="h-[300px] bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-gray-400">Loading editor...</div>
-  }
-);
-
-// Simplified approach - use a null renderer when SSR and lazy load the actual component
-const QuillEditor = dynamic(
-  async () => {
-    const { default: RQ } = await import('react-quill');
-    return function QuillNoSSR(props: any) {
-      return <RQ {...props} />;
-    }
-  },
-  {
-    ssr: false,
-    loading: () => <div className="h-[300px] bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-gray-400">Loading editor...</div>
-  }
-);
+// Secure Markdown Editor with SSR support
+const SecureEditor = dynamic(() => import('@uiw/react-md-editor'), {
+  ssr: false,
+  loading: () => <div className="h-[300px] bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-gray-400">Loading secure editor...</div>
+});
 
 // Enhanced TypeScript interfaces following project conventions
 interface ICategory {
@@ -1472,20 +1456,19 @@ const AddBlog: React.FC<IAddBlogProps> = ({ onCancel }) => {
                   <div className={`prose-editor-container rounded-xl overflow-hidden border ${
                     isDark ? 'border-white/10' : 'border-gray-200'
                   }`}>
-                    <NoSSRQuill
-                      theme="snow"
+                    <SecureEditor
                       value={content}
-                      onChange={(value: string) => {
-                        setContent(value);
+                      onChange={(value?: string) => {
+                        setContent(value || '');
                         if (!editorMounted) setEditorMounted(true);
                       }}
-                      modules={modules}
+                      data-color-mode={isDark ? 'dark' : 'light'}
                       className={`min-h-[300px] ${
                         isDark ? 'bg-white/5 text-white' : 'bg-white text-gray-900'
                       }`}
-                      placeholder="Start writing your blog content here or use AI generation..."
-                      preserveWhitespace={true}
-                      onFocus={() => setEditorMounted(true)}
+                      preview="edit"
+                      hideToolbar={false}
+                      visibleDragBar={false}
                     />
                   </div>
                   {content.length < 100 && content.length > 0 && (
