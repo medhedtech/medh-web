@@ -4,9 +4,11 @@ frontend:
     preBuild:
       commands:
         - "echo '=== Starting Amplify Build ==='"
-        - echo "🔧 Using Node.js 20 LTS"
-        - nvm use 20 || nvm install 20 && nvm use 20
-        - node -v && npm -v
+        - echo "🔧 Switching to Node.js 20 LTS"
+        - nvm install 20.19.0 || true
+        - nvm use 20.19.0
+        - echo "✅ Active Node version:" $(node -v)
+        - echo "✅ NPM version:" $(npm -v)
         - "export NEXT_PUBLIC_API_URL='https://api.medh.co/api/v1'"
         - "export NEXT_PUBLIC_APP_ENV='production'"
         - "export JWT_SECRET='${JWT_SECRET:-fallback-jwt-secret-for-build}'"
