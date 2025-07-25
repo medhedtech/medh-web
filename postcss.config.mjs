@@ -2,7 +2,7 @@
 const config = {
   plugins: {
     tailwindcss: {},
-    autoprefixer: {},
+    // autoprefixer: {}, // Disabled due to dependency conflicts with React 19
   },
 };
 

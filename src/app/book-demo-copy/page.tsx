@@ -193,7 +193,7 @@ const DemoBookingPageCopy = () => {
             <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6 lg:gap-8">
               
                             {/* Benefits Section */}
-              <div className="lg:col-span-5 space-y-6 order-1 lg:order-1">
+              <div className="lg:col-span-5 space-y-6 order-2 lg:order-1">
                 {/* Compact Single Card - All Benefits */}
                 <div className="bg-gradient-to-br from-white/80 to-blue-50/80 dark:from-gray-800/80 dark:to-gray-900/80 backdrop-blur-xl rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl p-6 lg:p-8">
                   {/* Card Header */}
@@ -267,7 +267,7 @@ const DemoBookingPageCopy = () => {
               </div>
 
               {/* Form Section */}
-              <div className="lg:col-span-7 order-2 lg:order-2">
+              <div className="lg:col-span-7 order-1 lg:order-2">
                 <div className="flex flex-col">
                   {/* Form Header - Modified to indicate this is a copy */}
                   <div className="text-center mb-6">
@@ -280,9 +280,9 @@ const DemoBookingPageCopy = () => {
                   </div>
 
                   {/* Form Container */}
-                  <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl shadow-gray-200/50 dark:shadow-gray-900/50 min-h-[700px] lg:min-h-[570px]">
+                  <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-2xl border border-gray-200/50 dark:border-gray-680/50 shadow-xl shadow-gray-200/50 dark:shadow-gray-900/50 min-h-[680px] lg:min-h-[570px]">
                     {showForm ? (
-                      <div className="h-[700px] lg:h-[570px]">
+                      <div className="h-[680px] lg:h-[570px]">
                         <EmbeddedDemoFormCopy
                           initialData={initialFormData}
                           onSubmitSuccess={handleFormSuccess}
@@ -290,7 +290,7 @@ const DemoBookingPageCopy = () => {
                         />
                       </div>
                     ) : (
-                      <div className="h-[700px] lg:h-[570px] flex items-center justify-center">
+                      <div className="h-[680px] lg:h-[570px] flex items-center justify-center">
                         <div className="text-center">
                           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
                           <p className="text-gray-600 dark:text-gray-400">Loading form...</p>
