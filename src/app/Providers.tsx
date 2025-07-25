@@ -11,13 +11,14 @@ import { PlacementFormProvider } from "@/context/PlacementFormContext";
 import { ServerLoadingProvider } from "@/providers/ServerLoadingProvider";
 import { LoadingProvider } from "@/contexts/LoadingContext";
 import { ToastProvider } from "@/components/shared/ui/ToastProvider";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 // Dynamically import StorageProvider to prevent HMR issues
 const StorageProvider = dynamic(
   () => import("@/contexts/StorageContext").then(mod => ({ default: mod.StorageProvider })),
   { 
     ssr: false,
-    loading: () => <div>Loading storage...</div>
+    loading: () => <MinimalLoadingScreen />
   }
 );
 
@@ -26,7 +27,7 @@ const CartContextProvider = dynamic(
   () => import("@/contexts/CartContext").then(mod => ({ default: mod.default })),
   { 
     ssr: false,
-    loading: () => <div>Loading cart...</div>
+    loading: () => <MinimalLoadingScreen />
   }
 );
 
@@ -35,7 +36,7 @@ const GoogleOneTapProvider = dynamic(
   () => import("@/providers/GoogleOneTapProvider").then(mod => ({ default: mod.GoogleOneTapProvider })),
   { 
     ssr: false,
-    loading: () => <div>Loading authentication...</div>
+    loading: () => <MinimalLoadingScreen />
   }
 );
 
@@ -103,24 +104,17 @@ const ProviderErrorFallback = memo(function ProviderErrorFallback({
   );
 });
 
-// Memoized loading fallback to prevent unnecessary re-renders
-const LoadingFallback = memo(function LoadingFallback() {
+// Memoized minimal loading screen component
+const MinimalLoadingScreen = memo(function MinimalLoadingScreen() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="flex flex-col items-center space-y-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-        <p className="text-gray-600">Loading...</p>
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+      <div className="flex flex-col items-center gap-4">
+        <LoadingSpinner size="lg" className="text-blue-500 dark:text-blue-400" />
+        <div className="text-center">
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Loading</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Please wait...</p>
+        </div>
       </div>
-    </div>
-  );
-});
-
-// Memoized auth loading component
-const AuthLoadingFallback = memo(function AuthLoadingFallback() {
-  return (
-    <div className="flex items-center justify-center p-4">
-      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-      <span className="ml-2 text-sm text-gray-600">Loading authentication...</span>
     </div>
   );
 });
@@ -134,9 +128,7 @@ export default function Providers({ children }: ProvidersProps) {
         console.error('Providers ErrorBoundary caught:', error);
       }}
       onReset={() => {
-        // Clear any cached state that might be causing issues
         if (typeof window !== 'undefined') {
-          // Clear any problematic cached data
           try {
             window.location.reload();
           } catch (e) {
@@ -145,7 +137,7 @@ export default function Providers({ children }: ProvidersProps) {
         }
       }}
     >
-      <Suspense fallback={<LoadingFallback />}>
+      <Suspense fallback={<MinimalLoadingScreen />}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
@@ -164,7 +156,7 @@ export default function Providers({ children }: ProvidersProps) {
                   <CartContextProvider>
                     <PlacementFormProvider>
                       <ToastProvider>
-                        <Suspense fallback={<AuthLoadingFallback />}>
+                        <Suspense fallback={<MinimalLoadingScreen />}>
                           <GoogleOneTapProvider>
                             {children}
                           </GoogleOneTapProvider>
