@@ -25,18 +25,29 @@ const UserAccount: React.FC<IUserAccountProps> = ({
           <div className={STYLES.userProfile}>
             <div className="flex-shrink-0">
               <div className="h-10 w-10 rounded-full
-                bg-primary-100 dark:bg-primary-900/20
-                text-primary-600 dark:text-primary-400
-                flex items-center justify-center">
-                <User className="h-5 w-5" />
+                bg-gradient-to-br from-primary-500 to-primary-600 
+                dark:from-primary-400 dark:to-primary-500
+                text-white dark:text-white
+                flex items-center justify-center font-semibold text-sm
+                shadow-sm">
+                {userName && userName.length > 0 ? 
+                  userName.charAt(0).toUpperCase() : 
+                  <User className="h-5 w-5" />
+                }
               </div>
             </div>
-            <div className="ml-3">
-              <div className="font-medium text-gray-900 dark:text-white">
+            <div className="ml-3 flex-1 min-w-0">
+              <div 
+                className="font-medium text-gray-900 dark:text-white truncate"
+                title={userName || 'User'}
+              >
                 {userName || 'User'}
               </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 capitalize">
-                {userRole || 'Member'}
+              <div 
+                className="text-sm text-gray-500 dark:text-gray-400 capitalize truncate"
+                title={userRole ? userRole.charAt(0).toUpperCase() + userRole.slice(1) : 'Member'}
+              >
+                {userRole ? userRole.charAt(0).toUpperCase() + userRole.slice(1) : 'Member'}
               </div>
             </div>
           </div>
@@ -52,6 +63,18 @@ const UserAccount: React.FC<IUserAccountProps> = ({
               <Home className="h-5 w-5 mr-3" />
               <span>Dashboard</span>
             </Link>
+            
+            <button
+              onClick={() => {
+                onLogout();
+                onClose();
+              }}
+              className={`${STYLES.actionButton} text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 w-full text-left`}
+              aria-label="Sign out of your account"
+            >
+              <LogOut className="h-5 w-5 mr-3" />
+              <span>Sign Out</span>
+            </button>
           </div>
         </div>
       ) : (

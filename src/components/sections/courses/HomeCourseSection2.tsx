@@ -11,7 +11,8 @@ import { apiUrls } from '@/apis/index';
 import { VideoBackgroundContext } from '@/components/layout/main/Home2';
 import { useTheme } from "next-themes";
 import { useCourseImagePreloader } from '@/components/shared/ImagePreloader';
-import { getImageProps, getSafeCourseImageUrl } from '@/utils/imageOptimization';
+// Removed complex image optimization imports - using simple fallback logic
+import { getSafeCourseImageUrl } from '@/utils/courseImageUtils';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import { buildComponent } from '@/utils/designSystem';
 
@@ -512,7 +513,7 @@ const HomeCardWrapper = memo<{
       const batchPrice = course.prices?.[0]?.batch || null;
       const displayPrice = batchPrice || course.prices?.[0]?.individual || null;
 
-      // Process course image using safe image URL function
+      // Use simple fallback for course image
       const courseImage = getSafeCourseImageUrl(
         course.course_image || course.thumbnail,
         course._id,
@@ -574,7 +575,7 @@ const HomeCardWrapper = memo<{
     } else {
       const { videoCount, qnaSessions } = getBlendedCourseSessions(course);
       
-      // Process course image using safe image URL function
+      // Use simple fallback for course image
       const courseImage = getSafeCourseImageUrl(
         course.course_image || course.thumbnail,
         course._id,
@@ -937,7 +938,7 @@ const HomeCourseSection2 = memo<{
                       classType: 'blended', // Explicitly set classType
                       course_title: course.course_title || 'Untitled Course',
                       course_category: course.course_category || 'Uncategorized',
-                      course_image: getSafeCourseImageUrl(course.course_image || course.thumbnail, course._id, course.course_title) || '/fallback-course-image.jpg'
+                      course_image: getSafeCourseImageUrl(course.course_image || course.thumbnail, course._id, course.course_title)
                     };
                   });
                   

@@ -107,7 +107,7 @@ interface ImageWrapperProps {
   index?: number;
 }
 
-// Simple ImageWrapper component using OptimizedImage
+// Simple ImageWrapper component using Next.js Image
 const ImageWrapper: React.FC<ImageWrapperProps & { coursesPageCompact?: boolean; isLiveCourse?: boolean }> = ({ 
   src, 
   alt, 
@@ -128,8 +128,8 @@ const ImageWrapper: React.FC<ImageWrapperProps & { coursesPageCompact?: boolean;
   return (
     <div className={imageContainerClasses}>
       <OptimizedImage
-        src={src}
-        alt={alt}
+        src={src || '/fallback-course-image.jpg'}
+        alt={alt || 'Course Image'}
         fill={true}
         className="object-cover transition-all duration-300 ease-out group-hover:scale-105"
         quality={shouldBeLCP ? 95 : 85}
@@ -137,8 +137,8 @@ const ImageWrapper: React.FC<ImageWrapperProps & { coursesPageCompact?: boolean;
         onLoad={onLoad}
         onError={onError}
         loading={shouldBeLCP ? 'eager' : 'lazy'}
-        decoding={shouldBeLCP ? 'sync' : 'async'}
         sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+        fallbackSrc="/fallback-course-image.jpg"
       />
 
       {/* Subtle gradient overlay */}

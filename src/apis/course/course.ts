@@ -8,7 +8,17 @@ import {
   BulkPriceUpdatePayload,
   PriceFilterParams
 } from '@/types/api-responses';
-import axios from 'axios';
+
+// Lazy load axios to prevent HMR issues
+const getAxios = async () => {
+  try {
+    const { default: axios } = await import('axios');
+    return axios;
+  } catch (error) {
+    console.error("Failed to load axios:", error);
+    return null;
+  }
+};
 
 // Course Image Upload Types
 export interface ICourseImageUploadResponse {
@@ -399,6 +409,9 @@ export const uploadCourseImageBase64Async = async (
     if (!courseId) throw new Error('Course ID cannot be empty');
     if (!base64String) throw new Error('Base64 string cannot be empty');
     
+    const axios = await getAxios();
+    if (!axios) throw new Error('Axios not loaded');
+
     const response = await axios.post<ICourseImageUploadResponse>(
       `${apiBaseUrl}/courses/${courseId}/upload-image`,
       {
@@ -432,6 +445,9 @@ export const uploadCourseImageFileAsync = async (
     if (!courseId) throw new Error('Course ID cannot be empty');
     if (!imageFile) throw new Error('Image file cannot be empty');
     
+    const axios = await getAxios();
+    if (!axios) throw new Error('Axios not loaded');
+
     const formData = new FormData();
     formData.append('image', imageFile);
     
@@ -489,6 +505,9 @@ export const uploadCourseImageFromFileAsync = async (
     }
     
     // Make the upload request
+    const axios = await getAxios();
+    if (!axios) throw new Error('Axios not loaded');
+
     const response = await axios.post<ICourseImageUploadResponse>(
       `${apiBaseUrl}/courses/${courseId}/upload-image`,
       {
@@ -582,6 +601,9 @@ export const uploadCourseImageBase64WithAuth = async (
     });
     
     // Make the upload request
+    const axios = await getAxios();
+    if (!axios) throw new Error('Axios not loaded');
+
     const response = await axios.post<ICourseImageUploadResponse>(
       `${apiBaseUrl}/courses/${courseId}/upload-image`,
       requestBody,
@@ -643,8 +665,10 @@ export const handleFileInputUpload = async (
 };
 
 // Helper function for handling image upload errors
-const handleImageUploadError = (error: unknown, defaultMessage: string): ICourseImageUploadError => {
-  if (axios.isAxiosError(error)) {
+const handleImageUploadError = async (error: unknown, defaultMessage: string): Promise<ICourseImageUploadError> => {
+  const axios = await getAxios();
+  
+  if (axios && axios.isAxiosError(error)) {
     return {
       success: false,
       message: error.response?.data?.message || defaultMessage,
@@ -1383,6 +1407,9 @@ export const fetchCoursePrices = async (
   courseId: string
 ): Promise<CoursePriceResponse | ErrorResponse> => {
   try {
+    const axios = await getAxios();
+    if (!axios) throw new Error('Axios not loaded');
+
     const response = await axios.get<CoursePriceResponse>(
       `${apiBaseUrl}/courses/${courseId}/prices`
     );
@@ -1403,6 +1430,9 @@ export const updateCoursePricing = async (
   prices: PriceDetails[]
 ): Promise<CoursePriceResponse | ErrorResponse> => {
   try {
+    const axios = await getAxios();
+    if (!axios) throw new Error('Axios not loaded');
+
     const response = await axios.put<CoursePriceResponse>(
       `${apiBaseUrl}/courses/${courseId}/prices`,
       { prices }
@@ -1422,6 +1452,9 @@ export const bulkUpdateCoursePrices = async (
   updates: BulkPriceUpdatePayload[]
 ): Promise<BulkPriceUpdateResponse | ErrorResponse> => {
   try {
+    const axios = await getAxios();
+    if (!axios) throw new Error('Axios not loaded');
+
     const response = await axios.post<BulkPriceUpdateResponse>(
       `${apiBaseUrl}/courses/prices/bulk-update`,
       { updates }
@@ -1441,6 +1474,9 @@ export const listAllCoursePrices = async (
   filters?: PriceFilterParams
 ): Promise<CoursePriceResponse[] | ErrorResponse> => {
   try {
+    const axios = await getAxios();
+    if (!axios) throw new Error('Axios not loaded');
+
     const response = await axios.get<CoursePriceResponse[]>(
       `${apiBaseUrl}/courses/prices`,
       { params: filters }
