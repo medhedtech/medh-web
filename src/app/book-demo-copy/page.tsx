@@ -8,7 +8,7 @@ import {
   Star, Award, Download, Percent, 
   BookOpen, Eye, Gift, FileText, Users, 
   CheckCircle, Calendar, Clock, Video,
-  User, GraduationCap, Heart, Shield, Trophy
+  User, GraduationCap, Heart, Shield, Trophy, X, ZoomIn
 } from 'lucide-react';
 import { buildComponent, buildAdvancedComponent, getResponsive } from '@/utils/designSystem';
 import EmbeddedDemoFormCopy from '@/components/forms/EmbeddedDemoFormCopy';
@@ -80,6 +80,7 @@ const DemoBookingPageCopy = () => {
   const [mounted, setMounted] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [selectedBenefit, setSelectedBenefit] = useState<string | null>(null);
+  const [showCertificateModal, setShowCertificateModal] = useState(false);
 
   const isDark = useMemo(() => {
     if (!mounted) return false;
@@ -92,6 +93,28 @@ const DemoBookingPageCopy = () => {
     const timer = setTimeout(() => setShowForm(true), 500);
     return () => clearTimeout(timer);
   }, []);
+
+  // Handle escape key for modal
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showCertificateModal) {
+        setShowCertificateModal(false);
+      }
+    };
+
+    if (showCertificateModal) {
+      document.addEventListener('keydown', handleEscape);
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [showCertificateModal]);
 
   // Get initial data from URL params if any
   const initialFormData = useMemo(() => {
@@ -257,9 +280,9 @@ const DemoBookingPageCopy = () => {
                   </div>
 
                   {/* Form Container */}
-                  <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl shadow-gray-200/50 dark:shadow-gray-900/50 min-h-[570px]">
+                  <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl shadow-gray-200/50 dark:shadow-gray-900/50 min-h-[700px] lg:min-h-[570px]">
                     {showForm ? (
-                      <div className="h-[570px]">
+                      <div className="h-[700px] lg:h-[570px]">
                         <EmbeddedDemoFormCopy
                           initialData={initialFormData}
                           onSubmitSuccess={handleFormSuccess}
@@ -267,7 +290,7 @@ const DemoBookingPageCopy = () => {
                         />
                       </div>
                     ) : (
-                      <div className="h-[570px] flex items-center justify-center">
+                      <div className="h-[700px] lg:h-[570px] flex items-center justify-center">
                         <div className="text-center">
                           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
                           <p className="text-gray-600 dark:text-gray-400">Loading form...</p>
@@ -278,8 +301,8 @@ const DemoBookingPageCopy = () => {
             </div>
           </div>
 
-              {/* Certificate and Certifications Side by Side */}
-              <div className="lg:col-span-12 order-3 lg:order-3 mb-8">
+              {/* Certificate and Certifications - Desktop Version */}
+              <div className="hidden lg:block lg:col-span-12 order-3 lg:order-3 mb-8">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   
                   {/* Demo Certificate Showcase - Left Side */}
@@ -291,16 +314,27 @@ const DemoBookingPageCopy = () => {
                       Download an official certificate to showcase your demo session participation
                     </p>
                     
-                    <div className="relative max-w-sm mx-auto mb-3">
+                    <div className="relative max-w-sm mx-auto mb-3 group cursor-pointer" onClick={() => setShowCertificateModal(true)}>
                       <Image
                         src="/images/Demo Certificate .png"
                         alt="Demo Participation Certificate Sample"
                         width={300}
                         height={225}
-                        className="w-full h-auto object-cover rounded-lg border border-gray-200 dark:border-gray-600"
+                        className="w-full h-auto object-cover rounded-lg border border-gray-200 dark:border-gray-600 transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg"
                         priority
                       />
+                      {/* Hover overlay */}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 rounded-lg flex items-center justify-center">
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 dark:bg-gray-800/90 rounded-full p-3 shadow-lg">
+                          <ZoomIn className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+                        </div>
+                      </div>
                     </div>
+                    
+                    {/* Click to view hint */}
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                      Click to view certificate in full size
+                    </p>
                     
                     {/* Certificate Features - Minimal */}
                     <div className="flex flex-wrap justify-center gap-2 text-xs">
@@ -471,10 +505,314 @@ const DemoBookingPageCopy = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Certificate and Certifications - Optimized Mobile Version */}
+              <div className="lg:hidden col-span-12 order-3 mb-6 space-y-3">
+                
+                {/* Mobile Certificate Showcase - Optimized */}
+                <div className="bg-white/95 dark:bg-gray-800/95 rounded-2xl border border-gray-200/80 dark:border-gray-700/80 shadow-xl backdrop-blur-sm px-4 py-5 sm:p-6">
+                  <div className="text-center">
+                    {/* Optimized Header */}
+                    <div className="mb-4">
+                      <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2 leading-tight">
+                        🎓 Demo Certificate
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 max-w-xs mx-auto leading-relaxed">
+                        Official certificate after demo completion
+                      </p>
+                    </div>
+                    
+                    {/* Optimized Certificate Image - Touch-First Design */}
+                    <div 
+                      className="relative mx-auto mb-5 max-w-[280px] sm:max-w-[320px] cursor-pointer group touch-manipulation" 
+                      onClick={() => setShowCertificateModal(true)}
+                      role="button"
+                      tabIndex={0}
+                      aria-label="View certificate in full size"
+                    >
+                      {/* Certificate Container */}
+                      <div className="relative bg-gradient-to-br from-blue-50/80 to-indigo-50/80 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl p-3 shadow-lg group-active:scale-95 transition-transform duration-150 ease-out">
+                        <Image
+                          src="/images/Demo Certificate .png"
+                          alt="Demo Participation Certificate Sample"
+                          width={280}
+                          height={210}
+                          className="w-full h-auto object-cover rounded-lg border border-blue-200/60 dark:border-blue-700/60 shadow-sm"
+                          loading="lazy"
+                          sizes="(max-width: 640px) 280px, 320px"
+                        />
+                        
+                        {/* Touch Indicator - Optimized */}
+                        <div className="absolute top-1 right-1 bg-blue-500/90 text-white rounded-full p-1.5 shadow-md">
+                          <ZoomIn className="w-3.5 h-3.5" />
+                        </div>
+                        
+                        {/* Subtle hover overlay for touch devices */}
+                        <div className="absolute inset-0 bg-blue-500/0 group-active:bg-blue-500/5 rounded-xl transition-colors duration-150 pointer-events-none"></div>
+                      </div>
+                      
+                      {/* CTA Button - Optimized for Touch */}
+                      <button 
+                        className="mt-3 bg-blue-500 active:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition-colors duration-150 inline-flex items-center gap-2 min-h-[44px] shadow-md active:shadow-lg"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowCertificateModal(true);
+                        }}
+                        aria-label="Tap to view certificate in full size"
+                      >
+                        <Eye className="w-4 h-4" />
+                        <span className="font-semibold">View Full Size</span>
+                      </button>
+                    </div>
+                    
+                    {/* Optimized Certificate Features - Better Mobile Layout */}
+                    <div className="grid grid-cols-2 gap-2.5 mb-4">
+                      <div className="flex flex-col items-center justify-center gap-1.5 px-3 py-3 bg-green-50/80 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-xl min-h-[60px]">
+                        <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-xs font-semibold leading-none">Official</span>
+                      </div>
+                      <div className="flex flex-col items-center justify-center gap-1.5 px-3 py-3 bg-blue-50/80 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-xl min-h-[60px]">
+                        <Download className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-xs font-semibold leading-none">Instant</span>
+                      </div>
+                      <div className="flex flex-col items-center justify-center gap-1.5 px-3 py-3 bg-purple-50/80 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-xl min-h-[60px]">
+                        <Shield className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-xs font-semibold leading-none">Verified</span>
+                      </div>
+                      <div className="flex flex-col items-center justify-center gap-1.5 px-3 py-3 bg-amber-50/80 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 rounded-xl min-h-[60px]">
+                        <Trophy className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-xs font-semibold leading-none">Portfolio</span>
+                      </div>
+                    </div>
+                    
+                    {/* Optimized Info Banner */}
+                    <div className="bg-gradient-to-r from-blue-50/90 to-purple-50/90 dark:from-blue-900/30 dark:to-purple-900/30 rounded-xl p-3 border border-blue-200/50 dark:border-blue-700/50">
+                      <p className="text-xs text-gray-700 dark:text-gray-300 font-medium flex items-center justify-center gap-1.5">
+                        <span className="text-sm">✨</span>
+                        <span>Available after demo session</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mobile Certifications Showcase - Optimized */}
+                <div className="bg-white/95 dark:bg-gray-800/95 rounded-2xl border border-gray-200/80 dark:border-gray-700/80 shadow-xl backdrop-blur-sm px-4 py-4 sm:p-5">
+                  {/* Optimized Header */}
+                  <div className="text-center mb-4">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1.5 leading-tight">
+                      🏆 Trusted Platform
+                    </h3>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+                      International certifications
+                    </p>
+                  </div>
+
+                  {/* Optimized Certifications Grid - All Certifications Visible */}
+                  <div className="grid grid-cols-4 gap-2 mb-3">
+                    {/* Row 1 */}
+                    {/* ISO 10002 */}
+                    <div className="text-center">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-1 bg-white/90 rounded-lg p-1 shadow-sm border border-gray-200/60 dark:border-gray-600/40">
+                        <Image
+                          src={iso10002}
+                          alt="ISO 10002"
+                          width={48}
+                          height={48}
+                          className="w-full h-full object-contain"
+                          loading="lazy"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-700 dark:text-gray-300 font-medium leading-none">
+                        10002
+                      </p>
+                    </div>
+
+                    {/* ISO 27001 */}
+                    <div className="text-center">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-1 bg-white/90 rounded-lg p-1 shadow-sm border border-gray-200/60 dark:border-gray-600/40">
+                        <Image
+                          src={iso27001}
+                          alt="ISO 27001"
+                          width={48}
+                          height={48}
+                          className="w-full h-full object-contain"
+                          loading="lazy"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-700 dark:text-gray-300 font-medium leading-none">
+                        27001
+                      </p>
+                    </div>
+
+                    {/* ISO 20000 */}
+                    <div className="text-center">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-1 bg-white/90 rounded-lg p-1 shadow-sm border border-gray-200/60 dark:border-gray-600/40">
+                        <Image
+                          src={iso20000}
+                          alt="ISO 20000"
+                          width={48}
+                          height={48}
+                          className="w-full h-full object-contain"
+                          loading="lazy"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-700 dark:text-gray-300 font-medium leading-none">
+                        20000
+                      </p>
+                    </div>
+
+                    {/* ISO 22301 */}
+                    <div className="text-center">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-1 bg-white/90 rounded-lg p-1 shadow-sm border border-gray-200/60 dark:border-gray-600/40">
+                        <Image
+                          src={iso22301}
+                          alt="ISO 22301"
+                          width={48}
+                          height={48}
+                          className="w-full h-full object-contain"
+                          loading="lazy"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-700 dark:text-gray-300 font-medium leading-none">
+                        22301
+                      </p>
+                    </div>
+
+                    {/* Row 2 */}
+                    {/* ISO 9001 */}
+                    <div className="text-center">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-1 bg-white/90 rounded-lg p-1 shadow-sm border border-gray-200/60 dark:border-gray-600/40">
+                        <Image
+                          src={iso9001}
+                          alt="ISO 9001"
+                          width={48}
+                          height={48}
+                          className="w-full h-full object-contain"
+                          loading="lazy"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-700 dark:text-gray-300 font-medium leading-none">
+                        9001
+                      </p>
+                    </div>
+
+                    {/* ISO 27701 */}
+                    <div className="text-center">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-1 bg-white/90 rounded-lg p-1 shadow-sm border border-gray-200/60 dark:border-gray-600/40">
+                        <Image
+                          src={iso27701}
+                          alt="ISO 27701"
+                          width={48}
+                          height={48}
+                          className="w-full h-full object-contain"
+                          loading="lazy"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-700 dark:text-gray-300 font-medium leading-none">
+                        27701
+                      </p>
+                    </div>
+
+                    {/* STEM */}
+                    <div className="text-center">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-1 bg-white/90 rounded-lg p-1 shadow-sm border border-gray-200/60 dark:border-gray-600/40">
+                        <Image
+                          src={isoSTEM}
+                          alt="STEM"
+                          width={48}
+                          height={48}
+                          className="w-full h-full object-contain"
+                          loading="lazy"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-700 dark:text-gray-300 font-medium leading-none">
+                        STEM
+                      </p>
+                    </div>
+
+                    {/* UAEA */}
+                    <div className="text-center">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-1 bg-white/90 rounded-lg p-1 shadow-sm border border-gray-200/60 dark:border-gray-600/40">
+                        <Image
+                          src={isoUAEA}
+                          alt="UAEA"
+                          width={48}
+                          height={48}
+                          className="w-full h-full object-contain"
+                          loading="lazy"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-700 dark:text-gray-300 font-medium leading-none">
+                        UAEA
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Optimized Trust Indicators */}
+                  <div className="flex items-center justify-center gap-3 pt-2.5 border-t border-gray-200/40 dark:border-gray-600/40">
+                    <div className="flex items-center gap-1">
+                      <Shield className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+                      <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">Verified</span>
+                    </div>
+                    <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                    <div className="flex items-center gap-1">
+                      <CheckCircle className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                      <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">Global</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
             </div>
         </main>
       </div>
+
+      {/* Optimized Certificate Full View Modal */}
+      {showCertificateModal && (
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-sm touch-manipulation" 
+          onClick={() => setShowCertificateModal(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Certificate full view"
+        >
+          <div className="relative max-w-5xl max-h-[95vh] w-full h-full flex items-center justify-center">
+            {/* Optimized Close button - Better for mobile */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowCertificateModal(false);
+              }}
+              className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 bg-white/95 dark:bg-gray-800/95 active:bg-white dark:active:bg-gray-800 rounded-full p-3 shadow-xl transition-all duration-200 active:scale-95 min-h-[48px] min-w-[48px] flex items-center justify-center"
+              aria-label="Close certificate view"
+            >
+              <X className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700 dark:text-gray-300" />
+            </button>
+
+            {/* Optimized Certificate container */}
+            <div className="relative bg-white rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden max-w-full max-h-full mx-2 sm:mx-4">
+              <Image
+                src="/images/Demo Certificate .png"
+                alt="Demo Participation Certificate Sample - Full View"
+                width={900}
+                height={675}
+                className="w-full h-auto object-contain max-h-[85vh]"
+                priority
+                onClick={(e) => e.stopPropagation()}
+                sizes="(max-width: 640px) 95vw, (max-width: 1024px) 90vw, 900px"
+              />
+            </div>
+
+            {/* Optimized Download hint - Better mobile positioning */}
+            <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 bg-white/95 dark:bg-gray-800/95 rounded-xl px-4 py-3 shadow-xl max-w-[calc(100%-24px)] sm:max-w-none">
+              <p className="text-sm text-gray-700 dark:text-gray-300 flex items-center justify-center gap-2 font-medium">
+                <Download className="w-4 h-4 flex-shrink-0" />
+                <span className="text-center">Available after demo completion</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </PageWrapper>
   );
 };

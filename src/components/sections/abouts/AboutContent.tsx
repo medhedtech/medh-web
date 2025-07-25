@@ -79,27 +79,6 @@ const stats: IStatCard[] = [
 ];
 
 const pillars: IPillar[] = [
-  {
-    title: "Innovation First",
-    description: "Cutting-edge technology meets proven pedagogy for transformative learning experiences",
-    icon: <Lightbulb className="w-8 h-8" />,
-    color: "text-amber-600 dark:text-amber-400",
-    bgColor: "bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20"
-  },
-  {
-    title: "Quality Assured",
-    description: "Industry-standard content crafted by experts, always current and outcome-driven",
-    icon: <Shield className="w-8 h-8" />,
-    color: "text-emerald-600 dark:text-emerald-400",
-    bgColor: "bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20"
-  },
-  {
-    title: "Lifelong Growth",
-    description: "From student to professional to expert - we support your entire learning journey",
-    icon: <TrendingUp className="w-8 h-8" />,
-    color: "text-blue-600 dark:text-blue-400",
-    bgColor: "bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20"
-  }
 ];
 
 const differentiators: IDifferentiator[] = [
@@ -171,46 +150,9 @@ const AboutContent: React.FC = () => {
           initial="hidden"
         animate="visible"
         variants={fadeInUp}
-        className="relative z-10 pt-8 pb-8 px-4 sm:px-6 lg:px-8"
+        className="relative z-10 pt-0 pb-0 px-4 sm:px-6 lg:px-8"
       >
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div
-            variants={fadeInUp}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium rounded-full mb-6"
-          >
-            <Sparkles className="w-4 h-4" />
-            About MEDH
-          </motion.div>
-          
-          <motion.h1
-          variants={fadeInUp}
-            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight"
-          >
-            <span className="text-slate-900 dark:text-white">
-                Pioneering Skill Development
-              </span>
-              <br />
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                for every stage of life
-              </span>
-          </motion.h1>
-
-            <motion.p
-            variants={fadeInUp}
-            className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl mx-auto mb-8"
-          >
-            Transform your potential into expertise with our AI-powered learning platform. 
-            <br className="hidden sm:block" />
-            From curious beginner to industry leader - we're with you every step.
-          </motion.p>
-          
-          <motion.div
-            variants={fadeInUp}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-          >
-            {/* CTA buttons removed */}
-          </motion.div>
-        </div>
+      
       </motion.div>
 
       {/* Impact Stats removed */}
@@ -221,7 +163,7 @@ const AboutContent: React.FC = () => {
         whileInView="visible"
         viewport={{ once: true }}
         variants={staggerChildren}
-        className="relative z-10 pt-0 pb-8 px-4 sm:px-6 lg:px-8"
+        className="relative z-10 pt-0 pb-0 px-4 sm:px-6 lg:px-8"
       >
         <div className="max-w-6xl mx-auto">
           
