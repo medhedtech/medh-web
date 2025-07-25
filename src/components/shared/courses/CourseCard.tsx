@@ -4,8 +4,6 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Download } from "lucide-react";
-import { calculateDiscountPercentage } from "@/utils/priceUtils";
-import { useCourseCardSettings } from "@/contexts/CourseCardSettingsContext";
 
 interface Price {
   _id: string;
@@ -108,9 +106,7 @@ const CourseCard: React.FC<CourseProps> = ({
   hidePrice = false,
   hideDescription = false,
 }) => {
-  // Get card settings from context
-  const { settings } = useCourseCardSettings();
-  const { cardConfig } = settings;
+
   
   // Initialize selectedPricing based on class_type
   const [selectedPricing, setSelectedPricing] = useState<"individual" | "batch">(
