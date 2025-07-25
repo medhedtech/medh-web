@@ -7,6 +7,7 @@ phases:
       - echo "Available Node.js $(node -v)"
       - echo "Available npm $(npm -v)"
       - echo "Target Node.js $(cat .nvmrc 2>/dev/null || echo 'Not specified')"
+      - echo "Build environment: $(uname -a)"
       - echo ""
       
       # Check Node.js compatibility
@@ -23,22 +24,31 @@ phases:
         fi
       
       - echo ""
-      - echo "Final environment"
+      - echo "=== Installing Dependencies ==="
+      - npm config set legacy-peer-deps true
+      - npm config set fund false
+      - npm config set audit-level moderate
+      
+      # Clean install
+      - echo "Installing dependencies..."
+      - npm ci --no-audit --prefer-offline
+      
+      # Make build script executable
+      - chmod +x scripts/fix-swc-build.sh
+      
+      # Verify installation
+      - echo ""
+      - echo "Final environment verification:"
       - "echo \"Node.js $(node -v)\""
       - "echo \"npm $(npm -v)\""
-      - npm config set legacy-peer-deps true
-      - npm ci --no-audit --prefer-offline
+      - echo "Next.js version: $(npm list next --depth=0)"
 
   build:
     commands:
-      - echo "=== Building Application ==="
-      - export NODE_OPTIONS="--max-old-space-size=4096"
-      - "echo \"Node options $NODE_OPTIONS\""
-      - npm run build
+      - echo "=== Building Application with SWC Fix ==="
       
-      # Verify build output
-      - echo "Build completed, checking output..."
-      - ls -la .next/ || echo "No .next directory found"
+      # Use the comprehensive SWC build fix script
+      - bash scripts/fix-swc-build.sh
 
 artifacts:
   files:

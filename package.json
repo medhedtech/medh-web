@@ -13,6 +13,7 @@
     "dev": "next dev",
     "dev:fast": "pnpm dev",
     "build": "next build",
+    "build:fix-swc": "bash scripts/fix-swc-build.sh",
     "start": "next start",
     "lint": "next lint --fix",
     "lint:check": "next lint",

@@ -12,6 +12,15 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
 
+  // SWC Configuration for AWS CodeBuild compatibility
+  swcMinify: false, // Disable SWC minification as fallback
+  compiler: {
+    // Allow graceful fallback to Babel if SWC fails
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
+  },
+
   // Prevent build cancellation
   staticPageGenerationTimeout: 1800, // 30 minutes
   generateBuildId: async () => {
