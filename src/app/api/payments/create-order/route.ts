@@ -8,7 +8,7 @@ import { headers } from 'next/headers';
 export async function POST(request: NextRequest) {
   try {
     // Get the authorization header
-    const headersList = headers();
+    const headersList = await headers();
     const authorization = headersList.get('authorization');
     
     if (!authorization) {

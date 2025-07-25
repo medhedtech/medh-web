@@ -133,7 +133,7 @@ export async function GET(
 ) {
   try {
     // Verify authentication token
-    const headersList = headers();
+    const headersList = await headers();
     const token = headersList.get('Authorization')?.split(' ')[1];
     
     if (!token) {

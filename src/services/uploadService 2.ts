@@ -53,7 +53,7 @@ class UploadService {
       throw new Error(`File size exceeds maximum limit of ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
     }
 
-    if (!ALLOWED_MIME_TYPES[file.type]) {
+    if (!ALLOWED_MIME_TYPES[file.type as keyof typeof ALLOWED_MIME_TYPES]) {
       throw new Error(`Invalid file type: ${file.type}. Allowed types: ${Object.keys(ALLOWED_MIME_TYPES).join(', ')}`);
     }
   }

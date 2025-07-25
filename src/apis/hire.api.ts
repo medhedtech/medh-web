@@ -671,7 +671,7 @@ export class HireFromMedhAPIService {
     retries = this.MAX_RETRIES,
     context?: string
   ): Promise<IApiResponse<T>> {
-    let lastError: AxiosError | Error;
+    let lastError: AxiosError | Error | undefined;
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
@@ -713,6 +713,19 @@ export class HireFromMedhAPIService {
 
     // All retries failed
     console.error(`💥 All ${retries} attempts failed${context ? ` (${context})` : ''}`);
+    if (!lastError) {
+      return {
+        success: false,
+        error: {
+          code: 'RETRY_FAILED',
+          message: 'All retry attempts failed',
+          timestamp: new Date().toISOString()
+        },
+        message: 'All retry attempts failed',
+        timestamp: new Date().toISOString(),
+        request_id: 'retry-failed-' + Date.now()
+      };
+    }
     return ApiErrorHandler.handleAxiosError(lastError as AxiosError, context);
   }
 

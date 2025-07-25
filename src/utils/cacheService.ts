@@ -1,4 +1,4 @@
-import LRUCache from 'lru-cache';
+import { LRUCache } from 'lru-cache';
 
 /**
  * Configuration options for the cache service
@@ -44,7 +44,7 @@ export class CacheService<K = string, V = any> {
       allowStale,
       updateAgeOnGet,
       updateAgeOnHas,
-      dispose: (value, key) => {
+      dispose: (value: CacheEntry<V>, key: K) => {
         // Optional cleanup when items are evicted
         console.debug(`Cache item evicted: ${String(key)}`);
       }
