@@ -125,21 +125,26 @@ frontend:
         - echo "Installing dependencies with clean approach..."
         - |
           # Try npm ci first (faster and more reliable for production)
+          # IMPORTANT: Include dev dependencies for build tools like tailwindcss
           if [ -f package-lock.json ]; then
-            echo "Using npm ci for clean install..."
-            npm ci --no-audit --prefer-offline --no-fund --verbose || {
+            echo "Using npm ci for clean install (including dev dependencies)..."
+            npm ci --include=dev --no-audit --prefer-offline --no-fund --verbose || {
               echo "npm ci failed, falling back to npm install..."
               rm -rf node_modules
-              npm install --no-audit --prefer-offline --no-fund --verbose
+              npm install --include=dev --no-audit --prefer-offline --no-fund --verbose
             }
           else
             echo "No package-lock.json found, using npm install..."
-            npm install --no-audit --prefer-offline --no-fund --verbose
+            npm install --include=dev --no-audit --prefer-offline --no-fund --verbose
           fi
           
           # Explicitly install ALL Radix UI dependencies that might be missing
           echo "Ensuring critical Radix UI dependencies are installed..."
           npm install @radix-ui/react-avatar @radix-ui/react-progress @radix-ui/react-checkbox @radix-ui/react-label @radix-ui/react-roving-focus @radix-ui/react-select @radix-ui/react-separator @radix-ui/react-slot @radix-ui/react-switch @radix-ui/react-tabs --no-audit --prefer-offline --no-fund --verbose
+          
+          # Explicitly install PostCSS and Tailwind CSS dependencies
+          echo "Ensuring PostCSS and Tailwind CSS dependencies are installed..."
+          npm install tailwindcss postcss autoprefixer @tailwindcss/typography @tailwindcss/forms @tailwindcss/aspect-ratio @tailwindcss/line-clamp tailwindcss-animate tailwind-scrollbar --no-audit --prefer-offline --no-fund --verbose
           
           # Force reinstall of problematic packages
           echo "Force reinstalling problematic packages..."
@@ -171,6 +176,8 @@ frontend:
         - ls -la node_modules/ | head -10
         - echo "Checking critical dependencies..."
         - npm list next react react-dom --depth=0 || echo "⚠️ Some critical dependencies missing"
+        - echo "Checking PostCSS and Tailwind CSS dependencies..."
+        - npm list tailwindcss postcss autoprefixer --depth=0 || echo "⚠️ PostCSS/Tailwind dependencies missing"
         - echo "Checking Radix UI dependencies..."
         - |
           # Detailed verification of Radix UI packages
