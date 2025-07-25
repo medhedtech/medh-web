@@ -32,7 +32,7 @@ import {
   Briefcase
 } from "lucide-react";
 import { isFreePrice } from '@/utils/priceUtils';
-import { optimizeCourseImage, preloadCriticalImage, getCourseCardSizes } from '@/utils/imageOptimization';
+// Removed complex image optimization imports - using simple fallback logic
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import { batchDOMOperations, throttleRAF } from '@/utils/performanceOptimization';
 
@@ -237,7 +237,7 @@ const ImageWrapper: React.FC<ImageWrapperProps & { coursesPageCompact?: boolean;
   const shouldBeLCP = isLCP || index < 2;
 
   // Get optimized image URL
-  const imageSrc = src;
+  const imageSrc = src || '/fallback-course-image.jpg';
 
   // Use consistent 3:2 aspect ratio for all images
   const imageContainerClasses = `relative w-full aspect-[3/2] overflow-hidden rounded-t-xl group gpu-accelerated`;
@@ -246,7 +246,7 @@ const ImageWrapper: React.FC<ImageWrapperProps & { coursesPageCompact?: boolean;
     <div className={imageContainerClasses}>
       <OptimizedImage
         src={imageSrc}
-        alt={alt}
+        alt={alt || 'Course Image'}
         fill={true}
         className="object-cover transition-opacity duration-300 gpu-accelerated"
         quality={shouldBeLCP ? 95 : 85}
@@ -254,8 +254,8 @@ const ImageWrapper: React.FC<ImageWrapperProps & { coursesPageCompact?: boolean;
         onLoad={onLoad}
         onError={onError}
         loading={shouldBeLCP ? 'eager' : 'lazy'}
-        decoding={shouldBeLCP ? 'sync' : 'async'}
         sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+        fallbackSrc="/fallback-course-image.jpg"
       />
 
       {/* Enhanced gradient overlay with GPU acceleration */}

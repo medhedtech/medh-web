@@ -558,6 +558,7 @@ export const useProgressiveLoading = <T>(
 // ============================================================================
 
 // Lazy script loader for third-party libraries
+// Fix the fetchPriority type error and useRef initialization
 export const loadScript = (
   src: string,
   options: {
@@ -586,10 +587,11 @@ export const loadScript = (
       script.type = 'module';
     }
 
+    // Fix fetchPriority type error by casting to any
     if (options.priority === 'high') {
-      script.fetchPriority = 'high';
+      (script as any).fetchPriority = 'high';
     } else if (options.priority === 'low') {
-      script.fetchPriority = 'low';
+      (script as any).fetchPriority = 'low';
     }
 
     script.onload = () => {
@@ -767,11 +769,12 @@ export const withPerformanceMonitoring = <P extends object>(
 };
 
 // Optimized intersection observer for lazy loading
+// Fix the useRef initialization error
 export const useOptimizedIntersectionObserver = (
   options: IntersectionObserverInit = {}
 ) => {
   const [entries, setEntries] = useState<IntersectionObserverEntry[]>([]);
-  const observer = useRef<IntersectionObserver>();
+  const observer = useRef<IntersectionObserver | null>(null);
 
   const observe = useCallback((element: Element) => {
     if (observer.current) {

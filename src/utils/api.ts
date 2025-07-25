@@ -1,14 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError, InternalAxiosRequestConfig, AxiosRequestHeaders } from 'axios';
 import axiosRetry from 'axios-retry';
 import { apiBaseUrl, apiConfig as configSettings } from '@/apis/config';
-
-/**
- * Cache item interface
- */
-interface CacheItem<T> {
-  value: T;
-  expiry: number;
-}
+import { apiCache } from './cacheService';
 
 /**
  * Extended axios request config with caching options
@@ -27,66 +20,6 @@ interface ApiErrorResponse {
   message?: string;
   originalError?: AxiosError;
 }
-
-/**
- * Cache controller for API requests
- * Implements a simple in-memory cache with configurable TTL
- */
-class CacheController {
-  private cache: Map<string, CacheItem<any>>;
-  private defaultTTL: number;
-
-  constructor() {
-    this.cache = new Map();
-    this.defaultTTL = 5 * 60 * 1000; // 5 minutes default TTL
-  }
-
-  /**
-   * Get an item from cache
-   * @param {string} key - Cache key
-   * @returns {any|null} - Cached value or null if not found/expired
-   */
-  get(key: string): any | null {
-    if (!this.cache.has(key)) return null;
-    
-    const item = this.cache.get(key);
-    if (!item || item.expiry < Date.now()) {
-      this.delete(key);
-      return null;
-    }
-    
-    return item.value;
-  }
-
-  /**
-   * Set an item in cache
-   * @param {string} key - Cache key
-   * @param {any} value - Value to cache
-   * @param {number} ttl - Time to live in ms (optional)
-   */
-  set(key: string, value: any, ttl: number = this.defaultTTL): void {
-    const expiry = Date.now() + ttl;
-    this.cache.set(key, { value, expiry });
-  }
-
-  /**
-   * Delete an item from cache
-   * @param {string} key - Cache key
-   */
-  delete(key: string): void {
-    this.cache.delete(key);
-  }
-
-  /**
-   * Clear entire cache
-   */
-  clear(): void {
-    this.cache.clear();
-  }
-}
-
-// Create a global cache instance
-const apiCache = new CacheController();
 
 /**
  * API client with enhanced features:
