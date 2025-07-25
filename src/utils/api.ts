@@ -28,17 +28,23 @@ interface ApiErrorResponse {
   originalError?: AxiosError;
 }
 
+import { APICache } from './lruCache';
+
 /**
  * Cache controller for API requests
- * Implements a simple in-memory cache with configurable TTL
+ * Now powered by LRU cache with advanced features and better performance
  */
 class CacheController {
-  private cache: Map<string, CacheItem<any>>;
+  private cache: APICache;
   private defaultTTL: number;
 
   constructor() {
-    this.cache = new Map();
     this.defaultTTL = 5 * 60 * 1000; // 5 minutes default TTL
+    this.cache = new APICache({
+      max: 200, // Increased capacity with LRU eviction
+      ttl: this.defaultTTL,
+      enableCoalescing: true // Enable request deduplication
+    });
   }
 
   /**
@@ -47,15 +53,8 @@ class CacheController {
    * @returns {any|null} - Cached value or null if not found/expired
    */
   get(key: string): any | null {
-    if (!this.cache.has(key)) return null;
-    
-    const item = this.cache.get(key);
-    if (!item || item.expiry < Date.now()) {
-      this.delete(key);
-      return null;
-    }
-    
-    return item.value;
+    const value = this.cache.get(key);
+    return value !== undefined ? value : null;
   }
 
   /**
@@ -65,8 +64,7 @@ class CacheController {
    * @param {number} ttl - Time to live in ms (optional)
    */
   set(key: string, value: any, ttl: number = this.defaultTTL): void {
-    const expiry = Date.now() + ttl;
-    this.cache.set(key, { value, expiry });
+    this.cache.set(key, value, { ttl });
   }
 
   /**
@@ -82,6 +80,27 @@ class CacheController {
    */
   clear(): void {
     this.cache.clear();
+  }
+
+  /**
+   * Get cache statistics (new feature)
+   */
+  get stats() {
+    return this.cache.stats;
+  }
+
+  /**
+   * Get cached response for API calls
+   */
+  getResponse(url: string, params?: any): any {
+    return this.cache.getResponse(url, params);
+  }
+
+  /**
+   * Cache API response
+   */
+  setResponse(url: string, params: any, response: any, ttl?: number): void {
+    this.cache.setResponse(url, params, response, ttl);
   }
 }
 

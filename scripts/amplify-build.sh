@@ -167,7 +167,7 @@ run_build_with_retry() {
   while [ $attempt -le $max_attempts ]; do
     echo "Build attempt $attempt of $max_attempts..."
     
-    if NODE_OPTIONS="$NODE_OPTIONS" pnpm build; then
+    if NODE_OPTIONS="$NODE_OPTIONS" pnpm run build; then
       echo "✅ Build completed successfully on attempt $attempt!"
       return 0
     else

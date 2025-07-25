@@ -7,9 +7,13 @@ import apiWithAuth from '../utils/apiWithAuth';
 import { getAuthToken } from '../utils/auth';
 // Toast manager is imported dynamically when needed
 import { logger } from '../utils/logger';
+import { RequestCoalescingCache } from '../utils/lruCache';
 
-// Response cache to avoid duplicate requests
-const responseCache = new Map<string, { data: any; timestamp: number }>();
+// Enhanced cache with LRU eviction and request coalescing
+const responseCache = new RequestCoalescingCache({
+  max: 500, // Increased capacity with intelligent eviction
+  ttl: 60 * 1000, // 1 minute cache TTL by default
+});
 const CACHE_TTL = 60 * 1000; // 1 minute cache TTL by default
 
 // Default retry configuration
@@ -149,6 +153,7 @@ export function useGetQuery<T = any>(
       responseCache.delete(cacheKey);
     } else {
       responseCache.clear();
+      responseCache.clearPendingRequests(); // Clear any pending requests too
     }
   }, []);
 
@@ -253,20 +258,20 @@ export function useGetQuery<T = any>(
         params: config.params,
         requireAuth,
         useCache: !skipCache,
-        hasCachedData: responseCache.has(effectiveCacheKey)
+        hasCachedData: responseCache.has(effectiveCacheKey),
+        pendingRequests: responseCache.pendingCount
       }, 'getQuery-request');
     }
     
-    // Check cache if not skipping
+    // Check cache if not skipping - now with automatic request coalescing
     if (!skipCache) {
-      const cachedResponse = responseCache.get(effectiveCacheKey);
-      if (cachedResponse && (Date.now() - cachedResponse.timestamp) < cacheTTL) {
-        const data = cachedResponse.data;
+      const cachedData = responseCache.get(effectiveCacheKey);
+      if (cachedData !== undefined) {
         setState(prev => ({
           ...prev,
-          data: extractData(data) as T,
+          data: extractData(cachedData) as T,
           loading: false,
-          ...(isPaginatedResponse(data) ? extractPaginationInfo(data) : {}),
+          ...(isPaginatedResponse(cachedData) ? extractPaginationInfo(cachedData) : {}),
         }));
         
         if (debug) {
@@ -274,10 +279,10 @@ export function useGetQuery<T = any>(
         }
         
         if (onSuccess) {
-          onSuccess(extractData(data) as T);
+          onSuccess(extractData(cachedData) as T);
         }
         
-        return extractData(data) as T;
+        return extractData(cachedData) as T;
       }
       
       if (debug && responseCache.has(effectiveCacheKey)) {
@@ -317,214 +322,227 @@ export function useGetQuery<T = any>(
       return (retryConfig.retryDelay || 1000) * Math.pow(2, count);
     };
 
-    const executeRequest = async (): Promise<T | null> => {
-      try {
-        // Get auth token if required
-        let authToken: string | null = null;
-        if (requireAuth) {
-          try {
-            authToken = getAuthToken();
+    // Use request coalescing to avoid duplicate requests
+    try {
+      const result = await responseCache.executeRequest(
+        effectiveCacheKey,
+        async () => {
+          // Get auth token if required
+          let authToken: string | null = null;
+          if (requireAuth) {
+            try {
+              authToken = getAuthToken();
+              
+              // Add auth headers if not already set
+              if (authToken && (!config.headers || !config.headers['Authorization'])) {
+                config.headers = {
+                  ...config.headers,
+                  'Authorization': `Bearer ${authToken}`,
+                  'x-access-token': authToken
+                };
+              }
+            } catch (err) {
+              if (debug) {
+                logger.log('Failed to get auth token', 'getQuery-auth-failed');
+              }
+            }
+          }
+          
+          // Add cancel token to request config
+          const requestConfig: AxiosRequestConfig = {
+            ...config,
+            cancelToken: createCancelToken(),
+          };
+          
+          // Retry logic wrapper
+          const executeWithRetry = async (): Promise<any> => {
+            let currentRetryCount = 0;
             
-            // Add auth headers if not already set
-            if (authToken && (!config.headers || !config.headers['Authorization'])) {
-              config.headers = {
-                ...config.headers,
-                'Authorization': `Bearer ${authToken}`,
-                'x-access-token': authToken
-              };
-            }
-          } catch (err) {
-            if (debug) {
-              logger.log('Failed to get auth token', 'getQuery-auth-failed');
-            }
-          }
-        }
-        
-        // Add cancel token to request config
-        const requestConfig: AxiosRequestConfig = {
-          ...config,
-          cancelToken: createCancelToken(),
-        };
-        
-        // Make the request
-        let response: any;
-        if (requireAuth && authToken) {
-          response = await apiWithAuth.get<T>(url, requestConfig);
-        } else {
-          response = await apiClient.get<T>(url, requestConfig);
-        }
-        
-        // Process the response
-        const responseData = response.data || response;
-        const extractedData = extractData(responseData) as T;
-        
-        // Cache the result
-        responseCache.set(effectiveCacheKey, {
-          data: responseData,
-          timestamp: Date.now(),
-        });
-        
-        // Update state with response data and pagination info
-        setState(prev => ({
-          ...prev,
-          data: extractedData,
-          loading: false,
-          ...extractPaginationInfo(responseData),
-        }));
-        
-        // Show success toast if configured
-        if (showToast && successMessage) {
-          import('@/utils/toastManager').then(({ showToast: toast }) => {
-            toast.success(successMessage);
-          });
-        }
-        
-        // Debug logging
-        if (debug) {
-          logger.log({ 
-            success: true, 
-            url, 
-            status: response.status || 200
-          }, 'getQuery-success');
-        }
-        
-        // Call onSuccess callback if provided
-        if (onSuccess) {
-          onSuccess(extractedData);
-        }
-        
-        return extractedData;
-      } catch (error) {
-        // Don't update state if request was canceled
-        if (axios.isCancel(error)) {
-          console.log('Request canceled:', error.message);
-          return null;
-        }
-        
-        const axiosError = error as AxiosError;
-        
-        // Check if we should retry
-        if (shouldRetry(axiosError, retryCount)) {
-          retryCount++;
-          const delay = getRetryDelay(retryCount);
-          
-          if (debug) {
-            logger.log(`Retrying request (${retryCount}/${retryConfig?.maxRetries}) after ${delay}ms: ${url}`, 'getQuery-retry');
-          }
-          
-          // Wait for the retry delay
-          await new Promise(resolve => setTimeout(resolve, delay));
-          
-          // Try again
-          return executeRequest();
-        }
-        
-        // Format error with more details
-        let formattedError: Error | AxiosError;
-        let errorMsg = errorMessage;
-        
-        if (axios.isAxiosError(error)) {
-          // For axios errors, preserve the original error but add useful information
-          const axiosError = error as AxiosError;
-          
-          // Extract error message from response if available
-          const responseData = axiosError.response?.data as Record<string, any> | undefined;
-          if (responseData?.message) {
-            errorMsg = responseData.message;
-          } else if (error.message) {
-            errorMsg = error.message;
-          }
-          
-          // Add URL to error message for better debugging
-          if (axiosError.response) {
-            // Handle specific HTTP status codes
-            if (axiosError.response.status === 404) {
-              errorMsg = "Resource not found";
-              // You could add custom handling for 404 errors here
-            } else if (axiosError.response.status === 401 || axiosError.response.status === 403) {
-              errorMsg = axiosError.response.status === 401 ? "Authentication required" : "Access denied";
-
-              // 🔒 If this was an authenticated call that failed, attempt ONE graceful fallback:
-              // 1. Clear the stored token (it may be expired).
-              // 2. Retry the request without auth headers so public endpoints still work.
-              if (requireAuth && !attemptedAuthRef.current) {
-                attemptedAuthRef.current = true;
-                // Remove token
-                localStorage.removeItem('token');
-                localStorage.removeItem('accessToken');
-                if (config.headers) {
-                  delete config.headers["Authorization"];
-                  delete config.headers["x-access-token"];
+            while (true) {
+              try {
+                // Make the request
+                let response: any;
+                if (requireAuth && authToken) {
+                  response = await apiWithAuth.get<T>(url, requestConfig);
+                } else {
+                  response = await apiClient.get<T>(url, requestConfig);
                 }
-                try {
-                  const retryResp = await apiClient.get<T>(url, {
-                    ...config,
-                    cancelToken: createCancelToken(),
-                  });
-                  const retryData = retryResp.data || retryResp;
-                  const extractedRetryData = extractData(retryData) as T;
-                  setState(prev => ({
-                    ...prev,
-                    data: extractedRetryData,
-                    loading: false,
-                    ...extractPaginationInfo(retryData),
-                  }));
-                  if (onSuccess) onSuccess(extractedRetryData);
-                  return extractedRetryData;
-                } catch (unauthErr) {
-                  if (process.env.NODE_ENV === 'development') {
-                    console.warn('Retry without auth also failed', unauthErr);
+                
+                return response.data || response;
+              } catch (error) {
+                // Don't retry if request was canceled
+                if (axios.isCancel(error)) {
+                  throw error;
+                }
+                
+                const axiosError = error as AxiosError;
+                
+                // Check if we should retry
+                if (shouldRetry(axiosError, currentRetryCount)) {
+                  currentRetryCount++;
+                  const delay = getRetryDelay(currentRetryCount);
+                  
+                  if (debug) {
+                    logger.log(`Retrying request (${currentRetryCount}/${retryConfig?.maxRetries}) after ${delay}ms: ${url}`, 'getQuery-retry');
                   }
+                  
+                  // Wait for the retry delay
+                  await new Promise(resolve => setTimeout(resolve, delay));
+                  continue;
+                } else {
+                  throw error;
                 }
               }
             }
-          } else if (axiosError.request) {
-            // Request was made but no response received
-            errorMsg = "No response received from server";
-          }
+          };
           
-          formattedError = axiosError;
-        } else if (error instanceof Error) {
-          formattedError = error;
-        } else {
-          formattedError = new Error('Unknown error occurred');
-        }
-        
-        // Update state with error
-        setState(prev => ({
-          ...prev,
-          error: formattedError,
-          loading: false,
-        }));
-        
-        // Show error toast if configured
-        if (showToast) {
-          import('@/utils/toastManager').then(({ showToast: toast }) => {
-            toast.error(errorMsg);
-          });
-        }
-        
-        // Call onFail callback if provided
-        if (onFail) {
-          onFail(formattedError);
-        }
-        
-        // Log error for debugging
-        if (debug) {
-          logger.log({
-            url,
-            error: formattedError.message,
-            params: config.params,
-            retries: retryCount > 0 ? `${retryCount}/${retryConfig?.maxRetries}` : 'none',
-            status: axiosError.response?.status
-          }, 'getQuery-error');
-        }
-        
+          return await executeWithRetry();
+        },
+        { ttl: cacheTTL }
+      );
+      
+      // Process the response
+      const extractedData = extractData(result) as T;
+      
+      // Update state with response data and pagination info
+      setState(prev => ({
+        ...prev,
+        data: extractedData,
+        loading: false,
+        ...extractPaginationInfo(result),
+      }));
+      
+      // Show success toast if configured
+      if (showToast && successMessage) {
+        import('@/utils/toastManager').then(({ showToast: toast }) => {
+          toast.success(successMessage);
+        });
+      }
+      
+      // Debug logging
+      if (debug) {
+        logger.log({ 
+          success: true, 
+          url, 
+          coalescedRequest: true
+        }, 'getQuery-success');
+      }
+      
+      // Call onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess(extractedData);
+      }
+      
+      return extractedData;
+    } catch (error) {
+      // Don't update state if request was canceled
+      if (axios.isCancel(error)) {
+        console.log('Request canceled:', error.message);
         return null;
       }
-    };
+      
+      // Format error with more details
+      let formattedError: Error | AxiosError;
+      let errorMsg = errorMessage;
+      
+      if (axios.isAxiosError(error)) {
+        // For axios errors, preserve the original error but add useful information
+        const axiosError = error as AxiosError;
+        
+        // Extract error message from response if available
+        const responseData = axiosError.response?.data as Record<string, any> | undefined;
+        if (responseData?.message) {
+          errorMsg = responseData.message;
+        } else if (error.message) {
+          errorMsg = error.message;
+        }
+        
+        // Add URL to error message for better debugging
+        if (axiosError.response) {
+          // Handle specific HTTP status codes
+          if (axiosError.response.status === 404) {
+            errorMsg = "Resource not found";
+          } else if (axiosError.response.status === 401 || axiosError.response.status === 403) {
+            errorMsg = axiosError.response.status === 401 ? "Authentication required" : "Access denied";
 
-    return executeRequest();
+            // 🔒 If this was an authenticated call that failed, attempt ONE graceful fallback:
+            // 1. Clear the stored token (it may be expired).
+            // 2. Retry the request without auth headers so public endpoints still work.
+            if (requireAuth && !attemptedAuthRef.current) {
+              attemptedAuthRef.current = true;
+              // Remove token
+              localStorage.removeItem('token');
+              localStorage.removeItem('accessToken');
+              if (config.headers) {
+                delete config.headers["Authorization"];
+                delete config.headers["x-access-token"];
+              }
+              try {
+                const retryResp = await apiClient.get<T>(url, {
+                  ...config,
+                  cancelToken: createCancelToken(),
+                });
+                const retryData = retryResp.data || retryResp;
+                const extractedRetryData = extractData(retryData) as T;
+                setState(prev => ({
+                  ...prev,
+                  data: extractedRetryData,
+                  loading: false,
+                  ...extractPaginationInfo(retryData),
+                }));
+                if (onSuccess) onSuccess(extractedRetryData);
+                return extractedRetryData;
+              } catch (unauthErr) {
+                if (process.env.NODE_ENV === 'development') {
+                  console.warn('Retry without auth also failed', unauthErr);
+                }
+              }
+            }
+          }
+        } else if (axiosError.request) {
+          // Request was made but no response received
+          errorMsg = "No response received from server";
+        }
+        
+        formattedError = axiosError;
+      } else if (error instanceof Error) {
+        formattedError = error;
+      } else {
+        formattedError = new Error('Unknown error occurred');
+      }
+      
+      // Update state with error
+      setState(prev => ({
+        ...prev,
+        error: formattedError,
+        loading: false,
+      }));
+      
+      // Show error toast if configured
+      if (showToast) {
+        import('@/utils/toastManager').then(({ showToast: toast }) => {
+          toast.error(errorMsg);
+        });
+      }
+      
+      // Call onFail callback if provided
+      if (onFail) {
+        onFail(formattedError);
+      }
+      
+      // Log error for debugging
+      if (debug) {
+        logger.log({
+          url,
+          error: formattedError.message,
+          params: config.params,
+          coalescedRequest: true,
+          status: (error as AxiosError).response?.status
+        }, 'getQuery-error');
+      }
+      
+      return null;
+    }
   }, [createCancelToken]);
 
   // Refetch using the last parameters

@@ -67,14 +67,12 @@ phases:
       - pnpm add @next/swc-linux-x64-gnu@15.4.3 || echo "Failed to install GNU binary"
       - pnpm add @next/swc-linux-x64-musl@15.4.3 || echo "Failed to install MUSL binary"
       
-      # Set SWC fallback environment variables
-      - export NEXT_FORCE_SWC=false
-      - export SWC_DISABLE_NEXT_SWC=1
-      - echo "SWC fallback environment configured"
+      # Configure for SWC first, with fallback capability
+      - echo "SWC-first build configuration enabled"
       
       # Make build scripts executable
       - chmod +x scripts/fix-swc-build.sh
-      - chmod +x scripts/build-with-babel-fallback.sh
+      - chmod +x scripts/build-with-swc-first.sh
       
       # Verify installation
       - echo ""
@@ -88,16 +86,14 @@ phases:
 
   build:
     commands:
-      - echo "=== Building Application with SWC Fix ==="
+      - echo "=== Building Application with SWC First ==="
       
-      # Ensure SWC fallback environment variables are set
-      - export NEXT_FORCE_SWC=false
-      - export SWC_DISABLE_NEXT_SWC=1
+      # Set Node.js memory options
       - export NODE_OPTIONS="--max-old-space-size=6144"
       
-      # Use direct Babel fallback approach for reliable builds
-      - echo "Using Babel fallback for reliable AWS CodeBuild compatibility"
-      - bash scripts/build-with-babel-fallback.sh
+      # Use SWC-first approach with Babel fallback
+      - echo "Using SWC first with Babel fallback for AWS CodeBuild compatibility"
+      - bash scripts/build-with-swc-first.sh
 
 artifacts:
   files:
