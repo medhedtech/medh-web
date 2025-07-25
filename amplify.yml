@@ -3,258 +3,35 @@ frontend:
   phases:
     preBuild:
       commands:
-        - echo "=== ⚡ ULTRA-FAST AMPLIFY BUILD WITH PNPM ==="
-        - echo "Build ID - $AWS_BUILD_ID"
-        - echo "Branch - $AWS_BRANCH"
-        - echo ""
+        - echo "Starting Amplify build process"
+        - echo "Node.js version $(node -v)"
+        - echo "npm version $(npm -v)"
         
-        # BYPASS SSM ISSUES - Set environment variables directly
-        - |
-          echo "=== Setting Environment Variables ==="
-          export NODE_ENV="production"
-          export NEXT_PUBLIC_API_URL="https://api.medh.co/api/v1"
-          export NEXT_PUBLIC_APP_ENV="production"
-          
-          # Set fallback values for missing critical variables
-          export JWT_SECRET="${JWT_SECRET:-fallback-jwt-secret-for-build-only-not-secure}"
-          export API_KEY_SALT="${API_KEY_SALT:-fallback-salt}"
-          export SESSION_SECRET="${SESSION_SECRET:-fallback-session-secret}"
-          
-          # PERFORMANCE OPTIMIZATIONS
-          export NEXT_TIMEOUT=1800000
-          export NEXT_STATIC_EXPORT_TIMEOUT=1800000
-          export NODE_OPTIONS="--max-old-space-size=16384 --no-warnings --max-semi-space-size=1024"
-          export AMPLIFY_DISABLE_TIMEOUT=true
-          export AMPLIFY_BUILD_TIMEOUT=3600
-          
-          # Next.js & TypeScript optimizations
-          export NEXT_TELEMETRY_DISABLED=1
-          export TSC_COMPILE_ON_ERROR=true
-          export SKIP_TYPE_CHECK=false
-          
-          # pnpm optimizations
-          export PNPM_HOME="/usr/local/share/pnpm"
-          export PATH="$PNPM_HOME:$PATH"
-          export CI=true
-          export HUSKY=0
-          
-          echo "✅ Environment variables configured"
+        # Set environment variables
+        - export NODE_ENV=production
+        - export NEXT_PUBLIC_API_URL=https://api.medh.co/api/v1
+        - export NEXT_PUBLIC_APP_ENV=production
+        - export NODE_OPTIONS="--max-old-space-size=8192"
+        - export NEXT_TELEMETRY_DISABLED=1
         
-        # Install latest pnpm for maximum speed
-        - |
-          echo "=== ⚡ Installing Latest pnpm ==="
-          curl -fsSL https://get.pnpm.io/install.sh | sh -
-          export PNPM_HOME="/usr/local/share/pnpm"
-          export PATH="$PNPM_HOME:$PATH"
-          
-          # Verify pnpm installation
-          pnpm --version
-          echo "✅ pnpm installed successfully"
+        # Install pnpm
+        - corepack enable
+        - corepack prepare pnpm@latest --activate
+        - pnpm --version
         
-        # Configure pnpm for maximum performance
-        - |
-          echo "=== ⚡ Configuring pnpm for Ultra Performance ==="
-          
-          # Create optimized .pnpmrc
-          cat > .pnpmrc << 'PNPMEOF'
-          # Performance optimizations
-          store-dir=.pnpm-store
-          package-import-method=hardlink
-          symlink=false
-          hoist-pattern[]=*
-          public-hoist-pattern[]=*eslint*,*prettier*,*typescript*
-          
-          # Network optimizations
-          network-concurrency=16
-          fetch-retry-maxtimeout=120000
-          fetch-retry-mintimeout=10000
-          fetch-timeout=300000
-          
-          # Registry optimizations
-          registry=https://registry.npmjs.org/
-          prefer-offline=true
-          
-          # Build optimizations
-          frozen-lockfile=false
-          prefer-frozen-lockfile=true
-          strict-peer-dependencies=false
-          auto-install-peers=true
-          dedupe-peer-dependents=true
-          
-          # Cache optimizations
-          verify-store-integrity=false
-          side-effects-cache=true
-          side-effects-cache-readonly=false
-          
-          # Disable unnecessary features
-          enable-pre-post-scripts=false
-          ignore-scripts=false
-          fund=false
-          audit=false
-          update-notifier=false
-          PNPMEOF
-          
-          echo "✅ pnpm configured for maximum performance"
+        # Configure pnpm
+        - pnpm config set store-dir .pnpm-store
+        - pnpm config set network-concurrency 16
+        - pnpm config set fetch-timeout 300000
         
-        # Clean and optimize dependency installation
-        - |
-          echo "=== ⚡ Ultra-Fast Dependency Installation ==="
-          
-          # Clean any existing installations
-          rm -rf node_modules .pnpm-store pnpm-lock.yaml 2>/dev/null || true
-          
-          # Generate fresh lockfile with optimizations
-          echo "Generating optimized lockfile..."
-          pnpm install --frozen-lockfile=false --prefer-offline --no-audit --no-fund
-          
-          # Install with maximum performance settings
-          echo "Installing dependencies with maximum performance..."
-          pnpm install \
-            --frozen-lockfile \
-            --prefer-offline \
-            --ignore-scripts=false \
-            --no-audit \
-            --no-fund \
-            --reporter=silent \
-            --production=false
-          
-          echo "✅ Dependencies installed at lightning speed"
+        # Install dependencies
+        - pnpm install --frozen-lockfile --prefer-offline
         
-        # Verify critical dependencies and optimize bundle
-        - |
-          echo "=== ⚡ Verifying and Optimizing Dependencies ==="
-          
-          # Check critical packages
-          echo "Verifying Next.js installation..."
-          pnpm list next react react-dom --depth=0 || echo "⚠️ Some dependencies missing"
-          
-          # Optimize bundle size by removing unnecessary packages
-          echo "Optimizing bundle size..."
-          
-          # Remove development-only packages from production bundle
-          pnpm prune --prod --no-optional 2>/dev/null || true
-          
-          # Reinstall all packages (including dev) for build
-          pnpm install --frozen-lockfile --prefer-offline --no-audit --no-fund --reporter=silent
-          
-          # Verify TypeScript
-          if [ -f "node_modules/.bin/tsc" ]; then
-            echo "✅ TypeScript verified - $(pnpm exec tsc --version)"
-          else
-            echo "❌ TypeScript missing - installing..."
-            pnpm add -D typescript @types/react @types/react-dom @types/node
-          fi
-          
-          echo "✅ Dependencies verified and optimized"
-        
-        # Advanced build optimizations
-        - |
-          echo "=== ⚡ Advanced Build Optimizations ==="
-          
-          # Create optimized next.config.js if it doesn't exist
-          if [ ! -f "next.config.js" ] && [ ! -f "next.config.mjs" ]; then
-            cat > next.config.js << 'NEXTEOF'
-          /** @type {import('next').NextConfig} */
-          const nextConfig = {
-            // Performance optimizations
-            swcMinify: true,
-            compress: true,
-            poweredByHeader: false,
-            
-            // Build optimizations
-            experimental: {
-              esmExternals: true,
-              serverComponentsExternalPackages: [],
-              optimizeCss: true,
-              optimizePackageImports: ['@aws-amplify/ui-react', 'lucide-react'],
-            },
-            
-            // Bundle analysis
-            webpack: (config, { dev, isServer }) => {
-              if (!dev && !isServer) {
-                config.optimization.splitChunks.cacheGroups = {
-                  ...config.optimization.splitChunks.cacheGroups,
-                  vendor: {
-                    test: /[\\/]node_modules[\\/]/,
-                    name: 'vendors',
-                    chunks: 'all',
-                  },
-                };
-              }
-              return config;
-            },
-            
-            // Image optimization
-            images: {
-              domains: ['images.unsplash.com', 'api.medh.co'],
-              formats: ['image/webp', 'image/avif'],
-            },
-          };
-          
-          module.exports = nextConfig;
-          NEXTEOF
-            echo "✅ Optimized Next.js config created"
-          fi
-          
-          # Set up build-time optimizations
-          export NEXT_PRIVATE_STANDALONE=true
-          export NEXT_PRIVATE_SKIP_VALIDATION=true
-          
-          echo "✅ Advanced optimizations configured"
-
     build:
       commands:
-        - echo "=== ⚡ Lightning-Fast Build Process ==="
-        - export PATH="$PNPM_HOME:$PATH"
+        - echo "Building Next.js application"
+        - pnpm run build
         
-        # Pre-build optimizations
-        - |
-          echo "Applying pre-build optimizations..."
-          
-          # Clear Next.js cache for fresh build
-          rm -rf .next/cache 2>/dev/null || true
-          
-          # Set optimal Node.js flags for build
-          export NODE_OPTIONS="--max-old-space-size=16384 --no-warnings"
-          
-          # Enable build parallelization
-          export NEXT_PRIVATE_CPU_PROFILE=false
-          export NEXT_PRIVATE_STANDALONE=true
-          
-          echo "✅ Pre-build optimizations applied"
-        
-        # Execute ultra-fast build
-        - |
-          echo "🚀 Starting ultra-fast build..."
-          
-          # Use pnpm for maximum build speed
-          time pnpm run build
-          
-          echo "✅ Build completed successfully!"
-        
-        # Post-build optimizations
-        - |
-          echo "=== ⚡ Post-Build Optimizations ==="
-          
-          # Optimize static assets
-          if [ -d ".next/static" ]; then
-            echo "Optimizing static assets..."
-            find .next/static -name "*.js" -exec gzip -k {} \; 2>/dev/null || true
-            find .next/static -name "*.css" -exec gzip -k {} \; 2>/dev/null || true
-            echo "✅ Static assets optimized"
-          fi
-          
-          # Clean up unnecessary files
-          rm -rf node_modules/.cache 2>/dev/null || true
-          rm -rf .pnpm-store/.tmp 2>/dev/null || true
-          
-          # Display build statistics
-          echo "📊 Build Statistics"
-          echo "Build size - $(du -sh .next 2>/dev/null || echo 'N/A')"
-          echo "Node modules - $(du -sh node_modules 2>/dev/null || echo 'N/A')"
-          
-          echo "🎉 Ultra-fast build process completed!"
-
   artifacts:
     baseDirectory: .next
     files:
@@ -262,21 +39,5 @@ frontend:
   cache:
     paths:
       - .pnpm-store/**/*
+      - node_modules/**/*
       - .next/cache/**/*
-      - node_modules/.pnpm/**/*
-      - ~/.pnpm-store/**/*
-
-# Build instance optimization - use Large for better performance
-buildSpec:
-  version: 0.2
-  phases:
-    install:
-      runtime-versions:
-        nodejs: 20  # Use latest LTS
-      commands:
-        - echo "Using optimized build instance"
-    build:
-      commands:
-        - echo "Build instance optimized for performance"
-
-appRoot: .

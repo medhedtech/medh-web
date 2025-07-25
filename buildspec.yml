@@ -24,8 +24,8 @@ phases:
       
       - echo ""
       - echo "Final environment"
-      - "echo \"Node.js $(node -v)\""
-      - "echo \"npm $(npm -v)\""
+      - echo "Node.js $(node -v)"
+      - echo "npm $(npm -v)"
       - npm config set legacy-peer-deps true
       - npm ci --no-audit --prefer-offline
 
@@ -33,7 +33,7 @@ phases:
     commands:
       - echo "=== Building Application ==="
       - export NODE_OPTIONS="--max-old-space-size=4096"
-      - "echo \"Node options $NODE_OPTIONS\""
+      - echo "Node options $NODE_OPTIONS"
       - npm run build
       
       # Verify build output
