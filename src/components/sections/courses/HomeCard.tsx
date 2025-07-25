@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useRef, useCallback, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import Image from 'next/image';
 import { 
   Users,
   Play,
@@ -10,7 +11,6 @@ import {
   GraduationCap
 } from "lucide-react";
 import { isFreePrice } from '@/utils/priceUtils';
-import OptimizedImage from '@/components/shared/OptimizedImage';
 
 // Type definitions for Home Card
 interface CoursePrice {
@@ -68,6 +68,7 @@ const HomeCard: React.FC<HomeCardProps> = ({
   const safeCourse = course || {} as HomeCourse;
   const [isHovered, setIsHovered] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 });
+  const [imageError, setImageError] = useState(false);
   
   const cardRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -81,6 +82,23 @@ const HomeCard: React.FC<HomeCardProps> = ({
       setMousePosition({ x, y });
     }
   };
+
+  // Industry-standard image props
+  const imageProps = useMemo(() => {
+    const imageSrc = safeCourse?.course_image || '/fallback-course-image.jpg';
+    
+    return {
+      src: imageSrc,
+      alt: safeCourse?.course_title || "Course Image",
+      fill: true,
+      quality: isLCP ? 95 : 85,
+      priority: isLCP,
+      sizes: "(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw",
+      className: "object-cover transition-all duration-300 ease-out group-hover:scale-105",
+      onError: () => setImageError(true),
+      placeholder: 'empty' as const
+    };
+  }, [safeCourse?.course_image, safeCourse?.course_title, isLCP]);
 
   // Determine course type and properties
   const isLiveCourse = useMemo(() => {
@@ -223,9 +241,6 @@ const HomeCard: React.FC<HomeCardProps> = ({
     let durationStr = typeof duration === 'string' ? duration : String(duration);
     durationStr = durationStr.trim().toLowerCase();
     
-    // Check for specific 18-month patterns
-    // Matches: "4-18 months", "4 to 18 months", "18 months", etc.
-    // But NOT: "3-9 months", "6 months", etc.
     return (
       /\b18\s*months?\b/.test(durationStr) && // Contains "18 months"
       (
@@ -355,17 +370,7 @@ const HomeCard: React.FC<HomeCardProps> = ({
         {/* Image section with sticky note badge */}
         <div className="relative">
           <div className="relative w-full aspect-[3/2] overflow-hidden rounded-t-xl group">
-            <OptimizedImage
-              src={safeCourse?.course_image || '/fallback-course-image.jpg'}
-              alt={safeCourse?.course_title || "Course Image"}
-              fill={true}
-              className="object-cover transition-all duration-300 ease-out group-hover:scale-105"
-              quality={isLCP ? 95 : 85}
-              priority={isLCP}
-              loading={isLCP ? 'eager' : 'lazy'}
-              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              fallbackSrc="/fallback-course-image.jpg"
-            />
+            <Image {...imageProps} />
             <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/20 dark:from-black/10 dark:to-black/30" />
           </div>
           

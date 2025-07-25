@@ -1,96 +1,98 @@
 "use client";
-import React, { useState, useCallback, memo } from 'react';
-import Image, { ImageProps } from 'next/image';
+import Image from 'next/image';
+import { useState } from 'react';
 
-// Simplified interface that extends Next.js ImageProps
-interface IOptimizedImageProps extends Omit<ImageProps, 'onError' | 'onLoad'> {
+interface OptimizedImageProps {
   src: string;
   alt: string;
+  width?: number;
+  height?: number;
+  fill?: boolean;
+  priority?: boolean;
+  quality?: number;
+  sizes?: string;
   className?: string;
+  style?: React.CSSProperties;
+  loading?: 'lazy' | 'eager';
+  placeholder?: 'blur' | 'empty';
+  blurDataURL?: string;
   fallbackSrc?: string;
-  onError?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
   onLoad?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
+  onError?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
 }
 
-// Simple fallback images
-const FALLBACK_IMAGES = {
-  course: '/fallback-course-image.jpg',
-  general: '/images/placeholder.jpg',
-  error: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjFmNWY5Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY0NzQ4YiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIFVuYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg=='
-};
-
-// Generate simple blur placeholder
-const generateBlurPlaceholder = (width: number = 400, height: number = 300): string => {
-  const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-    <rect width="100%" height="100%" fill="#f1f5f9"/>
-  </svg>`;
-  
-  return `data:image/svg+xml;base64,${btoa(svg)}`;
-};
-
-const OptimizedImage: React.FC<IOptimizedImageProps> = memo(({
+const OptimizedImage: React.FC<OptimizedImageProps> = ({
   src,
   alt,
-  className = '',
-  fallbackSrc,
-  onError,
-  onLoad,
-  placeholder = 'blur',
+  width,
+  height,
+  fill = false,
+  priority = false,
+  quality = 85,
+  sizes,
+  className,
+  style,
+  loading = 'lazy',
+  placeholder = 'empty',
   blurDataURL,
-  ...rest
+  fallbackSrc = '/fallback-course-image.jpg',
+  onLoad,
+  onError,
+  ...props
 }) => {
-  const [imgSrc, setImgSrc] = useState<string>(src || FALLBACK_IMAGES.course);
+  const [imgSrc, setImgSrc] = useState(src);
   const [hasError, setHasError] = useState(false);
 
-  // Handle image loading errors
-  const handleError = useCallback((event: React.SyntheticEvent<HTMLImageElement>) => {
-    if (!hasError) {
+  const handleError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    if (!hasError && fallbackSrc && imgSrc !== fallbackSrc) {
       setHasError(true);
-      const fallback = fallbackSrc || 
-        (src?.includes('course') ? FALLBACK_IMAGES.course : FALLBACK_IMAGES.general);
-      setImgSrc(fallback);
+      setImgSrc(fallbackSrc);
     }
-    
-    if (onError) {
-      onError(event);
-    }
-  }, [hasError, fallbackSrc, src, onError]);
-
-  // Handle successful load
-  const handleLoad = useCallback((event: React.SyntheticEvent<HTMLImageElement>) => {
-    setHasError(false);
-    
-    if (onLoad) {
-      onLoad(event);
-    }
-  }, [onLoad]);
-
-  // Generate blur placeholder if needed
-  const getBlurPlaceholder = useCallback(() => {
-    if (blurDataURL) return blurDataURL;
-    if (placeholder !== 'blur') return undefined;
-    
-    const width = typeof rest.width === 'number' ? rest.width : 400;
-    const height = typeof rest.height === 'number' ? rest.height : 300;
-    
-    return generateBlurPlaceholder(width, height);
-  }, [blurDataURL, placeholder, rest.width, rest.height]);
-
-  // Prepare final props
-  const imageProps: ImageProps = {
-    src: imgSrc,
-    alt: hasError ? `${alt} (fallback image)` : alt,
-    className: `${className} transition-opacity duration-300`,
-    placeholder,
-    blurDataURL: getBlurPlaceholder(),
-    onLoad: handleLoad,
-    onError: handleError,
-    ...rest
+    onError?.(e);
   };
 
-  return <Image {...imageProps} />;
-});
+  const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    setHasError(false);
+    onLoad?.(e);
+  };
 
-OptimizedImage.displayName = 'OptimizedImage';
+  // Industry standard props for Next.js Image
+  const imageProps = {
+    src: imgSrc,
+    alt,
+    priority,
+    quality,
+    className,
+    style,
+    onLoad: handleLoad,
+    onError: handleError,
+    placeholder,
+    blurDataURL,
+    ...props
+  };
+
+  if (fill) {
+    return (
+      <Image
+        {...imageProps}
+        fill
+        sizes={sizes || "100vw"}
+        style={{
+          objectFit: 'cover',
+          ...style
+        }}
+      />
+    );
+  }
+
+  return (
+    <Image
+      {...imageProps}
+      width={width || 400}
+      height={height || 300}
+      sizes={sizes}
+    />
+  );
+};
 
 export default OptimizedImage; 
