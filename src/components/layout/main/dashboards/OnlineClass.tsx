@@ -89,7 +89,7 @@ interface ITimePickerProps {
 
 // Client-side only TimePicker component using MUI
 const MUITimePicker = dynamic(
-  () => import('@mui/x-date-pickers').then((mod) => {
+  () => import('@mui/x-date-pickers').then(async (mod) => {
     const { LocalizationProvider, TimePicker } = mod;
     const adapterModule = await import('@mui/x-date-pickers/AdapterMoment');
     const { AdapterMoment } = adapterModule;
