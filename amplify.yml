@@ -25,8 +25,14 @@ frontend:
         - "echo 'Installing dependencies...'"
         - "rm -rf node_modules"
         - "npm ci || npm install"
-        - "echo 'Ensuring critical dependencies...'"
-        - "npm install autoprefixer postcss tailwindcss"
+        - "echo 'Verifying TailwindCSS installation...'"
+        - "npm list tailwindcss autoprefixer postcss || echo 'Some packages missing'"
+        - "echo 'Ensuring critical dependencies are installed...'"
+        - "npm install --save autoprefixer postcss tailwindcss"
+        - "echo 'Final verification...'"
+        - "npm list tailwindcss autoprefixer postcss"
+        - "ls -la node_modules/ | grep tailwind || echo 'TailwindCSS directory not found'"
+        - "node -e \"console.log('TailwindCSS test:', require('tailwindcss'))\" || echo 'TailwindCSS require failed'"
     build:
       commands:
         - "echo 'Building Next.js application...'"
