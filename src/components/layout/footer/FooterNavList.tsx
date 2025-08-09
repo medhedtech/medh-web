@@ -576,10 +576,10 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
       <div className="relative z-10 mt-12">
         <div className={`border-t ${currentTheme.navBorder}`}></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-          <div className="flex flex-col lg:flex-row justify-between items-center gap-4 lg:gap-6 w-full">
+          <div className="flex flex-col space-y-4 lg:space-y-0 lg:flex-row lg:justify-between lg:items-center w-full">
             
-            {/* Policy Links - Enhanced */}
-            <div className="flex justify-center lg:justify-start gap-1 md:gap-2 lg:gap-3 w-full lg:w-auto">
+            {/* Policy Links - Enhanced with better mobile responsiveness */}
+            <div className="flex flex-wrap justify-center lg:justify-start gap-1 md:gap-2 lg:gap-3 w-full lg:w-auto">
               {policyLinks.map((link, index) => (
                 <Link
                   key={index}
@@ -591,8 +591,8 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
               ))}
             </div>
 
-            {/* Social Media - Enhanced */}
-            <div className="flex items-center gap-2 md:gap-3 lg:gap-4 w-full lg:w-auto">
+            {/* Social Media - Enhanced with better mobile responsiveness */}
+            <div className="flex items-center justify-center lg:justify-end gap-2 md:gap-3 lg:gap-4 w-full lg:w-auto">
               <span className="text-xs md:text-sm text-slate-700 dark:text-slate-300 font-medium whitespace-nowrap flex-shrink-0">Follow us:</span>
               <div className="flex gap-1 md:gap-2 lg:gap-3">
                 {socialLinks.map((link, index) => {
