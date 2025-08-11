@@ -56,6 +56,7 @@ interface CustomJwtPayload {
 interface DashboardNavbarProps {
   onMobileMenuToggle?: () => void;
   isScrolled?: boolean;
+  isSidebarOpen?: boolean;
 }
 
 interface UserSettings {
@@ -95,7 +96,8 @@ const PROFILE_ANIMATION_DURATION = 150;
  */
 const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   onMobileMenuToggle,
-  isScrolled = false
+  isScrolled = false,
+  isSidebarOpen = false
 }) => {
   // Hooks
   const router = useRouter();
@@ -120,6 +122,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   const [wishlistCount, setWishlistCount] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [lastLoginTime, setLastLoginTime] = useState<string>("");
   const [dropdownCloseTimeouts, setDropdownCloseTimeouts] = useState<Record<string, NodeJS.Timeout | null>>({
     progress: null,
     notifications: null,
@@ -245,6 +248,30 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
     setTimeout(() => setIsDropdownOpen(false), DROPDOWN_DELAY / 1.5);
   };
 
+  // Helper function to format last login time
+  const formatLastLogin = (timestamp: string): string => {
+    if (!timestamp) return "Never";
+    
+    const now = new Date();
+    const lastLogin = new Date(timestamp);
+    const diffInMs = now.getTime() - lastLogin.getTime();
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInHours / 24);
+    
+    if (diffInDays > 0) {
+      return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+    } else if (diffInHours > 0) {
+      return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    } else {
+      const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+      if (diffInMinutes > 0) {
+        return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+      } else {
+        return "Just now";
+      }
+    }
+  };
+
   // Check if user is logged in and fetch user data
   useEffect(() => {
     // Check device type
@@ -316,6 +343,17 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
         
         // Fetch user data, cart, notifications and wishlist counts
         fetchUserData(userId);
+        
+        // Get last login time from localStorage or set to current time
+        const storedLastLogin = localStorage.getItem("lastLoginTime");
+        if (storedLastLogin) {
+          setLastLoginTime(storedLastLogin);
+        } else {
+          // If no last login time stored, set it to current time
+          const currentTime = new Date().toISOString();
+          localStorage.setItem("lastLoginTime", currentTime);
+          setLastLoginTime(currentTime);
+        }
       } catch (error) {
         console.error("Error accessing localStorage:", error);
       }
@@ -430,6 +468,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
     localStorage.removeItem("permissions");
     localStorage.removeItem("email");
     localStorage.removeItem("password");
+    localStorage.removeItem("lastLoginTime"); // Clear last login time
     
     // Remove cookies if they exist
     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -437,6 +476,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
     
     setIsLoggedIn(false);
     setIsDropdownOpen(false);
+    setLastLoginTime(""); // Clear last login time from state
     
     // Redirect to home
     router.push("/");
@@ -565,21 +605,20 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
         }`}>
           {/* Logo and hamburger menu */}
           <div className="flex items-center">
-            {/* Mobile menu button - Enhanced visibility */}
+            {/* Dashboard toggle button - Always visible */}
             {onMobileMenuToggle && (
               <button
                 type="button"
-                className={`${
-                  isMobileDevice || isTabletDevice ? 'inline-flex' : 'lg:hidden inline-flex'
-                } items-center justify-center rounded-lg text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all duration-200 ${
+                className={`inline-flex items-center justify-center rounded-lg text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all duration-200 ${
                   isMobileDevice ? 'p-2.5 mr-2 min-w-[44px] min-h-[44px]' : 'p-3 mr-3 min-w-[48px] min-h-[48px]'
                 } shadow-sm`}
                 onClick={onMobileMenuToggle}
-                aria-expanded="false"
-                aria-label="Toggle navigation menu"
+                aria-expanded={isSidebarOpen ? "true" : "false"}
+                aria-label="Toggle dashboard sidebar"
               >
-                <span className="sr-only">Open main menu</span>
-                <Menu size={isMobileDevice ? 22 : 24} className="text-gray-600 dark:text-gray-300" />
+                <span className="sr-only">Toggle dashboard sidebar</span>
+                {isSidebarOpen ? <X size={isMobileDevice ? 22 : 24} className="text-gray-600 dark:text-gray-300" /> : <Menu size={isMobileDevice ? 22 : 24} className="text-gray-600 dark:text-gray-300" />}
+                <span className="sr-only">{isSidebarOpen ? "Close" : "Open"} dashboard sidebar</span>
               </button>
             )}
             
@@ -641,7 +680,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                     isTabletDevice ? 'p-2.5 min-w-[44px] min-h-[44px]' : 'p-2 min-w-[40px] min-h-[40px]'
                   }`}
                   aria-label="Learning Progress"
-                  aria-expanded={activeDropdown === 'progress'}
+                  aria-expanded={activeDropdown === 'progress' ? "true" : "false"}
                   aria-haspopup="true"
                 >
                   <div className="flex flex-col items-center">
@@ -678,7 +717,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                       : 'p-2 min-w-[40px] min-h-[40px]'
                 }`}
                 aria-label={`Notifications - ${notificationCount} unread`}
-                aria-expanded={activeDropdown === 'notifications'}
+                                  aria-expanded={activeDropdown === 'notifications' ? "true" : "false"}
                 aria-haspopup="true"
               >
                 <div className="relative flex flex-col items-center">
@@ -836,7 +875,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                     isTabletDevice ? 'p-2.5 min-w-[44px] min-h-[44px]' : 'p-2 min-w-[40px] min-h-[40px]'
                   }`}
                   aria-label="Wishlist"
-                  aria-expanded={activeDropdown === 'wishlist'}
+                  aria-expanded={activeDropdown === 'wishlist' ? "true" : "false"}
                   aria-haspopup="true"
                 >
                   <div className="relative flex flex-col items-center">
@@ -886,7 +925,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                       ? 'bg-primary-50 dark:bg-gray-700 text-primary-600 dark:text-white border-primary-200 dark:border-gray-600' 
                       : 'bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-white border-gray-200 dark:border-gray-700'
                   }`}
-                  aria-expanded={isDropdownOpen}
+                  aria-expanded={isDropdownOpen ? "true" : "false"}
                   aria-haspopup="true"
                 >
                   <div className="relative">
@@ -950,6 +989,13 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                               {getRoleIcon()}
                               {userRole || "User"}
                             </span>
+                          </p>
+                          {/* Last Login Information */}
+                          <p className={`text-gray-400 dark:text-gray-500 mt-1 flex items-center gap-1 ${
+                            isMobileDevice ? 'text-xs' : 'text-xs'
+                          }`}>
+                            <Clock size={12} className="text-gray-400 dark:text-gray-500" />
+                            <span>Last login: {formatLastLogin(lastLoginTime)}</span>
                           </p>
                         </div>
                       </div>

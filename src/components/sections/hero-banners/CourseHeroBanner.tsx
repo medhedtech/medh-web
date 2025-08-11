@@ -258,7 +258,7 @@ const CourseHeroBanner = memo<ICourseHeroBannerProps>(({
                 <span className={`-mt-1 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold italic tracking-wide ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>with</span>
                 <span className="inline-flex items-baseline align-baseline gpu-accelerated max-w-full overflow-x-clip">
                   <Image 
-                    src={medhLogo}
+                    src={"/src/assets/images/logo/medhLogo"}
                     alt="Medh Logo"
                     width={96}
                     height={96}

@@ -800,11 +800,6 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       icon: <HomeIcon className="w-5 h-5" />
     },
     {
-      name: "Dashboard Table",
-      path: "/dashboards/student?view=table",
-      icon: <LayoutDashboard className="w-5 h-5" />
-    },
-    {
       name: "Enrolled Courses",
       path: formatRoute("student", "enrolled-courses"),
       icon: <BookOpen className="w-5 h-5" />,
@@ -1563,12 +1558,6 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
   // Check if a menu item is active based on current path
   const isMenuActive = (item: MenuItem): boolean => {
     if (!pathname) return false;
-    
-    // Special handling for table view
-    if (item.name === "Dashboard Table") {
-      const searchParams = new URLSearchParams(window.location.search);
-      return searchParams.get('view') === 'table';
-    }
     
     if (item.path && pathname.startsWith(item.path)) {
       return true;
