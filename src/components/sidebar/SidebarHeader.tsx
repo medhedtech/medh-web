@@ -1,10 +1,10 @@
 "use client";
 
-import React from 'react';
-import Image from "next/image";
-import { Bell, Settings } from "lucide-react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { Bell, Settings } from "lucide-react";
 
 interface SidebarHeaderProps {
   logo: any;
@@ -24,11 +24,40 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({
   welcomeMessage: customWelcomeMessage
 }) => {
   const router = useRouter();
+  const [lastLoginTime, setLastLoginTime] = useState<string>("");
   
   // Create personalized welcome message if not provided
   const welcomeMessage = customWelcomeMessage || (userName 
     ? `Hello, ${userName.split(' ')[0]}` 
     : `Hello, ${(userRole || 'User').charAt(0).toUpperCase() + (userRole || 'User').slice(1)}`);
+
+  // Format last login time
+  const formatLastLogin = (timestamp: string) => {
+    if (!timestamp) return "Never";
+    
+    const date = new Date(timestamp);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  // Get last login time from localStorage
+  useEffect(() => {
+    const storedLastLogin = localStorage.getItem('lastLoginTime');
+    if (storedLastLogin) {
+      setLastLoginTime(storedLastLogin);
+    } else {
+      // Set current time as last login if not found
+      const currentTime = new Date().toISOString();
+      localStorage.setItem('lastLoginTime', currentTime);
+      setLastLoginTime(currentTime);
+    }
+  }, []);
 
   // Animation variants
   const logoVariants = {
@@ -111,6 +140,9 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap truncate text-left">
             {(userRole || 'User').charAt(0).toUpperCase() + (userRole || 'User').slice(1)} Account
+          </p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap truncate text-left mt-1">
+            Last login: {formatLastLogin(lastLoginTime)}
           </p>
         </div>
       </motion.div>

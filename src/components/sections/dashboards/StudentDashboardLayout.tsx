@@ -32,14 +32,6 @@ const StudentDashboardMain = dynamic(
   }
 );
 
-const StudentDashboardTable = dynamic(
-  () => import("@/components/layout/main/dashboards/StudentDashboardTable"), 
-  { 
-    ssr: false,
-    loading: () => <SkeletonLoader type="dashboard" />
-  }
-);
-
 const StudentProfileList = dynamic(
   () => import("@/components/layout/main/dashboards/StudentProfileList"), 
   { 
@@ -413,8 +405,8 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
   // State management
   const [currentView, setCurrentView] = useState<string>("overview");
   const [certificateUrl, setCertificateUrl] = useState<string | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false); // Always start closed on mobile/tablet
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true); // Always start open (permanent)
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(true); // Always start expanded
   const [isDebug, setIsDebug] = useState<boolean>(false);
   const [comingSoonTitle, setComingSoonTitle] = useState<string>("Coming Soon");
   const [activeMenu, setActiveMenu] = useState<string>("");
@@ -488,12 +480,13 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
       setCurrentView("overview");
     }
     
-    // Mobile/tablet specific initialization
+    // Make sidebar permanent - always start open and expanded
     if (isMobile || isTablet) {
-      setIsSidebarOpen(false); // Always start closed on mobile/tablet
-      setIsSidebarExpanded(false);
+      setIsSidebarOpen(true); // Always start open on mobile/tablet (permanent)
+      setIsSidebarExpanded(true);
     } else {
-      // Desktop behavior - start with expanded sidebar
+      // Desktop behavior - start with expanded sidebar (permanent)
+      setIsSidebarOpen(true);
       setIsSidebarExpanded(true);
     }
   }, [searchParams, isMobile, isTablet]);
@@ -614,10 +607,11 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
 
   // Toggle sidebar handler with accessibility support
   const toggleSidebar = () => {
-    // Don't set any loading state, just toggle the sidebar
+    // Toggle the sidebar open/closed state
     setIsSidebarOpen(!isSidebarOpen);
-    if ((isMobile || isTablet) && !isSidebarOpen) {
-      // When opening on mobile/tablet, always show expanded sidebar for better usability
+    
+    // If opening the sidebar, ensure it's expanded for better usability
+    if (!isSidebarOpen) {
       setIsSidebarExpanded(true);
     }
   };
@@ -685,8 +679,6 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     // Component selection based on view
     if (viewMatches(['overview', 'dashboard'])) {
       return <StudentDashboardMain />;
-    } else if (viewMatches(['table', 'dashboard-table'])) {
-      return <StudentDashboardTable userName={fullName} />;
     } else if (viewMatches(['profile-list', 'profile-list-view'])) {
       return <StudentProfileList userName={fullName} />;
     } else if (viewMatches(['allcourses', 'all-courses'])) {
@@ -738,6 +730,13 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     } else if (viewMatches(['democlasses', 'demo'])) {
       return <StudentDemoClasses />;
     } else if (viewMatches(['progress', 'analytics'])) {
+      return <StudentProgressTracking />;
+    } else if (viewMatches(['learning-analytics', 'learning', 'analytics'])) {
+      // Redirect to the dedicated learning analytics page
+      if (typeof window !== 'undefined') {
+        window.location.href = '/dashboards/student/learning-analytics';
+        return null;
+      }
       return <StudentProgressTracking />;
     } else if (viewMatches(['resource', 'materials', 'ebooks'])) {
       return <LearningResources />;
@@ -817,6 +816,7 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
           <DashboardNavbar 
             onMobileMenuToggle={toggleSidebar}
             isScrolled={false}
+            isSidebarOpen={isSidebarOpen}
           />
         </div>
         
@@ -824,8 +824,11 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
         <div className={`flex flex-1 ${isMobile || isTablet ? 'pt-16' : 'pt-16 lg:pt-20'}`}>
           {/* Desktop Sidebar */}
           {isDesktop && (
-            <div 
-              className="fixed h-full top-16 lg:top-20 transition-all duration-300 ease-in-out z-30"
+            <motion.div 
+              className="fixed h-full top-16 lg:top-20 z-30"
+              initial={{ x: 0 }}
+              animate={{ x: isSidebarOpen ? 0 : -280 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
               style={{ 
                 height: 'calc(100vh - 80px)',
                 width: isSidebarExpanded ? '280px' : '80px',
@@ -845,33 +848,17 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
                 isExpanded={isSidebarExpanded}
                 onExpandedChange={handleSidebarExpansionChange}
               />
-            </div>
+            </motion.div>
           )}
 
-          {/* Mobile/Tablet Sidebar - slide-in overlay */}
+          {/* Mobile/Tablet Sidebar - permanent sidebar */}
           {(isMobile || isTablet) && (
             <>
-              {/* Mobile backdrop overlay */}
-              <AnimatePresence>
-                {isSidebarOpen && (
-                  <motion.div
-                    key="mobile-backdrop"
-                    initial="hidden"
-                    animate="visible"
-                    exit="hidden"
-                    variants={backdropVariants}
-                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
-                    onClick={() => setIsSidebarOpen(false)}
-                    aria-hidden="true"
-                  />
-                )}
-              </AnimatePresence>
-
-              {/* Mobile sidebar */}
+              {/* Mobile sidebar - always visible when open */}
               <motion.div
-                variants={mobileSidebarVariants}
-                initial="closed"
-                animate={isSidebarOpen ? "open" : "closed"}
+                initial={{ x: 0 }}
+                animate={{ x: isSidebarOpen ? 0 : -320 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="fixed left-0 top-16 h-full w-80 max-w-[85vw] z-50"
                 style={{ height: 'calc(100vh - 64px)' }}
               >
@@ -882,11 +869,11 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
                       Navigation
                     </h2>
                     <button
-                      onClick={() => setIsSidebarOpen(false)}
+                      onClick={toggleSidebar}
                       className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800 transition-colors"
-                      aria-label="Close navigation"
+                      aria-label="Toggle navigation"
                     >
-                      <X size={20} />
+                      {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
                     </button>
                   </div>
 
@@ -913,14 +900,15 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
 
           {/* Main Content Area */}
           <motion.div 
-            className={`flex-1 overflow-y-auto scroll-smooth transition-all duration-300 ease-in-out ${
+            className={`flex-1 overflow-y-auto scroll-smooth ${
               isMobile || isTablet ? 'w-full fixed-content' : ''
             }`}
             variants={isMobile || isTablet ? mobileContentVariants : {}}
             animate={isMobile || isTablet ? (isSidebarOpen ? "sidebarOpen" : "sidebarClosed") : {}}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
             style={{
-              marginLeft: isDesktop ? (isSidebarExpanded ? "280px" : "80px") : "0px",
-              width: isDesktop ? (isSidebarExpanded ? "calc(100% - 280px)" : "calc(100% - 80px)") : "100%",
+              marginLeft: isDesktop ? (isSidebarOpen ? (isSidebarExpanded ? "280px" : "80px") : "0px") : (isSidebarOpen ? "320px" : "0px"),
+              width: isDesktop ? (isSidebarOpen ? (isSidebarExpanded ? "calc(100% - 280px)" : "calc(100% - 80px)") : "100%") : (isSidebarOpen ? "calc(100% - 320px)" : "100%"),
               position: isMobile || isTablet ? 'fixed' : 'relative',
               top: isMobile || isTablet ? '64px' : 'auto',
               left: 0,
