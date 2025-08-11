@@ -92,6 +92,8 @@ img, video, canvas, svg, iframe {
   outline: 1px solid rgba(255, 0, 0, 0.2);
 }
 
+
+
 /* Variables */
 :root {
   --blackColor: #000000;

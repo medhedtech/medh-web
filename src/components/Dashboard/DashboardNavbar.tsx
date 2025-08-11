@@ -30,7 +30,8 @@ import {
   Clock,
   Calendar,
   FileText,
-  MessageSquare
+  MessageSquare,
+  Lock
 } from "lucide-react";
 
 // APIs and hooks
@@ -971,6 +972,58 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                     </Link>
                     
 
+                    
+                    <Link
+                      href={getProfileUrl() + "?edit=true"}
+                      className={`flex items-center gap-3 w-full text-left rounded-lg text-gray-700 hover:bg-purple-50 hover:text-purple-700 active:bg-purple-100 dark:text-gray-300 dark:hover:bg-gray-700/50 dark:hover:text-white transition-colors duration-150 ${
+                        isMobileDevice || isTabletDevice ? 'px-3 py-3 text-sm min-h-[48px]' : 'px-3 py-2 text-sm'
+                      }`}
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <div className="p-1.5 rounded-md bg-purple-50 dark:bg-purple-900/20">
+                        <Settings size={DROPDOWN_ICON_SIZE} className="text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <span>Edit Profile</span>
+                    </Link>
+                    
+                    <Link
+                      href={getProfileUrl() + "#security"}
+                      className={`flex items-center gap-3 w-full text-left rounded-lg text-gray-700 hover:bg-orange-50 hover:text-orange-700 active:bg-orange-100 dark:text-gray-300 dark:hover:bg-gray-700/50 dark:hover:text-white transition-colors duration-150 ${
+                        isMobileDevice || isTabletDevice ? 'px-3 py-3 text-sm min-h-[48px]' : 'px-3 py-2 text-sm'
+                      }`}
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <div className="p-1.5 rounded-md bg-orange-50 dark:bg-orange-900/20">
+                        <Lock size={DROPDOWN_ICON_SIZE} className="text-orange-600 dark:text-orange-400" />
+                      </div>
+                      <span>Change Password</span>
+                    </Link>
+                    
+                    <Link
+                      href={getDashboardUrl() + "/wishlist"}
+                      className={`flex items-center gap-3 w-full text-left rounded-lg text-gray-700 hover:bg-pink-50 hover:text-pink-700 active:bg-pink-100 dark:text-gray-300 dark:hover:bg-gray-700/50 dark:hover:text-white transition-colors duration-150 ${
+                        isMobileDevice || isTabletDevice ? 'px-3 py-3 text-sm min-h-[48px]' : 'px-3 py-2 text-sm'
+                      }`}
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <div className="p-1.5 rounded-md bg-pink-50 dark:bg-pink-900/20">
+                        <Heart size={DROPDOWN_ICON_SIZE} className="text-pink-600 dark:text-pink-400" />
+                      </div>
+                      <span>My Wishlist</span>
+                    </Link>
+                    
+                    <Link
+                      href={getDashboardUrl() + "/live-chat"}
+                      className={`flex items-center gap-3 w-full text-left rounded-lg text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 active:bg-indigo-100 dark:text-gray-300 dark:hover:bg-gray-700/50 dark:hover:text-white transition-colors duration-150 ${
+                        isMobileDevice || isTabletDevice ? 'px-3 py-3 text-sm min-h-[48px]' : 'px-3 py-2 text-sm'
+                      }`}
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <div className="p-1.5 rounded-md bg-indigo-50 dark:bg-indigo-900/20">
+                        <MessageSquare size={DROPDOWN_ICON_SIZE} className="text-indigo-600 dark:text-indigo-400" />
+                      </div>
+                      <span>Live Chat</span>
+                    </Link>
                   </div>
                   
                   {/* Logout Section */}

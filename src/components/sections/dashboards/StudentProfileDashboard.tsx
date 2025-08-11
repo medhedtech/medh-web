@@ -365,6 +365,10 @@ const StudentProfileDashboard: React.FC = () => {
                             <Calendar className="w-4 h-4" />
                             Joined {formatDate(state.profile?.created_at)}
                           </div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            Last login {formatDate(state.profile?.last_seen)}
+                          </div>
                           {(state.profile as any)?.is_online && (
                             <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
                               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
@@ -422,9 +426,9 @@ const StudentProfileDashboard: React.FC = () => {
                   textColor: 'text-purple-600 dark:text-purple-400'
                 },
                 {
-                  icon: Flame,
-                  label: 'Day Streak',
-                  value: (state.statistics?.engagement as any)?.current_streak || 0,
+                  icon: Activity,
+                  label: 'Last Login',
+                  value: formatDate(state.profile?.last_seen) || 'Never',
                   color: 'orange',
                   bgColor: 'bg-orange-100 dark:bg-orange-900/30',
                   textColor: 'text-orange-600 dark:text-orange-400'

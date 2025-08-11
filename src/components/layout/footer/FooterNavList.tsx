@@ -22,6 +22,8 @@ import { courseTypesAPI } from "@/apis/courses";
 import LogoDark from "@/assets/images/logo/medh_logo-1.png";
 import LogoLight from "@/assets/images/logo/medh_logo-2.png";
 import QRCode from "@/assets/images/footer/qr.png";
+import ISO9001 from "@/assets/images/iso/iso9001.png";
+import STEMCert from "/public/images/certifications/stem-accredited.png";
 
 // Allowed categories for blended courses
 const allowedCategories = [
@@ -95,11 +97,31 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
             const coursesArray = coursesData.coursesByCategory[categoryKey] || [];
             const courses = coursesArray as any[];
             
+            // Filter out 2 items from "Language & Linguistic" category and add 2 more courses with 3 points each
+            let filteredCourses = courses;
+            if (categoryKey === "Language & Linguistic") {
+              if (courses.length > 2) {
+                filteredCourses = courses.slice(2); // Remove first 2 items
+              }
+              // Add 2 more courses
+              const additionalCourses = [
+                {
+                  course_title: "English Speaking Course",
+                  _id: "lang-english-001"
+                },
+                {
+                  course_title: "Business Communication",
+                  _id: "lang-business-002"
+                }
+              ];
+              filteredCourses = [...filteredCourses, ...additionalCourses];
+            }
+            
             const categoryItem: INavItem = {
               name: categoryKey,
               path: `/courses?category=${encodeURIComponent(categoryKey)}`,
-              children: Array.isArray(courses) && courses.length > 0 
-                ? courses.slice(0, 6).map((course: any) => ({
+              children: Array.isArray(filteredCourses) && filteredCourses.length > 0 
+                ? filteredCourses.slice(0, categoryKey === "Language & Linguistic" ? 3 : 6).map((course: any) => ({
                     name: course.course_title || 'Untitled Course',
                     path: `/course-details/${course._id}`
                   }))
@@ -148,6 +170,13 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
   // Navigation sections - Site Map Structure
   const navigationSections: INavSection[] = [
     {
+      title: "Certifications",
+      items: [
+        { name: "ISO 9001 Certified", path: "#" },
+        { name: "STEM Accredited", path: "#" },
+      ]
+    },
+    {
       title: "Company",
       items: [
         { name: "About Us", path: "/about-us" },
@@ -161,15 +190,17 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
       items: [
         { name: "As an Educator", path: "/join-us-as-educator" },
         { name: "As a School/Institute", path: "/join-us-as-school-institute" },
-        { name: "Careers at Medh", path: "/careers" },
+        { name: "Careers@Medh", path: "/careers" },
+        { name: "Medh Membership", path: "/medh-membership" },
       ]
     },
     {
       title: "Services",
       items: [
         { name: "Corporate Training", path: "/corporate-training-courses" },
-        { name: "Medh Membership", path: "/medh-membership" },
         { name: "Hire from Medh", path: "/hire-from-medh" },
+        { name: "100% Job Guaranteed Courses", path: "/placement-guaranteed-courses" },
+        { name: "Book A Demo", path: "/book-demo" },
       ]
     },
     {
@@ -196,14 +227,17 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                   (a.children?.length || 0) - (b.children?.length || 0)
                 );
                 
+                // Remove 2 courses from blended courses display
+                const filteredCourses = sortedCourses.slice(2);
+                
                 // Split into 4 columns
-                const itemsPerColumn = Math.ceil(sortedCourses.length / 4);
+                const itemsPerColumn = Math.ceil(filteredCourses.length / 4);
                 const columns = [];
                 
                 for (let i = 0; i < 4; i++) {
                   const start = i * itemsPerColumn;
                   const end = start + itemsPerColumn;
-                  const columnItems = sortedCourses.slice(start, end);
+                  const columnItems = filteredCourses.slice(start, end);
                   
                   if (columnItems.length > 0) {
                     columns.push({
@@ -235,7 +269,8 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
     { name: "Terms of Use", path: "/terms-and-services" },
     { name: "Privacy Policy", path: "/privacy-policy" },
     { name: "Cookie Policy", path: "/cookie-policy" },
-    { name: "Refund Policy", path: "/cancellation-and-refund-policy" }
+    { name: "Cancellation & Refund Policy", path: "/cancellation-and-refund-policy" },
+    { name: "Data Subject Rights Information Policy", path: "/data-subject-rights-information-policy" }
   ];
 
   // Theme-aware styling - Improved dark mode colors
@@ -292,28 +327,63 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
       <div className="absolute -top-16 left-1/4 w-20 h-20 bg-gradient-radial from-blue-300/20 via-indigo-400/10 to-transparent rounded-full blur-xl animate-pulse delay-100 gpu-accelerated"></div>
       <div className="absolute -bottom-8 right-1/3 w-24 h-24 bg-gradient-radial from-violet-300/18 via-purple-400/9 to-transparent rounded-full blur-xl animate-pulse delay-900 gpu-accelerated"></div>
       
-      {/* Navigation Sections - Original 3 Column Layout */}
+      {/* Navigation Sections - 4 Column Layout */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 prevent-shift">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 grid-no-shift">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 grid-no-shift">
           {navigationSections.map((section, index) => {
             if (section.title === "Learning") return null;
             
             return (
               <div key={index} className="flex-no-shift">
                 <h2 className={`text-xl font-bold ${currentTheme.titleText} mb-6`}>{section.title}</h2>
-                <ul className="space-y-4">
-                  {section.items.map((item, itemIndex) => (
-                    <li key={itemIndex} className="flex-no-shift">
-                      <Link 
-                        href={item.path}
-                        className={`text-base ${currentTheme.bodyText} ${currentTheme.contactText} transition-colors flex items-center gap-3`}
-                      >
-                        {item.name}
-                        <ExternalLink className="w-4 h-4 opacity-0 hover:opacity-100 transition-opacity" />
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                
+                {/* Special handling for Certifications section */}
+                {section.title === "Certifications" ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="relative bg-white rounded-lg p-2 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 flex-shrink-0">
+                        <Image 
+                          src={ISO9001} 
+                          alt="ISO 9001 Certified" 
+                          width={60}
+                          height={45}
+                          className="object-contain w-15 h-11"
+                        />
+                      </div>
+                      <span className={`text-sm ${currentTheme.bodyText} font-medium`}>ISO 9001 Certified</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="relative bg-white rounded-lg p-2 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 flex-shrink-0">
+                        <Image 
+                          src={STEMCert} 
+                          alt="STEM Accredited" 
+                          width={60}
+                          height={45}
+                          className="object-contain w-15 h-11"
+                        />
+                      </div>
+                      <span className={`text-sm ${currentTheme.bodyText} font-medium`}>STEM Accredited</span>
+                    </div>
+                  </div>
+                ) : (
+                  <ul className="space-y-4">
+                    {section.items.map((item, itemIndex) => (
+                      <li key={itemIndex} className="flex-no-shift">
+                        <Link 
+                          href={item.path}
+                          className={`text-base transition-colors flex items-center gap-3 ${
+                            section.title === "Services" && item.name !== "Corporate Training"
+                              ? "text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                              : `${currentTheme.bodyText} ${currentTheme.contactText}`
+                          }`}
+                        >
+                          {item.name}
+                          <ExternalLink className="w-4 h-4 opacity-0 hover:opacity-100 transition-opacity" />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             );
           })}
@@ -351,7 +421,7 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                               <div key={categoryIndex} className="space-y-3">
                                 <Link 
                                   href={category.path}
-                                  className={`${currentTheme.bodyText} ${currentTheme.contactText} transition-colors text-base font-semibold block py-2 leading-tight border-b ${currentTheme.learningBorder} pb-1`}
+                                  className={`${currentTheme.bodyText} ${currentTheme.contactText} transition-colors text-base font-semibold block py-2 leading-tight border-b ${currentTheme.learningBorder} pb-1 truncate`}
                                 >
                                   {category.name}
                                 </Link>
@@ -364,7 +434,7 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                                           className={`${theme === 'light' ? 'text-gray-500 hover:text-gray-700' : 'text-gray-500 hover:text-gray-300'} transition-colors text-sm flex items-start gap-2 py-1 leading-relaxed`}
                                         >
                                           <span className={`w-1 h-1 ${theme === 'light' ? 'bg-gray-400' : 'bg-gray-500'} rounded-full flex-shrink-0 mt-2`}></span>
-                                          <span className="break-words hyphens-auto">{course.name}</span>
+                                          <span className="truncate">{course.name}</span>
                                         </Link>
                                       </li>
                                     ))}
@@ -385,9 +455,8 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                         <Link 
                           key={childIndex}
                           href={child.path}
-                          className={`${currentTheme.linkText} transition-colors text-base flex items-center gap-3 py-2 px-4 ${currentTheme.learningBg} rounded-lg hover:${theme === 'light' ? 'bg-gray-400' : 'bg-slate-700'}`}
+                          className={`${currentTheme.linkText} transition-colors text-base flex items-center gap-3 py-2 px-4 rounded-lg hover:${theme === 'light' ? 'bg-gray-100' : 'bg-slate-800'}`}
                         >
-                          <span className="w-2 h-2 bg-primary-400 rounded-full flex-shrink-0"></span>
                           {child.name}
                         </Link>
                       ))}
@@ -461,7 +530,7 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                         className="group flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-base font-medium"
                       >
                         <Phone className="w-4 h-4" />
-                        +91 7710840696
+                        +91 77108 40696
                       </a>
                       <a 
                         href="https://mail.google.com/mail/?view=cm&fs=1&to=care@medh.co&su=Contact from Medh Website"
@@ -507,25 +576,25 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
       <div className="relative z-10 mt-12">
         <div className={`border-t ${currentTheme.navBorder}`}></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex flex-col space-y-4 lg:space-y-0 lg:flex-row lg:justify-between lg:items-center w-full">
             
-            {/* Policy Links - Enhanced */}
-            <div className="flex flex-wrap justify-center md:justify-start gap-4">
+            {/* Policy Links - Enhanced with better mobile responsiveness */}
+            <div className="flex flex-wrap justify-center lg:justify-start gap-1 md:gap-2 lg:gap-3 w-full lg:w-auto">
               {policyLinks.map((link, index) => (
                 <Link
                   key={index}
                   href={link.path}
-                  className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium px-3 py-1 rounded-lg hover:bg-white/20 dark:hover:bg-slate-700/20"
+                  className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-xs md:text-sm font-medium px-1 md:px-2 lg:px-3 py-1 rounded-lg hover:bg-white/20 dark:hover:bg-slate-700/20 whitespace-nowrap flex-shrink-0"
                 >
                   {link.name}
                 </Link>
               ))}
             </div>
 
-            {/* Social Media - Enhanced */}
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">Follow us:</span>
-              <div className="flex gap-3">
+            {/* Social Media - Enhanced with better mobile responsiveness */}
+            <div className="flex items-center justify-center lg:justify-end gap-2 md:gap-3 lg:gap-4 w-full lg:w-auto">
+              <span className="text-xs md:text-sm text-slate-700 dark:text-slate-300 font-medium whitespace-nowrap flex-shrink-0">Follow us:</span>
+              <div className="flex gap-1 md:gap-2 lg:gap-3">
                 {socialLinks.map((link, index) => {
                   const IconComponent = link.icon;
                   return (
@@ -535,9 +604,9 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={`Visit our ${link.name} page`}
-                      className="group w-10 h-10 flex items-center justify-center rounded-xl bg-white/20 dark:bg-slate-700/20 hover:bg-blue-500/80 dark:hover:bg-blue-500/80 text-slate-600 dark:text-slate-400 hover:text-white transition-all duration-200 hover:scale-110 hover:-translate-y-1 backdrop-blur-sm border border-white/20 dark:border-slate-600/20"
+                      className="group w-7 h-7 md:w-8 md:h-8 lg:w-10 lg:h-10 flex items-center justify-center rounded-xl bg-white/20 dark:bg-slate-700/20 hover:bg-blue-500/80 dark:hover:bg-blue-500/80 text-slate-600 dark:text-slate-400 hover:text-white transition-all duration-200 hover:scale-110 hover:-translate-y-1 backdrop-blur-sm border border-white/20 dark:border-slate-600/20 flex-shrink-0"
                     >
-                      <IconComponent className="w-5 h-5" />
+                      <IconComponent className="w-3 h-3 md:w-4 md:h-4 lg:w-5 lg:h-5" />
                     </a>
                   );
                 })}
@@ -559,7 +628,7 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                   LEARN. UPSKILL. ELEVATE.
                 </p>
                 <p className={`${currentTheme.bodyText} text-xs`}>
-                  All trademarks and logos appearing on this website are the property of their respective owners.
+                  All trademarks and logos displayed on this website remain the intellectual property of their respective owners. Any reproduction of photos, videos, course materials, or other content, whether in full or partial form and across any medium, requires explicit written consent from medh.co. Unauthorized use is prohibited.
                 </p>
               </div>
             </div>

@@ -311,7 +311,7 @@ const HeroMobile = memo<{
               
               {/* Description */}
               <p className={descriptionClasses}>
-                Join our expert-led courses and master the skills that drive industry innovation globally.
+                Expert-led skill development for personal growth and career advancement, tailored for learners at any life stage.
               </p>
               
               {/* Category Chips - Simplified */}
@@ -612,7 +612,7 @@ const Hero2: React.FC<{ isCompact?: boolean }> = memo(({ isCompact = false }) =>
               </h1>
                 
               <p className={desktopDescriptionClasses}>
-                Join our expert-led courses and master the skills that drive industry innovation globally.
+                Expert-led skill development for personal growth and career advancement, tailored for learners at any life stage.
               </p>
 
               {/* Category Chips - Desktop - Simplified */}

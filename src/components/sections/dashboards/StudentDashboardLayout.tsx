@@ -4,7 +4,7 @@ import React, { useState, useEffect, useContext, createContext, useMemo, useCall
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams, useRouter } from "next/navigation";
-import { ChevronDown, ChevronRight, MoreHorizontal, Menu, X, LogOut, Home, ArrowLeft } from "lucide-react";
+import { ChevronDown, ChevronRight, MoreHorizontal, Menu, X, LogOut, Home, ArrowLeft, ExternalLink } from "lucide-react";
 import Cookies from 'js-cookie';
 
 // Component imports
@@ -29,6 +29,22 @@ const StudentDashboardMain = dynamic(
   { 
     ssr: false,
     loading: () => <SkeletonLoader type="dashboard" />
+  }
+);
+
+const StudentDashboardTable = dynamic(
+  () => import("@/components/layout/main/dashboards/StudentDashboardTable"), 
+  { 
+    ssr: false,
+    loading: () => <SkeletonLoader type="dashboard" />
+  }
+);
+
+const StudentProfileList = dynamic(
+  () => import("@/components/layout/main/dashboards/StudentProfileList"), 
+  { 
+    ssr: false,
+    loading: () => <SkeletonLoader type="profile" />
   }
 );
 
@@ -405,6 +421,7 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
   const [subItems, setSubItems] = useState<SubItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [contentPadding, setContentPadding] = useState<string>("0px");
+  const [showCloseConfirmation, setShowCloseConfirmation] = useState<boolean>(false);
   
   // Handle URL parameters and adjust sidebar based on screen size
   useEffect(() => {
@@ -415,6 +432,19 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     if (title) {
       setComingSoonTitle(title);
       setCurrentView("comingsoon");
+      return;
+    }
+    
+    // Check for table view parameter
+    const view = searchParams?.get('view');
+    if (view === 'table') {
+      setCurrentView("table");
+      return;
+    }
+    
+    // Check for profile list view parameter
+    if (view === 'profile-list') {
+      setCurrentView("profile-list");
       return;
     }
     
@@ -463,8 +493,8 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
       setIsSidebarOpen(false); // Always start closed on mobile/tablet
       setIsSidebarExpanded(false);
     } else {
-      // Desktop behavior remains the same
-      setIsSidebarExpanded(false);
+      // Desktop behavior - start with expanded sidebar
+      setIsSidebarExpanded(true);
     }
   }, [searchParams, isMobile, isTablet]);
 
@@ -592,6 +622,29 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     }
   };
 
+  // Handle close dashboard
+  const handleCloseDashboard = () => {
+    setShowCloseConfirmation(true);
+  };
+
+  const confirmCloseDashboard = () => {
+    // Save current dashboard state to localStorage for potential return
+    const dashboardState = {
+      currentView,
+      activeMenu,
+      isSidebarExpanded,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('dashboardState', JSON.stringify(dashboardState));
+    
+    // Redirect to main site
+    router.push('/');
+  };
+
+  const cancelCloseDashboard = () => {
+    setShowCloseConfirmation(false);
+  };
+
   // Component renderer with error boundary - without re-rendering on sidebar toggle
   const DashboardComponent = () => {
     if (isLoading) {
@@ -632,6 +685,10 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
     // Component selection based on view
     if (viewMatches(['overview', 'dashboard'])) {
       return <StudentDashboardMain />;
+    } else if (viewMatches(['table', 'dashboard-table'])) {
+      return <StudentDashboardTable userName={fullName} />;
+    } else if (viewMatches(['profile-list', 'profile-list-view'])) {
+      return <StudentProfileList userName={fullName} />;
     } else if (viewMatches(['allcourses', 'all-courses'])) {
       return <AllCoursesMain />;
     } else if (viewMatches(['completedcourses', 'completed-courses', 'completed'])) {
@@ -765,13 +822,14 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
         
         {/* Main layout container */}
         <div className={`flex flex-1 ${isMobile || isTablet ? 'pt-16' : 'pt-16 lg:pt-20'}`}>
-          {/* Desktop Sidebar - unchanged */}
+          {/* Desktop Sidebar */}
           {isDesktop && (
             <div 
-              className="fixed h-full top-16 lg:top-20 transition-[width] duration-300 ease-in-out z-30"
+              className="fixed h-full top-16 lg:top-20 transition-all duration-300 ease-in-out z-30"
               style={{ 
                 height: 'calc(100vh - 80px)',
-                width: isSidebarExpanded ? '260px' : '78px',
+                width: isSidebarExpanded ? '280px' : '80px',
+                left: 0,
               }}
             >
               <SidebarDashboard
@@ -861,17 +919,18 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
             variants={isMobile || isTablet ? mobileContentVariants : {}}
             animate={isMobile || isTablet ? (isSidebarOpen ? "sidebarOpen" : "sidebarClosed") : {}}
             style={{
-              marginLeft: isDesktop ? (isSidebarExpanded ? "270px" : "88px") : "0px",
-              width: isDesktop ? (isSidebarExpanded ? "calc(100% - 270px)" : "calc(100% - 88px)") : "100%",
+              marginLeft: isDesktop ? (isSidebarExpanded ? "280px" : "80px") : "0px",
+              width: isDesktop ? (isSidebarExpanded ? "calc(100% - 280px)" : "calc(100% - 80px)") : "100%",
               position: isMobile || isTablet ? 'fixed' : 'relative',
               top: isMobile || isTablet ? '64px' : 'auto',
               left: 0,
               right: 0,
               bottom: 0,
+              minHeight: isDesktop ? 'calc(100vh - 80px)' : 'auto',
             }}
           >
             {/* Content with responsive padding */}
-            <div className={`${isMobile ? 'p-3 pb-20' : isTablet ? 'p-4 pb-6' : 'p-4 md:p-6'}`}>
+            <div className={`${isMobile ? 'p-3 pb-20' : isTablet ? 'p-4 pb-6' : 'p-6 lg:p-8'}`}>
               {/* Debug info */}
               {isDebug && (
                 <div className="mb-4 p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 rounded-lg text-xs">
@@ -909,20 +968,120 @@ const StudentDashboardLayout: React.FC<StudentDashboardLayoutProps> = ({
           </motion.div>
         </div>
 
-        {/* Desktop logout button - only show on desktop */}
+        {/* Desktop action buttons - Close Dashboard and Logout */}
         {isDesktop && (
-          <motion.button
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={handleLogout}
-            className="fixed z-40 bottom-6 right-6 p-3 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
-            aria-label="Logout"
-          >
-            <LogOut size={20} />
-          </motion.button>
+          <div className="fixed z-40 bottom-6 right-6 flex flex-col gap-3">
+            {/* Close Dashboard Button */}
+            <motion.button
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={handleCloseDashboard}
+              className="p-3 rounded-full bg-gray-500 hover:bg-gray-600 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200"
+              aria-label="Close Dashboard"
+              title="Close Dashboard"
+            >
+              <ExternalLink size={20} />
+            </motion.button>
+
+            {/* Logout Button */}
+            <motion.button
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={handleLogout}
+              className="p-3 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200"
+              aria-label="Logout"
+              title="Logout"
+            >
+              <LogOut size={20} />
+            </motion.button>
+          </div>
         )}
+
+        {/* Mobile action buttons */}
+        {(isMobile || isTablet) && (
+          <div className="fixed z-40 bottom-6 right-6 flex flex-col gap-3">
+            {/* Close Dashboard Button */}
+            <motion.button
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={handleCloseDashboard}
+              className="p-3 rounded-full bg-gray-500 hover:bg-gray-600 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200"
+              aria-label="Close Dashboard"
+              title="Close Dashboard"
+            >
+              <ExternalLink size={20} />
+            </motion.button>
+
+            {/* Logout Button */}
+            <motion.button
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={handleLogout}
+              className="p-3 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200"
+              aria-label="Logout"
+              title="Logout"
+            >
+              <LogOut size={20} />
+            </motion.button>
+          </div>
+        )}
+
+        {/* Close Confirmation Modal */}
+        <AnimatePresence>
+          {showCloseConfirmation && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={cancelCloseDashboard}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                    <ExternalLink className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Close Dashboard
+                  </h3>
+                </div>
+                
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  Are you sure you want to close the dashboard and return to the main site? Your current progress will be saved.
+                </p>
+                
+                <div className="flex gap-3">
+                  <button
+                    onClick={cancelCloseDashboard}
+                    className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg font-medium transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmCloseDashboard}
+                    className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+                  >
+                    Close Dashboard
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </DashboardContext.Provider>
   );

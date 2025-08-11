@@ -1,4 +1,5 @@
 import { apiBaseUrl, apiUtils } from './utils';
+import { apiUrls } from './index';
 import axios from 'axios';
 import { getAuthToken } from '@/utils/auth';
 

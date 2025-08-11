@@ -7,6 +7,8 @@ import dynamic from 'next/dynamic';
 const ZoomComponent = dynamic(() => import('@/components/zoom/ZoomComponent'), {
   ssr: false,
   loading: () => <div>Loading Zoom...</div>
+
+
 });
 
 interface LiveClassProps {
