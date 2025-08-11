@@ -942,6 +942,36 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
     }
   }, [activeTab]);
 
+  // Handle URL hash navigation
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash === 'security') {
+        setActiveTab('security');
+        // Scroll to security section after a small delay to ensure tab is rendered
+        setTimeout(() => {
+          const securitySection = document.getElementById('security-section');
+          if (securitySection) {
+            securitySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      }
+    };
+
+    // Check hash on component mount with a small delay
+    const timer = setTimeout(() => {
+      handleHashChange();
+    }, 200);
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+    
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
+
   // Close mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -2181,6 +2211,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
             {activeTab === 'security' && (
               <motion.div
                 key="security"
+                id="security-section"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}

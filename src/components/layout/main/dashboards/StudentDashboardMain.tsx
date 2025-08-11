@@ -141,6 +141,13 @@ const StudyGoals: React.FC = () => {
         const response = await fetch(`${apiConfig.apiUrl}${endpoints.goals.getAllGoals(studentId)}`);
         
         if (!response.ok) {
+          // Handle 404 gracefully - goals feature might not be implemented yet
+          if (response.status === 404) {
+            console.warn('Goals API endpoint not implemented yet. Using empty state.');
+            setGoals([]);
+            setLoading(false);
+            return;
+          }
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
@@ -168,7 +175,10 @@ const StudyGoals: React.FC = () => {
         setGoals(transformedGoals);
       } catch (error) {
         console.error('Error fetching goals:', error);
-        // Don't show as error, just show empty state
+        // Handle 404 and other errors gracefully - show empty state instead of error
+        if (error instanceof Error && error.message.includes('404')) {
+          console.warn('Goals API endpoint not implemented yet. Using empty state.');
+        }
         setError(null);
         setGoals([]); // Clear goals on error
       } finally {

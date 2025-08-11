@@ -1,0 +1,5 @@
+[33mf2ae6c80[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mDevlopment[m[33m)[m Improve the home page
+[33mdeaea38e[m fix(build): add placeholder components to resolve module not found errors
+[33m77a79622[m Refactor dashboard components and implement new Wishlist functionality
+[33m899e680e[m Enhance next.config.js with environment variable injection and code simplification
+[33md8ff1556[m Add health check API and image optimization routes; remove course card settings context

@@ -23,11 +23,7 @@ import {
   Github,
   Globe,
   GraduationCap,
-  BookOpen,
-  Award,
-  Plus,
   X,
-  Trash2,
   Link as LinkIcon
 } from "lucide-react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
@@ -233,7 +229,6 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'basic' | 'social' | 'education'>('basic');
-  const [newSkill, setNewSkill] = useState<string>('');
 
   const { getQuery } = useGetQuery();
   const { postQuery } = usePostQuery();
@@ -253,13 +248,6 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
       certifications: []
     }
   });
-
-  const { fields: certificationFields, append: appendCertification, remove: removeCertification } = useFieldArray({
-    control,
-    name: "certifications"
-  });
-
-  const watchedSkills = watch("skills") || [];
 
   // Initialize component
   useEffect(() => {
@@ -409,31 +397,6 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
     }
   };
 
-  // Handle adding skills
-  const handleAddSkill = () => {
-    if (newSkill.trim() && !watchedSkills.includes(newSkill.trim())) {
-      const currentSkills = watchedSkills;
-      setValue("skills", [...currentSkills, newSkill.trim()]);
-      setNewSkill('');
-    }
-  };
-
-  // Handle removing skills
-  const handleRemoveSkill = (skillToRemove: string) => {
-    const currentSkills = watchedSkills;
-    setValue("skills", currentSkills.filter(skill => skill !== skillToRemove));
-  };
-
-  // Handle adding certification
-  const handleAddCertification = () => {
-    appendCertification({
-      name: '',
-      issuer: '',
-      year: new Date().getFullYear(),
-      url: ''
-    });
-  };
-
   if (!profileData) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -462,7 +425,7 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           <div className="text-right">
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Profile Completion</p>
             <div className="flex items-center gap-2">
@@ -475,6 +438,15 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
               <span className="text-xs text-gray-500">75%</span>
             </div>
           </div>
+          
+          {/* Close Button */}
+          <button
+            onClick={onBackClick}
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Close edit profile"
+          >
+            <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          </button>
         </div>
       </div>
 
@@ -833,165 +805,12 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
                   </div>
                 </div>
               </div>
-
-              {/* Skills Section */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                    <BookOpen className="w-5 h-5" />
-                    Skills
-                  </h3>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={newSkill}
-                      onChange={(e) => setNewSkill(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddSkill())}
-                      className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                      placeholder="Add a skill..."
-                    />
-                    <button
-                      type="button"
-                      onClick={handleAddSkill}
-                      className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors flex items-center gap-1"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add
-                    </button>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    {watchedSkills.map((skill, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full text-sm"
-                      >
-                        {skill}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveSkill(skill)}
-                          className="ml-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Certifications Section */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                    <Award className="w-5 h-5" />
-                    Certifications
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={handleAddCertification}
-                    className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors flex items-center gap-1"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Certification
-                  </button>
-                </div>
-
-                <div className="space-y-4">
-                  {certificationFields.map((field, index) => (
-                    <div key={field.id} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-gray-900 dark:text-white">
-                          Certification #{index + 1}
-                        </h4>
-                        <button
-                          type="button"
-                          onClick={() => removeCertification(index)}
-                          className="p-1 text-red-500 hover:text-red-700 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Certification Name *
-                          </label>
-                          <input
-                            {...register(`certifications.${index}.name`)}
-                            type="text"
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                            placeholder="e.g., AWS Certified Developer"
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Issuing Organization *
-                          </label>
-                          <input
-                            {...register(`certifications.${index}.issuer`)}
-                            type="text"
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                            placeholder="e.g., Amazon Web Services"
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Year Obtained *
-                          </label>
-                          <input
-                            {...register(`certifications.${index}.year`)}
-                            type="number"
-                            min="1950"
-                            max={new Date().getFullYear()}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                            placeholder={new Date().getFullYear().toString()}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Certificate URL (Optional)
-                          </label>
-                          <input
-                            {...register(`certifications.${index}.url`)}
-                            type="url"
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                            placeholder="https://certificate-url.com"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {certificationFields.length === 0 && (
-                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                      <Award className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                      <p>No certifications added yet.</p>
-                      <p className="text-sm">Click "Add Certification" to get started.</p>
-                    </div>
-                  )}
-                </div>
-              </div>
             </motion.div>
           )}
         </AnimatePresence>
 
         {/* Submit Button */}
         <div className="flex items-center justify-end gap-4 pt-8 mt-8 border-t border-gray-200 dark:border-gray-700">
-          <button
-            type="button"
-            onClick={onBackClick}
-            className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-          >
-            Cancel
-          </button>
           <button
             type="submit"
             disabled={loading || isSubmitting}
