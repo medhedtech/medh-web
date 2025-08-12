@@ -357,6 +357,7 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                         <Image 
                           src={STEMCert} 
                           alt="STEM Accredited" 
+                          
                           width={60}
                           height={45}
                           className="object-contain w-15 h-11"

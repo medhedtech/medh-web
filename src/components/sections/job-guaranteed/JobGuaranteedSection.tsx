@@ -76,10 +76,8 @@ const StatCard = memo<{
   }, [isDark]);
 
   const iconWithClasses = useMemo(() => {
-    return React.cloneElement(stat.icon as React.ReactElement, {
-      className: `w-4 h-4 ${iconClasses}`
-    });
-  }, [stat.icon, iconClasses]);
+    return stat.icon;
+  }, [stat.icon]);
 
   return (
     <div 
@@ -243,7 +241,19 @@ const JobGuaranteedSection = memo<IJobGuaranteedProps>(({
                   className="rounded-lg object-contain max-w-full h-auto"
                   style={{ width: 'auto' }}
                   priority
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    // Show fallback text
+                    const fallback = target.parentElement?.querySelector('.placement-fallback') as HTMLElement;
+                    if (fallback) fallback.style.display = 'block';
+                  }}
                 />
+                {/* Fallback text for placement logo */}
+                <div className="placement-fallback hidden text-center">
+                  <div className="text-4xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">100%</div>
+                  <div className="text-lg font-semibold text-gray-700 dark:text-gray-300">Job Guarantee</div>
+                </div>
               </div>
             </div>
 
@@ -266,7 +276,16 @@ const JobGuaranteedSection = memo<IJobGuaranteedProps>(({
                     verticalAlign: 'baseline',
                     width: 'auto'
                   }}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    // Show fallback text
+                    const fallback = target.parentElement?.querySelector('.medh-logo-fallback') as HTMLElement;
+                    if (fallback) fallback.style.display = 'inline';
+                  }}
                 />
+                {/* Fallback text for Medh logo */}
+                <span className="medh-logo-fallback hidden font-bold text-emerald-600 dark:text-emerald-400 mx-1">MEDH</span>
               </span>.
             </h2>
 
