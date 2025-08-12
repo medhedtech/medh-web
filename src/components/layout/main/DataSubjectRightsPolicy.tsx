@@ -1,6 +1,6 @@
 import React from "react";
 
-const DataSubjectRightsPolicy = () => {
+const DataSubjectRightsPolicy: React.FC = () => {
   return (
     <div className="flex flex-col items-center px-4 py-8 bg-gray-100 dark:bg-screen-dark">
       <div className="max-w-4xl w-ful bg">
@@ -104,69 +104,51 @@ const DataSubjectRightsPolicy = () => {
               How to Exercise Your Rights
             </h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-              If you wish to exercise any of these rights, please contact us using one of the following methods:
+              To exercise any of these rights, please contact us:
             </p>
             <ul className="list-disc pl-5 text-gray-700 dark:text-gray-300 space-y-2 leading-relaxed">
-              <li>
-                <strong>Email:</strong>{" "}
-                <a
-                  href="mailto:privacy@medh.co"
-                  className="text-[#7ECA9D] hover:text-[#5DB382] transition-colors duration-200"
-                >
-                  privacy@medh.co
-                </a>
-              </li>
-              <li>
-                <strong>Online Form:</strong> Available in your account dashboard under "Privacy Settings"
-              </li>
-              <li>
-                <strong>Postal Mail:</strong> MEDH Data Protection Officer, [Company Address]
-              </li>
+              <li>Email: privacy@medh.co</li>
+              <li>Phone: +91 77108 40696</li>
+              <li>Address: MEDH, [Your Address]</li>
             </ul>
-            <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">When contacting us, please:</h4>
-              <ol className="list-decimal pl-5 text-gray-700 dark:text-gray-300 space-y-1">
-                <li>Clearly state which right(s) you wish to exercise</li>
-                <li>Provide sufficient information for us to verify your identity</li>
-                <li>Include any details that will help us respond to your request</li>
-              </ol>
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed mt-4">
+              We will respond to your request within 30 days. In some cases, we may need additional time to process your request, and we will notify you if this is necessary.
+            </p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Right to Lodge a Complaint
+            </h2>
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+              If you believe that we have not properly addressed your rights or if you have concerns about how we process your personal data, you have the right to lodge a complaint with your local data protection authority.
+            </p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Updates to This Policy
+            </h2>
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+              We may update this Data Subject Rights Information Policy from time to time to reflect changes in our practices or applicable laws. We will notify you of any material changes by posting the updated policy on our website.
+            </p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Contact Information
+            </h2>
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+              If you have any questions about your data rights or this policy, please contact our Data Protection Officer:
+            </p>
+            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mt-4">
+              <p className="text-gray-700 dark:text-gray-300">
+                <strong>Data Protection Officer</strong><br />
+                MEDH<br />
+                Email: dpo@medh.co<br />
+                Phone: +91 77108 40696
+              </p>
             </div>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Response Timeline
-            </h2>
-            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              We will respond to your request within <strong>07 (seven) days</strong> of receipt. If we need additional time due to the complexity of your request, we'll inform you within the initial 07 days and explain why an extension is necessary.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              No Fee Required
-            </h2>
-            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              You won't be charged a fee to access your personal data or exercise any of your other rights. However, we may charge a reasonable fee if your request is clearly unfounded, repetitive, or excessive.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Your Right to Complain
-            </h2>
-            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              If you are not satisfied with our response or believe we are not processing your personal data in accordance with the law, you have the right to lodge a complaint with the relevant supervisory authority in your country of residence.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Policy Updates
-            </h2>
-            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              This Data Subject Rights Information was last updated on July 27, 2025. We reserve the right to revise this policy without prior notice.
-            </p>
           </section>
         </div>
       </div>

@@ -330,7 +330,6 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
       {/* Navigation Sections - 4 Column Layout */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 prevent-shift">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 grid-no-shift">
-          
           {navigationSections.map((section, index) => {
             if (section.title === "Learning") return null;
             
@@ -349,7 +348,18 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                           width={60}
                           height={45}
                           className="object-contain w-15 h-11"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const fallback = target.parentElement?.querySelector('.iso-fallback') as HTMLElement;
+                            if (fallback) fallback.style.display = 'flex';
+                          }}
                         />
+                        {/* ISO 9001 Fallback */}
+                        <div className="iso-fallback hidden flex-col items-center justify-center w-15 h-11 bg-blue-600 rounded text-white text-xs font-bold">
+                          <div>ISO</div>
+                          <div>9001</div>
+                        </div>
                       </div>
                       <span className={`text-sm ${currentTheme.bodyText} font-medium`}>ISO 9001 Certified</span>
                     </div>
@@ -361,7 +371,18 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                           width={60}
                           height={45}
                           className="object-contain w-15 h-11"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const fallback = target.parentElement?.querySelector('.stem-fallback') as HTMLElement;
+                            if (fallback) fallback.style.display = 'flex';
+                          }}
                         />
+                        {/* STEM Fallback */}
+                        <div className="stem-fallback hidden flex-col items-center justify-center w-15 h-11 bg-gray-700 rounded text-white text-xs font-bold">
+                          <div>STEM</div>
+                          <div>EDU</div>
+                        </div>
                       </div>
                       <span className={`text-sm ${currentTheme.bodyText} font-medium`}>STEM Accredited</span>
                     </div>
@@ -497,18 +518,18 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                         className={`object-contain transition-all duration-500 ease-in-out ${
                           theme === 'dark' ? 'opacity-100 visible' : 'opacity-0 invisible'
                         }`}
-                        style={{ width: 'auto' }}
+                        // style={{ width: 'auto' }}
                         priority
                       />
                       <Image 
                         src={LogoLight} 
                         alt="Medh Logo Light" 
                         width={160}
-                        height={50}
+                        height={40}
                         className={`object-contain transition-all duration-500 ease-in-out absolute top-0 left-0 ${
                           theme === 'light' ? 'opacity-100 visible' : 'opacity-0 invisible'
                         }`}
-                        style={{ width: 'auto' }}
+                        // style={{ width: 'auto' }}
                         priority
                       />
                     </div>
@@ -559,7 +580,20 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                       width={128}
                       height={128}
                       className="object-contain w-32 h-32"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const fallback = target.parentElement?.querySelector('.qr-fallback') as HTMLElement;
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
                     />
+                    {/* QR Code Fallback */}
+                    <div className="qr-fallback hidden flex-col items-center justify-center w-32 h-32 bg-gray-100 rounded-lg">
+                      <div className="w-16 h-16 bg-gray-300 rounded-lg flex items-center justify-center mb-2">
+                        <div className="text-gray-500 text-2xl">📱</div>
+                      </div>
+                      <div className="text-xs text-gray-500 text-center">QR Code</div>
+                    </div>
                   </div>
                   <div className="text-center space-y-4">
                     <p className="text-lg font-semibold text-slate-900 dark:text-white">Medh QR Code</p>
@@ -640,4 +674,4 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
   );
 };
 
-export default FooterNavList;
+export default FooterNavList; 
