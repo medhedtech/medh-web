@@ -241,7 +241,7 @@ const JobGuaranteedSection = memo<IJobGuaranteedProps>(({
                   width={240}
                   height={160}
                   className="rounded-lg object-contain max-w-full h-auto"
-                  style={{ width: 'auto' }}
+                  // style={{ width: 'auto' }}
                   priority
                 />
               </div>
