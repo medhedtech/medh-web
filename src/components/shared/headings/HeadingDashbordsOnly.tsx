@@ -19,6 +19,7 @@ const HeadingDashboardOnly: React.FC = () => {
   const { getQuery, loading } = useGetQuery();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [lastLoginTime, setLastLoginTime] = useState<string>("");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -41,12 +42,40 @@ const HeadingDashboardOnly: React.FC = () => {
     }
   }, [userId, getQuery]);
 
+  // Get last login time from localStorage
+  useEffect(() => {
+    const storedLastLogin = localStorage.getItem('lastLoginTime');
+    if (storedLastLogin) {
+      setLastLoginTime(storedLastLogin);
+    } else {
+      // Set current time as last login if not found
+      const currentTime = new Date().toISOString();
+      localStorage.setItem('lastLoginTime', currentTime);
+      setLastLoginTime(currentTime);
+    }
+  }, []);
+
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
   const formatRole = (role: string) => {
     return role.replace("-", " ").split(" ").map(word => 
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join(" ");
+  };
+
+  // Format last login time
+  const formatLastLogin = (timestamp: string) => {
+    if (!timestamp) return "Never";
+    
+    const date = new Date(timestamp);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
   return (
@@ -90,7 +119,7 @@ const HeadingDashboardOnly: React.FC = () => {
             <button
               onClick={toggleDropdown}
               className="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl p-2 transition-all duration-300"
-              aria-expanded={isDropdownOpen}
+              aria-expanded={isDropdownOpen ? "true" : "false"}
               aria-haspopup="true"
             >
               <div className="relative">
@@ -109,6 +138,9 @@ const HeadingDashboardOnly: React.FC = () => {
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {userData?.role?.[0] ? formatRole(userData.role[0]) : "User"}
+                </p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  Last login: {formatLastLogin(lastLoginTime)}
                 </p>
               </div>
             </button>
