@@ -23,12 +23,9 @@ import {
   Github,
   Globe,
   GraduationCap,
-  BookOpen,
-  Award,
-  Plus,
   X,
-  Trash2,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Clock
 } from "lucide-react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -49,29 +46,17 @@ interface ISocialProfile {
   username?: string;
 }
 
-interface ICertification {
-  name: string;
-  issuer: string;
-  year: number;
-  url?: string;
-}
-
-interface IEducation {
-  education_level: string;
-  institution_name: string;
-  field_of_study: string;
-  graduation_year: number;
-  skills: string[];
-  certifications: ICertification[];
-}
-
 interface IFormData {
   full_name: string;
   email: string;
   phone_number: string;
-  age: Date | null;
   bio?: string;
-  location?: string;
+  
+  // Personal Details
+  date_of_birth?: Date | null;
+  gender?: string;
+  nationality?: string;
+  timezone?: string;
   
   // Social Profiles
   facebook_link?: string;
@@ -87,8 +72,6 @@ interface IFormData {
   institution_name?: string;
   field_of_study?: string;
   graduation_year?: number;
-  skills?: string[];
-  certifications?: ICertification[];
   
   user_image?: string;
 }
@@ -101,142 +84,85 @@ interface IEditProfileProps {
 const socialUrlValidation = (platform: string) => 
   yup.string().test(`${platform}-validation`, `Enter a valid ${platform} URL`, function(value) {
     if (!value) return true; // Optional field
-    
-    const patterns: Record<string, RegExp> = {
-      facebook: /^https?:\/\/(www\.)?facebook\.com\/.+/,
-      instagram: /^https?:\/\/(www\.)?instagram\.com\/.+/,
-      linkedin: /^https?:\/\/(www\.)?linkedin\.com\/(in|company)\/.+/,
-      twitter: /^https?:\/\/(www\.)?(twitter\.com|x\.com)\/.+/,
-      youtube: /^https?:\/\/(www\.)?youtube\.com\/.+/,
-      github: /^https?:\/\/(www\.)?github\.com\/.+/,
-      portfolio: /^https?:\/\/.+/
-    };
-    
-    return patterns[platform]?.test(value) ?? true;
+    const urlPattern = /^https?:\/\/.+/;
+    return urlPattern.test(value) || this.createError({ message: `Please enter a valid ${platform} URL` });
   });
 
-const validationSchema = yup.object({
+const validationSchema = yup.object().shape({
   full_name: yup.string().required("Full name is required"),
-  email: yup.string().email("Invalid email format"),
-  phone_number: yup
-    .string()
-    .required("Mobile number is required")
-    .matches(/^[6-9]\d{9}$/, "Mobile number must be a valid 10-digit number"),
-  age: yup
-    .date()
-    .nullable()
-    .typeError("Invalid date")
-    .max(new Date(), "Date of Birth cannot be in the future"),
-  bio: yup.string().max(500, "Bio cannot exceed 500 characters"),
-  location: yup.string().max(100, "Location cannot exceed 100 characters"),
+  email: yup.string().email("Invalid email format").required("Email is required"),
+  phone_number: yup.string().required("Phone number is required"),
+  bio: yup.string().optional().max(500, "Bio must be less than 500 characters"),
   
-  // Social Profile Validations
-  facebook_link: socialUrlValidation('facebook'),
-  instagram_link: socialUrlValidation('instagram'),
-  linkedin_link: socialUrlValidation('linkedin'),
-  twitter_link: socialUrlValidation('twitter'),
-  youtube_link: socialUrlValidation('youtube'),
-  github_link: socialUrlValidation('github'),
-  portfolio_link: socialUrlValidation('portfolio'),
+  // Personal Details
+  date_of_birth: yup.date().nullable().optional(),
+  gender: yup.string().optional(),
+  nationality: yup.string().optional(),
+  timezone: yup.string().optional(),
   
-  // Education Validations
-  education_level: yup.string(),
-  institution_name: yup.string().max(100, "Institution name cannot exceed 100 characters"),
-  field_of_study: yup.string().max(100, "Field of study cannot exceed 100 characters"),
-  graduation_year: yup
-    .number()
-    .min(1950, "Graduation year must be after 1950")
-    .max(new Date().getFullYear() + 10, "Graduation year cannot be too far in the future"),
-  skills: yup.array().of(yup.string()),
-  certifications: yup.array().of(
-    yup.object({
-      name: yup.string().required("Certification name is required"),
-      issuer: yup.string().required("Issuer is required"),
-      year: yup
-        .number()
-        .required("Year is required")
-        .min(1950, "Year must be after 1950")
-        .max(new Date().getFullYear(), "Year cannot be in the future"),
-      url: yup.string().url("Invalid URL format")
-    })
-  )
+  // Social Profiles
+  facebook_link: socialUrlValidation('Facebook'),
+  instagram_link: socialUrlValidation('Instagram'),
+  linkedin_link: socialUrlValidation('LinkedIn'),
+  twitter_link: socialUrlValidation('Twitter'),
+  youtube_link: socialUrlValidation('YouTube'),
+  github_link: socialUrlValidation('GitHub'),
+  portfolio_link: socialUrlValidation('Portfolio'),
+  
+  // Education
+  education_level: yup.string().optional(),
+  institution_name: yup.string().optional(),
+  field_of_study: yup.string().optional(),
+  graduation_year: yup.number().min(1950).max(new Date().getFullYear() + 10).optional(),
+  
+  // Optional fields
+  user_image: yup.string().optional(),
 });
 
-// Education Level Options
+// Education levels
 const educationLevels = [
   "High School",
-  "Associate Degree",
+  "Associate's Degree",
   "Bachelor's Degree",
   "Master's Degree",
-  "Doctoral Degree",
+  "Doctorate",
   "Professional Certification",
-  "Diploma",
   "Other"
-];
-
-// Social Platform Configuration
-const socialPlatforms = [
-  {
-    key: 'facebook_link',
-    name: 'Facebook',
-    icon: Facebook,
-    placeholder: 'https://facebook.com/yourprofile',
-    color: 'text-blue-600'
-  },
-  {
-    key: 'instagram_link',
-    name: 'Instagram',
-    icon: Instagram,
-    placeholder: 'https://instagram.com/yourprofile',
-    color: 'text-pink-600'
-  },
-  {
-    key: 'linkedin_link',
-    name: 'LinkedIn',
-    icon: Linkedin,
-    placeholder: 'https://linkedin.com/in/yourprofile',
-    color: 'text-blue-700'
-  },
-  {
-    key: 'twitter_link',
-    name: 'Twitter/X',
-    icon: Twitter,
-    placeholder: 'https://twitter.com/yourprofile or https://x.com/yourprofile',
-    color: 'text-sky-500'
-  },
-  {
-    key: 'youtube_link',
-    name: 'YouTube',
-    icon: Youtube,
-    placeholder: 'https://youtube.com/yourchannel',
-    color: 'text-red-600'
-  },
-  {
-    key: 'github_link',
-    name: 'GitHub',
-    icon: Github,
-    placeholder: 'https://github.com/yourusername',
-    color: 'text-gray-800'
-  },
-  {
-    key: 'portfolio_link',
-    name: 'Portfolio',
-    icon: Globe,
-    placeholder: 'https://yourportfolio.com',
-    color: 'text-green-600'
-  }
 ];
 
 const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
   const [studentId, setStudentId] = useState<string | null>(null);
   const [profileData, setProfileData] = useState<any>(null);
-  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'basic' | 'social' | 'education'>('basic');
-  const [newSkill, setNewSkill] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<'basic' | 'personal' | 'social' | 'education'>('basic');
+  const [lastLoginTime, setLastLoginTime] = useState<string>("");
 
   const { getQuery } = useGetQuery();
   const { postQuery } = usePostQuery();
+
+  // Helper function to format last login time
+  const formatLastLogin = (timestamp: string): string => {
+    if (!timestamp) return "Never";
+    
+    const now = new Date();
+    const lastLogin = new Date(timestamp);
+    const diffInMs = now.getTime() - lastLogin.getTime();
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInHours / 24);
+    
+    if (diffInDays > 0) {
+      return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+    } else if (diffInHours > 0) {
+      return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    } else {
+      const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+      if (diffInMinutes > 0) {
+        return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+      } else {
+        return "Just now";
+      }
+    }
+  };
 
   const {
     register,
@@ -248,24 +174,20 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
     control
   } = useForm<IFormData>({
     resolver: yupResolver(validationSchema),
-    defaultValues: {
-      skills: [],
-      certifications: []
-    }
+    defaultValues: {}
   });
-
-  const { fields: certificationFields, append: appendCertification, remove: removeCertification } = useFieldArray({
-    control,
-    name: "certifications"
-  });
-
-  const watchedSkills = watch("skills") || [];
 
   // Initialize component
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedUserId = localStorage.getItem("userId");
       setStudentId(storedUserId);
+      
+      // Get last login time from localStorage
+      const storedLastLogin = localStorage.getItem("lastLoginTime");
+      if (storedLastLogin) {
+        setLastLoginTime(storedLastLogin);
+      }
     }
   }, []);
 
@@ -283,9 +205,13 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
             full_name: profile.full_name || '',
             email: profile.email || '',
             phone_number: profile.phone_number || '',
-            age: profile.age ? moment(profile.age, "YYYY-MM-DD").toDate() : null,
             bio: profile.meta?.bio || '',
-            location: profile.meta?.location || '',
+            
+            // Personal Details
+            date_of_birth: profile.date_of_birth ? moment(profile.date_of_birth, "YYYY-MM-DD").toDate() : null,
+            gender: profile.gender || '',
+            nationality: profile.nationality || '',
+            timezone: profile.timezone || '',
             
             // Social profiles
             facebook_link: profile.facebook_link || '',
@@ -301,137 +227,58 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
             institution_name: profile.meta?.institution_name || '',
             field_of_study: profile.meta?.field_of_study || '',
             graduation_year: profile.meta?.graduation_year || undefined,
-            skills: profile.meta?.skills || [],
-            certifications: profile.meta?.certifications || [],
-            
-            user_image: profile.user_image || ''
           };
 
           reset(formData);
         },
-        onFail: (error) => {
-          console.error("Failed to fetch user details:", error);
-          showToast.error("Failed to load profile data");
-        },
+        onFail: (error: any) => {
+          console.error("Error fetching profile:", error);
+        }
       });
     }
-  }, [studentId, reset]);
+  }, [studentId, getQuery, reset]);
 
-  // Handle image upload
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      try {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = async () => {
-          const base64 = reader.result;
-          const postData = { base64String: base64, fileType: "image" };
+    if (!file) return;
 
-          await postQuery({
-            url: apiUrls?.upload?.uploadImage,
-            postData,
-            onSuccess: (data) => {
-              setProfileImage(data?.data);
-              setValue("user_image", data?.data);
-              showToast.success("Image uploaded successfully!");
-            },
-            onError: (error) => {
-              showToast.error("Image upload failed. Please try again.");
-              console.error("Upload error:", error);
-            },
-          });
-        };
-      } catch (error) {
-        console.error("Error uploading Image:", error);
-        showToast.error("Failed to upload image");
-      }
-    }
+    // Handle image upload logic here
+    console.log("Image upload:", file);
   };
 
-  // Handle form submission
   const onSubmit = async (data: IFormData) => {
-    if (!studentId) {
-      showToast.error("Please log in to continue.");
-      return;
-    }
-
     setLoading(true);
-
     try {
-      // Prepare submission data
-      const submissionData = {
+      // Prepare the data for submission
+      const submitData = {
         ...data,
-        age: data.age ? moment(data.age).format("YYYY-MM-DD") : null,
-        user_image: profileImage || data.user_image,
+        date_of_birth: data.date_of_birth ? moment(data.date_of_birth).format("YYYY-MM-DD") : null,
         meta: {
           bio: data.bio,
-          location: data.location,
           education_level: data.education_level,
           institution_name: data.institution_name,
           field_of_study: data.field_of_study,
           graduation_year: data.graduation_year,
-          skills: data.skills,
-          certifications: data.certifications
         }
       };
 
       await postQuery({
         url: `${apiUrls?.user?.update}/${studentId}`,
-        postData: submissionData,
-        onSuccess: async () => {
-          showToast.success("Profile updated successfully!");
-          
-          // Refresh profile data
-          try {
-            const response = await getQuery({
-              url: `${apiUrls?.user?.getDetailsbyId}/${studentId}`,
-            });
-
-            if (response?.data) {
-              setProfileData(response?.data);
-              console.log("Profile data refreshed:", response?.data);
-            }
-          } catch (error) {
-            console.error("Error fetching updated profile:", error);
-          }
+        postData: submitData,
+        onSuccess: (response) => {
+          console.log("Profile updated successfully:", response);
+          // Show success message or redirect
         },
-        onFail: (error) => {
+        onFail: (error: any) => {
           console.error("Error updating profile:", error);
-          showToast.error("Failed to update profile. Please try again.");
-        },
+          // Show error message
+        }
       });
     } catch (error) {
-      console.error("Form submission error:", error);
-      showToast.error("An unexpected error occurred");
+      console.error("Error:", error);
     } finally {
       setLoading(false);
     }
-  };
-
-  // Handle adding skills
-  const handleAddSkill = () => {
-    if (newSkill.trim() && !watchedSkills.includes(newSkill.trim())) {
-      const currentSkills = watchedSkills;
-      setValue("skills", [...currentSkills, newSkill.trim()]);
-      setNewSkill('');
-    }
-  };
-
-  // Handle removing skills
-  const handleRemoveSkill = (skillToRemove: string) => {
-    const currentSkills = watchedSkills;
-    setValue("skills", currentSkills.filter(skill => skill !== skillToRemove));
-  };
-
-  // Handle adding certification
-  const handleAddCertification = () => {
-    appendCertification({
-      name: '',
-      issuer: '',
-      year: new Date().getFullYear(),
-      url: ''
-    });
   };
 
   if (!profileData) {
@@ -446,87 +293,37 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
   }
 
   return (
-    <div className="w-full mx-auto p-6 dark:bg-gray-900 dark:text-white bg-white shadow-lg rounded-2xl">
+    <div className="max-w-4xl mx-auto p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Edit Profile Information
+          </h1>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Completion 32%</p>
+          </div>
+          
+          {/* Close Button */}
           <button
             onClick={onBackClick}
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Close edit profile"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+            <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
           </button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Profile</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Update your personal information and social profiles</p>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <div className="text-right">
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Profile Completion</p>
-            <div className="flex items-center gap-2">
-              <div className="w-16 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-primary-500 transition-all duration-300"
-                  style={{ width: '75%' }}
-                />
-              </div>
-              <span className="text-xs text-gray-500">75%</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Profile Banner and Image */}
-      <div className="relative mb-20">
-        <div className="relative w-full h-48 rounded-xl overflow-hidden">
-          <Image
-            src={ProfileBanner}
-            alt="Cover"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-        </div>
-        
-        <div className="absolute top-28 left-6 flex items-end gap-4">
-          <div className="relative">
-            <div className="w-32 h-32 rounded-full border-4 border-white dark:border-gray-800 overflow-hidden bg-gray-100 shadow-lg">
-              <Image
-                src={profileData?.user_image || ProfileImgPlaceholder}
-                alt="Profile"
-                width={128}
-                height={128}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <label className="absolute bottom-0 right-0 p-2 bg-primary-500 hover:bg-primary-600 text-white rounded-full cursor-pointer shadow-lg transition-colors">
-              <Camera className="w-4 h-4" />
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
-            </label>
-          </div>
-          
-          <div className="pb-2">
-            <h2 className="text-xl font-semibold text-white drop-shadow-lg">
-              {profileData?.full_name || 'Student'}
-            </h2>
-            <p className="text-white/90 text-sm drop-shadow">
-              {profileData?.meta?.education_level || 'Student at Medh'}
-            </p>
-          </div>
         </div>
       </div>
 
       {/* Tab Navigation */}
       <div className="flex space-x-1 mb-8 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
         {[
-          { key: 'basic', label: 'Basic Info', icon: User },
-          { key: 'social', label: 'Social Profiles', icon: LinkIcon },
+          { key: 'basic', label: 'Basic Information', icon: User },
+          { key: 'personal', label: 'Personal Details', icon: Calendar },
+          { key: 'social', label: 'Social Media Links', icon: LinkIcon },
           { key: 'education', label: 'Education', icon: GraduationCap }
         ].map(({ key, label, icon: Icon }) => (
           <button
@@ -554,23 +351,20 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+              className="space-y-6"
             >
               {/* Full Name */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Full Name <span className="text-red-500">*</span>
+                  Full Name
                 </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    {...register("full_name")}
-                    type="text"
-                    disabled
-                    className="pl-10 w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-gray-50 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
-                    placeholder="Enter your full name"
-                  />
-                </div>
+                <input
+                  {...register("full_name")}
+                  type="text"
+                  className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  placeholder="Enter your full name"
+                  aria-label="Full name"
+                />
                 {errors.full_name && (
                   <p className="text-red-500 text-sm flex items-center gap-1">
                     <AlertCircle className="w-4 h-4" />
@@ -582,18 +376,15 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
               {/* Email */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Email Address <span className="text-red-500">*</span>
+                  Email
                 </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    {...register("email")}
-                    type="email"
-                    disabled
-                    className="pl-10 w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-gray-50 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
-                    placeholder="Enter your email"
-                  />
-                </div>
+                <input
+                  {...register("email")}
+                  type="email"
+                  className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  placeholder="Enter your email"
+                  aria-label="Email"
+                />
                 {errors.email && (
                   <p className="text-red-500 text-sm flex items-center gap-1">
                     <AlertCircle className="w-4 h-4" />
@@ -605,18 +396,15 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
               {/* Phone Number */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Phone Number <span className="text-red-500">*</span>
+                  Phone Number
                 </label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    {...register("phone_number")}
-                    type="tel"
-                    disabled
-                    className="pl-10 w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-gray-50 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
-                    placeholder="Enter your phone number"
-                  />
-                </div>
+                <input
+                  {...register("phone_number")}
+                  type="tel"
+                  className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  placeholder="Enter your phone number"
+                  aria-label="Phone number"
+                />
                 {errors.phone_number && (
                   <p className="text-red-500 text-sm flex items-center gap-1">
                     <AlertCircle className="w-4 h-4" />
@@ -625,63 +413,8 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
                 )}
               </div>
 
-              {/* Date of Birth */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Date of Birth
-                </label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
-                  <Controller
-                    control={control}
-                    name="age"
-                    render={({ field }) => (
-                      <DatePicker
-                        selected={field.value}
-                        onChange={(date) => field.onChange(date)}
-                        placeholderText="Select your date of birth"
-                        dateFormat="dd/MM/yyyy"
-                        maxDate={new Date()}
-                        showYearDropdown
-                        yearDropdownItemNumber={50}
-                        scrollableYearDropdown
-                        className="pl-10 w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                      />
-                    )}
-                  />
-                </div>
-                {errors.age && (
-                  <p className="text-red-500 text-sm flex items-center gap-1">
-                    <AlertCircle className="w-4 h-4" />
-                    {errors.age.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Location */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Location
-                </label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    {...register("location")}
-                    type="text"
-                    className="pl-10 w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    placeholder="Enter your location"
-                  />
-                </div>
-                {errors.location && (
-                  <p className="text-red-500 text-sm flex items-center gap-1">
-                    <AlertCircle className="w-4 h-4" />
-                    {errors.location.message}
-                  </p>
-                )}
-              </div>
-
               {/* Bio */}
-              <div className="space-y-2 md:col-span-2">
+              <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Bio
                 </label>
@@ -690,6 +423,7 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
                   rows={4}
                   className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none"
                   placeholder="Tell us about yourself..."
+                  aria-label="Bio"
                 />
                 {errors.bio && (
                   <p className="text-red-500 text-sm flex items-center gap-1">
@@ -701,7 +435,85 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
             </motion.div>
           )}
 
-          {/* Social Profiles Tab */}
+          {/* Personal Details Tab */}
+          {activeTab === 'personal' && (
+            <motion.div
+              key="personal"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
+              {/* Date of Birth */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Date of Birth
+                </label>
+                <Controller
+                  name="date_of_birth"
+                  control={control}
+                  render={({ field }) => (
+                    <DatePicker
+                      selected={field.value}
+                      onChange={(date) => field.onChange(date)}
+                      dateFormat="dd-MM-yyyy"
+                      placeholderText="dd-mm-yyyy"
+                      className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      aria-label="Date of birth"
+                    />
+                  )}
+                />
+              </div>
+
+              {/* Gender */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Gender
+                </label>
+                <select
+                  {...register("gender")}
+                  className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  aria-label="Gender"
+                >
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                  <option value="prefer-not-to-say">Prefer not to say</option>
+                </select>
+              </div>
+
+              {/* Nationality */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Nationality
+                </label>
+                <input
+                  {...register("nationality")}
+                  type="text"
+                  className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  placeholder="e.g., Indian, American"
+                  aria-label="Nationality"
+                />
+              </div>
+
+              {/* Timezone */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Timezone
+                </label>
+                <input
+                  {...register("timezone")}
+                  type="text"
+                  className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  placeholder="e.g., UTC"
+                  aria-label="Timezone"
+                />
+              </div>
+            </motion.div>
+          )}
+
+          {/* Social Media Links Tab */}
           {activeTab === 'social' && (
             <motion.div
               key="social"
@@ -710,41 +522,144 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
               exit={{ opacity: 0, x: -20 }}
               className="space-y-6"
             >
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <LinkIcon className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <h3 className="font-medium text-blue-900 dark:text-blue-100">Social Profile Links</h3>
-                    <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                      Add your social media profiles to showcase your online presence. All fields are optional.
-                    </p>
-                  </div>
-                </div>
+              {/* Facebook */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Facebook
+                </label>
+                <input
+                  {...register("facebook_link")}
+                  type="url"
+                  className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  placeholder="https://facebook.com/yourprofile"
+                  aria-label="Facebook profile URL"
+                />
+                {errors.facebook_link && (
+                  <p className="text-red-500 text-sm flex items-center gap-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.facebook_link.message}
+                  </p>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {socialPlatforms.map(({ key, name, icon: Icon, placeholder, color }) => (
-                  <div key={key} className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      <div className="flex items-center gap-2">
-                        <Icon className={`w-4 h-4 ${color}`} />
-                        {name}
-                      </div>
-                    </label>
-                    <input
-                      {...register(key as keyof IFormData)}
-                      type="url"
-                      className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                      placeholder={placeholder}
-                    />
-                    {errors[key as keyof IFormData] && (
-                      <p className="text-red-500 text-sm flex items-center gap-1">
-                        <AlertCircle className="w-4 h-4" />
-                        {errors[key as keyof IFormData]?.message}
-                      </p>
-                    )}
-                  </div>
-                ))}
+              {/* Instagram */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Instagram
+                </label>
+                <input
+                  {...register("instagram_link")}
+                  type="url"
+                  className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  placeholder="https://instagram.com/yourprofile"
+                  aria-label="Instagram profile URL"
+                />
+                {errors.instagram_link && (
+                  <p className="text-red-500 text-sm flex items-center gap-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.instagram_link.message}
+                  </p>
+                )}
+              </div>
+
+              {/* LinkedIn */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  LinkedIn
+                </label>
+                <input
+                  {...register("linkedin_link")}
+                  type="url"
+                  className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  placeholder="https://linkedin.com/in/yourprofile"
+                  aria-label="LinkedIn profile URL"
+                />
+                {errors.linkedin_link && (
+                  <p className="text-red-500 text-sm flex items-center gap-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.linkedin_link.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Twitter */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Twitter
+                </label>
+                <input
+                  {...register("twitter_link")}
+                  type="url"
+                  className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  placeholder="https://twitter.com/yourprofile"
+                  aria-label="Twitter profile URL"
+                />
+                {errors.twitter_link && (
+                  <p className="text-red-500 text-sm flex items-center gap-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.twitter_link.message}
+                  </p>
+                )}
+              </div>
+
+              {/* YouTube */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  YouTube
+                </label>
+                <input
+                  {...register("youtube_link")}
+                  type="url"
+                  className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  placeholder="https://youtube.com/yourchannel"
+                  aria-label="YouTube channel URL"
+                />
+                {errors.youtube_link && (
+                  <p className="text-red-500 text-sm flex items-center gap-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.youtube_link.message}
+                  </p>
+                )}
+              </div>
+
+              {/* GitHub */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  GitHub
+                </label>
+                <input
+                  {...register("github_link")}
+                  type="url"
+                  className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  placeholder="https://github.com/yourprofile"
+                  aria-label="GitHub profile URL"
+                />
+                {errors.github_link && (
+                  <p className="text-red-500 text-sm flex items-center gap-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.github_link.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Portfolio */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Portfolio
+                </label>
+                <input
+                  {...register("portfolio_link")}
+                  type="url"
+                  className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  placeholder="https://yourportfolio.com"
+                  aria-label="Portfolio website URL"
+                />
+                {errors.portfolio_link && (
+                  <p className="text-red-500 text-sm flex items-center gap-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.portfolio_link.message}
+                  </p>
+                )}
               </div>
             </motion.div>
           )}
@@ -756,227 +671,70 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="space-y-8"
+              className="space-y-6"
             >
-              {/* Education Information */}
-              <div className="space-y-6">
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                  <div className="flex items-start gap-3">
-                    <GraduationCap className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h3 className="font-medium text-green-900 dark:text-green-100">Education Information</h3>
-                      <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                        Share your educational background and qualifications.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Education Level */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Education Level
-                    </label>
-                    <select
-                      {...register("education_level")}
-                      className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    >
-                      <option value="">Select your education level</option>
-                      {educationLevels.map((level) => (
-                        <option key={level} value={level}>
-                          {level}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Institution Name */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Institution Name
-                    </label>
-                    <input
-                      {...register("institution_name")}
-                      type="text"
-                      className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                      placeholder="Enter your school/university name"
-                    />
-                  </div>
-
-                  {/* Field of Study */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Field of Study
-                    </label>
-                    <input
-                      {...register("field_of_study")}
-                      type="text"
-                      className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                      placeholder="Enter your major/subject area"
-                    />
-                  </div>
-
-                  {/* Graduation Year */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Graduation Year
-                    </label>
-                    <input
-                      {...register("graduation_year")}
-                      type="number"
-                      min="1950"
-                      max={new Date().getFullYear() + 10}
-                      className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                      placeholder="Enter graduation year"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Skills Section */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                    <BookOpen className="w-5 h-5" />
-                    Skills
-                  </h3>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={newSkill}
-                      onChange={(e) => setNewSkill(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddSkill())}
-                      className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                      placeholder="Add a skill..."
-                    />
-                    <button
-                      type="button"
-                      onClick={handleAddSkill}
-                      className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors flex items-center gap-1"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add
-                    </button>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    {watchedSkills.map((skill, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full text-sm"
-                      >
-                        {skill}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveSkill(skill)}
-                          className="ml-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Certifications Section */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                    <Award className="w-5 h-5" />
-                    Certifications
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={handleAddCertification}
-                    className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors flex items-center gap-1"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Education Level */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Education Level
+                  </label>
+                  <select
+                    {...register("education_level")}
+                    className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    aria-label="Education level"
                   >
-                    <Plus className="w-4 h-4" />
-                    Add Certification
-                  </button>
+                    <option value="">Select your education level</option>
+                    {educationLevels.map((level) => (
+                      <option key={level} value={level}>
+                        {level}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                <div className="space-y-4">
-                  {certificationFields.map((field, index) => (
-                    <div key={field.id} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-gray-900 dark:text-white">
-                          Certification #{index + 1}
-                        </h4>
-                        <button
-                          type="button"
-                          onClick={() => removeCertification(index)}
-                          className="p-1 text-red-500 hover:text-red-700 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                {/* Institution Name */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Institution Name
+                  </label>
+                  <input
+                    {...register("institution_name")}
+                    type="text"
+                    className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    placeholder="Enter your school/university name"
+                    aria-label="Institution name"
+                  />
+                </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Certification Name *
-                          </label>
-                          <input
-                            {...register(`certifications.${index}.name`)}
-                            type="text"
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                            placeholder="e.g., AWS Certified Developer"
-                          />
-                        </div>
+                {/* Field of Study */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Field of Study
+                  </label>
+                  <input
+                    {...register("field_of_study")}
+                    type="text"
+                    className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    placeholder="Enter your major/subject area"
+                    aria-label="Field of study"
+                  />
+                </div>
 
-                        <div className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Issuing Organization *
-                          </label>
-                          <input
-                            {...register(`certifications.${index}.issuer`)}
-                            type="text"
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                            placeholder="e.g., Amazon Web Services"
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Year Obtained *
-                          </label>
-                          <input
-                            {...register(`certifications.${index}.year`)}
-                            type="number"
-                            min="1950"
-                            max={new Date().getFullYear()}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                            placeholder={new Date().getFullYear().toString()}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Certificate URL (Optional)
-                          </label>
-                          <input
-                            {...register(`certifications.${index}.url`)}
-                            type="url"
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                            placeholder="https://certificate-url.com"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {certificationFields.length === 0 && (
-                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                      <Award className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                      <p>No certifications added yet.</p>
-                      <p className="text-sm">Click "Add Certification" to get started.</p>
-                    </div>
-                  )}
+                {/* Graduation Year */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Graduation Year
+                  </label>
+                  <input
+                    {...register("graduation_year")}
+                    type="number"
+                    min="1950"
+                    max={new Date().getFullYear() + 10}
+                    className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    placeholder="Enter graduation year"
+                    aria-label="Graduation year"
+                  />
                 </div>
               </div>
             </motion.div>
@@ -985,13 +743,6 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
 
         {/* Submit Button */}
         <div className="flex items-center justify-end gap-4 pt-8 mt-8 border-t border-gray-200 dark:border-gray-700">
-          <button
-            type="button"
-            onClick={onBackClick}
-            className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-          >
-            Cancel
-          </button>
           <button
             type="submit"
             disabled={loading || isSubmitting}

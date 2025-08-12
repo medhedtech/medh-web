@@ -1235,6 +1235,7 @@ const HomeCourseSection2 = memo<{
                     course={course}
                     courseType="blended"
                     index={index}
+                    
                   />
                 ))}
               </div>

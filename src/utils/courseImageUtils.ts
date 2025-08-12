@@ -11,6 +11,9 @@ export const getSafeCourseImageUrl = (
 
   // Handle known problematic URLs
   if (courseImage.includes('undefined') || courseImage.includes('null')) {
+
+
+    
     return '/fallback-course-image.jpg';
   }
 

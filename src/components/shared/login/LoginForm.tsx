@@ -861,6 +861,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
     if (userRole) localStorageUpdates.push(["role", userRole]);
     if (fullName) localStorageUpdates.push(["fullName", fullName]);
     
+    // Set last login time
+    const currentTime = new Date().toISOString();
+    localStorageUpdates.push(["lastLoginTime", currentTime]);
+    
     // Apply all localStorage updates at once
     localStorageUpdates.forEach(([key, value]) => localStorage.setItem(key, value));
 
