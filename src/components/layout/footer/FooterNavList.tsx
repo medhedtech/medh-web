@@ -330,6 +330,7 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
       {/* Navigation Sections - 4 Column Layout */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 prevent-shift">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 grid-no-shift">
+          
           {navigationSections.map((section, index) => {
             if (section.title === "Learning") return null;
             
