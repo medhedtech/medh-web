@@ -1,3 +1,5 @@
+import { TruckElectric } from 'lucide-react';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
@@ -57,7 +59,7 @@ const nextConfig = {
     minimumCacheTTL: 60 * 60 * 24 * 30,
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    unoptimized: false,
+    unoptimized: true,
     loader: 'default',
   },
   productionBrowserSourceMaps: false,
