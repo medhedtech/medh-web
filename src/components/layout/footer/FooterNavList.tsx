@@ -348,9 +348,6 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                           width={60}
                           height={45}
                           className="object-contain w-15 h-11"
-<<<<<<< HEAD
-                        />
-=======
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.style.display = 'none';
@@ -363,7 +360,6 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                           <div>ISO</div>
                           <div>9001</div>
                         </div>
->>>>>>> f8c31e941f3c274c29d7ff9a188adc57d2815a89
                       </div>
                       <span className={`text-sm ${currentTheme.bodyText} font-medium`}>ISO 9001 Certified</span>
                     </div>
@@ -372,13 +368,6 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                         <Image 
                           src={STEMCert} 
                           alt="STEM Accredited" 
-<<<<<<< HEAD
-                          
-                          width={60}
-                          height={45}
-                          className="object-contain w-15 h-11"
-                        />
-=======
                           width={60}
                           height={45}
                           className="object-contain w-15 h-11"
@@ -394,7 +383,6 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                           <div>STEM</div>
                           <div>EDU</div>
                         </div>
->>>>>>> f8c31e941f3c274c29d7ff9a188adc57d2815a89
                       </div>
                       <span className={`text-sm ${currentTheme.bodyText} font-medium`}>STEM Accredited</span>
                     </div>
