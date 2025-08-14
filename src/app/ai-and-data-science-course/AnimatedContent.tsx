@@ -12,6 +12,9 @@ interface IAnimatedContentComponents {
   CourseAiOverview?: React.ComponentType<any>;
   /** Course options/content component */
   CourseOptions?: React.ComponentType<any>;
+
+
+  
   /** Course FAQ component */
   CourseAiFaq?: React.ComponentType<any>;
   /** Course related courses component */
