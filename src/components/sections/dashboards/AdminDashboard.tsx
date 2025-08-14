@@ -730,12 +730,89 @@ const AdminDashboard: React.FC = () => {
               recentEnrollments.slice(0, 3).map((enrollment) => (
                 <RecentActivityItem
                 key={enrollment.enrollment_id} 
+<<<<<<< Updated upstream
                   icon={<User className="h-5 w-5 text-blue-600" />}
                   title={enrollment.student?.name || 'Unknown Student'}
                   description={`Enrolled in ${enrollment.course?.title || 'Unknown Course'}`}
                   time={new Date(enrollment.enrollment_date).toLocaleDateString()}
                   status={enrollment.payment?.status === 'paid' ? 'success' : 'warning'}
                 />
+=======
+                className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="relative">
+                    {/* No user_image in API, fallback to initials */}
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+                      {enrollment.student?.name ? 
+                        enrollment.student.name.split(' ').map(n => n[0]).join('').toUpperCase() : 
+                        'N/A'
+                      }
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900 dark:text-white">
+                      {enrollment.student?.name || 'Unknown Student'}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {enrollment.course?.title || 'Unknown Course'}
+                    </p>
+                    <div className="flex items-center space-x-2 mt-1">
+                      {enrollment.payment ? (
+                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                          enrollment.payment.status === "paid" 
+                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" 
+                            : enrollment.payment.status === "pending"
+                            ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                            : enrollment.payment.status === "failed"
+                            ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                            : "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400"
+                        }`}>
+                          {enrollment.payment.status.charAt(0).toUpperCase() + enrollment.payment.status.slice(1)}
+                        </span>
+                      ) : (
+                        <span className="text-xs px-2 py-1 rounded-full font-medium bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400">
+                          No Payment
+                        </span>
+                      )}
+                      {enrollment.platform && (
+                        <span className="text-xs text-gray-500 capitalize">{enrollment.platform}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  {enrollment.payment ? (
+                    <p className="font-semibold text-gray-900 dark:text-white">
+                      {new Intl.NumberFormat('en-IN', {
+                        style: 'currency',
+                        currency: enrollment.payment.currency || 'INR',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      }).format(enrollment.payment.amount)}
+                    </p>
+                  ) : (
+                    <p className="font-semibold text-gray-500 dark:text-gray-400">
+                      Free Course
+                    </p>
+                  )}
+                  <p className="text-sm text-gray-500">
+                    {enrollment.enrollment_date ? 
+                      new Date(enrollment.enrollment_date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      }) : 
+                      'Date not available'
+                    }
+                  </p>
+                </div>
+              </motion.div>
+>>>>>>> Stashed changes
             ))
           ) : (
             <div className="text-center py-8">
