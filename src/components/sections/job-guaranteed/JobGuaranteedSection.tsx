@@ -236,8 +236,8 @@ const JobGuaranteedSection = memo<IJobGuaranteedProps>(({
                 <Image
                   src={isDark ? placementImageDark : placementImage}
                   alt="Medh Placement 100% Guarantee"
-                  width={240}
-                  height={160}
+                  width={270}
+                  height={180}
                   className="rounded-lg object-contain max-w-full h-auto"
                   // style={{ width: 'auto' }}
                   priority

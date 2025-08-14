@@ -28,6 +28,10 @@ const nextConfig = {
   experimental: {
     workerThreads: false,
     cpus: 1,
+    optimizeCss: false, // Disable CSS optimization to prevent preload warnings
+    optimizePackageImports: ['@radix-ui/react-icons'],
+    // Disable CSS preloading to prevent warnings
+    optimizeServerReact: false,
   },
   transpilePackages: [
     '@floating-ui/core',
@@ -66,7 +70,6 @@ const nextConfig = {
 
   async headers() {
     return [
-      
       {
         source: '/:all*(svg|jpg|png|webp|avif)',
         locale: false,
@@ -74,6 +77,19 @@ const nextConfig = {
           {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/_next/static/css/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
           },
         ],
       },
@@ -97,6 +113,26 @@ const nextConfig = {
       path: false,
       os: false,
     };
+
+    // Disable CSS preloading to prevent warnings
+    if (!isServer && !dev) {
+      config.optimization.splitChunks = {
+        ...config.optimization.splitChunks,
+        cacheGroups: {
+          ...config.optimization.splitChunks.cacheGroups,
+          default: false,
+          vendors: false,
+          // Only create vendor chunks for JS, not CSS
+          vendor: {
+            name: 'vendor',
+            chunks: 'all',
+            test: /node_modules/,
+            priority: 20,
+          },
+        },
+      };
+    }
+
     return config;
   },
 };

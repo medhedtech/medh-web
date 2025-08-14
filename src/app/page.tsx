@@ -3,7 +3,6 @@ import { Suspense } from 'react';
 import Home1 from '@/components/layout/main/Home1';
 import advancedSEOStrategy from '@/utils/advanced-seo-strategy';
 import PageWrapper from '@/components/shared/wrappers/PageWrapper';
-import '@/styles/critical.css';
 
 // Enhanced metadata with real company details from AboutContent and ContactMain
 export const metadata: Metadata = {
