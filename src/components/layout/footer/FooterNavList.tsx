@@ -513,8 +513,8 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                       <Image 
                         src={LogoDark} 
                         alt="Medh Logo Dark" 
-                        width={160}
-                        height={50}
+                        width={180}
+                        height={60}
                         className={`object-contain transition-all duration-500 ease-in-out ${
                           theme === 'dark' ? 'opacity-100 visible' : 'opacity-0 invisible'
                         }`}
@@ -524,8 +524,8 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                       <Image 
                         src={LogoLight} 
                         alt="Medh Logo Light" 
-                        width={160}
-                        height={40}
+                        width={180}
+                        height={100}
                         className={`object-contain transition-all duration-500 ease-in-out absolute top-0 left-0 ${
                           theme === 'light' ? 'opacity-100 visible' : 'opacity-0 invisible'
                         }`}

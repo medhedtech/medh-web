@@ -134,6 +134,15 @@ export default function ManageStudentsPage() {
     }
   }, [searchTerm, statusFilter]);
 
+  // Auto-refresh students list every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchStudents(currentPage, searchTerm, statusFilter);
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [currentPage, searchTerm, statusFilter]);
+
   const handleDeleteStudent = async (studentId: string, studentName: string) => {
     if (!confirm(`Are you sure you want to delete "${studentName}"? This action cannot be undone.`)) {
       return;
@@ -297,13 +306,34 @@ export default function ManageStudentsPage() {
                   View and manage all students on the platform
                 </p>
               </div>
-              <Link
-                href="/dashboards/admin/students/invite"
-                className="inline-flex items-center px-4 py-2 bg-white text-indigo-600 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <UserPlus className="h-5 w-5 mr-2" />
-                Invite Student
-              </Link>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => fetchStudents(currentPage, searchTerm, statusFilter)}
+                  disabled={isLoading}
+                  className="inline-flex items-center px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Refresh students list"
+                  aria-label="Refresh students list"
+                >
+                  <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Refresh
+                </button>
+                <Link
+                  href="/dashboards/admin/add-student"
+                  className="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                >
+                  <UserPlus className="h-5 w-5 mr-2" />
+                  Add Student
+                </Link>
+                <Link
+                  href="/dashboards/admin/students/invite"
+                  className="inline-flex items-center px-4 py-2 bg-white text-indigo-600 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <Mail className="h-5 w-5 mr-2" />
+                  Invite Student
+                </Link>
+              </div>
             </div>
           </div>
 
