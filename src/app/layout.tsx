@@ -5,9 +5,8 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
 import '@/components/sidebar/sidebar-styles.css';
 import 'quill/dist/quill.snow.css';
-import '@/styles/vendor.scss'; // New: Import global vendor SCSS directly
-import 'intl-tel-input/build/css/intlTelInput.css'; // New: Import intl-tel-input CSS directly
-// import '@/styles/google-one-tap.css'; // Google One Tap styles to prevent hydration issues
+import '@/styles/vendor.scss';
+import 'intl-tel-input/build/css/intlTelInput.css';
 import ThemeController from '@/components/shared/others/ThemeController';
 import GoogleAnalytics from '@/components/shared/analytics/GoogleAnalytics';
 import CookieConsent from '@/components/shared/gdpr/CookieConsent';

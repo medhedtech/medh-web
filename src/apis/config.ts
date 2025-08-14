@@ -7,7 +7,7 @@
 
 // Determine the appropriate API base URL based on environment
 const getApiBaseUrl = (): string => {
-  // First priority: Explicit API URL override
+  // Force use backend URL for live classes API
   if (process.env.NEXT_PUBLIC_API_URL) {
     return process.env.NEXT_PUBLIC_API_URL;
   }
@@ -18,8 +18,8 @@ const getApiBaseUrl = (): string => {
   } else if (process.env.NODE_ENV === 'test') {
     return process.env.NEXT_PUBLIC_API_URL_TEST || 'https://api.medh.co/api/v1';
   } else {
-    // Development is the default - use Next.js API routes
-    return process.env.NEXT_PUBLIC_API_URL_DEV || '/api/v1';
+    // Development - use backend directly
+    return 'http://localhost:8080/api/v1';
   }
 };
 
