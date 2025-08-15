@@ -519,7 +519,7 @@ const CourseCard: React.FC<{ enrollment: IEnrollment; router: any }> = ({ enroll
           </div>
           <div className="flex items-center">
             <Users className="w-4 h-4 mr-2" />
-            <span>{course.assigned_instructor?.full_name || "No instructor assigned"}</span>
+            <span>{course.assigned_instructor?.full_name || "Instructor not assigned yet"}</span>
           </div>
           <div className="flex items-center">
             <Calendar className="w-4 h-4 mr-2" />

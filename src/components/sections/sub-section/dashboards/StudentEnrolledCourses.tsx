@@ -358,7 +358,7 @@ const CourseCard = ({ course, onViewMaterials, userId }: {
               {course?.course_title || "No Title Available"}
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-              by {course?.assigned_instructor?.full_name || "No instructor"}
+              by {course?.assigned_instructor?.full_name || "Instructor not assigned yet"}
             </p>
             <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
               <div className="flex items-center">

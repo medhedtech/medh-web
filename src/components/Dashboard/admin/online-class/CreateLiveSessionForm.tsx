@@ -44,6 +44,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl }: ICrea
     grades: [] as string[],
     dashboard: "",
     instructorId: "",
+    batchId: "", // Add batch ID field
     date: "",
     remarks: "",
     summary: {
@@ -63,10 +64,12 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl }: ICrea
   const [showGradeDropdown, setShowGradeDropdown] = useState(false);
   const [showDashboardDropdown, setShowDashboardDropdown] = useState(false);
   const [showInstructorDropdown, setShowInstructorDropdown] = useState(false);
+  const [showBatchDropdown, setShowBatchDropdown] = useState(false); // Add batch dropdown state
   const [searchQuery, setSearchQuery] = useState("");
   const [gradeSearchQuery, setGradeSearchQuery] = useState("");
   const [dashboardSearchQuery, setDashboardSearchQuery] = useState("");
   const [instructorSearchQuery, setInstructorSearchQuery] = useState("");
+  const [batchSearchQuery, setBatchSearchQuery] = useState(""); // Add batch search query
   
   // Video upload state
   const [selectedVideos, setSelectedVideos] = useState<File[]>([]);
@@ -79,6 +82,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl }: ICrea
   const [grades, setGrades] = useState<IGrade[]>([]);
   const [dashboards, setDashboards] = useState<IDashboard[]>([]);
   const [instructors, setInstructors] = useState<IInstructor[]>([]);
+  const [batches, setBatches] = useState<any[]>([]); // Add batches state
   const [previousSession, setPreviousSession] = useState<any>(null);
   const [usingFallbackData, setUsingFallbackData] = useState(false);
 
@@ -87,6 +91,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl }: ICrea
   const gradeDropdownRef = useRef<HTMLDivElement>(null);
   const dashboardDropdownRef = useRef<HTMLDivElement>(null);
   const instructorDropdownRef = useRef<HTMLDivElement>(null);
+  const batchDropdownRef = useRef<HTMLDivElement>(null); // Add batch dropdown ref
   const videoInputRef = useRef<HTMLInputElement>(null);
 
   // Reset form function
@@ -98,6 +103,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl }: ICrea
       grades: [],
       dashboard: "",
       instructorId: "",
+      batchId: "", // Reset batch ID
       date: "",
       remarks: "",
       summary: {
@@ -111,10 +117,12 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl }: ICrea
     setGradeSearchQuery("");
     setDashboardSearchQuery("");
     setInstructorSearchQuery("");
+    setBatchSearchQuery(""); // Reset batch search query
     setShowStudentDropdown(false);
     setShowGradeDropdown(false);
     setShowDashboardDropdown(false);
     setShowInstructorDropdown(false);
+    setShowBatchDropdown(false); // Reset batch dropdown
     setSelectedVideos([]);
     setUploadedVideos([]);
     setUploadProgress({});
@@ -205,6 +213,16 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl }: ICrea
         formData.append('videos', video);
       });
 
+      // Add student IDs to the form data
+      if (formData.students && formData.students.length > 0) {
+        formData.append('studentIds', JSON.stringify(formData.students));
+      }
+
+      // Add batch ID to the form data if selected
+      if (formData.batchId) {
+        formData.append('batchId', formData.batchId);
+      }
+
       const response = await fetch('/api/v1/upload-videos', {
         method: 'POST',
         body: formData,
@@ -222,13 +240,23 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl }: ICrea
         const totalSize = validVideos.reduce((sum, video) => sum + (video.size || 0), 0);
         const sizeText = formatFileSize(totalSize);
         
+        // Get student-batch information
+        const studentBatchMapping = result.data.studentBatchMapping || {};
+        const studentCount = Object.keys(studentBatchMapping).length;
+        
         // Dismiss loading toast
         showToast.dismiss(uploadLoadingToast);
         
+        let successMessage = `🎬 ${validVideos.length} video(s) uploaded successfully to S3! 📁 Total size: ${sizeText}`;
+        
+        if (studentCount > 0) {
+          successMessage += `\n👥 Videos organized for ${studentCount} student(s) in their respective batch folders`;
+        }
+        
         showToast.success(
-          `🎬 ${validVideos.length} video(s) uploaded successfully to S3! 📁 Total size: ${sizeText}`,
+          successMessage,
           {
-            duration: 5000, // Show for 5 seconds
+            duration: 6000, // Show for 6 seconds
             style: {
               background: '#10B981',
               color: 'white',
@@ -430,7 +458,10 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl }: ICrea
         hasPreviousSession: !!previousSessionData,
         sessionTitle: previousSessionData?.sessionTitle,
         studentName: previousSessionData?.students?.[0]?.full_name,
-        instructorName: previousSessionData?.instructorId?.full_name
+        instructorName: previousSessionData?.instructorId?.full_name,
+        studentsArray: previousSessionData?.students,
+        gradesArray: previousSessionData?.grades,
+        instructorObject: previousSessionData?.instructorId
       });
 
       // Use the forced extraction results
@@ -449,8 +480,30 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl }: ICrea
       });
       
       // Use the forced extraction results directly
-      const finalGrades = hasRealGrades ? gradesData : [];
-      const finalDashboards = hasRealDashboards ? dashboardsData : [];
+      let finalGrades = hasRealGrades ? gradesData : [];
+      let finalDashboards = hasRealDashboards ? dashboardsData : [];
+      
+      // Deduplicate grades by _id to prevent duplicate key errors
+      if (hasRealGrades && Array.isArray(finalGrades)) {
+        const uniqueGrades = finalGrades.filter((grade, index, self) => 
+          index === self.findIndex(g => g._id === grade._id)
+        );
+        if (uniqueGrades.length !== finalGrades.length) {
+          console.log('🔧 Removed duplicate grades:', finalGrades.length - uniqueGrades.length);
+        }
+        finalGrades = uniqueGrades;
+      }
+      
+      // Deduplicate dashboards by _id to prevent duplicate key errors
+      if (hasRealDashboards && Array.isArray(finalDashboards)) {
+        const uniqueDashboards = finalDashboards.filter((dashboard, index, self) => 
+          index === self.findIndex(d => d._id === dashboard._id)
+        );
+        if (uniqueDashboards.length !== finalDashboards.length) {
+          console.log('🔧 Removed duplicate dashboards:', finalDashboards.length - uniqueDashboards.length);
+        }
+        finalDashboards = uniqueDashboards;
+      }
       
       // Use real data from database, with fallbacks for students and instructors
       if (!hasRealStudents) {
@@ -465,6 +518,14 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl }: ICrea
         ];
       } else {
         console.log('✅ REAL STUDENTS LOADED:', finalStudents.length, 'students');
+        // Deduplicate students by _id to prevent duplicate key errors
+        const uniqueStudents = finalStudents.filter((student, index, self) => 
+          index === self.findIndex(s => s._id === student._id)
+        );
+        if (uniqueStudents.length !== finalStudents.length) {
+          console.log('🔧 Removed duplicate students:', finalStudents.length - uniqueStudents.length);
+        }
+        finalStudents = uniqueStudents;
       }
       
       if (!hasRealInstructors) {
@@ -478,6 +539,14 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl }: ICrea
         ];
       } else {
         console.log('✅ REAL INSTRUCTORS LOADED:', finalInstructors.length, 'instructors');
+        // Deduplicate instructors by _id to prevent duplicate key errors
+        const uniqueInstructors = finalInstructors.filter((instructor, index, self) => 
+          index === self.findIndex(i => i._id === instructor._id)
+        );
+        if (uniqueInstructors.length !== finalInstructors.length) {
+          console.log('🔧 Removed duplicate instructors:', finalInstructors.length - uniqueInstructors.length);
+        }
+        finalInstructors = uniqueInstructors;
       }
       
       console.log('🎯 Setting final data:', {
@@ -879,6 +948,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl }: ICrea
               
               {previousSession ? (
                 <div key={`session-${previousSession._id}-${previousSession.updatedAt || Date.now()}-${sessionUpdated ? 'updated' : 'normal'}-${forceUpdate}`} className={`space-y-4 ${refreshingPreviousSession ? 'animate-pulse' : ''} ${sessionUpdated ? 'ring-2 ring-green-500 ring-opacity-50 rounded-lg' : ''}`}>
+
                   <div className="flex items-center justify-between">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
                       previousSession.status === 'completed' 
@@ -905,7 +975,9 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl }: ICrea
                       <FaFileAlt className="text-gray-400 w-4 h-4" />
                       <div>
                         <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Session Title</label>
-                        <p className="text-gray-900 dark:text-gray-100 font-medium">{previousSession.sessionTitle}</p>
+                        <p className="text-gray-900 dark:text-gray-100 font-medium">
+                          {previousSession.sessionTitle || previousSession.title || 'N/A'}
+                        </p>
                       </div>
                     </div>
                     
@@ -916,7 +988,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl }: ICrea
                           <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Student</label>
                           <p className="text-gray-900 dark:text-gray-100 font-medium">
                             {Array.isArray(previousSession.students) && previousSession.students.length > 0 
-                              ? previousSession.students[0]?.full_name || previousSession.students[0]?.name || 'N/A'
+                            ? previousSession.students[0]?.full_name || 'N/A'
                               : 'N/A'}
                           </p>
                         </div>
@@ -926,7 +998,9 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl }: ICrea
                         <FaFileAlt className="text-gray-400 w-4 h-4" />
                         <div>
                           <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Session</label>
-                          <p className="text-gray-900 dark:text-gray-100 font-medium">{previousSession.sessionNo || 'N/A'}</p>
+                          <p className="text-gray-900 dark:text-gray-100 font-medium">
+                            {previousSession.sessionNo || previousSession.session_number || previousSession.sessionId || 'N/A'}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -937,8 +1011,8 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl }: ICrea
                         <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Grade & Instructor</label>
                         <p className="text-gray-900 dark:text-gray-100 font-medium">
                           {Array.isArray(previousSession.grades) && previousSession.grades.length > 0 
-                            ? previousSession.grades[0]?.name || previousSession.grades[0] || 'N/A'
-                            : 'N/A'} • {previousSession.instructorId?.full_name || previousSession.instructorId?.name || 'N/A'}
+                            ? previousSession.grades[0]?.name || 'N/A'
+                            : 'N/A'} • {previousSession.instructorId?.full_name || 'N/A'}
                         </p>
                       </div>
                     </div>
@@ -947,8 +1021,19 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl }: ICrea
               ) : (
                 <div className="text-center py-8">
                   <FaFileAlt className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400 mb-2">No sessions found</p>
-                  <p className="text-sm text-gray-400 dark:text-gray-500">This will be the first session</p>
+                  <p className="text-gray-500 dark:text-gray-400 mb-2">No previous sessions found</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500">This will be the first session for this course category</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRefreshingPreviousSession(true);
+                      loadInitialData().finally(() => setRefreshingPreviousSession(false));
+                    }}
+                    className="mt-3 px-4 py-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-lg text-sm font-medium transition-colors duration-200"
+                  >
+                    <FaSync className="w-4 h-4 mr-2 inline" />
+                    Refresh
+                  </button>
                 </div>
               )}
             </div>
@@ -1490,7 +1575,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl }: ICrea
                               if (!video) return null;
                               
                               return (
-                                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                <div key={`selected-${video.name}-${index}`} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                                   <div className="flex items-center gap-3">
                                     <FaFileVideo className="w-5 h-5 text-blue-500" />
                                     <div>
@@ -1530,19 +1615,30 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl }: ICrea
                               // Skip rendering if video is null or undefined
                               if (!video) return null;
                               
-                              return (
-                                <div key={video.fileId || index} className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg">
-                                  <div className="flex items-center gap-3">
-                                    <FaVideo className="w-5 h-5 text-green-500" />
-                                    <div>
-                                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        {video.name || 'Unknown File'}
-                                      </p>
-                                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                                        {formatFileSize(video.size || 0)} • Uploaded
-                                      </p>
-                                    </div>
-                                  </div>
+                                                             return (
+                                 <div key={video.fileId || index} className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg">
+                                   <div className="flex items-center gap-3">
+                                     <FaVideo className="w-5 h-5 text-green-500" />
+                                     <div>
+                                       <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                         {video.name || 'Unknown File'}
+                                       </p>
+                                       <p className="text-xs text-gray-500 dark:text-gray-400">
+                                         {formatFileSize(video.size || 0)} • Uploaded
+                                       </p>
+                                       {video.studentId && (
+                                         <p className="text-xs text-blue-600 dark:text-blue-400">
+                                           👤 Student: {video.studentId}
+                                           {video.batchName && ` • 📚 Batch: ${video.batchName}`}
+                                         </p>
+                                       )}
+                                       {video.s3Path && (
+                                         <p className="text-xs text-purple-600 dark:text-purple-400">
+                                           📁 Path: {video.s3Path}
+                                         </p>
+                                       )}
+                                     </div>
+                                   </div>
                                   <div className="flex items-center gap-2">
                                     {video.url && (
                                       <a

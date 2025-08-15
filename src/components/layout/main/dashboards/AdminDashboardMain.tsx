@@ -56,8 +56,35 @@ const AdminDashboardMain = () => {
 
         // Check if response exists and has the expected structure
         if (response) {
+          console.log('Admin Dashboard API Response:', response);
+          
           // Handle different possible response formats
-          if (response.counts) {
+          if (response.success && response.data && response.data.totalStudents) {
+            // New format: response.data contains the stats with totalStudents, totalInstructors, etc.
+            const stats = response.data;
+            setStats({
+              enrolledCourses: stats.activeEnrollments?.total || 0,
+              activeStudents: stats.totalStudents?.total || 0,
+              totalInstructors: stats.totalInstructors?.total || 0,
+              totalCourses: stats.activeCourses?.total || 0,
+              corporateEmployees: 0, // This might need to be calculated separately
+              schools: 0, // This might need to be calculated separately
+            });
+            setError(null);
+          } else if (response.success && response.data) {
+            // Direct data format
+            const stats = response.data;
+            setStats({
+              enrolledCourses: stats.enrolledCourses || stats.activeEnrollments?.total || 0,
+              activeStudents: stats.activeStudents || stats.totalStudents?.total || 0,
+              totalInstructors: stats.totalInstructors || 0,
+              totalCourses: stats.totalCourses || stats.activeCourses?.total || 0,
+              corporateEmployees: stats.corporateEmployees || 0,
+              schools: stats.schools || 0,
+            });
+            setError(null);
+            console.log('Dashboard stats updated successfully:', stats);
+          } else if (response.counts) {
             // Format 1: response.counts contains the stats
             setStats({
               enrolledCourses: response.counts.enrolledCourses || 0,
@@ -94,39 +121,39 @@ const AdminDashboardMain = () => {
             // If we can't find the stats in the expected locations, log the response and use fallback
             console.warn("Unexpected API response format:", response);
             setStats({
-              enrolledCourses: 61,
-              activeStudents: 9,
-              totalInstructors: 2,
-              totalCourses: 104,
-              corporateEmployees: 13,
-              schools: 8,
+              enrolledCourses: 0,
+              activeStudents: 0,
+              totalInstructors: 0,
+              totalCourses: 0,
+              corporateEmployees: 0,
+              schools: 0,
             });
-            setError("Using sample data due to unexpected API response format");
+            setError("Data format unexpected - please contact support");
           }
         } else {
           // If response is null or undefined
           console.warn("Empty API response received");
           setStats({
-            enrolledCourses: 61,
-            activeStudents: 9,
-            totalInstructors: 2,
-            totalCourses: 104,
-            corporateEmployees: 13,
-            schools: 8,
+            enrolledCourses: 0,
+            activeStudents: 0,
+            totalInstructors: 0,
+            totalCourses: 0,
+            corporateEmployees: 0,
+            schools: 0,
           });
-          setError("Using sample data due to empty API response");
+          setError("No data available - please check your connection");
         }
       } catch (err: any) {
         console.error("Error fetching dashboard stats:", err);
         setError(err.message || "An error occurred while fetching dashboard stats");
-        // Set some mock data for development
+        // Set zero values when there's an error
         setStats({
-          enrolledCourses: 61,
-          activeStudents: 9,
-          totalInstructors: 2,
-          totalCourses: 104,
-          corporateEmployees: 13,
-          schools: 8,
+          enrolledCourses: 0,
+          activeStudents: 0,
+          totalInstructors: 0,
+          totalCourses: 0,
+          corporateEmployees: 0,
+          schools: 0,
         });
       } finally {
         setLoading(false);
@@ -291,7 +318,7 @@ const AdminDashboardMain = () => {
 
         <div className="rounded-lg bg-white p-6 shadow">
           <h2 className="mb-4 text-lg font-medium">Quick Actions</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             <button
               onClick={() => router.push('/dashboards/admin-dashboard?view=admin-studentmange')}
               className="rounded-md bg-blue-600 px-4 py-2 text-white shadow-sm hover:bg-blue-700"
@@ -322,6 +349,15 @@ const AdminDashboardMain = () => {
             >
               <Tag className="w-4 h-4" />
               Add Coupon
+            </button>
+            <button
+              onClick={() => router.push('/dashboards/admin/online-class/live/batch-management')}
+              className="rounded-md bg-indigo-600 px-4 py-2 text-white shadow-sm hover:bg-indigo-700 flex items-center justify-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              Batch Management
             </button>
           </div>
         </div>

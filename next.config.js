@@ -1,5 +1,3 @@
-import { TruckElectric } from 'lucide-react';
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
@@ -133,8 +131,19 @@ const nextConfig = {
       };
     }
 
+    // Disable CSS preloading
+    config.plugins = config.plugins.filter(plugin => {
+      return plugin.constructor.name !== 'MiniCssExtractPlugin';
+    });
+
     return config;
+  },
+
+  // Disable CSS preloading
+  onDemandEntries: {
+    maxInactiveAge: 25 * 1000,
+    pagesBufferLength: 2,
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
