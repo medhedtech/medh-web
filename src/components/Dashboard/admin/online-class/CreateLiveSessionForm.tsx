@@ -23,7 +23,8 @@ import {
   FaVideo,
   FaUpload,
   FaPlay,
-  FaFileVideo
+  FaFileVideo,
+  FaSync
 } from "react-icons/fa";
 import { liveClassesAPI, IStudent, IInstructor, IGrade, IDashboard, ISummaryItem } from "@/apis/liveClassesAPI";
 import { showToast } from "@/utils/toastManager";
