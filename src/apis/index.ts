@@ -560,7 +560,7 @@ export const apiUrls = {
     },
   },
   adminDashboard: {
-    getDashboardCount: `${apiBaseUrl}/dashboard/counts`,
+    getDashboardCount: `${apiBaseUrl}/admin/dashboard-stats`,
     getDetailedStats: (options: { period?: string; filter?: string } = {}): string => {
       const { period = "month", filter = "" } = options;
       const queryParams = new URLSearchParams();
@@ -730,7 +730,7 @@ export const apiUrls = {
     }
   },
   Instructor: {
-    getAllInstructors: "/auth/get-all-instrucors",
+    getAllInstructors: "/live-classes/instructors",
     getInstructorById: "/auth/get-instructor",
     createInstructor: "/auth/create",
     updateInstructor: (id: string): string => `/auth/updateInstrucor/${id}`,

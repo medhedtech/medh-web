@@ -172,7 +172,10 @@ const UnifiedBatchModal: React.FC<UnifiedBatchModalProps> = ({
       if (response?.data) {
         let instructorsList: IInstructor[] = [];
         
-        if (response.data.success && response.data.data) {
+        // Handle the new API response structure from live-classes/instructors
+        if (response.data.status === 'success' && response.data.data?.items) {
+          instructorsList = Array.isArray(response.data.data.items) ? response.data.data.items : [];
+        } else if (response.data.success && response.data.data) {
           instructorsList = Array.isArray(response.data.data) ? response.data.data : [];
         } else if (response.data.instructors) {
           instructorsList = Array.isArray(response.data.instructors) ? response.data.instructors : [];
@@ -182,27 +185,23 @@ const UnifiedBatchModal: React.FC<UnifiedBatchModalProps> = ({
           instructorsList = Array.isArray(response.data.users) ? response.data.users : [];
         }
         
-        // Transform and filter data to match our interface
+        // Transform data to match our interface (simplified for instructor collection)
         const transformedInstructors = instructorsList
-          .filter((instructor: any) => {
-            const roles = instructor.role || instructor.roles || [];
-            const hasInstructorRole = Array.isArray(roles) 
-              ? roles.some((role: string) => role.toLowerCase().includes('instructor'))
-              : typeof roles === 'string' && roles.toLowerCase().includes('instructor');
-            return hasInstructorRole || instructor.admin_role === 'instructor';
-          })
           .map((instructor: any) => ({
             _id: instructor._id || instructor.id,
             full_name: instructor.full_name || instructor.name || `${instructor.first_name || ''} ${instructor.last_name || ''}`.trim(),
             email: instructor.email,
             phone_number: instructor.phone_number || instructor.phone,
             meta: instructor.meta || {}
-          }));
+          }))
+          .filter((instructor: IInstructor) => instructor._id && instructor.full_name && instructor.email);
         
         setInstructors(transformedInstructors);
         
         if (transformedInstructors.length === 0) {
-          showToast.warning('No instructors available. Please assign instructor roles first.');
+          showToast.warning('No instructors available. Please add instructors first.');
+        } else {
+          console.log(`✅ Loaded ${transformedInstructors.length} instructors from instructor collection`);
         }
       } else {
         setInstructors([]);
@@ -602,19 +601,34 @@ const UnifiedBatchModal: React.FC<UnifiedBatchModalProps> = ({
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Instructor *
               </label>
-              <select
-                value={formData.assigned_instructor}
-                onChange={(e) => setFormData(prev => ({ ...prev, assigned_instructor: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                required
-              >
-                <option value="">Select Instructor</option>
-                {instructors.map((instructor) => (
-                  <option key={instructor._id} value={instructor._id}>
-                    {instructor.full_name} ({instructor.email})
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={formData.assigned_instructor}
+                  onChange={(e) => setFormData(prev => ({ ...prev, assigned_instructor: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  required
+                  aria-label="Select an instructor"
+                >
+                  <option value="">Select Instructor</option>
+                  {instructors.map((instructor) => (
+                    <option key={instructor._id} value={instructor._id}>
+                      {instructor.full_name} ({instructor.email})
+                    </option>
+                  ))}
+                </select>
+                {instructors.length === 0 && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-600 rounded-lg">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      {loading ? 'Loading instructors...' : 'No instructors available'}
+                    </span>
+                  </div>
+                )}
+              </div>
+              {instructors.length > 0 && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {instructors.length} instructor(s) available
+                </p>
+              )}
             </div>
 
             {/* Course Selection */}

@@ -267,9 +267,9 @@ export const liveClassesAPI = {
   // Get latest session (most recently created/updated)
   getPreviousSession: async (courseCategory?: string) => {
     const url = courseCategory 
-      ? `/live-sessions/previous?courseCategory=${encodeURIComponent(courseCategory)}`
-      : '/live-sessions/previous';
-    return liveSessionsApiClient.get<ILiveSession>(url);
+      ? `/live-classes/sessions/previous?courseCategory=${encodeURIComponent(courseCategory)}`
+      : '/live-classes/sessions/previous';
+    return liveClassesApiClient.get<ILiveSession>(url);
   },
 
   // Get all sessions (optionally filtered by course category)

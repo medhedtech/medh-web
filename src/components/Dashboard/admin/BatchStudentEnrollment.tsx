@@ -183,18 +183,20 @@ const BatchStudentEnrollment: React.FC<BatchStudentEnrollmentProps> = ({
         console.log('✅ Using enrolled_students_details from batch prop:', batch.enrolled_students_details.length);
         
         // Transform the enrolled_students_details to our enhanced student format
-        const transformedStudents: IEnhancedStudent[] = batch.enrolled_students_details.map(enrollment => ({
-          _id: enrollment.student._id,
-          full_name: enrollment.student.full_name,
-          email: enrollment.student.email,
-          phone_numbers: enrollment.student.phone_numbers,
-          status: enrollment.student.status,
-          enrollment_date: enrollment.enrollment_date,
-          enrollment_status: enrollment.enrollment_status as any,
-          progress: enrollment.progress || 0,
-          payment_plan: enrollment.payment_plan as any,
-          profile_image: enrollment.student.profile_image
-        }));
+        const transformedStudents: IEnhancedStudent[] = batch.enrolled_students_details
+          .filter(enrollment => enrollment.student && enrollment.student._id) // Filter out null/undefined students
+          .map(enrollment => ({
+            _id: enrollment.student._id,
+            full_name: enrollment.student.full_name || 'Unknown Student',
+            email: enrollment.student.email || 'no-email@example.com',
+            phone_numbers: enrollment.student.phone_numbers || [],
+            status: enrollment.student.status || 'Unknown',
+            enrollment_date: enrollment.enrollment_date,
+            enrollment_status: enrollment.enrollment_status as any,
+            progress: enrollment.progress || 0,
+            payment_plan: enrollment.payment_plan as any,
+            profile_image: enrollment.student.profile_image
+          }));
 
         setEnrolledStudents(transformedStudents);
         setLastRefresh(new Date());
@@ -220,18 +222,20 @@ const BatchStudentEnrollment: React.FC<BatchStudentEnrollmentProps> = ({
             }
             
             if (batchData.enrolled_students_details && batchData.enrolled_students_details.length > 0) {
-              const transformedStudents: IEnhancedStudent[] = batchData.enrolled_students_details.map((enrollment: any) => ({
-                _id: enrollment.student._id,
-                full_name: enrollment.student.full_name,
-                email: enrollment.student.email,
-                phone_numbers: enrollment.student.phone_numbers,
-                status: enrollment.student.status,
-                enrollment_date: enrollment.enrollment_date,
-                enrollment_status: enrollment.enrollment_status,
-                progress: enrollment.progress || 0,
-                payment_plan: enrollment.payment_plan,
-                profile_image: enrollment.student.profile_image
-              }));
+              const transformedStudents: IEnhancedStudent[] = batchData.enrolled_students_details
+                .filter((enrollment: any) => enrollment.student && enrollment.student._id) // Filter out null/undefined students
+                .map((enrollment: any) => ({
+                  _id: enrollment.student._id,
+                  full_name: enrollment.student.full_name || 'Unknown Student',
+                  email: enrollment.student.email || 'no-email@example.com',
+                  phone_numbers: enrollment.student.phone_numbers || [],
+                  status: enrollment.student.status || 'Unknown',
+                  enrollment_date: enrollment.enrollment_date,
+                  enrollment_status: enrollment.enrollment_status,
+                  progress: enrollment.progress || 0,
+                  payment_plan: enrollment.payment_plan,
+                  profile_image: enrollment.student.profile_image
+                }));
 
               setEnrolledStudents(transformedStudents);
               setLastRefresh(new Date());

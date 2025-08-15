@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Debug - Medh</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔐 Authentication Debug - Medh</h1>
+    
+    <div class="debug-section">
+        <h3>📋 Local Storage</h3>
+        <div id="localStorage"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h3>📋 Session Storage</h3>
+        <div id="sessionStorage"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h3>🌐 API Test</h3>
+        <button onclick="testAPI()">Test API Connection</button>
+        <div id="apiTest"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h3>🔧 Environment Variables</h3>
+        <div id="envVars"></div>
+    </div>
+
+    <script>
+        // Check localStorage
+        function checkLocalStorage() {
+            const container = document.getElementById('localStorage');
+            const items = {};
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                items[key] = value;
+            }
+            
+            if (Object.keys(items).length === 0) {
+                container.innerHTML = '<p class="warning">⚠️ No items in localStorage</p>';
+            } else {
+                container.innerHTML = '<pre>' + JSON.stringify(items, null, 2) + '</pre>';
+            }
+        }
+        
+        // Check sessionStorage
+        function checkSessionStorage() {
+            const container = document.getElementById('sessionStorage');
+            const items = {};
+            
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                const value = sessionStorage.getItem(key);
+                items[key] = value;
+            }
+            
+            if (Object.keys(items).length === 0) {
+                container.innerHTML = '<p class="warning">⚠️ No items in sessionStorage</p>';
+            } else {
+                container.innerHTML = '<pre>' + JSON.stringify(items, null, 2) + '</pre>';
+            }
+        }
+        
+        // Test API connection
+        async function testAPI() {
+            const container = document.getElementById('apiTest');
+            container.innerHTML = '<p>🔄 Testing API connection...</p>';
+            
+            try {
+                // Get the API URL from environment or use default
+                const apiUrl = window.location.hostname === 'localhost' 
+                    ? 'http://localhost:8080/api/v1'
+                    : 'https://api.medh.co/api/v1';
+                
+                // Get auth token
+                const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+                
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+                
+                const response = await fetch(`${apiUrl}/admin/dashboard-stats`, {
+                    method: 'GET',
+                    headers: headers,
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    container.innerHTML = `
+                        <p class="success">✅ API Connection Successful!</p>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Has Data:</strong> ${!!data.data}</p>
+                        <p><strong>Success:</strong> ${data.success}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <p class="error">❌ API Connection Failed</p>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Error:</strong> ${data.message || 'Unknown error'}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                container.innerHTML = `
+                    <p class="error">❌ Network Error</p>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+            }
+        }
+        
+        // Check environment variables (if accessible)
+        function checkEnvironment() {
+            const container = document.getElementById('envVars');
+            const env = {
+                'NODE_ENV': process?.env?.NODE_ENV || 'Not accessible',
+                'NEXT_PUBLIC_API_URL': process?.env?.NEXT_PUBLIC_API_URL || 'Not accessible',
+                'Current URL': window.location.href,
+                'Hostname': window.location.hostname,
+                'Protocol': window.location.protocol
+            };
+            
+            container.innerHTML = '<pre>' + JSON.stringify(env, null, 2) + '</pre>';
+        }
+        
+        // Run checks on page load
+        window.onload = function() {
+            checkLocalStorage();
+            checkSessionStorage();
+            checkEnvironment();
+        };
+    </script>
+</body>
+</html>
+

@@ -12,6 +12,7 @@ import GoogleAnalytics from '@/components/shared/analytics/GoogleAnalytics';
 import CookieConsent from '@/components/shared/gdpr/CookieConsent';
 import { Suspense } from 'react';
 import localFont from 'next/font/local';
+import { Toaster } from 'react-hot-toast';
 
 // Use local fonts instead of Google Fonts to avoid timeout issues
 const montserrat = localFont({
@@ -162,6 +163,30 @@ export default function RootLayout({ children }: RootLayoutProps) {
             <Analytics />
             <SpeedInsights />
             <CookieConsent />
+            <Toaster 
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: '#363636',
+                  color: '#fff',
+                },
+                success: {
+                  duration: 3000,
+                  iconTheme: {
+                    primary: '#4ade80',
+                    secondary: '#fff',
+                  },
+                },
+                error: {
+                  duration: 5000,
+                  iconTheme: {
+                    primary: '#ef4444',
+                    secondary: '#fff',
+                  },
+                },
+              }}
+            />
           </Providers>
         </Suspense>
       </body>

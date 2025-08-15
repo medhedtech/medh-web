@@ -1,3 +1,5 @@
+import { Metadata } from 'next';
+
 // JSON-LD Schema for Course
 const courseJsonLd = {
   "@context": "https://schema.org",
@@ -19,7 +21,7 @@ const courseJsonLd = {
   }
 };
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "AI and Data Science Course | MEDH",
   description: "Master artificial intelligence and data science with our comprehensive course. Gain hands-on experience in machine learning, neural networks, and data analysis.",
   keywords: "AI course, data science training, machine learning course, neural networks, data analysis, MEDH courses, professional development, tech education",
@@ -44,7 +46,11 @@ export const metadata = {
   }
 };
 
-export default function AiDataScienceLayout({ children }) {
+interface AiDataScienceLayoutProps {
+  children: React.ReactNode;
+}
+
+export default function AiDataScienceLayout({ children }: AiDataScienceLayoutProps) {
   return (
     <>
       <script
@@ -54,4 +60,4 @@ export default function AiDataScienceLayout({ children }) {
       {children}
     </>
   );
-} 
+}
