@@ -11,10 +11,10 @@ import { jwtDecode } from "jwt-decode";
 const schema = yup
   .object({
     email: yup.string().email().required("Email is required"),
-    password: yup
-      .string()
-      .min(8, "At least 8 character required")
-      .required("Password is required"),
+                password: yup
+              .string()
+              .min(6, "At least 6 characters required")
+              .required("Password is required"),
   })
   .required();
 

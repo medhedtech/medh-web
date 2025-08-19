@@ -20,7 +20,7 @@ type InstructorFormData = {
 const schema = yup.object().shape({
   full_name: yup.string().required('Full name is required'),
   email: yup.string().email('Invalid email').required('Email is required'),
-  password: yup.string().min(8, 'At least 8 characters').required('Password is required'),
+      password: yup.string().min(6, 'At least 6 characters').required('Password is required'),
 });
 
 export default function CreateInstructorPage() {

@@ -27,10 +27,10 @@ const schema = yup.object({
     .string()
     .required("Email is required")
     .email("Please enter a valid email"),
-  password: yup
-    .string()
-    .min(8, "At least 8 characters required")
-    .required("Password is required"),
+      password: yup
+      .string()
+      .min(6, "At least 6 characters required")
+      .required("Password is required"),
   phone_number: yup
     .string()
     .required("Phone number is required")

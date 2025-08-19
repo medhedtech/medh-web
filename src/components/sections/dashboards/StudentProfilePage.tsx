@@ -239,7 +239,6 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
     confirm: false
   });
   const [changingPassword, setChangingPassword] = useState(false);
-  const [showDebugInfo, setShowDebugInfo] = useState(false);
 
   // Add new state for mobile navigation
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -722,91 +721,55 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
     return () => window.removeEventListener('focus', handleFocus);
   }, [profile, loading, refreshing]);
 
-  // Password validation function
+  // Password validation function - NO RESTRICTIONS
   const validatePasswordChange = () => {
     const errors: string[] = [];
     
     // Current password validation
-    if (!passwordData.current_password || passwordData.current_password.trim().length === 0) {
+    if (!passwordData.current_password) {
       errors.push('Current password is required');
     }
     
-    // New password validation - matching backend requirements
+    // New password validation - basic requirements only
     if (!passwordData.new_password) {
       errors.push('New password is required');
     } else {
-      // Length validation (8-128 characters as per backend)
-      if (passwordData.new_password.length < 8) {
-        errors.push('New password must be at least 8 characters long');
-      }
-      
-      if (passwordData.new_password.length > 128) {
-        errors.push('New password must not exceed 128 characters');
-      }
-      
-      // Character requirements matching backend regex
-      if (!/[A-Z]/.test(passwordData.new_password)) {
-        errors.push('New password must contain at least one uppercase letter');
-      }
-      
-      if (!/[a-z]/.test(passwordData.new_password)) {
-        errors.push('New password must contain at least one lowercase letter');
-      }
-      
-      if (!/\d/.test(passwordData.new_password)) {
-        errors.push('New password must contain at least one number');
-      }
-      
-      // Special characters matching backend regex pattern
-      if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(passwordData.new_password)) {
-        errors.push('New password must contain at least one special character');
-      }
-      
-      // Common weak pattern checks (matching backend validation)
-      const weakPatterns = [
-        { pattern: /^123456/i, message: 'Password cannot start with "123456"' },
-        { pattern: /^password/i, message: 'Password cannot start with "password"' },
-        { pattern: /^qwerty/i, message: 'Password cannot start with "qwerty"' },
-        { pattern: /^abc123/i, message: 'Password cannot start with "abc123"' },
-        { pattern: /^admin/i, message: 'Password cannot start with "admin"' },
-        { pattern: /^letmein/i, message: 'Password cannot start with "letmein"' },
-        { pattern: /(.)\1{3,}/, message: 'Password cannot contain more than 3 repeated characters' }
-      ];
-      
-      for (const weakPattern of weakPatterns) {
-        if (weakPattern.pattern.test(passwordData.new_password)) {
-          errors.push(weakPattern.message);
-          break; // Only show first weak pattern found
-        }
+      // Only check if password is not empty
+      if (passwordData.new_password.length === 0) {
+        errors.push('New password cannot be empty');
       }
       
       // Check if new password is different from current
-      if (passwordData.new_password === passwordData.current_password) {
+      if (passwordData.current_password && passwordData.new_password === passwordData.current_password) {
         errors.push('New password must be different from current password');
       }
     }
     
     // Confirm password validation
     if (!passwordData.confirm_password) {
-      errors.push('Please confirm your new password');
-    } else if (passwordData.new_password !== passwordData.confirm_password) {
-      errors.push('New password and confirmation do not match');
+      errors.push('Password confirmation is required');
+    } else if (passwordData.new_password && passwordData.confirm_password !== passwordData.new_password) {
+      errors.push('Password confirmation must match new password');
     }
     
     return errors;
   };
 
+
+
   // Change password function with proper backend integration
   const handleChangePassword = async () => {
-    const validationErrors = validatePasswordChange();
-    
+    // Clear previous errors
+    setPasswordErrors([]);
+    setChangingPassword(true);
+
+    // Validate password data
+    const validationErrors = validatePasswordChange(passwordData);
     if (validationErrors.length > 0) {
       setPasswordErrors(validationErrors);
+      setChangingPassword(false);
       return;
     }
-    
-    setChangingPassword(true);
-    setPasswordErrors([]);
     
     try {
       // Use the proper change-password endpoint from auth.api.ts with correct interface
@@ -822,12 +785,24 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       console.log('🔄 Attempting to change password...');
       console.log('📡 API endpoint:', `${apiBaseUrl}/auth/change-password`);
       console.log('🔑 Token exists:', !!localStorage.getItem('token'));
+      console.log('🔑 Token preview:', localStorage.getItem('token') ? `${localStorage.getItem('token')?.substring(0, 20)}...` : 'No token');
       
+      // Check if user is logged in
+      const token = localStorage.getItem('token');
+      if (!token) {
+        const errorMessage = 'You are not logged in. Please log in again.';
+        setPasswordErrors([errorMessage]);
+        showToast.error(errorMessage);
+        setChangingPassword(false);
+        return;
+      }
+
       const response = await fetch(`${apiBaseUrl}/auth/change-password`, {
         method: 'PUT', // Backend uses PUT method
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
         },
         body: JSON.stringify({
           currentPassword: changePasswordPayload.current_password,      // Backend expects currentPassword
@@ -837,9 +812,19 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
         })
       });
       
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+      
       const result = await response.json();
+      console.log('📡 Response body:', result);
       
       if (response.ok && result.success) {
+        // Store the new token if provided
+        if (result.data?.new_token) {
+          localStorage.setItem('token', result.data.new_token);
+          console.log('🔑 New token stored after password change');
+        }
+        
         showToast.success('Password changed successfully!');
         setIsChangingPassword(false);
         setPasswordData({
@@ -848,10 +833,16 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
           confirm_password: ''
         });
         
-        // Optional: Show security info
-        showToast.info('For security, consider logging out and back in on other devices.', {
-          duration: 5000
-        });
+        // Show session info based on backend response
+        if (result.data?.sessions_invalidated) {
+          showToast.info('All other sessions have been invalidated for security. You can continue using this device.', {
+            duration: 5000
+          });
+        } else {
+          showToast.info('Your current session remains active. For security, consider logging out and back in on other devices.', {
+            duration: 5000
+          });
+        }
       } else {
         // Handle specific error cases based on HTTP status codes
         let errorMessage = result.message || 'Failed to change password';
@@ -861,7 +852,10 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
             errorMessage = result.message || 'Invalid password requirements. Please check your input.';
             break;
           case 401:
-            errorMessage = 'Current password is incorrect. Please try again.';
+            errorMessage = 'Current password is incorrect or session expired. Please log in again.';
+            break;
+          case 404:
+            errorMessage = 'API endpoint not found. Please contact support.';
             break;
           case 422:
             errorMessage = 'Password validation failed. Please ensure your new password meets all requirements.';
@@ -872,6 +866,8 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
           case 500:
             errorMessage = 'Server error occurred. Please try again later.';
             break;
+          default:
+            errorMessage = `Unexpected error (${response.status}): ${result.message || 'Unknown error'}`;
         }
         
         setPasswordErrors([errorMessage]);
@@ -886,6 +882,8 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       if (error instanceof Error) {
         if (error.name === 'NetworkError' || error.message.includes('fetch')) {
           errorMessage = 'Network connection failed. Please check your internet connection.';
+        } else if (error.message.includes('404')) {
+          errorMessage = 'API endpoint not found. Please contact support.';
         } else {
           errorMessage = error.message;
         }
@@ -2021,17 +2019,19 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                       <Lock className="h-5 w-5 mr-2 text-red-600" />
                       Change Password
                     </h3>
-                    {!isChangingPassword && (
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => setIsChangingPassword(true)}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
-                      >
-                        <Lock className="h-4 w-4 mr-2 inline" />
-                        Change Password
-                      </motion.button>
-                    )}
+                    <div className="flex space-x-2">
+                      {!isChangingPassword && (
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => setIsChangingPassword(true)}
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                        >
+                          <Lock className="h-4 w-4 mr-2 inline" />
+                          Change Password
+                        </motion.button>
+                      )}
+                    </div>
                   </div>
 
                   {!isChangingPassword ? (
@@ -2073,30 +2073,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                           </div>
                         )}
 
-                        {/* Password Requirements */}
-                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                          <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
-                            Password Requirements:
-                          </h4>
-                          <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-                            <li className="flex items-center">
-                              <span className="mr-2">•</span>
-                              <span>At least 8 characters long</span>
-                            </li>
-                            <li className="flex items-center">
-                              <span className="mr-2">•</span>
-                              <span>Contains uppercase and lowercase letters</span>
-                            </li>
-                            <li className="flex items-center">
-                              <span className="mr-2">•</span>
-                              <span>Contains at least one number</span>
-                            </li>
-                            <li className="flex items-center">
-                              <span className="mr-2">•</span>
-                              <span>Contains at least one special character</span>
-                            </li>
-                          </ul>
-                        </div>
+
 
                         {/* Current Password */}
                         <div>
@@ -2215,32 +2192,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                   )}
                 </div>
 
-                {/* Multi-Factor Authentication Section */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                  <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                          <Shield className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="ml-4">
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                            Multi-Factor Authentication
-                          </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Add an extra layer of security to your account
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        <div className="flex items-center text-gray-600">
-                          <XCircle className="w-5 h-5 mr-2" />
-                          <span className="text-sm font-medium">Not Available</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+
 
                 {/* Advanced Security Settings */}
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">

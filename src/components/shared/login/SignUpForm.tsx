@@ -56,12 +56,8 @@ const signUpSchema = z.object({
     .transform(email => email.toLowerCase().trim()),
   
   password: z.string()
-    .min(8, "Password must be at least 8 characters")
-    .max(128, "Password is too long")
-    .refine(password => /[a-z]/.test(password), "Password must contain at least one lowercase letter")
-    .refine(password => /[A-Z]/.test(password), "Password must contain at least one uppercase letter")
-    .refine(password => /\d/.test(password), "Password must contain at least one number")
-    .refine(password => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>?]/.test(password), "Password must contain at least one special character"),
+    .min(1, "Password cannot be empty")
+    .max(128, "Password is too long"),
   
   confirm_password: z.string(),
   
@@ -96,50 +92,22 @@ interface PasswordStrength {
 }
 
 const calculatePasswordStrength = (password: string): PasswordStrength => {
-  if (!password) return { score: 0, message: "", color: "gray", suggestions: [] };
-  
-  let score = 0;
-  const suggestions: string[] = [];
-
-  // Length checks
-  if (password.length >= 8) score += 1;
-  else suggestions.push("Use at least 8 characters");
-  
-  if (password.length >= 12) score += 1;
-  else if (password.length >= 8) suggestions.push("Consider using 12+ characters");
-
-  // Character type checks
-  if (/[a-z]/.test(password)) score += 1;
-  else suggestions.push("Add lowercase letters");
-  
-  if (/[A-Z]/.test(password)) score += 1;
-  else suggestions.push("Add uppercase letters");
-  
-  if (/\d/.test(password)) score += 1;
-  else suggestions.push("Add numbers");
-  
-  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>?]/.test(password)) score += 1;
-  else suggestions.push("Add special characters");
-
-  // Determine strength
-  let message = "";
-  let color = "gray";
-  
-  if (score < 3) {
-    message = "Weak";
-    color = "red";
-  } else if (score < 5) {
-    message = "Fair";
-    color = "yellow";
-  } else if (score < 6) {
-    message = "Good";
-    color = "blue";
-  } else {
-    message = "Strong";
-    color = "green";
+  if (!password || password.length === 0) {
+    return { 
+      score: 0, 
+      message: "Password cannot be empty", 
+      color: "red", 
+      suggestions: ["Please enter a password"] 
+    };
   }
-
-  return { score, message, color, suggestions: suggestions.slice(0, 2) };
+  
+  // Any non-empty password is considered strong
+  return { 
+    score: 5, 
+    message: "Strong", 
+    color: "green", 
+    suggestions: [] 
+  };
 };
 
 // Enhanced error message handler

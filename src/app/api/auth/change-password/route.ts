@@ -29,30 +29,13 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Validate password strength
-    if (newPassword.length < 8) {
+    // Validate password is not empty
+    if (!newPassword || newPassword.length === 0) {
       return NextResponse.json(
         {
           status: 'error',
-          message: 'Password too short',
-          error: 'Password must be at least 8 characters long'
-        },
-        { status: 400 }
-      );
-    }
-
-    // Check for password complexity
-    const hasUpperCase = /[A-Z]/.test(newPassword);
-    const hasLowerCase = /[a-z]/.test(newPassword);
-    const hasNumbers = /\d/.test(newPassword);
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(newPassword);
-
-    if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
-      return NextResponse.json(
-        {
-          status: 'error',
-          message: 'Password does not meet requirements',
-          error: 'Password must contain at least one uppercase letter, one lowercase letter, and one number'
+          message: 'Password cannot be empty',
+          error: 'New password cannot be empty'
         },
         { status: 400 }
       );

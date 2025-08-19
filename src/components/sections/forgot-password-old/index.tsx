@@ -174,15 +174,8 @@ const ForgotPassword: React.FC = () => {
         showToast.error("❌ Please enter a new password.", { duration: 4000 });
         return;
       }
-      if (data.newPassword.length < 8) {
-        showToast.error("❌ Password must be at least 8 characters long.", { duration: 4000 });
-        return;
-      }
-      
-      // Check password complexity requirements
-      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-      if (!passwordRegex.test(data.newPassword)) {
-        showToast.error("❌ Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.", { duration: 6000 });
+      if (!data.newPassword || data.newPassword.length === 0) {
+        showToast.error("❌ Password cannot be empty.", { duration: 4000 });
         return;
       }
       

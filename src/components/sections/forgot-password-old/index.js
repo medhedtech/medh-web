@@ -24,10 +24,10 @@ const schema = yup
     }),
     newPassword: yup.string().when("tempPasswordVerified", {
       is: true,
-      then: yup
-        .string()
-        .min(8, "At least 8 characters required")
-        .required("New password is required"),
+                  then: yup
+              .string()
+              .min(6, "At least 6 characters required")
+              .required("New password is required"),
     }),
     confirmPassword: yup.string().when("tempPasswordVerified", {
       is: true,

@@ -77,10 +77,10 @@ const schema = yup.object({
       /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|org|net|edu|gov|in)$/,
       "Please enter a valid email"
     ),
-  password: yup
-    .string()
-    .min(8, "At least 8 characters required")
-    .required("Password is required"),
+          password: yup
+          .string()
+          .min(6, "At least 6 characters required")
+          .required("Password is required"),
 });
 
 // Modern Form Input Component

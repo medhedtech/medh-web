@@ -54,11 +54,7 @@ const newPasswordSchema = yup.object({
   email: yup.string().trim().email("Please enter a valid email").required("Email is required"),
   newPassword: yup
     .string()
-    .min(8, "Password must be at least 8 characters")
-    .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-      "Password must contain uppercase, lowercase, number, and special character"
-    )
+    .min(1, "Password cannot be empty")
     .required("New password is required"),
   confirmPassword: yup
     .string()
