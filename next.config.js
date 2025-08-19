@@ -24,14 +24,9 @@ const nextConfig = {
   },
 
   experimental: {
-    workerThreads: false,
     cpus: 1,
-    optimizeCss: false, // Disable CSS optimization to prevent preload warnings
     optimizePackageImports: ['@radix-ui/react-icons'],
-    // Disable CSS preloading to prevent warnings
     optimizeServerReact: false,
-    // Disable CSS preloading completely
-    optimizeFonts: false,
   },
   transpilePackages: [
     '@floating-ui/core',
@@ -118,55 +113,10 @@ const nextConfig = {
       os: false,
     };
 
-    // Disable CSS preloading to prevent warnings
-    if (!isServer && !dev) {
-      config.optimization.splitChunks = {
-        ...config.optimization.splitChunks,
-        cacheGroups: {
-          ...config.optimization.splitChunks.cacheGroups,
-          default: false,
-          vendors: false,
-          // Only create vendor chunks for JS, not CSS
-          vendor: {
-            name: 'vendor',
-            chunks: 'all',
-            test: /node_modules/,
-            priority: 20,
-          },
-        },
-      };
-    }
-
-    // Disable CSS preloading and optimize CSS loading
-    config.plugins = config.plugins.filter(plugin => {
-      return plugin.constructor.name !== 'MiniCssExtractPlugin';
-    });
-
-    // Add CSS preload optimization
-    config.optimization = {
-      ...config.optimization,
-      splitChunks: {
-        ...config.optimization.splitChunks,
-        cacheGroups: {
-          ...config.optimization.splitChunks.cacheGroups,
-          styles: {
-            name: 'styles',
-            test: /\.css$/,
-            chunks: 'all',
-            enforce: true,
-          },
-        },
-      },
-    };
-
     return config;
   },
 
-  // Disable CSS preloading
-  onDemandEntries: {
-    maxInactiveAge: 25 * 1000,
-    pagesBufferLength: 2,
-  },
+
 };
 
 module.exports = nextConfig;

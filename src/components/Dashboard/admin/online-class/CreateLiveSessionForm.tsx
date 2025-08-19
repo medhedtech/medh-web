@@ -650,34 +650,40 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
       });
 
       // Handle different response structures more robustly
-      const studentsData = studentsRes.status === 'fulfilled' ? 
-        ((studentsRes.value.data as any)?.data?.items || (studentsRes.value.data as any)?.items || studentsRes.value.data || []) : [];
-      const gradesData = gradesRes.status === 'fulfilled' ? 
-        (gradesRes.value.data?.data || gradesRes.value.data || gradesRes.value || []) : [];
-      const dashboardsData = dashboardsRes.status === 'fulfilled' ? 
-        (dashboardsRes.value.data?.data || dashboardsRes.value.data || dashboardsRes.value || []) : [];
-      const batchesData = batchesRes.status === 'fulfilled' ? 
-        (batchesRes.value.data?.data || batchesRes.value.data || batchesRes.value || []) : [];
-      const previousSessionData = previousSessionRes.status === 'fulfilled' ? 
-        (previousSessionRes.value.data?.data || previousSessionRes.value.data || previousSessionRes.value || null) : null;
+      let finalStudents: any[] = [];
+      if (studentsRes.status === 'fulfilled' && studentsRes.value.data) {
+        const extractedStudents = studentsRes.value.data?.data?.items || 
+                                 studentsRes.value.data?.items || 
+                                 studentsRes.value.data || [];
+        finalStudents = Array.isArray(extractedStudents) ? extractedStudents : [];
+      }
 
-      // Instructors robust extraction
+      let finalGrades: any[] = [];
+      if (gradesRes.status === 'fulfilled' && gradesRes.value.data) {
+        const extractedGrades = gradesRes.value.data?.data || gradesRes.value.data || [];
+        finalGrades = Array.isArray(extractedGrades) ? extractedGrades : [];
+      }
+
+      let finalDashboards: any[] = [];
+      if (dashboardsRes.status === 'fulfilled' && dashboardsRes.value.data) {
+        const extractedDashboards = dashboardsRes.value.data?.data || dashboardsRes.value.data || [];
+        finalDashboards = Array.isArray(extractedDashboards) ? extractedDashboards : [];
+      }
+
+      let finalBatches: any[] = [];
+      if (batchesRes.status === 'fulfilled' && batchesRes.value.data) {
+        const extractedBatches = batchesRes.value.data?.data || batchesRes.value.data || [];
+        finalBatches = Array.isArray(extractedBatches) ? extractedBatches : [];
+      }
+
       let finalInstructors: IInstructor[] = [];
       if (instructorsRes.status === 'fulfilled' && instructorsRes.value.data) {
         const extracted = instructorsRes.value.data?.data?.items || instructorsRes.value.data?.items || instructorsRes.value.data || [];
         finalInstructors = Array.isArray(extracted) ? extracted : [];
       }
 
-      // Force use real data if available, regardless of structure
-      let finalStudents: any[] = [];
-      
-      if (studentsRes.status === 'fulfilled' && studentsRes.value.data) {
-        // Try multiple paths to get students data
-        const extractedStudents = studentsRes.value.data?.data?.items || 
-                                 studentsRes.value.data?.items || 
-                                 studentsRes.value.data || [];
-        finalStudents = Array.isArray(extractedStudents) ? extractedStudents : [];
-      }
+      const previousSessionData = previousSessionRes.status === 'fulfilled' ? 
+        (previousSessionRes.value.data?.data || previousSessionRes.value.data || previousSessionRes.value || null) : null;
       
       console.log('🔧 FORCED DATA EXTRACTION:', {
         studentsResStatus: studentsRes.status,
@@ -702,10 +708,10 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
       });
 
       console.log('Processed Data:', {
-        students: studentsData,
-        grades: gradesData,
-        dashboards: dashboardsData,
-        batches: batchesData,
+        students: finalStudents,
+        grades: finalGrades,
+        dashboards: finalDashboards,
+        batches: finalBatches,
         previousSession: previousSessionData
       });
 
@@ -722,22 +728,29 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
 
       // Use the forced extraction results
       const hasRealStudents = Array.isArray(finalStudents) && finalStudents.length > 0;
-      const hasRealGrades = Array.isArray(gradesData) && gradesData.length > 0;
-      const hasRealDashboards = Array.isArray(dashboardsData) && dashboardsData.length > 0;
+      const hasRealGrades = Array.isArray(finalGrades) && finalGrades.length > 0;
+      const hasRealDashboards = Array.isArray(finalDashboards) && finalDashboards.length > 0;
+      const hasRealBatches = Array.isArray(finalBatches) && finalBatches.length > 0;
       const hasRealInstructors = Array.isArray(finalInstructors) && finalInstructors.length > 0;
       
       console.log('🎯 FINAL Data Availability Check:', {
         hasRealStudents,
         hasRealGrades,
         hasRealDashboards,
+        hasRealBatches,
         hasRealInstructors,
         finalStudentsLength: finalStudents.length,
-        finalGradesLength: gradesData.length
+        finalGradesLength: finalGrades.length,
+        finalBatchesLength: finalBatches.length
       });
       
-      // Use the forced extraction results directly
-      let finalGrades = hasRealGrades ? gradesData : [];
-      let finalDashboards = hasRealDashboards ? dashboardsData : [];
+      // Use fallback data if no real data is available
+      if (!hasRealGrades) {
+        finalGrades = [];
+      }
+      if (!hasRealDashboards) {
+        finalDashboards = [];
+      }
       
       // Deduplicate grades by _id to prevent duplicate key errors
       if (hasRealGrades && Array.isArray(finalGrades)) {
@@ -812,7 +825,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
       });
       
       // Check if we got any real data
-      const hasRealData = finalStudents.length > 0 || finalDashboards.length > 0 || finalGrades.length > 0 || finalInstructors.length > 0;
+      const hasRealData = finalStudents.length > 0 || finalDashboards.length > 0 || finalGrades.length > 0 || finalBatches.length > 0 || finalInstructors.length > 0;
       
       if (hasRealData) {
         // Set the real data to state
@@ -820,7 +833,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
       setGrades(finalGrades);
       setDashboards(finalDashboards);
       setInstructors(finalInstructors);
-      setBatches(batchesData);
+      setBatches(finalBatches);
       setPreviousSession(previousSessionData);
       setUsingFallbackData(false);
         console.log('🎉 Using real data from database');
@@ -862,7 +875,8 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
         students: `${finalStudents.length} students ${hasRealStudents ? '(real)' : '(fallback)'}`,
         grades: hasRealGrades ? `${finalGrades.length} grades` : '❌ NO GRADES',
         dashboards: hasRealDashboards ? `${finalDashboards.length} dashboards` : '❌ NO DASHBOARDS',
-        batches: `${batchesData.length} batches from database`
+        batches: hasRealBatches ? `${finalBatches.length} batches` : '❌ NO BATCHES',
+        instructors: hasRealInstructors ? `${finalInstructors.length} instructors` : '❌ NO INSTRUCTORS'
       });
     } catch (error) {
       console.error('❌ Error loading initial data:', error);
@@ -1279,6 +1293,8 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
           </div>
         </div>
       </div>
+
+      
 
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
@@ -1801,8 +1817,8 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                             {batches.length > 0 ? (
                               batches
                                 .filter(batch => 
-                                  (batch.name || '').toLowerCase().includes(batchSearchQuery.toLowerCase()) ||
-                                  (batch.code || '').toLowerCase().includes(batchSearchQuery.toLowerCase())
+                                  (batch.name || batch.batch_name || '').toLowerCase().includes(batchSearchQuery.toLowerCase()) ||
+                                  (batch.code || batch.batch_code || '').toLowerCase().includes(batchSearchQuery.toLowerCase())
                                 )
                                 .map(batch => (
                                   <label
@@ -1816,7 +1832,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                                       onChange={() => {
                                         setFormData(prev => ({ ...prev, batchId: batch._id }));
                                         setShowBatchDropdown(false);
-                                        setBatchSearchQuery(batch.name || '');
+                                        setBatchSearchQuery(batch.name || batch.batch_name || '');
                                         if (errors.batchId) {
                                           setErrors(prev => ({ ...prev, batchId: '' }));
                                         }
@@ -1825,10 +1841,10 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                                     />
                                     <div className="flex-1 min-w-0">
                                       <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                                        {batch.name}
+                                        {batch.name || batch.batch_name}
                                       </div>
                                       <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                                        {batch.code} • {new Date(batch.startDate).toLocaleDateString()} - {new Date(batch.endDate).toLocaleDateString()} • {batch.enrolledStudents || 0} students
+                                        {batch.code || batch.batch_code} • {new Date(batch.startDate || batch.start_date).toLocaleDateString()} - {new Date(batch.endDate || batch.end_date).toLocaleDateString()} • {batch.enrolledStudents || batch.enrolled_students || 0} students
                                       </div>
                                     </div>
                                   </label>

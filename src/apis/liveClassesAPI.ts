@@ -56,11 +56,16 @@ export interface IDashboard {
 
 export interface IBatch {
   _id: string;
-  batch_name: string;
-  batch_code: string;
-  start_date: string;
-  end_date: string;
+  batch_name?: string;
+  name?: string;
+  batch_code?: string;
+  code?: string;
+  start_date?: string;
+  startDate?: string;
+  end_date?: string;
+  endDate?: string;
   enrolled_students?: number;
+  enrolledStudents?: number;
 }
 
 export interface ICourseCategory {
