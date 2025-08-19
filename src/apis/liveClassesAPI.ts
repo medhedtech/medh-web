@@ -1,9 +1,10 @@
 import { apiClient } from './apiClient';
 import { createApiClient } from './apiClient';
+import { apiBaseUrl } from './config';
 
 // Create a specific API client for live classes that points directly to the backend
 const liveClassesApiClient = createApiClient({
-  baseUrl: 'http://localhost:8080/api/v1'
+  baseUrl: apiBaseUrl
 });
 
 // Create a separate API client for live sessions that uses Next.js API routes
@@ -175,12 +176,13 @@ const staticGrades: IGrade[] = [
 
 // API Functions
 export const liveClassesAPI = {
-  // Get students with search and pagination
-  getStudents: async (search?: string, page: number = 1, limit: number = 20) => {
+  // Get all students (no pagination for form dropdowns)
+  getStudents: async (search?: string) => {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
-    params.append('page', page.toString());
-    params.append('limit', limit.toString());
+    // Remove pagination limits for form usage - get all students
+    params.append('limit', '1000'); // High limit to get all students
+    params.append('page', '1');
     
     return liveClassesApiClient.get<{ data: { items: IStudent[]; total: number; page: number; limit: number; pages: number } }>(`/live-classes/students?${params}`);
   },
@@ -195,12 +197,13 @@ export const liveClassesAPI = {
     return liveClassesApiClient.get<{ data: IDashboard[] }>('/live-classes/dashboards');
   },
 
-  // Get instructors from backend
-  getInstructors: async (search?: string, page: number = 1, limit: number = 20) => {
+  // Get all instructors (no pagination for form dropdowns)
+  getInstructors: async (search?: string) => {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
-    params.append('page', page.toString());
-    params.append('limit', limit.toString());
+    // Remove pagination limits for form usage - get all instructors
+    params.append('limit', '1000'); // High limit to get all instructors
+    params.append('page', '1');
     
     return liveClassesApiClient.get<{ data: { items: IInstructor[]; total: number } }>(`/live-classes/instructors?${params}`);
   },

@@ -31,7 +31,17 @@ import {
 } from "react-icons/fa";
 import { liveClassesAPI, IStudent, IInstructor, IGrade, IDashboard, IBatch, ISummaryItem } from "@/apis/liveClassesAPI";
 import { batchAPI } from "@/apis/batch";
+import { apiBaseUrl } from "@/apis/config";
 import { showToast } from "@/utils/toastManager";
+
+// Helper function to get the correct API URL based on environment
+const getApiUrl = (endpoint: string): string => {
+  const baseUrl = apiBaseUrl;
+  console.log('🌐 API Base URL:', baseUrl);
+  console.log('🔧 Environment:', process.env.NODE_ENV);
+  console.log('🌍 Hostname:', typeof window !== 'undefined' ? window.location.hostname : 'server');
+  return `${baseUrl}${endpoint}`;
+};
 
 interface ICreateLiveSessionFormProps {
   courseCategory: string;
@@ -380,7 +390,8 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
         
         // Setup and send request
         console.log('🌐 Setting up XMLHttpRequest...');
-        console.log('📡 Target URL: http://localhost:8080/api/v1/live-classes/upload-videos');
+        const uploadUrl = getApiUrl('/live-classes/upload-videos');
+        console.log('📡 Target URL:', uploadUrl);
         console.log('🔑 Auth token exists:', !!localStorage.getItem('token'));
         console.log('📦 FormData entries:', Array.from(uploadFormData.entries()).map(([key, value]) => ({
           key,
@@ -389,7 +400,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
           name: value instanceof File ? value.name : 'N/A'
         })));
         
-        xhr.open('POST', 'http://localhost:8080/api/v1/live-classes/upload-videos');
+        xhr.open('POST', uploadUrl);
         xhr.setRequestHeader('Authorization', `Bearer ${localStorage.getItem('token') || ''}`);
         
         console.log('🚀 Sending XMLHttpRequest...');
@@ -1256,29 +1267,29 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Clean Header */}
+      {/* Clean Header - Fully Responsive */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 py-4">
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
             <Link
               href={backUrl}
-              className="w-10 h-10 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg flex items-center justify-center transition-colors"
+              className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg flex items-center justify-center transition-colors flex-shrink-0"
             >
-              <FaArrowLeft className="text-gray-600 dark:text-gray-300 w-4 h-4" />
+              <FaArrowLeft className="text-gray-600 dark:text-gray-300 w-3 h-3 sm:w-4 sm:h-4" />
             </Link>
             
-            <div className="flex-1">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                  <FaVideo className="w-5 h-5 text-white" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <FaVideo className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
-            <div>
-                  <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900 dark:text-white truncate">
                     {isEditMode ? 'Edit Live Session Recording' : 'Upload Live Session Recording'}
-              </h1>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  </h1>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 hidden sm:block">
                     {isEditMode ? 'Update session details and recordings' : 'Upload and manage session recordings for students'}
-              </p>
+                  </p>
                 </div>
               </div>
               {usingFallbackData && (
@@ -1296,11 +1307,12 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
 
       
 
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+      {/* Main Content - Fully Responsive */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 md:gap-8">
           {/* Sidebar - Previous Session */}
-          <div className="xl:col-span-1 xl:sticky xl:top-24">
+          <div className="lg:col-span-4 xl:col-span-3 order-2 lg:order-1">
+            <div className="lg:sticky lg:top-20 xl:top-24">
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-md">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                 <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 rounded-md flex items-center justify-center">
@@ -1406,15 +1418,16 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                 </div>
               )}
             </div>
+            </div>
           </div>
 
-          {/* Main Form */}
-          <div className="xl:col-span-2">
-            <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-md">
-              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                    <FaBook className="w-5 h-5 text-white" />
+          {/* Main Form - Responsive */}
+          <div className="lg:col-span-8 xl:col-span-9 order-1 lg:order-2">
+            <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl border border-gray-200 dark:border-gray-700 shadow-md">
+              <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <FaBook className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -1427,16 +1440,15 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                 </div>
               </div>
               
-              <div className="p-6">
-
-              <div className="space-y-6">
+              <div className="p-4 sm:p-6">
+                <div className="space-y-4 sm:space-y-6">
                 {/* Session Title */}
                 <div>
-                  <label className="block text-sm font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-br from-indigo-100 via-violet-100 to-purple-100 dark:from-indigo-900/30 dark:via-violet-900/30 dark:to-purple-900/30 rounded-lg shadow-sm border border-indigo-200 dark:border-indigo-700">
-                      <FaBook className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  <label className="block text-sm font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2 sm:gap-3">
+                    <div className="p-1.5 sm:p-2 bg-gradient-to-br from-indigo-100 via-violet-100 to-purple-100 dark:from-indigo-900/30 dark:via-violet-900/30 dark:to-purple-900/30 rounded-lg shadow-sm border border-indigo-200 dark:border-indigo-700 flex-shrink-0">
+                      <FaBook className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-600 dark:text-indigo-400" />
                     </div>
-                    <span>Session Title *</span>
+                    <span className="text-sm sm:text-base">Session Title *</span>
                   </label>
                   <div className="relative rounded-xl border border-indigo-200 dark:border-indigo-700 bg-gradient-to-br from-indigo-50 via-violet-50 to-purple-50 dark:from-indigo-900/20 dark:via-violet-900/20 dark:to-purple-900/20 p-1">
                   <input
@@ -1448,7 +1460,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                         setErrors(prev => ({ ...prev, sessionTitle: '' }));
                       }
                     }}
-                     className={`w-full h-11 px-4 bg-white dark:bg-gray-700 border rounded-lg focus:ring-2 focus:ring-indigo-500/40 transition-colors ${
+                     className={`w-full h-10 sm:h-11 px-3 sm:px-4 text-sm sm:text-base bg-white dark:bg-gray-700 border rounded-lg focus:ring-2 focus:ring-indigo-500/40 transition-colors ${
                       errors.sessionTitle 
                          ? 'border-red-300 dark:border-red-600' 
                          : 'border-indigo-300 dark:border-indigo-600'
@@ -1466,11 +1478,11 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
 
                                  {/* Session No */}
                  <div>
-                  <label className="block text-sm font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-br from-sky-100 via-cyan-100 to-teal-100 dark:from-sky-900/30 dark:via-cyan-900/30 dark:to-teal-900/30 rounded-lg shadow-sm border border-sky-200 dark:border-sky-700">
-                      <FaClock className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                  <label className="block text-sm font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2 sm:gap-3">
+                    <div className="p-1.5 sm:p-2 bg-gradient-to-br from-sky-100 via-cyan-100 to-teal-100 dark:from-sky-900/30 dark:via-cyan-900/30 dark:to-teal-900/30 rounded-lg shadow-sm border border-sky-200 dark:border-sky-700 flex-shrink-0">
+                      <FaClock className="w-3 h-3 sm:w-4 sm:h-4 text-sky-600 dark:text-sky-400" />
                     </div>
-                    <span>Session No *</span>
+                    <span className="text-sm sm:text-base">Session No *</span>
                    </label>
                   <div className="relative rounded-xl border border-sky-200 dark:border-sky-700 bg-gradient-to-br from-sky-50 via-cyan-50 to-teal-50 dark:from-sky-900/20 dark:via-cyan-900/20 dark:to-teal-900/20 p-1">
                    <input
@@ -1515,12 +1527,12 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                 {/* Dashboard Assigned To */}
                 <div>
                   <div className="relative" ref={dashboardDropdownRef}>
-                    <label className="block text-sm font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-3">
-                      <div className="p-2 bg-gradient-to-br from-blue-100 via-indigo-100 to-sky-100 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-sky-900/30 rounded-lg shadow-sm border border-blue-200 dark:border-blue-700">
-                        <FaShieldAlt className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <label className="block text-sm font-bold text-gray-900 dark:text-gray-100 mb-2 flex flex-wrap items-center gap-2 sm:gap-3">
+                      <div className="p-1.5 sm:p-2 bg-gradient-to-br from-blue-100 via-indigo-100 to-sky-100 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-sky-900/30 rounded-lg shadow-sm border border-blue-200 dark:border-blue-700 flex-shrink-0">
+                        <FaShieldAlt className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400" />
                       </div>
-                      <span className="tracking-wide text-blue-800 dark:text-blue-300">Dashboard Assigned To *</span>
-                      <span className="ml-2 text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200/70">Required</span>
+                      <span className="tracking-wide text-blue-800 dark:text-blue-300 text-sm sm:text-base">Dashboard Assigned To *</span>
+                      <span className="text-[10px] sm:text-xs font-semibold uppercase px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200/70">Required</span>
                     </label>
                     <div className="relative rounded-xl border-2 border-blue-300 dark:border-blue-700 bg-gradient-to-br from-blue-50 via-indigo-50 to-sky-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-sky-900/20 p-1 ring-4 ring-blue-200 dark:ring-blue-800 shadow-md shadow-blue-100/60 focus-within:ring-blue-300 focus-within:shadow-blue-200/70">
                        <input
@@ -1528,7 +1540,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                          value={dashboardSearchQuery}
                          onChange={(e) => setDashboardSearchQuery(e.target.value)}
                          onFocus={() => setShowDashboardDropdown(true)}
-                         className={`w-full h-11 px-4 bg-white dark:bg-gray-700 border rounded-lg focus:ring-2 focus:ring-blue-500/40 transition-colors ${
+                         className={`w-full h-10 sm:h-11 px-3 sm:px-4 text-sm sm:text-base bg-white dark:bg-gray-700 border rounded-lg focus:ring-2 focus:ring-blue-500/40 transition-colors ${
                            errors.dashboard 
                              ? 'border-red-300 dark:border-red-600' 
                              : 'border-blue-300 dark:border-blue-600'
@@ -1544,8 +1556,8 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
 
                     {/* Dashboard Dropdown */}
                     {showDashboardDropdown && (
-                      <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl shadow-xl z-50 max-h-64 overflow-y-auto">
-                        <div className="p-2">
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl shadow-xl z-50 max-h-48 sm:max-h-64 overflow-y-auto">
+                        <div className="p-2 sm:p-3">
                           {/* Search Bar */}
                           <div className="mb-3">
                     <div className="relative">
@@ -2022,11 +2034,12 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                            
                 {/* Select Instructors (Multi-select) */}
                 <div className="relative mt-6" ref={instructorDropdownRef}>
-                  <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-br from-red-100 via-pink-100 to-rose-100 dark:from-red-900/30 dark:via-pink-900/30 dark:to-rose-900/30 rounded-lg shadow-sm border border-red-200 dark:border-red-700">
-                      <FaUser className="w-4 h-4 text-red-600 dark:text-red-400" />
+                  <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 flex flex-wrap items-center gap-2 sm:gap-3">
+                    <div className="p-1.5 sm:p-2 bg-gradient-to-br from-red-100 via-pink-100 to-rose-100 dark:from-red-900/30 dark:via-pink-900/30 dark:to-rose-900/30 rounded-lg shadow-sm border border-red-200 dark:border-red-700 flex-shrink-0">
+                      <FaUser className="w-3 h-3 sm:w-4 sm:h-4 text-red-600 dark:text-red-400" />
                     </div>
-                    Select Instructors (Optional)
+                    <span className="text-sm sm:text-base">Select Instructors *</span>
+                    <span className="text-[10px] sm:text-xs font-semibold uppercase px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 border border-red-200/70">Required</span>
                   </label>
                   <div className="relative rounded-xl border border-red-200 dark:border-red-700 bg-gradient-to-br from-red-50 via-pink-50 to-rose-50 dark:from-red-900/20 dark:via-pink-900/20 dark:to-rose-900/20 p-1">
                     <div 
@@ -2102,6 +2115,14 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                          </div>
                        </div>
                      )}
+                     
+                  {/* Instructor Error Display */}
+                  {errors.instructorId && (
+                    <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-2">
+                      <span className="text-red-500">⚠️</span>
+                      {errors.instructorId}
+                    </p>
+                  )}
                 </div>
 
                   {/* Video Upload Section */}
@@ -2390,8 +2411,8 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                     )}
                 </div>
 
-                {/* Summary Section */}
-                <div className="block w-full border border-gray-200 dark:border-gray-600 rounded-xl p-6 bg-gray-50 dark:bg-gray-700/50">
+                {/* Summary Section - Enhanced Width */}
+                <div className="block w-full max-w-none border border-gray-200 dark:border-gray-600 rounded-xl p-4 sm:p-6 bg-gray-50 dark:bg-gray-700/50">
                   <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-3">
                     <div className="p-2 bg-gradient-to-br from-purple-100 via-violet-100 to-indigo-100 dark:from-purple-900/30 dark:via-violet-900/30 dark:to-indigo-900/30 rounded-lg shadow-sm border border-purple-200 dark:border-purple-700">
                       <FaFileAlt className="w-4 h-4 text-purple-600 dark:text-purple-400 animate-bounce" />
@@ -2411,7 +2432,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                     {formData.summary.items.length > 0 ? (
                       <div className="space-y-4">
                         {formData.summary.items.map((item, index) => (
-                          <div key={item.id} className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                          <div key={item.id} className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4 sm:p-6 w-full max-w-none">
                             <div className="flex items-center justify-between mb-3">
                               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Item {index + 1}
@@ -2451,7 +2472,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                                        setErrors(prev => ({ ...prev, summaryTitle: '' }));
                                      }
                                    }}
-                                   className={`w-full px-3 py-2 bg-white dark:bg-gray-700 border rounded-lg focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 ${
+                                   className={`w-full min-w-full px-4 py-3 bg-white dark:bg-gray-700 border rounded-lg focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 text-sm sm:text-base ${
                                      errors.summaryTitle 
                                        ? 'border-red-500 focus:border-red-500' 
                                        : 'border-gray-300 dark:border-gray-600 focus:border-blue-500'
@@ -2478,9 +2499,9 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                                      ...prev, 
                                      summary: { ...prev.summary, description: e.target.value }
                                    }))}
-                                   rows={4}
-                                   className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
-                                   placeholder="Enter summary description..."
+                                   rows={6}
+                                   className="w-full min-w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 resize-y"
+                                   placeholder="Enter detailed summary description..."
                                  />
                                </div>
                              </div>
@@ -2516,21 +2537,23 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                   </div>
                 </div>
 
-                {/* Submit Button */}
-                <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                {/* Submit Button - Responsive */}
+                <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-700">
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base"
                   >
                     {loading ? (
                       <>
-                        <FaSpinner className="w-5 h-5 animate-spin" />
-                        Uploading Live Session Recording...
+                        <FaSpinner className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                        <span className="hidden sm:inline">Uploading Live Session Recording...</span>
+                        <span className="sm:hidden">Uploading...</span>
                       </>
                     ) : (
                       <>
-                        {isEditMode ? 'Update Live Session Recording' : 'Upload Live Session Recording'}
+                        <span className="hidden sm:inline">{isEditMode ? 'Update Live Session Recording' : 'Upload Live Session Recording'}</span>
+                        <span className="sm:hidden">{isEditMode ? 'Update Session' : 'Upload Session'}</span>
                       </>
                     )}
                   </button>
