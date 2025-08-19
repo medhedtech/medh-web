@@ -7,6 +7,12 @@
 
 // Determine the appropriate API base URL based on environment
 const getApiBaseUrl = (): string => {
+  // Force localhost for development (override everything)
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    console.log('🔧 Development mode detected - using localhost backend');
+    return 'http://localhost:8080/api/v1';
+  }
+
   // Force use backend URL for live classes API
   if (process.env.NEXT_PUBLIC_API_URL) {
     return process.env.NEXT_PUBLIC_API_URL;
@@ -25,6 +31,13 @@ const getApiBaseUrl = (): string => {
 
 // Export the base URL
 export const apiBaseUrl = getApiBaseUrl();
+
+// Debug logging
+if (typeof window !== 'undefined') {
+  console.log('🌐 API Base URL configured:', apiBaseUrl);
+  console.log('🌍 Current hostname:', window.location.hostname);
+  console.log('🔧 Environment:', process.env.NODE_ENV);
+}
 
 // Additional API configuration settings
 export const apiConfig = {

@@ -34,14 +34,11 @@ import { batchAPI } from "@/apis/batch";
 import { showToast } from "@/utils/toastManager";
 
 interface ICreateLiveSessionFormProps {
-  courseCategory: string;
   backUrl: string;
-  editSessionId?: string | null;
 }
 
-export default function CreateLiveSessionForm({ courseCategory, backUrl, editSessionId }: ICreateLiveSessionFormProps) {
+export default function CreateLiveSessionForm({ backUrl }: ICreateLiveSessionFormProps) {
   const router = useRouter();
-  const isEditMode = !!editSessionId;
   
   // Form state
   const [formData, setFormData] = useState({
@@ -89,6 +86,8 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
   const [grades, setGrades] = useState<IGrade[]>([]);
   const [dashboards, setDashboards] = useState<IDashboard[]>([]);
   const [batches, setBatches] = useState<IBatch[]>([]); // Add batches state
+  const [studentBatches, setStudentBatches] = useState<IBatch[]>([]); // Batches for selected students
+  const [loadingStudentBatches, setLoadingStudentBatches] = useState(false);
   const [previousSession, setPreviousSession] = useState<any>(null);
   const [usingFallbackData, setUsingFallbackData] = useState(false);
   const [instructors, setInstructors] = useState<IInstructor[]>([]); // Add instructors state
@@ -198,7 +197,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
     }
 
     // Validate that batch and students exist in our data
-    const selectedBatch = batches.find(batch => batch._id === formData.batchId);
+    const selectedBatch = studentBatches.find(batch => batch._id === formData.batchId);
     const selectedStudents = students.filter(student => formData.students.includes(student._id));
     
     if (!selectedBatch) {
@@ -253,14 +252,14 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
       });
 
       // Get batch and student details for S3 path construction
-      const selectedBatch = batches.find(batch => batch._id === formData.batchId);
+      const selectedBatch = studentBatches.find(batch => batch._id === formData.batchId);
       const selectedStudents = students.filter(student => formData.students.includes(student._id));
       
       // Construct S3 path structure: /medh-files/videos/batch_object_id/student_object_id(student_name)/session_number/
       const s3PathStructure = {
         basePath: 'medh-files/videos',
         batchId: formData.batchId,
-        batchName: selectedBatch?.batch_name || 'unknown-batch',
+        batchName: selectedBatch?.name || 'unknown-batch',
         sessionNumber: formData.sessionNo.trim(),
         students: selectedStudents.map(student => ({
           id: student._id,
@@ -287,114 +286,20 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
         console.log(`     📁 /${s3PathStructure.basePath}/${s3PathStructure.batchId}/${student.path}/${s3PathStructure.sessionNumber}/`);
       });
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
       console.log('📤 Sending request to backend...');
-      
-      // Calculate total size for progress tracking
-      const totalSizeBytes = selectedVideos.reduce((sum, file) => sum + file.size, 0);
-      const totalSizeMB = (totalSizeBytes / (1024 * 1024)).toFixed(2);
-      const startTime = Date.now();
-      
-      // Use XMLHttpRequest for progress tracking
-      const response = await new Promise<Response>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        
-        let progressToastId: string | null = null;
-        
-        // Track upload progress
-        xhr.upload.addEventListener('progress', (event) => {
-          if (event.lengthComputable) {
-            const uploadedBytes = event.loaded;
-            const uploadedMB = (uploadedBytes / (1024 * 1024)).toFixed(2);
-            const progressPercent = Math.round((uploadedBytes / event.total) * 100);
-            const elapsedTime = Math.round((Date.now() - startTime) / 1000);
-            const uploadSpeed = uploadedBytes / (1024 * 1024) / (elapsedTime || 1); // MB/s
-            const remainingBytes = event.total - uploadedBytes;
-            const remainingMB = (remainingBytes / (1024 * 1024)).toFixed(2);
-            const estimatedTimeLeft = uploadSpeed > 0 ? Math.round(remainingBytes / (1024 * 1024) / uploadSpeed) : 0;
-            
-            const progressMessage = `📤 Video Upload Progress\n\n` +
-              `📊 Progress: ${progressPercent}%\n` +
-              `📁 Uploaded: ${uploadedMB} MB / ${totalSizeMB} MB\n` +
-              `📉 Remaining: ${remainingMB} MB\n` +
-              `⏱️ Time Elapsed: ${elapsedTime}s\n` +
-              `⏳ Est. Time Left: ${estimatedTimeLeft}s\n` +
-              `🚀 Speed: ${uploadSpeed.toFixed(2)} MB/s\n` +
-              `📹 Files: ${selectedVideos.length} video(s)\n` +
-              `${'█'.repeat(Math.floor(progressPercent/5))}${'░'.repeat(20-Math.floor(progressPercent/5))} ${progressPercent}%`;
-            
-            // Dismiss previous progress toast and create new one
-            if (progressToastId) {
-              showToast.dismiss(progressToastId);
-            }
-            showToast.dismiss(uploadLoadingToast);
-            
-            progressToastId = showToast.loading(progressMessage, { duration: 0 });
-            
-            // Store the latest toast ID for cleanup
-            (window as any).currentUploadToast = progressToastId;
-            
-            console.log(`📊 Upload Progress: ${progressPercent}% (${uploadedMB}/${totalSizeMB} MB) - Speed: ${uploadSpeed.toFixed(2)} MB/s - ETA: ${estimatedTimeLeft}s`);
-          }
-        });
-        
-        // Handle completion
-        xhr.addEventListener('load', () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            // Create a Response-like object
-            const response = new Response(xhr.responseText, {
-              status: xhr.status,
-              statusText: xhr.statusText,
-              headers: new Headers()
-            });
-            resolve(response);
-          } else {
-            reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
-          }
-        });
-        
-        // Handle errors
-        xhr.addEventListener('error', (event) => {
-          console.error('❌ XMLHttpRequest error event:', event);
-          console.error('❌ XHR status:', xhr.status);
-          console.error('❌ XHR ready state:', xhr.readyState);
-          console.error('❌ XHR response:', xhr.responseText);
-          
-          let errorMessage = 'Network error occurred';
-          if (xhr.status === 0) {
-            errorMessage = 'Cannot connect to server. Please check:\n• Backend server is running on port 8080\n• No firewall blocking the connection\n• CORS is properly configured';
-          } else if (xhr.status >= 400) {
-            errorMessage = `Server error: ${xhr.status} ${xhr.statusText}`;
-          }
-          
-          reject(new Error(errorMessage));
-        });
-        
-        xhr.addEventListener('abort', () => {
-          reject(new Error('Upload was aborted'));
-        });
-        
-        // Handle timeout
-        xhr.addEventListener('timeout', () => {
-          reject(new Error('Upload timed out. The file might be too large or connection is slow.'));
-        });
-        
-        // Setup and send request
-        console.log('🌐 Setting up XMLHttpRequest...');
-        console.log('📡 Target URL: http://localhost:8080/api/v1/live-classes/upload-videos');
-        console.log('🔑 Auth token exists:', !!localStorage.getItem('token'));
-        console.log('📦 FormData entries:', Array.from(uploadFormData.entries()).map(([key, value]) => ({
-          key,
-          type: typeof value,
-          size: value instanceof File ? value.size : 'N/A',
-          name: value instanceof File ? value.name : 'N/A'
-        })));
-        
-        xhr.open('POST', 'http://localhost:8080/api/v1/live-classes/upload-videos');
-        xhr.setRequestHeader('Authorization', `Bearer ${localStorage.getItem('token') || ''}`);
-        
-        console.log('🚀 Sending XMLHttpRequest...');
-        xhr.send(uploadFormData);
+      const response = await fetch('http://localhost:8080/api/v1/live-classes/upload-videos', {
+        method: 'POST',
+        body: uploadFormData,
+        signal: controller.signal,
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        }
       });
+
+      clearTimeout(timeoutId);
 
       console.log('📋 Response received - Status:', response.status);
       console.log('📋 Response headers:', Object.fromEntries(response.headers.entries()));
@@ -427,10 +332,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
       const result = await response.json();
       console.log('✅ Success response data:', result);
         
-        // Dismiss progress toast
-        if ((window as any).currentUploadToast) {
-          showToast.dismiss((window as any).currentUploadToast);
-        }
+        // Dismiss loading toast
         showToast.dismiss(uploadLoadingToast);
         
       if (result.status === 'success' && result.data && result.data.videos) {
@@ -476,10 +378,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
     } catch (error: any) {
       console.error('❌ Error uploading videos:', error);
       
-      // Dismiss progress toast
-      if ((window as any).currentUploadToast) {
-        showToast.dismiss((window as any).currentUploadToast);
-      }
+      // Dismiss loading toast
       showToast.dismiss(uploadLoadingToast);
       
       // Provide specific error messages based on error type
@@ -523,53 +422,6 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
     console.log('🚀 Component mounted, loading initial data...');
     loadInitialData();
   }, [courseCategory]); // Add courseCategory as dependency
-
-  // Load session data for editing
-  useEffect(() => {
-    if (isEditMode && editSessionId) {
-      loadSessionForEdit(editSessionId);
-    }
-  }, [isEditMode, editSessionId]);
-
-  const loadSessionForEdit = async (sessionId: string) => {
-    try {
-      console.log('🔄 Loading session for edit:', sessionId);
-      const response = await liveClassesAPI.getSession(sessionId);
-      const sessionData = response.data || response;
-      
-      console.log('📝 Session data loaded:', sessionData);
-      
-      // Populate form with session data
-      setFormData({
-        sessionTitle: sessionData.sessionTitle || "",
-        sessionNo: sessionData.sessionNo || "",
-        students: Array.isArray(sessionData.students) ? sessionData.students.map(s => s._id || s) : [],
-        grades: Array.isArray(sessionData.grades) ? sessionData.grades.map(g => g._id || g) : [],
-        dashboard: sessionData.dashboard?._id || sessionData.dashboard || "",
-        instructorId: Array.isArray(sessionData.instructorId) ? sessionData.instructorId.map(i => i._id || i) : [sessionData.instructorId?._id || sessionData.instructorId || ""],
-        batchId: sessionData.batchId?._id || sessionData.batchId || "",
-        date: sessionData.date ? new Date(sessionData.date).toISOString().split('T')[0] : "",
-        remarks: sessionData.remarks || "",
-        summary: {
-          title: sessionData.summary?.title || "",
-          description: sessionData.summary?.description || "",
-          items: sessionData.summary?.items || []
-        }
-      });
-      
-      showToast.info(
-        `Editing session: ${sessionData.sessionTitle}`,
-        { duration: 3000 }
-      );
-      
-    } catch (error) {
-      console.error('❌ Error loading session for edit:', error);
-      showToast.error(
-        'Failed to load session data for editing',
-        { duration: 5000 }
-      );
-    }
-  };
 
   // Monitor state changes
   useEffect(() => {
@@ -624,6 +476,49 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Load batches for selected students
+  const loadBatchesForStudents = async (studentIds: string[]) => {
+    if (!studentIds || studentIds.length === 0) {
+      setStudentBatches([]);
+      return;
+    }
+
+    try {
+      setLoadingStudentBatches(true);
+      console.log('🔄 Loading batches for students:', studentIds);
+      
+      const response = await liveClassesAPI.getBatchesForStudents(studentIds);
+      console.log('📚 Batches response:', response);
+      
+      const batchesData = (response.data as any)?.data?.batches || (response.data as any)?.batches || [];
+      
+      // Transform batches to match IBatch interface
+      const transformedBatches = batchesData.map((batch: any) => ({
+        _id: batch._id,
+        name: batch.name || batch.batch_name,
+        code: batch.batch_code || batch.code,
+        startDate: batch.start_date || batch.startDate,
+        endDate: batch.end_date || batch.endDate,
+        enrolledStudents: batch.enrolled_students || batch.enrolledStudents || 0
+      }));
+      
+      setStudentBatches(transformedBatches);
+      console.log('✅ Student batches loaded:', transformedBatches.length);
+      
+      // Auto-select first batch if only one available
+      if (transformedBatches.length === 1) {
+        setFormData(prev => ({ ...prev, batchId: transformedBatches[0]._id }));
+      }
+      
+    } catch (error) {
+      console.error('❌ Error loading batches for students:', error);
+      setStudentBatches([]);
+      showToast.error('Failed to load batches for selected students');
+    } finally {
+      setLoadingStudentBatches(false);
+    }
+  };
 
   const loadInitialData = async () => {
     try {
@@ -820,7 +715,6 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
       setGrades(finalGrades);
       setDashboards(finalDashboards);
       setInstructors(finalInstructors);
-      setBatches(batchesData);
       setPreviousSession(previousSessionData);
       setUsingFallbackData(false);
         console.log('🎉 Using real data from database');
@@ -833,12 +727,12 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
           { _id: 'student-3', full_name: 'Bob Johnson', email: 'bob@example.com' }
         ];
         const fallbackBatches = [
-          { _id: 'batch-1', batch_name: 'AI & Data Science - Batch A', batch_type: 'regular', status: 'Active', enrolled_student_ids: ['student-1', 'student-2'] },
-          { _id: 'batch-2', batch_name: 'Digital Marketing - Batch B', batch_type: 'advanced', status: 'Active', enrolled_student_ids: ['student-2', 'student-3'] },
-          { _id: 'batch-3', batch_name: 'Personality Development - Batch C', batch_type: 'regular', status: 'Active', enrolled_student_ids: ['student-1', 'student-3'] },
-          { _id: 'batch-4', batch_name: 'Vedic Mathematics - Batch D', batch_type: 'beginner', status: 'Active', enrolled_student_ids: ['student-1', 'student-2', 'student-3'] },
-          { _id: 'batch-5', batch_name: 'Public Speaking - Batch E', batch_type: 'intermediate', status: 'Active', enrolled_student_ids: ['student-2'] },
-          { _id: 'batch-6', batch_name: 'Web Development - Batch F', batch_type: 'advanced', status: 'Active', enrolled_student_ids: ['student-1'] }
+          { _id: 'batch-1', name: 'AI & Data Science - Batch A', code: 'AIDA-A', startDate: '2025-01-01', endDate: '2025-06-30', enrolledStudents: 2 },
+          { _id: 'batch-2', name: 'Digital Marketing - Batch B', code: 'DM-B', startDate: '2025-01-15', endDate: '2025-07-15', enrolledStudents: 2 },
+          { _id: 'batch-3', name: 'Personality Development - Batch C', code: 'PD-C', startDate: '2025-02-01', endDate: '2025-08-01', enrolledStudents: 2 },
+          { _id: 'batch-4', name: 'Vedic Mathematics - Batch D', code: 'VM-D', startDate: '2025-02-15', endDate: '2025-08-15', enrolledStudents: 3 },
+          { _id: 'batch-5', name: 'Public Speaking - Batch E', code: 'PS-E', startDate: '2025-03-01', endDate: '2025-09-01', enrolledStudents: 1 },
+          { _id: 'batch-6', name: 'Web Development - Batch F', code: 'WD-F', startDate: '2025-03-15', endDate: '2025-09-15', enrolledStudents: 1 }
         ];
         const fallbackGrades = [
           { _id: 'grade-1', name: 'Grade 1', level: 1 },
@@ -875,12 +769,12 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
         { _id: 'student-3', full_name: 'Bob Johnson', email: 'bob@example.com' }
       ];
       const fallbackBatches = [
-        { _id: 'batch-1', batch_name: 'AI & Data Science - Batch A', batch_type: 'regular', status: 'Active', enrolled_student_ids: ['student-1', 'student-2'] },
-        { _id: 'batch-2', batch_name: 'Digital Marketing - Batch B', batch_type: 'advanced', status: 'Active', enrolled_student_ids: ['student-2', 'student-3'] },
-        { _id: 'batch-3', batch_name: 'Personality Development - Batch C', batch_type: 'regular', status: 'Active', enrolled_student_ids: ['student-1', 'student-3'] },
-        { _id: 'batch-4', batch_name: 'Vedic Mathematics - Batch D', batch_type: 'beginner', status: 'Active', enrolled_student_ids: ['student-1', 'student-2', 'student-3'] },
-        { _id: 'batch-5', batch_name: 'Public Speaking - Batch E', batch_type: 'intermediate', status: 'Active', enrolled_student_ids: ['student-2'] },
-        { _id: 'batch-6', batch_name: 'Web Development - Batch F', batch_type: 'advanced', status: 'Active', enrolled_student_ids: ['student-1'] }
+        { _id: 'batch-1', name: 'AI & Data Science - Batch A', code: 'AIDA-A', startDate: '2025-01-01', endDate: '2025-06-30', enrolledStudents: 2 },
+        { _id: 'batch-2', name: 'Digital Marketing - Batch B', code: 'DM-B', startDate: '2025-01-15', endDate: '2025-07-15', enrolledStudents: 2 },
+        { _id: 'batch-3', name: 'Personality Development - Batch C', code: 'PD-C', startDate: '2025-02-01', endDate: '2025-08-01', enrolledStudents: 2 },
+        { _id: 'batch-4', name: 'Vedic Mathematics - Batch D', code: 'VM-D', startDate: '2025-02-15', endDate: '2025-08-15', enrolledStudents: 3 },
+        { _id: 'batch-5', name: 'Public Speaking - Batch E', code: 'PS-E', startDate: '2025-03-01', endDate: '2025-09-01', enrolledStudents: 1 },
+        { _id: 'batch-6', name: 'Web Development - Batch F', code: 'WD-F', startDate: '2025-03-15', endDate: '2025-09-15', enrolledStudents: 1 }
       ];
       const fallbackGrades = [
         { _id: 'grade-1', name: 'Grade 1', level: 1 },
@@ -942,6 +836,20 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
         students: newStudents
       };
     });
+
+    // Load batches for selected students
+    setTimeout(() => {
+      const updatedStudents = formData.students.includes(studentId)
+        ? formData.students.filter(id => id !== studentId)
+        : [...formData.students, studentId];
+      
+      if (updatedStudents.length > 0) {
+        loadBatchesForStudents(updatedStudents);
+      } else {
+        setStudentBatches([]);
+        setFormData(prev => ({ ...prev, batchId: "" }));
+      }
+    }, 100);
   };
 
   const handleStudentRemove = (studentId: string) => {
@@ -953,6 +861,17 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
         students: newStudents
       };
     });
+
+    // Reload batches for remaining students
+    setTimeout(() => {
+      const remainingStudents = formData.students.filter(id => id !== studentId);
+      if (remainingStudents.length > 0) {
+        loadBatchesForStudents(remainingStudents);
+      } else {
+        setStudentBatches([]);
+        setFormData(prev => ({ ...prev, batchId: "" }));
+      }
+    }, 100);
   };
 
   const handleGradeSelect = (gradeId: string) => {
@@ -1079,9 +998,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
       console.log('🔍 Session number type:', typeof sessionData.sessionNo);
       console.log('🔍 Session number length:', sessionData.sessionNo?.length);
       
-      const response = isEditMode 
-        ? await liveClassesAPI.updateSession(editSessionId!, sessionData)
-        : await liveClassesAPI.createLiveSession(sessionData);
+      const response = await liveClassesAPI.createLiveSession(sessionData);
       
       console.log('📋 Session creation response:', response);
       console.log('📋 Response type:', typeof response);
@@ -1121,7 +1038,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
         
         // Show FORM SAVE SUCCESS POPUP
         showToast.success(
-          `🎉 FORM SAVED SUCCESSFULLY! 🎉\n\n📝 Live session "${sessionData.sessionTitle}" ${isEditMode ? 'updated' : 'created'}\n💾 Session saved to database\n📹 ${videoCount} video(s) included`,
+          `🎉 FORM SAVED SUCCESSFULLY! 🎉\n\n📝 Live session "${sessionData.sessionTitle}" created\n💾 Session saved to database\n📹 ${videoCount} video(s) included`,
           {
             duration: 8000,
             style: {
@@ -1224,6 +1141,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
     return `medh-files/videos/${batchId}/${studentId}(${studentName})/${sessionNumber}/`;
   };
 
+  // Filtered instructors
   const filteredInstructors = (Array.isArray(instructors) ? instructors : []).filter(instructor =>
     (instructor.full_name || '').toLowerCase().includes(instructorSearchQuery.toLowerCase()) ||
     (instructor.email || '').toLowerCase().includes(instructorSearchQuery.toLowerCase())
@@ -1242,6 +1160,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div>Test Component</div>
       {/* Clean Header */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 md:px-6 py-4">
@@ -1260,10 +1179,10 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                 </div>
             <div>
                   <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-                    {isEditMode ? 'Edit Live Session Recording' : 'Upload Live Session Recording'}
+                    Upload Live Session Recording
               </h1>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {isEditMode ? 'Update session details and recordings' : 'Upload and manage session recordings for students'}
+                    Upload and manage session recordings for students
               </p>
                 </div>
               </div>
@@ -1708,33 +1627,86 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                                      {/* Batch and Grade Row */}
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                    {/* Select Batch */}
-                    <div className="relative" ref={batchDropdownRef}>
-                      <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-3">
-                        <div className="p-2 bg-gradient-to-br from-teal-100 via-cyan-100 to-blue-100 dark:from-teal-900/30 dark:via-cyan-900/30 dark:to-blue-900/30 rounded-lg shadow-sm border border-teal-200 dark:border-teal-700">
-                          <FaBook className="w-4 h-4 text-teal-600 dark:text-teal-400 animate-pulse" />
-                        </div>
-                        Select Batch *
-                    </label>
-                      <div className="relative rounded-xl border border-teal-200 dark:border-teal-700 bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50 dark:from-teal-900/20 dark:via-cyan-900/20 dark:to-blue-900/20 p-1">
-                        <input
-                          type="text"
-                          value={batchSearchQuery}
-                          onChange={(e) => setBatchSearchQuery(e.target.value)}
-                          onFocus={() => setShowBatchDropdown(true)}
-                          className={`w-full px-4 py-3 bg-white dark:bg-gray-700 border rounded-xl focus:ring-4 focus:ring-teal-500/20 transition-all duration-300 ${
-                            errors.batchId 
-                              ? 'border-red-500 focus:border-red-500' 
-                              : 'border-teal-300 dark:border-teal-600 focus:border-teal-500 hover:border-teal-400'
-                          }`}
-                          placeholder="Select batch..."
-                          readOnly
-                        />
-                        <FaBook className="absolute right-3 top-1/2 transform -translate-y-1/2 text-teal-500" />
+                    {/* Select Batch (Dynamic based on selected students) */}
+                    {formData.students.length > 0 && (
+                      <div className="relative" ref={batchDropdownRef}>
+                        <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-3">
+                          <div className="p-2 bg-gradient-to-br from-teal-100 via-cyan-100 to-blue-100 dark:from-teal-900/30 dark:via-cyan-900/30 dark:to-blue-900/30 rounded-lg shadow-sm border border-teal-200 dark:border-teal-700">
+                            <FaBook className="w-4 h-4 text-teal-600 dark:text-teal-400 animate-pulse" />
+                          </div>
+                          Batch Select *
+                          {loadingStudentBatches && (
+                            <div className="ml-2 w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+                          )}
+                        </label>
+                        
+                        {loadingStudentBatches ? (
+                          <div className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-500 dark:text-gray-400">
+                            Loading batches for selected students...
+                          </div>
+                        ) : studentBatches.length === 0 ? (
+                          <div className="w-full px-4 py-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-600 rounded-xl text-yellow-700 dark:text-yellow-300">
+                            No batches found for selected students
+                          </div>
+                        ) : (
+                          <>
+                            <div className="relative rounded-xl border border-teal-200 dark:border-teal-700 bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50 dark:from-teal-900/20 dark:via-cyan-900/20 dark:to-blue-900/20 p-1">
+                              <input
+                                type="text"
+                                value={studentBatches.find(b => b._id === formData.batchId)?.name || ''}
+                                onFocus={() => setShowBatchDropdown(true)}
+                                className={`w-full px-4 py-3 bg-white dark:bg-gray-700 border rounded-xl focus:ring-4 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer ${
+                                  errors.batchId 
+                                    ? 'border-red-500 focus:border-red-500' 
+                                    : 'border-teal-300 dark:border-teal-600 focus:border-teal-500 hover:border-teal-400'
+                                }`}
+                                placeholder="Select batch for students..."
+                                readOnly
+                              />
+                              <FaBook className="absolute right-3 top-1/2 transform -translate-y-1/2 text-teal-500" />
+                            </div>
+                            
+                            {showBatchDropdown && (
+                              <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl shadow-xl z-50 max-h-64 overflow-y-auto">
+                                <div className="p-2">
+                                  {studentBatches.map(batch => (
+                                    <div
+                                      key={batch._id}
+                                      className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg cursor-pointer"
+                                      onClick={() => {
+                                        setFormData(prev => ({ ...prev, batchId: batch._id }));
+                                        setShowBatchDropdown(false);
+                                        if (errors.batchId) {
+                                          setErrors(prev => ({ ...prev, batchId: '' }));
+                                        }
+                                      }}
+                                    >
+                                      <FaBook className="w-4 h-4 text-teal-500" />
+                                      <div className="flex-1">
+                                        <div className="font-medium text-gray-900 dark:text-gray-100">{batch.name}</div>
+                                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                                          Code: {batch.code} • Students: {batch.enrolledStudents}
+                                        </div>
+                                      </div>
+                                      {formData.batchId === batch._id && (
+                                        <FaCheck className="w-4 h-4 text-teal-500" />
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        )}
+                        
+                        {errors.batchId && (
+                          <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-2">
+                            <span className="text-red-500">⚠️</span>
+                            {errors.batchId}
+                          </p>
+                        )}
                       </div>
-                      {errors.batchId && (
-                        <p className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.batchId}</p>
-                      )}
+                    )}
                       
                       {/* Selected Batch Chip */}
                       {formData.batchId && (
@@ -1742,7 +1714,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                           <span
                             className="inline-flex items-center gap-2 px-3 py-1 bg-teal-100 dark:bg-teal-900/30 text-teal-800 dark:text-teal-300 rounded-full text-sm"
                           >
-                                                      {batches.find(batch => batch._id === formData.batchId)?.batch_name || 'Selected Batch'}
+                                                      {batches.find(batch => batch._id === formData.batchId)?.name || 'Selected Batch'}
                             <button
                               type="button"
                               onClick={() => setFormData(prev => ({ ...prev, batchId: '' }))}
@@ -1801,8 +1773,8 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                             {batches.length > 0 ? (
                               batches
                                 .filter(batch => 
-                                  (batch.name || '').toLowerCase().includes(batchSearchQuery.toLowerCase()) ||
-                                  (batch.code || '').toLowerCase().includes(batchSearchQuery.toLowerCase())
+                                  batch.name.toLowerCase().includes(batchSearchQuery.toLowerCase()) ||
+                                  batch.code.toLowerCase().includes(batchSearchQuery.toLowerCase())
                                 )
                                 .map(batch => (
                                   <label
@@ -1816,7 +1788,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                                       onChange={() => {
                                         setFormData(prev => ({ ...prev, batchId: batch._id }));
                                         setShowBatchDropdown(false);
-                                        setBatchSearchQuery(batch.name || '');
+                                        setBatchSearchQuery(batch.name);
                                         if (errors.batchId) {
                                           setErrors(prev => ({ ...prev, batchId: '' }));
                                         }
@@ -2514,7 +2486,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                       </>
                     ) : (
                       <>
-                        {isEditMode ? 'Update Live Session Recording' : 'Upload Live Session Recording'}
+                        Upload Live Session Recording
                       </>
                     )}
                   </button>

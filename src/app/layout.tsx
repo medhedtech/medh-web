@@ -132,7 +132,6 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.json',
   icons: {
-    icon: '/favicon.ico',
     apple: '/apple-touch-icon.png',
   },
 };
@@ -150,6 +149,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <head>
         {/* Updated viewport meta tag with proper settings */}
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+        
+        {/* CSS Preload to prevent warnings */}
+        <link rel="preload" href="/_next/static/css/app/layout.css" as="style" />
         
         {/* Google One Tap styles moved to CSS file to prevent hydration issues */}
       </head>

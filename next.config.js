@@ -30,6 +30,8 @@ const nextConfig = {
     optimizePackageImports: ['@radix-ui/react-icons'],
     // Disable CSS preloading to prevent warnings
     optimizeServerReact: false,
+    // Disable CSS preloading completely
+    optimizeFonts: false,
   },
   transpilePackages: [
     '@floating-ui/core',
@@ -89,6 +91,10 @@ const nextConfig = {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
           },
+          {
+            key: 'Link',
+            value: '</_next/static/css/:path*>; rel=preload; as=style',
+          },
         ],
       },
       {
@@ -131,10 +137,27 @@ const nextConfig = {
       };
     }
 
-    // Disable CSS preloading
+    // Disable CSS preloading and optimize CSS loading
     config.plugins = config.plugins.filter(plugin => {
       return plugin.constructor.name !== 'MiniCssExtractPlugin';
     });
+
+    // Add CSS preload optimization
+    config.optimization = {
+      ...config.optimization,
+      splitChunks: {
+        ...config.optimization.splitChunks,
+        cacheGroups: {
+          ...config.optimization.splitChunks.cacheGroups,
+          styles: {
+            name: 'styles',
+            test: /\.css$/,
+            chunks: 'all',
+            enforce: true,
+          },
+        },
+      },
+    };
 
     return config;
   },
