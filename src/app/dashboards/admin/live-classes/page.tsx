@@ -136,6 +136,10 @@ export default function LiveClassesPage() {
     router.push(`/dashboards/admin/live-classes/${categoryId}`);
   };
 
+  const handleEditSession = (sessionId: string) => {
+    router.push(`/dashboards/admin/live-classes/ai-data-science/create-session?edit=${sessionId}`);
+  };
+
      // Filter sessions based on status and search query
    console.log('Filtering sessions:', {
      sessionsLength: sessions.length,
@@ -304,7 +308,6 @@ export default function LiveClassesPage() {
           </div>
           </div>
         </div>
-      )}
 
              {/* Main Content */}
        <div className="max-w-7xl mx-auto px-6 py-10">
@@ -480,6 +483,10 @@ export default function LiveClassesPage() {
                       <button 
                         className="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-all duration-200 bg-gray-50/80 dark:bg-gray-700/80 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/30 hover:scale-110 hover:shadow-md backdrop-blur-sm"
                         title="Edit session"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditSession(session._id);
+                        }}
                       >
                         <FaEdit className="text-xs" />
                       </button>

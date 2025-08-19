@@ -54,6 +54,15 @@ export interface IDashboard {
   description?: string;
 }
 
+export interface IBatch {
+  _id: string;
+  batch_name: string;
+  batch_code: string;
+  start_date: string;
+  end_date: string;
+  enrolled_students?: number;
+}
+
 export interface ICourseCategory {
   id: string;
   name: string;
@@ -171,14 +180,14 @@ export const liveClassesAPI = {
     return liveClassesApiClient.get<{ data: { items: IStudent[]; total: number; page: number; limit: number; pages: number } }>(`/live-classes/students?${params}`);
   },
 
-  // Get all grades (static data)
+  // Get all grades from backend
   getGrades: async () => {
-    return Promise.resolve(staticGrades);
+    return liveClassesApiClient.get<{ data: IGrade[] }>('/live-classes/grades');
   },
 
-  // Get dashboards (static data)
+  // Get dashboards from backend
   getDashboards: async () => {
-    return Promise.resolve(staticDashboards);
+    return liveClassesApiClient.get<{ data: IDashboard[] }>('/live-classes/dashboards');
   },
 
   // Get instructors from backend
@@ -189,6 +198,11 @@ export const liveClassesAPI = {
     params.append('limit', limit.toString());
     
     return liveClassesApiClient.get<{ data: { items: IInstructor[]; total: number } }>(`/live-classes/instructors?${params}`);
+  },
+
+  // Get all batches from backend
+  getAllBatches: async () => {
+    return liveClassesApiClient.get<{ data: IBatch[] }>('/live-classes/batches');
   },
 
   // Upload video file (legacy)
@@ -261,7 +275,7 @@ export const liveClassesAPI = {
 
   // Create new live session
   createLiveSession: async (sessionData: ICreateLiveSessionRequest) => {
-    return liveSessionsApiClient.post<{ sessionId: string; success: boolean }>('/live-sessions', sessionData);
+    return liveClassesApiClient.post<{ sessionId: string; success: boolean }>('/live-classes/sessions', sessionData);
   },
 
   // Get latest session (most recently created/updated)
@@ -301,12 +315,12 @@ export const liveClassesAPI = {
 
   // Update session
   updateSession: async (sessionId: string, sessionData: Partial<ICreateLiveSessionRequest>) => {
-    return liveSessionsApiClient.put<{ success: boolean }>(`/live-sessions/${sessionId}`, sessionData);
+    return liveClassesApiClient.put<{ success: boolean }>(`/live-classes/sessions/${sessionId}`, sessionData);
   },
 
   // Delete session
   deleteSession: async (sessionId: string) => {
-    return liveSessionsApiClient.delete<{ success: boolean }>(`/live-sessions/${sessionId}`);
+    return liveClassesApiClient.delete<{ success: boolean }>(`/live-classes/sessions/${sessionId}`);
   },
 
   // Get course statistics
@@ -323,6 +337,13 @@ export const liveClassesAPI = {
   // Get all course categories
   getCourseCategories: async () => {
     return liveClassesApiClient.get<ICourseCategory[]>('/live-classes/course-categories');
+  },
+
+  // Get batches for selected students
+  getBatchesForStudents: async (studentIds: string[]) => {
+    const params = new URLSearchParams();
+    params.append('studentIds', JSON.stringify(studentIds));
+    return liveClassesApiClient.get<{ batches: IBatch[]; totalBatches: number }>(`/live-classes/batches-for-students?${params}`);
   },
 };
 
@@ -359,5 +380,8 @@ export const useLiveClassesAPI = () => {
     
     // Course categories
     getCourseCategories: liveClassesAPI.getCourseCategories,
+    
+    // Batches for students
+    getBatchesForStudents: liveClassesAPI.getBatchesForStudents,
   };
 };

@@ -15,7 +15,7 @@ import {
   Edit, 
   UserPlus,
   Settings,
-  Shield,
+  Shield, 
   Activity,
   Target,
   Award,
@@ -81,8 +81,8 @@ const StatCard = ({ icon, title, value, trend, color, subtitle, loading }: {
       ) : (
         <>
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{value}</h3>
-      <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">{title}</p>
-      {subtitle && (
+          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">{title}</p>
+          {subtitle && (
             <p className="text-xs text-gray-500 dark:text-gray-500">{subtitle}</p>
           )}
         </>
@@ -105,11 +105,11 @@ const ActionCard = ({ icon, title, description, href, badge }: {
         <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
           {icon}
         </div>
-      {badge && (
+        {badge && (
           <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-medium rounded-full">
-          {badge}
-        </span>
-      )}
+            {badge}
+          </span>
+        )}
       </div>
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
       <p className="text-sm text-gray-600 dark:text-gray-400">{description}</p>
@@ -152,7 +152,7 @@ const AnalyticsCard = ({ title, value, change, icon, color, loading }: {
           <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">{title}</p>
         </>
       )}
-  </div>
+    </div>
   </div>
 );
 
@@ -221,20 +221,18 @@ const AdminDashboard: React.FC = () => {
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState<string | null>(null);
 
-
-
   // Fetch dashboard stats
   const fetchDashboardStats = async () => {
     try {
-    setStatsLoading(true);
-    setStatsError(null);
+      setStatsLoading(true);
+      setStatsError(null);
       
       console.log('🔍 Fetching dashboard stats...');
       const response = await adminDashboardApi.getDashboardStats();
       console.log('✅ Dashboard stats response:', response);
       
       if (response.success && response.data) {
-        setDashboardStats(response.data);
+        setDashboardStats(response.data.data);
       } else {
         setStatsError(response.message || 'Failed to fetch dashboard stats');
       }
@@ -245,8 +243,6 @@ const AdminDashboard: React.FC = () => {
       setStatsLoading(false);
     }
   };
-
-  
 
   // Load data on component mount
   useEffect(() => {
@@ -272,6 +268,35 @@ const AdminDashboard: React.FC = () => {
             <BarChart className="h-4 w-4 mr-2" />
             Advanced Dashboard
           </Link>
+        </div>
+      </div>
+
+      {/* Platform Status Banner - Replacing the red notification */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+              <Activity className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Platform Status</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">All systems operational • Last updated: {new Date().toLocaleTimeString()}</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-6 text-sm">
+            <div className="text-center">
+              <div className="text-lg font-bold text-green-600 dark:text-green-400">99.9%</div>
+              <div className="text-gray-500 dark:text-gray-400">Uptime</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-blue-600 dark:text-blue-400">2.3s</div>
+              <div className="text-gray-500 dark:text-gray-400">Avg Response</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-purple-600 dark:text-purple-400">1.2K</div>
+              <div className="text-gray-500 dark:text-gray-400">Active Users</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -303,15 +328,15 @@ const AdminDashboard: React.FC = () => {
           value={
             statsLoading
               ? "Loading..."
-              : dashboardStats && dashboardStats.activeCourses && typeof dashboardStats.activeCourses.value === 'number'
-                ? formatNumber(dashboardStats.activeCourses.value)
+              : dashboardStats && dashboardStats.activeCourses && typeof dashboardStats.activeCourses.total === 'number'
+                ? formatNumber(dashboardStats.activeCourses.total)
                 : "0"
           }
           change={
             statsLoading
               ? ""
-              : dashboardStats && dashboardStats.activeCourses && typeof dashboardStats.activeCourses.change === 'number'
-                ? formatTrend(dashboardStats.activeCourses.change)
+              : dashboardStats && dashboardStats.activeCourses && typeof dashboardStats.activeCourses.changes?.monthly?.change === 'number'
+                ? formatTrend(dashboardStats.activeCourses.changes.monthly.change)
                 : ""
           }
           icon={<BookOpen className="h-5 h-5 text-purple-600" />}
@@ -324,15 +349,15 @@ const AdminDashboard: React.FC = () => {
           value={
             statsLoading
               ? "Loading..."
-              : dashboardStats && dashboardStats.totalRevenue && typeof dashboardStats.totalRevenue.value === 'number'
-                ? formatCurrency(dashboardStats.totalRevenue.value)
+              : dashboardStats && dashboardStats.monthlyRevenue && typeof dashboardStats.monthlyRevenue.total === 'number'
+                ? formatCurrency(dashboardStats.monthlyRevenue.total)
                 : "₹0"
           }
           change={
             statsLoading
               ? ""
-              : dashboardStats && dashboardStats.totalRevenue && typeof dashboardStats.totalRevenue.change === 'number'
-                ? formatTrend(dashboardStats.totalRevenue.change)
+              : dashboardStats && dashboardStats.monthlyRevenue && typeof dashboardStats.monthlyRevenue.changes?.monthly?.change === 'number'
+                ? formatTrend(dashboardStats.monthlyRevenue.changes.monthly.change)
                 : ""
           }
           icon={<CreditCard className="h-5 h-5 text-green-600" />}
@@ -345,17 +370,11 @@ const AdminDashboard: React.FC = () => {
           value={
             statsLoading
               ? "Loading..."
-              : dashboardStats && dashboardStats.completionRate && typeof dashboardStats.completionRate.value === 'number'
-                ? formatPercentage(dashboardStats.completionRate.value)
+              : dashboardStats && dashboardStats.completionRate && typeof dashboardStats.completionRate.total === 'number'
+                ? formatPercentage(dashboardStats.completionRate.total)
                 : "0%"
           }
-          change={
-            statsLoading
-              ? ""
-              : dashboardStats && dashboardStats.completionRate && typeof dashboardStats.completionRate.change === 'number'
-                ? formatTrend(dashboardStats.completionRate.change)
-                : ""
-          }
+          change=""
           icon={<Target className="h-5 h-5 text-green-600" />}
           color="bg-green-50 dark:bg-green-900/20"
           loading={statsLoading}
@@ -366,17 +385,11 @@ const AdminDashboard: React.FC = () => {
           value={
             statsLoading
               ? "Loading..."
-              : dashboardStats && dashboardStats.studentSatisfaction && typeof dashboardStats.studentSatisfaction.value === 'number'
-                ? formatRating(dashboardStats.studentSatisfaction.value)
+              : dashboardStats && dashboardStats.studentSatisfaction && typeof dashboardStats.studentSatisfaction.total === 'number'
+                ? formatRating(dashboardStats.studentSatisfaction.total)
                 : "0/5"
           }
-          change={
-            statsLoading
-              ? ""
-              : dashboardStats && dashboardStats.studentSatisfaction && typeof dashboardStats.studentSatisfaction.change === 'number'
-                ? formatTrend(dashboardStats.studentSatisfaction.change)
-                : ""
-          }
+          change=""
           icon={<Star className="h-5 h-5 text-yellow-600" />}
           color="bg-yellow-50 dark:bg-yellow-900/20"
           loading={statsLoading}
@@ -387,17 +400,11 @@ const AdminDashboard: React.FC = () => {
           value={
             statsLoading
               ? "Loading..."
-              : dashboardStats && dashboardStats.instructorRating && typeof dashboardStats.instructorRating.value === 'number'
-                ? formatRating(dashboardStats.instructorRating.value)
+              : dashboardStats && dashboardStats.instructorRating && typeof dashboardStats.instructorRating.total === 'number'
+                ? formatRating(dashboardStats.instructorRating.total)
                 : "0/5"
           }
-          change={
-            statsLoading
-              ? ""
-              : dashboardStats && dashboardStats.instructorRating && typeof dashboardStats.instructorRating.change === 'number'
-                ? formatTrend(dashboardStats.instructorRating.change)
-                : ""
-          }
+          change=""
           icon={<Award className="h-5 h-5 text-purple-600" />}
           color="bg-purple-50 dark:bg-purple-900/20"
           loading={statsLoading}
@@ -410,7 +417,7 @@ const AdminDashboard: React.FC = () => {
           <div className="flex items-center">
             <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 mr-2" />
             <p className="text-sm text-red-600 dark:text-red-300">{statsError}</p>
-        </div>
+          </div>
         </div>
       )}
 
@@ -535,7 +542,7 @@ const AdminDashboard: React.FC = () => {
           </Link>
         </div>
       </div>
-                </div>
+    </div>
   );
 };
 

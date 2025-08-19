@@ -12,7 +12,7 @@ import { getComprehensiveUserProfile, updateCurrentUserComprehensiveProfile } fr
 import { authAPI, IChangePasswordData } from '@/apis/auth.api';
 import { apiClient } from '@/apis/apiClient';
 import { showToast } from '@/utils/toastManager';
-
+import MFAManagement from '@/components/shared/security/MFAManagement';
 
 // Interfaces
 interface ComprehensiveProfile {
@@ -107,6 +107,7 @@ interface ComprehensiveProfile {
     account_type: string;
     subscription_status: string;
     trial_used: boolean;
+    two_factor_enabled: boolean;
     failed_login_attempts: number;
   };
   learning_analytics: {
@@ -486,12 +487,9 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
         return;
       }
       
-      console.log('🔄 Fetching comprehensive user profile...');
       const response = await getComprehensiveUserProfile();
-      console.log('📡 API Response:', response);
       
       const serverResponse = response.data as any;
-      console.log('🔍 Server Response:', serverResponse);
       
       if (serverResponse && serverResponse.success && serverResponse.data) {
         const apiData = serverResponse.data as any;
@@ -572,6 +570,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
               account_type: apiData.account_status?.account_type || 'free',
               subscription_status: apiData.account_status?.subscription_status || 'inactive',
               trial_used: apiData.account_status?.trial_used || false,
+              two_factor_enabled: apiData.account_status?.two_factor_enabled || false,
               failed_login_attempts: apiData.account_status?.failed_login_attempts || 0,
             },
             learning_analytics: {
@@ -662,12 +661,6 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
           }
         } else {
           const errorMessage = serverResponse?.message || 'Failed to load profile data';
-          console.error('❌ Profile API Error:', {
-            serverResponse,
-            hasSuccess: !!serverResponse?.success,
-            hasData: !!serverResponse?.data,
-            message: serverResponse?.message
-          });
           throw new Error(errorMessage);
         }
       } catch (error: any) {
@@ -816,14 +809,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
         confirm_password: passwordData.confirm_password
       };
 
-      // Import apiBaseUrl at the top if not already imported
-      const { apiBaseUrl } = await import('@/apis/config');
-      
-      console.log('🔄 Attempting to change password...');
-      console.log('📡 API endpoint:', `${apiBaseUrl}/auth/change-password`);
-      console.log('🔑 Token exists:', !!localStorage.getItem('token'));
-      
-      const response = await fetch(`${apiBaseUrl}/auth/change-password`, {
+      const response = await fetch(authAPI.local.changePassword, {
         method: 'PUT', // Backend uses PUT method
         headers: {
           'Content-Type': 'application/json',
@@ -1119,7 +1105,6 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       <div className="max-w-7xl mx-auto">
         {/* Enhanced Mobile-Optimized Fixed Header with Profile Info */}
         <div className="sticky top-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-          <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4">
             <div className="flex items-center justify-between">
               {/* Mobile-optimized profile section */}
               <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-1">
@@ -1202,16 +1187,17 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
             <div className="block md:hidden px-3 sm:px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  {tabs.find(tab => tab.id === activeTab) && (
-                    <>
-                      {React.createElement(tabs.find(tab => tab.id === activeTab)!.icon, {
-                        className: "h-4 w-4 text-blue-600"
-                      })}
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">
-                        {tabs.find(tab => tab.id === activeTab)!.label}
-                      </span>
-                    </>
-                  )}
+                  {tabs.find(tab => tab.id === activeTab) && (() => {
+                    const Icon = tabs.find(tab => tab.id === activeTab)!.icon;
+                    return (
+                      <>
+                        <Icon className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">
+                          {tabs.find(tab => tab.id === activeTab)!.label}
+                        </span>
+                      </>
+                    );
+                  })()}
                 </div>
                 <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
                   <span>{tabs.findIndex(tab => tab.id === activeTab) + 1}</span>
@@ -1414,6 +1400,8 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                   </div>
                 </div>
 
+                
+
                 {/* Mobile-Optimized Account Details & Community */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                   <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
@@ -1456,7 +1444,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                         Coming Soon
                       </h4>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Community features will be available soon!
+                        Community features and social interactions will be available soon!
                       </p>
                     </div>
                   </div>
@@ -1464,94 +1452,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
               </motion.div>
             )}
 
-            {activeTab === 'learning' && (
-              <motion.div
-                key="learning"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.2 }}
-                className="space-y-4 sm:space-y-6"
-              >
-                {/* Mobile-Optimized Achievements Section */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700 mb-4 sm:mb-6">
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
-                    <Award className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-yellow-600" />
-                    Achievements
-                  </h3>
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                    <div className="text-center p-3 sm:p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                      <div className="text-xl sm:text-2xl font-bold text-yellow-600">
-                        {learning_analytics.skill_points}
-                      </div>
-                      <div className="text-xs sm:text-sm text-yellow-700 dark:text-yellow-300">
-                        Skill Points
-                      </div>
-                    </div>
-                    <div className="text-center p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                      <div className="text-xl sm:text-2xl font-bold text-green-600">
-                        {learning_analytics.certificates_earned}
-                      </div>
-                      <div className="text-xs sm:text-sm text-green-700 dark:text-green-300">
-                        Certificates
-                      </div>
-                    </div>
-                    <div className="text-center p-3 sm:p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                      <div className="text-xl sm:text-2xl font-bold text-purple-600">
-                        {learning_analytics.longest_streak}
-                      </div>
-                      <div className="text-xs sm:text-sm text-purple-700 dark:text-purple-300">
-                        Best Streak
-                      </div>
-                    </div>
-                    <div className="text-center p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                      <div className="text-xl sm:text-2xl font-bold text-blue-600">
-                        {learning_analytics.completion_rate}%
-                      </div>
-                      <div className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">
-                        Completion
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Mobile-Optimized Financial Overview */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700 mb-4 sm:mb-6">
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
-                    <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-green-600" />
-                    Financial Overview
-                  </h3>
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                    <div className="text-center p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                      <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-                        {formatCurrency(financial_metrics.total_spent)}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Total Spent</div>
-                    </div>
-                    <div className="text-center p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                      <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-                        {financial_metrics.total_courses_purchased}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Courses</div>
-                    </div>
-                    <div className="text-center p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                      <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-                        {financial_metrics.successful_transactions}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Payments</div>
-                    </div>
-                    <div className="text-center p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                      <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-                        {formatCurrency(financial_metrics.lifetime_value)}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Lifetime Value</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Mobile-Optimized Device & Security Info */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+            {activeTab === 'courses' && (
                     <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
                       <Monitor className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-purple-600" />
                       Device Information
@@ -1615,7 +1516,14 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                           {account_insights.security_score}/100
                         </span>
                       </div>
-
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">2FA Enabled</span>
+                        {account_status.two_factor_enabled ? (
+                          <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                        ) : (
+                          <XCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
+                        )}
+                      </div>
                       <div className="flex items-center justify-between">
                         <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Failed Attempts</span>
                         <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
@@ -1927,7 +1835,14 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                     </div>
                     
                     <div className="space-y-4">
-
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">2FA Enabled</span>
+                        {account_status.two_factor_enabled ? (
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                        ) : (
+                          <XCircle className="h-5 w-5 text-red-500" />
+                        )}
+                      </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600 dark:text-gray-400">Email Verified</span>
                         {account_status.email_verified ? (
@@ -2233,12 +2148,38 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                         </div>
                       </div>
                       <div className="flex items-center">
-                        <div className="flex items-center text-gray-600">
-                          <XCircle className="w-5 h-5 mr-2" />
-                          <span className="text-sm font-medium">Not Available</span>
-                        </div>
+                        {account_status.two_factor_enabled ? (
+                          <div className="flex items-center text-green-600">
+                            <CheckCircle className="w-5 h-5 mr-2" />
+                            <span className="text-sm font-medium">Enabled</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center text-red-600">
+                            <XCircle className="w-5 h-5 mr-2" />
+                            <span className="text-sm font-medium">Disabled</span>
+                          </div>
+                        )}
                       </div>
                     </div>
+                  </div>
+                  
+                  {/* MFA Management Component */}
+                  <div className="p-0">
+                    <MFAManagement 
+                      onStatusChange={(enabled: boolean) => {
+                        // Update the local state when MFA status changes
+                        if (profile) {
+                          setProfile({
+                            ...profile,
+                            account_status: {
+                              ...profile.account_status,
+                              two_factor_enabled: enabled
+                            }
+                          });
+                        }
+                      }}
+                      className="border-0 rounded-none"
+                    />
                   </div>
                 </div>
 
@@ -2257,7 +2198,12 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                         Security Recommendations
                       </h4>
                       <div className="space-y-2">
-
+                        {!account_status.two_factor_enabled && (
+                          <div className="flex items-center text-sm text-blue-700 dark:text-blue-300">
+                            <AlertTriangle className="h-4 w-4 mr-2 text-orange-500" />
+                            <span>Enable two-factor authentication for enhanced security</span>
+                          </div>
+                        )}
                         <div className="flex items-center text-sm text-blue-700 dark:text-blue-300">
                           <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
                           <span>Use strong, unique passwords for your account</span>
@@ -2640,7 +2586,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
             )}
 
             {/* Add other tab contents similarly */}
-            {!['overview', 'courses', 'financial', 'engagement', 'security', 'personal'].includes(activeTab) && (
+            {!['overview', 'learning', 'courses', 'financial', 'engagement', 'security', 'personal'].includes(activeTab) && (
               <motion.div
                 key={activeTab}
                 initial={{ opacity: 0, x: 20 }}
