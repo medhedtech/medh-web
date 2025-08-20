@@ -6,17 +6,27 @@ frontend:
         - echo "🔧 Setting up Node.js v22.16.0"
         - nvm install 22.16.0
         - nvm use 22.16.0
+        # Environment variables for standalone build
         - export NEXT_TELEMETRY_DISABLED=1
         - export GENERATE_SOURCEMAP=false
-        - export NODE_OPTIONS="--max-old-space-size=12288"
+        - export NODE_OPTIONS="--max-old-space-size=8192"
         - echo "📦 Installing dependencies using npm ci"
         - npm ci
     build:
       commands:
         - echo "🏗 Running Next.js production build with standalone output"
         - npm run build
+        # Verify standalone files are generated
         - echo "🔍 Checking for required-server-files.json"
-        - ls -la .next/standalone/.next/required-server-files.json
+        - ls -la .next/standalone/.next/required-server-files.json || echo "required-server-files.json not found in .next subfolder"
+        # CRITICAL: Copy required-server-files.json to standalone root for Amplify
+        - echo "📋 Copying required-server-files.json to standalone root (required by Amplify)"
+        - cp .next/standalone/.next/required-server-files.json .next/standalone/required-server-files.json
+        - echo "✅ Copied required-server-files.json to standalone root"
+        - ls -la .next/standalone/required-server-files.json
+        # Verify all required files are in place
+        - echo "🔍 Final verification of standalone structure:"
+        - ls -la .next/standalone/
   artifacts:
     baseDirectory: .next/standalone
     files:
