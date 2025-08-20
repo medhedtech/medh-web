@@ -186,6 +186,9 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
   };
 
   const uploadVideos = async () => {
+    console.log('🔍 DEBUG - Upload Videos button clicked!');
+    console.log('🔍 selectedVideos.length:', selectedVideos.length);
+    
     if (selectedVideos.length === 0) {
       showToast.error('Please select videos to upload');
       return;
@@ -427,15 +430,20 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
         }
       }
       
-      // Check if response is JSON
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const textResponse = await response.text();
-        console.error('❌ Non-JSON response received:', textResponse.substring(0, 200));
-        throw new Error(`Server returned non-JSON response. Status: ${response.status}. Please check if backend server is running on port 8080.`);
+      // Try to parse response as JSON regardless of content-type
+      let result;
+      try {
+        const responseText = await response.text();
+        console.log('📋 Raw response text:', responseText.substring(0, 200));
+        
+        // Try to parse as JSON
+        result = JSON.parse(responseText);
+        console.log('✅ Successfully parsed JSON response');
+      } catch (parseError) {
+        console.error('❌ Failed to parse response as JSON:', parseError);
+        throw new Error(`Server returned invalid JSON response. Status: ${response.status}. Please check backend logs.`);
       }
       
-      const result = await response.json();
       console.log('✅ Success response data:', result);
         
         // Dismiss progress toast
@@ -447,8 +455,17 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
       if (result.status === 'success' && result.data && result.data.videos) {
         const validVideos = result.data.videos.filter((video: any) => video && video.fileId);
         
-        // Update uploaded videos state
-        setUploadedVideos(prev => [...prev, ...validVideos]);
+              // DEBUG: Log video upload success
+      console.log('🔍 DEBUG - Video upload successful');
+      console.log('🔍 validVideos count:', validVideos.length);
+      console.log('🔍 About to update uploadedVideos state');
+      
+      // Update uploaded videos state
+      setUploadedVideos(prev => {
+        const newState = [...prev, ...validVideos];
+        console.log('🔍 DEBUG - Updated uploadedVideos count:', newState.length);
+        return newState;
+      });
         
         // Clear selected videos
         setSelectedVideos([]);
@@ -1069,6 +1086,11 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
       return;
     }
     
+    // DEBUG: Log uploadedVideos state before form submission
+    console.log('🔍 DEBUG - Before form submission:');
+    console.log('🔍 uploadedVideos state:', uploadedVideos);
+    console.log('🔍 uploadedVideos.length:', uploadedVideos.length);
+    
     setLoading(true);
     
     // Show loading notification
@@ -1079,15 +1101,45 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
     try {
       // Create session with videos if uploaded
       const validUploadedVideos = uploadedVideos.filter(video => video !== null && video !== undefined);
+      
+      // DEBUG: Log current state
+      console.log('🔍 DEBUG - Form submission started');
+      console.log('🔍 uploadedVideos count:', uploadedVideos.length);
+      console.log('🔍 validUploadedVideos count:', validUploadedVideos.length);
+      
+      // Prepare video data for database
+      let videoData = {
+        fileId: 'no-video',
+        name: 'No video uploaded',
+        size: 0,
+        url: '#'
+      };
+      
+      // If videos are uploaded, use the first video's data
+      if (validUploadedVideos.length > 0) {
+        const firstVideo = validUploadedVideos[0];
+        console.log('🔍 DEBUG - First video found');
+        
+        videoData = {
+          fileId: firstVideo.fileId || firstVideo.s3Path || 'no-video',
+          name: firstVideo.name || 'Uploaded video',
+          size: firstVideo.size || 0,
+          url: firstVideo.url || '#'
+        };
+        
+        console.log('📹 Using video data for database - File size:', videoData.size, 'bytes');
+      } else {
+        console.log('⚠️ WARNING - No uploaded videos found, using default video data');
+        console.log('⚠️ This means either:');
+        console.log('   1. No videos were uploaded');
+        console.log('   2. Video upload failed');
+        console.log('   3. uploadedVideos state is not properly set');
+      }
+      
       const sessionData = {
         ...formData,
-        video: validUploadedVideos.length > 0 ? validUploadedVideos[0] : {
-          fileId: 'no-video',
-          name: 'No video uploaded',
-          size: 0,
-          url: '#'
-        },
-        videos: validUploadedVideos // Include all uploaded videos
+        video: videoData,
+        videos: validUploadedVideos // Include all uploaded videos for reference
       };
       
       console.log('📝 Creating session with data:', {
@@ -1095,14 +1147,21 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
         sessionNo: sessionData.sessionNo,
         studentsCount: sessionData.students.length,
         gradesCount: sessionData.grades.length,
-        dashboard: sessionData.dashboard,
-        hasVideo: !!sessionData.video
+        hasVideo: !!sessionData.video && sessionData.video.fileId !== 'no-video',
+        uploadedVideosCount: validUploadedVideos.length
       });
       
-      console.log('🔍 Full session data being sent:', JSON.stringify(sessionData, null, 2));
-      console.log('🔍 Session number being sent:', sessionData.sessionNo);
-      console.log('🔍 Session number type:', typeof sessionData.sessionNo);
+      console.log('🔍 Session data prepared for submission');
       console.log('🔍 Session number length:', sessionData.sessionNo?.length);
+      
+      // Additional logging for video data
+      if (validUploadedVideos.length > 0) {
+        console.log('📹 Video data being saved to database');
+        console.log('   - File size:', videoData.size, 'bytes');
+        console.log('   - Total uploaded videos:', validUploadedVideos.length);
+      } else {
+        console.log('📹 No videos uploaded - using default video data');
+      }
       
       const response = isEditMode 
         ? await liveClassesAPI.updateSession(editSessionId!, sessionData)
@@ -1114,6 +1173,12 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
       console.log('📋 Response data:', response?.data);
       console.log('📋 Response status:', response?.status);
       console.log('📋 Response statusText:', response?.statusText);
+      
+      // Log video data from response
+      if (response?.data?.data?.video) {
+        console.log('📹 Video data received from server');
+        console.log('📹 Has video:', response.data.data.hasVideo);
+      }
       
       if (response.data?.data?.success || response.data?.success) {
         // Dismiss loading toast
@@ -1144,11 +1209,15 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
         const videoCount = validUploadedVideos.length;
         const videoText = videoCount > 0 ? ` with ${videoCount} video(s)` : '';
         
-        // Show FORM SAVE SUCCESS POPUP
+        // Show FORM SAVE SUCCESS POPUP with video details
+        const videoDetailsText = validUploadedVideos.length > 0 
+          ? `\n📹 Video Details:\n   • File: ${videoData.name}\n   • Size: ${formatFileSize(videoData.size)}\n   • S3 Path: ${videoData.fileId}\n   • URL: ${videoData.url !== '#' ? 'Generated' : 'Not available'}`
+          : '\n📹 No videos uploaded';
+          
         showToast.success(
-          `🎉 FORM SAVED SUCCESSFULLY! 🎉\n\n📝 Live session "${sessionData.sessionTitle}" ${isEditMode ? 'updated' : 'created'}\n💾 Session saved to database\n📹 ${videoCount} video(s) included`,
+          `🎉 FORM SAVED SUCCESSFULLY! 🎉\n\n📝 Live session "${sessionData.sessionTitle}" ${isEditMode ? 'updated' : 'created'}\n💾 Session saved to database\n📹 ${videoCount} video(s) included${videoDetailsText}`,
           {
-            duration: 8000,
+            duration: 10000,
             style: {
               background: 'linear-gradient(135deg, #059669, #047857)',
               color: 'white',
