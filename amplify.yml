@@ -3,7 +3,7 @@ frontend:
   phases:
     preBuild:
       commands:
-        - "echo '=== Starting Amplify Build ==='"
+        - "echo '=== Starting Amplify Build with automatic cache clear ==='"
         - "nvm install 22.16.0"
         - "nvm use 22.16.0"
         - "echo 'Node version: $(node -v)'"
@@ -20,16 +20,19 @@ frontend:
         - "export GENERATE_SOURCEMAP=false"
         - "export CI=true"
         - "export DISABLE_ESLINT_PLUGIN=true"
-        - "rm -rf node_modules .next"
+        # 🔹 Automatic cache clear
+        - "echo '🔄 Clearing previous build cache...'"
+        - "rm -rf node_modules .next .next/cache .next/standalone || true"
         - "npm ci --legacy-peer-deps"
     build:
       commands:
         - "echo '🏗 Running Next.js production build (standalone output)'"
         - "npm run build"
-        # Copy required-server-files.json to standalone root for Amplify
-        - "cp .next/standalone/.next/required-server-files.json .next/standalone/ || true"
-        - "echo '✅ Verified required-server-files.json in standalone root'"
-        # Clean memory-heavy binaries
+        # Copy server folder and required-server-files.json to standalone root for Amplify
+        - "cp -r .next/standalone/.next/server .next/standalone/server || true"
+        - "cp .next/standalone/.next/required-server-files.json .next/standalone/"
+        - "echo '✅ Copied server files and required-server-files.json to standalone root'"
+        # Remove memory-heavy binaries
         - "rm -f node_modules/@swc/core-linux-x64-gnu/swc.linux-x64-gnu.node || true"
         - "rm -f node_modules/@swc/core-linux-x64-musl/swc.linux-x64-musl.node || true"
         - "rm -f node_modules/@esbuild/linux-x64/bin/esbuild || true"
@@ -37,7 +40,6 @@ frontend:
   artifacts:
     baseDirectory: .next/standalone
     files:
-      - "required-server-files.json"
       - "**/*"
   cache:
     paths:
