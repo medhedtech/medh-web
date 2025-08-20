@@ -3,61 +3,32 @@ frontend:
   phases:
     preBuild:
       commands:
-        - echo "🔧 Using Amplify default Node.js version (20.19.0)"
         - node --version
         - npm --version
         - export NEXT_TELEMETRY_DISABLED=1
         - export GENERATE_SOURCEMAP=false
         - export NODE_OPTIONS="--max-old-space-size=8192"
-        - echo "📦 Installing dependencies using npm ci"
         - npm ci
     build:
       commands:
-        - echo "🏗 Running Next.js production build with standalone output"
         - npm run build
 
-        # Ensure required server files and traces are inside the artifacts baseDirectory
-        - echo "📋 Ensuring required files under .next/standalone/.next"
-        - mkdir -p .next/standalone/.next/server
-        # Find a trace emitted by Next (prefer server/trace, fallback to root trace). If none exists, create a minimal one so Amplify's check passes.
-        - TRACE_SRC="$(find .next -maxdepth 3 -type f -name trace | head -n 1 || true)"
-        - if [ -z "$TRACE_SRC" ]; then echo "{}" > .next/trace && TRACE_SRC=".next/trace" && echo "⚠️ Created minimal trace at .next/trace"; else echo "✅ Found trace at $TRACE_SRC"; fi
-        - cp -f "$TRACE_SRC" .next/standalone/.next/server/trace
-        - cp -f "$TRACE_SRC" .next/standalone/.next/trace
+        # Ensure traces exist in both legacy and new locations
+        - mkdir -p .next/server
+        - if [ -f ".next/server/trace" ]; then echo "server/trace exists"; elif [ -f ".next/trace" ]; then cp -f .next/trace .next/server/trace; else echo "{}" > .next/trace && cp -f .next/trace .next/server/trace; fi
 
-        # required-server-files.json is used by platforms to resolve assets
-        - RSF_SRC="$(find .next -maxdepth 2 -type f -name required-server-files.json | head -n 1 || true)"
-        - if [ -n "$RSF_SRC" ]; then cp -f "$RSF_SRC" .next/standalone/.next/required-server-files.json; else echo "⚠️ required-server-files.json not found in .next"; fi
+        # Ensure required-server-files.json is present
+        - if [ -f ".next/required-server-files.json" ]; then echo "required-server-files.json present"; else echo "{}" > .next/required-server-files.json; fi
 
-        # Static assets inside artifacts directory
-        - mkdir -p .next/standalone/.next/static
-        - cp -r .next/static/* .next/standalone/.next/static/ 2>/dev/null || true
+        # Sanity check
+        - ls -la .next | cat
+        - ls -la .next/server | cat
+        - test -f .next/trace || (echo "missing .next/trace" && exit 1)
+        - test -f .next/server/trace || (echo "missing .next/server/trace" && exit 1)
+        - test -f .next/required-server-files.json || (echo "missing required-server-files.json" && exit 1)
 
-        # Optional: prune size but DO NOT remove traces
-        - rm -rf .next/standalone/src || true
-        - find .next/standalone -type f -name "*.map" -delete || true
-        - find .next/standalone/node_modules -type d -name "__tests__" -prune -exec rm -rf {} + || true
-        - find .next/standalone/node_modules -type d -name "test" -prune -exec rm -rf {} + || true
-        - rm -rf .next/standalone/node_modules/next/dist/build || true
-        - rm -rf .next/standalone/node_modules/next/dist/compiled/webpack || true
-        - rm -rf .next/standalone/node_modules/next/dist/compiled/terser || true
-        - rm -rf .next/standalone/node_modules/next/node_modules/@img || true
-        - rm -rf .next/standalone/node_modules/sharp || true
-        - rm -rf .next/standalone/node_modules/@img || true
-        - (cd .next/standalone && npm prune --omit=dev || true)
-
-        # Sanity checks so we fail fast inside build phase (not after upload)
-        - echo "🔎 Validating required files in artifacts directory"
-        - ls -la .next/standalone/.next | cat
-        - ls -la .next/standalone/.next/server | cat
-        - test -f .next/standalone/.next/server/trace || (echo "❌ Missing .next/standalone/.next/server/trace" && exit 1)
-        - test -f .next/standalone/.next/trace || (echo "❌ Missing .next/standalone/.next/trace" && exit 1)
-        - test -f .next/standalone/.next/required-server-files.json || echo "⚠️ required-server-files.json is missing (not fatal)"
-
-        - echo "✅ Build artifacts ready for Amplify"
-        - du -sh .next/standalone/.next || true
   artifacts:
-    baseDirectory: .next/standalone/.next
+    baseDirectory: .next
     files:
       - '**/*'
   cache:
