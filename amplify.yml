@@ -3,34 +3,26 @@ frontend:
   phases:
     preBuild:
       commands:
-        - echo "=== Starting Amplify Build ==="
+        - echo "🔧 Setting up Node.js v22.16.0"
         - nvm install 22.16.0
         - nvm use 22.16.0
-        - echo "Node version: $(node -v)"
-        - echo "NPM version: $(npm -v)"
-        # 🔹 Clear previous cache
-        - rm -rf node_modules .next .next/standalone || true
-        # 🔹 Set memory and build performance
-        - export NODE_OPTIONS='--max-old-space-size=12288'
-        - export CI=true
         - export NEXT_TELEMETRY_DISABLED=1
         - export GENERATE_SOURCEMAP=false
-        - export DISABLE_ESLINT_PLUGIN=true
-        # 🔹 Install dependencies
-        - npm ci --legacy-peer-deps
+        - export NODE_OPTIONS="--max-old-space-size=8192"
+        - echo "📦 Installing dependencies using npm ci"
+        - npm ci
     build:
       commands:
-        - echo "🏗 Building Next.js production (standalone)..."
+        - echo "🏗 Running Next.js production build with standalone output"
         - npm run build
-        # 🔹 Move required-server-files.json to standalone root
-        - echo "🔍 Copying required-server-files.json to standalone root"
-        - cp .next/standalone/.next/required-server-files.json .next/standalone/
-        - echo "✅ Build phase completed"
+        - echo "🔍 Checking for required-server-files.json"
+        - ls -la .next/standalone/.next/required-server-files.json
   artifacts:
     baseDirectory: .next/standalone
     files:
-      - "**/*"
+      - '**/*'
   cache:
     paths:
-      - "node_modules//*"
-appRoot: .
+      - node_modules/**/*
+      - .next/cache/**/*
+      - ~/.npm

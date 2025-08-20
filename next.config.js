@@ -27,15 +27,16 @@ const nextConfig = {
     cpus: 1,
     optimizePackageImports: ['@radix-ui/react-icons'],
     optimizeServerReact: false,
-    outputFileTracingExcludes: {
-      '*': [
-        'node_modules/@swc/core-linux-x64-gnu',
-        'node_modules/@swc/core-linux-x64-musl',
-        'node_modules/@esbuild/linux-x64',
-        'node_modules/webpack/lib',
-        'node_modules/terser/dist',
-      ],
-    },
+  },
+  
+  outputFileTracingExcludes: {
+    '*': [
+      'node_modules/@swc/core-linux-x64-gnu',
+      'node_modules/@swc/core-linux-x64-musl',
+      'node_modules/@esbuild/linux-x64',
+      'node_modules/webpack/lib',
+      'node_modules/terser/dist',
+    ],
   },
 
   transpilePackages: [
