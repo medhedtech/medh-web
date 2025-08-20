@@ -10,7 +10,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   staticPageGenerationTimeout: 1800,
-  generateBuildId: async () => build-${Date.now()},
+  generateBuildId: async () => `build-${Date.now()}`,
 
   // ✅ Inject environment variables from Amplify or shell
   env: {
