@@ -41,7 +41,7 @@ frontend:
       commands:
         - "echo 'Building Next.js application...'"
         # Memory optimization: Remove problematic cache files before build
-        - "rm -rf .next/cache/**/*"
+        - "rm -rf .next/cache//*"
         # Option 1: Standard build (recommended)
         - "npm run build"
         # Option 2: Use optimization script if needed (uncomment if build still fails)
@@ -53,10 +53,10 @@ frontend:
   artifacts:
     baseDirectory: .next
     files:
-      - '**/*'
+      - '/*'
   cache:
     paths:
-      - node_modules/**/*
+      - node_modules//*
       # Remove .next/cache from cache paths as it can cause memory issues
-      # - .next/cache/**/*
+      # - .next/cache//*
 appRoot: .
