@@ -11,10 +11,10 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && npm run clean:cache",
     "build:verbose": "NEXT_DEBUG=1 next build --debug",
     "build:analyze": "ANALYZE=true next build",
-    "start": "node .next/standalone/server.js",
+    "start": "next start",
     "lint": "next lint --fix",
     "lint:check": "next lint",
     "type-check": "tsc --noEmit",
