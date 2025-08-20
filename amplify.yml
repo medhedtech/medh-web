@@ -3,54 +3,15 @@ frontend:
   phases:
     preBuild:
       commands:
-        - echo "=== Starting Amplify Build ==="
-        - echo "🔧 Switching to Node.js 20 LTS"
-        - nvm install 20.19.0 || true
-        - nvm use 20.19.0
-        - echo "✅ Active Node version:" $(node -v)
-        - echo "✅ NPM version:" $(npm -v)
-        - export NEXT_PUBLIC_API_URL="https://api.medh.co/api/v1"
-        - export NEXT_PUBLIC_APP_ENV="production"
-        - export JWT_SECRET="${JWT_SECRET:-fallback-jwt-secret-for-build}"
-        - export API_KEY_SALT="${API_KEY_SALT:-fallback-salt}"
-        - export SESSION_SECRET="${SESSION_SECRET:-fallback-session-secret}"
-        - export MONGO_URI="${MONGO_URI}"
-        - export NEXT_PUBLIC_GA_MEASUREMENT_ID="${NEXT_PUBLIC_GA_MEASUREMENT_ID}"
-        - export NEXT_PUBLIC_GOOGLE_CLIENT_ID="${NEXT_PUBLIC_GOOGLE_CLIENT_ID}"
-        - export OPENAI_API_KEY="${OPENAI_API_KEY}"
-        - export NODE_OPTIONS="--max-old-space-size=14336 --max-semi-space-size=512"
-        - export NEXT_TELEMETRY_DISABLED=1
-        - export GENERATE_SOURCEMAP=false
-        - export CI=true
-        - export DISABLE_ESLINT_PLUGIN=true
-        - npm config set legacy-peer-deps true
-        - npm config set fund false
-        - npm config set audit false
-        - npm config set update-notifier false
-        - echo "Installing dependencies..."
-        - rm -rf node_modules
-        - npm ci --legacy-peer-deps
-        - echo "Verifying critical build dependencies..."
-        - node -e "console.log('TailwindCSS:', require('tailwindcss').version || 'OK')" || echo "TailwindCSS not found"
-        - node -e "console.log('PostCSS:', require('postcss').version || 'OK')" || echo "PostCSS not found"
-        - node -e "console.log('Autoprefixer:', require('autoprefixer').version || 'OK')" || echo "Autoprefixer not found"
+        - npm ci
     build:
       commands:
-        - echo "Building Next.js standalone application..."
-        - rm -rf .next/cache/**/*
         - npm run build
-        - rm -f node_modules/@swc/core-linux-x64-gnu/swc.linux-x64-gnu.node || true
-        - rm -f node_modules/@swc/core-linux-x64-musl/swc.linux-x64-musl.node || true
-        - rm -f node_modules/@esbuild/linux-x64/bin/esbuild || true
   artifacts:
     baseDirectory: .next/standalone
     files:
       - '**/*'
-    secondaryArtifacts:
-      - baseDirectory: .next/static
-        files:
-          - '**/*'
   cache:
     paths:
       - node_modules/**/*
-appRoot: .
+      - .next/cache/**/*
