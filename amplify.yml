@@ -8,9 +8,9 @@ frontend:
         - "nvm use 22.16.0"
         - "echo 'Node version: $(node -v)'"
         - "echo 'NPM version: $(npm -v)'"
-        # 🔹 Clear all previous build cache
         - "echo '🔄 Clearing previous build cache...'"
         - "rm -rf node_modules .next .next/standalone || true"
+        - "export NODE_OPTIONS='--max-old-space-size=12288'"  # 12 GB heap
         - "npm ci --legacy-peer-deps"
     build:
       commands:
