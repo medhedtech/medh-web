@@ -27,6 +27,11 @@ frontend:
         - cp .next/trace .next/standalone/.next/server/trace
         - mkdir -p .next/standalone/server
         - cp .next/trace .next/standalone/server/trace
+        # Ensure server directory exists at baseDirectory root (some Amplify checks expect this)
+        - echo "📁 Ensuring server directory is available at baseDirectory root"
+        - rm -rf .next/standalone/server || true
+        - cp -r .next/standalone/.next/server .next/standalone/server
+        - echo "✅ Copied .next/server -> server"
         - echo "✅ All trace files created in multiple locations"
         - echo "🎉 ALL FILES READY FOR AMPLIFY DEPLOYMENT!"
   artifacts:
