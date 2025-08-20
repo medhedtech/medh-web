@@ -4,44 +4,30 @@ frontend:
     preBuild:
       commands:
         - "echo '=== Starting Amplify Build ==='"
-        - "echo '🔧 Installing & using Node.js 22.16.0'"
         - "nvm install 22.16.0"
         - "nvm use 22.16.0"
-        - "echo '✅ Node version: $(node -v)'"
-        - "echo '✅ NPM version: $(npm -v)'"
+        - "echo 'Node version: $(node -v)'"
+        - "echo 'NPM version: $(npm -v)'"
         # Environment variables
         - "export NEXT_PUBLIC_API_URL=\"https://api.medh.co/api/v1\""
         - "export NEXT_PUBLIC_APP_ENV=\"production\""
-        - "export JWT_SECRET=\"${JWT_SECRET:-fallback-jwt-secret-for-build}\""
+        - "export JWT_SECRET=\"${JWT_SECRET:-fallback-jwt-secret}\""
         - "export API_KEY_SALT=\"${API_KEY_SALT:-fallback-salt}\""
         - "export SESSION_SECRET=\"${SESSION_SECRET:-fallback-session-secret}\""
         - "export MONGO_URI=\"${MONGO_URI}\""
-        - "export NEXT_PUBLIC_GA_MEASUREMENT_ID=\"${NEXT_PUBLIC_GA_MEASUREMENT_ID}\""
-        - "export NEXT_PUBLIC_GOOGLE_CLIENT_ID=\"${NEXT_PUBLIC_GOOGLE_CLIENT_ID}\""
-        - "export OPENAI_API_KEY=\"${OPENAI_API_KEY}\""
         - "export NODE_OPTIONS='--max-old-space-size=8192'"
         - "export NEXT_TELEMETRY_DISABLED=1"
         - "export GENERATE_SOURCEMAP=false"
-        - "export CI=true"
-        - "export DISABLE_ESLINT_PLUGIN=true"
-        - "rm -rf node_modules"
-        - "rm -rf .next"
+        - "rm -rf node_modules .next"
         - "npm ci --legacy-peer-deps"
     build:
       commands:
         - "echo '🏗 Running Next.js production build (standalone output)'"
         - "npm run build"
-        - "echo '🔍 Copying required-server-files.json to standalone root'"
-        - "cp .next/standalone/.next/required-server-files.json .next/standalone/ || true"
-        - "echo '✅ Verified required-server-files.json in standalone root'"
-        # Clean up memory-heavy binaries
-        - "rm -f node_modules/@swc/core-linux-x64-gnu/swc.linux-x64-gnu.node || true"
-        - "rm -f node_modules/@swc/core-linux-x64-musl/swc.linux-x64-musl.node || true"
-        - "rm -f node_modules/@esbuild/linux-x64/bin/esbuild || true"
+        - "echo '✅ Build completed'"
   artifacts:
     baseDirectory: .next/standalone
     files:
-      - "required-server-files.json"
       - "/*"
   cache:
     paths:
