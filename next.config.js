@@ -10,7 +10,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   staticPageGenerationTimeout: 1800,
-  generateBuildId: async () => `build-${Date.now()}`,
+  generateBuildId: async () => build-${Date.now()},
 
   // ✅ Inject environment variables from Amplify or shell
   env: {
@@ -44,8 +44,8 @@ const nextConfig = {
       { protocol: 'https', hostname: 'medh-documents.s3.amazonaws.com' },
       { protocol: 'https', hostname: 'medhdocuments.s3.ap-south-1.amazonaws.com' },
       { protocol: 'https', hostname: 'example.com' },
-      { protocol: 'https', hostname: '**.amazonaws.com' },
-      { protocol: 'https', hostname: '**.cloudfront.net' },
+      { protocol: 'https', hostname: '.amazonaws.com' },
+      { protocol: 'https', hostname: '.cloudfront.net' },
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: 'cdn.jsdelivr.net' },
       { protocol: 'https', hostname: 'i.pravatar.cc' },
