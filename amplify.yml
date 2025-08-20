@@ -28,7 +28,7 @@ frontend:
   artifacts:
     baseDirectory: .next/standalone
     files:
-      - "/*"
+      - "**/*"
   cache:
     paths:
       - "node_modules//*"
