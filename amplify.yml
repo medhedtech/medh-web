@@ -3,33 +3,60 @@ frontend:
   phases:
     preBuild:
       commands:
-        - echo "🔧 Setting up Node.js v22.16.0"
-        - nvm install 22.16.0
-        - nvm use 22.16.0
-        # Environment variables for standalone build
-        - export NEXT_TELEMETRY_DISABLED=1
-        - export GENERATE_SOURCEMAP=false
-        - export NODE_OPTIONS="--max-old-space-size=8192"
-        - echo "📦 Installing dependencies using npm ci"
-        - npm ci
+        - "echo '=== Starting Amplify Build ==='"
+        - echo "🔧 Switching to Node.js 20 LTS"
+        - nvm install 20.19.0 || true
+        - nvm use 20.19.0
+        - echo "✅ Active Node version:" $(node -v)
+        - echo "✅ NPM version:" $(npm -v)
+        - "export NEXT_PUBLIC_API_URL='https://api.medh.co/api/v1'"
+        - "export NEXT_PUBLIC_APP_ENV='production'"
+        - "export JWT_SECRET='${JWT_SECRET:-fallback-jwt-secret-for-build}'"
+        - "export API_KEY_SALT='${API_KEY_SALT:-fallback-salt}'"
+        - "export SESSION_SECRET='${SESSION_SECRET:-fallback-session-secret}'"
+        - "export MONGO_URI='${MONGO_URI}'"
+        - "export NEXT_PUBLIC_GA_MEASUREMENT_ID='${NEXT_PUBLIC_GA_MEASUREMENT_ID}'"
+        - "export NEXT_PUBLIC_GOOGLE_CLIENT_ID='${NEXT_PUBLIC_GOOGLE_CLIENT_ID}'"
+        - "export OPENAI_API_KEY='${OPENAI_API_KEY}'"
+        # Memory optimization - Increase Node.js heap size significantly
+        - "export NODE_OPTIONS='--max-old-space-size=14336 --max-semi-space-size=512'"
+        - "export NEXT_TELEMETRY_DISABLED=1"
+        # Disable source maps to save memory
+        - "export GENERATE_SOURCEMAP=false"
+        # Optimize build performance and memory usage
+        - "export CI=true"
+        - "export DISABLE_ESLINT_PLUGIN=true"
+        - "npm config set legacy-peer-deps true"
+        - "npm config set fund false"
+        - "npm config set audit false"
+        - "npm config set update-notifier false"
+        - "echo 'Installing dependencies...'"
+        - "rm -rf node_modules"
+        - "npm ci --legacy-peer-deps"
+        - "echo 'Verifying critical build dependencies...'"
+        - "node -e \"console.log('TailwindCSS:', require('tailwindcss').version || 'OK')\" || echo 'TailwindCSS not found'"
+        - "node -e \"console.log('PostCSS:', require('postcss').version || 'OK')\" || echo 'PostCSS not found'"
+        - "node -e \"console.log('Autoprefixer:', require('autoprefixer').version || 'OK')\" || echo 'Autoprefixer not found'"
     build:
       commands:
-        - echo "🏗 Running Next.js production build with standalone output"
-        - npm run build
-        # Verify standalone files are generated
-        - echo "🔍 Checking for required-server-files.json"
-        - ls -la .next/standalone/ || echo "Standalone folder not found"
-        - ls -la .next/standalone/.next/required-server-files.json || echo "required-server-files.json not found"
-        # Copy static files to standalone (required for Next.js standalone)
-        - echo "📁 Copying static files to standalone"
-        - cp -r .next/static .next/standalone/.next/static || echo "No static files to copy"
-        - cp -r public .next/standalone/public || echo "No public files to copy"
+        - "echo 'Building Next.js application...'"
+        # Memory optimization: Remove problematic cache files before build
+        - "rm -rf .next/cache//*"
+        # Option 1: Standard build (recommended)
+        - "npm run build"
+        # Option 2: Use optimization script if needed (uncomment if build still fails)
+        # - "chmod +x scripts/optimize-build.sh && ./scripts/optimize-build.sh"
+        # Clean up memory-intensive binaries after build
+        - "rm -f node_modules/@swc/core-linux-x64-gnu/swc.linux-x64-gnu.node || true"
+        - "rm -f node_modules/@swc/core-linux-x64-musl/swc.linux-x64-musl.node || true"
+        - "rm -f node_modules/@esbuild/linux-x64/bin/esbuild || true"
   artifacts:
     baseDirectory: .next/standalone
     files:
-      - '**/*'
+      - '/*'
   cache:
     paths:
-      - node_modules/**/*
-      - .next/cache/**/*
-      - ~/.npm
+      - node_modules//*
+      # Remove .next/cache from cache paths as it can cause memory issues
+      # - .next/cache//*
+appRoot: .
