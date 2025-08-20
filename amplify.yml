@@ -8,7 +8,7 @@ frontend:
         - nvm use 22.16.0
         - export NEXT_TELEMETRY_DISABLED=1
         - export GENERATE_SOURCEMAP=false
-        - export NODE_OPTIONS="--max-old-space-size=8192"
+        - export NODE_OPTIONS="--max-old-space-size=12288"
         - echo "📦 Installing dependencies using npm ci"
         - npm ci
     build:
