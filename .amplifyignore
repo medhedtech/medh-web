@@ -7,6 +7,7 @@ node_modules
 .next//*.map
 .next/server//*.map
 
+
 # Logs
 *.log
 npm-debug.log*
