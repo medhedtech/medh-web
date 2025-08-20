@@ -16,6 +16,9 @@ yarn.lock
 # next.js
 /.next/
 /out/
+# Specifically exclude cache (critical for build size)
+.next/cache
+.next/cache/**
 
 # production
 /build

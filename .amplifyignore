@@ -1,13 +1,18 @@
 # Node modules
 node_modules
 
-# Next.js cache & maps
+# Next.js cache & maps (CRITICAL: These are huge files ~1.9GB)
 .next/cache
+.next/cache/**
 .next/trace
 .next//*.map
 .next/server//*.map
 .next/server/app//*.js.map
 .next/server/chunks//*.map
+# Webpack cache files
+.next/cache/webpack/**
+.next/cache/webpack/client-production/**
+.next/cache/webpack/server-production/**
 
 # Build traces
 .next/trace
