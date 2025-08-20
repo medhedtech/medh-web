@@ -18,16 +18,26 @@ frontend:
         - "export NODE_OPTIONS='--max-old-space-size=8192'"
         - "export NEXT_TELEMETRY_DISABLED=1"
         - "export GENERATE_SOURCEMAP=false"
+        - "export CI=true"
+        - "export DISABLE_ESLINT_PLUGIN=true"
         - "rm -rf node_modules .next"
         - "npm ci --legacy-peer-deps"
     build:
       commands:
         - "echo '🏗 Running Next.js production build (standalone output)'"
         - "npm run build"
-        - "echo '✅ Build completed'"
+        # Copy required-server-files.json to standalone root for Amplify
+        - "cp .next/standalone/.next/required-server-files.json .next/standalone/ || true"
+        - "echo '✅ Verified required-server-files.json in standalone root'"
+        # Clean memory-heavy binaries
+        - "rm -f node_modules/@swc/core-linux-x64-gnu/swc.linux-x64-gnu.node || true"
+        - "rm -f node_modules/@swc/core-linux-x64-musl/swc.linux-x64-musl.node || true"
+        - "rm -f node_modules/@esbuild/linux-x64/bin/esbuild || true"
+        - "echo '✅ Build phase completed'"
   artifacts:
     baseDirectory: .next/standalone
     files:
+      - "required-server-files.json"
       - "**/*"
   cache:
     paths:
