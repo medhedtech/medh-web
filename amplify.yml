@@ -3,9 +3,9 @@ frontend:
   phases:
     preBuild:
       commands:
-        - echo "🔧 Setting up Node.js v22.16.0"
-        - nvm install 22.16.0
-        - nvm use 22.16.0
+        - echo "🔧 Using Amplify default Node.js version (20.19.0)"
+        - node --version
+        - npm --version
         - export NEXT_TELEMETRY_DISABLED=1
         - export GENERATE_SOURCEMAP=false
         - export NODE_OPTIONS="--max-old-space-size=8192"
