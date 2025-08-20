@@ -3,52 +3,48 @@ frontend:
   phases:
     preBuild:
       commands:
-        - echo "=== Starting Amplify Build ==="
-        - echo "🔧 Installing & using Node.js 22.16.0"
-        - nvm install 22.16.0
-        - nvm use 22.16.0
-        - echo "✅ Node version: $(node -v)"
-        - echo "✅ NPM version: $(npm -v)"
-        # Set environment variables
-        - export NEXT_PUBLIC_API_URL='https://api.medh.co/api/v1'
-        - export NEXT_PUBLIC_APP_ENV='production'
-        - export JWT_SECRET='${JWT_SECRET:-fallback-jwt-secret-for-build}'
-        - export API_KEY_SALT='${API_KEY_SALT:-fallback-salt}'
-        - export SESSION_SECRET='${SESSION_SECRET:-fallback-session-secret}'
-        - export MONGO_URI='${MONGO_URI}'
-        - export NEXT_PUBLIC_GA_MEASUREMENT_ID='${NEXT_PUBLIC_GA_MEASUREMENT_ID}'
-        - export NEXT_PUBLIC_GOOGLE_CLIENT_ID='${NEXT_PUBLIC_GOOGLE_CLIENT_ID}'
-        - export OPENAI_API_KEY='${OPENAI_API_KEY}'
-        # Memory optimization
-        - export NODE_OPTIONS="--max-old-space-size=8192"
-        - export NEXT_TELEMETRY_DISABLED=1
-        - export GENERATE_SOURCEMAP=false
-        - export CI=true
-        - export DISABLE_ESLINT_PLUGIN=true
-        # Clean & install dependencies
-        - rm -rf node_modules
-        - rm -rf .next
-        - npm ci --legacy-peer-deps
+        - "echo '=== Starting Amplify Build ==='"
+        - "echo '🔧 Installing & using Node.js 22.16.0'"
+        - "nvm install 22.16.0"
+        - "nvm use 22.16.0"
+        - "echo '✅ Node version: $(node -v)'"
+        - "echo '✅ NPM version: $(npm -v)'"
+        - "export NEXT_PUBLIC_API_URL=\"https://api.medh.co/api/v1\""
+        - "export NEXT_PUBLIC_APP_ENV=\"production\""
+        - "export JWT_SECRET=\"${JWT_SECRET:-fallback-jwt-secret-for-build}\""
+        - "export API_KEY_SALT=\"${API_KEY_SALT:-fallback-salt}\""
+        - "export SESSION_SECRET=\"${SESSION_SECRET:-fallback-session-secret}\""
+        - "export MONGO_URI=\"${MONGO_URI}\""
+        - "export NEXT_PUBLIC_GA_MEASUREMENT_ID=\"${NEXT_PUBLIC_GA_MEASUREMENT_ID}\""
+        - "export NEXT_PUBLIC_GOOGLE_CLIENT_ID=\"${NEXT_PUBLIC_GOOGLE_CLIENT_ID}\""
+        - "export OPENAI_API_KEY=\"${OPENAI_API_KEY}\""
+        - "export NODE_OPTIONS='--max-old-space-size=8192'"
+        - "export NEXT_TELEMETRY_DISABLED=1"
+        - "export GENERATE_SOURCEMAP=false"
+        - "export CI=true"
+        - "export DISABLE_ESLINT_PLUGIN=true"
+        - "rm -rf node_modules"
+        - "rm -rf .next"
+        - "npm ci --legacy-peer-deps"
     build:
       commands:
-        - echo "🏗 Running Next.js production build (standalone output)"
-        - npm run build
-        # Optional: verify required-server-files.json
-        - echo "🔍 Checking required-server-files.json"
-        - if [ -f .next/standalone/.next/required-server-files.json ]; then
-            echo "✅ Found required-server-files.json";
+        - "echo '🏗 Running Next.js production build (standalone output)'"
+        - "npm run build"
+        - "echo '🔍 Checking required-server-files.json'"
+        - |
+          if [ -f .next/standalone/.next/required-server-files.json ]; then
+            echo "✅ Found required-server-files.json"
           else
-            echo "❌ required-server-files.json not found";
+            echo "❌ required-server-files.json not found"
           fi
-        # Clean up memory-heavy binaries
-        - rm -f node_modules/@swc/core-linux-x64-gnu/swc.linux-x64-gnu.node || true
-        - rm -f node_modules/@swc/core-linux-x64-musl/swc.linux-x64-musl.node || true
-        - rm -f node_modules/@esbuild/linux-x64/bin/esbuild || true
+        - "rm -f node_modules/@swc/core-linux-x64-gnu/swc.linux-x64-gnu.node || true"
+        - "rm -f node_modules/@swc/core-linux-x64-musl/swc.linux-x64-musl.node || true"
+        - "rm -f node_modules/@esbuild/linux-x64/bin/esbuild || true"
   artifacts:
     baseDirectory: .next/standalone
     files:
-      - '/*'
+      - "/*"
   cache:
     paths:
-      - node_modules//*
+      - "node_modules//*"
 appRoot: .
