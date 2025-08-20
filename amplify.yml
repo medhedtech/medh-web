@@ -18,6 +18,8 @@ frontend:
         # CRITICAL FIX 1: Copy required-server-files.json to standalone root
         - echo "📋 Copying required-server-files.json to standalone root"
         - cp .next/standalone/.next/required-server-files.json .next/standalone/required-server-files.json
+        # Also place a copy at .next root for Amplify detectors that expect it there
+        - cp .next/standalone/.next/required-server-files.json .next/required-server-files.json
         # CRITICAL FIX 2: Copy trace files to ALL possible locations
         - echo "📋 Creating all trace file locations for Amplify compatibility"
         - cp .next/trace .next/standalone/trace
@@ -32,12 +34,20 @@ frontend:
         - rm -rf .next/standalone/server || true
         - cp -r .next/standalone/.next/server .next/standalone/server
         - echo "✅ Copied .next/server -> server"
+        # Also mirror server to .next root for alternative detectors
+        - rm -rf .next/server || true
+        - cp -r .next/standalone/.next/server .next/server
+        - echo "✅ Synced server directory to .next/server"
         - echo "✅ All trace files created in multiple locations"
         - echo "🎉 ALL FILES READY FOR AMPLIFY DEPLOYMENT!"
   artifacts:
-    baseDirectory: .next/standalone
+    # Use .next as base so Amplify sees root-level traces and required-server-files.json
+    baseDirectory: .next
     files:
-      - '**/*'
+      - 'standalone/**/*'
+      - 'required-server-files.json'
+      - 'server/**/*'
+      - 'static/**/*'
   cache:
     paths:
       - node_modules/**/*
