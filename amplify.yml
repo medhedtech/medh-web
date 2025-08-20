@@ -18,15 +18,17 @@ frontend:
         # CRITICAL FIX 1: Copy required-server-files.json to standalone root
         - echo "📋 Copying required-server-files.json to standalone root"
         - cp .next/standalone/.next/required-server-files.json .next/standalone/required-server-files.json
-        # CRITICAL FIX 2: Copy trace files to ALL expected locations
-        - echo "📋 Copying trace files to all expected locations"
+        # CRITICAL FIX 2: Copy trace files to ALL possible locations
+        - echo "📋 Creating all trace file locations for Amplify compatibility"
         - cp .next/trace .next/standalone/trace
+        - mkdir -p .next/standalone/.next
+        - cp .next/trace .next/standalone/.next/trace
         - mkdir -p .next/standalone/.next/server
         - cp .next/trace .next/standalone/.next/server/trace
-        - cp .next/trace .next/standalone/.next/trace
         - mkdir -p .next/standalone/server
         - cp .next/trace .next/standalone/server/trace
-        - echo "✅ All files ready for deployment"
+        - echo "✅ All trace files created in multiple locations"
+        - echo "🎉 ALL FILES READY FOR AMPLIFY DEPLOYMENT!"
   artifacts:
     baseDirectory: .next/standalone
     files:
