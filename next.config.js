@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
-  
   reactStrictMode: false,
   eslint: {
     ignoreDuringBuilds: true,
@@ -12,7 +11,6 @@ const nextConfig = {
   staticPageGenerationTimeout: 1800,
   generateBuildId: async () => `build-${Date.now()}`,
 
-  // ✅ Inject environment variables from Amplify or shell
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_APP_ENV: process.env.NEXT_PUBLIC_APP_ENV,
@@ -39,6 +37,7 @@ const nextConfig = {
       ],
     },
   },
+
   transpilePackages: [
     '@floating-ui/core',
     '@floating-ui/dom',
@@ -47,7 +46,9 @@ const nextConfig = {
     'react-remove-scroll',
     '@jridgewell/resolve-uri'
   ],
+
   trailingSlash: true,
+
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'medh-documents.s3.amazonaws.com' },
@@ -72,6 +73,7 @@ const nextConfig = {
     unoptimized: true,
     loader: 'default',
   },
+
   productionBrowserSourceMaps: false,
   generateEtags: false,
 
@@ -79,30 +81,17 @@ const nextConfig = {
     return [
       {
         source: '/:all*(svg|jpg|png|webp|avif)',
-        
         locale: false,
         headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
       {
         source: '/_next/static/css/:path*',
         headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'Link',
-            value: '</_next/static/css/:path*>; rel=preload; as=style',
-          },
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Link', value: '</_next/static/css/:path*>; rel=preload; as=style' },
         ],
       },
       {
@@ -118,18 +107,15 @@ const nextConfig = {
     ];
   },
 
-  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+  webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,
       fs: false,
       path: false,
       os: false,
     };
-
     return config;
   },
-
-
 };
 
 module.exports = nextConfig;
