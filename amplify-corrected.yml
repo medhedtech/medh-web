@@ -19,7 +19,7 @@ frontend:
         # Verify standalone files are generated
         - echo "🔍 Checking for required-server-files.json"
         - ls -la .next/standalone/ || echo "Standalone folder not found"
-        - ls -la .next/standalone/.next/required-server-files.json || echo "required-server-files.json not found"
+        - ls -la .next/standalone/required-server-files.json || echo "required-server-files.json not found"
         # Copy static files to standalone (required for Next.js standalone)
         - echo "📁 Copying static files to standalone"
         - cp -r .next/static .next/standalone/.next/static || echo "No static files to copy"
