@@ -18,8 +18,6 @@ frontend:
         # CRITICAL FIX 1: Copy required-server-files.json to standalone root
         - echo "📋 Copying required-server-files.json to standalone root"
         - cp .next/standalone/.next/required-server-files.json .next/standalone/required-server-files.json
-        # Also place a copy at .next root for Amplify detectors that expect it there
-        - cp .next/standalone/.next/required-server-files.json .next/required-server-files.json
         # CRITICAL FIX 2: Copy trace files to ALL possible locations
         - echo "📋 Creating all trace file locations for Amplify compatibility"
         - cp .next/trace .next/standalone/trace
@@ -29,25 +27,50 @@ frontend:
         - cp .next/trace .next/standalone/.next/server/trace
         - mkdir -p .next/standalone/server
         - cp .next/trace .next/standalone/server/trace
-        # Ensure server directory exists at baseDirectory root (some Amplify checks expect this)
-        - echo "📁 Ensuring server directory is available at baseDirectory root"
-        - rm -rf .next/standalone/server || true
-        - cp -r .next/standalone/.next/server .next/standalone/server
-        - echo "✅ Copied .next/server -> server"
-        # Also mirror server to .next root for alternative detectors
-        - rm -rf .next/server || true
-        - cp -r .next/standalone/.next/server .next/server
-        - echo "✅ Synced server directory to .next/server"
-        - echo "✅ All trace files created in multiple locations"
+        # Ensure minimal server directory (only trace) if checker expects it
+        - echo "📁 Ensuring minimal server directory exists at baseDirectory root"
+        - mkdir -p .next/standalone/server
+        - cp .next/trace .next/standalone/server/trace
+        - echo "✅ Created minimal server/trace"
+        # Ensure static assets are present inside standalone
+        - mkdir -p .next/standalone/.next/static
+        - cp -r .next/static/* .next/standalone/.next/static/ 2>/dev/null || true
+        # Remove non-essential folders to reduce artifact size
+        - rm -rf .next/standalone/src || true
+        - rm -rf .next/standalone/public/fakedata || true
+        # Remove duplicate traces to reduce artifact size (keep root + .next/server)
+        - rm -f .next/standalone/.next/trace || true
+        - echo "♻️ Removed duplicate .next/trace"
+        - echo "✅ All trace files created in required locations"
+        
+        # Strip non-essential files to reduce artifact size
+        - echo "♻️ Stripping non-essential files to reduce artifact size"
+        - rm -f .next/standalone/.env .next/standalone/.env.production || true
+        - find .next/standalone -type f -name "*.map" -delete || true
+        - find .next/standalone -type f \( -iname "*.md" -o -iname "README*" -o -iname "LICENSE*" -o -iname "CHANGELOG*" \) -delete || true
+        - find .next/standalone/node_modules -type d -name "__tests__" -prune -exec rm -rf {} + || true
+        - find .next/standalone/node_modules -type d -name "test" -prune -exec rm -rf {} + || true
+        # Remove platform-specific binaries not used on Linux (saves tens of MB)
+        - find .next/standalone/node_modules -type d -iname "*win32*" -prune -exec rm -rf {} + || true
+        - find .next/standalone/node_modules -type d -iname "*darwin*" -prune -exec rm -rf {} + || true
+        # Remove heavy Next build-only folders not needed at runtime
+        - rm -rf .next/standalone/node_modules/next/dist/build || true
+        - rm -rf .next/standalone/node_modules/next/dist/compiled/webpack || true
+        - rm -rf .next/standalone/node_modules/next/dist/compiled/terser || true
+        - rm -rf .next/standalone/node_modules/next/node_modules/@img || true
+        # Remove sharp (image optimizer) since images.unoptimized=true
+        - rm -rf .next/standalone/node_modules/sharp || true
+        - rm -rf .next/standalone/node_modules/@img || true
+        # Prune dev deps inside standalone package
+        - cd .next/standalone && npm prune --omit=dev || true && cd -
+        - echo "✅ Size reduction tasks completed"
+        - echo "📦 Standalone size (approx):" && du -sh .next/standalone || true
+        - echo "🗂  Standalone/.next size (approx):" && du -sh .next/standalone/.next || true
         - echo "🎉 ALL FILES READY FOR AMPLIFY DEPLOYMENT!"
   artifacts:
-    # Use .next as base so Amplify sees root-level traces and required-server-files.json
-    baseDirectory: .next
+    baseDirectory: .next/standalone
     files:
-      - 'standalone/**/*'
-      - 'required-server-files.json'
-      - 'server/**/*'
-      - 'static/**/*'
+      - '**/*'
   cache:
     paths:
       - node_modules/**/*

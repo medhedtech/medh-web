@@ -36,6 +36,10 @@ const nextConfig = {
       'node_modules/@esbuild/linux-x64',
       'node_modules/webpack/lib',
       'node_modules/terser/dist',
+      'node_modules/next/dist/build',
+      'node_modules/next/dist/compiled/webpack',
+      'node_modules/next/dist/compiled/terser',
+      'node_modules/next/node_modules/@img',
     ],
   },
 
