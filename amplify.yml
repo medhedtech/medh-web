@@ -51,7 +51,7 @@ frontend:
         - "rm -f node_modules/@swc/core-linux-x64-musl/swc.linux-x64-musl.node || true"
         - "rm -f node_modules/@esbuild/linux-x64/bin/esbuild || true"
   artifacts:
-    baseDirectory: .next
+    baseDirectory: .next/standalone
     files:
       - '/*'
   cache:
