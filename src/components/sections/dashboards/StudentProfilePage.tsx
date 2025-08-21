@@ -827,7 +827,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
         method: 'PUT', // Backend uses PUT method
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`  
         },
         body: JSON.stringify({
           currentPassword: changePasswordPayload.current_password,      // Backend expects currentPassword

@@ -9,7 +9,7 @@ export interface IApiClientOptions {
   baseUrl?: string;
   headers?: Record<string, string>;
   timeout?: number;
-  credentials?: RequestCredentials;
+  credentials?: RequestCredentials;  
   mode?: RequestMode;
 }
 
