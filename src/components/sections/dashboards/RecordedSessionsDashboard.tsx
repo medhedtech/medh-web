@@ -6,7 +6,6 @@ import {
   Search, 
   Calendar, 
   Clock, 
-  Star, 
   Eye, 
   Play, 
   MonitorPlay,
@@ -35,7 +34,6 @@ interface RecordedSession {
   };
   instructor?: {
     name: string;
-    rating?: number;
   };
   duration?: string;
   recordedDate?: string;
@@ -311,101 +309,99 @@ const BatchCard = ({
     batchName: string;
     batchId?: string;
     course?: { name: string; category: string };
-    instructor?: { name: string; rating?: number };
+    instructor?: { name: string; };
     sessions: RecordedSession[];
   };
   onWatchNow: (session: RecordedSession, batchName: string) => void;
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const handleBatchClick = () => {
+    // Navigate to same page with batch videos
+    const batchUrl = `/dashboards/student/batch-videos/${batch.batchId || 'unknown'}`;
+    window.location.href = batchUrl;
+  };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-      {/* Batch Header */}
-      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              {batch.batchName}
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-              {batch.course?.name || "Unknown Course"} • by {batch.instructor?.name || "Unknown Instructor"}
-            </p>
-            <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
-              <div className="flex items-center">
-                <MonitorPlay className="w-3 h-3 mr-1" />
-                {batch.sessions.length} recorded session{batch.sessions.length !== 1 ? 's' : ''}
-              </div>
-              {batch.instructor?.rating && (
-                <div className="flex items-center">
-                  <Star className="w-3 h-3 text-yellow-400 fill-current mr-1" />
-                  {batch.instructor.rating}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -4, scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="group relative overflow-hidden w-full h-full cursor-pointer"
+      onClick={handleBatchClick}
+    >
+      {/* Compact Card */}
+      <div className="relative bg-gradient-to-br from-white/95 via-white/80 to-white/60 dark:from-gray-800/95 dark:via-gray-800/80 dark:to-gray-800/60 backdrop-blur-lg border border-white/30 dark:border-gray-700/40 rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-gray-900/50 overflow-hidden h-full">
+        
+        {/* Hover Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-purple-50/20 to-pink-50/10 dark:from-blue-900/10 dark:via-purple-900/5 dark:to-pink-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        
+        {/* Content */}
+        <div className="relative z-10 p-5">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              {/* Batch Name */}
+              <h3 className="text-lg font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent mb-2 leading-tight group-hover:from-blue-600 group-hover:to-purple-600 transition-all duration-300">
+                {batch.batchName}
+              </h3>
+              
+              {/* Course Info */}
+              <div className="space-y-1 mb-3">
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {batch.course?.name || "Digital Marketing Course"}
+                </p>
+                <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
+                  <div className="w-1.5 h-1.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mr-2" />
+                  by {batch.instructor?.name || "Expert Instructor"}
                 </div>
-              )}
+              </div>
+
+              {/* Stats */}
+              <div className="flex items-center space-x-3 text-xs">
+                <div className="flex items-center px-2.5 py-1 bg-gradient-to-r from-blue-100/80 to-purple-100/80 dark:from-blue-900/40 dark:to-purple-900/40 rounded-full">
+                  <MonitorPlay className="w-3 h-3 mr-1.5 text-blue-600 dark:text-blue-400" />
+                  <span className="font-semibold text-blue-700 dark:text-blue-300">
+                    {batch.sessions.length} Video{batch.sessions.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                
+
+              </div>
+            </div>
+
+            {/* Play Icon */}
+            <div className="relative">
+              <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-xl shadow-lg shadow-blue-500/25 group-hover:shadow-xl group-hover:shadow-blue-500/40 group-hover:scale-110 transition-all duration-300">
+                <Play className="w-5 h-5 text-white ml-0.5" />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 rounded-xl blur opacity-0 group-hover:opacity-50 transition-opacity duration-300" />
             </div>
           </div>
-          <div className="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-            <MonitorPlay className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          
+          {/* Category Badge */}
+          {batch.course?.category && (
+            <div className="mb-3">
+              <span className="inline-flex items-center px-3 py-1 bg-gradient-to-r from-indigo-100/80 via-purple-100/80 to-pink-100/80 dark:from-indigo-900/40 dark:via-purple-900/40 dark:to-pink-900/40 text-indigo-700 dark:text-indigo-300 text-xs font-semibold rounded-full border border-indigo-200/50 dark:border-indigo-700/50">
+                <div className="w-1.5 h-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full mr-1.5" />
+                {batch.course.category}
+              </span>
+            </div>
+          )}
+
+          {/* Click to View Hint */}
+          <div className="text-center pt-2">
+            <p className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+              Click to view all videos
+            </p>
           </div>
         </div>
-        
-        {/* Course Category */}
-        {batch.course?.category && (
-          <div className="mb-4">
-            <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs rounded-full">
-              {batch.course.category}
-            </span>
-          </div>
-        )}
-
-        {/* Expand/Collapse Button */}
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full flex items-center justify-center px-4 py-2 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-        >
-          <span className="text-sm font-medium mr-2">
-            {isExpanded ? 'Hide Sessions' : 'View Sessions'}
-          </span>
-          <motion.div
-            animate={{ rotate: isExpanded ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </motion.div>
-        </button>
       </div>
-
-      {/* Sessions List */}
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden"
-          >
-            <div className="p-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {batch.sessions.map((session, index) => (
-                  <RecordedSessionCard
-                    key={session.id || index}
-                    session={session}
-                    onWatchNow={(session) => onWatchNow(session, batch.batchName)}
-                    compact={true}
-                  />
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+    </motion.div>
   );
 };
 
-// Updated Recorded Session Card Component with minimalistic design
+// Modern Session Card Component
 const RecordedSessionCard = ({ 
   session, 
   onWatchNow,
@@ -425,13 +421,13 @@ const RecordedSessionCard = ({
     switch (status) {
       case 'Available':
       case 'available':
-        return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
+        return 'bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-900/40 dark:to-green-900/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700';
       case 'processing':
-        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
+        return 'bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/40 dark:to-yellow-900/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700';
       case 'unavailable':
-        return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
+        return 'bg-gradient-to-r from-red-100 to-rose-100 dark:from-red-900/40 dark:to-rose-900/40 text-red-700 dark:text-red-300 border-red-200 dark:border-red-700';
       default:
-        return 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300';
+        return 'bg-gradient-to-r from-gray-100 to-slate-100 dark:from-gray-900/40 dark:to-slate-900/40 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700';
     }
   };
 
@@ -439,95 +435,129 @@ const RecordedSessionCard = ({
 
   return (
     <motion.div
-      whileHover={{ scale: 1.02, y: -2 }}
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className={clsx(
-        buildAdvancedComponent.glassCard({ 
-          variant: 'primary', 
-          hover: true, 
-          padding: compact ? 'mobile' : 'tablet' 
-        }),
-        'flex flex-col h-full relative group'
-      )}
+      whileHover={{ scale: 1.05, y: -4 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      className="group relative overflow-hidden"
     >
-      {/* Session Number Badge */}
-      <div className="absolute top-4 right-4 z-10">
-        <div className="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-semibold rounded-full">
-          Session {session?.sessionNumber || 'N/A'}
-        </div>
-      </div>
+      {/* Modern Glass Card */}
+      <div className="relative bg-gradient-to-br from-white/95 via-white/80 to-white/60 dark:from-gray-800/95 dark:via-gray-800/80 dark:to-gray-800/60 backdrop-blur-lg border border-white/30 dark:border-gray-700/40 rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-gray-900/50 overflow-hidden h-full">
+        
+        {/* Animated Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-purple-50/20 to-pink-50/10 dark:from-blue-900/10 dark:via-purple-900/5 dark:to-pink-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        
+        {/* Floating Elements */}
+        <div className="absolute -top-4 -right-4 w-8 h-8 bg-gradient-to-br from-blue-400/20 to-purple-500/20 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute -bottom-2 -left-2 w-6 h-6 bg-gradient-to-br from-pink-400/15 to-orange-500/15 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100" />
 
-      {/* Main Content */}
-      <div className="flex-1 space-y-4">
-        {/* Header */}
-        <div className="pr-16">
-          <h3 className={`font-bold text-gray-900 dark:text-gray-100 line-clamp-2 ${
-            compact ? 'text-lg' : 'text-xl'
-          }`}>
-            {session?.displayTitle || session?.title || "Session Recording"}
-          </h3>
-          {session?.student?.name && (
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              by {session.student.name}
-            </p>
-          )}
-        </div>
-
-        {/* Session Details */}
-        <div className="grid grid-cols-2 gap-4">
-          {/* Date & Time */}
-          <div className="space-y-1">
-            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-              <Calendar className="w-4 h-4 mr-2" />
-              <span>{session?.formattedDate || 'Unknown Date'}</span>
-            </div>
-            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-              <Clock className="w-4 h-4 mr-2" />
-              <span>{session?.formattedTime || session?.duration || '90 min'}</span>
+        {/* Content */}
+        <div className="relative z-10 p-5 h-full flex flex-col">
+          {/* Header with Session Number */}
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <div className="flex items-center mb-2">
+                <div className="flex items-center px-2.5 py-1 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 border border-blue-200/30 dark:border-blue-700/30 rounded-lg mr-3">
+                  <span className="text-xs font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    #{session?.sessionNumber || '1'}
+                  </span>
+                </div>
+                <div className={`px-2.5 py-1 text-xs font-semibold rounded-lg border ${getStatusColor(session?.status)}`}>
+                  {session?.status === 'Available' ? '● Ready' : session?.status || 'Unknown'}
+                </div>
+              </div>
+              
+              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 line-clamp-2 mb-1 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors duration-300">
+                {session?.displayTitle || session?.title || "Session Recording"}
+              </h3>
+              
+              {session?.student?.name && (
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  by {session.student.name}
+                </p>
+              )}
             </div>
           </div>
 
-          {/* File Info */}
-          <div className="space-y-1">
-            {session?.fileSize && (
-              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                <Video className="w-4 h-4 mr-2" />
-                <span>{formatFileSize(session.fileSize)}</span>
+          {/* Session Info Grid */}
+          <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
+            {/* Date */}
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-center w-7 h-7 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/40 dark:to-purple-900/40 rounded-lg">
+                <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
               </div>
-            )}
-            <div className="flex items-center">
-              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(session?.status)}`}>
-                {session?.status === 'Available' ? 'Ready' : session?.status || 'Unknown'}
+              <span className="text-gray-600 dark:text-gray-400 text-xs">
+                {session?.formattedDate || 'Unknown Date'}
               </span>
             </div>
+
+            {/* Duration */}
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-center w-7 h-7 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/40 dark:to-pink-900/40 rounded-lg">
+                <Clock className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+              </div>
+              <span className="text-gray-600 dark:text-gray-400 text-xs">
+                {session?.formattedTime || session?.duration || '90 min'}
+              </span>
+            </div>
+
+            {/* File Size */}
+            {session?.fileSize && (
+              <div className="flex items-center space-x-2 col-span-2">
+                <div className="flex items-center justify-center w-7 h-7 bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40 rounded-lg">
+                  <Video className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+                </div>
+                <span className="text-gray-600 dark:text-gray-400 text-xs">
+                  {formatFileSize(session.fileSize)}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Description */}
+          {session?.description && (
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                {session.description}
+              </p>
+            </div>
+          )}
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Modern Action Button */}
+          <div className="mt-auto pt-4">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onWatchNow(session)}
+              disabled={!isAvailable}
+              className={clsx(
+                'group/play w-full relative overflow-hidden rounded-xl font-semibold transition-all duration-300 shadow-lg',
+                isAvailable
+                  ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white shadow-blue-500/25 hover:shadow-blue-500/40'
+                  : 'bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+              )}
+            >
+              {/* Button Background Animation */}
+              {isAvailable && (
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover/play:translate-x-[100%] transition-transform duration-700" />
+              )}
+              
+              <div className="relative flex items-center justify-center gap-3 px-4 py-3">
+                <div className={clsx(
+                  'flex items-center justify-center w-5 h-5 rounded-full transition-all duration-300',
+                  isAvailable ? 'bg-white/20 group-hover/play:bg-white/30' : 'bg-gray-400/20'
+                )}>
+                  <Play className="w-3 h-3 fill-current" />
+                </div>
+                <span className="text-sm">
+                  {isAvailable ? 'Watch Now' : 'Unavailable'}
+                </span>
+              </div>
+            </motion.button>
           </div>
         </div>
-
-        {/* Description */}
-        {session?.description && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-            {session.description}
-          </p>
-        )}
-      </div>
-
-      {/* Action Button */}
-      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => onWatchNow(session)}
-          disabled={!isAvailable}
-          className={clsx(
-            'w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all duration-200',
-            isAvailable
-              ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25'
-              : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-          )}
-        >
-          <Play className="w-4 h-4" />
-          {isAvailable ? 'Watch Now' : 'Unavailable'}
-        </motion.button>
       </div>
     </motion.div>
   );
@@ -615,8 +645,7 @@ const StudentRecordedSessions: React.FC = () => {
                     category: 'Personal'
                   },
                   instructor: {
-                    name: video.student?.name || 'Unknown',
-                    rating: video.session?.rating || 5.0
+                    name: video.student?.name || 'Unknown'
                   },
                   duration: video.session?.duration || '90 min',
                   recordedDate: video.session?.date || video.lastModified,
@@ -651,63 +680,74 @@ const StudentRecordedSessions: React.FC = () => {
             console.warn('⚠️ No personal_sessions.videos found or not an array:', responseData.personal_sessions);
           }
           
-          // Process scheduled sessions
-          if (responseData.scheduled_sessions?.sessions && Array.isArray(responseData.scheduled_sessions.sessions)) {
-            const scheduledSessions = responseData.scheduled_sessions.sessions;
-            console.log(`Processing ${scheduledSessions.length} scheduled session entries`);
+          // Process batch sessions (new structure)
+          if (responseData.batch_sessions?.batches && Array.isArray(responseData.batch_sessions.batches)) {
+            const batchSessions = responseData.batch_sessions.batches;
+            console.log(`Processing ${batchSessions.length} batch entries`);
             
-            scheduledSessions.forEach((sessionEntry: any) => {
+            batchSessions.forEach((batchEntry: any) => {
               try {
-                const { batch, session, recorded_lessons } = sessionEntry;
+                const { batch_id, batch_name, sessions: batchSessionsList } = batchEntry;
                 
-                if (!batch || !recorded_lessons || !Array.isArray(recorded_lessons)) {
+                if (!batchSessionsList || !Array.isArray(batchSessionsList)) {
                   return;
                 }
                 
-                recorded_lessons.forEach((lesson: any, lessonIndex: number) => {
-                  if (!lesson || !lesson._id) return;
-                  
-                  const recordedSession: RecordedSession = {
-                    id: lesson._id,
-                    title: lesson.title || `${batch.name} - Lesson ${lessonIndex + 1}`,
-                    displayTitle: lesson.displayTitle || lesson.title,
-                    course: {
-                      name: batch.name || 'Unknown Course',
-                      category: batch.category || 'General'
-                    },
-                    instructor: {
-                      name: batch.instructor?.name || 'Unknown Instructor',
-                      rating: 4.5
-                    },
-                    duration: lesson.duration || '90 min',
-                    recordedDate: lesson.recorded_date,
-                    formattedDate: lesson.formattedDate,
-                    formattedTime: lesson.formattedTime,
-                    status: lesson.status || 'Available',
-                    level: lesson.level || 'Intermediate',
-                    description: lesson.description || `Recorded lesson from ${batch.name}`,
-                    batchName: batch.name,
-                    sessionNumber: lessonIndex + 1,
-                    viewCount: lesson.view_count || 0,
-                    fileSize: lesson.fileSize,
-                    url: lesson.url ? urlObfuscation.encode(lesson.url) : undefined,
-                    source: 'scheduled_sessions',
-                    // Additional API fields
-                    batchId: batch.id,
-                    sessionId: session?.id,
-                    courseId: batch.id,
-                    enrollmentId: `enrollment_${batch.id}`
-                  };
-                  
-                  sessions.push(recordedSession);
-                  console.log(`✅ Added scheduled session: ${recordedSession.displayTitle}`);
+                batchSessionsList.forEach((sessionEntry: any, sessionIndex: number) => {
+                  try {
+                    const { recorded_lessons, session_number, session_title, instructor } = sessionEntry;
+                    
+                    if (!recorded_lessons || !Array.isArray(recorded_lessons)) {
+                      return;
+                    }
+                    
+                    recorded_lessons.forEach((lesson: any, lessonIndex: number) => {
+                      if (!lesson || !lesson.url) return;
+                      
+                      const recordedSession: RecordedSession = {
+                        id: lesson.id || `${batch_id}_${session_number}_${lessonIndex}`,
+                        title: lesson.title || `${session_title} - Video ${lessonIndex + 1}`,
+                        displayTitle: lesson.title || `Session ${session_number} - ${lesson.title}`,
+                        course: {
+                          name: batch_name || 'Unknown Course',
+                          category: 'General'
+                        },
+                        instructor: {
+                          name: instructor?.full_name || 'Unknown Instructor'
+                        },
+                        duration: sessionEntry.session_duration || '90 min',
+                        recordedDate: lesson.recorded_date,
+                        formattedDate: lesson.recorded_date ? new Date(lesson.recorded_date).toLocaleDateString() : '',
+                        formattedTime: lesson.recorded_date ? new Date(lesson.recorded_date).toLocaleTimeString() : '',
+                        status: 'Available',
+                        level: 'Intermediate',
+                        description: sessionEntry.session_description || `Session ${session_number} from ${batch_name}`,
+                        batchName: batch_name,
+                        sessionNumber: session_number || sessionIndex + 1,
+                        viewCount: lesson.view_count || 0,
+                        fileSize: lesson.fileSize,
+                        url: lesson.url ? urlObfuscation.encode(lesson.url) : undefined,
+                        source: 'batch_sessions',
+                        // Additional API fields
+                        batchId: batch_id,
+                        sessionId: sessionEntry.session_id,
+                        courseId: batch_id,
+                        enrollmentId: `enrollment_${batch_id}`
+                      };
+                      
+                      sessions.push(recordedSession);
+                      console.log(`✅ Added batch session: ${recordedSession.displayTitle}`);
+                    });
+                  } catch (sessionError) {
+                    console.error('❌ Error processing session:', sessionError);
+                  }
                 });
-              } catch (sessionError) {
-                console.error('❌ Error processing scheduled session:', sessionError);
+              } catch (batchError) {
+                console.error('❌ Error processing batch:', batchError);
               }
             });
           } else {
-            console.log('ℹ️ No scheduled sessions found:', responseData.scheduled_sessions);
+            console.log('ℹ️ No batch sessions found:', responseData.batch_sessions);
           }
           
           console.log(`🔍 Total sessions collected before deduplication: ${sessions.length}`);
@@ -789,7 +829,31 @@ const StudentRecordedSessions: React.FC = () => {
 
   const handleWatchNow = (session: RecordedSession, batchName: string) => {
     if ((session.status === 'Available' || session.status === 'available') && session.url) {
-      setCurrentVideo({ session, batchName });
+      // Prepare video data for the video player page
+      const videoData = {
+        _id: session.id || session.title.replace(/\s+/g, '_'),
+        title: session.title,
+        sessionNumber: session.sessionNumber || 1,
+        sessionTitle: session.displayTitle || session.title,
+        date: session.recordedDate || new Date().toISOString(),
+        duration: session.duration,
+        instructor: session.instructor ? {
+          full_name: session.instructor.name,
+          email: session.instructor.email || ''
+        } : undefined,
+        video_url: session.url,
+        fileSize: session.fileSize,
+        description: session.description || `${batchName} - ${session.title}`,
+        student_name: session.student?.name
+      };
+
+      // Store video data in localStorage for the video player page
+      localStorage.setItem(`video_${videoData._id}`, JSON.stringify(videoData));
+      
+      // Open video player page in new tab
+      const videoPlayerUrl = `/watch/${videoData._id}?data=${encodeURIComponent(JSON.stringify(videoData))}`;
+      window.open(videoPlayerUrl, '_blank');
+      
       console.log(`Opening video player for: ${session.title}`);
     } else if (!session.url) {
       console.warn('Video URL not available for this session');
@@ -835,7 +899,7 @@ const StudentRecordedSessions: React.FC = () => {
     batchName: string;
     batchId?: string;
     course?: { name: string; category: string };
-    instructor?: { name: string; rating?: number };
+    instructor?: { name: string; };
     sessions: RecordedSession[];
   }>);
 
@@ -879,43 +943,65 @@ const StudentRecordedSessions: React.FC = () => {
         className="p-6 lg:p-8 rounded-lg max-w-7xl mx-auto"
       >
         <div className="flex flex-col space-y-6">
-          {/* Enhanced Header */}
-          <div className="text-center pt-6 pb-4">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center justify-center mb-4"
-            >
-              <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 rounded-2xl backdrop-blur-sm mr-4">
-                <Video className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="text-left">
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white">
-                  Recorded Sessions
-                </h1>
-                <p className="text-lg text-gray-600 dark:text-gray-400 mt-1">
-                  Access your past class recordings{miniPlayerActive && ' • Mini player active'}
-                </p>
-              </div>
-            </motion.div>
+          {/* Modern Hero Header */}
+          <div className="relative overflow-hidden">
+            {/* Background Elements */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-pink-50/20 dark:from-blue-900/20 dark:via-purple-900/10 dark:to-pink-900/5 rounded-3xl" />
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-purple-500/20 rounded-full blur-2xl" />
+            <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-gradient-to-br from-pink-400/15 to-orange-500/15 rounded-full blur-xl" />
+            
+            <div className="relative z-10 text-center pt-6 pb-4 px-6">
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="mb-4"
+              >
+                {/* Compact Icon */}
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl shadow-lg shadow-blue-500/25 mb-3">
+                  <Video className="w-6 h-6 text-white" />
+                </div>
 
-            {/* Search Bar */}
-            <motion.div
-              className="relative max-w-lg mx-auto"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-            >
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search recorded sessions..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-2xl border border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
-              />
-            </motion.div>
+                {/* Compact Title */}
+                <h1 className="text-2xl sm:text-3xl font-bold mb-2">
+                  <span className="bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
+                    Recorded Sessions
+                  </span>
+                </h1>
+                
+                <p className="text-sm text-gray-600 dark:text-gray-400 max-w-lg mx-auto">
+                  Access your past class recordings
+                  {miniPlayerActive && (
+                    <span className="inline-flex items-center ml-2 px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs rounded-full">
+                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1 animate-pulse" />
+                      Playing
+                    </span>
+                  )}
+                </p>
+              </motion.div>
+
+              {/* Compact Search Bar */}
+              <motion.div
+                className="relative max-w-md mx-auto"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.4 }}
+              >
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                    <Search className="h-4 w-4 text-gray-400 group-focus-within:text-blue-500 transition-colors duration-300" />
+                  </div>
+                  
+                  <input
+                    type="text"
+                    placeholder="Search sessions..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 text-sm rounded-xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all duration-300 shadow-sm"
+                  />
+                </div>
+              </motion.div>
+            </div>
           </div>
 
           {/* Loading State */}
@@ -959,22 +1045,24 @@ const StudentRecordedSessions: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-6"
+              className="space-y-8"
             >
               {filteredGroups.length > 0 ? (
-                filteredGroups.map((group, index) => (
-                  <motion.div
-                    key={group.batchId || group.batchName || index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <BatchCard
-                      batch={group}
-                      onWatchNow={handleWatchNow}
-                    />
-                  </motion.div>
-                ))
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {filteredGroups.map((group, index) => (
+                    <motion.div
+                      key={group.batchId || group.batchName || index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <BatchCard
+                        batch={group}
+                        onWatchNow={handleWatchNow}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
               ) : recordedSessions.length > 0 ? (
                 // Fallback: Show sessions as individual cards
                 <motion.div

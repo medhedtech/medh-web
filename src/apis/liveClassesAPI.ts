@@ -122,6 +122,7 @@ export interface ICreateLiveSessionRequest {
   grades: string[];
   dashboard: string;
   instructorId: string;
+  batchId?: string; // Add batchId field
   video: {
     fileId: string;
     name: string;
@@ -331,6 +332,35 @@ export const liveClassesAPI = {
     return liveClassesApiClient.delete<{ success: boolean }>(`/live-classes/sessions/${sessionId}`);
   },
 
+  // Get student's latest session
+  getStudentLatestSession: async (studentId: string) => {
+    console.log('🌐 API Call: getStudentLatestSession for student:', studentId);
+    const url = `/live-classes/students/${studentId}/latest-session`;
+    console.log('🔗 API URL:', url);
+    
+    try {
+      const response = await liveClassesApiClient.get<{
+        sessionTitle: string;
+        sessionNo: string;
+        status: string;
+        student: IStudent;
+        instructor: IInstructor;
+        grade: IGrade;
+        batch: any;
+        date: string;
+        courseCategory: string;
+        remarks?: string;
+        summary?: any;
+      }>(url);
+      
+      console.log('✅ API Response received:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ API Error:', error);
+      throw error;
+    }
+  },
+
   // Get course statistics
   getCourseStats: async (courseCategory: string) => {
     return liveClassesApiClient.get<{
@@ -380,6 +410,7 @@ export const useLiveClassesAPI = () => {
     getPreviousSession: liveClassesAPI.getPreviousSession,
     getSessions: liveClassesAPI.getSessions,
     getSession: liveClassesAPI.getSession,
+    getStudentLatestSession: liveClassesAPI.getStudentLatestSession,
     updateSession: liveClassesAPI.updateSession,
     deleteSession: liveClassesAPI.deleteSession,
     
