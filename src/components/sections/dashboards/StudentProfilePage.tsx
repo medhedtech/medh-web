@@ -731,53 +731,17 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       errors.push('Current password is required');
     }
     
-    // New password validation - matching backend requirements
+    // New password validation - simplified requirements
     if (!passwordData.new_password) {
       errors.push('New password is required');
     } else {
-      // Length validation (8-128 characters as per backend)
-      if (passwordData.new_password.length < 8) {
-        errors.push('New password must be at least 8 characters long');
+      // Length validation (6-128 characters)
+      if (passwordData.new_password.length < 6) {
+        errors.push('New password must be at least 6 characters long');
       }
       
       if (passwordData.new_password.length > 128) {
         errors.push('New password must not exceed 128 characters');
-      }
-      
-      // Character requirements matching backend regex
-      if (!/[A-Z]/.test(passwordData.new_password)) {
-        errors.push('New password must contain at least one uppercase letter');
-      }
-      
-      if (!/[a-z]/.test(passwordData.new_password)) {
-        errors.push('New password must contain at least one lowercase letter');
-      }
-      
-      if (!/\d/.test(passwordData.new_password)) {
-        errors.push('New password must contain at least one number');
-      }
-      
-      // Special characters matching backend regex pattern
-      if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(passwordData.new_password)) {
-        errors.push('New password must contain at least one special character');
-      }
-      
-      // Common weak pattern checks (matching backend validation)
-      const weakPatterns = [
-        { pattern: /^123456/i, message: 'Password cannot start with "123456"' },
-        { pattern: /^password/i, message: 'Password cannot start with "password"' },
-        { pattern: /^qwerty/i, message: 'Password cannot start with "qwerty"' },
-        { pattern: /^abc123/i, message: 'Password cannot start with "abc123"' },
-        { pattern: /^admin/i, message: 'Password cannot start with "admin"' },
-        { pattern: /^letmein/i, message: 'Password cannot start with "letmein"' },
-        { pattern: /(.)\1{3,}/, message: 'Password cannot contain more than 3 repeated characters' }
-      ];
-      
-      for (const weakPattern of weakPatterns) {
-        if (weakPattern.pattern.test(passwordData.new_password)) {
-          errors.push(weakPattern.message);
-          break; // Only show first weak pattern found
-        }
       }
       
       // Check if new password is different from current
@@ -2073,30 +2037,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                           </div>
                         )}
 
-                        {/* Password Requirements */}
-                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                          <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
-                            Password Requirements:
-                          </h4>
-                          <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-                            <li className="flex items-center">
-                              <span className="mr-2">•</span>
-                              <span>At least 8 characters long</span>
-                            </li>
-                            <li className="flex items-center">
-                              <span className="mr-2">•</span>
-                              <span>Contains uppercase and lowercase letters</span>
-                            </li>
-                            <li className="flex items-center">
-                              <span className="mr-2">•</span>
-                              <span>Contains at least one number</span>
-                            </li>
-                            <li className="flex items-center">
-                              <span className="mr-2">•</span>
-                              <span>Contains at least one special character</span>
-                            </li>
-                          </ul>
-                        </div>
+
 
                         {/* Current Password */}
                         <div>
@@ -2215,32 +2156,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                   )}
                 </div>
 
-                {/* Multi-Factor Authentication Section */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                  <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                          <Shield className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="ml-4">
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                            Multi-Factor Authentication
-                          </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Add an extra layer of security to your account
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        <div className="flex items-center text-gray-600">
-                          <XCircle className="w-5 h-5 mr-2" />
-                          <span className="text-sm font-medium">Not Available</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+
 
                 {/* Advanced Security Settings */}
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
