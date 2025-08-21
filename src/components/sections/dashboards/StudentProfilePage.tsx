@@ -12,6 +12,7 @@ import { getComprehensiveUserProfile, updateCurrentUserComprehensiveProfile } fr
 import { authAPI, IChangePasswordData } from '@/apis/auth.api';
 import { apiClient } from '@/apis/apiClient';
 import { showToast } from '@/utils/toastManager';
+import ProfileCompletionBar from '@/components/ProfileCompletionBar';
 
 
 // Interfaces
@@ -1328,6 +1329,15 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
               )}
             </AnimatePresence>
           </div>
+        </div>
+
+        {/* Profile Completion Progress Bar */}
+        <div className="px-3 sm:px-4 md:px-6 py-4">
+          <ProfileCompletionBar 
+            showDetails={true}
+            className="sticky top-20 z-10"
+            refreshTrigger={profile?.basic_info?.updated_at || profile?.basic_info?.profile_completion}
+          />
         </div>
 
         {/* Enhanced Mobile-Optimized Tab Content with Gesture Support */}

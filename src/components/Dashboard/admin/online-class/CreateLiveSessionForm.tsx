@@ -73,8 +73,6 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
 
   // UI state
   const [loading, setLoading] = useState(false);
-  const [refreshingPreviousSession, setRefreshingPreviousSession] = useState(false);
-  const [sessionUpdated, setSessionUpdated] = useState(false);
   const [forceUpdate, setForceUpdate] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showStudentDropdown, setShowStudentDropdown] = useState(false);
@@ -99,9 +97,10 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
   const [grades, setGrades] = useState<IGrade[]>([]);
   const [dashboards, setDashboards] = useState<IDashboard[]>([]);
   const [batches, setBatches] = useState<IBatch[]>([]); // Add batches state
-  const [previousSession, setPreviousSession] = useState<any>(null);
   const [usingFallbackData, setUsingFallbackData] = useState(false);
   const [instructors, setInstructors] = useState<IInstructor[]>([]); // Add instructors state
+  const [selectedStudentLatestSession, setSelectedStudentLatestSession] = useState<any>(null); // Latest session for selected student
+  const [loadingLatestSession, setLoadingLatestSession] = useState(false); // Loading state for latest session
 
   // Refs
   const studentDropdownRef = useRef<HTMLDivElement>(null);
@@ -610,18 +609,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
     });
   }, [students, grades, dashboards, usingFallbackData]);
 
-  // Monitor previousSession state changes
-  useEffect(() => {
-    console.log('🔄 PreviousSession State Changed:', {
-      hasPreviousSession: !!previousSession,
-      sessionTitle: previousSession?.sessionTitle,
-      sessionNo: previousSession?.sessionNo,
-      student: previousSession?.students?.[0]?.full_name,
-      grade: previousSession?.grades?.[0],
-      status: previousSession?.status,
-      updatedAt: previousSession?.updatedAt
-    });
-  }, [previousSession]);
+
 
   // Clean up null values from video arrays
   useEffect(() => {
@@ -659,13 +647,12 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
       console.log('📡 Making API calls to fetch real data from database...');
       
       // Load data from API with better error handling
-      const [studentsRes, gradesRes, dashboardsRes, instructorsRes, batchesRes, previousSessionRes] = await Promise.allSettled([
+      const [studentsRes, gradesRes, dashboardsRes, instructorsRes, batchesRes] = await Promise.allSettled([
         liveClassesAPI.getStudents(),
         liveClassesAPI.getGrades(),
         liveClassesAPI.getDashboards(),
         liveClassesAPI.getInstructors(),
-        liveClassesAPI.getAllBatches(),
-        liveClassesAPI.getPreviousSession()
+        liveClassesAPI.getAllBatches()
       ]);
 
       console.log('API Responses:', {
@@ -673,8 +660,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
         grades: gradesRes,
         dashboards: dashboardsRes,
         instructors: instructorsRes,
-        batches: batchesRes,
-        previousSession: previousSessionRes
+        batches: batchesRes
       });
 
       // Handle different response structures more robustly
@@ -710,8 +696,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
         finalInstructors = Array.isArray(extracted) ? extracted : [];
       }
 
-      const previousSessionData = previousSessionRes.status === 'fulfilled' ? 
-        (previousSessionRes.value.data?.data || previousSessionRes.value.data || previousSessionRes.value || null) : null;
+
       
       console.log('🔧 FORCED DATA EXTRACTION:', {
         studentsResStatus: studentsRes.status,
@@ -739,20 +724,10 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
         students: finalStudents,
         grades: finalGrades,
         dashboards: finalDashboards,
-        batches: finalBatches,
-        previousSession: previousSessionData
+        batches: finalBatches
       });
 
-      console.log('🔍 Previous Session Data Debug:', {
-        previousSessionResStatus: previousSessionRes.status,
-        previousSessionResValue: previousSessionRes.status === 'fulfilled' ? previousSessionRes.value : previousSessionRes.reason,
-        previousSessionData: previousSessionData,
-        hasPreviousSession: !!previousSessionData,
-        sessionTitle: previousSessionData?.sessionTitle,
-        studentName: previousSessionData?.students?.[0]?.full_name,
-        gradesArray: previousSessionData?.grades,
-        instructorObject: previousSessionData?.instructorId
-      });
+
 
       // Use the forced extraction results
       const hasRealStudents = Array.isArray(finalStudents) && finalStudents.length > 0;
@@ -862,7 +837,6 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
       setDashboards(finalDashboards);
       setInstructors(finalInstructors);
       setBatches(finalBatches);
-      setPreviousSession(previousSessionData);
       setUsingFallbackData(false);
         console.log('🎉 Using real data from database');
       } else {
@@ -954,6 +928,48 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
     student.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Filter batches based on selected students - only show batches that contain at least one selected student
+  const getFilteredBatches = () => {
+    if (formData.students.length === 0) {
+      // If no students selected, show all batches
+      return batches.filter(batch => 
+        (batch.name || batch.batch_name || '').toLowerCase().includes(batchSearchQuery.toLowerCase()) ||
+        (batch.code || batch.batch_code || '').toLowerCase().includes(batchSearchQuery.toLowerCase())
+      );
+    }
+    
+    // Filter batches with robust fallback logic
+    return batches.filter(batch => {
+      // Strategy 1: Use enrolled_student_ids if available and not empty
+      const enrolledStudentIds = batch.enrolled_student_ids || [];
+      
+      if (Array.isArray(enrolledStudentIds) && enrolledStudentIds.length > 0) {
+        const hasSelectedStudent = formData.students.some(studentId => 
+          enrolledStudentIds.includes(studentId)
+        );
+        
+        const matchesSearch = (batch.name || batch.batch_name || '').toLowerCase().includes(batchSearchQuery.toLowerCase()) ||
+          (batch.code || batch.batch_code || '').toLowerCase().includes(batchSearchQuery.toLowerCase());
+        
+        return hasSelectedStudent && matchesSearch;
+      }
+      
+      // Strategy 2: Fallback - if enrolled_student_ids is missing/empty but enrolledStudents > 0
+      // Show the batch (let user decide) with a warning indicator
+      if ((batch.enrolledStudents || batch.enrolled_students || 0) > 0) {
+        console.log(`⚠️ Batch "${batch.batch_name || batch.name}" missing enrolled_student_ids, showing as available`);
+        
+        const matchesSearch = (batch.name || batch.batch_name || '').toLowerCase().includes(batchSearchQuery.toLowerCase()) ||
+          (batch.code || batch.batch_code || '').toLowerCase().includes(batchSearchQuery.toLowerCase());
+        
+        return matchesSearch; // Show if it matches search, regardless of student selection
+      }
+      
+      // Strategy 3: If no student data at all, don't show this batch
+      return false;
+    });
+  };
+
   // Debug students state
   console.log('🔍 Students State Debug:', {
     studentsIsArray: Array.isArray(students),
@@ -972,18 +988,52 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
   );
 
   // Handler functions
-  const handleStudentSelect = (studentId: string) => {
+  const handleStudentSelect = async (studentId: string) => {
+    console.log('👆 Student selected:', studentId);
+    
+    // Check current state before updating
+    const isCurrentlySelected = formData.students.includes(studentId);
+    console.log('📋 Is currently selected:', isCurrentlySelected);
+    
     setFormData(prev => {
       const isSelected = prev.students.includes(studentId);
       const newStudents = isSelected
         ? prev.students.filter(id => id !== studentId)
         : [...prev.students, studentId];
       
+      console.log('📝 Updated students list:', newStudents);
+      
+      // Check if current batch is still valid for the new student selection
+      let newBatchId = prev.batchId;
+      if (newStudents.length > 0 && prev.batchId) {
+        const currentBatch = batches.find(batch => batch._id === prev.batchId);
+        if (currentBatch) {
+          const batchStudentIds = currentBatch.enrolled_student_ids || currentBatch.enrolledStudentIds || currentBatch.students || [];
+          const isValidBatch = newStudents.some(studentId => batchStudentIds.includes(studentId));
+          
+          if (!isValidBatch) {
+            console.log('🔄 Clearing batch selection - not valid for selected students');
+            newBatchId = '';
+            setBatchSearchQuery('');
+          }
+        }
+      }
+      
       return {
         ...prev,
-        students: newStudents
+        students: newStudents,
+        batchId: newBatchId
       };
     });
+    
+    // Fetch latest session when a student is selected (not deselected)
+    if (!isCurrentlySelected) {
+      console.log('🎯 Fetching latest session for newly selected student:', studentId);
+      await handleStudentClick(studentId);
+    } else {
+      console.log('❌ Student deselected, clearing session data');
+      setSelectedStudentLatestSession(null);
+    }
   };
 
   const handleStudentRemove = (studentId: string) => {
@@ -1012,6 +1062,46 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
       ...prev,
       grades: prev.grades.filter(id => id !== gradeId)
     }));
+  };
+
+  // Handle student click to fetch latest session
+  const handleStudentClick = async (studentId: string) => {
+    console.log('🔍 Student clicked:', studentId);
+    console.log('📋 Current selected students:', formData.students);
+    
+    // Clear previous session data first
+    setSelectedStudentLatestSession(null);
+    setLoadingLatestSession(true);
+    
+    try {
+      console.log('🚀 Fetching latest session for student:', studentId);
+      const response = await liveClassesAPI.getStudentLatestSession(studentId);
+      console.log('📥 API Response:', response);
+      
+      if (response.data && response.data.data) {
+        const sessionData = response.data.data;
+        console.log('✅ Setting latest session data:', sessionData);
+        console.log('🎯 Session belongs to student:', sessionData.student?.full_name);
+        console.log('🆔 Student ID in session:', sessionData.student?._id);
+        console.log('🆔 Requested student ID:', studentId);
+        
+        // Verify that the session data belongs to the correct student
+        if (sessionData.student?._id === studentId) {
+          setSelectedStudentLatestSession(sessionData);
+        } else {
+          console.warn('⚠️ Session data student ID mismatch!');
+          setSelectedStudentLatestSession(null);
+        }
+      } else {
+        console.log('❌ No session data found');
+        setSelectedStudentLatestSession(null);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching student latest session:', error);
+      setSelectedStudentLatestSession(null);
+    } finally {
+      setLoadingLatestSession(false);
+    }
   };
 
 
@@ -1378,126 +1468,14 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
 
       {/* Main Content - Fully Responsive */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 md:gap-8">
-          {/* Sidebar - Previous Session */}
-          <div className="lg:col-span-4 xl:col-span-3 order-2 lg:order-1">
-            <div className="lg:sticky lg:top-20 xl:top-24">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-md">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 rounded-md flex items-center justify-center">
-                  <FaClock className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                </div>
-                Latest Session
-                {refreshingPreviousSession && (
-                  <FaSpinner className="w-4 h-4 text-blue-600 dark:text-blue-400 animate-spin" />
-                )}
-              </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                {refreshingPreviousSession ? 'Updating session details...' : 'Latest session details'}
-              </p>
-              
-              {previousSession ? (
-                <div key={`session-${previousSession._id}-${previousSession.updatedAt || Date.now()}-${sessionUpdated ? 'updated' : 'normal'}-${forceUpdate}`} className={`space-y-4 ${refreshingPreviousSession ? 'animate-pulse' : ''} ${sessionUpdated ? 'ring-2 ring-green-500 ring-opacity-50 rounded-lg' : ''}`}>
-
-                  <div className="flex items-center justify-between">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
-                      previousSession.status === 'completed' 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                        : previousSession.status === 'live'
-                        ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                        : previousSession.status === 'cancelled'
-                        ? 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
-                        : 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
-                    }`}>
-                      <FaCheck className="w-3 h-3 mr-1" />
-                      {previousSession.status?.charAt(0).toUpperCase() + previousSession.status?.slice(1) || 'Scheduled'}
-                    </span>
-                    {sessionUpdated && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 animate-bounce">
-                        <FaCheck className="w-3 h-3 mr-1" />
-                        Updated
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <FaFileAlt className="text-gray-400 w-4 h-4" />
-                      <div>
-                        <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Session Title</label>
-                        <p className="text-gray-900 dark:text-gray-100 font-medium">
-                          {previousSession.sessionTitle || previousSession.title || 'N/A'}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex items-center gap-3">
-                        <FaUser className="text-gray-400 w-4 h-4" />
-                        <div>
-                          <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Student</label>
-                          <p className="text-gray-900 dark:text-gray-100 font-medium">
-                            {Array.isArray(previousSession.students) && previousSession.students.length > 0 
-                            ? previousSession.students[0]?.full_name || 'N/A'
-                              : 'N/A'}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <FaFileAlt className="text-gray-400 w-4 h-4" />
-                        <div>
-                          <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Session</label>
-                          <p className="text-gray-900 dark:text-gray-100 font-medium">
-                            {previousSession.sessionNo || previousSession.session_number || previousSession.sessionId || 'N/A'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                      <FaGraduationCap className="text-gray-400 w-4 h-4" />
-                      <div>
-                        <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Grade & Instructor</label>
-                        <p className="text-gray-900 dark:text-gray-100 font-medium">
-                          {Array.isArray(previousSession.grades) && previousSession.grades.length > 0 
-                            ? previousSession.grades[0]?.name || 'N/A'
-                            : 'N/A'} • {previousSession.instructorId?.full_name || 'N/A'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <FaFileAlt className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400 mb-2">No previous sessions found</p>
-                  <p className="text-sm text-gray-400 dark:text-gray-500">This will be the first session for this course category</p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setRefreshingPreviousSession(true);
-                      loadInitialData().finally(() => setRefreshingPreviousSession(false));
-                    }}
-                    className="mt-3 px-4 py-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-lg text-sm font-medium transition-colors duration-200"
-                  >
-                    <FaSync className="w-4 h-4 mr-2 inline" />
-                    Refresh
-                  </button>
-                </div>
-              )}
-            </div>
-            </div>
-          </div>
-
-          {/* Main Form - Responsive */}
-          <div className="lg:col-span-8 xl:col-span-9 order-1 lg:order-2">
+        {/* Main Form - Full Width */}
+        <div className="w-full">
             <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl border border-gray-200 dark:border-gray-700 shadow-md">
               <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
                     <FaBook className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                  </div>
+                </div>
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                       Session Configuration
@@ -1511,6 +1489,236 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
               
               <div className="p-4 sm:p-6">
                 <div className="space-y-4 sm:space-y-6">
+                
+                  {/* Student Name */}
+                  <div className="grid grid-cols-1 gap-6">
+                    {/* Student Name */}
+                    <div className="relative group" ref={studentDropdownRef}>
+                      <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-3">
+                        <div className="p-2 bg-gradient-to-br from-indigo-100 via-purple-100 to-violet-100 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-violet-900/30 rounded-lg shadow-sm border border-indigo-200 dark:border-indigo-700">
+                          <FaUser className="w-4 h-4 text-indigo-600 dark:text-indigo-400 animate-pulse" />
+                        </div>
+                        Select Students *
+                      </label>
+                      <div className="flex gap-3 items-center">
+                        <div className="relative flex-1 rounded-xl border border-indigo-200 dark:border-indigo-700 bg-gradient-to-br from-indigo-50 via-violet-50 to-purple-50 dark:from-indigo-900/20 dark:via-violet-900/20 dark:to-purple-900/20 p-1">
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onFocus={() => setShowStudentDropdown(true)}
+                             className={`w-full h-11 px-4 bg-white dark:bg-gray-700 border rounded-lg focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-colors ${
+                          errors.students 
+                               ? 'border-red-300 dark:border-red-600' 
+                                 : 'border-gray-300 dark:border-gray-600'
+                        }`}
+                        placeholder="Select students..."
+                      />
+                    </div>
+                    
+                        {/* Selected Students Pills - Side by side */}
+                    {formData.students.length > 0 && (
+                          <div className="flex flex-wrap items-center gap-1 min-w-0">
+                        {formData.students.map(studentId => (
+                          <span
+                            key={studentId}
+                                className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-lg text-xs whitespace-nowrap"
+                          >
+                            {getStudentName(studentId)}
+                            <button
+                              type="button"
+                              onClick={() => handleStudentRemove(studentId)}
+                              className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                              aria-label={`Remove ${getStudentName(studentId)}`}
+                            >
+                                  <FaTimes className="w-2 h-2" />
+                            </button>
+                    </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                      {errors.students && (
+                        <p className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.students}</p>
+                    )}
+
+                                         {/* Student Dropdown */}
+                     {showStudentDropdown && (
+                       <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl shadow-xl z-50 max-h-64 overflow-y-auto">
+                         <div className="p-2">
+                           {/* Search Bar */}
+                           <div className="mb-3">
+                             <div className="relative">
+                                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-4 h-4" />
+                               <input
+                                 type="text"
+                                 value={searchQuery}
+                                 onChange={(e) => setSearchQuery(e.target.value)}
+                                 placeholder="Search students..."
+                                 className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               />
+                             </div>
+                           </div>
+                           
+                           {/* Select All Option */}
+                           <label className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg cursor-pointer border-b border-gray-200 dark:border-gray-600">
+                             <input
+                               type="checkbox"
+                               checked={formData.students.length === students.length}
+                               onChange={(e) => {
+                                 if (e.target.checked) {
+                                   setFormData(prev => ({
+                                     ...prev,
+                                     students: students.map(s => s._id)
+                                   }));
+                                 } else {
+                                   setFormData(prev => ({ ...prev, students: [] }));
+                                 }
+                               }}
+                               className="rounded"
+                             />
+                             <span className="font-medium text-gray-700 dark:text-gray-300">Select All</span>
+                           </label>
+                           
+                           {/* Students List */}
+                           <div className="max-h-48 overflow-y-auto">
+                             {filteredStudents.length > 0 ? (
+                               filteredStudents.map(student => (
+                                 <label
+                                   key={student._id}
+                                   className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg cursor-pointer"
+                                 >
+                                   <input
+                                     type="checkbox"
+                                     checked={formData.students.includes(student._id)}
+                                     onChange={() => handleStudentSelect(student._id)}
+                                     className="rounded"
+                                   />
+                                   <div 
+                                     className="flex-1 min-w-0"
+                                     onClick={() => handleStudentClick(student._id)}
+                                   >
+                                     <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                                       {student.full_name}
+                                     </div>
+                                     <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                       {student.email}
+                                     </div>
+                                   </div>
+                                 </label>
+                               ))
+                             ) : (
+                               <div className="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
+                                 <FaSearch className="w-6 h-6 mx-auto mb-2 opacity-50" />
+                                 <p className="text-sm">No students found</p>
+                                 <p className="text-xs">Try adjusting your search</p>
+                               </div>
+                             )}
+                           </div>
+                         </div>
+                       </div>
+                     )}
+                  </div>
+
+                  {/* Latest Session Display */}
+                  {(selectedStudentLatestSession || loadingLatestSession) && (
+                    <div className="mt-6 p-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 rounded-xl border border-blue-200 dark:border-blue-700">
+                      <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                            <FaClock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                          </div>
+                      <div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Latest Session</h3>
+                            {selectedStudentLatestSession && (
+                              <p className="text-sm text-blue-600 dark:text-blue-400">
+                                for {selectedStudentLatestSession.student?.full_name}
+                              </p>
+                            )}
+                      </div>
+                        </div>
+                        {selectedStudentLatestSession && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            ID: {selectedStudentLatestSession.student?._id}
+                          </div>
+                        )}
+                    </div>
+                    
+                      {loadingLatestSession ? (
+                        <div className="flex items-center justify-center py-8">
+                          <FaSpinner className="w-6 h-6 text-blue-600 animate-spin mr-3" />
+                          <span className="text-gray-600 dark:text-gray-400">Loading latest session details...</span>
+                        </div>
+                      ) : selectedStudentLatestSession ? (
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-sm text-gray-500 dark:text-gray-400">Latest session details</span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              selectedStudentLatestSession.status === 'completed' 
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                                : selectedStudentLatestSession.status === 'scheduled'
+                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                                : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
+                            }`}>
+                              ✓ {selectedStudentLatestSession.status}
+                            </span>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Session Title */}
+                            <div className="flex items-center gap-2">
+                              <FaFileAlt className="w-4 h-4 text-gray-400" />
+                        <div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Session Title</p>
+                                <p className="font-medium text-gray-900 dark:text-gray-100">
+                                  {selectedStudentLatestSession.sessionTitle || 'aaa'}
+                          </p>
+                        </div>
+                      </div>
+                      
+                            {/* Student */}
+                            <div className="flex items-center gap-2">
+                              <FaUser className="w-4 h-4 text-gray-400" />
+                        <div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Student</p>
+                                <p className="font-medium text-gray-900 dark:text-gray-100">
+                                  {selectedStudentLatestSession.student?.full_name || 'Harsh Patel'}
+                          </p>
+                        </div>
+                            </div>
+                            
+                            {/* Session Number */}
+                            <div className="flex items-center gap-2">
+                              <FaHashtag className="w-4 h-4 text-gray-400" />
+                              <div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Session</p>
+                                <p className="font-medium text-gray-900 dark:text-gray-100">
+                                  {selectedStudentLatestSession.sessionNo || '1'}
+                                </p>
+                      </div>
+                    </div>
+                    
+                            {/* Grade & Instructor */}
+                            <div className="flex items-center gap-2 md:col-span-2">
+                              <FaGraduationCap className="w-4 h-4 text-gray-400" />
+                      <div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Grade & Instructor</p>
+                                <p className="font-medium text-gray-900 dark:text-gray-100">
+                                  {selectedStudentLatestSession.grade?.name || 'N/A'} • {selectedStudentLatestSession.instructor?.full_name || 'Addya'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                        <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                          <FaClock className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">No previous sessions found for this student</p>
+                </div>
+              )}
+            </div>
+                  )}
+                
                 {/* Session Title */}
                 <div>
                   <label className="block text-sm font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2 sm:gap-3">
@@ -1675,133 +1883,6 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
 
                  
 
-                  {/* Student Name */}
-                  <div className="grid grid-cols-1 gap-6">
-                    {/* Student Name */}
-                    <div className="relative group" ref={studentDropdownRef}>
-                      <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-3">
-                        <div className="p-2 bg-gradient-to-br from-indigo-100 via-purple-100 to-violet-100 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-violet-900/30 rounded-lg shadow-sm border border-indigo-200 dark:border-indigo-700">
-                          <FaUser className="w-4 h-4 text-indigo-600 dark:text-indigo-400 animate-pulse" />
-                        </div>
-                        Select Students *
-                      </label>
-                      <div className="flex gap-3 items-center">
-                        <div className="relative flex-1 rounded-xl border border-indigo-200 dark:border-indigo-700 bg-gradient-to-br from-indigo-50 via-violet-50 to-purple-50 dark:from-indigo-900/20 dark:via-violet-900/20 dark:to-purple-900/20 p-1">
-                      <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onFocus={() => setShowStudentDropdown(true)}
-                             className={`w-full h-11 px-4 bg-white dark:bg-gray-700 border rounded-lg focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-colors ${
-                          errors.students 
-                               ? 'border-red-300 dark:border-red-600' 
-                                 : 'border-gray-300 dark:border-gray-600'
-                        }`}
-                        placeholder="Select students..."
-                      />
-                    </div>
-                    
-                        {/* Selected Students Pills - Side by side */}
-                    {formData.students.length > 0 && (
-                          <div className="flex flex-wrap items-center gap-1 min-w-0">
-                        {formData.students.map(studentId => (
-                          <span
-                            key={studentId}
-                                className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-lg text-xs whitespace-nowrap"
-                          >
-                            {getStudentName(studentId)}
-                            <button
-                              type="button"
-                              onClick={() => handleStudentRemove(studentId)}
-                              className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                              aria-label={`Remove ${getStudentName(studentId)}`}
-                            >
-                                  <FaTimes className="w-2 h-2" />
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                        )}
-                      </div>
-                      {errors.students && (
-                        <p className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.students}</p>
-                    )}
-
-                                         {/* Student Dropdown */}
-                     {showStudentDropdown && (
-                       <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl shadow-xl z-50 max-h-64 overflow-y-auto">
-                         <div className="p-2">
-                           {/* Search Bar */}
-                           <div className="mb-3">
-                             <div className="relative">
-                                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-4 h-4" />
-                               <input
-                                 type="text"
-                                 value={searchQuery}
-                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                 placeholder="Search students..."
-                                 className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               />
-                             </div>
-                           </div>
-                           
-                           {/* Select All Option */}
-                           <label className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg cursor-pointer border-b border-gray-200 dark:border-gray-600">
-                             <input
-                               type="checkbox"
-                               checked={formData.students.length === students.length}
-                               onChange={(e) => {
-                                 if (e.target.checked) {
-                                   setFormData(prev => ({
-                                     ...prev,
-                                     students: students.map(s => s._id)
-                                   }));
-                                 } else {
-                                   setFormData(prev => ({ ...prev, students: [] }));
-                                 }
-                               }}
-                               className="rounded"
-                             />
-                             <span className="font-medium text-gray-700 dark:text-gray-300">Select All</span>
-                           </label>
-                           
-                           {/* Students List */}
-                           <div className="max-h-48 overflow-y-auto">
-                             {filteredStudents.length > 0 ? (
-                               filteredStudents.map(student => (
-                                 <label
-                                   key={student._id}
-                                   className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg cursor-pointer"
-                                 >
-                                   <input
-                                     type="checkbox"
-                                     checked={formData.students.includes(student._id)}
-                                     onChange={() => handleStudentSelect(student._id)}
-                                     className="rounded"
-                                   />
-                                   <div className="flex-1 min-w-0">
-                                     <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                                       {student.full_name}
-                                     </div>
-                                     <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                                       {student.email}
-                                     </div>
-                                   </div>
-                                 </label>
-                               ))
-                             ) : (
-                               <div className="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
-                                 <FaSearch className="w-6 h-6 mx-auto mb-2 opacity-50" />
-                                 <p className="text-sm">No students found</p>
-                                 <p className="text-xs">Try adjusting your search</p>
-                               </div>
-                             )}
-                           </div>
-                         </div>
-                       </div>
-                     )}
-                  </div>
-
                                      {/* Batch and Grade Row */}
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -1863,7 +1944,12 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                                   <FaBook className="text-gray-600 dark:text-gray-400 w-5 h-5" />
                                   <div>
                                     <h3 className="font-semibold text-gray-900 dark:text-gray-100">Batch Selection</h3>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Available batches</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                      {formData.students.length > 0 
+                                        ? `Batches for ${formData.students.length} selected student${formData.students.length > 1 ? 's' : ''} (with fallback)` 
+                                        : "Available batches"
+                                      }
+                                    </p>
                                   </div>
                                 </div>
                                 <button
@@ -1895,13 +1981,10 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                           
                           {/* Batches List */}
                           <div className="max-h-64 overflow-y-auto">
-                            {batches.length > 0 ? (
-                              batches
-                                .filter(batch => 
-                                  (batch.name || batch.batch_name || '').toLowerCase().includes(batchSearchQuery.toLowerCase()) ||
-                                  (batch.code || batch.batch_code || '').toLowerCase().includes(batchSearchQuery.toLowerCase())
-                                )
-                                .map(batch => (
+                            {(() => {
+                              const filteredBatches = getFilteredBatches();
+                              return filteredBatches.length > 0 ? (
+                                filteredBatches.map(batch => (
                                   <label
                                     key={batch._id}
                                     className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0"
@@ -1921,8 +2004,20 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                                       className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
                                     />
                                     <div className="flex-1 min-w-0">
-                                      <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                                        {batch.name || batch.batch_name}
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                                          {batch.name || batch.batch_name}
+                                        </span>
+                                        {/* Warning indicator for missing enrolled_student_ids */}
+                                        {(!batch.enrolled_student_ids || batch.enrolled_student_ids.length === 0) && 
+                                         (batch.enrolledStudents || batch.enrolled_students || 0) > 0 && (
+                                          <span 
+                                            className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 text-xs rounded-full flex items-center gap-1"
+                                            title="Student enrollment data incomplete - may need database update"
+                                          >
+                                            ⚠️ Data Missing
+                                          </span>
+                                        )}
                                       </div>
                                       <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
                                         {batch.code || batch.batch_code} • {new Date(batch.startDate || batch.start_date).toLocaleDateString()} - {new Date(batch.endDate || batch.end_date).toLocaleDateString()} • {batch.enrolledStudents || batch.enrolled_students || 0} students
@@ -1933,10 +2028,21 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                             ) : (
                               <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                                 <FaBook className="w-8 h-8 mx-auto mb-3 opacity-50" />
-                                <p className="text-sm font-medium">No batches found</p>
-                                <p className="text-xs">Try adjusting your search</p>
+                                  <p className="text-sm font-medium">
+                                    {formData.students.length > 0 
+                                      ? "No batches found for selected students" 
+                                      : "No batches found"
+                                    }
+                                  </p>
+                                  <p className="text-xs">
+                                    {formData.students.length > 0 
+                                      ? "Selected students are not enrolled in any batches" 
+                                      : "Try adjusting your search"
+                                    }
+                                  </p>
                               </div>
-                            )}
+                              );
+                            })()}
                           </div>
                         </div>
                       </div>
@@ -2463,7 +2569,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                             setErrors(prev => ({ ...prev, date: '' }));
                           }
                         }}
-                        min={new Date().toISOString().split('T')[0]}
+
                       className={`w-full px-6 py-3 bg-white dark:bg-gray-700 border-2 rounded-xl focus:ring-4 focus:ring-pink-500/20 transition-all duration-300 shadow-sm group-hover:shadow-md ${
                           errors.date 
                             ? 'border-red-500 focus:border-red-500' 
@@ -2480,13 +2586,14 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                     )}
                 </div>
 
-                {/* Summary Section - Enhanced Width */}
-                <div className="block w-full max-w-none border border-gray-200 dark:border-gray-600 rounded-xl p-4 sm:p-6 bg-gray-50 dark:bg-gray-700/50">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-br from-purple-100 via-violet-100 to-indigo-100 dark:from-purple-900/30 dark:via-violet-900/30 dark:to-indigo-900/30 rounded-lg shadow-sm border border-purple-200 dark:border-purple-700">
-                      <FaFileAlt className="w-4 h-4 text-purple-600 dark:text-purple-400 animate-bounce" />
+                {/* Summary Section - Full Width Enhanced */}
+                <div className="col-span-full w-full max-w-none border border-gray-200 dark:border-gray-600 rounded-xl p-4 sm:p-6 bg-gradient-to-br from-purple-50 via-violet-50 to-indigo-50 dark:from-purple-900/20 dark:via-violet-900/20 dark:to-indigo-900/20 shadow-lg">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-3 border-b border-purple-200 dark:border-purple-700 pb-4">
+                    <div className="p-3 bg-gradient-to-br from-purple-100 via-violet-100 to-indigo-100 dark:from-purple-900/30 dark:via-violet-900/30 dark:to-indigo-900/30 rounded-lg shadow-md border border-purple-200 dark:border-purple-700">
+                      <FaFileAlt className="w-5 h-5 text-purple-600 dark:text-purple-400 animate-bounce" />
                     </div>
-                    Summary *
+                    <span className="text-xl">Session Summary *</span>
+                    <div className="flex-1 h-px bg-gradient-to-r from-purple-200 to-transparent dark:from-purple-700"></div>
                   </h3>
 
                   {/* Summary Items */}
@@ -2501,7 +2608,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                     {formData.summary.items.length > 0 ? (
                       <div className="space-y-4">
                         {formData.summary.items.map((item, index) => (
-                          <div key={item.id} className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4 sm:p-6 w-full max-w-none">
+                          <div key={item.id} className="bg-white dark:bg-gray-800 border border-purple-200 dark:border-purple-600 rounded-xl p-4 sm:p-6 w-full max-w-none shadow-md hover:shadow-lg transition-shadow duration-200">
                             <div className="flex items-center justify-between mb-3">
                               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Item {index + 1}
@@ -2630,7 +2737,6 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                 </div>
               </div>
             </form>
-          </div>
         </div>
       </div>
     </div>
