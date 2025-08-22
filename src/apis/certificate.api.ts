@@ -1096,6 +1096,132 @@ getQRCodeOptions: (style: 'certificate' | 'verification' | 'general' = 'general'
   };
   
   return styles[style];
+},
+
+// ============================================================================
+// DEMO CERTIFICATE FUNCTIONS
+// ============================================================================
+
+/**
+ * Generate demo certificate
+ * @param certificateData - Certificate generation data
+ */
+generateDemoCertificate: async (certificateData: {
+  student_id: string;
+  course_id: string;
+  enrollment_id: string;
+  course_name: string;
+  full_name: string;
+  instructor_name?: string;
+  date?: string;
+}): Promise<{
+  success: boolean;
+  message: string;
+  data?: {
+    certificate: any;
+    pdfUrl: string;
+    certificateId: string;
+    verificationUrl: string;
+  };
+}> => {
+  try {
+    const response = await apiClient.post('/certificates/demo', certificateData);
+
+    return {
+      success: true,
+      message: response.data.message || 'Demo certificate generated successfully',
+      data: response.data.data
+    };
+  } catch (error: any) {
+    console.error('Demo certificate generation error:', error);
+    
+    return {
+      success: false,
+      message: error.response?.data?.message || error.response?.data?.error || 'Failed to generate demo certificate. Please try again.'
+    };
+  }
+},
+
+/**
+ * Download demo certificate PDF
+ * @param certificateId - Certificate ID to download
+ */
+downloadDemoCertificate: async (certificateId: string): Promise<{
+  success: boolean;
+  message: string;
+  data?: Blob;
+}> => {
+  try {
+    const response = await apiClient.get(`/certificates/demo/download/${certificateId}`, {
+      responseType: 'blob'
+    });
+
+    return {
+      success: true,
+      message: 'Certificate downloaded successfully',
+      data: response.data
+    };
+  } catch (error: any) {
+    console.error('Demo certificate download error:', error);
+    
+    return {
+      success: false,
+      message: error.response?.data?.message || 'Failed to download certificate. Please try again.'
+    };
+  }
+},
+
+/**
+ * Download demo certificate PDF with automatic file save
+ * @param certificateId - Certificate ID to download
+ * @param fileName - Optional custom filename
+ */
+downloadAndSaveDemoCertificate: async (certificateId: string, fileName?: string): Promise<{
+  success: boolean;
+  message: string;
+}> => {
+  try {
+    const result = await certificateAPI.downloadDemoCertificate(certificateId);
+    
+    if (!result.success || !result.data) {
+      return {
+        success: false,
+        message: result.message
+      };
+    }
+
+    // Create download link
+    const url = window.URL.createObjectURL(result.data);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    // Set filename
+    if (fileName) {
+      link.download = fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`;
+    } else {
+      link.download = `MEDH-Certificate-${certificateId}.pdf`;
+    }
+    
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Clean up
+    window.URL.revokeObjectURL(url);
+
+    return {
+      success: true,
+      message: 'Certificate downloaded successfully'
+    };
+  } catch (error: any) {
+    console.error('Certificate download and save error:', error);
+    
+    return {
+      success: false,
+      message: 'Failed to download certificate. Please try again.'
+    };
+  }
 }
 };
 

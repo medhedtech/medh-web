@@ -7,7 +7,13 @@
 
 // Determine the appropriate API base URL based on environment
 const getApiBaseUrl = (): string => {
-  // First priority: Explicit API URL override
+  // Force localhost for development (override everything)
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    console.log('🔧 Development mode detected - using localhost backend');
+    return 'http://localhost:8080/api/v1';
+  }
+
+  // Force use backend URL for live classes API
   if (process.env.NEXT_PUBLIC_API_URL) {
     return process.env.NEXT_PUBLIC_API_URL;
   }
@@ -18,13 +24,20 @@ const getApiBaseUrl = (): string => {
   } else if (process.env.NODE_ENV === 'test') {
     return process.env.NEXT_PUBLIC_API_URL_TEST || 'https://api.medh.co/api/v1';
   } else {
-    // Development is the default - use Next.js API routes
-    return process.env.NEXT_PUBLIC_API_URL_DEV || '/api/v1';
+    // Development - use backend directly
+    return 'http://localhost:8080/api/v1';
   }
 };
 
 // Export the base URL
 export const apiBaseUrl = getApiBaseUrl();
+
+// Debug logging
+if (typeof window !== 'undefined') {
+  console.log('🌐 API Base URL configured:', apiBaseUrl);
+  console.log('🌍 Current hostname:', window.location.hostname);
+  console.log('🔧 Environment:', process.env.NODE_ENV);
+}
 
 // Additional API configuration settings
 export const apiConfig = {
@@ -53,12 +66,20 @@ export const PUBLIC_ENDPOINTS = [
   '/auth/resend-verification',
   '/auth/forgot-password',
   '/auth/reset-password',
+  '/auth/change-password',
   '/auth/oauth',
   '/courses/public',
+  '/courses/free',
   '/blogs/public',
   '/health',
   '/faq/public',
   '/announcements/public',
+  '/announcements/recent',
+  '/announcements/unread-count',
+  '/enrolled/getCount',
+  '/enrolled/upcoming-classes',
+  '/progress/analytics',
+  '/certificates/student',
   '/broucher/create',
   '/broucher/download',
   // Demo session form endpoints (public forms)

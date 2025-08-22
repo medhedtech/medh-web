@@ -178,36 +178,12 @@ const BatchStudentEnrollment: React.FC<BatchStudentEnrollmentProps> = ({
       setLoading(true);
       console.log('🔄 Loading students for batch:', batch._id);
 
-      // Check if we already have enrolled_students_details in the batch prop
-      if (batch.enrolled_students_details && batch.enrolled_students_details.length > 0) {
-        console.log('✅ Using enrolled_students_details from batch prop:', batch.enrolled_students_details.length);
-        
-        // Transform the enrolled_students_details to our enhanced student format
-        const transformedStudents: IEnhancedStudent[] = batch.enrolled_students_details.map(enrollment => ({
-          _id: enrollment.student._id,
-          full_name: enrollment.student.full_name,
-          email: enrollment.student.email,
-          phone_numbers: enrollment.student.phone_numbers,
-          status: enrollment.student.status,
-          enrollment_date: enrollment.enrollment_date,
-          enrollment_status: enrollment.enrollment_status as any,
-          progress: enrollment.progress || 0,
-          payment_plan: enrollment.payment_plan as any,
-          profile_image: enrollment.student.profile_image
-        }));
-
-        setEnrolledStudents(transformedStudents);
-        setLastRefresh(new Date());
-        console.log('✅ Students loaded from batch details:', transformedStudents.length);
-        return;
-      }
-
-      // Fallback: Try to fetch from API
-      try {
-        if (batch._id) {
+      // Try to fetch batch details with enrolled students from API
+      if (batch._id) {
+        try {
           console.log('🔄 Fetching batch details from API...');
           
-          // Try to get batch details with enrolled students
+          // Get batch details with enrolled students
           const batchResponse = await batchAPI.getBatchById(batch._id);
           
           if (batchResponse?.data) {
@@ -219,60 +195,66 @@ const BatchStudentEnrollment: React.FC<BatchStudentEnrollmentProps> = ({
               batchData = batchResponse.data;
             }
             
+            console.log('📊 Batch data received:', batchData);
+            
+            // Check if we have enrolled students data
             if (batchData.enrolled_students_details && batchData.enrolled_students_details.length > 0) {
-              const transformedStudents: IEnhancedStudent[] = batchData.enrolled_students_details.map((enrollment: any) => ({
-                _id: enrollment.student._id,
-                full_name: enrollment.student.full_name,
-                email: enrollment.student.email,
-                phone_numbers: enrollment.student.phone_numbers,
-                status: enrollment.student.status,
-                enrollment_date: enrollment.enrollment_date,
-                enrollment_status: enrollment.enrollment_status,
-                progress: enrollment.progress || 0,
-                payment_plan: enrollment.payment_plan,
-                profile_image: enrollment.student.profile_image
-              }));
+              const transformedStudents: IEnhancedStudent[] = batchData.enrolled_students_details
+                .filter((enrollment: any) => enrollment.student && enrollment.student._id)
+                .map((enrollment: any) => ({
+                  _id: enrollment.student._id,
+                  full_name: enrollment.student.full_name || 'Unknown Student',
+                  email: enrollment.student.email || 'no-email@example.com',
+                  phone_numbers: enrollment.student.phone_numbers || [],
+                  status: enrollment.student.status || 'Unknown',
+                  enrollment_date: enrollment.enrollment_date,
+                  enrollment_status: enrollment.enrollment_status,
+                  progress: enrollment.progress || 0,
+                  payment_plan: enrollment.payment_plan,
+                  profile_image: enrollment.student.profile_image
+                }));
 
               setEnrolledStudents(transformedStudents);
               setLastRefresh(new Date());
-              console.log('✅ Students loaded from API response:', transformedStudents.length);
+              console.log('✅ Students loaded from API:', transformedStudents.length);
               return;
             }
           }
+        } catch (apiError) {
+          console.warn('⚠️ API fetch failed:', apiError);
         }
-      } catch (apiError) {
-        console.warn('API fetch failed, using fallback approach:', apiError);
       }
 
-      // Final fallback: Create mock data based on batch capacity and enrolled count
-      console.log('📊 Creating fallback student data for development');
-      const mockStudents: IEnhancedStudent[] = [];
-      
-      for (let i = 0; i < (batch.enrolled_students || 0); i++) {
-        // Use deterministic values instead of Math.random() to prevent hydration mismatches
-        const studentIndex = i + 1;
-        const phoneNumber = `+91${9000000000 + studentIndex}`;
-        const enrollmentDate = new Date(Date.now() - (studentIndex * 24 * 60 * 60 * 1000)).toISOString();
-        const enrollmentStatus = studentIndex % 5 === 0 ? 'completed' : 'active';
-        const progress = Math.min(studentIndex * 10, 100);
-        const paymentPlan = studentIndex % 3 === 0 ? 'installment' : 'full';
+      // Check if we have enrolled_students_details in the batch prop
+      if (batch.enrolled_students_details && batch.enrolled_students_details.length > 0) {
+        console.log('✅ Using enrolled_students_details from batch prop:', batch.enrolled_students_details.length);
         
-        mockStudents.push({
-          _id: `mock_student_${studentIndex}`,
-          full_name: `Student ${studentIndex}`,
-          email: `student${studentIndex}@example.com`,
-          phone_numbers: [{ country: 'IN', number: phoneNumber }],
-          status: 'Active',
-          enrollment_date: enrollmentDate,
-          enrollment_status: enrollmentStatus,
-          progress: progress,
-          payment_plan: paymentPlan
-        });
+        const transformedStudents: IEnhancedStudent[] = batch.enrolled_students_details
+          .filter(enrollment => enrollment.student && enrollment.student._id)
+          .map(enrollment => ({
+            _id: enrollment.student._id,
+            full_name: enrollment.student.full_name || 'Unknown Student',
+            email: enrollment.student.email || 'no-email@example.com',
+            phone_numbers: enrollment.student.phone_numbers || [],
+            status: enrollment.student.status || 'Unknown',
+            enrollment_date: enrollment.enrollment_date,
+            enrollment_status: enrollment.enrollment_status as any,
+            progress: enrollment.progress || 0,
+            payment_plan: enrollment.payment_plan as any,
+            profile_image: enrollment.student.profile_image
+          }));
+
+        setEnrolledStudents(transformedStudents);
+        setLastRefresh(new Date());
+        console.log('✅ Students loaded from batch details:', transformedStudents.length);
+        return;
       }
 
-      setEnrolledStudents(mockStudents);
+      // If no students are enrolled, show empty state
+      console.log('📊 No enrolled students found for this batch');
+      setEnrolledStudents([]);
       setLastRefresh(new Date());
-      console.log('🎭 Using mock student data:', mockStudents.length);
+      console.log('✅ No students enrolled in this batch');
 
     } catch (error) {
       console.error('❌ Error loading students:', error);
@@ -762,7 +744,12 @@ const BatchStudentEnrollment: React.FC<BatchStudentEnrollmentProps> = ({
             </div>
             
             <button
-              onClick={() => setShowEnrollModal(true)}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowEnrollModal(true);
+              }}
               className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md"
             >
               <UserPlus className="h-4 w-4 mr-2" />

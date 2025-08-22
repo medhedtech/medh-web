@@ -12,7 +12,7 @@ export interface IRegisterData {
     number: string;
   }>;
   password: string;
-  agree_terms: boolean;
+  agree_terms: boolean;  
   role?: string[];
   meta?: {
     gender?: 'male' | 'female' | 'other';

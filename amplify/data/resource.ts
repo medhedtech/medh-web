@@ -5,10 +5,15 @@ This schema defines both a Todo model and AI capabilities for the application.
 The AI routes enable conversation and text generation features.
 =========================================================================*/
 const schema = a.schema({
+
+  
+  
+
+
   Todo: a
     .model({
       content: a.string(),
-      isDone: a.boolean().default(false),
+      isDone: a.boolean().default(false),   
     })
     .authorization((allow) => [allow.guest()]),
 

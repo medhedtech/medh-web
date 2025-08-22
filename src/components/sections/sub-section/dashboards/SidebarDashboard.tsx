@@ -94,7 +94,9 @@ import {
   Video,
   Wallet,
   Zap,
-  Eye
+  Eye,
+  Link as LinkIcon,
+  BarChart3
 } from "lucide-react";
 import Cookies from 'js-cookie';
 import { motion, AnimatePresence } from "framer-motion";
@@ -167,16 +169,16 @@ interface SidebarDashboardProps {
 // Enhanced sidebar animation variants for better mobile experience
 const sidebarVariants = {
   expanded: {
-    width: '320px',
+    width: '280px',
     transition: {
       duration: 0.4,
       ease: easeInOut
     }
   },
   collapsed: {
-    width: '84px',
+    width: '280px', // Always expanded on desktop
     transition: {
-      duration: 0.5,
+      duration: 0.4,
       ease: easeInOut
     }
   }
@@ -426,7 +428,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
   const [isTabletDevice, setIsTabletDevice] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
-  const [isCollapsible, setIsCollapsible] = useState<boolean>(true);
+  const [isCollapsible, setIsCollapsible] = useState<boolean>(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const sidebarNavRef = useRef<HTMLDivElement>(null);
   const [showScrollIndicators, setShowScrollIndicators] = useState<{top: boolean, bottom: boolean}>({top: false, bottom: true});
@@ -464,9 +466,8 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       
       // On mobile/tablet, disable hover expand/collapse behavior
       if (isMobile || isTablet) {
-        setIsCollapsible(false); // Disable hover expand/collapse on mobile/tablet
-      } else {
-        setIsCollapsible(true);
+        // Disable collapsible behavior on all devices - sidebar stays permanently open
+        setIsCollapsible(false);
       }
     };
     
@@ -684,6 +685,16 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
 
   // Notify parent component when expanded state changes internally
   const handleExpandedChange = (expanded: boolean) => {
+    // On desktop, always keep sidebar expanded
+    if (!isMobileDevice && !isTabletDevice) {
+      setIsExpanded(true);
+      if (onExpandedChange) {
+        onExpandedChange(true);
+      }
+      return;
+    }
+    
+    // On mobile/tablet, allow normal expansion behavior
     setIsExpanded(expanded);
     if (onExpandedChange) {
       onExpandedChange(expanded);
@@ -730,6 +741,17 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
 
   // Toggle sidebar expansion state
   const toggleSidebar = () => {
+    // On desktop, prevent collapsing - always keep expanded
+    if (!isMobileDevice && !isTabletDevice) {
+      if (onExpandedChange) {
+        onExpandedChange(true);
+      } else {
+        setIsExpanded(true);
+      }
+      return;
+    }
+    
+    // On mobile/tablet, allow normal toggle behavior
     const newExpanded = !effectiveIsExpanded;
     if (onExpandedChange) {
       onExpandedChange(newExpanded);
@@ -770,21 +792,16 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     }
   };
 
-  // Modern student sidebar items
+  // Modern student sidebar items - Rearranged in requested order
   const studentMenuItems: MenuItem[] = [
     {
       name: "Dashboard",
-      path: "/dashboards",
+      path: "/dashboards/student",
       icon: <HomeIcon className="w-5 h-5" />
     },
     {
-      name: "My Demo Classes",
-      path: formatRoute("student", "demo-classes"),
-      icon: <MonitorPlay className="w-5 h-5" />
-    },
-    {
       name: "My Courses",
-      path: formatRoute("student", "my-courses"),
+      path: formatRoute("student", "enrolled-courses"),
       icon: <BookOpen className="w-5 h-5" />,
       subItems: [
         {
@@ -793,31 +810,41 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           icon: <TrendingUp className="w-4 h-4" />
         },
         {
-          name: "Completed",
-          path: formatRoute("student", "completed-courses"),
-          icon: <CheckCircle className="w-4 h-4" />
+          name: "Live Courses",
+          path: formatRoute("student", "enrolled-courses") + "?type=live",
+          icon: <Video className="w-4 h-4" />
+        },
+        {
+          name: "Blended Courses",
+          path: formatRoute("student", "enrolled-courses") + "?type=blended",
+          icon: <BookOpen className="w-4 h-4" />
+        },
+        {
+          name: "Corporate Courses",
+          path: formatRoute("student", "enrolled-courses") + "?type=corporate",
+          icon: <Briefcase className="w-4 h-4" />
+        },
+        {
+          name: "School Institute",
+          path: formatRoute("student", "enrolled-courses") + "?type=school",
+          icon: <GraduationCap className="w-4 h-4" />
         }
       ]
     },
     {
-      name: "My Membership",
-      path: formatRoute("student", "membership"),
-      icon: <Crown className="w-5 h-5" />
-    },
-    {
-      name: "My Resources",
-      path: formatRoute("student", "resources"),
-      icon: <FolderOpen className="w-5 h-5" />,
+      name: "My Demo Classes",
+      path: formatRoute("student", "demo-classes"),
+      icon: <MonitorPlay className="w-5 h-5" />,
       subItems: [
         {
-          name: "Course Materials",
-          path: formatRoute("student", "lesson-course-materials"),
-          icon: <FileText className="w-4 h-4" />
+          name: "Upcoming Demo",
+          path: formatRoute("student", "demo-classes"),
+          icon: <CalendarDays className="w-4 h-4" />
         },
         {
-          name: "Quizzes & Assignments",
-          path: formatRoute("student", "assignments"),
-          icon: <Clipboard className="w-4 h-4" />
+          name: "Demo History",
+          path: formatRoute("student", "demo-classes") + "?view=history",
+          icon: <History className="w-4 h-4" />
         }
       ]
     },
@@ -840,6 +867,11 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           name: "Recorded Sessions",
           path: formatRoute("student", "access-recorded-sessions"),
           icon: <Video className="w-4 h-4" />
+        },
+        {
+          name: "Session Count",
+          path: formatRoute("student", "upcoming-classes") + "?view=sessions",
+          icon: <BarChart3 className="w-4 h-4" />
         }
       ]
     },
@@ -849,19 +881,136 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       icon: <Award className="w-5 h-5" />
     },
     {
-      name: "Feedback & Support",
-      path: formatRoute("student", "feedback"),
-      icon: <LifeBuoy className="w-5 h-5" />
+      name: "My Membership",
+      path: formatRoute("student", "membership"),
+      icon: <Crown className="w-5 h-5" />
     },
     {
-      name: "Apply for Placement",
+      name: "My Progress",
+      path: formatRoute("student", "progress"),
+      icon: <BarChart3 className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Overall Progress",
+          path: formatRoute("student", "progress"),
+          icon: <TrendingUp className="w-4 h-4" />
+        },
+        {
+          name: "Course Analytics",
+          path: formatRoute("student", "progress") + "?view=analytics",
+          icon: <BarChart className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Resources",
+      path: formatRoute("student", "resources"),
+      icon: <FolderOpen className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Course Materials",
+          path: formatRoute("student", "lesson-course-materials"),
+          icon: <FileText className="w-4 h-4" />
+        },
+        {
+          name: "Downloads",
+          path: formatRoute("student", "resources") + "?view=downloads",
+          icon: <Download className="w-4 h-4" />
+        },
+        {
+          name: "Study Guides",
+          path: formatRoute("student", "resources") + "?view=guides",
+          icon: <BookOpen className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Assignments",
+      path: formatRoute("student", "assignments"),
+      icon: <Clipboard className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Pending Assignments",
+          path: formatRoute("student", "assignments"),
+          icon: <Clock className="w-4 h-4" />
+        },
+        {
+          name: "Submitted Work",
+          path: formatRoute("student", "assignments") + "?view=submitted",
+          icon: <CheckCircle className="w-4 h-4" />
+        },
+        {
+          name: "Grades & Feedback",
+          path: formatRoute("student", "assignments") + "?view=grades",
+          icon: <Star className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Quizzes",
+      path: formatRoute("student", "quiz"),
+      icon: <ClipboardList className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Available Quizzes",
+          path: formatRoute("student", "quiz"),
+          icon: <ListChecks className="w-4 h-4" />
+        },
+        {
+          name: "Quiz Results",
+          path: formatRoute("student", "quiz") + "?view=results",
+          icon: <BarChart className="w-4 h-4" />
+        },
+        {
+          name: "Practice Tests",
+          path: formatRoute("student", "quiz") + "?view=practice",
+          icon: <Repeat className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Payments",
+      path: formatRoute("student", "payments"),
+      icon: <CreditCard className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Payment History",
+          path: formatRoute("student", "payments"),
+          icon: <History className="w-4 h-4" />
+        },
+        {
+          name: "Pending Payments",
+          path: formatRoute("student", "payments") + "?view=pending",
+          icon: <Clock className="w-4 h-4" />
+        },
+        {
+          name: "Invoices",
+          path: formatRoute("student", "payments") + "?view=invoices",
+          icon: <FileSpreadsheet className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Placement",
       path: formatRoute("student", "apply"),
-      icon: <Briefcase className="w-5 h-5" />
-    },
-    {
-      name: "Profile",
-      path: formatRoute("student", "profile"),
-      icon: <UserCircle className="w-5 h-5" />
+      icon: <Briefcase className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Apply for Placement",
+          path: formatRoute("student", "apply"),
+          icon: <UserPlus className="w-4 h-4" />
+        },
+        {
+          name: "Application Status",
+          path: formatRoute("student", "apply") + "?view=status",
+          icon: <CheckCircle className="w-4 h-4" />
+        },
+        {
+          name: "Job Opportunities",
+          path: formatRoute("student", "apply") + "?view=jobs",
+          icon: <Building className="w-4 h-4" />
+        }
+      ]
     }
   ];
 
@@ -1498,27 +1647,27 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     <motion.div 
       ref={sidebarRef}
       variants={isMobileDevice || isTabletDevice ? mobileSidebarVariants : sidebarVariants}
-      initial="collapsed"
-      animate={effectiveIsExpanded ? "expanded" : "collapsed"}
-      className={`flex flex-col h-auto bg-white dark:bg-gray-900 shadow-md z-20 ${
+      initial="expanded"
+      animate={isMobileDevice || isTabletDevice ? (effectiveIsExpanded ? "expanded" : "collapsed") : "expanded"}
+      className={`flex flex-col h-full bg-white dark:bg-gray-900 shadow-md z-20 ${
         isMobileDevice || isTabletDevice 
           ? 'w-full' 
           : 'border-r dark:border-gray-700 fixed lg:relative'
       }`}
       style={{ 
-        minHeight: isMobileDevice || isTabletDevice ? '100%' : 'calc(100vh - 64px)',
-        top: isMobileDevice || isTabletDevice ? '0px' : '70px',
-        position: isMobileDevice || isTabletDevice ? 'relative' : 'fixed',
-        overflow: 'hidden'
+        minHeight: isMobileDevice || isTabletDevice ? '100%' : 'calc(100vh - 80px)',
+        top: isMobileDevice || isTabletDevice ? '0px' : '0px',
+        position: isMobileDevice || isTabletDevice ? 'relative' : 'relative',
+        overflow: 'hidden',
+        width: '100%'
       }}
-      onMouseEnter={() => isCollapsible && !isMobileDevice && !isTabletDevice && handleExpandedChange(true)}
-      onMouseLeave={() => isCollapsible && !isMobileDevice && !isTabletDevice && handleExpandedChange(false)}
+              // Removed hover behavior for desktop - sidebar stays permanently open
     >
       {/* Main scrollable container */}
       <div 
         className="h-full flex flex-col overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent"
         style={{ 
-          maxHeight: isMobileDevice || isTabletDevice ? '100%' : 'calc(100vh - 70px)' 
+          maxHeight: isMobileDevice || isTabletDevice ? '100%' : 'calc(100vh - 80px)' 
         }}
       >
         {/* Enhanced responsive header */}
@@ -1801,6 +1950,6 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       </div>
     </motion.div>
   );
-  };
+};
 
 export default SidebarDashboard;

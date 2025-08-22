@@ -9,6 +9,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import useGetQuery from "@/hooks/getQuery.hook";
 import Preloader from "@/components/shared/others/Preloader";
 import Image from "next/image";
+import { showToast } from "@/utils/toastManager";
 import { 
   FaEye, 
   FaEyeSlash, 
@@ -319,10 +320,16 @@ const AddStudent: React.FC<AddStudentProps> = ({ onCancel, onSuccess }) => {
         onSuccess: () => {
           showToast.success("Student added successfully!");
           reset();
+          
           // Call onSuccess callback if provided
           if (onSuccess) {
             onSuccess();
           }
+          
+          // Redirect to student management page after a short delay
+          setTimeout(() => {
+            router.push('/dashboards/admin/students/manage');
+          }, 1500);
         },
         onFail: (error) => {
           showToast.error(error?.message || "Student already exists with same email or mobile.");

@@ -181,6 +181,10 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
     { day: 'Monday', start_time: '09:00', end_time: '11:00' }
   ]);
 
+  // Search functionality state
+  const [studentSearchTerm, setStudentSearchTerm] = useState('');
+  const [showStudentDropdown, setShowStudentDropdown] = useState(false);
+
   // Modal Title Determination
   const getModalTitle = () => {
     if (title) return title;
@@ -198,6 +202,12 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
         return 'Assignment Modal';
     }
   };
+
+  // Filtered students based on search term
+  const filteredStudents = students.filter(student => 
+    student.full_name.toLowerCase().includes(studentSearchTerm.toLowerCase()) ||
+    student.email.toLowerCase().includes(studentSearchTerm.toLowerCase())
+  );
 
   // Fetch Data Functions
   const fetchInstructors = async () => {
@@ -272,15 +282,24 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
     try {
       setLoading(true);
       
-      const response = await apiClient.get(`${apiBaseUrl}${apiUrls.user.getAllStudents}`);
+      console.log('🔍 Fetching students from:', `${apiBaseUrl}${apiUrls.Students.getAllStudents}`);
+      
+      // Use Student collection endpoint with pagination to get all students
+      const response = await apiClient.get(`${apiBaseUrl}${apiUrls.Students.getAllStudents}?limit=1000&page=1`);
+      
+      console.log('📡 Raw API Response:', response);
       
       if (response?.data) {
         // Handle different response structures
         let studentsList: IStudent[] = [];
         
         if (response.data.success && response.data.data) {
-          // If response has success flag and data property
-          studentsList = Array.isArray(response.data.data) ? response.data.data : [];
+          // If response has success flag and data property with items
+          if (response.data.data.items) {
+            studentsList = Array.isArray(response.data.data.items) ? response.data.data.items : [];
+          } else {
+            studentsList = Array.isArray(response.data.data) ? response.data.data : [];
+          }
         } else if (response.data.students) {
           // If response has students property
           studentsList = Array.isArray(response.data.students) ? response.data.students : [];
@@ -288,6 +307,8 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
           // If response data is directly an array
           studentsList = response.data;
         }
+        
+        console.log('📋 Extracted students list:', studentsList);
         
         // Transform data to match our interface if needed
         const transformedStudents = studentsList.map((student: any) => ({
@@ -298,15 +319,21 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
           assigned_instructor: student.assigned_instructor
         }));
         
+        console.log('🔄 Transformed students:', transformedStudents);
+        
         setStudents(transformedStudents);
         
         if (transformedStudents.length === 0) {
-          showToast.info('No students found');
+          showToast.info('No students found in Student collection');
+        } else {
+          console.log(`✅ Loaded ${transformedStudents.length} students from Student collection`);
         }
       } else {
         setStudents([]);
+        showToast.warning('No student data received from server');
       }
     } catch (error) {
+      console.error('❌ Error fetching students:', error);
       if (error instanceof Error) {
         showToast.error(`Failed to load students: ${error.message}`);
       } else {
@@ -503,37 +530,101 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
 
   const handleBatchEnrollment = async () => {
     if (!selectedBatch || selectedStudents.length === 0) {
-      showToast.error('Batch and student selection required');
+      showToast.error('Please select a batch and at least one student');
       return;
     }
 
+    console.log('🚀 Starting batch enrollment process...');
+    console.log('📋 Selected students:', selectedStudents);
+    console.log('📚 Course:', course?._id);
+    console.log('👥 Batch:', selectedBatch);
+
     try {
       setLoading(true);
-      const enrollmentPromises = selectedStudents.map(studentId =>
-        enrollmentAPI.enrollStudent(studentId, {
-          courseId: course!._id,
-          batchId: selectedBatch,
-          enrollment_type: 'batch'
-        })
-      );
-
-      const results = await Promise.allSettled(enrollmentPromises);
-      const successCount = results.filter(result => result.status === 'fulfilled').length;
-      const failureCount = results.length - successCount;
-
-      if (successCount > 0) {
-        showToast.success(`${successCount} students enrolled successfully`);
-        if (failureCount > 0) {
-          showToast.warning(`${failureCount} enrollments failed`);
+      
+      // Enroll each student one by one
+      const enrollmentResults = [];
+      
+      for (const studentId of selectedStudents) {
+        try {
+          console.log(`📝 Enrolling student ${studentId}...`);
+          
+          const response = await enrollmentAPI.enrollStudent(studentId, {
+            courseId: course!._id,
+            batchId: selectedBatch,
+            enrollment_type: 'batch',
+            enrollment_source: 'direct'
+          });
+          
+          console.log(`✅ Successfully enrolled student ${studentId}:`, response);
+          
+          enrollmentResults.push({
+            studentId,
+            success: true,
+            data: response.data
+          });
+          
+        } catch (error) {
+          console.error(`❌ Failed to enroll student ${studentId}:`, error);
+          
+          // Provide specific error messages
+          let errorMessage = 'Failed to enroll student';
+          if (error.response?.status === 404) {
+            errorMessage = 'Student, course, or batch not found';
+          } else if (error.response?.status === 400) {
+            errorMessage = error.response?.data?.message || 'Invalid enrollment data';
+          } else if (error.response?.status === 500) {
+            errorMessage = 'Server error - please try again';
+          } else if (error.code === 'ECONNREFUSED') {
+            errorMessage = 'Cannot connect to server - please check if backend is running';
+          }
+          
+          enrollmentResults.push({
+            studentId,
+            success: false,
+            error: { ...error, userMessage: errorMessage }
+          });
         }
-        onSuccess();
-        onClose();
-      } else {
-        throw new Error('All enrollments failed');
       }
+
+      // Process results
+      const successfulEnrollments = enrollmentResults.filter(result => result.success);
+      const failedEnrollments = enrollmentResults.filter(result => !result.success);
+
+      console.log(`📊 Enrollment results: ${successfulEnrollments.length} success, ${failedEnrollments.length} failed`);
+
+      // Show success message
+      if (successfulEnrollments.length > 0) {
+        showToast.success(`${successfulEnrollments.length} student(s) enrolled successfully`);
+        
+        // Update the batch data with new enrollment count
+        if (batch && successfulEnrollments.length > 0) {
+          const updatedBatch = {
+            ...batch,
+            enrolled_students: (batch.enrolled_students || 0) + successfulEnrollments.length
+          };
+          
+          // Call onSuccess to refresh the parent component
+          onSuccess();
+        }
+      }
+
+      // Show error messages for failed enrollments
+      if (failedEnrollments.length > 0) {
+        failedEnrollments.forEach(result => {
+          const errorMessage = result.error?.userMessage || 'Enrollment failed';
+          showToast.error(errorMessage);
+        });
+      }
+
+      // Close modal if at least one enrollment was successful
+      if (successfulEnrollments.length > 0) {
+        onClose();
+      }
+
     } catch (error) {
-      console.error('Error enrolling students:', error);
-      showToast.error('Failed to enroll students');
+      console.error('❌ Error in batch enrollment process:', error);
+      showToast.error('Failed to process enrollment requests');
     } finally {
       setLoading(false);
     }
@@ -689,6 +780,8 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
             <button
               onClick={onClose}
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              title="Close modal"
+              aria-label="Close modal"
             >
               <X className="h-5 w-5 text-gray-500" />
             </button>
@@ -757,6 +850,7 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
                       value={batchForm.batch_name}
                       onChange={(e) => setBatchForm(prev => ({ ...prev, batch_name: e.target.value }))}
                       placeholder="e.g., Morning Batch - January 2025"
+                      title="Enter batch name"
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
                   </div>
@@ -771,6 +865,8 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
                       onChange={(e) => setBatchForm(prev => ({ ...prev, capacity: parseInt(e.target.value) || 10 }))}
                       min="1"
                       max="50"
+                      placeholder="Enter batch capacity"
+                      title="Enter batch capacity (1-50)"
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
                   </div>
@@ -1106,28 +1202,59 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Select Students *
                   </label>
-                  <div className="max-h-48 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg">
-                    {students.map((stud) => (
-                      <label key={stud._id} className="flex items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <input
-                          type="checkbox"
-                          checked={selectedStudents.includes(stud._id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedStudents([...selectedStudents, stud._id]);
-                            } else {
-                              setSelectedStudents(selectedStudents.filter(id => id !== stud._id));
-                            }
-                          }}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <div className="ml-3">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">{stud.full_name}</div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">{stud.email}</div>
-                        </div>
-                      </label>
-                    ))}
+                  
+                  {/* Search Input */}
+                  <div className="relative mb-3">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Search className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Search students by name or email..."
+                      title="Search students by name or email"
+                      value={studentSearchTerm}
+                      onChange={(e) => setStudentSearchTerm(e.target.value)}
+                      onFocus={() => setShowStudentDropdown(true)}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      aria-label="Search students by name or email"
+                    />
                   </div>
+
+                  {/* Student Selection Dropdown */}
+                  <div className="relative">
+                    <div className="max-h-48 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700">
+                      {filteredStudents.length > 0 ? (
+                        filteredStudents.map((stud) => (
+                          <label key={stud._id} className="flex items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={selectedStudents.includes(stud._id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedStudents([...selectedStudents, stud._id]);
+                                } else {
+                                  setSelectedStudents(selectedStudents.filter(id => id !== stud._id));
+                                }
+                              }}
+                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              aria-label={`Select ${stud.full_name}`}
+                            />
+                            <div className="ml-3 flex-1">
+                              <div className="text-sm font-medium text-gray-900 dark:text-white">{stud.full_name}</div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400">{stud.email}</div>
+                            </div>
+                          </label>
+                        ))
+                      ) : (
+                        <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+                          <Search className="h-6 w-6 mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">No students found</p>
+                          <p className="text-xs">Try adjusting your search</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                     {selectedStudents.length} student(s) selected
                   </p>

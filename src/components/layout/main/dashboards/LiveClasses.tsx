@@ -683,8 +683,9 @@ const LiveClasses: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Category filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
+                <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
                 <select
+                  id="category-filter"
                   value={filters.category}
                   onChange={(e) => handleFilterChange("category", e.target.value)}
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
@@ -699,8 +700,9 @@ const LiveClasses: React.FC = () => {
                   
               {/* Instructor filter */}
                 <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Instructor</label>
+                <label htmlFor="instructor-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Instructor</label>
                 <select
+                  id="instructor-filter"
                   value={filters.instructor}
                   onChange={(e) => handleFilterChange("instructor", e.target.value)}
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"

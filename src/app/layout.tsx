@@ -5,14 +5,14 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
 import '@/components/sidebar/sidebar-styles.css';
 import 'quill/dist/quill.snow.css';
-import '@/styles/vendor.scss'; // New: Import global vendor SCSS directly
-import 'intl-tel-input/build/css/intlTelInput.css'; // New: Import intl-tel-input CSS directly
-// import '@/styles/google-one-tap.css'; // Google One Tap styles to prevent hydration issues
+import '@/styles/vendor.scss';
+import 'intl-tel-input/build/css/intlTelInput.css';
 import ThemeController from '@/components/shared/others/ThemeController';
 import GoogleAnalytics from '@/components/shared/analytics/GoogleAnalytics';
 import CookieConsent from '@/components/shared/gdpr/CookieConsent';
 import { Suspense } from 'react';
 import localFont from 'next/font/local';
+import { Toaster } from 'react-hot-toast';
 
 // Use local fonts instead of Google Fonts to avoid timeout issues
 const montserrat = localFont({
@@ -132,7 +132,6 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.json',
   icons: {
-    icon: '/favicon.ico',
     apple: '/apple-touch-icon.png',
   },
 };
@@ -151,6 +150,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
         {/* Updated viewport meta tag with proper settings */}
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
         
+        {/* CSS Preload to prevent warnings */}
+        <link rel="preload" href="/_next/static/css/app/layout.css" as="style" />
+        
         {/* Google One Tap styles moved to CSS file to prevent hydration issues */}
       </head>
       <body className={`${poppins.className} antialiased min-h-screen overflow-x-hidden overflow-y-visible`} suppressHydrationWarning={true}>
@@ -163,6 +165,30 @@ export default function RootLayout({ children }: RootLayoutProps) {
             <Analytics />
             <SpeedInsights />
             <CookieConsent />
+            <Toaster 
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: '#363636',
+                  color: '#fff',
+                },
+                success: {
+                  duration: 3000,
+                  iconTheme: {
+                    primary: '#4ade80',
+                    secondary: '#fff',
+                  },
+                },
+                error: {
+                  duration: 5000,
+                  iconTheme: {
+                    primary: '#ef4444',
+                    secondary: '#fff',
+                  },
+                },
+              }}
+            />
           </Providers>
         </Suspense>
       </body>

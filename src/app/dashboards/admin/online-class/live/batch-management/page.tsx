@@ -53,6 +53,7 @@ import {
 import { courseAPI, courseTypesAPI } from '@/apis/courses';
 import type { ILiveCourse } from '@/apis/courses';
 import { individualAssignmentAPI } from '@/apis/instructor-assignments';
+import { liveClassesAPI } from '@/apis/liveClassesAPI';
 import { apiClient } from '@/apis/apiClient';
 import { apiUrls, apiBaseUrl } from '@/apis/index';
 import InstructorAssignmentModal from '@/components/shared/modals/InstructorAssignmentModal';
@@ -216,6 +217,10 @@ const BatchManagementPage: React.FC = () => {
     });
   }, [courses]);
 
+
+
+
+
   // Dropdown management functions
   const toggleDropdown = (batchId: string, event: React.MouseEvent) => {
     event.stopPropagation();
@@ -237,6 +242,14 @@ const BatchManagementPage: React.FC = () => {
 
       // Get all batches initially
       const apiResponse = await batchAPI.getAllBatches(params);
+      
+      console.log('📡 Batch API Response:', {
+        hasData: !!apiResponse?.data,
+        dataType: typeof apiResponse?.data,
+        isArray: Array.isArray(apiResponse?.data),
+        responseKeys: apiResponse?.data ? Object.keys(apiResponse.data) : [],
+        sampleBatch: apiResponse?.data && Array.isArray(apiResponse.data) ? apiResponse.data[0] : null
+      });
       
       let batchesData: IBatchFromAPI[] = [];
       let totalPagesCount = 1;
@@ -289,6 +302,37 @@ const BatchManagementPage: React.FC = () => {
         }
       }
 
+      // Debug: Log the transformed batch data
+      console.log('🔍 Transformed batches data:', {
+        totalBatches: batchesData.length,
+        sampleBatch: batchesData[0],
+        instructorData: batchesData.map(batch => ({
+          batchName: batch.batch_name,
+          assignedInstructor: batch.assigned_instructor,
+          instructorType: typeof batch.assigned_instructor
+        }))
+      });
+
+      // Test: Check if any batch has instructor data
+      const batchesWithInstructors = batchesData.filter(batch => batch.assigned_instructor);
+      console.log('✅ Batches with instructors:', batchesWithInstructors.length);
+      if (batchesWithInstructors.length > 0) {
+        console.log('📋 Sample batch with instructor:', batchesWithInstructors[0]);
+      }
+
+      // Debug: Log the batches data to see instructor assignments
+      console.log('📊 Fetched batches data:', {
+        batchesCount: batchesData.length,
+        sampleBatch: batchesData[0],
+        instructorAssignments: batchesData.map(batch => ({
+          batchName: batch.batch_name,
+          assignedInstructor: batch.assigned_instructor,
+          instructorType: typeof batch.assigned_instructor
+        })),
+        batchIds: batchesData.map(batch => batch._id),
+        duplicateIds: batchesData.filter((batch, index, arr) => arr.findIndex(b => b._id === batch._id) !== index).map(batch => batch._id)
+      });
+      
       // Update state with the real API response
       setBatches(batchesData);
       setTotalPages(totalPagesCount);
@@ -297,10 +341,10 @@ const BatchManagementPage: React.FC = () => {
       console.error('Error loading initial batches:', error);
       
       // Fallback to mock data for development
-      setBatches([
-        {
-          _id: '6836a82a46d3493bc170d011',
-          batch_name: 'Digital Marketing - Morning Batch',
+              setBatches([
+          {
+            _id: '6836a82a46d011',
+            batch_name: 'Digital Marketing with Data Analytics - Batch - 165591',
           batch_code: 'DMWDA-458682',
           course: {
             _id: '67c194158a56e7688ddcf320',
@@ -422,30 +466,23 @@ const BatchManagementPage: React.FC = () => {
       
       // Load instructors using the proper instructor API
       try {
-        const instructorsResponse = await individualAssignmentAPI.getAllStudentsWithInstructors();
+        const instructorsResponse = await liveClassesAPI.getInstructors();
         
-        if (instructorsResponse?.data?.data && Array.isArray(instructorsResponse.data.data)) {
-          // Extract unique instructors from the response
-          const instructorSet = new Set();
-          const uniqueInstructors: IInstructor[] = [];
+        if (instructorsResponse?.data?.success && instructorsResponse.data.data && Array.isArray(instructorsResponse.data.data)) {
+
           
-          instructorsResponse.data.data.forEach((student: any) => {
-            if (student.instructor_details && student.instructor_details._id && !instructorSet.has(student.instructor_details._id)) {
-              instructorSet.add(student.instructor_details._id);
-              uniqueInstructors.push({
-                _id: student.instructor_details._id,
-                full_name: student.instructor_details.full_name,
-                email: student.instructor_details.email,
-                phone_number: student.instructor_details.phone_number
-              });
-            }
+          const transformedInstructors: IInstructor[] = instructorsResponse.data.data.map((instructor: any) => ({
+            _id: instructor._id,
+            full_name: instructor.full_name || instructor.name,
+            email: instructor.email,
+            phone_number: instructor.phone_number || instructor.phone_numbers?.[0]?.number
+          }));
+          
+          setInstructors(transformedInstructors);
+          console.log('👨‍🏫 Instructors loaded:', {
+            count: transformedInstructors.length,
+            sampleInstructors: transformedInstructors.slice(0, 3).map(i => ({ id: i._id, name: i.full_name, email: i.email }))
           });
-          
-          if (uniqueInstructors.length > 0) {
-            setInstructors(uniqueInstructors);
-          } else {
-            throw new Error('No instructors found in response');
-          }
         } else {
           throw new Error('Invalid instructor response format');
         }
@@ -453,10 +490,11 @@ const BatchManagementPage: React.FC = () => {
         console.warn('Instructor API failed, using fallback data:', instructorError);
         // Fallback to mock data
         setInstructors([
-          { _id: '1', full_name: 'Dr. Sarah Johnson', email: 'sarah.johnson@medh.com' },
-          { _id: '2', full_name: 'Prof. Michael Chen', email: 'michael.chen@medh.com' },
-          { _id: '3', full_name: 'Dr. Priya Sharma', email: 'priya.sharma@medh.com' },
-          { _id: '4', full_name: 'Mr. Alex Rodriguez', email: 'alex.rodriguez@medh.com' }
+          { _id: '689cb788b402a3aaed5c9799', full_name: 'Digital Marketing Expert', email: 'dmwda@medh.com' },
+          { _id: '507f1f77bcf86cd799439012', full_name: 'Dr. Sarah Johnson', email: 'sarah.johnson@medh.com' },
+          { _id: '507f1f77bcf86cd799439013', full_name: 'Prof. Michael Chen', email: 'michael.chen@medh.com' },
+          { _id: '507f1f77bcf86cd799439014', full_name: 'Dr. Priya Sharma', email: 'priya.sharma@medh.com' },
+          { _id: '507f1f77bcf86cd799439015', full_name: 'Mr. Alex Rodriguez', email: 'alex.rodriguez@medh.com' }
         ]);
       }
       
@@ -474,10 +512,11 @@ const BatchManagementPage: React.FC = () => {
         { _id: '4', course_title: 'Personality Development', course_category: 'Personal Growth' }
       ]);
       setInstructors([
-        { _id: '1', full_name: 'Dr. Sarah Johnson', email: 'sarah.johnson@medh.com' },
-        { _id: '2', full_name: 'Prof. Michael Chen', email: 'michael.chen@medh.com' },
-        { _id: '3', full_name: 'Dr. Priya Sharma', email: 'priya.sharma@medh.com' },
-        { _id: '4', full_name: 'Mr. Alex Rodriguez', email: 'alex.rodriguez@medh.com' }
+        { _id: '689cb788b402a3aaed5c9799', full_name: 'Digital Marketing Expert', email: 'dmwda@medh.com' },
+        { _id: '507f1f77bcf86cd799439012', full_name: 'Dr. Sarah Johnson', email: 'sarah.johnson@medh.com' },
+        { _id: '507f1f77bcf86cd799439013', full_name: 'Prof. Michael Chen', email: 'michael.chen@medh.com' },
+        { _id: '507f1f77bcf86cd799439014', full_name: 'Dr. Priya Sharma', email: 'priya.sharma@medh.com' },
+        { _id: '507f1f77bcf86cd799439015', full_name: 'Mr. Alex Rodriguez', email: 'alex.rodriguez@medh.com' }
       ]);
       
       // Load initial batches even on error
@@ -626,6 +665,8 @@ const BatchManagementPage: React.FC = () => {
         });
       }
 
+
+      
       // Update state with the real API response
       setBatches(batchesData);
       setTotalPages(totalPagesCount);
@@ -640,7 +681,7 @@ const BatchManagementPage: React.FC = () => {
         setBatches([
           {
             _id: '6836a82a46d3493bc170d011',
-            batch_name: 'Digital Marketing - Morning Batch',
+            batch_name: 'Digital Marketing with Data Analytics - Batch - 165591',
             batch_code: 'DMWDA-458682',
             course: {
               _id: '67c194158a56e7688ddcf320',
@@ -654,7 +695,7 @@ const BatchManagementPage: React.FC = () => {
             end_date: '2025-12-14T00:00:00.000Z',
             capacity: 10,
             enrolled_students: 0,
-            assigned_instructor: null,
+            assigned_instructor: '689cb788b402a3aaed5c9799', // Actual instructor ID from database
             schedule: [
               {
                 date: new Date().toISOString().split('T')[0], // Provide default date if missing
@@ -859,18 +900,35 @@ const BatchManagementPage: React.FC = () => {
 
   // Helper function to get instructor name
   const getInstructorName = (assignedInstructor: typeof batches[0]['assigned_instructor']): string | null => {
-    if (!assignedInstructor) return null;
+    console.log('🔍 getInstructorName called with:', {
+      assignedInstructor,
+      type: typeof assignedInstructor,
+      instructorsCount: instructors.length,
+      instructorIds: instructors.map(i => i._id)
+    });
     
-    // If it's an object with instructor details
+    if (!assignedInstructor) {
+      console.log('❌ No assigned instructor');
+      return null;
+    }
+    
+    // If it's an object with instructor details (populated from backend)
     if (typeof assignedInstructor === 'object' && assignedInstructor.full_name) {
+      console.log('✅ Found instructor object with full_name:', assignedInstructor.full_name);
       return assignedInstructor.full_name;
     }
     
-    // If it's a string ID, find in instructors array
+    // If it's a string ID (ObjectId from database), find in instructors array
     if (typeof assignedInstructor === 'string') {
-      return instructors.find(i => i._id === assignedInstructor)?.full_name || null;
+      console.log('🔍 Looking for instructor ID:', assignedInstructor);
+      const foundInstructor = instructors.find(i => i._id === assignedInstructor);
+      console.log('🔍 Found instructor:', foundInstructor);
+      const result = foundInstructor?.full_name || null;
+      console.log('🔍 Returning:', result);
+      return result;
     }
     
+    console.log('❌ No instructor found for:', assignedInstructor);
     return null;
   };
 
@@ -1911,7 +1969,7 @@ const BatchManagementPage: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <AnimatePresence>
-              {getFilteredBatches().map((batch) => {
+              {getFilteredBatches().map((batch, index) => {
                 const utilization = batchUtils.calculateBatchUtilization(
                   batch.enrolled_students, 
                   batch.capacity
@@ -1919,7 +1977,7 @@ const BatchManagementPage: React.FC = () => {
                 
                 return (
                   <motion.div
-                    key={batch._id}
+                    key={`${batch._id}-${index}`}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
@@ -2083,19 +2141,19 @@ const BatchManagementPage: React.FC = () => {
                             {batch.assigned_instructor ? (
                               <div className="space-y-1">
                                 <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                  {getInstructorName(batch.assigned_instructor)}
+                                  {getInstructorName(batch.assigned_instructor) || `Instructor ID: ${batch.assigned_instructor}`}
                                 </div>
-                                {isInstructorObject(batch.assigned_instructor) && (
+                                {getInstructorEmail(batch.assigned_instructor) && (
                                   <div className="text-xs text-gray-500 dark:text-gray-400">
-                                    {batch.assigned_instructor.email}
+                                    {getInstructorEmail(batch.assigned_instructor)}
                                   </div>
                                 )}
                               </div>
                             ) : (
                               <div className="space-y-1">
-                                <span className="text-sm text-red-500 dark:text-red-400 font-medium">Unassigned</span>
+                                <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">Instructor not assigned yet</span>
                                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                                  No instructor assigned
+                                  This batch needs an instructor to be assigned.
                                 </div>
                               </div>
                             )}
@@ -2277,7 +2335,7 @@ const BatchManagementPage: React.FC = () => {
                     Instructor Information
                   </h3>
                   <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                    {selectedBatch.assigned_instructor ? (
+                    {getInstructorName(selectedBatch.assigned_instructor) ? (
                       <div className="space-y-3">
                         <div className="flex items-center space-x-3">
                           <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
@@ -2318,7 +2376,7 @@ const BatchManagementPage: React.FC = () => {
                           <User className="h-5 w-5" />
                         </div>
                         <div>
-                          <p className="font-medium">No instructor assigned</p>
+                          <p className="font-medium">Instructor not assigned yet</p>
                           <p className="text-sm">This batch needs an instructor to be assigned.</p>
                         </div>
                       </div>
