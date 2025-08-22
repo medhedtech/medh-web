@@ -7,6 +7,8 @@
 3. **End-of-Life Node.js**: Node.js 18.x reached End-of-Life in April 2025
 4. **Inflexible Build Configuration**: Amplify build failed when exact version matching wasn't possible
 
+
+
 ## Fixes Applied
 
 ### 1. Updated Node.js Target Version

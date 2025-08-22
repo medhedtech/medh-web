@@ -1,6 +1,7 @@
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import { apiCache } from './cacheService';
+import { apiBaseUrl } from '../apis/config';
 
 /**
  * API client with enhanced features:
@@ -13,7 +14,7 @@ import { apiCache } from './cacheService';
 const createApiClient = () => {
   // Create axios instance with base config
   const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://api.medh.co/api/v1',
+    baseURL: apiBaseUrl,
     timeout: 15000,
     headers: {
       'Content-Type': 'application/json',

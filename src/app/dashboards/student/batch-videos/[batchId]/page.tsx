@@ -103,8 +103,8 @@ const BatchVideosPage: React.FC = () => {
         return;
       }
 
-      // Fetch batch videos for specific batch using test endpoint (temporary fix for authentication)
-      const response = await fetch(`http://localhost:8080/api/v1/batches/test-students/${studentId}/batch/${batchId}/recorded-lessons`, {
+      // Fetch batch videos for specific batch using Next.js API route
+      const response = await fetch(`/api/v1/batches/test-students/${studentId}/batch/${batchId}/recorded-lessons`, {
         headers: {
           'Content-Type': 'application/json'
         }

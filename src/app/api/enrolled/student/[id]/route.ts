@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiBaseUrl } from '@/apis/config';
 
 /**
  * GET handler to fetch enrolled courses for a student by ID
@@ -25,7 +26,7 @@ export async function GET(
     const limit = searchParams.get('limit') || '10';
     const status = searchParams.get('status') || '';
 
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.medh.co/api/v1';
+    const BASE_URL = apiBaseUrl;
     
     // Construct URL with query parameters
     const url = new URL(`${BASE_URL}/enrolled/student/${params.id}`);

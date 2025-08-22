@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { apiBaseUrl } from '@/apis/config';
 /**
  * GET handler to fetch a specific session by ID
  * @param request - The incoming request
@@ -12,7 +13,7 @@ export async function GET(
 ) {
   try {
     const sessionId = params.id;
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+    const BASE_URL = apiBaseUrl;
     
     // Fetch session data from backend
     const response = await fetch(`${BASE_URL}/live-classes/sessions/${sessionId}`, {
@@ -65,7 +66,7 @@ export async function PUT(
     const sessionId = params.id;
     const body = await request.json();
     
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+    const BASE_URL = apiBaseUrl;
     
     // Update session in backend
     const response = await fetch(`${BASE_URL}/live-classes/sessions/${sessionId}`, {
@@ -118,7 +119,7 @@ export async function DELETE(
   try {
     const sessionId = params.id;
     
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+    const BASE_URL = apiBaseUrl;
     
     // Delete session in backend
     const response = await fetch(`${BASE_URL}/live-classes/sessions/${sessionId}`, {
