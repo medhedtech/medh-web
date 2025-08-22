@@ -20,12 +20,12 @@ const getApiBaseUrl = (): string => {
 
   // Second priority: Environment-specific URLs
   if (process.env.NODE_ENV === 'production') {
-    return process.env.NEXT_PUBLIC_API_URL_PROD || 'https://api.medh.co/api/v1';
+    return process.env.NEXT_PUBLIC_API_URL_PROD || 'https://api.medh.co';
   } else if (process.env.NODE_ENV === 'test') {
-    return process.env.NEXT_PUBLIC_API_URL_TEST || 'https://api.medh.co/api/v1';
+    return process.env.NEXT_PUBLIC_API_URL_TEST || 'https://api.medh.co';
   } else {
-    // Development - use backend directly
-    return 'http://localhost:8080/api/v1';
+    // Development - use local backend directly
+    return process.env.NEXT_PUBLIC_API_URL_DEV || 'http://localhost:8080/api/v1';
   }
 };
 

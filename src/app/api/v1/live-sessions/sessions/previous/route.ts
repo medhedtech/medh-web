@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { apiBaseUrl } from '@/apis/config';
 /**
  * GET handler to fetch the previous session for a course category
  * @param request - The incoming request
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+    const BASE_URL = apiBaseUrl;
     
     // Build query parameters
     const params = new URLSearchParams();

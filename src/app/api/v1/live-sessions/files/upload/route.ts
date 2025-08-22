@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { apiBaseUrl } from '@/apis/config';
 /**
  * POST handler to upload files for live sessions
  * @param request - The incoming request
@@ -9,7 +10,7 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+    const BASE_URL = apiBaseUrl;
     
     // Upload file to backend
     const response = await fetch(`${BASE_URL}/live-classes/files/upload`, {

@@ -22,15 +22,8 @@ const getApiUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL;
   }
 
-  // Second priority: Environment-specific URLs
-  if (env === 'production') {
-    return process.env.NEXT_PUBLIC_API_URL_PROD || 'https://api.medh.co/api/v1';
-  } else if (env === 'test') {
-    return process.env.NEXT_PUBLIC_API_URL_TEST || 'http://localhost:8080/api/v1';
-  } else {
-    // Development is the default
-    return process.env.NEXT_PUBLIC_API_URL_DEV || 'http://localhost:8080/api/v1';
-  }
+  // Use the centralized configuration instead of duplicating logic
+  return apiBaseUrl;
 };
 
 const config: ApiConfigType = {

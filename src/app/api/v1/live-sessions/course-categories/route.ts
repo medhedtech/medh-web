@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { apiBaseUrl } from '@/apis/config';
 export async function GET(request: NextRequest) {
   try {
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+    const BASE_URL = apiBaseUrl;
     const response = await fetch(`${BASE_URL}/live-classes/course-categories`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
